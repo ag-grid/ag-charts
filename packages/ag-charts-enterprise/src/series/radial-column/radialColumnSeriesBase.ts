@@ -9,8 +9,9 @@ import {
     type FillStrokeMorph,
     type Normalised,
     type NormalisedRadialColumnSeriesBaseOwnOptions,
-    type NormalisedTextOrSegments,
+    type PlacedLabel,
     type Point,
+    type PolarLabelDatum,
     type RadialColumnShape,
     type RequireOptional,
     type Sector,
@@ -20,6 +21,9 @@ import {
     maxValue,
     minValue,
     normalizeAngle360,
+    placedPolarLabel,
+    polarLabelData,
+    writePlacedPolarLabels,
     zeroLike,
 } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -45,21 +49,14 @@ const {
     SeriesNodePickMode,
     motion,
     updateLabelNode,
+    expandLabelBoxExtent,
     getItemStyles,
 } = _ModuleSupport;
 
 type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph>;
 
-interface RadialColumnLabelNodeDatum {
-    x: number;
-    y: number;
-    text: NormalisedTextOrSegments;
-    textAlign: CanvasTextAlign;
-    textBaseline: CanvasTextBaseline;
-}
-
 export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
-    readonly label?: RadialColumnLabelNodeDatum;
+    readonly label?: PolarLabelDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
     readonly negative: boolean;
@@ -125,6 +122,7 @@ export abstract class RadialColumnSeriesBase<
             propertyKeys: DEFAULT_POLAR_DIRECTION_KEYS,
             propertyNames: DEFAULT_POLAR_DIRECTION_NAMES,
             canHaveAxes: true,
+            usesPlacedLabels: true,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 ...animationResetFns,
@@ -241,6 +239,8 @@ export abstract class RadialColumnSeriesBase<
     maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
+        // Bumps nodeDataVersion: labels anchor on the circle, so a new circle must re-solve them.
+        this.nodeDataRefresh = true;
         this.contextNodeData = this.createNodeData();
         this.nodeData = this.contextNodeData?.nodeData ?? [];
         this.nodeDataRefresh = false;
@@ -305,7 +305,7 @@ export abstract class RadialColumnSeriesBase<
             radiusDatum: AgNumericValue,
             x: number,
             y: number
-        ): RadialColumnLabelNodeDatum | undefined => {
+        ): PolarLabelDatum | undefined => {
             const labelText = this.getLabelText<AgRadialSeriesLabelFormatterParams>(
                 radiusDatum,
                 datum,
@@ -540,16 +540,34 @@ export abstract class RadialColumnSeriesBase<
         const highlightData = highlightDatum ? [highlightDatum] : [];
 
         this.labelSelection.update(this.nodeData).each((node, datum) => {
-            updateLabelNode(this, node, params, label, datum.label, { isHighlight: false, activeHighlight });
+            updateLabelNode(this, node, params, label, placedPolarLabel(datum.label), {
+                isHighlight: false,
+                activeHighlight,
+            });
             node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
 
         this.highlightLabelSelection
             .update(highlightData, undefined, (datum) => this.getDatumId(datum))
             .each((node, datum) => {
-                updateLabelNode(this, node, params, label, datum.label, { isHighlight: true, activeHighlight });
+                updateLabelNode(this, node, params, label, placedPolarLabel(datum.label), {
+                    isHighlight: true,
+                    activeHighlight,
+                });
                 node.fillOpacity = this.getHighlightStyle(true, datum.datumIndex).opacity ?? 1;
             });
+    }
+
+    override getLabelData() {
+        const { label } = this.options;
+        if (!label.enabled) return [];
+        const style = { font: label, boxPadding: expandLabelBoxExtent(label) };
+        return polarLabelData(this.nodeData, style, this.centerX, this.centerY);
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
+        writePlacedPolarLabels(this.nodeData, placed);
+        this.updateLabels();
     }
 
     protected abstract getColumnTransitionFunctions(): {

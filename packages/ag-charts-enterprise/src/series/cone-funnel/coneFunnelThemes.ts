@@ -12,6 +12,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
     themeLineHeight,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -45,7 +46,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
-        shadow: SHADOW_THEME_DEFAULTS,
+        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
         label: {
             ...LABEL_BOXING_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,

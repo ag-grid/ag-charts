@@ -130,8 +130,12 @@ export abstract class FlowProportionSeries<
 
     private processedNodes = new Map<string, FlowProportionNodeDatum<TNodeDatum, TLinkDatum>>();
 
-    private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup', batchShadows: true }));
-    private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup', batchShadows: true }));
+    private readonly linkGroup = this.contentGroup.appendChild(
+        new Group({ name: 'linkGroup', batchShadows: 'shared' })
+    );
+    private readonly nodeGroup = this.contentGroup.appendChild(
+        new Group({ name: 'nodeGroup', batchShadows: 'shared' })
+    );
     private readonly focusLinkGroup = this.highlightGroup.appendChild(
         new Group({ name: 'linkGroup', batchShadows: true })
     );

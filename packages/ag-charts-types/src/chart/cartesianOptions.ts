@@ -135,10 +135,10 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), but not on a non-breaking space (`\u00A0`).
      * - `'never'` disables text wrapping.
      *
-     * Default: `'on-space'`
+     * Default: `'on-space'` for category axes, `'never'` for all other axes
      */
     wrapping?: TextWrap;
     /**
@@ -175,7 +175,7 @@ export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> ex
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), but not on a non-breaking space (`\u00A0`).
      * - `'never'` disables text wrapping.
      *
      * Default: `'on-space'`
@@ -257,7 +257,7 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> e
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), but not on a non-breaking space (`\u00A0`).
      * - `'never'` disables text wrapping.
      *
      * Default: `'on-space'`

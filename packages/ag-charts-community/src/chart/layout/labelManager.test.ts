@@ -211,6 +211,23 @@ describe('LabelManager', () => {
         });
     });
 
+    describe('measuring', () => {
+        it('solves one source on its own, leaving the cached solve in place', () => {
+            const manager = new LabelManager();
+            // Both labels want the same spot, so the chart-wide solve drops the second.
+            const first = fakeSeries({ id: 'a', datums: [labelDatum(100, 100, 'first')] });
+            const second = fakeSeries({ id: 'b', datums: [labelDatum(100, 100, 'second')] });
+            manager.updateLabels([first, second], NO_PADDING, RECT);
+            expect(placedTexts(second)).toEqual([]);
+
+            expect(manager.measureLabels(second, RECT).map((label) => label.text)).toEqual(['second']);
+
+            manager.updateLabels([first, second], NO_PADDING, RECT);
+            expect(first.getLabelData).toHaveBeenCalledTimes(1);
+            expect(placedTexts(second)).toEqual([]);
+        });
+    });
+
     describe('registered sources', () => {
         function registered(id: string, datums: PointLabelDatum[] = [], obstacles?: LabelObstacle[]) {
             return fakeSeries({ id, datums, obstacles });

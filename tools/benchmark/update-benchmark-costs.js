@@ -5,15 +5,20 @@
  * Refresh benchmark-costs.json from a nightly's shard reports.
  *
  * benchmark-examples.js balances the CI shards with these costs. They go stale as examples change, so
- * refresh them from a recent `schedule` run of the Benchmark workflow:
+ * refresh them from recent `schedule` runs of the Benchmark workflow, one directory per run:
  *
- *   gh run download <run-id> --repo ag-grid/ag-charts --dir /tmp/nightly -p 'bench-results-*'
- *   node tools/benchmark/update-benchmark-costs.js /tmp/nightly
+ *   gh run download <run-id> --repo ag-grid/ag-charts --dir /tmp/nightly-1 -p 'bench-results-*'
+ *   gh run download <run-id> --repo ag-grid/ag-charts --dir /tmp/nightly-2 -p 'bench-results-*'
+ *   node tools/benchmark/update-benchmark-costs.js /tmp/nightly-1 /tmp/nightly-2 --source '<note>'
  *
- * An example's cost is the sum of its durationMs over every shard report in the directory (both sides,
- * every timing pass and the memory pass), in seconds. An example that errored or timed out in any
- * report keeps its previous cost, because the durations of a failed pass don't represent a healthy run;
- * so does an example the reports don't cover. Examples that no longer exist are dropped.
+ * `--costs <file>` writes to (and reads previous costs from) another table instead of benchmark-costs.json.
+ *
+ * A run's cost for an example is the sum of its durationMs over every shard report in that run's
+ * directory (both sides, every timing pass and the memory pass), in seconds. An example's cost is the
+ * mean of its per-run costs, so one noisy nightly doesn't skew the table. An example that errored or
+ * timed out in a run is left out of that run's mean, because the durations of a failed pass don't
+ * represent a healthy run. One that failed in every run keeps its previous cost, as does one the runs
+ * don't cover. Examples that no longer exist are dropped.
  */
 
 const fs = require('node:fs');
@@ -32,10 +37,10 @@ function findReports(dir) {
 }
 
 /**
- * Fold shard reports into per-example costs.
- * Returns { costs, failed } where `failed` lists the examples left out of `costs` because a pass failed.
+ * Fold one run's shard reports into per-example seconds.
+ * Returns { seconds, failed } where `failed` holds the examples left out of `seconds` because a pass failed.
  */
-function sumCosts(reports) {
+function sumSeconds(reports) {
     const totals = new Map();
     const failed = new Set();
     for (const report of reports) {
@@ -46,11 +51,38 @@ function sumCosts(reports) {
             totals.set(name, (totals.get(name) ?? 0) + (result.durationMs ?? 0) / 1000);
         }
     }
-    const costs = {};
-    for (const [name, seconds] of totals) {
-        if (!failed.has(name) && seconds > 0) {
-            costs[name] = Math.max(1, Math.round(seconds));
+    const seconds = new Map([...totals].filter(([name, total]) => !failed.has(name) && total > 0));
+    return { seconds, failed };
+}
+
+/** A cost is whole seconds, never zero, which loadCosts would reject. */
+const toCost = (seconds) => Math.max(1, Math.round(seconds));
+
+/**
+ * Fold one run's shard reports into per-example costs.
+ * Returns { costs, failed } where `failed` lists the examples left out of `costs` because a pass failed.
+ */
+function sumCosts(reports) {
+    return meanCosts([reports]);
+}
+
+/**
+ * Fold several runs (each an array of shard reports) into per-example costs: the mean of the per-run
+ * sums. An example that failed in a run is left out of that run's mean, and out of `costs` when it
+ * failed in every run it appeared in. `failed` lists the examples that failed in at least one run.
+ */
+function meanCosts(runs) {
+    const perRun = runs.map(sumSeconds);
+    const failed = new Set(perRun.flatMap((run) => [...run.failed]));
+    const samples = new Map();
+    for (const { seconds } of perRun) {
+        for (const [name, total] of seconds) {
+            samples.set(name, [...(samples.get(name) ?? []), total]);
         }
+    }
+    const costs = {};
+    for (const [name, totals] of samples) {
+        costs[name] = toCost(totals.reduce((sum, total) => sum + total, 0) / totals.length);
     }
     return { costs, failed: [...failed].sort() };
 }
@@ -67,29 +99,61 @@ function mergeCosts(previous, fresh, available) {
     return merged;
 }
 
-module.exports = { sumCosts, mergeCosts };
+const USAGE = 'Usage: update-benchmark-costs.js <directory of shard reports>... [--source <note>] [--costs <file>]';
+
+/**
+ * Split argv (without node and the script) into run directories and the value flags.
+ * Every argument that is not a flag or a flag's value is a run directory. Returns { error } when a flag has no
+ * value, a flag is unknown, or there is no run directory.
+ */
+function parseArgs(args) {
+    const flags = { '--source': undefined, '--costs': undefined };
+    const dirs = [];
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        if (!arg.startsWith('--')) {
+            dirs.push(arg);
+        } else if (arg in flags && args[i + 1] !== undefined) {
+            flags[arg] = args[++i];
+        } else {
+            return { error: USAGE };
+        }
+    }
+    if (dirs.length === 0) {
+        return { error: USAGE };
+    }
+    return { dirs, source: flags['--source'], costsPath: flags['--costs'] };
+}
+
+module.exports = { sumCosts, meanCosts, mergeCosts, parseArgs };
 
 if (require.main === module) {
-    const dir = process.argv[2];
-    if (!dir) {
-        console.error('Usage: update-benchmark-costs.js <directory of shard reports> [--source <note>]');
+    const { dirs, source: sourceArg, costsPath: costsArg, error } = parseArgs(process.argv.slice(2));
+    if (error) {
+        console.error(error);
         process.exit(1);
     }
-    const sourceIndex = process.argv.indexOf('--source');
-    const reports = findReports(path.resolve(dir)).map((file) => JSON.parse(fs.readFileSync(file, 'utf8')));
-    if (reports.length === 0) {
-        console.error(`No JSON reports found under ${dir}`);
-        process.exit(1);
-    }
+    const costsPath = costsArg === undefined ? COSTS_PATH : path.resolve(costsArg);
+    const runs = dirs.map((dir) => {
+        const reports = findReports(path.resolve(dir)).map((file) => JSON.parse(fs.readFileSync(file, 'utf8')));
+        if (reports.length === 0) {
+            console.error(`No JSON reports found under ${dir}`);
+            process.exit(1);
+        }
+        return reports;
+    });
 
-    const previous = JSON.parse(fs.readFileSync(COSTS_PATH, 'utf8'));
-    const { costs: fresh, failed } = sumCosts(reports);
+    const previous = JSON.parse(fs.readFileSync(costsPath, 'utf8'));
+
+    const { costs: fresh, failed } = meanCosts(runs);
     const available = discoverExamples();
     const costs = mergeCosts(previous.costs ?? {}, fresh, available);
 
     const uncovered = available.filter((name) => fresh[name] === undefined);
     if (failed.length > 0) {
-        console.warn(`Kept previous cost for example(s) that failed in the reports: ${failed.join(', ')}`);
+        console.warn(
+            `Example(s) that failed in at least one run were left out of that run's mean (previous cost kept if every run failed): ${failed.join(', ')}`
+        );
     }
     const stillMissing = uncovered.filter((name) => costs[name] === undefined);
     if (stillMissing.length > 0) {
@@ -98,8 +162,8 @@ if (require.main === module) {
         );
     }
 
-    const source = sourceIndex !== -1 ? process.argv[sourceIndex + 1] : previous.source;
+    const source = sourceArg ?? previous.source;
     const sorted = Object.fromEntries(Object.entries(costs).sort(([a], [b]) => (a < b ? -1 : 1)));
-    fs.writeFileSync(COSTS_PATH, JSON.stringify({ ...previous, source, costs: sorted }, null, 4) + '\n');
-    console.log(`Wrote ${Object.keys(sorted).length} cost(s) to ${COSTS_PATH}`);
+    fs.writeFileSync(costsPath, JSON.stringify({ ...previous, source, costs: sorted }, null, 4) + '\n');
+    console.log(`Wrote ${Object.keys(sorted).length} cost(s) to ${costsPath}`);
 }

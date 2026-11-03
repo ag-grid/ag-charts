@@ -18,12 +18,12 @@ import {
     fillImageDefaults,
     fillOptionsDef,
     fillPatternDefaults,
+    glowHighlightOptionsDef,
     lineDashOptionsDef,
     positiveNumber,
     ratio,
     required,
     seriesLabelOptionsDefs,
-    shadowHighlightOptionsDef,
     shadowOptionsDefs,
     shapeHighlightOptionsDef,
     string,
@@ -44,7 +44,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
         ...without(undocumentedLabelFitOptionsDefs, ['maxWidth']),
     },
     link: {
-        shadow: shadowOptionsDefs,
+        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
         tension: ratio,
         itemStyler: callbackDefs<AgChordSeriesLinkStyle>({
             ...fillOptionsDef,
@@ -57,7 +57,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
         ...lineDashOptionsDef,
     },
     node: {
-        shadow: shadowOptionsDefs,
+        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
         width: positiveNumber,
         spacing: positiveNumber,
         cornerRadius: positiveNumber,
@@ -73,7 +73,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
-    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
+    highlight: glowHighlightOptionsDef(shapeHighlightOptionsDef),
     ...undocumentedDefs({
         fillGradientDefaults: fillGradientDefaults,
         fillPatternDefaults: fillPatternDefaults,

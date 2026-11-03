@@ -11,7 +11,6 @@ import { communityModule } from '../module/moduleIdentity';
 import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
 import type { TransferableResources } from './chart';
-import { SeriesAreaModule } from './series-area/seriesAreaModule';
 import { StandaloneChart } from './standaloneChart';
 
 export const StandaloneChartModule: ChartModuleDefinition<WithoutModuleOwnedOptions<AgStandaloneChartOptions>> =
@@ -19,7 +18,6 @@ export const StandaloneChartModule: ChartModuleDefinition<WithoutModuleOwnedOpti
         type: 'chart',
         name: 'standalone',
         version: VERSION,
-        dependencies: [SeriesAreaModule],
 
         options: standaloneChartOptionsDefs,
 

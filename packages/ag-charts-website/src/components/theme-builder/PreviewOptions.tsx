@@ -120,6 +120,7 @@ const TypeItem = styled('span')`
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
 
     // Icon takes its size from this variable and has no default of its own, so
     // without it the svg falls back to the 32px it declares as an attribute.

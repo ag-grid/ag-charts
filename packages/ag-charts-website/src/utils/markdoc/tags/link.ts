@@ -19,11 +19,16 @@ export const link: Schema = {
         const nodeAttributes = node.transformAttributes(config);
         const hasCodeChild = node.children.some((child: { type: string }) => child.type === 'code');
 
+        // Links authored as './page' follow the visitor's framework; ones that name a framework in
+        // the path keep their destination. Mark the former so `FrameworkLinks` can retarget them.
+        const followsFramework = config.variables.markFrameworkLinks && nodeAttributes.href?.startsWith('./');
+
         const href = urlWithPrefix({ url: nodeAttributes.href, framework });
 
         const attributes = {
             ...nodeAttributes,
             href,
+            ...(followsFramework ? { 'data-framework-link': 'true' } : undefined),
             target: nodeAttributes.isExternal ? '_blank' : undefined,
             ...(hasCodeChild ? { class: 'meta-link' } : undefined),
         };

@@ -2,12 +2,7 @@ import type { IconName } from '@ag-website-shared/components/icon/Icon';
 import { type PersistentAtom, atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
 import { useAtom } from 'jotai';
 
-import type {
-    AgCartesianChartOptions,
-    AgCartesianSeriesOptions,
-    AgChartOptions,
-    AgContextMenuItem,
-} from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-community';
 
 import { type ChartFeatureId, type ChartFeatures, DEFAULT_CHART_FEATURES, isFeatureActive } from './chartFeatures';
 import {
@@ -58,7 +53,7 @@ export type PreviewChartType = {
     /** The datum whose tooltip is held open while the tooltip params are edited. */
     tooltipTarget?: PreviewTooltipTarget;
     /** The main preview: the full chart, titled and with a legend. */
-    buildOptions: (seriesCount: number, features: ChartFeatures, showZoomButtons?: boolean) => AgChartOptions;
+    buildOptions: (seriesCount: number, features: ChartFeatures) => AgChartOptions;
 };
 
 /**
@@ -99,13 +94,6 @@ const COMMON_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'legend', 'tooltip',
 /** Zoom, scrollbar and navigator are cartesian-only in AG Charts. */
 const CARTESIAN_FEATURES: ChartFeatureId[] = [...COMMON_FEATURES, 'crosshairs', 'zoom', 'scrollbar', 'navigator'];
 
-/** Stand-ins, so the menu has rows enough to show its hover, disabled and separator styles. */
-export const PREVIEW_MENU_EXTRA_ITEMS = [
-    { label: 'Copy Value' },
-    { label: 'Add Note' },
-    { label: 'Export Data', enabled: false },
-] satisfies AgContextMenuItem[];
-
 /**
  * AG Charts resolves a series' `strokeWidth` to zero unless the chart sets a
  * stroke of its own, so without this a palette carries a stroke per slot and
@@ -140,21 +128,18 @@ const cartesianAxes = (features: ChartFeatures) => {
 const commonOptions = (features: ChartFeatures) => ({
     legend: { ...LEGEND, enabled: isFeatureActive(features, 'legend') },
     tooltip: { enabled: isFeatureActive(features, 'tooltip') },
-    contextMenu: {
-        enabled: isFeatureActive(features, 'contextMenu'),
-        items: ['defaults', 'separator', ...PREVIEW_MENU_EXTRA_ITEMS] satisfies AgContextMenuItem[],
-    },
+    contextMenu: { enabled: isFeatureActive(features, 'contextMenu') },
 });
 
-/** `showZoomButtons` draws them without waiting for a hover. */
-const navigationOptions = (features: ChartFeatures, showZoomButtons?: boolean) => ({
-    zoom: {
-        enabled: isFeatureActive(features, 'zoom'),
-        ...(showZoomButtons && { buttons: { visible: 'always' as const } }),
-    },
-    scrollbar: { enabled: isFeatureActive(features, 'scrollbar') },
+const navigationOptions = (features: ChartFeatures) => ({
+    zoom: { enabled: isFeatureActive(features, 'zoom') },
+    // Always shown, as one appearing mid-drag resizes the chart under the navigator handle and the drag flickers.
+    scrollbar: { enabled: isFeatureActive(features, 'scrollbar'), visible: 'always' as const },
     navigator: { enabled: isFeatureActive(features, 'navigator') },
 });
+
+/** AG Charts shares the tooltip for only two or three series; past this count the rows outgrow the preview. */
+export const MAX_SHARED_TOOLTIP_SERIES = 8;
 
 /**
  * Shared scaffolding for the four cartesian variants. Typed as cartesian rather
@@ -164,7 +149,6 @@ const navigationOptions = (features: ChartFeatures, showZoomButtons?: boolean) =
 const cartesian = (
     seriesCount: number,
     features: ChartFeatures,
-    showZoomButtons: boolean | undefined,
     series: (key: string, name: string) => AgCartesianSeriesOptions
 ): AgCartesianChartOptions => ({
     data: PREVIEW_DATA,
@@ -175,8 +159,12 @@ const cartesian = (
         id: previewSeriesId(index),
     })),
     axes: cartesianAxes(features),
-    ...navigationOptions(features, showZoomButtons),
+    ...navigationOptions(features),
     ...commonOptions(features),
+    tooltip: {
+        ...commonOptions(features).tooltip,
+        mode: seriesCount <= MAX_SHARED_TOOLTIP_SERIES ? 'shared' : 'single',
+    },
 });
 
 export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
@@ -187,8 +175,8 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
         tooltipTarget: CARTESIAN_TOOLTIP_TARGET,
-        buildOptions: (count, features, showZoomButtons) =>
-            cartesian(count, features, showZoomButtons, (key, name) => ({
+        buildOptions: (count, features) =>
+            cartesian(count, features, (key, name) => ({
                 type: 'bar',
                 xKey: 'quarter',
                 yKey: key,
@@ -203,8 +191,8 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
         tooltipTarget: CARTESIAN_TOOLTIP_TARGET,
-        buildOptions: (count, features, showZoomButtons) =>
-            cartesian(count, features, showZoomButtons, (key, name) => ({
+        buildOptions: (count, features) =>
+            cartesian(count, features, (key, name) => ({
                 type: 'bar',
                 xKey: 'quarter',
                 yKey: key,
@@ -220,8 +208,8 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
         tooltipTarget: CARTESIAN_TOOLTIP_TARGET,
-        buildOptions: (count, features, showZoomButtons) =>
-            cartesian(count, features, showZoomButtons, (key, name) => ({
+        buildOptions: (count, features) =>
+            cartesian(count, features, (key, name) => ({
                 type: 'line',
                 xKey: 'quarter',
                 yKey: key,
@@ -236,8 +224,8 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         countLabel: 'Series',
         features: CARTESIAN_FEATURES,
         tooltipTarget: CARTESIAN_TOOLTIP_TARGET,
-        buildOptions: (count, features, showZoomButtons) =>
-            cartesian(count, features, showZoomButtons, (key, name) => ({
+        buildOptions: (count, features) =>
+            cartesian(count, features, (key, name) => ({
                 type: 'area',
                 xKey: 'quarter',
                 yKey: key,
@@ -282,7 +270,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
          */
         features: [...CARTESIAN_FEATURES.filter((id) => id !== 'seriesStrokes'), 'rangeButtons'],
         tooltipTarget: CANDLESTICK_TOOLTIP_TARGET,
-        buildOptions: (_count, features, showZoomButtons) => {
+        buildOptions: (_count, features) => {
             const crosshair = { enabled: isFeatureActive(features, 'crosshairs') };
             return {
                 data: CANDLESTICK_DATA,
@@ -303,7 +291,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                     x: { type: 'ordinal-time', position: 'bottom', crosshair },
                     y: { type: 'number', position: 'right', crosshair },
                 },
-                ...navigationOptions(features, showZoomButtons),
+                ...navigationOptions(features),
                 ranges: { enabled: isFeatureActive(features, 'rangeButtons') },
                 ...commonOptions(features),
             };

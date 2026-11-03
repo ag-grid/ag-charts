@@ -259,6 +259,26 @@ describe('formatTypeToCode', () => {
     });
 });
 
+describe('processMembers include ordering', () => {
+    const node = {
+        kind: 'interface' as const,
+        name: 'Holder',
+        members: [prop('a', 'string'), prop('b', 'string'), prop('c', 'string')],
+    };
+    const include = ['c', 'a'];
+
+    it('keeps declaration order by default', () => {
+        expect(processMembers(node as any, { include }).map(({ name }) => name)).toEqual(['a', 'c']);
+    });
+
+    it('follows the order of `include` when asked', () => {
+        expect(processMembers(node as any, { include, includeInOrder: true }).map(({ name }) => name)).toEqual([
+            'c',
+            'a',
+        ]);
+    });
+});
+
 describe('processMembers generic substitution', () => {
     const segmentationNode = {
         kind: 'interface' as const,

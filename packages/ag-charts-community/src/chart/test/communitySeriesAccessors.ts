@@ -104,11 +104,17 @@ export function getHistogramBins(chartOrProxy: ChartOrProxy<any>, index = 0): Hi
     return calculatedBins!;
 }
 
-/** Series options the series read but the public option types leave out: cross-filtering and null-key handling. */
+/**
+ * Series options the series read but the public option types leave out: cross-filtering, null-key handling, the
+ * gradient fill's `gradient` and `bounds`, and the `focusIndex` the series reject.
+ */
 export interface UndocumentedSeriesOptions {
     selectedKey?: string;
     yFilterKey?: string;
     allowNullKeys?: boolean;
+    gradient?: 'linear' | 'radial' | 'conic';
+    bounds?: 'axis' | 'item' | 'series';
+    focusIndex?: number;
 }
 
 /**
@@ -120,6 +126,19 @@ export function withUndocumentedOptions<TSeries extends object>(
     undocumented: UndocumentedSeriesOptions
 ): TSeries & UndocumentedSeriesOptions {
     return { ...series, ...undocumented };
+}
+
+/** Chart options the public option types leave out. */
+export interface UndocumentedChartOptions {
+    overrideDevicePixelRatio?: number;
+}
+
+/** The chart options with the undocumented ones added, as `withUndocumentedOptions` does for a series. */
+export function withUndocumentedChartOptions<TOptions extends object>(
+    options: TOptions,
+    undocumented: UndocumentedChartOptions
+): TOptions & UndocumentedChartOptions {
+    return { ...options, ...undocumented };
 }
 
 /**

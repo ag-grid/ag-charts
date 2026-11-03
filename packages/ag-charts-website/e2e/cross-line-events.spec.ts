@@ -128,10 +128,10 @@ const CONTEXT_MENU_ITEMS = `${CONTEXT_MENU}__item`;
 
 // Accessible text of the cross line proxies in the Cartesian context menu example.
 const FIRST_LOCKDOWN_TEXT =
-    'First lockdown, Mon Mar 23 2020 00:00:00 GMT+0000 (Coordinated Universal Time) - Mon Jun 01 2020 00:00:00 GMT+0000 (Coordinated Universal Time)';
-const ALPHA_VARIANT_TEXT = 'Alpha, Tue Dec 01 2020 00:00:00 GMT+0000 (Coordinated Universal Time)';
-const ICU_CAPACITY_TEXT = 'ICU capacity (700 beds), 700';
-const SURGE_ZONE_TEXT = 'Surge zone, 500 - 600';
+    'First lockdown, Mon Mar 23 2020 00:00:00 GMT+0000 (Coordinated Universal Time) - Mon Jun 01 2020 00:00:00 GMT+0000 (Coordinated Universal Time), Cross line 1 of 8';
+const ALPHA_VARIANT_TEXT = 'Alpha, Tue Dec 01 2020 00:00:00 GMT+0000 (Coordinated Universal Time), Cross line 4 of 8';
+const ICU_CAPACITY_TEXT = 'ICU capacity (700 beds), 700, Cross line 7 of 8';
+const SURGE_ZONE_TEXT = 'Surge zone, 500 - 600, Cross line 8 of 8';
 
 test.describe('cross-line-events', () => {
     setupIntrinsicAssertions(test);
@@ -278,7 +278,10 @@ test.describe('cross-line-events', () => {
 
             test('only clickable cross lines have a proxy', async ({ page }) => {
                 await expect(page.locator(CROSS_LINE_LIST)).toHaveAttribute('aria-label', 'Cross Lines');
-                await expect(page.locator(CROSS_LINE_PROXIES)).toHaveText(['Peak Season, Q2 - Q3', '5']);
+                await expect(page.locator(CROSS_LINE_PROXIES)).toHaveText([
+                    'Peak Season, Q2 - Q3, Cross line 1 of 2',
+                    '5, Cross line 2 of 2',
+                ]);
             });
 
             test('hovering a cross line still highlights the series node below it', async ({ page }) => {
@@ -309,7 +312,7 @@ test.describe('cross-line-events', () => {
                     });
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('Peak Season, Q2 - Q3');
+                    expect(await focusedText(page)).toBe('Peak Season, Q2 - Q3, Cross line 1 of 2');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -317,7 +320,7 @@ test.describe('cross-line-events', () => {
 
                 test('press Enter: textContent', async ({ page }) => {
                     await page.keyboard.press('Enter');
-                    expect(await focusedText(page)).toBe('Peak Season, Q2 - Q3');
+                    expect(await focusedText(page)).toBe('Peak Season, Q2 - Q3, Cross line 1 of 2');
                 });
                 test('press Enter: popEvents', async ({ page }) => {
                     await page.keyboard.press('Enter');
@@ -341,7 +344,7 @@ test.describe('cross-line-events', () => {
                     });
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('5');
+                    expect(await focusedText(page)).toBe('5, Cross line 2 of 2');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -357,7 +360,7 @@ test.describe('cross-line-events', () => {
                 // The threshold line is the last proxy, so focus stays on it.
                 test('press ArrowDown again: textContent', async ({ page }) => {
                     await page.keyboard.press('ArrowDown');
-                    expect(await focusedText(page)).toBe('5');
+                    expect(await focusedText(page)).toBe('5, Cross line 2 of 2');
                 });
             });
         });
@@ -371,10 +374,10 @@ test.describe('cross-line-events', () => {
 
             test('only clickable cross lines have a proxy', async ({ page }) => {
                 await expect(page.locator(CROSS_LINE_PROXIES)).toHaveText([
-                    'Peak Season, Mar - Apr',
-                    'Feb',
-                    '5',
-                    '7 - 8',
+                    'Peak Season, Mar - Apr, Cross line 1 of 4',
+                    'Feb, Cross line 2 of 4',
+                    '5, Cross line 3 of 4',
+                    '7 - 8, Cross line 4 of 4',
                 ]);
             });
 
@@ -397,7 +400,7 @@ test.describe('cross-line-events', () => {
                     await expectCanvasScreenshot(page, 'cross-line-keyboard-polar-circle-band.png');
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('Peak Season, Mar - Apr');
+                    expect(await focusedText(page)).toBe('Peak Season, Mar - Apr, Cross line 1 of 4');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -421,7 +424,7 @@ test.describe('cross-line-events', () => {
                     await expectCanvasScreenshot(page, 'cross-line-keyboard-polar-circle-spoke.png');
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('Feb');
+                    expect(await focusedText(page)).toBe('Feb, Cross line 2 of 4');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -445,7 +448,7 @@ test.describe('cross-line-events', () => {
                     await expectCanvasScreenshot(page, 'cross-line-keyboard-polar-circle-threshold.png');
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('5');
+                    expect(await focusedText(page)).toBe('5, Cross line 3 of 4');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -469,7 +472,7 @@ test.describe('cross-line-events', () => {
                     await expectCanvasScreenshot(page, 'cross-line-keyboard-polar-circle-ring.png');
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('7 - 8');
+                    expect(await focusedText(page)).toBe('7 - 8, Cross line 4 of 4');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -489,10 +492,10 @@ test.describe('cross-line-events', () => {
 
             test('only clickable cross lines have a proxy', async ({ page }) => {
                 await expect(page.locator(CROSS_LINE_PROXIES)).toHaveText([
-                    'Peak Season, Mar - Apr',
-                    'Feb',
-                    '5',
-                    '7 - 8',
+                    'Peak Season, Mar - Apr, Cross line 1 of 4',
+                    'Feb, Cross line 2 of 4',
+                    '5, Cross line 3 of 4',
+                    '7 - 8, Cross line 4 of 4',
                 ]);
             });
 
@@ -515,7 +518,7 @@ test.describe('cross-line-events', () => {
                     await expectCanvasScreenshot(page, 'cross-line-keyboard-polar-polygon-band.png');
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('Peak Season, Mar - Apr');
+                    expect(await focusedText(page)).toBe('Peak Season, Mar - Apr, Cross line 1 of 4');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -539,7 +542,7 @@ test.describe('cross-line-events', () => {
                     await expectCanvasScreenshot(page, 'cross-line-keyboard-polar-polygon-spoke.png');
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('Feb');
+                    expect(await focusedText(page)).toBe('Feb, Cross line 2 of 4');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -563,7 +566,7 @@ test.describe('cross-line-events', () => {
                     await expectCanvasScreenshot(page, 'cross-line-keyboard-polar-polygon-threshold.png');
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('5');
+                    expect(await focusedText(page)).toBe('5, Cross line 3 of 4');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -587,7 +590,7 @@ test.describe('cross-line-events', () => {
                     await expectCanvasScreenshot(page, 'cross-line-keyboard-polar-polygon-ring.png');
                 });
                 test('textContent', async ({ page }) => {
-                    expect(await focusedText(page)).toBe('7 - 8');
+                    expect(await focusedText(page)).toBe('7 - 8, Cross line 4 of 4');
                 });
                 test('popEvents', async ({ page }) => {
                     expect(await popEvents(page)).toEqual([]);
@@ -827,7 +830,7 @@ test.describe('cross-line-events', () => {
                 test.beforeEach(async ({ page }) => {
                     await page.keyboard.press('Tab'); // Update button -> series area
                     await page.keyboard.press('Tab'); // -> first cross line
-                    expect(await focusedText(page)).toBe('Q2 - Q3');
+                    expect(await focusedText(page)).toBe('Q2 - Q3, Cross line 1 of 4');
 
                     consoleLogs.clear();
                     await page.keyboard.press('ContextMenu');
@@ -857,7 +860,7 @@ test.describe('cross-line-events', () => {
                 });
                 test('press Escape: textContent', async ({ page }) => {
                     await page.keyboard.press('Escape');
-                    expect(await focusedText(page)).toBe('Q2 - Q3');
+                    expect(await focusedText(page)).toBe('Q2 - Q3, Cross line 1 of 4');
                 });
                 test('press ArrowDown, Enter: console', async ({ page }) => {
                     await page.keyboard.press('ArrowDown');
@@ -876,7 +879,7 @@ test.describe('cross-line-events', () => {
                     await page.keyboard.press('Tab'); // Update button -> series area
                     await page.keyboard.press('Tab'); // -> first cross line
                     await page.keyboard.press('ArrowDown');
-                    expect(await focusedText(page)).toBe('Q1');
+                    expect(await focusedText(page)).toBe('Q1, Cross line 2 of 4');
 
                     consoleLogs.clear();
                     await page.keyboard.press('ContextMenu');
@@ -906,7 +909,7 @@ test.describe('cross-line-events', () => {
                 });
                 test('press Escape: textContent', async ({ page }) => {
                     await page.keyboard.press('Escape');
-                    expect(await focusedText(page)).toBe('Q1');
+                    expect(await focusedText(page)).toBe('Q1, Cross line 2 of 4');
                 });
                 test('press ArrowDown, Enter: console', async ({ page }) => {
                     await page.keyboard.press('ArrowDown');
@@ -925,7 +928,7 @@ test.describe('cross-line-events', () => {
                     await page.keyboard.press('Tab'); // Update button -> series area
                     await page.keyboard.press('Tab'); // -> first cross line
                     await repeat(2, () => page.keyboard.press('ArrowDown'));
-                    expect(await focusedText(page)).toBe('5');
+                    expect(await focusedText(page)).toBe('5, Cross line 3 of 4');
 
                     consoleLogs.clear();
                     await page.keyboard.press('ContextMenu');
@@ -955,7 +958,7 @@ test.describe('cross-line-events', () => {
                 });
                 test('press Escape: textContent', async ({ page }) => {
                     await page.keyboard.press('Escape');
-                    expect(await focusedText(page)).toBe('5');
+                    expect(await focusedText(page)).toBe('5, Cross line 3 of 4');
                 });
                 test('press ArrowDown, Enter: console', async ({ page }) => {
                     await page.keyboard.press('ArrowDown');
@@ -974,7 +977,7 @@ test.describe('cross-line-events', () => {
                     await page.keyboard.press('Tab'); // Update button -> series area
                     await page.keyboard.press('Tab'); // -> first cross line
                     await repeat(3, () => page.keyboard.press('ArrowDown'));
-                    expect(await focusedText(page)).toBe('7 - 8');
+                    expect(await focusedText(page)).toBe('7 - 8, Cross line 4 of 4');
 
                     consoleLogs.clear();
                     await page.keyboard.press('ContextMenu');
@@ -1004,7 +1007,7 @@ test.describe('cross-line-events', () => {
                 });
                 test('press Escape: textContent', async ({ page }) => {
                     await page.keyboard.press('Escape');
-                    expect(await focusedText(page)).toBe('7 - 8');
+                    expect(await focusedText(page)).toBe('7 - 8, Cross line 4 of 4');
                 });
                 test('press ArrowDown, Enter: console', async ({ page }) => {
                     await page.keyboard.press('ArrowDown');
@@ -1029,7 +1032,7 @@ test.describe('cross-line-events', () => {
                 test.beforeEach(async ({ page }) => {
                     await page.keyboard.press('Tab'); // Update button -> series area
                     await page.keyboard.press('Tab'); // -> first cross line
-                    expect(await focusedText(page)).toBe('Q2 - Q3');
+                    expect(await focusedText(page)).toBe('Q2 - Q3, Cross line 1 of 4');
 
                     consoleLogs.clear();
                     await page.keyboard.press('ContextMenu');
@@ -1059,7 +1062,7 @@ test.describe('cross-line-events', () => {
                 });
                 test('press Escape: textContent', async ({ page }) => {
                     await page.keyboard.press('Escape');
-                    expect(await focusedText(page)).toBe('Q2 - Q3');
+                    expect(await focusedText(page)).toBe('Q2 - Q3, Cross line 1 of 4');
                 });
                 test('press ArrowDown, Enter: console', async ({ page }) => {
                     await page.keyboard.press('ArrowDown');
@@ -1078,7 +1081,7 @@ test.describe('cross-line-events', () => {
                     await page.keyboard.press('Tab'); // Update button -> series area
                     await page.keyboard.press('Tab'); // -> first cross line
                     await page.keyboard.press('ArrowDown');
-                    expect(await focusedText(page)).toBe('Q1');
+                    expect(await focusedText(page)).toBe('Q1, Cross line 2 of 4');
 
                     consoleLogs.clear();
                     await page.keyboard.press('ContextMenu');
@@ -1108,7 +1111,7 @@ test.describe('cross-line-events', () => {
                 });
                 test('press Escape: textContent', async ({ page }) => {
                     await page.keyboard.press('Escape');
-                    expect(await focusedText(page)).toBe('Q1');
+                    expect(await focusedText(page)).toBe('Q1, Cross line 2 of 4');
                 });
                 test('press ArrowDown, Enter: console', async ({ page }) => {
                     await page.keyboard.press('ArrowDown');
@@ -1127,7 +1130,7 @@ test.describe('cross-line-events', () => {
                     await page.keyboard.press('Tab'); // Update button -> series area
                     await page.keyboard.press('Tab'); // -> first cross line
                     await repeat(2, () => page.keyboard.press('ArrowDown'));
-                    expect(await focusedText(page)).toBe('5');
+                    expect(await focusedText(page)).toBe('5, Cross line 3 of 4');
 
                     consoleLogs.clear();
                     await page.keyboard.press('ContextMenu');
@@ -1157,7 +1160,7 @@ test.describe('cross-line-events', () => {
                 });
                 test('press Escape: textContent', async ({ page }) => {
                     await page.keyboard.press('Escape');
-                    expect(await focusedText(page)).toBe('5');
+                    expect(await focusedText(page)).toBe('5, Cross line 3 of 4');
                 });
                 test('press ArrowDown, Enter: console', async ({ page }) => {
                     await page.keyboard.press('ArrowDown');
@@ -1176,7 +1179,7 @@ test.describe('cross-line-events', () => {
                     await page.keyboard.press('Tab'); // Update button -> series area
                     await page.keyboard.press('Tab'); // -> first cross line
                     await repeat(3, () => page.keyboard.press('ArrowDown'));
-                    expect(await focusedText(page)).toBe('7 - 8');
+                    expect(await focusedText(page)).toBe('7 - 8, Cross line 4 of 4');
 
                     consoleLogs.clear();
                     await page.keyboard.press('ContextMenu');
@@ -1206,7 +1209,7 @@ test.describe('cross-line-events', () => {
                 });
                 test('press Escape: textContent', async ({ page }) => {
                     await page.keyboard.press('Escape');
-                    expect(await focusedText(page)).toBe('7 - 8');
+                    expect(await focusedText(page)).toBe('7 - 8, Cross line 4 of 4');
                 });
                 test('press ArrowDown, Enter: console', async ({ page }) => {
                     await page.keyboard.press('ArrowDown');
@@ -1235,7 +1238,7 @@ test.describe('cross-line-events', () => {
 
                 await page.keyboard.press('Tab'); // -> series area
                 await page.keyboard.press('Tab'); // -> first cross line
-                expect(await focusedText(page)).toBe('Q2 - Q3');
+                expect(await focusedText(page)).toBe('Q2 - Q3, Cross line 1 of 2');
             });
 
             test('clicking another cross line reports that cross line alone', async ({ page }) => {
@@ -1285,11 +1288,11 @@ test.describe('cross-line-events', () => {
             await page.keyboard.press('Tab'); // Update button -> series area
             await page.keyboard.press('Tab'); // -> first cross line
             await repeat(2, () => page.keyboard.press('ArrowDown'));
-            expect(await focusedText(page)).toBe('5');
+            expect(await focusedText(page)).toBe('5, Cross line 3 of 4');
 
             await evalPageFunction(page, 'moveThreshold'); // threshold: 5 -> 6
             await waitForChartUpdate(page.locator(SELECTORS.wrapper));
-            expect(await focusedText(page)).toBe('6');
+            expect(await focusedText(page)).toBe('6, Cross line 3 of 4');
         });
 
         test('press Enter reports the updated cross line', async ({ page }) => {

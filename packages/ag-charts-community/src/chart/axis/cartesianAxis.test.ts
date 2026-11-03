@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Transformable, axisLabelsOverlap, getDocument, rotatePoint } from 'ag-charts-core';
 import type {
@@ -7,6 +7,7 @@ import type {
     AgCartesianChartOptions,
     AgCategoryAxisOptions,
     AgChartInstance,
+    AgGroupedCategoryDepthOptions,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-types';
@@ -14,10 +15,12 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import {
     type AxisLabelNode,
+    findAxis,
     getAxisBandExtent,
     getAxisBandwidth,
     getAxisLabelNodes,
     getAxisLinePosition,
+    getAxisSizeLimit,
     getAxisTitleText,
     getLabelSegmentAlignments,
     getLabelText,
@@ -38,6 +41,7 @@ import {
     resizeChartContainer,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisPrimitiveDomainWalks,
     spyOnAxisTickLayout,
     waitForChartStability,
 } from '../test/utils';
@@ -1109,13 +1113,31 @@ describe('CartesianAxis', () => {
         const LONG_NO_SPACES = `test${'x'.repeat(50)}`;
         const LONG_WITH_SPACES = 'one two three four five six seven eight nine ten';
 
-        const leftCategoryOptions = (label: Record<string, unknown>, labels: string[]): AgCartesianChartOptions => ({
+        const leftCategoryOptions = (
+            label: Record<string, unknown>,
+            labels: string[],
+            thickness?: number
+        ): AgCartesianChartOptions => ({
             data: labels.map((category, i) => ({ category, value: i + 1 })),
             axes: {
-                x: { type: 'category', position: 'left', label },
+                x: { type: 'category', position: 'left', label, ...(thickness != null && { thickness }) },
                 y: { type: 'number', position: 'bottom' },
             },
             series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+        });
+
+        // `AgTimeAxisParentLevel.label` omits the fitting options, so the validation tests pass them through a
+        // `Record<string, unknown>` to assert the warning without casting.
+        const timeOptionsWithParentLevelLabel = (
+            parentLevelLabel: Record<string, unknown>,
+            label?: Record<string, unknown>
+        ): AgCartesianChartOptions => ({
+            data: TIME_DATA,
+            axes: {
+                x: { type: 'time', position: 'bottom', label, parentLevel: { enabled: true, label: parentLevelLabel } },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
         });
 
         const bottomCategoryOptions = (label: Record<string, unknown>, labels: string[]): AgCartesianChartOptions => ({
@@ -1127,14 +1149,8 @@ describe('CartesianAxis', () => {
             series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
         });
 
-        const getAxis = (position: string) => {
-            const axis = (deproxy(chart as any) as any).axes.find((a: any) => a.position === position);
-            expect(axis).toBeDefined();
-            return axis;
-        };
-
         const getAxisThickness = (position: string): number => {
-            const box = getAxis(position).getBBox();
+            const box = findAxis(chart, position).getBBox();
             return position === 'left' || position === 'right' ? box.width : box.height;
         };
 
@@ -1214,9 +1230,7 @@ describe('CartesianAxis', () => {
             );
 
             it('warns for maxWidth on a time axis parentLevel label', async () => {
-                const options = axisOptions.time();
-                (options.axes as any).x.parentLevel = { enabled: true, label: { maxWidth: 50 } };
-                await renderChart(options);
+                await renderChart(timeOptionsWithParentLevelLabel({ maxWidth: 50 }, { maxWidth: 50 }));
                 expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.maxWidth')]]);
             });
 
@@ -1347,8 +1361,9 @@ describe('CartesianAxis', () => {
             const groupedOptions = (
                 position: 'left' | 'bottom',
                 label: Record<string, unknown>,
-                depthOptions?: Record<string, unknown>[],
-                leaves = [LONG_WITH_SPACES, 'B', LONG_NO_SPACES]
+                depthOptions?: AgGroupedCategoryDepthOptions[],
+                leaves = [LONG_WITH_SPACES, 'B', LONG_NO_SPACES],
+                thickness?: number
             ): AgCartesianChartOptions => ({
                 data: [
                     { location: ['Northern Hemisphere Region', leaves[0]], value: 3 },
@@ -1356,7 +1371,13 @@ describe('CartesianAxis', () => {
                     { location: ['Southern Hemisphere Region', leaves[2]], value: 4 },
                 ],
                 axes: {
-                    x: { type: 'grouped-category', position, label, depthOptions } as any,
+                    x: {
+                        type: 'grouped-category',
+                        position,
+                        label,
+                        depthOptions,
+                        ...(thickness != null && { thickness }),
+                    },
                     y: { type: 'number', position: position === 'left' ? 'bottom' : 'left' },
                 },
                 series: [
@@ -1421,7 +1442,7 @@ describe('CartesianAxis', () => {
             it('fits every depth within the room the axis has', async () => {
                 const options = groupedOptions('left', { minimumFontSize: 4, wrapping: 'never' });
                 await renderChart(options, 400);
-                const { sizeLimit } = (deproxy(chart) as any).axes.find((a: any) => a.position === 'left').chartLayout;
+                const sizeLimit = getAxisSizeLimit(chart, 'left');
 
                 expect(getAxisThickness('left')).toBeLessThanOrEqual(sizeLimit + 1);
                 expect(getAxisLabelNodes(chart, 'left').some((n) => n.datum.fontSize < 12)).toBe(true);
@@ -1430,7 +1451,7 @@ describe('CartesianAxis', () => {
             it('counts the label spacing once when fitting to the room the axis has', async () => {
                 const label = { minimumFontSize: 4, wrapping: 'never', spacing: 40, rotation: 0 };
                 await renderChart(groupedOptions('left', label, [{}, { label: { spacing: 5 } }]), 400);
-                const { sizeLimit } = (deproxy(chart) as any).axes.find((a: any) => a.position === 'left').chartLayout;
+                const sizeLimit = getAxisSizeLimit(chart, 'left');
 
                 expect(getAxisThickness('left')).toBeLessThanOrEqual(sizeLimit + label.spacing + 1);
                 expect(getAxisThickness('left')).toBeGreaterThan(sizeLimit + label.spacing - 10);
@@ -1438,9 +1459,7 @@ describe('CartesianAxis', () => {
 
             it('keeps a rotated leaf label whole when its rotated extent fits the room', async () => {
                 const leaves = ['Cargo', 'Depot', 'Yard'];
-                const options = groupedOptions('left', { maxWidth: 100, rotation: 30 }, undefined, leaves);
-                (options.axes as any).x.thickness = 70;
-                await renderChart(options);
+                await renderChart(groupedOptions('left', { maxWidth: 100, rotation: 30 }, undefined, leaves, 70));
 
                 const texts = getAxisLabelNodes(chart, 'left').map(getLabelText);
                 expect(leaves.every((leaf) => texts.includes(leaf))).toBe(true);
@@ -1465,16 +1484,12 @@ describe('CartesianAxis', () => {
         describe('rotated labels', () => {
             it('keeps a rotated label whole when its rotated extent fits the room', async () => {
                 const labels = ['A', 'Cargo', 'Depot'];
-                const options = leftCategoryOptions({ maxWidth: 100, rotation: 30 }, labels);
-                (options.axes as any).x.thickness = 60;
-                await renderChart(options);
+                await renderChart(leftCategoryOptions({ maxWidth: 100, rotation: 30 }, labels, 60));
 
                 const nodes = getAxisLabelNodes(chart, 'left');
                 expect(nodes.map(getLabelText)).toEqual(labels);
                 for (const node of nodes) {
-                    expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(
-                        getAxis('left').chartLayout.sizeLimit
-                    );
+                    expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(getAxisSizeLimit(chart, 'left'));
                 }
             });
         });
@@ -1565,18 +1580,7 @@ describe('CartesianAxis', () => {
             });
 
             it('warns for minimumFontSize on a time axis parentLevel label', async () => {
-                await renderChart({
-                    data: TIME_DATA,
-                    axes: {
-                        x: {
-                            type: 'time',
-                            position: 'bottom',
-                            parentLevel: { enabled: true, label: { minimumFontSize: 8 } },
-                        } as any,
-                        y: { type: 'number', position: 'left' },
-                    },
-                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
-                });
+                await renderChart(timeOptionsWithParentLevelLabel({ minimumFontSize: 8 }));
                 expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.minimumFontSize')]]);
             });
         });
@@ -4179,6 +4183,96 @@ describe('CartesianAxis', () => {
 
             expect(xTickLayout).not.toHaveBeenCalled();
             await expectMatchesFresh({ axes: categoryAxes, data: categories(0, 8, alternating(1)) });
+        });
+
+        describe('primitive domain check', () => {
+            afterEach(() => {
+                vi.restoreAllMocks();
+            });
+
+            it('does not walk the domain of an axis whose tick layout depends on the data', async () => {
+                const timeAxes = {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                };
+                const data = (count: number) =>
+                    Array.from({ length: count }, (_, i) => ({ x: new Date(2020, 0, 1 + i), y: i }));
+                chart = await create({ axes: timeAxes, data: data(10) });
+                const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+                const domainWalks = spyOnAxisPrimitiveDomainWalks(chart);
+
+                await update({ data: data(11) });
+
+                expect(xTickLayout).toHaveBeenCalled();
+                expect(domainWalks.walks('bottom')).toBe(0);
+                // Anti-vacuous: the number y axis can retain its layout across data, so it does walk its domain.
+                expect(domainWalks.walks('left')).toBeGreaterThan(0);
+            });
+
+            it('walks each cached domain once, however many data updates reuse it', async () => {
+                chart = await create({ axes: categoryAxes, data: categories(0, 8, alternating(0)) });
+                const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+                const domainWalks = spyOnAxisPrimitiveDomainWalks(chart);
+
+                await update({ data: categories(0, 8, alternating(1)) });
+                const afterFirstUpdate = domainWalks.walks('bottom');
+                await update({ data: categories(0, 8, alternating(0)) });
+                await update({ data: categories(0, 8, alternating(1)) });
+
+                expect(xTickLayout).not.toHaveBeenCalled();
+                // Anti-vacuous: the first update must have walked, or the later counts say nothing about memoising.
+                expect(afterFirstUpdate).toBeGreaterThan(0);
+                expect(domainWalks.walks('bottom')).toBe(afterFirstUpdate);
+            });
+
+            it('does not walk the domain of a category axis that has a label formatter', async () => {
+                const axes = {
+                    x: { type: 'category', position: 'bottom', label: { formatter: ({ value }: any) => `${value}!` } },
+                    y: { type: 'number', position: 'left' },
+                };
+                chart = await create({ axes, data: categories(0, 8, alternating(0)) });
+                const domainWalks = spyOnAxisPrimitiveDomainWalks(chart);
+
+                await update({ data: categories(0, 8, alternating(1)) });
+
+                expect(domainWalks.walks('bottom')).toBe(0);
+                // Anti-vacuous: the y axis has no formatter and a stable layout, so it does walk its domain.
+                expect(domainWalks.walks('left')).toBeGreaterThan(0);
+            });
+
+            // A single in-place object among primitives is enough to make comparing by identity unsound.
+            it.each([
+                { name: 'only objects', objectAt: [0, 1, 2] },
+                { name: 'a single object after primitives', objectAt: [2] },
+                { name: 'a single object before primitives', objectAt: [0] },
+            ])('relabels on every update when the domain has $name mutated in place', async ({ objectAt }) => {
+                const items = [0, 1, 2].map((i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
+                const category = (i: number) => (objectAt.includes(i) ? items[i] : `Item ${i}`);
+                const data = () => [0, 1, 2].map((i) => ({ x: category(i), y: i }));
+                chart = await create({ axes: categoryAxes, data: data() });
+
+                for (const name of ['Renamed', 'Renamed again']) {
+                    items[objectAt[0]].name = name;
+                    await update({ data: data() });
+
+                    expect(getAxisTickLayoutLabelTexts(chart, 'bottom')[objectAt[0]]).toBe(name);
+                }
+            });
+
+            it('detects object categories that replace a primitive domain', async () => {
+                const items = [0, 1, 2].map((i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
+                chart = await create({ axes: categoryAxes, data: categories(0, 3, alternating(0)) });
+                // Let the primitive domain's cache entry be read once, so any stale answer would be remembered.
+                await update({ data: categories(0, 3, alternating(1)) });
+
+                await update({ data: items.map((item, i) => ({ x: item, y: i })) });
+                expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Item 1', 'Item 2']);
+
+                items[1].name = 'Renamed';
+                await update({ data: items.map((item, i) => ({ x: item, y: i })) });
+
+                expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Renamed', 'Item 2']);
+            });
         });
 
         it('follows a new category order', async () => {

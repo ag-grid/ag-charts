@@ -64,7 +64,7 @@ export class GradientLegend extends AbstractModuleInstance {
                     this.updateArrows(highlighted);
                 }
             }),
-            ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
+            ctx.layoutManager.registerElement(LayoutElement.GradientLegend, (e) => this.onStartLayout(e)),
             // Suppressed highlighting skips the series-update path, so nothing else flushes the highlight observer.
             ctx.eventsHub.on('highlight:change', (event) => {
                 if (event.highlightSuppressed) {

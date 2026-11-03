@@ -4,7 +4,14 @@ import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedChartLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
 import { type TextMeasurer, cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
-import { EllipsisChar, graphemeSegments, lineHeightAtSize, toFontString, toTextString } from '../text/textUtil';
+import {
+    appendEllipsis,
+    graphemeSegments,
+    lineHeightAtSize,
+    splitAtBreakSpaces,
+    toTextString,
+    trimBreakSpacesEnd,
+} from '../text/textUtil';
 import {
     type LabelFit,
     type RegionAlign,
@@ -156,6 +163,19 @@ export interface CandidateFitTarget {
     readonly padding: Required<PaddingOptions>;
     /** Font the text is fitted and measured with; defaults to the descriptor's own when unset. */
     readonly font?: FontOptions;
+    /**
+     * Fits and positions the text itself, for a shape whose room depends on where the block lands. The
+     * candidate is drawn where it says, aligned as {@link anchor} is; `undefined` turns the candidate away.
+     */
+    readonly place?: (fit: LabelFitDescriptor) => PlacedFit | undefined;
+}
+
+/** What a {@link CandidateFitTarget.place} fitted: the text, the point it is drawn at, and any reduced size. */
+export interface PlacedFit {
+    readonly text: NormalisedTextOrSegments;
+    readonly x: number;
+    readonly y: number;
+    readonly fontSize?: number;
 }
 
 /**
@@ -181,6 +201,8 @@ export interface PositionedLabelCandidate {
      * fallback that only overflows its {@link region}; when unset, all overflow ranks alike.
      */
     readonly visibleRegion?: BoxBounds;
+    /** Neither {@link region} nor the shared `bounds` contain the box: a label the series fixes in place wherever it lands. */
+    readonly unbounded?: boolean;
     /**
      * Axis the box may move a few pixels along to clear an obstacle without leaving the placement it names;
      * across any other axis it stays on its anchor. Unset moves along neither.
@@ -188,6 +210,8 @@ export interface PositionedLabelCandidate {
     readonly slideAxis?: 'x' | 'y';
     /** Render rotation in degrees (engine convention, matching {@link PlacedLabel.rotation}); `0`/unset is upright. */
     readonly rotation?: number;
+    /** Collides as its rotated rectangle rather than that rectangle's axis-aligned footprint. */
+    readonly orientedCollision?: boolean;
     /** Fit inputs for this candidate; used only when the datum carries a {@link PointLabelDatum.fit}. */
     readonly fitTo?: CandidateFitTarget;
     /**
@@ -804,7 +828,11 @@ const candidateContainer = { width: 0, height: 0 };
 // The datum's source text measured under one candidate font, keyed by that font, so the common case of one
 // font per datum measures once. The key is cleared at the start of each datum's cascade.
 const styledSource = { width: 0, height: 0 };
-let styledSourceFont = '';
+let styledSourceSize = Number.NaN;
+let styledSourceStyle: FontOptions['fontStyle'];
+let styledSourceWeight: FontOptions['fontWeight'];
+let styledSourceFamily: FontOptions['fontFamily'];
+let styledSourceLineHeight: FontOptions['lineHeight'];
 // Drawn-box centre of a positioned candidate whose box a re-fit resized.
 const boxCentre: Point = { x: 0, y: 0 };
 // Rotated axis-aligned footprint, written per candidate to keep the rotation loop allocation-free.
@@ -959,9 +987,10 @@ function obstacleOverlapsCandidateRect(o: LabelObstacle, testBox: BoxBounds): bo
     }
 }
 
-/** A label fitted inside its own shape collides by its rotated rectangle, not its wider axis-aligned box. */
+/** A rotated label fitted inside its own shape, or opting in, collides by its rotated rectangle, not its axis-aligned box. */
 function collidesByRotatedRect(candidate: PositionedLabelCandidate | undefined, rotation: number | undefined) {
-    return candidate?.fitTo?.shape != null && rotation != null && rotation % 90 !== 0;
+    if (rotation == null || rotation % 90 === 0) return false;
+    return candidate?.orientedCollision === true || candidate?.fitTo?.shape != null;
 }
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
@@ -1640,16 +1669,31 @@ function insideMarkerCandidateContainer(
     return candidateContainer;
 }
 
-/** The datum's source text measured under `font`, reused for as long as the candidate font is unchanged. */
+/** The datum's source text measured under `font`; compares fields, as this runs per candidate per trial. */
 function styledFitSource(fit: LabelFitDescriptor, font: FontOptions) {
-    const key = toFontString(font);
-    if (key !== styledSourceFont) {
+    const { fontSize, fontStyle, fontWeight, fontFamily, lineHeight } = font;
+    if (
+        fontSize !== styledSourceSize ||
+        fontStyle !== styledSourceStyle ||
+        fontWeight !== styledSourceWeight ||
+        fontFamily !== styledSourceFamily ||
+        lineHeight !== styledSourceLineHeight
+    ) {
         const { width, height } = measureLabelText(fit.text, font);
         styledSource.width = width;
         styledSource.height = height;
-        styledSourceFont = key;
+        styledSourceSize = fontSize;
+        styledSourceStyle = fontStyle;
+        styledSourceWeight = fontWeight;
+        styledSourceFamily = fontFamily;
+        styledSourceLineHeight = lineHeight;
     }
     return styledSource;
+}
+
+function resetStyledSource() {
+    // NaN matches no size, so the next lookup measures.
+    styledSourceSize = Number.NaN;
 }
 
 // Drawn-box size of the candidate being tested, written by `sizeCandidateLabel`. `width`/`height` are the
@@ -1850,9 +1894,9 @@ function widestWordWidth(lines: string[], wrapping: FitWrapping): number {
     const measurer = cascadeMeasurer!;
     let widest = 0;
     for (const line of lines) {
-        for (const unit of wrapping === 'never' ? [line.trimEnd()] : line.split(' ')) {
+        for (const unit of wrapping === 'never' ? [trimBreakSpacesEnd(line)] : splitAtBreakSpaces(line)) {
             if (unit !== '') {
-                widest = Math.max(widest, wordWidth(measurer, unit));
+                widest = Math.max(widest, measurer.textWidth(unit));
             }
         }
     }
@@ -1865,25 +1909,17 @@ function widestWordWidth(lines: string[], wrapping: FitWrapping): number {
  */
 function narrowestLeadWidth(lines: string[], wrapping: FitWrapping): number {
     const measurer = cascadeMeasurer!;
-    const ellipsisWidth = measurer.textWidth(EllipsisChar);
     let narrowest = Infinity;
     for (const line of lines) {
         // Only the line's leading word can survive a truncation, so the rest of the line is moot.
-        const lead = (wrapping === 'never' ? [line.trimEnd()] : line.split(' ')).find((unit) => unit !== '');
+        const lead = (wrapping === 'never' ? [trimBreakSpacesEnd(line)] : splitAtBreakSpaces(line)).find(
+            (unit) => unit !== ''
+        );
         if (lead == null) continue;
-        const first = measurer.textWidth(graphemeSegments(lead)[0]) + ellipsisWidth;
-        narrowest = Math.min(narrowest, wordWidth(measurer, lead), first);
+        const first = measurer.textWidth(appendEllipsis(graphemeSegments(lead)[0]));
+        narrowest = Math.min(narrowest, measurer.textWidth(lead), first);
     }
     return narrowest;
-}
-
-/** The smaller of a word's per-grapheme estimate and its measured width, as `textWrap` judges a fit. */
-function wordWidth(measurer: TextMeasurer, word: string): number {
-    let estimate = 0;
-    for (const grapheme of graphemeSegments(word)) {
-        estimate += measurer.textWidth(grapheme);
-    }
-    return Math.min(estimate, measurer.textWidth(word));
 }
 
 /**
@@ -2062,7 +2098,7 @@ function tryPlaceLabel(
         const placement = candidateAt(placements, d.placement, 0);
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = orientation == null ? 0 : orientationAngles[orientation];
-        styledSourceFont = '';
+        resetStyledSource();
         const style = resolveCandidateStyle?.(d, placement, orientation);
         if (style?.hidden === true) return undefined;
         if (!sizeCandidateLabel(d, style, placement, rotation, threshold, d.region, undefined)) return undefined;
@@ -2390,12 +2426,14 @@ function shrinkToClear(d: PointLabelDatum, pass: () => PlacedLabel | undefined):
         // and the ladder has to be walked down rather than bisected.
         return findLargestFontSizeDescending(floor, fontSize, function trialFontSize(size, atFloor) {
             candidateTrialFontSize = size;
+            trialFitCount = 0;
             if (atFloor) beginFloorFallback();
             return pass();
         });
     } finally {
         // A styler throwing mid-trial would otherwise leave every later label sized at the trial size.
         candidateTrialFontSize = undefined;
+        releaseTrialFits();
         endFloorFallback();
     }
 }
@@ -2435,7 +2473,7 @@ function placeAvoidingLabel(
     // label instead re-measures whenever its resolved font changes (see `styledFitSource`).
     const styled = resolveCandidateStyle != null;
     cascadeFitSource = fit == null || styled ? undefined : measureLabelText(fit.text, fit.font);
-    styledSourceFont = '';
+    resetStyledSource();
     cascadeMinRefitWidth = undefined;
     cascadeMeasurer = fit == null ? undefined : cachedTextMeasurer(fit.font);
     cascadeDatum = d;
@@ -2487,6 +2525,8 @@ let positionedResolve: PositionedCandidateResolver | undefined;
 let positionedFitSource: { width: number; height: number } | undefined;
 // A candidate turned away by an obstacle or its region: the only failure a smaller font can answer.
 let positionedBlocked = false;
+// Candidates (by index) whose text the fit erased at the configured size.
+const positionedFitFailed: boolean[] = [];
 // Glyph budget of a never-drop label's last resort: its container, at least one line tall at its floor size.
 const keptLineContainer = { width: 0, height: 0 };
 
@@ -2525,13 +2565,14 @@ function placeFromPositionedCandidates(
     // Measured once here rather than per candidate: every candidate refits the same source text. A
     // candidate carrying its own styled font re-measures under it instead (see `styledFitSource`).
     positionedFitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
-    styledSourceFont = '';
+    resetStyledSource();
     positionedDatum = d;
     positionedIndex = index;
     candidateLargestFontSize = 0;
     positionedBounds = bounds;
     positionedResolve = resolveCandidate;
     positionedBlocked = false;
+    positionedFitFailed.length = 0;
 
     const placed = positionedCandidatesPass();
     if (placed != null) return placed;
@@ -2555,6 +2596,9 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
     const trial = candidateTrialFontSize != null;
     const recordBest = !trial || floorRecordsKept;
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
+        // The configured-size fit also tried the floor, which no trial goes below, so a candidate it erased fits
+        // at no trial size: a fit only improves as the font shrinks. Plain text only (see where this is set).
+        if (trial && positionedFitFailed[ci] === true) continue;
         // Resolved here rather than when the list was built: the styler runs for the candidates the
         // cascade reaches and no others, so a fallback the label never needed never invokes it.
         const c = positionedResolve == null ? candidates[ci] : positionedResolve(d, candidates[ci]);
@@ -2574,7 +2618,18 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         candidateBox.height = c.box.height;
         candidateStack = undefined;
         let overflowing = false;
-        if (d.stack != null && fit != null && c.fitTo != null) {
+        let placedDX = 0;
+        let placedDY = 0;
+        if (fit != null && c.fitTo?.place != null) {
+            // The placer walks its own font sizes, so a trial size has nothing to add.
+            if (trial || !fitByPlacer(fit, c.fitTo.place)) continue;
+            ({ text, dropped, shrink } = fittedLabel);
+            writeCandidateLabel(c.fitTo.padding, fit.font);
+            ({ width, height } = candidateLabel);
+            resizeCandidateBox(c, width, height, placedFitPoint);
+            placedDX = placedFitPoint.x - c.fitTo.anchor.x;
+            placedDY = placedFitPoint.y - c.fitTo.anchor.y;
+        } else if (d.stack != null && fit != null && c.fitTo != null) {
             // A stack steps through its own sizes, so a trial size has nothing to add.
             if (trial || !fitStackToCandidate(d.stack, c.fitTo, threshold)) continue;
             ({ text, dropped, shrink } = fittedLabel);
@@ -2585,7 +2640,13 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         } else if (fit != null && c.fitTo != null) {
             const font = candidateFontAt(c.fitTo.font ?? fit.font);
             const source = c.fitTo.font == null && !trial ? positionedFitSource : styledFitSource(fit, font);
-            if (!fitPositionedCandidate(d, fit, c.fitTo, font, source, threshold)) continue;
+            if (!fitPositionedCandidate(d, fit, c.fitTo, font, source, threshold)) {
+                // Segments are not recorded: a segment with its own `minimumFontSize` is held at that size by the
+                // configured-size fit, but a trial fits it at the trial size, which can be smaller than anything
+                // that fit tried, so an erasure there does not carry over to the trials.
+                if (!trial && !isArray(fit.text)) positionedFitFailed[ci] = true;
+                continue;
+            }
             ({ text, dropped, shrink } = fittedLabel);
             writeCandidateLabel(c.fitTo.padding, font);
             ({ width, height } = candidateLabel);
@@ -2596,7 +2657,8 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         flushCandidateBox(rawRegion, c.region != null && c.flushToRegion !== false);
         let { x, y } = candidateBox;
         const { width: cw, height: ch } = candidateBox;
-        let { x: offsetX, y: offsetY } = flushOffset;
+        let offsetX = flushOffset.x + placedDX;
+        let offsetY = flushOffset.y + placedDY;
         inflateBoxInto(queryBox, candidateBox, inflate);
         const rotation = c.rotation ?? 0;
         candidateOriented = collidesByRotatedRect(c, rotation);
@@ -2604,7 +2666,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
             const grow = 2 * threshold;
             writeOrientedRect(candidateRect, x + cw / 2, y + ch / 2, width + grow, height + grow, rotation);
         }
-        const contained = boxContains(region, x, y, cw, ch);
+        const contained = c.unbounded === true || boxContains(region, x, y, cw, ch);
         // An overflowing stack ranks with the overflowing candidates, below any that fit truncated.
         const placeable = contained && !overflowing;
         let clear = placeable && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
@@ -2725,8 +2787,151 @@ function tryNudge(shift: number, region: BoxBounds, inflate: number): boolean {
     return false;
 }
 
+interface TrialFit {
+    fontSize: number;
+    fontStyle: FontOptions['fontStyle'];
+    fontWeight: FontOptions['fontWeight'];
+    fontFamily: FontOptions['fontFamily'];
+    lineHeight: number | undefined;
+    hasContainer: boolean;
+    containerWidth: number;
+    containerHeight: number;
+    ownShape: boolean;
+    shape: FitRegion | undefined;
+    shapeAlign: RegionAlign | undefined;
+    fitted: boolean;
+    text: NormalisedTextOrSegments;
+    width: number;
+    height: number;
+    dropped: number;
+    shrink: number;
+    sizedTo: number | undefined;
+    maxWidth: number;
+    maxHeight: number;
+}
+
+// Fits at the current trial size, so candidates sharing a fit target are fitted once. Keyed by font, container
+// and shape: the datum, fit policy and threshold are fixed within a ladder, and a trial's source measurement is
+// `styledFitSource(fit, font)`, which the font already determines.
+const trialFits: TrialFit[] = [];
+let trialFitCount = 0;
+
+/** Empties the cache, dropping every pooled entry's reference to the ladder's text and shape. */
+function releaseTrialFits() {
+    for (let i = 0; i < trialFits.length; i++) {
+        const t = trialFits[i];
+        t.text = '';
+        t.shape = undefined;
+    }
+    trialFitCount = 0;
+}
+
+function newTrialFit(): TrialFit {
+    return {
+        fontSize: 0,
+        fontStyle: undefined,
+        fontWeight: undefined,
+        fontFamily: undefined,
+        lineHeight: undefined,
+        hasContainer: false,
+        containerWidth: 0,
+        containerHeight: 0,
+        ownShape: true,
+        shape: undefined,
+        shapeAlign: undefined,
+        fitted: false,
+        text: '',
+        width: 0,
+        height: 0,
+        dropped: 0,
+        shrink: 0,
+        sizedTo: undefined,
+        maxWidth: Infinity,
+        maxHeight: Infinity,
+    };
+}
+
+function findTrialFit(font: FontOptions, fitTo: CandidateFitTarget): TrialFit | undefined {
+    const { container, shape, shapeAlign } = fitTo;
+    const ownShape = fitTo.ownShape !== false;
+    for (let i = 0; i < trialFitCount; i++) {
+        const t = trialFits[i];
+        if (
+            t.fontSize === font.fontSize &&
+            t.fontFamily === font.fontFamily &&
+            t.fontWeight === font.fontWeight &&
+            t.fontStyle === font.fontStyle &&
+            t.lineHeight === font.lineHeight &&
+            t.hasContainer === (container != null) &&
+            t.containerWidth === (container?.width ?? 0) &&
+            t.containerHeight === (container?.height ?? 0) &&
+            t.ownShape === ownShape &&
+            t.shape === shape &&
+            t.shapeAlign === shapeAlign
+        ) {
+            return t;
+        }
+    }
+    return undefined;
+}
+
+function storeTrialFit(font: FontOptions, fitTo: CandidateFitTarget, fitted: boolean) {
+    const { container } = fitTo;
+    let t = trialFits[trialFitCount++];
+    if (t == null) {
+        t = newTrialFit();
+        trialFits.push(t);
+    }
+    t.fontSize = font.fontSize;
+    t.fontStyle = font.fontStyle;
+    t.fontWeight = font.fontWeight;
+    t.fontFamily = font.fontFamily;
+    t.lineHeight = font.lineHeight;
+    t.hasContainer = container != null;
+    t.containerWidth = container?.width ?? 0;
+    t.containerHeight = container?.height ?? 0;
+    t.ownShape = fitTo.ownShape !== false;
+    t.shape = fitTo.shape;
+    t.shapeAlign = fitTo.shapeAlign;
+    t.fitted = fitted;
+    t.text = fittedLabel.text;
+    t.width = fittedLabel.width;
+    t.height = fittedLabel.height;
+    t.dropped = fittedLabel.dropped;
+    t.shrink = fittedLabel.shrink;
+    t.sizedTo = fittedLabel.fontSize;
+    t.maxWidth = fittedLabel.maxWidth;
+    t.maxHeight = fittedLabel.maxHeight;
+}
+
 /** Fits into {@link fittedLabel}; `false` when nothing is left to draw, after a never-drop label's floor fallback. */
 function fitPositionedCandidate(
+    d: PointLabelDatum,
+    fit: LabelFitDescriptor,
+    fitTo: CandidateFitTarget,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined,
+    threshold: number
+): boolean {
+    if (candidateTrialFontSize == null) return fitPositionedCandidateAt(d, fit, fitTo, font, source, threshold);
+    const hit = findTrialFit(font, fitTo);
+    if (hit == null) {
+        const fitted = fitPositionedCandidateAt(d, fit, fitTo, font, source, threshold);
+        storeTrialFit(font, fitTo, fitted);
+        return fitted;
+    }
+    fittedLabel.text = hit.text;
+    fittedLabel.width = hit.width;
+    fittedLabel.height = hit.height;
+    fittedLabel.dropped = hit.dropped;
+    fittedLabel.shrink = hit.shrink;
+    fittedLabel.fontSize = hit.sizedTo;
+    fittedLabel.maxWidth = hit.maxWidth;
+    fittedLabel.maxHeight = hit.maxHeight;
+    return hit.fitted;
+}
+
+function fitPositionedCandidateAt(
     d: PointLabelDatum,
     fit: LabelFitDescriptor,
     fitTo: CandidateFitTarget,
@@ -2771,22 +2976,16 @@ function fitKeptAtFloor(fit: LabelFitDescriptor, floorFont: FontOptions): boolea
     return fitLabelToCandidate(fit, floorFont, undefined, keptLineContainer, false) && hasRealChars(fittedLabel.text);
 }
 
-/**
- * Width of the text's first character followed by an ellipsis, in the font that character is drawn in. Each is
- * measured on its own, as truncation budgets them.
- */
+/** Width of the text's first character drawn with an ellipsis, in the font that character is drawn in. */
 function leadCharacterWidth(text: NormalisedTextOrSegments, font: FontOptions): number {
     if (!isArray(text)) {
         const lead = leadCharacter(toTextString(text));
-        return lead == null ? 0 : measureLabelText(lead, font).width + measureLabelText(EllipsisChar, font).width;
+        return lead == null ? 0 : measureLabelText(appendEllipsis(lead), font).width;
     }
     for (const segment of text) {
         if (segment.type === 'image') continue;
         const lead = leadCharacter(toTextString(segment.text));
-        if (lead != null) {
-            const leadWidth = measureLabelText([{ ...segment, text: lead }], font).width;
-            return leadWidth + measureLabelText([{ ...segment, text: EllipsisChar }], font).width;
-        }
+        if (lead != null) return measureLabelText([{ ...segment, text: appendEllipsis(lead) }], font).width;
     }
     return 0;
 }
@@ -2816,10 +3015,46 @@ function fitStackToCandidate(stack: LabelStack, fitTo: CandidateFitTarget, thres
     return true;
 }
 
-/** Rebuilds {@link candidateBox} as the rotated footprint of a re-fitted box, recentred on its anchor. */
-function resizeCandidateBox(c: PositionedLabelCandidate, boxWidth: number, boxHeight: number) {
+// Where the current candidate's placer drew its text, and that point carrying the candidate's alignment.
+const placedFitPoint: Point = { x: 0, y: 0 };
+const placedFitAnchor: { x: number; y: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline } = {
+    x: 0,
+    y: 0,
+    textAlign: 'center',
+    textBaseline: 'middle',
+};
+
+/** Fits into {@link fittedLabel} through the candidate's own placer; `false` when it turned the candidate away. */
+function fitByPlacer(fit: LabelFitDescriptor, place: (fit: LabelFitDescriptor) => PlacedFit | undefined): boolean {
+    const placed = place(fit);
+    if (placed == null || isErased(placed.text)) return false;
+    const size = measureLabelText(placed.text, fontWithSize(fit.font, placed.fontSize));
+    fittedLabel.text = placed.text;
+    fittedLabel.width = size.width;
+    fittedLabel.height = size.height;
+    fittedLabel.dropped = Math.max(0, textLength(fit.text) - textLength(placed.text));
+    fittedLabel.shrink = shrinkRatio(size, positionedFitSource ?? measureLabelText(fit.text, fit.font));
+    fittedLabel.fontSize = placed.fontSize;
+    fittedLabel.maxWidth = Infinity;
+    fittedLabel.maxHeight = Infinity;
+    placedFitPoint.x = placed.x;
+    placedFitPoint.y = placed.y;
+    return true;
+}
+
+/**
+ * Rebuilds {@link candidateBox} as the rotated footprint of a re-fitted box, recentred on its anchor, or on
+ * `at` aligned as the anchor is when the candidate's placer moved it.
+ */
+function resizeCandidateBox(c: PositionedLabelCandidate, boxWidth: number, boxHeight: number, at?: Point) {
     const { anchor, padding, centreFor } = c.fitTo!;
-    if (centreFor == null) {
+    if (at != null) {
+        placedFitAnchor.x = at.x;
+        placedFitAnchor.y = at.y;
+        placedFitAnchor.textAlign = anchor.textAlign;
+        placedFitAnchor.textBaseline = anchor.textBaseline;
+        writeLabelBoxCentre(boxCentre, placedFitAnchor, boxWidth, boxHeight, padding);
+    } else if (centreFor == null) {
         writeLabelBoxCentre(boxCentre, anchor, boxWidth, boxHeight, padding);
     } else {
         const centre = centreFor(boxWidth, boxHeight);

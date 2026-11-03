@@ -197,7 +197,7 @@ import { AgCharts } from 'ag-charts-vue3';
 {% /if %}
 
 {% if isFramework("javascript") %}
-To use AG Charts Community features, import them from the `ag-charts-community` package, e.g:
+To use AG Charts Community features, import them from the `ag-charts-community` package, for example:
 
 ```js
 import { AgCharts } from 'ag-charts-community';
@@ -243,7 +243,7 @@ const MyChart = () => {
 
 {% if isFramework("angular") %}
 
-To use AG Charts in your Angular application, return the `ag-charts` component with your chart options:
+To use AG Charts in your Angular application, use the `ag-charts` component in your template with your chart options:
 
 ```ts
 @Component({
@@ -264,20 +264,29 @@ export class AppComponent {
 {% /if %}
 
 {% if isFramework("vue") %}
-To use AG Charts in your Vue application, return the `ag-charts` component with your chart options:
+To use AG Charts in your Vue application, use the `ag-charts` component in your template with your chart options:
 
 ```html
 <template>
-    <!-- The AG Charts component with chartsOptions as an attribute -->
+    <!-- The AG Charts component with options as an attribute -->
     <ag-charts :options="options"> </ag-charts>
 </template>
 
-<script>
-    setup() {
-      return {
-        ref<AgChartOptions>({/*...*/}),
-      };
-    },
+<script lang="ts">
+    import { AgCharts } from 'ag-charts-vue3';
+    import type { AgChartOptions } from 'ag-charts-community';
+    import { defineComponent, ref } from 'vue';
+
+    export default defineComponent({
+        name: 'App',
+        components: {
+            'ag-charts': AgCharts,
+        },
+        setup() {
+            const options = ref<AgChartOptions>({/*...*/});
+            return { options };
+        },
+    });
 </script>
 ```
 
@@ -301,13 +310,13 @@ const chart = AgCharts.create(options);
 
 ## CDN Installation
 
-To install AG Charts Community, include the following script tags in your HTML file:
+To install AG Charts Community, include the following script tag in your HTML file:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/ag-charts-community@{% chartsVersionPatch() %}/dist/umd/ag-charts-community.min.js"></script>
 ```
 
-To install AG Charts Enterprise, include the following script tags in your HTML file:
+To install AG Charts Enterprise, include the following script tag in your HTML file:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/ag-charts-enterprise@{% chartsVersionPatch() %}/dist/umd/ag-charts-enterprise.min.js"></script>

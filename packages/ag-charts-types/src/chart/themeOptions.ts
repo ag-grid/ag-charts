@@ -92,7 +92,11 @@ export interface AgChartThemePalette {
 export interface AgBaseChartThemeOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: AgChartThemePalette;
-    /** Global parameters to set styles across the whole chart. */
+    /**
+     * Global parameters to set styles across the whole chart.
+     *
+     * See: [Theme Parameters Reference](/theme-parameters-api/)
+     */
     params?: AgChartThemeParams;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
     overrides?: AgThemeOverrides<TDatum, TContext>;
@@ -387,7 +391,6 @@ export type AgBaseGaugePresetThemeOptions<TDatum = DatumDefault, TContext = Cont
     | 'background'
     | 'contextMenu'
     | 'context'
-    | 'enableShadowDom'
     | 'footnote'
     | 'height'
     | 'listeners'

@@ -183,6 +183,53 @@ export function forceLtrNumbersIn(text: string, paragraphIsRtl: boolean): string
     return paragraphIsRtl || StrongRtlRegex.test(text) ? forceLtrNumbers(text) : text;
 }
 
+// Where `white-space: pre-wrap` may break a line; the no-break spaces (U+00A0, U+2007, U+202F) are not.
+const BreakSpacesRegex = /[\t \u1680\u2000-\u2006\u2008-\u200A\u200B\u205F\u3000]+/;
+
+export function isBreakSpace(grapheme: string | undefined) {
+    if (grapheme?.length !== 1) return false;
+    // OPTIMIZATION: runs per grapheme while wrapping, so compares char codes rather than testing BreakSpacesRegex.
+    const code = grapheme.charCodeAt(0);
+    return (
+        code === 0x20 ||
+        code === 0x09 ||
+        (code >= 0x2000 && code <= 0x200b && code !== 0x2007) ||
+        code === 0x1680 ||
+        code === 0x205f ||
+        code === 0x3000
+    );
+}
+
+export function splitAtBreakSpaces(text: string) {
+    return text.split(BreakSpacesRegex);
+}
+
+export function indexOfBreakSpace(text: string, from = 0) {
+    for (let i = from; i < text.length; i++) {
+        if (isBreakSpace(text[i])) return i;
+    }
+    return -1;
+}
+
+export function lastIndexOfBreakSpace(text: string) {
+    for (let i = text.length - 1; i >= 0; i--) {
+        if (isBreakSpace(text[i])) return i;
+    }
+    return -1;
+}
+
+export function trimBreakSpacesStart(text: string) {
+    let start = 0;
+    while (isBreakSpace(text[start])) start++;
+    return text.slice(start);
+}
+
+export function trimBreakSpacesEnd(text: string) {
+    let end = text.length;
+    while (isBreakSpace(text[end - 1])) end--;
+    return text.slice(0, end);
+}
+
 export function guardTextEdges(str: string) {
     return TrimEdgeGuard + str + TrimEdgeGuard;
 }

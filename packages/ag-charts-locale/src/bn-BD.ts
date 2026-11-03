@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_BN_BD: Record<string, string> = {
     ariaLabelColorPickerHue: 'হিউ',
     ariaLabelColorPickerMultiColor: 'বহু রঙ',
     ariaLabelColorPickerPalette: 'প্যালেট',
+    ariaLabelCrossLine: '${label}, ক্রস লাইন ${count}[number]টির মধ্যে ${index}[number] নম্বর',
     ariaLabelFinancialCharts: 'আর্থিক চার্ট',
     ariaLabelGaugeTarget: 'লক্ষ্য',
     ariaLabelGaugeValue: 'মান',

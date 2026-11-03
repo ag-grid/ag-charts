@@ -9,12 +9,17 @@ import {
     deproxy,
     expectNonBlank,
     extractImageData,
-    getLegendModule,
+    getLegendItemNodes,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
+import {
+    destroyChart,
+    getLegendHighlightCallerIds,
+    getLegendItemTranslationX,
+} from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart } from '../../test/utils';
 import { data as heatmapData } from './map-layering-fixtures/heatmap-floating/data';
 import { topology as heatmapTopology } from './map-layering-fixtures/heatmap-floating/topology';
@@ -110,13 +115,10 @@ const HEATMAP_FLOATING_EXAMPLE: AgChartOptions = {
 
 describe('Map layering', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: Chart;
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -138,11 +140,10 @@ describe('Map layering', () => {
     // Locate a legend item by its label text and click its centre, driving the full
     // legend-click pipeline (which re-renders), rather than poking series state directly.
     const clickLegendItem = async (label: string) => {
-        const items = getLegendModule(chart as Chart).itemSelection.nodes();
-        const item = items.find((node) => (node.datum as any)?.label?.text === label);
+        const item = getLegendItemNodes(chart).find((node) => node.label.text === label);
         expect(item, `legend item '${label}'`).toBeDefined();
-        const legendBBox = computeLegendBBox(chart as Chart);
-        const x = legendBBox.x + (item as any).translationX + 5;
+        const legendBBox = computeLegendBBox(chart);
+        const x = legendBBox.x + getLegendItemTranslationX(item!) + 5;
         const y = legendBBox.y + legendBBox.height / 2;
         await clickAction(x, y)(chart);
         await waitForChartStability(chart);
@@ -151,8 +152,8 @@ describe('Map layering', () => {
     // Re-enabling a layer via a legend click leaves a highlight on the item; clear it so the
     // restored render matches the pristine composed layout.
     const clearLegendHighlight = async () => {
-        for (const { legend } of (chart as Chart).modulesManager.legends()) {
-            (chart as Chart).ctx.highlightManager.updateHighlight((legend as any).id);
+        for (const legendId of getLegendHighlightCallerIds(chart)) {
+            chart.ctx.highlightManager.updateHighlight(legendId);
         }
         await waitForChartStability(chart);
     };
@@ -163,7 +164,7 @@ describe('Map layering', () => {
             chart = deproxy(await createEnterpriseChart(options));
 
             // One legend entry per layer confirms the three series are laid out together.
-            const legendItems = getLegendModule(chart as Chart).itemSelection.nodes();
+            const legendItems = getLegendItemNodes(chart);
             expect(legendItems).toHaveLength(3);
 
             await compare();
@@ -178,7 +179,7 @@ describe('Map layering', () => {
         ])('toggling the $label legend entry hides and restores only series[$index]', async ({ label, index }) => {
             const options: AgChartOptions = { ...ROUTING_EXAMPLE };
             chart = deproxy(await createEnterpriseChart(options));
-            expect(chart.series.every((series: any) => series.visible)).toBe(true);
+            expect(chart.series.every((series) => series.visible)).toBe(true);
 
             const composed = ctx.snapshot();
 
@@ -191,7 +192,7 @@ describe('Map layering', () => {
             expect(imagesDiffer(composed, ctx.snapshot())).toBe(true);
 
             await clickLegendItem(label);
-            expect(chart.series.every((series: any) => series.visible)).toBe(true);
+            expect(chart.series.every((series) => series.visible)).toBe(true);
             await clearLegendHighlight();
             // Restoring returns to the exact composed layout.
             expect(imagesDiffer(composed, ctx.snapshot())).toBe(false);
@@ -213,8 +214,8 @@ describe('Map layering', () => {
             chart = deproxy(await createEnterpriseChart(options));
 
             // The floating gradient legend is present and both layers are laid out.
-            expect((chart as Chart).modulesManager.getModule('gradientLegend')).toBeDefined();
-            expect((chart as Chart).series).toHaveLength(2);
+            expect(chart.modulesManager.getModule('gradientLegend')).toBeDefined();
+            expect(chart.series).toHaveLength(2);
 
             await compare();
         });

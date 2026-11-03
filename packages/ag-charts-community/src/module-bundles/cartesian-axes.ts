@@ -7,6 +7,7 @@ import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
 import { TimeAxisModule } from '../module/axis-modules/timeAxisModule';
 import { UnitTimeAxisModule } from '../module/axis-modules/unitTimeAxisModule';
 
+/** @deprecated v14.3.0 Register `AllCommunityModule`, or the individual modules you need. */
 export const AllCartesianAxesModule: ModuleDefinition[] = [
     NumberAxisModule,
     LogAxisModule,

@@ -136,6 +136,11 @@ class InternalMarker<D = any> extends Path<D> {
         this._sharedPath = getSharedMarkerPath(shape, pathSize, pixelRatio);
     }
 
+    // A custom shape draws whatever path it returns, whatever its size.
+    protected override hasBoundedSilhouette(): boolean {
+        return false;
+    }
+
     protected override computeBBox(): BBox {
         const { x, y, size } = this;
         const anchor = Marker.anchor(this.shape);

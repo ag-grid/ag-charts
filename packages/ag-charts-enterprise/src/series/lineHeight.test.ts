@@ -6,6 +6,7 @@ import {
     deproxy,
     getSeriesContextNodeData,
     getSeriesSelectionNodes,
+    getVisibleLabelNodes,
     setupMockCanvas,
     setupMockConsole,
 } from 'ag-charts-community-test';
@@ -75,7 +76,7 @@ describe('series label lineHeight', () => {
                     series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
                 })
             );
-            return getSeriesSelectionNodes(chart, 'labelSelection').length;
+            return getVisibleLabelNodes(chart).length;
         };
 
         expect(await labelCount({})).toBe(nodeNames.length);

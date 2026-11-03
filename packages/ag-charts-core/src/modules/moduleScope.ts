@@ -1,3 +1,4 @@
+import type { DynamicContext } from './dynamicContext';
 import {
     type AxisModuleDefinition,
     type AxisPluginModuleDefinition,
@@ -10,7 +11,7 @@ import {
     type SeriesModuleDefinition,
     type SeriesPluginModuleDefinition,
 } from './moduleDefinition';
-import { type ResolvedContribution, resolveContributions } from './optionsContribution';
+import { type ResolvedContribution, moduleMatchesChartType, resolveContributions } from './optionsContribution';
 
 export type RegistrableModuleDefinition =
     | ModuleDefinition
@@ -43,6 +44,7 @@ export function isModuleType<T extends ModuleType>(
 export class ModuleScope {
     private readonly modules = new Map<string, ModuleDefinition>();
     private revision = 0;
+    private sorted?: { modules: ModuleDefinition[]; revision: RegistryRevision };
     private contributions?: {
         table: ResolvedContribution<ModuleDefinition>[];
         byModule: Map<string, ResolvedContribution<ModuleDefinition>[]>;
@@ -140,19 +142,42 @@ export class ModuleScope {
     }
 
     *listModules(): Generator<ModuleDefinition> {
-        yield* this.modules.values();
-        if (this.parent == null) return;
-        for (const definition of this.parent.listModules()) {
-            if (!this.modules.has(definition.name)) {
-                yield definition;
+        yield* this.sortedModules();
+    }
+
+    // Ordered by name across scopes, so neither registration order nor scope changes the order modules are created in.
+    private sortedModules(): ModuleDefinition[] {
+        const revision = this.currentRevision();
+        if (this.sorted?.revision !== revision) {
+            const visible = new Map<string, ModuleDefinition>();
+            for (const definition of this.parent?.sortedModules() ?? []) {
+                visible.set(definition.name, definition);
             }
+            for (const [name, definition] of this.modules) {
+                visible.set(name, definition);
+            }
+            const modules = [...visible.values()].sort((a, b) => (a.name < b.name ? -1 : 1));
+            this.sorted = { modules, revision };
         }
+        return this.sorted.modules;
     }
 
     *listModulesByType<T extends ModuleType>(moduleType: T): Generator<ModuleTypeSwitch<T>> {
         for (const definition of this.listModules()) {
             if (isModuleType(moduleType, definition)) {
                 yield definition;
+            }
+        }
+    }
+
+    /** Installs on `ctx` the services of every visible module that applies to `chartType`, keeping any already there. */
+    installServices(ctx: DynamicContext<any>, chartType: string | undefined): void {
+        for (const definition of this.listModules()) {
+            const { services } = definition;
+            if (services == null || !moduleMatchesChartType(definition, chartType)) continue;
+            for (const name of Object.keys(services)) {
+                const factory = services[name];
+                if (factory != null && !ctx.has(name)) ctx.service(name, factory);
             }
         }
     }

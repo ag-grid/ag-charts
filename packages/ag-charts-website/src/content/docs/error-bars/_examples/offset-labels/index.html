@@ -1,7 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setOffsetLabels(true)">Offset Labels</button>
-        <button onclick="setOffsetLabels(false)">Labels on Bars</button>
+        <span>Offset Labels:</span>
+        <div class="button-group" role="group" aria-label="Offset Labels">
+            <input
+                type="radio"
+                id="offset-labels-true"
+                name="offset-labels"
+                value="true"
+                checked
+                onchange="offsetLabelsChange(event)"
+            />
+            <label for="offset-labels-true">true</label>
+            <input
+                type="radio"
+                id="offset-labels-false"
+                name="offset-labels"
+                value="false"
+                onchange="offsetLabelsChange(event)"
+            />
+            <label for="offset-labels-false">false</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

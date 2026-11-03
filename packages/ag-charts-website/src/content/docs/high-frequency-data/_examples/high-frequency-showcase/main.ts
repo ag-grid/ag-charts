@@ -32,8 +32,8 @@ ModuleRegistry.registerModules([
     ZoomModule,
 ]);
 
-let initialPoints = 1000;
-let batchSize = 10;
+const initialPoints = 1000;
+const batchSize = 10;
 
 let currentSeriesType: SeriesType = 'line';
 let currentUpdateMode: 'rolling' | 'append' = 'rolling';
@@ -258,27 +258,6 @@ function updateMode(value: string) {
             ? 'Rolling Window: removing old points, adding new points'
             : 'Append Only: continuously adding new points';
     options.subtitle = { text: subtitleText };
-
-    const seedResult = createSeedData(initialPoints, currentSeriesType);
-    data = seedResult.data;
-    nextIndex = data.length;
-    lastBasePrice = seedResult.lastBasePrice;
-
-    options.data = data;
-    chart.update(options);
-
-    if (wasRunning) startUpdates();
-}
-
-function updateBatchSize(value: string) {
-    batchSize = parseInt(value, 10);
-}
-
-function updateDataSize(value: string) {
-    const wasRunning = isRunning;
-    if (wasRunning) stopUpdates();
-
-    initialPoints = parseInt(value, 10);
 
     const seedResult = createSeedData(initialPoints, currentSeriesType);
     data = seedResult.data;

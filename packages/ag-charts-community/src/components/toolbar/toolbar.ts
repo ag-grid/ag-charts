@@ -41,6 +41,8 @@ export abstract class BaseToolbar<
 > extends ToolbarWidget {
     public horizontalSpacing = 10;
     public verticalSpacing = 10;
+    /** The unsized button size set by this toolbar's CSS, from which sized icons are scaled. */
+    public defaultButtonSize?: number;
 
     protected readonly events = new Listeners<keyof EventMap & string, any>();
     protected hasPrefix = false;
@@ -93,7 +95,7 @@ export abstract class BaseToolbar<
 
     protected getInteractionOptions(): ButtonInteractionOptions {
         const { isRtl } = this.domManager;
-        return { isRtl, buttonSize: this.buttonSize };
+        return { isRtl, buttonSize: this.buttonSize, defaultButtonSize: this.defaultButtonSize };
     }
 
     public setButtonSize(buttonSize: number | undefined) {

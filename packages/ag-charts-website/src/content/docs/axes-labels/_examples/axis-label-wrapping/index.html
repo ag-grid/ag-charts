@@ -1,0 +1,27 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="separator-select">Word Separator: </label>
+        <select id="separator-select" onchange="update()">
+            <option value="spaces">Spaces</option>
+            <option value="none">None</option>
+            <option value="zwsp">Zero-width space (U+200B)</option>
+            <option value="nbsp">Non-breaking space (U+00A0)</option>
+        </select>
+        <label for="wrap-select">Wrapping: </label>
+        <select id="wrap-select" onchange="update()">
+            <option value="on-space">on-space</option>
+            <option value="always">always</option>
+            <option value="hyphenate">hyphenate</option>
+            <option value="never">never</option>
+        </select>
+    </div>
+    <div class="controls-row">
+        <label for="max-width-range">maxWidth: </label>
+        <input type="range" id="max-width-range" min="40" max="200" step="5" value="100" oninput="update()" />
+        <label for="max-height-range">maxHeight: </label>
+        <input type="range" id="max-height-range" min="20" max="100" step="5" value="60" oninput="update()" />
+    </div>
+</div>
+<div class="resizable-container">
+    <div id="myChart" class="resizable"></div>
+</div>

@@ -2,7 +2,7 @@ import type { AgNumericValue, AgTimeInterval, AgTimeIntervalUnit, AgTimeValue } 
 
 import { findMaxIndex, findMinIndex } from '../../data/binarySearch';
 import { timeValueToNumber } from '../../time/timeFormatDefaults';
-import { ScaleAlignment, type ScaleTickParams, type ScaleTickResult } from '../../types/scales';
+import { ScaleAlignment, type ScaleTickParams } from '../../types/scales';
 import { BandScale } from './bandScale';
 
 /** Result of uniformity check via sampling */
@@ -63,7 +63,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         params: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
         domain?: Date[],
         visibleRange?: [number, number]
-    ): ScaleTickResult<Date> | undefined;
+    ): { ticks: Date[]; count: number | undefined; firstTickIndex?: number } | undefined;
 
     override toDomain(value: AgNumericValue): Date {
         return new Date(timeValueToNumber(value));

@@ -29,7 +29,7 @@ function gaugeOptions({ value, target, targetLabel }: KpiGauge, tone: Kpi['tone'
         direction: 'horizontal',
         value: value * 100,
         thickness: 8,
-        cornerRadius: 4,
+        cornerRadius: 2,
         scale: {
             min: 0,
             max,

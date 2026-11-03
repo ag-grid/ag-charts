@@ -95,6 +95,12 @@ describe('volumeProfilePreset', () => {
                 label: { formatter: ({ value }) => `${value} shares traded` },
             },
         },
+        // `down` sets only a stroke, which keeps the themed fill and takes the 1px width of candlestick's items.
+        'custom up and down bars': {
+            ...volumeProfile,
+            up: { fill: '#1565c0', fillOpacity: 0.7, stroke: '#0d47a1', strokeWidth: 2 },
+            down: { stroke: '#e65100' },
+        },
     };
 
     it.each(Object.entries(EXAMPLES))('for %s it should render to canvas as expected', async (exampleName, example) => {
@@ -315,12 +321,43 @@ describe('volumeProfilePreset', () => {
             expectWarningsCalls().toEqual([["AG Charts - the key 'nope' was not found in any data element."]]);
         });
 
+        it('should show no data, and no axes, when neither volume key is found', async () => {
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({ ...volumeProfile, upKey: 'nope', downKey: 'alsoNope' })
+            );
+            await waitForChartStability(chart);
+
+            expect(deproxy(chart).series.some((series) => series.hasData)).toBe(false);
+            await compareToSnapshot();
+        });
+
+        it('should still draw the other volume when only one key is found', async () => {
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({ ...volumeProfile, downKey: 'nope' })
+            );
+            await compareToSnapshot();
+        });
+
         it('should not warn when there is no data to hold the keys', async () => {
             chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, data: [] }));
             await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([]);
         });
+    });
+
+    it('should restyle and then restore the bars as `up` and `down` change', async () => {
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
+        await waitForChartStability(chart);
+        const themed = ctx.snapshot();
+
+        await chart.updateDelta({ up: { fill: '#1565c0' }, down: { fill: '#ef6c00' } });
+        await waitForChartStability(chart);
+        expect(ctx.snapshot()).not.toMatchImage(themed, { writeDiff: false });
+
+        await chart.updateDelta({ up: undefined, down: undefined });
+        await waitForChartStability(chart);
+        expect(ctx.snapshot()).toMatchImage(themed);
     });
 
     it('should colour the bars from the theme palette', async () => {

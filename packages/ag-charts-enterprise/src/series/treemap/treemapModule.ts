@@ -1,8 +1,10 @@
 import { type AgTreemapSeriesOptions, StandaloneChartModule, VERSION } from 'ag-charts-community';
 import {
     AUTO_SIZED_LABEL_TRUNCATE,
+    BRANCH_GLOW_BUCKETS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FONT_SIZE_RATIO,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -15,6 +17,7 @@ import {
     seriesLabelFontWeightOr,
     themeLineHeight,
     undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 
 import { TreemapSeries } from './treemapSeries';
@@ -69,18 +72,21 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: 1,
                 strokeOpacity: 1,
                 cornerRadius: 0,
-                shadow: SHADOW_THEME_DEFAULTS,
+                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
                 padding: 4,
                 gap: 2,
                 interactive: true,
-                highlight: {
-                    enabled: { $circular: { $path: '/highlight/enabled' } },
-                    unhighlightedItem: {
-                        opacity: 0.2,
-                        fillOpacity: 0.2,
-                        strokeOpacity: 0.2,
+                highlight: withGlowThemeDefaults(
+                    {
+                        enabled: { $circular: { $path: '/highlight/enabled' } },
+                        unhighlightedItem: {
+                            opacity: 0.2,
+                            fillOpacity: 0.2,
+                            strokeOpacity: 0.2,
+                        },
                     },
-                },
+                    ITEM_GLOW_BUCKETS
+                ),
             },
             tile: {
                 label: {
@@ -120,20 +126,23 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
                 strokeOpacity: 1,
                 cornerRadius: 0,
-                shadow: SHADOW_THEME_DEFAULTS,
+                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
                 padding: 3,
                 gap: 1,
-                highlight: {
-                    enabled: { $circular: { $path: '/highlight/enabled' } },
-                    unhighlightedItem: {
-                        fillOpacity: 0.6,
-                        strokeOpacity: 0.6,
+                highlight: withGlowThemeDefaults(
+                    {
+                        enabled: { $circular: { $path: '/highlight/enabled' } },
+                        unhighlightedItem: {
+                            fillOpacity: 0.6,
+                            strokeOpacity: 0.6,
+                        },
+                        unhighlightedBranch: {
+                            fillOpacity: 0.2,
+                            strokeOpacity: 0.2,
+                        },
                     },
-                    unhighlightedBranch: {
-                        fillOpacity: 0.2,
-                        strokeOpacity: 0.2,
-                    },
-                },
+                    BRANCH_GLOW_BUCKETS
+                ),
                 selection: SERIES_SELECTION_THEME,
             },
             ...undocumentedThemeOptions({

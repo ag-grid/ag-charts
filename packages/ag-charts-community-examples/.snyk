@@ -2,6 +2,72 @@
 version: v1.25.1
 
 ignore:
+    SNYK-JS-FOLLOWREDIRECTS-21280747:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-PICOMATCH-21248802:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-UNDICI-21181005:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-UNDICI-21181009:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-UNDICI-21181011:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-UNDICI-21181013:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-UNDICI-21181015:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-UNDICI-21181017:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-UNDICI-21181019:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-UNDICI-21185768:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
+    SNYK-JS-VITE-21282024:
+        - 'ag-charts-community@* > *':
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-23T10:11:14.000Z
     SNYK-JS-VITESTMOCKER-19497933:
         - ag-charts-community@* > *:
               reason: >-

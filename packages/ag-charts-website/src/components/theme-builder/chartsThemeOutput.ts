@@ -1,4 +1,9 @@
-import { type Palette, paletteIsEmpty, toThemePalette } from '@ag-website-shared/components/theme-builder/palette';
+import {
+    type Palette,
+    type StrokeDirection,
+    paletteIsEmpty,
+    toThemePalette,
+} from '@ag-website-shared/components/theme-builder/palette';
 
 import type { AgChartTheme, AgChartThemeName, AgChartThemePalette, AgChartThemeParams } from 'ag-charts-community';
 
@@ -36,11 +41,12 @@ const toChartParamValue = (property: string, value: unknown): unknown => {
 
     if (isPlainObject(value)) {
         // A reference passes through; a composite's members need the same
-        // treatment. `style` has no AG Charts equivalent, so it is dropped.
+        // treatment. `style` has no AG Charts equivalent, so it is dropped, as
+        // is a width reference, which AG Charts cannot take: unset, it keeps its stock value.
         if ('ref' in value) return value;
         return Object.fromEntries(
             Object.keys(value)
-                .filter((key) => key !== 'style')
+                .filter((key) => key !== 'style' && !(key === 'width' && isPlainObject(value[key])))
                 .map((key) => [key, toChartParamValue(key === 'width' ? `${key}Width` : key, value[key])])
         );
     }
@@ -63,15 +69,19 @@ export type ChartsThemeSelection = {
     baseTheme: AgChartThemeName;
     params: Record<string, unknown>;
     palette: Palette;
+    /** Which way linked strokes move from their fill; see `useStrokeDirection`. */
+    strokeDirection?: StrokeDirection;
 };
 
-export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelection): AgChartTheme => {
+export const toChartTheme = ({ baseTheme, params, palette, strokeDirection }: ChartsThemeSelection): AgChartTheme => {
     const themeParams = toChartThemeParams(params);
     return {
         baseTheme,
         ...(Object.keys(themeParams).length > 0 ? { params: themeParams } : {}),
         // Through `toThemePalette`, which drops the editor's own bookkeeping.
-        ...(paletteIsEmpty(palette) ? {} : { palette: toThemePalette(palette) satisfies AgChartThemePalette }),
+        ...(paletteIsEmpty(palette)
+            ? {}
+            : { palette: toThemePalette(palette, strokeDirection) satisfies AgChartThemePalette }),
     };
 };
 

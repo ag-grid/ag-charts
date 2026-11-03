@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaLabelColorPickerHue: 'رنگ',
     ariaLabelColorPickerMultiColor: 'مختلف رنگ',
     ariaLabelColorPickerPalette: 'پیلیٹ',
+    ariaLabelCrossLine: '${label}, کراس لائن ${count}[number] میں سے ${index}[number]',
     ariaLabelFinancialCharts: 'مالی چارٹ',
     ariaLabelGaugeTarget: 'ہدف',
     ariaLabelGaugeValue: 'قدر',

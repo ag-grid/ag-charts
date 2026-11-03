@@ -2,6 +2,7 @@ import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
+    AgChartLabelCollisionOptions,
     AgChartOptions,
     AgOrganizationSeriesNodeTextStyle,
     AgOrganizationSeriesOptions,
@@ -39,6 +40,7 @@ import { Caster } from 'ag-charts-test';
 
 import {
     getNetworkContentBBox,
+    getNetworkLayout,
     getNetworkSeriesRect,
     getNetworkViewport,
     getOrganizationCardContentHeight,
@@ -47,11 +49,11 @@ import {
     getOrganizationGraph,
     getOrganizationLinks,
     getOrganizationNodeDatumIndex,
-    getOrganizationSeriesInstance,
+    getSeriesInstance,
 } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
-import { OrganizationNodeTag } from './organizationNode';
-import { OrganizationSeries } from './organizationSeries';
+import { OrganizationNode, OrganizationNodeTag } from './organizationNode';
+import { MIN_DETAIL_CARD_HEIGHT, OrganizationSeries } from './organizationSeries';
 import type { OrganizationDatum } from './organizationTypes';
 
 const SIMPLE_ORG_CHART: AgChartOptions & { series: { type: 'organization' }[] } = {
@@ -1077,6 +1079,12 @@ describe('OrganizationSeries', () => {
         await waitForChartStability(chart);
     }
 
+    async function hoverItem(itemId: string, tag = OrganizationNodeTag.Card): Promise<void> {
+        const { x, y } = centreOf(itemId, tag);
+        await hoverAction(x, y)(chart);
+        await waitForChartStability(chart);
+    }
+
     describe('#create', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
@@ -1232,7 +1240,7 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = getOrganizationSeriesInstance(chart);
+            const series = getSeriesInstance(chart, OrganizationSeries);
             const { collapsedManager } = series.ctx;
 
             series.collapseItem(2, 'api-call');
@@ -1248,7 +1256,7 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const node = getOrganizationSeriesInstance(chart).findNodeDatum(2);
+            const node = getSeriesInstance(chart, OrganizationSeries).findNodeDatum(2);
             expect(node?.itemId).toBe(2);
             expect(node?.datum).toMatchObject({ name: 'Bob Smith' });
         });
@@ -1607,12 +1615,6 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart, 50);
         }
 
-        async function hoverItem(itemId: string): Promise<void> {
-            const { x, y } = centreOf(itemId, OrganizationNodeTag.Card);
-            await hoverAction(x, y)(chart);
-            await waitForChartStability(chart);
-        }
-
         /** The card `Rect`'s paint style, which is what the highlight alters. */
         function cardStyle(itemId: string) {
             const card = new Caster(findTaggedNode(itemId, OrganizationNodeTag.Card)).cast(Rect).value;
@@ -1726,6 +1728,115 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('highlight updates', () => {
+        const buildOptions = (nodeOverrides: Record<string, unknown> = {}): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' }, ...nodeOverrides },
+                },
+            ],
+        });
+
+        function cardSize(itemId: string) {
+            const { width, height } = getOrganizationCards(chart)
+                .find(({ datum }) => datum.itemId === itemId)!
+                .node.getShapeBBox();
+            return { width, height };
+        }
+
+        it('should not lay the nodes out again when the highlight moves between nodes', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            const layoutUpdate = vi.spyOn(getNetworkLayout(chart), 'update');
+
+            await hoverItem('cto');
+            await hoverItem('cfo');
+
+            expect(layoutUpdate).not.toHaveBeenCalled();
+            const { stroke } = new Caster(findTaggedNode('cfo', OrganizationNodeTag.Card)).cast(Rect).value;
+            expect(stroke).not.toEqual(
+                new Caster(findTaggedNode('cto', OrganizationNodeTag.Card)).cast(Rect).value.stroke
+            );
+        });
+
+        it('should keep a highlighted card the size every other card is laid out at', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            // The shortest card is the one a layout clamp stretches, so it shows a lost clamp.
+            const before = cardSize('dev');
+            expect(cardSize('ceo')).toEqual(before);
+
+            await hoverItem('dev');
+
+            expect(cardSize('dev')).toEqual(before);
+        });
+
+        it('should lay the nodes out again when a styler can restyle any node', async () => {
+            chart = await createEnterpriseChart(buildOptions({ itemStyler: () => ({}) }));
+            const layoutUpdate = vi.spyOn(getNetworkLayout(chart), 'update');
+
+            await hoverItem('cto');
+
+            expect(layoutUpdate).toHaveBeenCalled();
+        });
+    });
+
+    describe('collapse updates', () => {
+        // A square card makes the card and expander pill hit-testable in JSDOM (see .claude/rules/testing.md).
+        const buildOptions = (nodeOverrides: Record<string, unknown> = {}): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' }, cornerRadius: 0, ...nodeOverrides },
+                },
+            ],
+        });
+
+        const visibleCardCount = () =>
+            getOrganizationCards(chart).filter(({ datum }) => !datum.collapsedByAncestor).length;
+
+        function restyledItemIds(restyled: { mock: { contexts: unknown[] } }) {
+            const ids = new Map(getOrganizationCards(chart).map(({ node, datum }) => [node, datum.itemId]));
+            return restyled.mock.contexts.map((node) => ids.get(node as OrganizationNode));
+        }
+
+        it('should restyle only the card whose collapsed state changed', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            const restyled = vi.spyOn(OrganizationNode.prototype, 'update');
+
+            await clickItem('cto', OrganizationNodeTag.Expander);
+            expect(restyledItemIds(restyled)).toEqual(['cto']);
+
+            restyled.mockClear();
+            await clickItem('cto', OrganizationNodeTag.Expander);
+            expect(restyledItemIds(restyled)).toEqual(['cto']);
+        });
+
+        it('should restyle every visible card when a styler can restyle any of them', async () => {
+            chart = await createEnterpriseChart(buildOptions({ itemStyler: () => ({}) }));
+            const restyled = vi.spyOn(OrganizationNode.prototype, 'update');
+
+            await clickItem('cto', OrganizationNodeTag.Expander);
+
+            expect(restyled).toHaveBeenCalledTimes(visibleCardCount());
+        });
+
+        it('should restyle every visible card when the options change', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            const restyled = vi.spyOn(OrganizationNode.prototype, 'update');
+
+            await chart.update(prepareEnterpriseTestOptions(buildOptions({ fill: 'red' })));
+            await waitForChartStability(chart);
+
+            expect(restyled).toHaveBeenCalledTimes(visibleCardCount());
+        });
+    });
+
     describe('expander hoverStyle', () => {
         // node.cornerRadius=0 makes both the card and pill Rects bbox-hittable in JSDOM (see
         // .claude/rules/testing.md); expander.cornerRadius defaults to `../node/cornerRadius`.
@@ -1756,12 +1867,6 @@ describe('OrganizationSeries', () => {
             const textNode = candidates.find((node) => node instanceof Text);
             expect(textNode).toBeDefined();
             return new Caster(textNode).cast(Text).value;
-        }
-
-        async function hoverItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
-            const { x, y } = centreOf(itemId, tag);
-            await hoverAction(x, y)(chart);
-            await waitForChartStability(chart);
         }
 
         it('applies the configured hoverStyle fill/stroke to the expander pill while hovered', async () => {
@@ -2101,7 +2206,7 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = getOrganizationSeriesInstance(chart);
+            const series = getSeriesInstance(chart, OrganizationSeries);
 
             // A parent node has an expander, so its full bbox overhangs its card (shape) bbox.
             let target: { datumIndex: number; cardBox: BBox; fullBox: BBox } | undefined;
@@ -2563,8 +2668,13 @@ describe('OrganizationSeries', () => {
             for (const card of getOrganizationCards(chart)) {
                 texts.push({ id: String(card.datum.itemId), ...getOrganizationCardTexts(card.node) });
             }
-            return { texts, series: getOrganizationSeriesInstance(chart) };
+            return { texts, series: getSeriesInstance(chart, OrganizationSeries) };
         };
+
+        // `collision` is an undocumented node text option.
+        const undocumentedText = <T extends AgOrganizationSeriesNodeTextStyle & { key?: string }>(
+            text: T & { collision?: AgChartLabelCollisionOptions }
+        ): T => text;
 
         const titleOf = (texts: NodeTexts[], id = 'ceo') => texts.find((t) => t.id === id)?.title;
         const BASE_NODE: OrgNodeOptions = {
@@ -2668,7 +2778,7 @@ describe('OrganizationSeries', () => {
         it('should keep truncating with collision.alwaysShow alone', async () => {
             const { texts, series } = await render({
                 ...BASE_NODE,
-                title: { key: 'name', wrapping: 'never', collision: { alwaysShow: true } },
+                title: undocumentedText({ key: 'name', wrapping: 'never', collision: { alwaysShow: true } }),
             });
             expect(titleOf(texts)).toContain('…');
             expect(series.options.node.title.truncate).toBe(true);
@@ -2684,7 +2794,7 @@ describe('OrganizationSeries', () => {
                 expect(titleOf(hidden)).toBe('');
 
                 const { texts: kept } = await render(
-                    { ...node, title: { key: 'name', truncate, collision: { alwaysShow: true } } },
+                    { ...node, title: undocumentedText({ key: 'name', truncate, collision: { alwaysShow: true } }) },
                     {},
                     LONG_WORD_DATA
                 );
@@ -2700,7 +2810,7 @@ describe('OrganizationSeries', () => {
                         await render({
                             ...BASE_NODE,
                             maxWidth: 160,
-                            title: { key: 'name', wrapping: 'never', collision: { threshold } },
+                            title: undocumentedText({ key: 'name', wrapping: 'never', collision: { threshold } }),
                         })
                     ).texts
                 )!;
@@ -2718,7 +2828,9 @@ describe('OrganizationSeries', () => {
                     theme: {
                         overrides: {
                             organization: {
-                                series: { node: { title: { truncate: false, collision: { threshold: 5 } } } },
+                                series: {
+                                    node: { title: undocumentedText({ truncate: false, collision: { threshold: 5 } }) },
+                                },
                             },
                         },
                     },
@@ -2781,7 +2893,7 @@ describe('OrganizationSeries', () => {
 
             const { texts: kept } = await render({
                 ...node,
-                labels: [{ key: 'location', collision: { alwaysShow: true } }],
+                labels: [undocumentedText({ key: 'location', collision: { alwaysShow: true } })],
             });
             expect(kept.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
         });
@@ -2888,7 +3000,14 @@ describe('OrganizationSeries', () => {
 
             const { texts: kept } = await render({
                 ...node,
-                labels: [{ key: 'location', wrapping: 'never', truncate: false, collision: { alwaysShow: true } }],
+                labels: [
+                    undocumentedText({
+                        key: 'location',
+                        wrapping: 'never',
+                        truncate: false,
+                        collision: { alwaysShow: true },
+                    }),
+                ],
             });
             expect(kept.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
 
@@ -2902,7 +3021,9 @@ describe('OrganizationSeries', () => {
         });
 
         // One chart per budget, each node rendering a different fit configuration through the text stylers.
-        type FitVariant = Pick<AgOrganizationSeriesNodeTextStyle, 'truncate' | 'collision' | 'wrapping'>;
+        type FitVariant = Pick<AgOrganizationSeriesNodeTextStyle, 'truncate' | 'wrapping'> & {
+            collision?: AgChartLabelCollisionOptions;
+        };
         const renderFitVariants = async (variants: Record<string, FitVariant>, node: OrgNodeOptions, data: object) => {
             const variantStyler = ({ datum }: { datum: { name: string } }) => variants[datum.name];
             const options: AgChartOptions = {
@@ -2978,6 +3099,151 @@ describe('OrganizationSeries', () => {
 
             setZoom(chart, 0.51, 0.59, 0.51, 0.59);
             await compare();
+        });
+    });
+
+    describe('off-screen culling', () => {
+        // Narrow enough to leave most of the tree out of view, yet deep enough for the cards to show their detail,
+        // which is when links are drawn. Placed so that some cards lie just outside the viewport, within the margin.
+        const ZOOMED_IN = [0.38, 0.42, 0.48, 0.52] as const;
+
+        function isDetailHidden(c: ChartOrProxy<any>) {
+            const { height } = getOrganizationCards(c)[0].node.getShapeBBox();
+            return height * getNetworkViewport(c).scalingY < MIN_DETAIL_CARD_HEIGHT;
+        }
+
+        /** The on-screen box that the cards of `nodes` take up together, and the margin a drawn card may lie outside it. */
+        function getScreenFrame(c: ChartOrProxy<any>, nodes: OrganizationNode[]) {
+            const seriesRect = getNetworkSeriesRect(c);
+            const { scalingX, scalingY, translationX, translationY } = getNetworkViewport(c);
+            const { width, height } = nodes[0].getShapeBBox();
+
+            const left = Math.min(...nodes.map((node) => node.translationX)) * scalingX + translationX;
+            const top = Math.min(...nodes.map((node) => node.translationY)) * scalingY + translationY;
+            const right =
+                Math.max(...nodes.map((node) => node.translationX)) * scalingX + translationX + width * scalingX;
+            const bottom =
+                Math.max(...nodes.map((node) => node.translationY)) * scalingY + translationY + height * scalingY;
+
+            const distanceOutside = Math.max(left - seriesRect.width, -right, top - seriesRect.height, -bottom);
+            return {
+                left,
+                top,
+                right,
+                bottom,
+                isOutside: distanceOutside > 0,
+                isBeyondMargin: distanceOutside > height * scalingY,
+            };
+        }
+
+        function getCardsDrawing(c: ChartOrProxy<any>) {
+            return getOrganizationCards(c).map(({ node }) => ({
+                drawn: node.visible,
+                ...getScreenFrame(c, [node]),
+            }));
+        }
+
+        function getLinksDrawing(c: ChartOrProxy<any>) {
+            const cards = new Map(getOrganizationCards(c).map(({ node, datum }) => [datum.itemId, node]));
+
+            return getOrganizationLinks(c).flatMap(({ node, datum }) => {
+                const fromItemId = String(datum.from.value);
+                const from = cards.get(fromItemId);
+                const to = cards.get(String(datum.to.value));
+                if (from == null || to == null) return [];
+
+                return [{ fromItemId, from, drawn: node.visible, ...getScreenFrame(c, [from, to]) }];
+            });
+        }
+
+        /** Every card is drawn when in range, and only then; the cull is by on-screen distance, not by data. */
+        function expectDrawnWithinMargin(items: { drawn: boolean; isOutside: boolean; isBeyondMargin: boolean }[]) {
+            expect(items.some(({ isBeyondMargin }) => isBeyondMargin)).toBe(true);
+            expect(items.some(({ isOutside, isBeyondMargin }) => isOutside && !isBeyondMargin)).toBe(true);
+            expect(items.some(({ isOutside }) => !isOutside)).toBe(true);
+            expect(items.map(({ drawn }) => drawn)).toEqual(items.map(({ isBeyondMargin }) => !isBeyondMargin));
+        }
+
+        it('should draw only the cards within a card height of the viewport, and every card again once zoomed out', async () => {
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+            expect(getCardsDrawing(chart).every(({ drawn }) => drawn)).toBe(true);
+
+            setZoom(chart, ...ZOOMED_IN);
+            await waitForChartStability(chart);
+            expectDrawnWithinMargin(getCardsDrawing(chart));
+
+            setZoom(chart, 0, 1, 0, 1);
+            await waitForChartStability(chart);
+            expect(getCardsDrawing(chart).every(({ drawn }) => drawn)).toBe(true);
+        });
+
+        it('should draw only the links within a card height of the viewport', async () => {
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+
+            setZoom(chart, ...ZOOMED_IN);
+            await waitForChartStability(chart);
+
+            expect(isDetailHidden(chart)).toBe(false);
+            expectDrawnWithinMargin(getLinksDrawing(chart));
+        });
+
+        it('should draw every link again once zooming out hides the detail, and cull them when zooming back in', async () => {
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+
+            setZoom(chart, ...ZOOMED_IN);
+            await waitForChartStability(chart);
+            expect(getLinksDrawing(chart).some(({ drawn }) => !drawn)).toBe(true);
+
+            setZoom(chart, 0, 1, 0, 1);
+            await waitForChartStability(chart);
+            expect(isDetailHidden(chart)).toBe(true);
+            expect(getLinksDrawing(chart).every(({ drawn }) => drawn)).toBe(true);
+
+            setZoom(chart, ...ZOOMED_IN);
+            await waitForChartStability(chart);
+            expect(isDetailHidden(chart)).toBe(false);
+            expectDrawnWithinMargin(getLinksDrawing(chart));
+        });
+
+        it('should keep the links of a collapsed card undrawn, and cull the rest, until it is expanded', async () => {
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+
+            setZoom(chart, ...ZOOMED_IN);
+            await waitForChartStability(chart);
+
+            const seriesRect = getNetworkSeriesRect(chart);
+            const collapsing = getLinksDrawing(chart).find(
+                ({ drawn, left, top, right, bottom }) =>
+                    drawn && left > 0 && top > 0 && right < seriesRect.width && bottom < seriesRect.height
+            );
+            expect(collapsing).toBeDefined();
+            const itemId = collapsing!.fromItemId;
+            const linksOf = () => getLinksDrawing(chart).filter(({ fromItemId }) => fromItemId === itemId);
+            const linksElsewhere = () => getLinksDrawing(chart).filter(({ fromItemId }) => fromItemId !== itemId);
+
+            await clickItem(itemId, OrganizationNodeTag.Expander);
+            expect(isDetailHidden(chart)).toBe(false);
+            expect(linksOf().length).toBeGreaterThan(0);
+            expect(linksOf().every(({ drawn }) => !drawn)).toBe(true);
+            expectDrawnWithinMargin(linksElsewhere());
+
+            await clickItem(itemId, OrganizationNodeTag.Expander);
+            expect(isDetailHidden(chart)).toBe(false);
+            expect(linksOf().map(({ drawn }) => drawn)).toEqual(linksOf().map(({ isBeyondMargin }) => !isBeyondMargin));
+        });
+
+        it('should draw the active item that setState pans into view', async () => {
+            chart = await createEnterpriseChart({ ...OVERFLOWING_ORG_CHART });
+
+            const seriesId = getSeriesAt(chart).id;
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'leaf-7-7' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(findCardNode('leaf-7-7').visible).toBe(true);
         });
     });
 
@@ -3063,7 +3329,7 @@ describe('OrganizationSeries', () => {
         async function setupChart() {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             chart = await createEnterpriseChart(options);
-            return getOrganizationSeriesInstance(chart);
+            return getSeriesInstance(chart, OrganizationSeries);
         }
 
         function press(series: OrganizationSeries, key: typeof ARROW_DOWN, datumIndex: number, otherIndex = 0) {
@@ -3125,7 +3391,7 @@ describe('OrganizationSeries', () => {
         it('ArrowDown into a collapsed node auto-expands to first child', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
             chart = await createEnterpriseChart(options);
-            const series = getOrganizationSeriesInstance(chart);
+            const series = getSeriesInstance(chart, OrganizationSeries);
             const pick = press(series, ARROW_DOWN, 1, 2);
             expect(pick?.datum).toHaveProperty('itemId', 'dev');
         });
@@ -3795,6 +4061,75 @@ describe('OrganizationSeries', () => {
             expect(edges.left).toBeCloseTo(edges.centreX, 0);
             expect(edges.bottom).toBeCloseTo(edges.centreY, 0);
         });
+    });
+
+    describe('reset zoom', () => {
+        // Double-clicks the series area's top-left corner, which no card covers at any zoom.
+        async function doubleClickToReset(c: ChartOrProxy<any>) {
+            const { x, y } = getNetworkSeriesRect(c);
+            await doubleClickAction(x + 2, y + 2)(c);
+            await waitForChartStability(c);
+        }
+
+        function getWindow(c: ChartOrProxy<any>) {
+            const ratios = getZoomRatios(c);
+            return {
+                xMin: ratios?.ratioX?.start ?? Number.NaN,
+                xMax: ratios?.ratioX?.end ?? Number.NaN,
+                yMin: ratios?.ratioY?.start ?? Number.NaN,
+                yMax: ratios?.ratioY?.end ?? Number.NaN,
+            };
+        }
+
+        // Content that fits the viewport cannot be zoomed in, so only overflowing content is used here.
+        it('returns to the fitted view after zooming in', async () => {
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+            const fitted = getWindow(chart);
+
+            // Inside the content-fits floor, so the request is honoured rather than refused outright.
+            const xSize = fitted.xMax - fitted.xMin;
+            const ySize = fitted.yMax - fitted.yMin;
+            const xMid = (fitted.xMin + fitted.xMax) / 2;
+            const yMid = (fitted.yMin + fitted.yMax) / 2;
+            setZoom(chart, xMid - xSize / 4, xMid + xSize / 4, yMid - ySize / 4, yMid + ySize / 4);
+            await waitForChartStability(chart);
+
+            const zoomed = getWindow(chart);
+            expect(zoomed.xMax - zoomed.xMin).toBeLessThan(xSize);
+
+            await doubleClickToReset(chart);
+
+            const reset = getWindow(chart);
+            expect(reset.xMin).toBeCloseTo(fitted.xMin, 5);
+            expect(reset.xMax).toBeCloseTo(fitted.xMax, 5);
+            expect(reset.yMin).toBeCloseTo(fitted.yMin, 5);
+            expect(reset.yMax).toBeCloseTo(fitted.yMax, 5);
+        });
+
+        it.each([
+            ['overflowing content', SQUARE_OVERFLOW_ORG_CHART],
+            ['content that fits the viewport', SIMPLE_ORG_CHART],
+        ] as [string, AgChartOptions][])(
+            'recentres the fitted view after panning at the zoom floor, %s',
+            async (_name, fixture) => {
+                chart = await createEnterpriseChart({ ...fixture });
+                const fitted = getWindow(chart);
+                const xSize = fitted.xMax - fitted.xMin;
+                const ySize = fitted.yMax - fitted.yMin;
+
+                setZoom(chart, 1 - xSize, 1, 1 - ySize, 1);
+                await waitForChartStability(chart);
+                expect(getWindow(chart).xMin).not.toBeCloseTo(fitted.xMin, 3);
+
+                await doubleClickToReset(chart);
+
+                const reset = getWindow(chart);
+                expect(reset.xMin).toBeCloseTo(fitted.xMin, 5);
+                expect(reset.xMax).toBeCloseTo(fitted.xMax, 5);
+                expect(reset.yMin).toBeCloseTo(fitted.yMin, 5);
+                expect(reset.yMax).toBeCloseTo(fitted.yMax, 5);
+            }
+        );
     });
 
     describe('collapsedChange event', () => {

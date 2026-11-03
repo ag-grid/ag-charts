@@ -6,7 +6,7 @@ import type { Size } from './scene';
 
 export const EllipsisChar = '\u2026';
 export const LineSplitter = /\r?\n/g;
-export const TrimEdgeGuard = '\u200B'; // zero-width space, not trimmed
+export const TrimEdgeGuard = '\u2060'; // word joiner: zero-width, neither trimmed nor a break opportunity
 export const TrimCharsRegex = /[\s.,;:-]{1,5}$/;
 // The legacy embedding pair rather than the modern isolates (U+2066/U+2069): Safari's canvas
 // ignores the isolate characters. Both are zero-width.
@@ -91,6 +91,6 @@ export interface ITextMeasurer {
     measureText(text: string): TextMetricsBox;
     measureLines(text: string | string[]): MultilineTextMetricsBox;
     baselineDistance(textBaseline: CanvasTextBaseline): number;
-    textWidth(text: string, estimate?: boolean): number;
+    textWidth(text: string): number;
     lineHeight(): number;
 }

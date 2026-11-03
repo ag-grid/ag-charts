@@ -9,6 +9,7 @@ import type {
     VerticalAlign,
 } from 'ag-charts-types';
 
+import type { WithInternalShadow } from '../internalShadowOptions';
 import type { Normalised } from './normalise';
 import type { FillStrokeMorph, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedAutoSizedSecondaryLabelOptions } from './normalisedLabelOptions';
@@ -37,7 +38,7 @@ type HeatmapRequiredKeys =
 
 /** Heatmap options the series owns, before the common series keys are layered on. */
 export type NormalisedHeatmapSeriesOwnOptions = Normalised<
-    AgHeatmapSeriesOptions,
+    AgHeatmapSeriesOptions & WithInternalShadow,
     HeatmapRequiredKeys,
     {
         stroke: CssColor;

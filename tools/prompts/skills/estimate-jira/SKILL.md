@@ -22,7 +22,7 @@ Activate this skill when the user requests:
 
 - User provides JIRA ticket content (markdown format preferred)
 - Access to repository codebase for dependency analysis
-- Understanding of project architecture (consult `tools/prompts/technology-stack.md` if needed)
+- Understanding of project architecture
 
 ## Workflow
 
@@ -30,9 +30,7 @@ Activate this skill when the user requests:
 
 **Read these files FIRST before any analysis:**
 
-1. `tools/prompts/guides/jira.md` - JIRA quick reference
-2. `tools/prompts/technology-stack.md` - Architecture constraints and patterns
-3. `CLAUDE.md` - Repository conventions and build requirements
+1. `CLAUDE.md` - Repository conventions and build requirements
 
 **After reading, confirm you understand:**
 
@@ -509,15 +507,6 @@ _Note: Include this section only if significant implementation choices were clar
 - **Add 30-50%** if feature has significant unknowns or unclear requirements
 - **Add 40-60%** for enterprise features requiring licensing checks, advanced theming
 - **Reduce by 20-30%** only if leveraging substantial existing infrastructure with minimal changes
-
-## Related Documentation
-
-- [JIRA Guide](../guides/jira.md) - JIRA quick reference
-- [JIRA Create Skill](../skills/jira-create/SKILL.md) - Creating JIRA tickets
-- [Technology Stack](../technology-stack.md) - Architectural constraints
-- [Testing Guide](../guides/testing.md) - Testing requirements and patterns
-- [Documentation Guide](../guides/docs-pages.md) - Documentation requirements
-- [Code Quality Guide](../guides/code-quality.md) - Quality standards
 
 ## Example Usage
 

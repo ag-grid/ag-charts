@@ -18,20 +18,23 @@ import {
     type NormalisedRadarSeriesOwnOptions,
     type NormalisedSeriesMarkerStyle,
     type NormalisedSeriesOptions,
-    type NormalisedTextOrSegments,
     Path,
+    type PlacedLabel,
     type Point,
+    type PolarLabelDatum,
     type RequireOptional,
     Selection,
     type SizedPoint,
-    Text,
     extent,
-    fitLabelText,
     isFiniteNumber,
     isNumberEqual,
     markerRebuildNeeded,
     mergeDefaults,
-    resolveLabelFit,
+    placedPolarLabel,
+    polarLabelData,
+    polarLabelsBBox,
+    resolveLabelFitDescriptors,
+    writePlacedPolarLabels,
 } from 'ag-charts-core';
 
 import { radarMarkerDrawMode } from './radarUtil';
@@ -53,6 +56,7 @@ const {
     computeMarkerFocusBounds,
     Marker,
     updateLabelNode,
+    expandLabelBoxExtent,
     getMarkerStyles,
     createDatumId,
     processedDataIsAnimatable,
@@ -60,13 +64,7 @@ const {
 
 export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
-    readonly label?: {
-        x: number;
-        y: number;
-        text: NormalisedTextOrSegments;
-        textAlign: CanvasTextAlign;
-        textBaseline: CanvasTextBaseline;
-    };
+    readonly label?: PolarLabelDatum;
     readonly point: Readonly<SizedPoint>;
     readonly angleValue: any;
     readonly radiusValue: any;
@@ -167,6 +165,7 @@ export abstract class RadarSeries<
             propertyNames: DEFAULT_POLAR_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             canHaveAxes: true,
+            usesPlacedLabels: true,
             animationResetFns: {
                 item: resetMarkerFn,
                 label: resetLabelFn,
@@ -247,6 +246,8 @@ export abstract class RadarSeries<
     maybeRefreshNodeData() {
         const didCircleChange = this.didCircleChange();
         if (!didCircleChange && !this.nodeDataRefresh) return;
+        // Bumps nodeDataVersion: labels anchor on the circle, so a new circle must re-solve them.
+        this.nodeDataRefresh = true;
         this.contextNodeData = this.createNodeData();
         this.nodeData = this.contextNodeData?.nodeData ?? [];
         this.nodeDataRefresh = false;
@@ -275,7 +276,6 @@ export abstract class RadarSeries<
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const allowNullKeys = this.options.allowNullKeys ?? false;
         const nodeData: RadarNodeDatum[] = [];
-        const labelFit = resolveLabelFit(label, false);
 
         for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
             const datum = rawData[datumIndex];
@@ -327,7 +327,7 @@ export abstract class RadarSeries<
                     labelNodeDatum = {
                         x: x + cos * marker.size,
                         y: y + sin * marker.size,
-                        text: fitLabelText(labelText, labelFit, label),
+                        text: labelText,
                         textAlign,
                         textBaseline,
                     };
@@ -581,14 +581,33 @@ export abstract class RadarSeries<
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             const isHighlight = false;
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, node, params, label, datum.label, { isHighlight, activeHighlight });
+            updateLabelNode(this, node, params, label, placedPolarLabel(datum.label), {
+                isHighlight,
+                activeHighlight,
+            });
         });
 
         this.highlightLabelSelection.update(highlightData).each((node, datum) => {
             const isHighlight = true;
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, node, params, label, datum.label, { isHighlight, activeHighlight });
+            updateLabelNode(this, node, params, label, placedPolarLabel(datum.label), {
+                isHighlight,
+                activeHighlight,
+            });
         });
+    }
+
+    override getLabelData() {
+        const { label } = this.options;
+        if (!label.enabled) return [];
+        const boxPadding = expandLabelBoxExtent(label);
+        const style = { font: label, boxPadding, fit: resolveLabelFitDescriptors(label, boxPadding, false) };
+        return polarLabelData(this.nodeData, style, this.centerX, this.centerY);
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
+        writePlacedPolarLabels(this.nodeData, placed);
+        this.updateLabels();
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
@@ -675,11 +694,6 @@ export abstract class RadarSeries<
         };
     }
 
-    /** The shadows of the markers, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.options.marker.shadow];
-    }
-
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (legendType !== 'category') {
             return [];
@@ -742,29 +756,11 @@ export abstract class RadarSeries<
         }
     }
 
-    override computeLabelsBBox() {
-        const { label } = this.options;
-
+    override computeLabelsBBox(_options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
         this.maybeRefreshNodeData();
-
-        const textBoxes: BBox[] = [];
-        const tempText = new Text();
-        for (const nodeDatum of this.nodeData) {
-            if (!label.enabled || !nodeDatum.label) {
-                continue;
-            }
-            tempText.text = nodeDatum.label.text;
-            tempText.x = nodeDatum.label.x;
-            tempText.y = nodeDatum.label.y;
-            tempText.setFont(label);
-            tempText.setAlign(nodeDatum.label);
-            const box = tempText.getBBox();
-            textBoxes.push(box);
-        }
-        if (textBoxes.length === 0) {
-            return null;
-        }
-        return BBox.merge(textBoxes);
+        if (!this.options.label.enabled) return null;
+        const placed = this.ctx.labelManager.measureLabels(this, seriesRect);
+        return polarLabelsBBox(placed, this.centerX, this.centerY);
     }
 
     protected getLineNode() {

@@ -1,6 +1,486 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-21460687:
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T12:58:56.000Z
+  SNYK-JS-ANGULARROUTER-21280762:
+    - '@angular/router@20.3.30':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-BODYPARSER-21431495:
+    - '@angular-devkit/build-angular@20.3.37 > webpack-dev-server@5.2.6 > express@4.22.3 > body-parser@1.20.8':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > body-parser@1.20.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-FOLLOWREDIRECTS-21280747:
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-LAUNCHEDITOR-21282025:
+    - '@angular-devkit/build-angular@20.3.37 > webpack-dev-server@5.2.6 > launch-editor@2.14.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-21369529:
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-21369530:
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-21369553:
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-PICOMATCH-21248802:
+    - '@angular-devkit/build-angular@20.3.37 > @angular-devkit/architect@0.2003.37 > @angular-devkit/core@20.3.37 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > sass@1.90.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > tinyglobby@0.2.14 > picomatch@4.0.7':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > picomatch@4.0.7':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > tinyglobby@0.2.15 > picomatch@4.0.7':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > webpack-dev-server@5.2.6 > chokidar@3.6.0 > anymatch@3.1.3 > picomatch@2.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > webpack-dev-server@5.2.6 > chokidar@3.6.0 > readdirp@3.6.0 > picomatch@2.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > @angular-devkit/architect@0.2003.27 > @angular-devkit/core@20.3.27 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tinyglobby@0.2.17 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > anymatch@3.1.3 > picomatch@2.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > readdirp@3.6.0 > picomatch@2.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/plugin-json@6.1.0 > @rollup/pluginutils@5.1.0 > picomatch@2.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > sass@1.100.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-QS-20943482:
+    - '@angular-devkit/build-angular@20.3.37 > webpack-dev-server@5.2.6 > express@4.22.3 > body-parser@1.20.8 > qs@6.16.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > webpack-dev-server@5.2.6 > express@4.22.3 > qs@6.16.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > body-parser@1.20.2 > qs@6.11.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-UNDICI-21181005:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-UNDICI-21181009:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-UNDICI-21181011:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-UNDICI-21181013:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-UNDICI-21181015:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-UNDICI-21181017:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-UNDICI-21181019:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-UNDICI-21185768:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-VITE-21282024:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+    - 'ag-charts-community@* > *':
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
+  SNYK-JS-WEBPACKDEVSERVER-21431002:
+    - '@angular-devkit/build-angular@20.3.37 > webpack-dev-server@5.2.6':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-23T10:11:14.000Z
   SNYK-JS-IMAGESIZE-17295816:
     - ng-packagr@20.3.2 > less@4.2.0 > image-size@0.5.5:
         reason: >-

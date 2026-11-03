@@ -4,7 +4,9 @@ import {
     CategoryScale,
     EllipsisChar,
     LinearScale,
+    type NormalisedContentSegment,
     OrdinalTimeScale,
+    type Scale,
     ScaleAlignment,
     TimeScale,
     UnitTimeScale,
@@ -15,6 +17,7 @@ import {
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import type { ChartAxisLabel } from '../chartAxis';
 import {
     numericBandsOf,
     spyOnNumericBandsBuild,
@@ -22,9 +25,16 @@ import {
     tickLabel as tickLabelOptions,
 } from '../test/axisAccessors';
 import { setupMockCanvas } from '../test/utils';
+import type { TickInterval } from './axisTick';
 import { NiceMode } from './axisUtil';
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
-import { fitTicksAtRotation, formatTicks, timeIntervalMaxLabelSize, withTemporaryDomain } from './generateTicksUtils';
+import {
+    type GenerateTicksOptions,
+    fitTicksAtRotation,
+    formatTicks,
+    timeIntervalMaxLabelSize,
+    withTemporaryDomain,
+} from './generateTicksUtils';
 
 // A minTickCount close to tickCount makes buildTickData's overlap loop iterate linearly instead of
 // converging by binary search, which hangs on deeply zoomed ordinal-time domains.
@@ -293,7 +303,19 @@ describe('labelBandOffsets', () => {
 // A label fitted to maxWidth / maxHeight must stay within the room across the axis once rotated, or it can
 // overlap an outer scrollbar.
 describe('AG-18833 rotated label fitting', () => {
-    const formatOptions = (domain: string[]) => ({
+    const font = tickLabelOptions({ fontFamily: 'Verdana' });
+
+    // The options of a label-fitting pass over `scale`; only the scale, label and room options matter to it.
+    const fitOptions = <TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+        scale: TScale,
+        domain: NoInfer<TDatum>[],
+        params: Partial<GenerateTicksOptions<TScale, TDatum>>
+    ) => tickGenerationParams({ scale, domain, range: [scale.range[0], scale.range[1]], ...params });
+
+    // A fill makes a label draw a box, which is what its padding then adds to; `ChartAxisLabel` does not declare it.
+    const filledLabel = (label: Partial<ChartAxisLabel>) => ({ ...font, ...label, fill: 'white' }) as ChartAxisLabel;
+
+    const formatOptions = <TDatum>(domain: TDatum[]) => ({
         niceDomain: domain,
         rawTicks: domain,
         rawFirstTickIndex: 0,
@@ -306,29 +328,19 @@ describe('AG-18833 rotated label fitting', () => {
 
     it('keeps wrapped labels with a configured rotation within the label room', () => {
         const domain = ['one two three four five six seven eight nine ten', 'eleven twelve thirteen fourteen'];
-        const scale = new CategoryScale();
+        const scale = new CategoryScale<string>();
         scale.domain = domain;
         scale.range = [0, 200];
         const rotation = 30;
         const labelRoom = 40;
 
         const ticks = formatTicks(
-            {
-                scale,
-                label: {
-                    enabled: true,
-                    fontSize: 12,
-                    fontFamily: 'Verdana',
-                    avoidCollisions: true,
-                    rotation,
-                    wrapping: 'always',
-                    maxWidth: 200,
-                },
+            fitOptions(scale, domain, {
+                label: { ...font, rotation, wrapping: 'always', maxWidth: 200 },
                 isVertical: true,
                 sizeLimit: labelRoom,
                 labelRoom,
-                tickFormatter: () => (value: unknown) => String(value),
-            } as any,
+            }),
             formatOptions(domain)
         );
 
@@ -343,20 +355,19 @@ describe('AG-18833 rotated label fitting', () => {
 
     it('keeps rich-text segments when re-fitting an auto-rotated truncated label', () => {
         const domain = ['a'];
-        const scale = new CategoryScale();
+        const scale = new CategoryScale<string>();
         scale.domain = domain;
         scale.range = [0, 1000];
-        const segments = [
+        const segments: NormalisedContentSegment[] = [
             { text: 'International ', color: 'red', fontWeight: 'bold' },
             { text: 'Freight Services And Logistics', color: 'blue' },
         ];
-        const options = {
-            scale,
-            label: { enabled: true, fontSize: 12, fontFamily: 'Verdana', avoidCollisions: true, maxWidth: 150 },
+        const options = fitOptions(scale, domain, {
+            label: { ...font, maxWidth: 150 },
             isVertical: false,
             labelRoom: 60,
             tickFormatter: () => () => segments,
-        } as any;
+        });
 
         const ticks = formatTicks(options, formatOptions(domain));
         expect(ticks[0].textUntruncated).toBeDefined();
@@ -366,17 +377,16 @@ describe('AG-18833 rotated label fitting', () => {
 
         expect(isArray(tickLabel)).toBe(true);
         expect(textMetrics.width).toBeLessThan(truncatedWidth);
-        expect((tickLabel as any[])[0]).toMatchObject({ color: 'red', fontWeight: 'bold' });
+        expect((tickLabel as unknown[])[0]).toMatchObject({ color: 'red', fontWeight: 'bold' });
     });
 
     const categoryScale = (domain: string[], width: number) => {
-        const scale = new CategoryScale();
+        const scale = new CategoryScale<string>();
         scale.domain = domain;
         scale.range = [0, width];
         return scale;
     };
 
-    const font = { enabled: true, fontSize: 12, fontFamily: 'Verdana', avoidCollisions: true };
     const autoRotation = (335 * Math.PI) / 180;
     const rotatedExtent = ({ width, height }: { width: number; height: number }) =>
         width * Math.abs(Math.sin(autoRotation)) + height * Math.abs(Math.cos(autoRotation));
@@ -384,13 +394,12 @@ describe('AG-18833 rotated label fitting', () => {
     it('fits an auto-rotated label from its formatted text within the label room', () => {
         const domain = ['International Freight Services', 'Long Distance Transport Links'];
         const labelRoom = 45;
-        const options = {
-            scale: categoryScale(domain, 240),
+        const options = fitOptions(categoryScale(domain, 240), domain, {
             label: { ...font, wrapping: 'always', maxWidth: 300 },
             isVertical: false,
             labelRoom,
             tickFormatter: () => (value: unknown) => String(value),
-        } as any;
+        });
 
         const ticks = formatTicks(options, formatOptions(domain));
         expect(ticks.every((t) => toPlainText(t.tickLabel).includes('\n'))).toBe(true);
@@ -403,13 +412,12 @@ describe('AG-18833 rotated label fitting', () => {
 
     it('clips explicit line breaks to maxHeight when re-fitting an auto-rotated label', () => {
         const domain = ['a'];
-        const options = {
-            scale: categoryScale(domain, 1000),
+        const options = fitOptions(categoryScale(domain, 1000), domain, {
             label: { ...font, maxHeight: 20 },
             isVertical: false,
             labelRoom: 200,
             tickFormatter: () => () => 'First line\nSecond line\nThird line',
-        } as any;
+        });
 
         const ticks = formatTicks(options, formatOptions(domain));
         const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, autoRotation);
@@ -430,15 +438,14 @@ describe('AG-18833 rotated label fitting', () => {
         'hides a number label taller than maxHeight with wrapping never (rotation %s)',
         (rotation) => {
             const domain = [0, 50, 100];
-            const options = {
-                scale: numberScale(domain),
+            const options = fitOptions(numberScale(domain), domain, {
                 label: { ...font, rotation, maxHeight: 5 },
                 isVertical: false,
                 labelRoom: 200,
                 tickFormatter: () => (value: unknown) => String(value),
-            } as any;
+            });
 
-            const ticks = formatTicks(options, formatOptions(domain as any));
+            const ticks = formatTicks(options, formatOptions(domain));
 
             expect(ticks).toHaveLength(3);
             for (const { tickLabel } of ticks) {
@@ -451,15 +458,14 @@ describe('AG-18833 rotated label fitting', () => {
         'clips explicit line breaks to maxHeight with wrapping never (rotation %s)',
         (rotation) => {
             const domain = [0, 100];
-            const options = {
-                scale: numberScale(domain),
+            const options = fitOptions(numberScale(domain), domain, {
                 label: { ...font, rotation, maxHeight: 20 },
                 isVertical: false,
                 labelRoom: 200,
                 tickFormatter: () => () => 'First line\nSecond line\nThird line',
-            } as any;
+            });
 
-            const ticks = formatTicks(options, formatOptions(domain as any));
+            const ticks = formatTicks(options, formatOptions(domain));
 
             for (const { tickLabel, textMetrics } of ticks) {
                 expect(textMetrics.height).toBeLessThanOrEqual(20);
@@ -473,15 +479,14 @@ describe('AG-18833 rotated label fitting', () => {
         'hides a number label when maxWidth is narrower than the ellipsis (rotation %s)',
         (rotation) => {
             const domain = [0, 50, 100];
-            const options = {
-                scale: numberScale(domain),
+            const options = fitOptions(numberScale(domain), domain, {
                 label: { ...font, rotation, maxWidth: 5 },
                 isVertical: false,
                 labelRoom: 200,
                 tickFormatter: () => (value: unknown) => String(value),
-            } as any;
+            });
 
-            const ticks = formatTicks(options, formatOptions(domain as any));
+            const ticks = formatTicks(options, formatOptions(domain));
 
             expect(ticks).toHaveLength(3);
             for (const { tickLabel } of ticks) {
@@ -493,15 +498,14 @@ describe('AG-18833 rotated label fitting', () => {
     it.each([90, 270])('keeps the labels of a vertical number axis rotated %d° in a tight label room', (rotation) => {
         const domain = [0, 50, 100];
         const labelRoom = 20;
-        const options = {
-            scale: numberScale(domain),
+        const options = fitOptions(numberScale(domain), domain, {
             label: { ...font, rotation, maxWidth: 200 },
             isVertical: true,
             labelRoom,
             tickFormatter: () => (value: unknown) => String(value),
-        } as any;
+        });
 
-        const ticks = formatTicks(options, formatOptions(domain as any));
+        const ticks = formatTicks(options, formatOptions(domain));
 
         expect(ticks).toHaveLength(3);
         for (const { tickLabel, textMetrics } of ticks) {
@@ -512,15 +516,14 @@ describe('AG-18833 rotated label fitting', () => {
 
     it('hides the labels of a vertical axis with no label room left', () => {
         const domain = [0, 50, 100];
-        const options = {
-            scale: numberScale(domain),
+        const options = fitOptions(numberScale(domain), domain, {
             label: { ...font, maxHeight: 100 },
             isVertical: true,
             labelRoom: 0,
             tickFormatter: () => (value: unknown) => String(value),
-        } as any;
+        });
 
-        const ticks = formatTicks(options, formatOptions(domain as any));
+        const ticks = formatTicks(options, formatOptions(domain));
 
         expect(ticks).toHaveLength(3);
         for (const { tickLabel } of ticks) {
@@ -530,8 +533,7 @@ describe('AG-18833 rotated label fitting', () => {
 
     it('hides a rich-text label when maxWidth is narrower than the ellipsis', () => {
         const domain = ['a'];
-        const options = {
-            scale: categoryScale(domain, 1000),
+        const options = fitOptions(categoryScale(domain, 1000), domain, {
             label: { ...font, maxWidth: 5 },
             isVertical: false,
             labelRoom: 200,
@@ -539,7 +541,7 @@ describe('AG-18833 rotated label fitting', () => {
                 { text: 'Styled ', color: 'red' },
                 { text: 'label', color: 'blue' },
             ],
-        } as any;
+        });
 
         const [{ tickLabel }] = formatTicks(options, formatOptions(domain));
 
@@ -552,13 +554,12 @@ describe('AG-18833 rotated label fitting', () => {
         const firstWidth = measureTextSegments([first], font).width;
         const ellipsisWidth = measureTextSegments([{ text: EllipsisChar }], font).width;
         const maxWidth = firstWidth + ellipsisWidth / 2;
-        const options = {
-            scale: categoryScale(domain, 1000),
+        const options = fitOptions(categoryScale(domain, 1000), domain, {
             label: { ...font, maxWidth },
             isVertical: false,
             labelRoom: 200,
             tickFormatter: () => () => [first, { text: 'label', color: 'blue' }],
-        } as any;
+        });
 
         const [{ textMetrics }] = formatTicks(options, formatOptions(domain));
 
@@ -567,13 +568,12 @@ describe('AG-18833 rotated label fitting', () => {
 
     it('hides an auto-rotated label when the width left by its re-fit is narrower than the ellipsis', () => {
         const domain = ['International Freight Services'];
-        const options = {
-            scale: categoryScale(domain, 1000),
+        const options = fitOptions(categoryScale(domain, 1000), domain, {
             label: { ...font, maxWidth: 300 },
             isVertical: false,
             labelRoom: 200,
             tickFormatter: () => (value: unknown) => String(value),
-        } as any;
+        });
         const ticks = formatTicks(options, formatOptions(domain));
         const { height } = ticks[0].textMetrics;
         const sin = Math.abs(Math.sin(autoRotation));
@@ -595,13 +595,12 @@ describe('AG-18833 rotated label fitting', () => {
             { text: 'Styled ', color: 'red' },
             { text: 'category label', color: 'blue' },
         ];
-        const options = {
-            scale: categoryScale(domain, 120),
+        const options = fitOptions(categoryScale(domain, 120), domain, {
             label: { ...font, maxWidth: 300, truncate: false },
             isVertical: false,
             labelRoom: 100,
             tickFormatter: () => () => segments,
-        } as any;
+        });
 
         const ticks = formatTicks(options, formatOptions(domain));
 
@@ -634,13 +633,12 @@ describe('AG-18833 rotated label fitting', () => {
         (isVertical, rotation, padding) => {
             const domain = ['International Freight Services And Logistics'];
             const labelRoom = 120;
-            const options = {
-                scale: categoryScale(domain, 300),
-                label: { ...font, fill: 'white', padding, rotation, maxWidth: 300 },
+            const options = fitOptions(categoryScale(domain, 300), domain, {
+                label: filledLabel({ padding, rotation, maxWidth: 300 }),
                 isVertical,
                 labelRoom,
                 tickFormatter: () => (value: unknown) => String(value),
-            } as any;
+            });
 
             const [{ tickLabel, textMetrics }] = formatTicks(options, formatOptions(domain));
 
@@ -653,13 +651,12 @@ describe('AG-18833 rotated label fitting', () => {
     it('keeps the padded box of a re-fitted auto-rotated label within the label room', () => {
         const domain = ['International Freight Services And Logistics'];
         const labelRoom = 60;
-        const options = {
-            scale: categoryScale(domain, 1000),
-            label: { ...font, fill: 'white', padding: 8, maxWidth: 300 },
+        const options = fitOptions(categoryScale(domain, 1000), domain, {
+            label: filledLabel({ padding: 8, maxWidth: 300 }),
             isVertical: false,
             labelRoom,
             tickFormatter: () => (value: unknown) => String(value),
-        } as any;
+        });
 
         const ticks = formatTicks(options, formatOptions(domain));
         const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, autoRotation);
@@ -674,26 +671,17 @@ describe('AG-18833 rotated label fitting', () => {
         const scale = categoryScale(domain, 480);
         const autoRotateAngle = 355;
 
-        const result = generateTicks({
-            label: { ...font, autoRotate: true, autoRotateAngle, wrapping: 'always', maxWidth: 300 } as any,
-            parallel: true,
-            axisRotation: Math.PI / -2,
-            scale,
-            domain,
-            range: [0, 480],
-            visibleRange: [0, 1],
-            niceMode: [],
-            reverse: false,
-            primaryTickCount: undefined,
-            defaultTickMinSpacing: 0,
-            labelOffset: 0,
-            sideFlag: 1,
-            interval: undefined,
-            isVertical: false,
-            sizeLimit: 42,
-            labelRoom: 42,
-            tickFormatter: () => (value: unknown) => String(value),
-        } as any);
+        const result = generateTicks(
+            fitOptions(scale, domain, {
+                label: { ...font, autoRotate: true, autoRotateAngle, wrapping: 'always', maxWidth: 300 },
+                defaultTickMinSpacing: 0,
+                sideFlag: 1,
+                isVertical: false,
+                sizeLimit: 42,
+                labelRoom: 42,
+                tickFormatter: () => (value: unknown) => String(value),
+            })
+        );
 
         // Collisions are checked on the labels as drawn at each rotation, so none reaches its neighbour.
         const { rotation, tickData } = result;
@@ -718,26 +706,17 @@ describe('AG-18833 rotated label fitting', () => {
             const scale = new TimeScale();
             scale.domain = domain;
             scale.range = [0, 400];
-            return generateTicks({
-                label: { ...font, format: '%A %d %B %Y', maxWidth } as any,
-                parallel: true,
-                axisRotation: Math.PI / -2,
-                scale,
-                domain,
-                range: [0, 400],
-                visibleRange: [0, 1],
-                niceMode: [],
-                reverse: false,
-                primaryTickCount: undefined,
-                defaultTickMinSpacing: 0,
-                labelOffset: 0,
-                sideFlag: 1,
-                interval: undefined,
-                isVertical: false,
-                sizeLimit: 100,
-                labelRoom: 100,
-                tickFormatter: () => (value: Date) => `Wednesday ${value.getDate()} September`,
-            } as any).tickData.ticks;
+            return generateTicks(
+                fitOptions(scale, domain, {
+                    label: { ...font, format: '%A %d %B %Y', maxWidth },
+                    defaultTickMinSpacing: 0,
+                    sideFlag: 1,
+                    isVertical: false,
+                    sizeLimit: 100,
+                    labelRoom: 100,
+                    tickFormatter: () => (value: Date) => `Wednesday ${value.getDate()} September`,
+                })
+            ).tickData.ticks;
         };
 
         const fitted = ticksFor(40);
@@ -753,26 +732,17 @@ describe('AG-18833 rotated label fitting', () => {
             const scale = new TimeScale();
             scale.domain = domain;
             scale.range = [0, 400];
-            return generateTicks({
-                label: { ...font, format: '%A %d %B %Y', maxWidth: 300, ...rotation } as any,
-                parallel: true,
-                axisRotation: Math.PI / -2,
-                scale,
-                domain,
-                range: [0, 400],
-                visibleRange: [0, 1],
-                niceMode: [],
-                reverse: false,
-                primaryTickCount: undefined,
-                defaultTickMinSpacing: 0,
-                labelOffset: 0,
-                sideFlag: 1,
-                interval: undefined,
-                isVertical: false,
-                sizeLimit: 25,
-                labelRoom: 25,
-                tickFormatter: () => (value: Date) => `Wednesday ${value.getDate()} September`,
-            } as any);
+            return generateTicks(
+                fitOptions(scale, domain, {
+                    label: { ...font, format: '%A %d %B %Y', maxWidth: 300, ...rotation },
+                    defaultTickMinSpacing: 0,
+                    sideFlag: 1,
+                    isVertical: false,
+                    sizeLimit: 25,
+                    labelRoom: 25,
+                    tickFormatter: () => (value: Date) => `Wednesday ${value.getDate()} September`,
+                })
+            );
         };
 
         const automatic = ticksFor({ autoRotate: true, autoRotateAngle: 355 });

@@ -19,6 +19,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { RequireOptional } from '../../types/global';
+import type { WithInternalShadow } from '../internalShadowOptions';
 import type { BivariantCallback, Normalised } from './normalise';
 import type { NormalisedCartesianSeriesOptionsCommon } from './normalisedCartesianSeries';
 import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
@@ -68,7 +69,7 @@ interface BubbleScatterOverrides<TKeys> {
 
 /** Bubble options the series owns, before the common series keys are layered on. */
 export type NormalisedBubbleSeriesOwnOptions = Normalised<
-    AgBubbleSeriesOptions,
+    AgBubbleSeriesOptions & WithInternalShadow,
     BubbleScatterRequiredKeys | 'sizeKey' | 'minSize' | 'maxSize' | 'sizeMode',
     BubbleScatterOverrides<AgBubbleSeriesOptionsKeys> & {
         label: NormalisedPlacedSeriesLabelOptions<AgBubbleSeriesLabelFormatterParams>;
@@ -84,7 +85,7 @@ export type NormalisedBubbleSeriesOptions = NormalisedSeriesOptions<NormalisedBu
 
 /** Scatter options the series owns, before the common series keys are layered on. */
 export type NormalisedScatterSeriesOwnOptions = Normalised<
-    AgScatterSeriesOptions,
+    AgScatterSeriesOptions & WithInternalShadow,
     BubbleScatterRequiredKeys | 'size',
     BubbleScatterOverrides<AgScatterSeriesOptionsKeys> & {
         label: NormalisedPlacedSeriesLabelOptions<AgScatterSeriesLabelFormatterParams>;

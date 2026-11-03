@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     ariaLabelColorPickerHue: 'Toon',
     ariaLabelColorPickerMultiColor: 'Mitmevärviline',
     ariaLabelColorPickerPalette: 'Palett',
+    ariaLabelCrossLine: '${label}, ristjoon ${index}[number] / ${count}[number]',
     ariaLabelFinancialCharts: 'Finantsdiagrammid',
     ariaLabelGaugeTarget: 'Sihtväärtus',
     ariaLabelGaugeValue: 'Väärtus',

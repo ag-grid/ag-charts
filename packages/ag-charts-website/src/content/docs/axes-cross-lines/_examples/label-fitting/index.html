@@ -1,8 +1,62 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="wrap()">Wrap</button>
-        <button onclick="truncate()">Truncate</button>
-        <button onclick="shrink()">Shrink</button>
+        <div class="gap-right">
+            <label for="maxWidthSlider">Max Width:</label>
+            <input
+                type="range"
+                id="maxWidthSlider"
+                min="40"
+                max="300"
+                value="120"
+                oninput="setMaxWidth(event)"
+                onchange="setMaxWidth(event)"
+            />
+            <span id="maxWidthValue" style="display: inline-block; min-width: 4ch; text-align: right">120</span>
+        </div>
+        <div class="gap-right">
+            <label for="maxHeightSlider">Max Height:</label>
+            <input
+                type="range"
+                id="maxHeightSlider"
+                min="10"
+                max="100"
+                value="60"
+                oninput="setMaxHeight(event)"
+                onchange="setMaxHeight(event)"
+            />
+            <span id="maxHeightValue" style="display: inline-block; min-width: 4ch; text-align: right">60</span>
+        </div>
+        <div>
+            <label for="minimumFontSizeSlider">Minimum Font Size:</label>
+            <input
+                type="range"
+                id="minimumFontSizeSlider"
+                min="6"
+                max="12"
+                value="12"
+                oninput="setMinimumFontSize(event)"
+                onchange="setMinimumFontSize(event)"
+            />
+            <span id="minimumFontSizeValue" style="display: inline-block; min-width: 3ch; text-align: right">12</span>
+        </div>
+    </div>
+    <div class="controls-row">
+        <div class="gap-right">
+            <label for="wrap-select">Wrapping:</label>
+            <select id="wrap-select" onchange="setWrapping(event.target.value)">
+                <option value="on-space">on-space (default)</option>
+                <option value="always">always</option>
+                <option value="hyphenate">hyphenate</option>
+                <option value="never">never</option>
+            </select>
+        </div>
+        <div>
+            <label for="truncate-select">Truncate:</label>
+            <select id="truncate-select" onchange="setTruncate(event.target.value)">
+                <option value="enabled">Enabled (default)</option>
+                <option value="disabled">Disabled</option>
+            </select>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

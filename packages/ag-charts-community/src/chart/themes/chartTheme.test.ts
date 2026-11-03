@@ -1,12 +1,13 @@
 import { fail } from 'assert';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { cycledValue } from 'ag-charts-core';
+import { type WithInternalShadow, cycledValue } from 'ag-charts-core';
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
 import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgChartTheme,
+    AgLineSeriesOptions,
     AgStandaloneChartOptions,
 } from 'ag-charts-types';
 
@@ -536,6 +537,67 @@ describe('ChartTheme', () => {
                 expect(chart.chartOptions.processedOptions.title).toMatchObject({ layoutStyle, textAlign });
             }
         );
+    });
+
+    describe('default shadow colour', () => {
+        const create = async (theme: object | string, series: object = {}) => {
+            chart = deproxy(
+                AgCharts.create({
+                    width: 600,
+                    height: 400,
+                    data,
+                    series: [
+                        { type: 'bar', xKey: 'label', yKey: 'v1', shadow: { enabled: true }, ...series },
+                        { type: 'line', xKey: 'label', yKey: 'v2', marker: { shadow: { enabled: true } } },
+                    ],
+                    theme,
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(chart);
+            const [bar, line] = (chart.chartOptions.processedOptions as AgCartesianChartOptions).series ?? [];
+            return {
+                bar: bar as AgBarSeriesOptions,
+                line: line as AgLineSeriesOptions & { marker?: WithInternalShadow },
+            };
+        };
+
+        it.each([
+            ['ag-default', 0.5],
+            ['ag-default-dark', 0.5],
+            ['ag-polychroma-dark', 0.5],
+            ['ag-financial', 0.5],
+            ['ag-financial-dark', 0.5],
+        ])('resolves the series and marker shadow fill for %s', async (theme, expected) => {
+            const { bar, line } = await create(theme);
+
+            const color = 'rgba(0, 0, 0, 0.5)';
+            expect(bar.shadow).toMatchObject({ fill: '#000', fillOpacity: expected, color });
+            expect(line.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity: expected, color });
+        });
+
+        it('keeps a shadow fill set on the series or by a theme override on a dark theme', async () => {
+            const { bar, line } = await create(
+                {
+                    baseTheme: 'ag-default-dark',
+                    overrides: { line: { series: { marker: { shadow: { fill: 'red' } } } } },
+                },
+                { shadow: { enabled: true, fill: 'blue' } }
+            );
+
+            expect(bar.shadow).toMatchObject({ fill: 'blue', fillOpacity: 1, color: 'blue' });
+            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1, color: 'red' });
+        });
+
+        it('treats the shadow colour as the fill, cast as it is written, without a deprecation warning', async () => {
+            const { bar, line } = await create(
+                { overrides: { line: { series: { marker: { shadow: { color: 'red' } } } } } },
+                { shadow: { enabled: true, color: '#0000ff80' } }
+            );
+
+            expect(bar.shadow).toMatchObject({ fill: '#0000ff80', fillOpacity: 1, color: '#0000ff80' });
+            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1, color: 'red' });
+            expect(vi.mocked(console.warn).mock.calls.map(([message]) => String(message))).toEqual([]);
+        });
     });
 
     describe('border theme params', () => {

@@ -113,7 +113,8 @@ type Variants = BenchmarkConfig['testCases'][number]['variants'];
 // The shadow `spread`, and the `shadow` of candlestick and OHLC series, are first in 14.3.0. Older releases ignore them, so
 // they are skipped there, or they would do less work than this version does. Builds that still report 14.2.0 skip them too.
 const SHADOW_MIN_VERSION = '14.3.0';
-const SHADOWS: Record<'on' | 'spread', AgDropShadowOptions> = {
+// `spread` is accepted at runtime but is not part of the public `AgDropShadowOptions`.
+const SHADOWS: Record<'on' | 'spread', AgDropShadowOptions & { spread?: number }> = {
     on: { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4 },
     spread: { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4, spread: 2 },
 };

@@ -292,6 +292,14 @@ describe('priceVolumePreset', () => {
                 data: getStockData(),
                 volumeProfile: { ...volumeProfile, data: getIrregularVolumeProfile() },
             },
+            'custom up and down bars': {
+                data: getStockData(),
+                volumeProfile: {
+                    ...volumeProfile,
+                    up: { fill: '#1565c0', fillOpacity: 0.7, stroke: '#0d47a1', strokeWidth: 2 },
+                    down: { stroke: '#e65100' },
+                },
+            },
         };
 
         it.each(Object.entries(VOLUME_PROFILE_EXAMPLES))(
@@ -443,10 +451,6 @@ describe('priceVolumePreset', () => {
         // Levels run highest price first, so index 2 is 200 and index 21 is 152.5, which has no volume.
         const LEVEL_200 = 2;
         const EMPTY_LEVEL = 21;
-        const BLOCK_LAYOUT = {
-            overrides: { common: { statusBar: { layoutStyle: 'block' } } },
-        } as AgFinancialChartOptions['theme'];
-
         const create = async (options: Partial<AgFinancialChartOptions>, width?: number) => {
             const prepared = prepareFinancialTestOptions({
                 data: getStockData(),
@@ -490,6 +494,15 @@ describe('priceVolumePreset', () => {
             await hoverCandleAtLevel(50, LEVEL_200);
 
             expectProfileNotHovered();
+            await compare();
+        });
+
+        it('should colour the hovered level by the up and down fills', async () => {
+            await create({
+                volumeProfile: { ...volumeProfile, up: { fill: '#7b1fa2' }, down: { fill: '#ef6c00' } },
+            });
+            await hoverCandleAtLevel(50, LEVEL_200);
+
             await compare();
         });
 
@@ -567,8 +580,8 @@ describe('priceVolumePreset', () => {
             await compare();
         });
 
-        it('should render the level on no more than two lines, reserved in a block layout, on a very narrow chart', async () => {
-            await create({ volumeProfile, theme: BLOCK_LAYOUT }, 300);
+        it('should render the level on no more than two lines on a very narrow chart', async () => {
+            await create({ volumeProfile }, 300);
             await hoverCandleAtLevel(50, LEVEL_200);
 
             await compare();

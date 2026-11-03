@@ -27,11 +27,11 @@ describe('charts theme builder presets', () => {
         expect(PRESETS[1].palette).toEqual(getPalette('ag-default-dark'));
     });
 
-    it('spans compact to spacious, square to rounded, and borders on and off', () => {
+    it('spans default to spacious, square to rounded, and borders on and off', () => {
         const defaults = _Theme.ChartTheme.getDefaultPublicParameters();
         const values = (key: string) => PRESETS.map(({ params }) => params[key]).filter((value) => value != null);
         const paddings = values('chartPadding').filter((padding) => typeof padding === 'number');
-        expect(paddings.some((padding) => padding < defaults.chartPadding)).toBe(true);
+        expect(paddings.some((padding) => padding <= defaults.chartPadding)).toBe(true);
         expect(paddings.some((padding) => padding > defaults.chartPadding)).toBe(true);
         expect(new Set(values('borderRadius')).size).toBeGreaterThan(1);
         expect(values('legendBorder')).toContain(true);
@@ -49,7 +49,7 @@ describe('charts theme builder presets', () => {
 
     it('uses only fonts the font menu offers', () => {
         // The chart imports its own Google fonts, so an unlisted one would still
-        // render - but the Font Family control would show "Same as application"
+        // render - but the Font Family control would show "Match application"
         // for a value it has no option for, and picking anything else would be a
         // one-way door out of the preset's typeface.
         const loaded = new Set(

@@ -14,7 +14,7 @@ import type { LabelNodeDatum } from '../axis/axis';
 import type { TickInterval } from '../axis/axisTick';
 import { CartesianAxis } from '../axis/cartesianAxis';
 import type { GenerateTicksOptions } from '../axis/generateTicksUtils';
-import type { ChartAxisLabel } from '../chartAxis';
+import type { ChartAxisLabel, ChartLayout } from '../chartAxis';
 import type { AxisLabelSource } from '../layout/axisLabelSource';
 import { type ChartOrProxy, createSceneGeometrySampler, deproxy } from './utils';
 
@@ -33,6 +33,11 @@ export interface AxisLabelOptions {
 // `Axis.tickLabelGroupSelection` is protected, and the label nodes are the only record of what the axis drew.
 interface TickLabelSelectionHost {
     tickLabelGroupSelection: { nodes(): Iterable<TransformableText<LabelNodeDatum>> };
+}
+
+// `Axis.chartLayout` is protected; it is the only record of the room the chart gave the axis.
+interface ChartLayoutHost {
+    chartLayout?: ChartLayout;
 }
 
 function hasDatum(node: TransformableText<LabelNodeDatum>): node is AxisLabelNode {
@@ -156,6 +161,13 @@ export function getAxisLayoutState(
     position: string
 ): ReturnType<CartesianAxis['getLayoutState']> {
     return findAxis(chartOrProxy, position).getLayoutState();
+}
+
+/** The most room across the axis' thickness that the chart gave the axis at `position`, as of the last layout pass. */
+export function getAxisSizeLimit(chartOrProxy: ChartOrProxy<any>, position: string): number {
+    const { chartLayout } = findAxis(chartOrProxy, position) as unknown as ChartLayoutHost;
+    expect(chartLayout).toBeDefined();
+    return chartLayout!.sizeLimit;
 }
 
 /**

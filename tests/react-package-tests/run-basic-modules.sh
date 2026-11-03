@@ -8,7 +8,8 @@ dev_port=5173
 patch_subdir=basic-modules
 
 function install_fw {
-    npm create -y vite@latest react-${version}-basic-test -- --template react-ts
+    # Pinned: create-vite 9.3.2 was published without its templates.
+    npm create -y vite@9.3.1 react-${version}-basic-test -- --template react-ts
 
     cd react-${version}-basic-test
     npm i react@${version} react-dom@${version}

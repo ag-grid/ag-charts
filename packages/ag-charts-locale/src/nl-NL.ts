@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaLabelColorPickerHue: 'Kleurtoon',
     ariaLabelColorPickerMultiColor: 'Meerkleurig',
     ariaLabelColorPickerPalette: 'Palet',
+    ariaLabelCrossLine: '${label}, Kruislijn ${index}[number] van ${count}[number]',
     ariaLabelFinancialCharts: 'Financiële grafieken',
     ariaLabelGaugeTarget: 'Doel',
     ariaLabelGaugeValue: 'Waarde',

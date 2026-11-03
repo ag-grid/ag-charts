@@ -83,14 +83,26 @@ changes wholesale; the generated placeholder then names the enterprise variant.
 
 A feature that lives under another module's option key is its own module, not an override of the
 host. `BackgroundRegionsModule` declares `contributes: [{ path: 'seriesArea.backgroundRegions', ... }]`
-and depends on the community `SeriesAreaModule`, which exposes itself as the `seriesArea` service.
-Every chart module depends on that service, so `ctx.seriesArea` is never optional. The feature
-implements `SeriesAreaContent` and calls `ctx.seriesArea.attach(this)` to render inside the series
-area. The host reads the keys other modules contribute below its path through `contributedKeysUnder`
+and reaches the host through the `seriesArea` chart-context service, which every chart installs, so
+`ctx.seriesArea` is never optional. The feature implements `SeriesAreaContent` and calls
+`ctx.seriesArea.attach(this)` to render inside the series area. The host reads the keys other modules contribute below its path through `contributedKeysUnder`
 and leaves them alone, so it validates only its own options.
 
 Presets that users reach through an API entry point declare `apiName: 'AgCharts.createGauge'` so the
 report names the entry point rather than the registry name.
+
+## Chart-context services
+
+A module of any type provides chart-context services through `services`, a map from registry name
+to factory: `services: { zoomManager: (c) => new ZoomManager(c) }`. The chart installs the services
+of every registered module that applies to its chart type before anything reads the context; the
+first provider of a name wins, so several modules may share one interchangeable provider (such as
+`sharedToolbar`, which both the chart toolbar and annotations provide).
+
+The context is the integration point between modules: consumers read the service from `ctx` and,
+unless every chart module guarantees it, treat it as optional. Never add a `dependencies` edge or
+an export only so that one module can reach a service another module provides. Keep `register` for
+what is not a lazily built service, such as a `ctx.factory` or an eagerly constructed constant.
 
 ## Generated tables
 
@@ -107,8 +119,14 @@ UPDATE_MODULE_TABLES=1 yarn nx test ag-charts-enterprise -- moduleTables
 yarn nx format
 ```
 
-The test fails until the files are regenerated. Do not edit the generated files. A module reachable
-only through a bundle is named after the smallest exported bundle that carries it.
+The test fails until the files are regenerated. Do not edit the generated files. An unexported
+preset, or an unexported module that owns options, is reported as the exported modules that carry
+it: its axis and series carriers, narrowed to the types in use, else the smallest carriers.
+
+The ESLint tables key each requirement by the owning definition's `name`, and list the definitions
+every exported module brings in, per package. The rule treats a requirement as met when a
+registered module brings in its owner, so an internal module needs no export to be recognised. The
+fix imports the reported module from the package its owner's `enterprise` flag names.
 
 `libraries/ag-charts-eslint-rules/rules/module-mappings.mjs` keeps only what definitions do not carry
 (default axes per series, intrinsic defaults) and re-exports the generated tables.
@@ -120,7 +138,8 @@ only through a bundle is named after the smallest exported bundle that carries i
    assigning onto it afterwards, which keeps it out of tree-shaking (see the `api-contracts` rule).
 2. Declare `contributes` only if the implied location is wrong or incomplete. It replaces the
    implied location, so when adding locations, list the implied one alongside them.
-3. Export it from the package `main.ts` and add it to the relevant `module-bundles/*.ts`.
+3. Export it from the package `main.ts` if it is user-facing, and add it to the relevant
+   `module-bundles/*.ts`. An internal module is registered through another module's `dependencies`.
 4. Regenerate the tables and run `yarn nx test ag-charts-community -- optionsModule` so the
    parametrised contract test covers the new contribution.
 5. Add the module to `packages/ag-charts-website/src/content/module-mappings/modules.json` if it is

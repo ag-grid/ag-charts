@@ -1,4 +1,4 @@
-import { SeriesAreaModule, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { VERSION, _ModuleSupport } from 'ag-charts-community';
 import { type PluginModuleDefinition, arrayOfDefs } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegion } from 'ag-charts-types';
 
@@ -12,7 +12,6 @@ export const BackgroundRegionsModule: PluginModuleDefinition<never, _ModuleSuppo
     chartTypes: ['cartesian'],
     enterprise: true,
     version: VERSION,
-    dependencies: [SeriesAreaModule],
     contributes: [
         {
             path: 'seriesArea.backgroundRegions',

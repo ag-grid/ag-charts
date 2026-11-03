@@ -3,6 +3,7 @@ import {
     Color,
     type ContributionHost,
     FONT_SIZE_RATIO,
+    type InternalAgThemeParams,
     ModuleRegistry,
     type ModuleScope,
     ModuleType,
@@ -83,6 +84,8 @@ export class ChartTheme {
     readonly paletteType: PaletteType;
 
     readonly config: any;
+    /** The chart-level defaults of each registered chart type, for a chart with no series type to key `config` by. */
+    readonly chartDefaults: Record<string, any>;
     readonly presets: AgPresetOverrides;
     readonly overrides: AgThemeOverrides | undefined;
     readonly params: AgChartAllThemeParams;
@@ -292,7 +295,7 @@ export class ChartTheme {
         };
     }
 
-    protected getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+    protected getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams & InternalAgThemeParams>> {
         return {
             focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
             annotationColor: this.getDefaultColors().fills.BLUE,
@@ -302,6 +305,7 @@ export class ChartTheme {
             annotationTextboxBackgroundColor: '#fafafa',
             annotationTextboxBorderColor: '#ddd',
             annotationDividerColor: '#181d1f',
+            shadowFillOpacity: 0.5,
             captionLayoutStyle: 'block',
             captionAlignment: 'center',
         };
@@ -332,7 +336,9 @@ export class ChartTheme {
 
         this.params = mergeDefaults(params, this.getThemeParameters() as AgChartAllThemeParams);
 
-        this.config = this.getFrozenDefaultsConfig(presetName, moduleRegistry);
+        const { config, chartDefaults } = this.getFrozenDefaultsConfig(presetName, moduleRegistry);
+        this.config = config;
+        this.chartDefaults = chartDefaults;
         this.overrides = deepFreeze(overrides);
         this.presets = deepFreeze(presets);
     }
@@ -344,16 +350,15 @@ export class ChartTheme {
             byPreset = new Map();
             byClass.set(this.constructor, byPreset);
         }
-        let config = byPreset.get(presetName);
-        if (config == null) {
-            const defaults = this.createChartConfigPerChartType(
-                this.getDefaults(presetName, moduleRegistry),
-                moduleRegistry
+        let frozen = byPreset.get(presetName);
+        if (frozen == null) {
+            const { config, chartDefaults } = this.getDefaults(presetName, moduleRegistry);
+            frozen = deepFreeze(
+                deepClone({ config: this.createChartConfigPerChartType(config, moduleRegistry), chartDefaults })
             );
-            config = deepFreeze(deepClone(defaults));
-            byPreset.set(presetName, config);
+            byPreset.set(presetName, frozen);
         }
-        return config;
+        return frozen;
     }
 
     private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides, moduleRegistry: ModuleScope) {
@@ -378,13 +383,15 @@ export class ChartTheme {
         return config;
     }
 
-    private getDefaults(presetName: string | undefined, moduleRegistry: ModuleScope): AgChartThemeOverrides {
+    private getDefaults(
+        presetName: string | undefined,
+        moduleRegistry: ModuleScope
+    ): { config: AgChartThemeOverrides; chartDefaults: Record<string, object> } {
         const presetModule = presetName == null ? undefined : moduleRegistry.getPresetModule(presetName);
         const presetTemplate = presetModule?.themeTemplate;
 
-        const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
-            const result: Record<string, { series?: object; axes?: object }> = {};
-            const chartTypeDefaults = mergeDefaultsShallowOperations(
+        const getChartTypeDefaults = (chartType: string) =>
+            mergeDefaultsShallowOperations(
                 { axes: {} },
                 presetTemplate?.common,
                 ...contributedThemeTemplates(moduleRegistry, 'chart', (c) =>
@@ -392,6 +399,22 @@ export class ChartTheme {
                 ),
                 moduleRegistry.getChartModule(chartType)?.themeTemplate
             );
+
+        const applyAxisTemplates = (entry: { axes?: object }, chartType: string) => {
+            const axes = entry.axes as Record<string, object>;
+            for (const axisModule of moduleRegistry.listModulesByType(ModuleType.Axis)) {
+                axes[axisModule.name] = mergeDefaultsShallowOperations(
+                    axes[axisModule.name],
+                    axisModule.chartType == null || axisModule.chartType === chartType
+                        ? getAxisThemeTemplate(axisModule.name, moduleRegistry)
+                        : null
+                );
+            }
+        };
+
+        const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
+            const result: Record<string, { series?: object; axes?: object }> = {};
+            const chartTypeDefaults = getChartTypeDefaults(chartType);
 
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaultsShallowOperations(
@@ -410,16 +433,7 @@ export class ChartTheme {
                     }
                 }
 
-                const { axes } = result[seriesType] as { axes: Record<string, object> };
-
-                for (const axisModule of moduleRegistry.listModulesByType(ModuleType.Axis)) {
-                    axes[axisModule.name] = mergeDefaultsShallowOperations(
-                        axes[axisModule.name],
-                        axisModule.chartType == null || axisModule.chartType === chartType
-                            ? getAxisThemeTemplate(axisModule.name, moduleRegistry)
-                            : null
-                    );
-                }
+                applyAxisTemplates(result[seriesType], chartType);
             }
 
             return result;
@@ -428,11 +442,18 @@ export class ChartTheme {
         const seriesModules = [...moduleRegistry.listModulesByType(ModuleType.Series)];
         const seriesByChartType = groupBy(seriesModules, (s) => s.chartType ?? 'unknown');
 
-        return mergeDefaultsShallowOperations(
+        const chartDefaults: Record<string, object> = {};
+        for (const { name } of moduleRegistry.listModulesByType(ModuleType.Chart)) {
+            chartDefaults[name] = getChartTypeDefaults(name);
+            applyAxisTemplates(chartDefaults[name], name);
+        }
+
+        const config = mergeDefaultsShallowOperations(
             ...Object.keys(seriesByChartType).map((chartType) =>
                 getOverridesByType(chartType as ChartType, seriesByChartType[chartType]?.map((s) => s.name) ?? [])
             )
         );
+        return { config, chartDefaults };
     }
 
     protected getDefaultColors(): DefaultColors {

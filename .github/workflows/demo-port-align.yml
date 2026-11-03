@@ -137,7 +137,8 @@ jobs:
         name: Align stale ports
         needs: detect
         if: needs.detect.outputs.stale_count != '0'
-        runs-on: ubuntu-latest
+        # Pinned: Playwright 1.60.0 cannot install Chromium on ubuntu-latest (Ubuntu 26.04).
+        runs-on: ubuntu-24.04
         timeout-minutes: 120
         permissions:
             contents: read

@@ -801,7 +801,7 @@ describe('Shape', () => {
     describe('shadow modes', () => {
         const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
 
-        const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 4 };
+        const SHADOW = { enabled: true, fill: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 4 };
 
         const renderNode = (node: Line | Path, ctx = canvasCtx.getRenderContext2D()) => {
             const renderCtx = {
@@ -903,7 +903,7 @@ describe('Shape', () => {
             const path = whiskerPath('silhouette', 40, {
                 fill: 'black',
                 stroke: 'black',
-                fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 },
+                fillShadow: { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 },
             });
             renderNode(path);
 
@@ -928,7 +928,7 @@ describe('Shape', () => {
                     lineJoin: 'round',
                     shadowMode: 'silhouette',
                     // No offset or blur, so a silhouette shadow is exactly the shape's own pixels.
-                    fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0, spread },
+                    fillShadow: { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0, spread },
                 });
                 // A square cap on a 45° stroke points its corner straight along x, √2 half-strokes past the end.
                 path.path.moveTo(100, 40);
@@ -944,7 +944,7 @@ describe('Shape', () => {
             clearCanvas();
             const width = canvasCtx.nodeCanvas.width;
             // Between one and two canvas widths to the right: a shift of one canvas width would land it back on-screen.
-            const unshadowed = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+            const unshadowed = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
             renderNode(
                 whiskerPath('silhouette', width + 40, { fill: 'black', stroke: 'black', fillShadow: unshadowed })
             );
@@ -976,7 +976,7 @@ describe('Shape', () => {
                 fill: 'black',
                 stroke: undefined,
                 strokeWidth: 0,
-                fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 5, yOffset: 5, blur: 0 },
+                fillShadow: { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 5, yOffset: 5, blur: 0 },
                 shadowMode: 'silhouette',
             });
             node.path.rect(20, 20, 30, 50);
@@ -1002,7 +1002,7 @@ describe('Shape', () => {
 
         describe('extent coordinate spaces', () => {
             const BLACK = [0, 0, 0, 255];
-            const unshadowed = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+            const unshadowed = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
             /** The device-pixel columns that hold at least one pixel of the given colour. */
             const columnsOf = (colour: number[]) => {
@@ -1139,7 +1139,7 @@ describe('Shape', () => {
             it('should shadow a Line with its stroke, where it is drawn', () => {
                 clearCanvas();
                 const line = lineNode('silhouette', 20, 8);
-                line.fillShadow = { ...unshadowed, color: 'rgba(0, 0, 255, 1)', yOffset: 60 };
+                line.fillShadow = { ...unshadowed, fill: 'rgba(0, 0, 255, 1)', yOffset: 60 };
                 renderNode(line);
 
                 const ctx = canvasCtx.getRenderContext2D();

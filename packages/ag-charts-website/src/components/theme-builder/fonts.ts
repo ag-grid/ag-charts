@@ -29,3 +29,23 @@ export const CHARTS_FONT_FAMILY_OPTIONS: FontFamilyOption[] = [
     { label: 'Merriweather', value: { googleFont: 'Merriweather' } },
     { label: 'Times New Roman', value: 'Times New Roman' },
 ];
+
+const isFontFamilyParam = (property: string) => property === 'fontFamily' || property.endsWith('FontFamily');
+const isReference = (value: unknown) => typeof value === 'object' && value != null && 'ref' in value;
+
+/**
+ * For the builder's own charts only, never the exported theme: a lone web font
+ * falls back to the browser's serif default until it loads.
+ */
+export const withSansFallback = (params: Record<string, unknown>): Record<string, unknown> =>
+    Object.fromEntries(
+        Object.keys(params).map((property) => {
+            const value = params[property];
+            return [
+                property,
+                value != null && isFontFamilyParam(property) && !isReference(value)
+                    ? [value].flat().concat('system-ui', 'sans-serif')
+                    : value,
+            ];
+        })
+    );

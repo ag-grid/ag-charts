@@ -12,7 +12,7 @@ import {
     labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
     markerOptionsDefs,
-    multiSeriesShadowHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     positiveNumber,
     positiveNumericValue,
     required,
@@ -40,7 +40,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
-    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     ...undocumentedDefs({
         topologyIdKey: string,
     }),

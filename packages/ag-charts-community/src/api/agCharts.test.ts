@@ -1,4 +1,4 @@
-import { type Mock, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type ModuleDefinition, ModuleRegistry, getDocument } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
@@ -6,6 +6,7 @@ import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineO
 import { AgCharts } from '../api/agCharts';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
+import { ScatterSeriesModule } from '../chart/series/cartesian/scatterSeriesModule';
 import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
 import { setAgChartsDebug } from '../chart/test/seriesAccessors';
 import {
@@ -18,7 +19,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../chart/test/utils';
-import { locateChartWrapper } from '../dom/test/testUtils';
+import { getManagerSizeMonitor } from '../dom/test/domAccessors';
 import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
 import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
 import { invalidOption } from '../module/test/moduleAccessors';
@@ -424,25 +425,6 @@ describe('AgCharts', () => {
             ]);
         });
     });
-    describe('enableShadowDom', () => {
-        // Bespoke: the chart must render into the per-test `container`, which `createChart` would override.
-        it('moves the chart into a shadow root of its own and back as the option changes', async () => {
-            const options: AgChartOptions = {
-                data: [{ x: 'a', y: 1 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                enableShadowDom: true,
-            };
-            prepareTestOptions(options, container);
-            chart = AgCharts.create(options);
-            await chart.waitForUpdate();
-            expect(locateChartWrapper(container)).toBe('shadow-root');
-
-            await chart.update({ ...options, enableShadowDom: false });
-            await chart.waitForUpdate();
-            expect(locateChartWrapper(container)).toBe('light-dom');
-        });
-    });
-
     describe('invalid options', () => {
         const expectedError =
             /^AG Charts - AgCharts\.create\(\) requires a non-empty options object; a minimal chart specifies a `container` and `series` \(or `data`\)\./;
@@ -538,7 +520,11 @@ describe('AgCharts', () => {
                 () => AgCharts.createFinancialChart(invalidOption(undefined)),
                 ['FinancialChartModule'],
             ],
-            ['createGauge', () => AgCharts.createGauge(invalidOption(undefined)), ['AllGaugeModule']],
+            [
+                'createGauge',
+                () => AgCharts.createGauge(invalidOption(undefined)),
+                ['LinearGaugeModule, // or RadialGaugeModule'],
+            ],
             [
                 'createQuadrantChart',
                 () => AgCharts.createQuadrantChart(invalidOption(undefined)),
@@ -679,7 +665,7 @@ describe('AgCharts', () => {
             expect(deproxy(chart).getChartType()).toBe('standalone');
         });
 
-        it('reports the implicit `line` default when no series type is registered', async () => {
+        it('renders a series-less chart without reporting a series module when none is registered', async () => {
             await withOnlyRegistered([CategoryAxisModule, NumberAxisModule], async () => {
                 expect(
                     () => (chart = AgCharts.create({ container, title: { text: 'Implicit' } } as AgChartOptions))
@@ -687,10 +673,33 @@ describe('AgCharts', () => {
                 await chart.waitForUpdate();
             });
 
-            // Only the report is asserted: a second, unrelated error is also logged when no series module is in scope.
-            const messages = takeErrorMessages();
-            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+            expectEmptyChartWithDefaults('Implicit');
+            expect(axisTypesByDirection()).toEqual({ x: 'category', y: 'number' });
+        });
+
+        it('gives a series-less chart the cartesian default axes whichever series modules are registered', async () => {
+            await withOnlyRegistered([ScatterSeriesModule, CategoryAxisModule, NumberAxisModule], async () => {
+                chart = AgCharts.create({ container, series: [] } as AgChartOptions);
+                await chart.waitForUpdate();
+            });
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(axisTypesByDirection()).toEqual({ x: 'category', y: 'number' });
+        });
+
+        it('applies only the common theme overrides to a series-less chart', async () => {
+            chart = AgCharts.create({
+                container,
+                series: [],
+                theme: {
+                    overrides: { common: { background: { fill: 'blue' } }, line: { background: { fill: 'red' } } },
+                },
+            } as AgChartOptions);
+            await chart.waitForUpdate();
+
+            expect(deproxy(chart).ctx.chartState.getValue('options', 'background').fill).toBe('blue');
         });
 
         it('reports an explicit series type with no module and renders an empty chart', async () => {
@@ -770,6 +779,47 @@ describe('AgCharts', () => {
 
             expect(deproxy(chart).series).toHaveLength(1);
             expect(console.error).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('CSS variables left out of a styler result on a detached container', () => {
+        // jsdom cannot validate a `var()` returned from a callback, so the result is handed to the options graph the
+        // way the series hand it theirs.
+        async function attachAfterStylerResult(stylerResult: object) {
+            const detached = document.createElement('div');
+            chart = AgCharts.create({
+                container: detached,
+                width: 300,
+                height: 200,
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            } as AgChartOptions);
+            await chart.waitForUpdate();
+
+            const { domManager, eventsHub, optionsGraphService } = deproxy(chart).ctx;
+            const refresh = vi.fn();
+            eventsHub.on('chart:request-refresh', refresh);
+            const remeasure = vi.spyOn(getManagerSizeMonitor(domManager), 'refresh');
+
+            optionsGraphService.resolvePartial(['series', '0'], stylerResult);
+            document.body.append(detached);
+            // The attach MutationObserver detects the insertion; the transition re-measures the container.
+            await vi.waitFor(() => expect(remeasure).toHaveBeenCalledWith(detached));
+            detached.remove();
+
+            return refresh;
+        }
+
+        it('requests one refresh on attach, so the styler is evaluated against the attached container', async () => {
+            const refresh = await attachAfterStylerResult({ fill: 'var(--attach-undefined)' });
+
+            expect(refresh).toHaveBeenCalledTimes(1);
+        });
+
+        it('requests no refresh on attach when the styler result has no unresolvable variable', async () => {
+            const refresh = await attachAfterStylerResult({ fill: 'red' });
+
+            expect(refresh).not.toHaveBeenCalled();
         });
     });
 });

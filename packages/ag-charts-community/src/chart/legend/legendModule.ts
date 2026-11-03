@@ -101,8 +101,5 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
             moduleInstance.attachLegend(ctx.scene);
             return moduleInstance;
         },
-        register: (ctx) => {
-            if (ctx.has('legendManager')) return;
-            ctx.service('legendManager', (c) => new LegendManager(c));
-        },
+        services: { legendManager: (c) => new LegendManager(c) },
     });

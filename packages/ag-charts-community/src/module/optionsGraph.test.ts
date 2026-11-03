@@ -14,6 +14,7 @@ function prepareOptions(options: PlainObject) {
             x: { type: 'category', position: 'bottom' },
             y: { type: 'number', position: 'left' },
         },
+        series: [{ type: 'line', data: [] }],
         ...options,
     };
 }
@@ -37,6 +38,7 @@ describe('OptionsGraph', () => {
             title: { text: 'User Options Title', spacing: 20 },
             legend: { enabled: true, label: { enabled: false, text: 'Default Legend' } },
             axes: expect.any(Object),
+            series: expect.any(Array),
         });
     });
 
@@ -58,6 +60,7 @@ describe('OptionsGraph', () => {
             two: undefined,
             three: 'user-value',
             axes: expect.any(Object),
+            series: expect.any(Array),
         });
     });
 
@@ -96,6 +99,7 @@ describe('OptionsGraph', () => {
                 xSecondary: { type: 'time', title: { enabled: true, text: 'Time Title' } },
                 y: { type: 'number', title: { enabled: false, text: 'Number Title' } },
             },
+            series: expect.any(Array),
         });
     });
 
@@ -132,6 +136,7 @@ describe('OptionsGraph', () => {
         expect(options).toStrictEqual({
             one: { child: 'child-value' },
             axes: expect.any(Object),
+            series: expect.any(Array),
         });
     });
 
@@ -294,6 +299,7 @@ describe('OptionsGraph', () => {
                 three: 'other-three',
             },
             axes: expect.any(Object),
+            series: expect.any(Array),
         });
     });
 
@@ -322,6 +328,7 @@ describe('OptionsGraph', () => {
                     four: 'light-if',
                     five: 'light-ref',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -333,6 +340,7 @@ describe('OptionsGraph', () => {
                     four: 'dark-if',
                     five: 'dark-nested',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -375,6 +383,7 @@ describe('OptionsGraph', () => {
             expect(options).toStrictEqual({
                 fill: '#808080',
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -388,6 +397,7 @@ describe('OptionsGraph', () => {
             expect(options).toStrictEqual({
                 fill: 'rgba(255, 0, 0, 0.5)',
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -410,7 +420,11 @@ describe('OptionsGraph', () => {
                 '#ffffff00',
                 'hsla(0, 0%, 0%, 0)',
             ])('should be true for the fully transparent colour `%s`', (value) => {
-                expect(resolveIsTransparent(value)).toStrictEqual({ fill: true, axes: expect.any(Object) });
+                expect(resolveIsTransparent(value)).toStrictEqual({
+                    fill: true,
+                    axes: expect.any(Object),
+                    series: expect.any(Array),
+                });
             });
 
             it.each([
@@ -424,7 +438,11 @@ describe('OptionsGraph', () => {
                 'var(--ag-charts-test)',
                 '',
             ])('should be false for the colour string `%s`', (value) => {
-                expect(resolveIsTransparent(value)).toStrictEqual({ fill: false, axes: expect.any(Object) });
+                expect(resolveIsTransparent(value)).toStrictEqual({
+                    fill: false,
+                    axes: expect.any(Object),
+                    series: expect.any(Array),
+                });
             });
 
             it.each([
@@ -433,7 +451,11 @@ describe('OptionsGraph', () => {
                 ['null', null],
                 ['an object', { type: 'gradient', colorStops: [{ color: 'transparent', stop: 0 }] }],
             ])('should be false for %s', (_name, value) => {
-                expect(resolveIsTransparent(value)).toStrictEqual({ fill: false, axes: expect.any(Object) });
+                expect(resolveIsTransparent(value)).toStrictEqual({
+                    fill: false,
+                    axes: expect.any(Object),
+                    series: expect.any(Array),
+                });
             });
 
             it('should be false for an unset param', () => {
@@ -441,7 +463,7 @@ describe('OptionsGraph', () => {
                     { line: { fill: { $isTransparent: { $ref: 'missing' } } } },
                     prepareOptions({})
                 ).resolve(testLogger);
-                expect(options).toStrictEqual({ fill: false, axes: expect.any(Object) });
+                expect(options).toStrictEqual({ fill: false, axes: expect.any(Object), series: expect.any(Array) });
             });
 
             it('should resolve a colour reference to a transparent colour', () => {
@@ -453,7 +475,7 @@ describe('OptionsGraph', () => {
                         second: { $ref: 'first' },
                     }
                 ).resolve(testLogger);
-                expect(options).toStrictEqual({ fill: true, axes: expect.any(Object) });
+                expect(options).toStrictEqual({ fill: true, axes: expect.any(Object), series: expect.any(Array) });
             });
 
             it('should drop the fill in an `$if` when the param is transparent and keep it otherwise', () => {
@@ -465,7 +487,7 @@ describe('OptionsGraph', () => {
                 );
                 const opaque = new OptionsGraph(config, prepareOptions({}), { key: 'white' }).resolve(testLogger);
                 expect(transparent).toStrictEqual(expect.not.objectContaining({ fill: expect.anything() }));
-                expect(opaque).toStrictEqual({ fill: 'white', axes: expect.any(Object) });
+                expect(opaque).toStrictEqual({ fill: 'white', axes: expect.any(Object), series: expect.any(Array) });
             });
         });
     });
@@ -645,6 +667,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     items: [{ fill: 'red' }],
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -675,6 +698,7 @@ describe('OptionsGraph', () => {
                         { fill: 'blue' },
                     ],
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
         });
@@ -710,6 +734,7 @@ describe('OptionsGraph', () => {
                         relativeChild: 'child-value',
                     },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -735,6 +760,7 @@ describe('OptionsGraph', () => {
                     five: 'six-value',
                     six: 'six-value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -755,6 +781,7 @@ describe('OptionsGraph', () => {
                     two: './three',
                     three: 'three-value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -772,6 +799,7 @@ describe('OptionsGraph', () => {
                     two: 'default-value',
                     three: 'default-value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -785,6 +813,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     parent: 'child-value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -804,6 +833,7 @@ describe('OptionsGraph', () => {
                     },
                     sibling: 'child-value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
         });
@@ -816,6 +846,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     one: 'value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -827,6 +858,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     one: 'value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
         });
@@ -848,6 +880,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     items: [{ index: 0 }, { index: 1 }, { index: 2 }],
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
         });
@@ -876,6 +909,7 @@ describe('OptionsGraph', () => {
                 caseBoth: expect.anything(),
                 caseOne: expect.anything(),
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -891,6 +925,7 @@ describe('OptionsGraph', () => {
                 one: false,
                 two: [true, false],
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -908,6 +943,7 @@ describe('OptionsGraph', () => {
                 two: false,
                 three: true,
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -931,6 +967,7 @@ describe('OptionsGraph', () => {
                 four: { five: 'yes-yes', six: 'six' },
                 seven: { five: 'yes-yes' },
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -953,6 +990,7 @@ describe('OptionsGraph', () => {
                 four: 'yes',
                 five: false,
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
             expect(options).not.toHaveProperty('six');
         });
@@ -1047,6 +1085,7 @@ describe('OptionsGraph', () => {
                 fifteen: false,
                 sixteen: { seventeen: 'yes-yes', eighteen: 'eighteen' },
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -1069,6 +1108,7 @@ describe('OptionsGraph', () => {
                 three: 'yes',
                 four: false,
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
             expect(options).not.toHaveProperty('five');
         });
@@ -1088,6 +1128,7 @@ describe('OptionsGraph', () => {
                     stringValue: 'hello',
                     one: 'no',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
                 expectWarningsCalls().toMatchInlineSnapshot(`
                   [
@@ -1134,6 +1175,7 @@ describe('OptionsGraph', () => {
                 two: true,
                 three: false,
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -1159,6 +1201,7 @@ describe('OptionsGraph', () => {
                 caseOne: expect.anything(),
                 caseNeither: expect.anything(),
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -1176,6 +1219,7 @@ describe('OptionsGraph', () => {
                 one: true,
                 two: [true, false],
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -1198,6 +1242,7 @@ describe('OptionsGraph', () => {
                 one: 'case-a-value',
                 two: 'case-a',
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -1215,6 +1260,7 @@ describe('OptionsGraph', () => {
                 two: true,
                 compare: expect.anything(),
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -1234,6 +1280,7 @@ describe('OptionsGraph', () => {
                 two: false,
                 compare: expect.anything(),
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
     });
@@ -1298,6 +1345,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     padding: { top: 4, right: 4, bottom: 4, left: 4 },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1314,6 +1362,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     padding: { top: 3, right: 3, bottom: 3, left: 3 },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1330,6 +1379,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     padding: { top: 3, right: 8, bottom: 3, left: 16 },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1349,6 +1399,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     padding: { top: 8, right: 8, bottom: 8, left: 8 },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1368,6 +1419,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     padding: { top: 4, right: 15, bottom: 4, left: 15 },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1387,6 +1439,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     padding: { top: 3, right: 3, bottom: 3, left: 3 },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1406,6 +1459,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     padding: { top: 4, right: 15, bottom: 15, left: 20 },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1585,6 +1639,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     item: { first: 'default' },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1609,6 +1664,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     item: { first: 'user' },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1642,6 +1698,7 @@ describe('OptionsGraph', () => {
                         other: 'user',
                     },
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
         });
@@ -1675,6 +1732,7 @@ describe('OptionsGraph', () => {
                         { child: 'sibling-value', other: 'younger-sibling' },
                     ],
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
         });
@@ -1704,6 +1762,7 @@ describe('OptionsGraph', () => {
                     six: 'six-value',
                 },
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
 
@@ -1718,6 +1777,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     one: ['ciao', 'ciao'],
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1733,6 +1793,7 @@ describe('OptionsGraph', () => {
                     one: ['ciao', 'ciao'],
                     two: ['hello', 'bonjour'],
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1750,6 +1811,7 @@ describe('OptionsGraph', () => {
                     two: [{ child: 'hello' }, { child: 'bonjour' }],
                     three: 'three-value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1765,6 +1827,7 @@ describe('OptionsGraph', () => {
                     one: ['hello', 'bonjour'],
                     two: ['hello', 'bonjour'],
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1780,6 +1843,7 @@ describe('OptionsGraph', () => {
                     one: [{ child: 'hello' }, { child: 'bonjour' }],
                     two: ['hello', 'bonjour'],
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1798,6 +1862,8 @@ describe('OptionsGraph', () => {
                     three: 'three-value',
 
                     axes: expect.any(Object),
+
+                    series: expect.any(Array),
                 });
             });
 
@@ -1827,6 +1893,7 @@ describe('OptionsGraph', () => {
                     fills: ['black', 'grey', 'white'],
                     strokes: ['red', 'green', 'blue'],
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
         });
@@ -1868,6 +1935,7 @@ describe('OptionsGraph', () => {
                     third: 'third-value',
                 },
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
     });
@@ -1889,6 +1957,7 @@ describe('OptionsGraph', () => {
                 userValue: 'toString',
                 inherited: '__proto__',
                 axes: expect.any(Object),
+                series: expect.any(Array),
             });
         });
     });
@@ -1902,6 +1971,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     one: 'value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1919,6 +1989,7 @@ describe('OptionsGraph', () => {
                         x: { type: 'category', position: 'bottom', line: { stroke: 'grey' } },
                         y: { type: 'number', position: 'left' },
                     },
+                    series: expect.any(Array),
                 });
             });
 
@@ -1929,6 +2000,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     one: 'value',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1939,6 +2011,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     fill: 'rgba(255, 0, 0, 0.25)',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1949,6 +2022,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1959,6 +2033,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1979,6 +2054,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -1991,6 +2067,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     fill: '#408b92',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -2001,6 +2078,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     fill: 'rgba(0, 185, 195, 0.25)',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -2013,6 +2091,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
                 expectWarningsCalls().toMatchInlineSnapshot(`
                   [
@@ -2034,6 +2113,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 
@@ -2048,6 +2128,7 @@ describe('OptionsGraph', () => {
                 expect(options).toStrictEqual({
                     fill: '#ff0000',
                     axes: expect.any(Object),
+                    series: expect.any(Array),
                 });
             });
 

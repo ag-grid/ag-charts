@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
-    type AgChartInstance,
     type AgChartOptions,
     AgCharts,
     type AgNightingaleSeriesOptions,
@@ -11,6 +10,7 @@ import {
     type AgRadialSeriesStylerParams,
 } from 'ag-charts-community';
 import {
+    type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockNightingaleStyler,
@@ -27,6 +27,8 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesContextNodeData,
+    getSeriesSelectionNodes,
     hoverAction,
     newFreezableMock,
     setupMockCanvas,
@@ -35,21 +37,22 @@ import {
     tapAction,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
+import type { Sector } from 'ag-charts-core';
 
+import { destroyChart, getLegendHighlightCallerIds } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
+import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 
 describe('NightingaleSeries', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: ChartOrProxy<any>;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
@@ -225,28 +228,28 @@ describe('NightingaleSeries', () => {
         });
         describe('click', () => {
             for (const x of xs) {
-                test(`mouse {x: ${x}, y: ${y}}`, async () => {
+                it(`mouse {x: ${x}, y: ${y}}`, async () => {
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                     await clickAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await clickAction(x, y)(chart);
-                    const chartInstance = deproxy(chart);
-                    for (const { legend } of chartInstance.modulesManager.legends()) {
-                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    const { highlightManager } = deproxy(chart).ctx;
+                    for (const id of getLegendHighlightCallerIds(chart)) {
+                        highlightManager.updateHighlight(id);
                     }
                     await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
             }
             for (const x of xs) {
-                test(`touch {x: ${x}, y: ${y}}`, async () => {
+                it(`touch {x: ${x}, y: ${y}}`, async () => {
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                     await tapAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await tapAction(x, y)(chart);
-                    const chartInstance = deproxy(chart);
-                    for (const { legend } of chartInstance.modulesManager.legends()) {
-                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    const { highlightManager } = deproxy(chart).ctx;
+                    for (const id of getLegendHighlightCallerIds(chart)) {
+                        highlightManager.updateHighlight(id);
                     }
                     await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
@@ -255,14 +258,14 @@ describe('NightingaleSeries', () => {
         });
         describe('dblclick', () => {
             for (const x of xs) {
-                test(`mouse {x: ${x}, y: ${y}}`, async () => {
+                it(`mouse {x: ${x}, y: ${y}}`, async () => {
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                     await doubleClickAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-dblclick-${x}`);
                 });
             }
             for (const x of xs) {
-                test(`touch {x: ${x}, y: ${y}}`, async () => {
+                it(`touch {x: ${x}, y: ${y}}`, async () => {
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                     await doubleTapAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-dblclick-${x}`);
@@ -383,7 +386,7 @@ describe('NightingaleSeries', () => {
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update({ ...options, data: grow(NG_DATA) } as AgPolarChartOptions)
+                proxy.update({ ...options, data: grow(NG_DATA) })
             );
             // Anti-vacuity for the snap assertion below.
             expect(maxRadius(after) - maxRadius(before), 'wedges grew').toBeGreaterThan(20);
@@ -392,11 +395,11 @@ describe('NightingaleSeries', () => {
 
         it('add data: new wedges appear fully formed without animating in', async () => {
             const options = preparedOptions();
-            const proxy = AgCharts.create({ ...options, data: NG_DATA.slice(0, 3) } as AgPolarChartOptions);
+            const proxy = AgCharts.create({ ...options, data: NG_DATA.slice(0, 3) });
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update({ ...options, data: [...NG_DATA] } as AgPolarChartOptions)
+                proxy.update({ ...options, data: [...NG_DATA] })
             );
             expect(sectorCount(before), 'three quarters before').toBe(6);
             expect(sectorCount(after), 'four quarters after').toBe(8);
@@ -410,7 +413,7 @@ describe('NightingaleSeries', () => {
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update({ ...options, data: NG_DATA.slice(0, 3) } as AgPolarChartOptions)
+                proxy.update({ ...options, data: NG_DATA.slice(0, 3) })
             );
             expect(sectorCount(before), 'four quarters before').toBe(8);
             expect(sectorCount(after), 'three quarters after').toBe(6);
@@ -429,7 +432,7 @@ describe('NightingaleSeries', () => {
         });
 
         it('sanity: add-data endpoints match static renders', async () => {
-            const before = { ...preparedOptions(), data: NG_DATA.slice(0, 3) } as AgPolarChartOptions;
+            const before: AgPolarChartOptions = { ...preparedOptions(), data: NG_DATA.slice(0, 3) };
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -495,89 +498,55 @@ describe('NightingaleSeries', () => {
         });
 
         it('should render nightingale series with an item bound gradient fill', async () => {
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { bounds: 'item' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
-                series: [
-                    {
-                        type: 'nightingale',
-                        angleKey: 'quarter',
-                        radiusKey: 'Mountain air',
-                        fill: {
-                            type: 'gradient',
-                            bounds: 'item',
-                            colorStops: [
-                                {
-                                    color: 'green',
-                                },
-                                {
-                                    color: 'white',
-                                },
-                            ],
-                        },
-                    } as AgNightingaleSeriesOptions,
-                ],
+                series: [{ type: 'nightingale', angleKey: 'quarter', radiusKey: 'Mountain air', fill }],
             };
             chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render nightingale series with a linear gradient fill', async () => {
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
-                series: [
-                    {
-                        type: 'nightingale',
-                        angleKey: 'quarter',
-                        radiusKey: 'Mountain air',
-                        fill: {
-                            type: 'gradient',
-                            gradient: 'linear',
-                            colorStops: [
-                                {
-                                    color: 'green',
-                                },
-                                {
-                                    color: 'white',
-                                },
-                            ],
-                        },
-                    } as AgNightingaleSeriesOptions,
-                ],
+                series: [{ type: 'nightingale', angleKey: 'quarter', radiusKey: 'Mountain air', fill }],
             };
             chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render nightingale series with a series bound linear gradient fill', async () => {
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear', bounds: 'series' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
-                series: [
-                    {
-                        type: 'nightingale',
-                        angleKey: 'quarter',
-                        radiusKey: 'Mountain air',
-                        fill: {
-                            type: 'gradient',
-                            gradient: 'linear',
-                            bounds: 'series',
-                            colorStops: [
-                                {
-                                    color: 'green',
-                                },
-                                {
-                                    color: 'white',
-                                },
-                            ],
-                        },
-                    } as AgNightingaleSeriesOptions,
-                ],
+                series: [{ type: 'nightingale', angleKey: 'quarter', radiusKey: 'Mountain air', fill }],
             };
             chart = await createEnterpriseChart(options);
             await compare();
         });
     });
 
-    test('AG-8290 legend boxing', async () => {
+    it('AG-8290 legend boxing', async () => {
         const label = {
             fontWeight: 'bold',
             padding: 5,
@@ -682,16 +651,16 @@ describe('NightingaleSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
             describe('callbacks', () => {
-                test('context', () => {
+                it('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
                     styler.expect().toHaveBeenCalledTimes(2);
                 });
-                test('params', () => {
+                it('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -733,7 +702,7 @@ describe('NightingaleSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -762,7 +731,7 @@ describe('NightingaleSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -800,12 +769,12 @@ describe('NightingaleSeries', () => {
                     await hoverAction(p.x, p.y)(chart);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 }
-                test('miss', async () => testHover(miss));
-                test('series[0].datum[0]', async () => testHover(series0datum0));
-                test('series[0].datum[2]', async () => testHover(series0datum2));
-                test('series[1].datum[0]', async () => testHover(series1datum0));
-                test('legendItem[0]', async () => testHover(legendItem0));
-                test('legendItem[1]', async () => testHover(legendItem1));
+                it('miss', async () => testHover(miss));
+                it('series[0].datum[0]', async () => testHover(series0datum0));
+                it('series[0].datum[2]', async () => testHover(series0datum2));
+                it('series[1].datum[0]', async () => testHover(series1datum0));
+                it('legendItem[0]', async () => testHover(legendItem0));
+                it('legendItem[1]', async () => testHover(legendItem1));
             });
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
@@ -817,7 +786,7 @@ describe('NightingaleSeries', () => {
                     styler.mock.mockClear();
                     return result;
                 }
-                test('1', async () => {
+                it('1', async () => {
                     await hover(miss);
                     expect(popCalls()).toMatchSnapshot();
 
@@ -899,15 +868,10 @@ describe('NightingaleSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -967,15 +931,10 @@ describe('NightingaleSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -983,15 +942,10 @@ describe('NightingaleSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories', async () => {
-            const options: AgChartOptions = {
-                ...NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS,
-                series: [
-                    {
-                        ...NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1028,7 +982,7 @@ describe('NightingaleSeries', () => {
             })),
         });
 
-        const summariseNodeData = (nodeData: any[]) =>
+        const summariseNodeData = (nodeData: RadialColumnNodeDatum[]) =>
             nodeData.map(({ radiusValue, negative, innerRadius, outerRadius, startAngle, endAngle, label }) => ({
                 radiusValue,
                 negative,
@@ -1040,8 +994,8 @@ describe('NightingaleSeries', () => {
             }));
 
         const createMissingValueChart = async (options: AgChartOptions) => {
-            chart = deproxy(await createEnterpriseChart(options));
-            return chart.series[2].contextNodeData.nodeData as any[];
+            chart = await createEnterpriseChart(options);
+            return getSeriesContextNodeData<RadialColumnNodeDatum>(chart, 2).nodeData;
         };
 
         it('should leave a gap for the missing row and draw the other rows', async () => {
@@ -1071,8 +1025,8 @@ describe('NightingaleSeries', () => {
                 const proxy = await createEnterpriseChart(missingValueOptions('absent'));
                 chart = deproxy(proxy);
                 const sampleNodes = () =>
-                    (chart.series[2].itemSelection.nodes() as any[]).map((node) => ({
-                        missing: !Number.isFinite(node.datum.outerRadius),
+                    getSeriesSelectionNodes<Sector<RadialColumnNodeDatum>>(proxy, 'itemSelection', 2).map((node) => ({
+                        missing: !Number.isFinite(node.datum!.outerRadius),
                         visible: node.visible,
                         outerRadius: node.outerRadius,
                     }));

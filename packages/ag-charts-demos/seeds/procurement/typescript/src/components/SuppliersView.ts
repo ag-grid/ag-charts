@@ -1,12 +1,22 @@
 import { type View, h } from '../dom';
-import type { QualityCost, SupplierScorecard as Row, SlipDistribution, SupplierTrendPoint } from '../types';
-import { createToggleGroup } from '../ui';
+import { memo } from '../memo';
+import type {
+    MaterialQualityCost,
+    QualityCost,
+    SupplierScorecard as Row,
+    SlipDistribution,
+    SupplierTrendPoint,
+} from '../types';
+import { button, createToggleGroup } from '../ui';
 import { type CostReliabilityScatter, createCostReliabilityScatter } from './CostReliabilityScatter';
 import { type DeliverySlipHistograms, createDeliverySlipHistograms } from './DeliverySlipHistograms';
 import { emptyState } from './EmptyState';
 import { type QualityCostChart, createQualityCostChart } from './QualityCostChart';
 import { createSupplierScorecard } from './SupplierScorecard';
 import { type TrendMetric, createSupplierTrendChart } from './SupplierTrendChart';
+import { createClickAway } from './useClickAway';
+
+const NO_MATERIALS: MaterialQualityCost[] = [];
 
 /** Price leads: it is the metric the renewal conversation opens on. */
 const METRIC_OPTIONS: { value: TrendMetric; label: string }[] = [
@@ -20,14 +30,19 @@ interface SuppliersViewProps {
     supplierNames: Map<string, string>;
     supplierColors: Record<string, string>;
     selectedSupplierId?: string;
-    onSelectSupplier: (supplierId: string) => void;
+    /** Every chart and the scorecard share this one selected supplier. */
+    onSelectedSupplierChange: (supplierId: string | undefined) => void;
     slipDistributions: SlipDistribution[];
     qualityCost: QualityCost[];
+    /** Each supplier's rejected cost per material, for drilling into a quality cost bar. */
+    materialQualityCost: Map<string, MaterialQualityCost[]>;
     trend: Map<string, SupplierTrendPoint[]>;
 }
 
+type Props = Omit<SuppliersViewProps, 'onSelectedSupplierChange'>;
+
 export interface SuppliersView extends View {
-    update(props: Omit<SuppliersViewProps, 'onSelectSupplier'>): void;
+    update(props: Props): void;
 }
 
 /**
@@ -37,14 +52,43 @@ export interface SuppliersView extends View {
  * run to six weeks, so a quarter contains barely any completed deliveries — and three points is
  * not a trend. The period selector drives the spend views instead.
  */
-export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersViewProps): SuppliersView {
-    let current = props;
+export function createSuppliersView({ onSelectedSupplierChange, ...props }: SuppliersViewProps): SuppliersView {
+    let current: Props = props;
     let mounted = false;
-    // The chart's own state, which a fresh view starts over: the React `useState`.
+    // The view's own state, which a fresh view starts over: the React `useState`s.
     let metric: TrendMetric = 'price';
+    let drilledSupplierId: string | undefined;
+
+    const drilledMaterialsOf = memo(
+        (drilledSupplierId: string | undefined, materialQualityCost: Map<string, MaterialQualityCost[]>) =>
+            drilledSupplierId == null ? NO_MATERIALS : (materialQualityCost.get(drilledSupplierId) ?? NO_MATERIALS)
+    );
+
+    const onDrill = (supplierId: string) => {
+        drilledSupplierId = supplierId;
+        render();
+        onSelectedSupplierChange(supplierId);
+    };
+
+    const qualityBox = h('div', { class: 'pc-chart-box', 'data-keeps-selection': 'true' });
+    const onBack = () => {
+        drilledSupplierId = undefined;
+        // With nothing selected no drill button replaces Back, so focus moves to the chart rather than the page.
+        if (current.selectedSupplierId == null) {
+            qualityBox.querySelector<HTMLElement>('.ag-charts-series-area')?.focus();
+        }
+        render();
+    };
+
+    // Mounted only while this tab is shown, so a click elsewhere on the page clears only while it is in view.
+    const clickAway = createClickAway(() => onSelectedSupplierChange(undefined));
+
+    // A card has no empty space to click away on, so selecting the selected supplier again clears it.
+    const onToggleSupplier = (supplierId: string) =>
+        onSelectedSupplierChange(supplierId === current.selectedSupplierId ? undefined : supplierId);
 
     // Fills the card: a fixed box would leave dead space under it in a row that takes the rest of the page.
-    const scatterBox = h('div', { class: 'pc-chart-box--grow' });
+    const scatterBox = h('div', { class: 'pc-chart-box--grow', 'data-keeps-selection': 'true' });
     let scatter: CostReliabilityScatter | undefined;
 
     const histogramsCard = h(
@@ -55,7 +99,16 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
     let histograms: DeliverySlipHistograms | undefined;
     let histogramsEmpty: HTMLElement | undefined;
 
-    const qualityBox = h('div', { class: 'pc-chart-box' });
+    const qualityTitle = h(
+        'div',
+        { class: 'pc-card-title-inline' },
+        h('h2', { class: 'pc-card-title' }, 'Cost of rejected material')
+    );
+    let qualitySub: HTMLSpanElement | undefined;
+    const qualityHead = h('div', { class: 'pc-card-head pc-card-head--action' }, qualityTitle);
+    /** Both buttons share one slot, so the element and its focus are kept as the drill flips. */
+    let qualityAction: HTMLButtonElement | undefined;
+    let qualityActionHandler: (() => void) | undefined;
     let quality: QualityCostChart | undefined;
 
     const metricToggle = createToggleGroup({
@@ -73,13 +126,14 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
         supplierColors: current.supplierColors,
         metric,
         selectedSupplierId: current.selectedSupplierId,
+        onSelectedSupplierChange,
     });
 
     const scorecard = createSupplierScorecard({
         rows: current.rows,
         supplierColors: current.supplierColors,
         selectedSupplierId: current.selectedSupplierId,
-        onSelect: onSelectSupplier,
+        onSelect: onToggleSupplier,
     });
 
     const el = h(
@@ -103,16 +157,7 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
         h(
             'div',
             { class: 'pc-grid-2' },
-            h(
-                'section',
-                { class: 'pc-card' },
-                h(
-                    'div',
-                    { class: 'pc-card-head' },
-                    h('div', {}, h('h2', { class: 'pc-card-title' }, 'Cost of rejected material'))
-                ),
-                qualityBox
-            ),
+            h('section', { class: 'pc-card' }, qualityHead, qualityBox),
             h(
                 'section',
                 { class: 'pc-card' },
@@ -122,8 +167,7 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
                     h('div', {}, h('h2', { class: 'pc-card-title' }, 'Supplier trend')),
                     metricToggle.el
                 ),
-                // Sized by the scorecard beside it, which hugs its grid.
-                h('div', { class: 'pc-chart-box--match' }, trendChart.el)
+                h('div', { class: 'pc-chart-box', 'data-keeps-selection': 'true' }, trendChart.el)
             )
         ),
         h(
@@ -134,9 +178,55 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
         )
     );
 
+    /** The drill's subtitle and its button: "See X's materials", "Back", or none. */
+    function syncQualityHead() {
+        const { supplierNames, selectedSupplierId, qualityCost, materialQualityCost } = current;
+
+        if (drilledSupplierId != null) {
+            if (!qualitySub) {
+                qualitySub = h('span', { class: 'pc-card-sub' });
+                qualityTitle.append(qualitySub);
+            }
+            qualitySub.textContent = `from ${supplierNames.get(drilledSupplierId)}`;
+        } else if (qualitySub) {
+            qualitySub.remove();
+            qualitySub = undefined;
+        }
+
+        // The keyboard's way into a drill, as a chart's double-click has no key of its own.
+        const drillableSupplierId =
+            drilledSupplierId == null &&
+            selectedSupplierId != null &&
+            qualityCost.some((row) => row.supplierId === selectedSupplierId) &&
+            (materialQualityCost.get(selectedSupplierId)?.length ?? 0) > 0
+                ? selectedSupplierId
+                : undefined;
+
+        let label: string | undefined;
+        if (drilledSupplierId != null) {
+            label = '← Back to all suppliers';
+            qualityActionHandler = onBack;
+        } else if (drillableSupplierId != null) {
+            label = `See ${supplierNames.get(drillableSupplierId)}'s materials →`;
+            qualityActionHandler = () => onDrill(drillableSupplierId);
+        }
+        if (label == null) {
+            qualityAction?.remove();
+            qualityAction = undefined;
+            qualityActionHandler = undefined;
+            return;
+        }
+        if (!qualityAction) {
+            qualityAction = button({ class: 'pc-btn-sm', onclick: () => qualityActionHandler?.() });
+            qualityHead.append(qualityAction);
+        }
+        qualityAction.textContent = label;
+    }
+
     /** The conditional renders: a chart while it has data, the empty state otherwise. */
     function syncSlots() {
-        const { rows, supplierColors, selectedSupplierId, slipDistributions, qualityCost } = current;
+        const { rows, supplierColors, selectedSupplierId, slipDistributions, qualityCost, materialQualityCost } =
+            current;
 
         if (rows.some((row) => row.orderCount > 0)) {
             if (!scatter) {
@@ -144,7 +234,7 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
                     rows,
                     supplierColors,
                     selectedSupplierId,
-                    onSelect: onSelectSupplier,
+                    onSelectedSupplierChange,
                 });
                 scatterBox.replaceChildren(scatter.el);
                 if (mounted) scatter.mount();
@@ -170,7 +260,7 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
                     rows: slipDistributions,
                     supplierColors,
                     selectedSupplierId,
-                    onSelect: onSelectSupplier,
+                    onSelectedSupplierChange,
                 });
                 histogramsCard.append(histograms.el);
                 if (mounted) histograms.mount();
@@ -188,18 +278,21 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
             histogramsCard.append(histogramsEmpty);
         }
 
-        if (qualityCost.length > 0) {
+        const drilledMaterials = drilledMaterialsOf(drilledSupplierId, materialQualityCost);
+        if (qualityCost.length > 0 && (drilledSupplierId == null || drilledMaterials.length > 0)) {
+            const qualityProps = {
+                rows: qualityCost,
+                drilledSupplierId,
+                materialRows: drilledMaterials,
+                supplierColors,
+                selectedSupplierId,
+            };
             if (!quality) {
-                quality = createQualityCostChart({
-                    rows: qualityCost,
-                    supplierColors,
-                    selectedSupplierId,
-                    onSelect: onSelectSupplier,
-                });
+                quality = createQualityCostChart({ ...qualityProps, onSelectedSupplierChange, onDrill });
                 qualityBox.replaceChildren(quality.el);
                 if (mounted) quality.mount();
             } else {
-                quality.update({ rows: qualityCost, supplierColors, selectedSupplierId });
+                quality.update(qualityProps);
             }
         } else if (quality || qualityBox.childElementCount === 0) {
             quality?.destroy();
@@ -214,6 +307,8 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
     }
 
     function render() {
+        clickAway.setActive(current.selectedSupplierId != null);
+        syncQualityHead();
         syncSlots();
         metricToggle.setValue(metric);
         trendChart.update({
@@ -242,10 +337,17 @@ export function createSuppliersView({ onSelectSupplier, ...props }: SuppliersVie
             scorecard.mount();
         },
         update(next) {
+            const selectionChanged = next.selectedSupplierId !== current.selectedSupplierId;
             current = next;
+            // A drill shows one supplier's materials, so selecting another supplier leaves it; clearing
+            // the selection does not.
+            if (selectionChanged && next.selectedSupplierId != null && drilledSupplierId !== next.selectedSupplierId) {
+                drilledSupplierId = undefined;
+            }
             render();
         },
         destroy() {
+            clickAway.destroy();
             scatter?.destroy();
             histograms?.destroy();
             quality?.destroy();

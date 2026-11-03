@@ -3,6 +3,7 @@ import type { RichFormatter, Styler } from './callbackOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
+    AnyFormatterSource,
     ContextDefault,
     CssColor,
     Degree,
@@ -96,7 +97,7 @@ export interface AgAxisCaptionOptions {
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), never a non-breaking space (`\u00A0`). If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
      * - `'never'` disables text wrapping.
      *
      * Default: `'always'`
@@ -256,6 +257,8 @@ export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
     readonly context?: TContext;
     /** The currently visible domain. [min, max] */
     readonly visibleDomain?: [AgNumericValue, AgNumericValue];
+    /** The chart element being formatted. `axis-label` for the axis's own labels; a tooltip, series label or crosshair that inherits the axis label formatter is reported as its own element, such as `tooltip`. */
+    readonly source?: AnyFormatterSource;
 }
 
 export interface AgAxisLabelStylerParams<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {

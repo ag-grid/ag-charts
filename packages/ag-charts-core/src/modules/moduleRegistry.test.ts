@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { createDynamicContext } from './dynamicContext';
 import {
     type AxisModuleDefinition,
     type ChartModuleDefinition,
@@ -284,7 +285,17 @@ describe('moduleRegistry', () => {
             expect(scope.hasModule('global-series')).toBe(true);
             expect(scope.getSeriesModule('global-series')).toBe(globalSeries);
             expect(scope.getSeriesModule('own-series')).toBe(ownSeries);
-            expect(Array.from(scope.listModules())).toEqual([ownSeries, globalSeries]);
+            expect(Array.from(scope.listModules())).toEqual([globalSeries, ownSeries]);
+        });
+
+        test('a child scope lists its own and inherited modules in one name order', () => {
+            const [a, b, c, d] = ['a', 'b', 'c', 'd'].map((name) => createSeriesModule(name));
+            registerModules([d, b]);
+
+            const scope = createModuleScope(resolveModuleScope());
+            scope.registerModules([c, a]);
+
+            expect(Array.from(scope.listModules())).toEqual([a, b, c, d]);
         });
 
         test('instance modules are not visible to the global registry', () => {
@@ -397,6 +408,33 @@ describe('moduleRegistry', () => {
             expect(getModuleScopeKey(first)).toBe('scoped-axis@1.0.0,scoped-series@1.0.0');
             expect(first.getAxisModule('scoped-axis')).toBe(axis);
             expect(hasModule('scoped-axis')).toBe(false);
+        });
+    });
+
+    describe('installServices', () => {
+        type Registry = { cartesianService: object; polarService: object; sharedService: string };
+
+        test('installs the services of modules that apply to the chart type', () => {
+            register(createSeriesModule('cartesian-series', { services: { cartesianService: () => ({}) } }));
+            register(
+                createSeriesModule('polar-series', { chartType: 'polar', services: { polarService: () => ({}) } })
+            );
+            const ctx = createDynamicContext<Registry>();
+
+            resolveModuleScope().installServices(ctx, 'cartesian');
+
+            expect(ctx.has('cartesianService')).toBe(true);
+            expect(ctx.has('polarService')).toBe(false);
+        });
+
+        test('keeps a service already on the context', () => {
+            register(createSeriesModule('first', { services: { sharedService: () => 'first' } }));
+            register(createSeriesModule('second', { services: { sharedService: () => 'second' } }));
+            const ctx = createDynamicContext<Registry>();
+
+            resolveModuleScope().installServices(ctx, 'cartesian');
+
+            expect(ctx.sharedService).toBe('first');
         });
     });
 });

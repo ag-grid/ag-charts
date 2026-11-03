@@ -1,5 +1,4 @@
 import {
-    AgChartOptions,
     AgCharts,
     AgOrganizationSeriesOptions,
     AgOrganizationSeriesOptionsNodeImagePosition,

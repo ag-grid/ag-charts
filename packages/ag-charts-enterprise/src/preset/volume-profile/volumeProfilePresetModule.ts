@@ -18,6 +18,7 @@ import { AxisSelectedBandModule } from '../../features/axis-selected-band/axisSe
 import { SelectionModule } from '../../features/data-selection/dataSelectionModule';
 import {
     groupVolumeProfile,
+    volumeProfileBarsOptionsDef,
     volumeProfileSelectionOptionsDef,
     volumeProfileTotalSegmentOptionsDef,
 } from './volumeProfile';
@@ -27,6 +28,7 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     priceKey: string,
     upKey: required(string),
     downKey: required(string),
+    ...volumeProfileBarsOptionsDef,
     tickSize: positiveNumberNonZero,
     totalSegment: volumeProfileTotalSegmentOptionsDef,
     selection: volumeProfileSelectionOptionsDef,
@@ -45,7 +47,6 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     dataSource: defined,
     formatter: defined,
     enableRtl: boolean,
-    enableShadowDom: boolean,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
         foreground: defined,

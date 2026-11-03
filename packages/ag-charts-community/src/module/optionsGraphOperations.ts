@@ -937,6 +937,7 @@ enum TransformOperation {
     ApplyPadding = '$applyPadding',
     ApplySwitch = '$applySwitch',
     ApplyTheme = '$applyTheme',
+    ApplyLeadTheme = '$applyLeadTheme',
     Clone = '$clone',
     FindFirstSiblingNotOperation = '$findFirstSiblingNotOperation',
     Map = '$map',
@@ -954,6 +955,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
     $applyPadding: applyPaddingOperation,
     $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
+    $applyLeadTheme: applyLeadThemeOperation,
     $clone: cloneOperation,
     $findFirstSiblingNotOperation: findFirstSiblingNotOperationOperation,
     $map: mapOperation,
@@ -1145,6 +1147,24 @@ function applySwitchOperation(graph: OptionsGraphInterface, vertex: VertexInterf
 }
 
 function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    return applyThemeFrom(graph, vertex, values, false);
+}
+
+/** As `$applyTheme`, with paths into the chart's lead theme entry rather than the theme config. */
+function applyLeadThemeOperation(
+    graph: OptionsGraphInterface,
+    vertex: VertexInterface,
+    values: Array<VertexInterface>
+) {
+    return applyThemeFrom(graph, vertex, values, true);
+}
+
+function applyThemeFrom(
+    graph: OptionsGraphInterface,
+    vertex: VertexInterface,
+    values: Array<VertexInterface>,
+    fromLeadEntry: boolean
+) {
     const [fromPathVertex, variablesVertex, ignorePathsVertex] = values;
 
     let fromPaths = graph.getVertexValue(fromPathVertex);
@@ -1168,7 +1188,11 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
                 continue;
             }
 
-            graph.graftConfig(child, fromPathResolved, ignorePaths);
+            if (fromLeadEntry) {
+                graph.graftLeadConfig(child, fromPathResolved, ignorePaths);
+            } else {
+                graph.graftConfig(child, fromPathResolved, ignorePaths);
+            }
         }
     }
 

@@ -7,11 +7,13 @@ import { useEffect } from 'react';
 /**
  * Sync framework store with the state of the page
  */
-export function useSyncFrameworkStoreState(framework: Framework) {
+export function useSyncFrameworkStoreState(framework?: Framework) {
     const internalFramework = useStore($internalFramework);
 
     // Update the internal framework store if it is different to the framework to sync with localstorage
     useEffect(() => {
+        if (framework == null) return;
+
         const frameworkFromInternalFramework = getFrameworkFromInternalFramework(internalFramework);
         if (frameworkFromInternalFramework !== framework) {
             updateInternalFrameworkBasedOnFramework(framework);

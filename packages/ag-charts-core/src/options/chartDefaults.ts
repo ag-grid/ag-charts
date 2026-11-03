@@ -39,6 +39,7 @@ import {
 } from 'ag-charts-types';
 
 import { isValidNumberFormat } from '../format/numberFormat';
+import type { InternalAgGlowOptions } from './internalShadowOptions';
 import {
     borderOptionsDef,
     colorOrRef,
@@ -619,7 +620,6 @@ export const commonChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBas
     styleNonce: string,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
     enableRtl: boolean,
-    enableShadowDom: boolean,
     ...undocumentedDefs({
         statusBar: defined,
         foreground: {
@@ -676,27 +676,37 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     xOffset: number,
     yOffset: number,
     blur: positiveNumber,
-    spread: positiveNumber,
     color: colorOrRef,
+    ...undocumentedDefs({
+        spread: positiveNumber,
+        fill: colorOrRef,
+        fillOpacity: ratio,
+    }),
 };
 
-/** Validation for a series whose highlighted item can also cast a `shadow`; the other highlight slots cannot. */
-export function shadowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
-    return {
-        ...highlightOptionsDef(itemHighlightOptionsDef),
-        highlightedItem: { ...itemHighlightOptionsDef, shadow: shadowOptionsDefs },
-    };
+export const glowOptionsDefs: OptionsDefs<InternalAgGlowOptions> = {
+    enabled: boolean,
+    blur: positiveNumber,
+    spread: positiveNumber,
+    fill: colorOrRef,
+    fillOpacity: ratio,
+};
+
+/** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */
+export function glowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
+    const itemDef = { ...itemHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) };
+    return highlightOptionsDef(itemDef);
 }
 
-/** As {@link shadowHighlightOptionsDef}, for a series that also has highlighted-series and unhighlighted-series slots. */
-export function multiSeriesShadowHighlightOptionsDef<I extends object, S>(
+/** As {@link glowHighlightOptionsDef}, for a series that also has highlighted-series and unhighlighted-series slots. */
+export function multiSeriesGlowHighlightOptionsDef<I extends object, S extends object>(
     itemHighlightOptionsDef: I,
     seriesHighlightOptionsDef: S
 ) {
-    return {
-        ...multiSeriesHighlightOptionsDef(itemHighlightOptionsDef, seriesHighlightOptionsDef),
-        highlightedItem: { ...itemHighlightOptionsDef, shadow: shadowOptionsDefs },
-    };
+    return multiSeriesHighlightOptionsDef(
+        { ...itemHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) },
+        { ...seriesHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) }
+    );
 }
 
 export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
@@ -709,7 +719,7 @@ export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
 
 export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
-    shadow: shadowOptionsDefs,
+    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
     itemStyler: callbackDefs<AgSeriesMarkerStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,

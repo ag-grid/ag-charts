@@ -7,6 +7,7 @@ import { HistogramSeriesModule } from '../chart/series/cartesian/histogramSeries
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import { ScatterSeriesModule } from '../chart/series/cartesian/scatterSeriesModule';
 
+/** @deprecated v14.3.0 Register `AllCommunityModule`, or the individual modules you need. */
 export const AllCartesianSeriesModule: ModuleDefinition[] = [
     AreaSeriesModule,
     BarSeriesModule,

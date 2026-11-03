@@ -20,6 +20,7 @@ import {
     fillImageDefaults,
     fillOptionsDef,
     fillPatternDefaults,
+    glowHighlightOptionsDef,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     lessThanOrEqual,
@@ -27,7 +28,6 @@ import {
     positiveNumber,
     required,
     seriesLabelOptionsDefs,
-    shadowHighlightOptionsDef,
     shadowOptionsDefs,
     shapeHighlightOptionsDef,
     string,
@@ -50,7 +50,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         edgePlacement: union('inside', 'outside'),
     },
     link: {
-        shadow: shadowOptionsDefs,
+        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
         itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
@@ -61,7 +61,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...lineDashOptionsDef,
     },
     node: {
-        shadow: shadowOptionsDefs,
+        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
         width: positiveNumber,
         spacing: positiveNumber,
         minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),
@@ -80,7 +80,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
-    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
+    highlight: glowHighlightOptionsDef(shapeHighlightOptionsDef),
     ...undocumentedDefs({
         fillGradientDefaults: fillGradientDefaults,
         fillPatternDefaults: fillPatternDefaults,

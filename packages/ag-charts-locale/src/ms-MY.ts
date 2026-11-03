@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     ariaLabelColorPickerHue: 'Rona',
     ariaLabelColorPickerMultiColor: 'Pelbagai Warna',
     ariaLabelColorPickerPalette: 'Palet',
+    ariaLabelCrossLine: '${label}, garis silang ${index}[number] daripada ${count}[number]',
     ariaLabelFinancialCharts: 'Carta Kewangan',
     ariaLabelGaugeTarget: 'Sasaran',
     ariaLabelGaugeValue: 'Nilai',

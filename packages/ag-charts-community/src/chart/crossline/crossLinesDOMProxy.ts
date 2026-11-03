@@ -38,8 +38,8 @@ function toCanvasFocus(focus: BBox | Path): { bounds: BoxBounds; focusPath?: str
     return { bounds, focusPath };
 }
 
-/** Unlocalised placeholder text, kept in one place until a localised format is agreed. */
-function getAccessibleText({ type, value, range, label }: CrossLine): string {
+/** The cross line's label and value, or range, which `ariaLabelCrossLine` places before its position. */
+function getAccessibleLabel({ type, value, range, label }: CrossLine): string {
     const prefix = label.enabled !== false && label.text != null && label.text !== '' ? `${label.text}, ` : '';
     if (type === 'range') {
         return `${prefix}${String(range?.[0])} - ${String(range?.[1])}`;
@@ -76,6 +76,9 @@ export class CrossLinesDOMProxy {
         this.cleanup.register(
             // Label placement settles after layout, so the bounds are read just before the scene renders.
             ctx.eventsHub.on('layout:complete', () => {
+                this.dirty = true;
+            }),
+            ctx.eventsHub.on('locale:change', () => {
                 this.dirty = true;
             }),
             ctx.eventsHub.on('update:pre-scene-render', () => this.update()),
@@ -141,10 +144,12 @@ export class CrossLinesDOMProxy {
         while (buttons.length < entries.length) {
             buttons.push(this.createButton(buttons.length));
         }
-        for (let i = 0; i < entries.length; i++) {
+        const count = entries.length;
+        for (let i = 0; i < count; i++) {
             const { crossLine, bounds, focusPath } = entries[i];
+            const label = getAccessibleLabel(crossLine);
             buttons[i].setBounds(bounds);
-            buttons[i].setTextContent(getAccessibleText(crossLine));
+            buttons[i].setTextContent(this.ctx.localeManager.t('ariaLabelCrossLine', { label, index: i + 1, count }));
             this.updateFocusPath(i, bounds, focusPath);
         }
     }

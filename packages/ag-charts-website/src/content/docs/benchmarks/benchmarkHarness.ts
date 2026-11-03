@@ -117,6 +117,25 @@ interface AllocationStats {
     stdErrBytes?: number;
 }
 
+/**
+ * Where the run had got to, published on `window.__benchmarkProgress` for the runner to read if the
+ * example times out. Timestamps are the page's own `performance.now()`, so the reader can age them
+ * against the same clock.
+ */
+interface BenchmarkProgress {
+    testCase: string;
+    /** Parameters of the running variant; empty during `setup` and `teardown`. */
+    params: Record<string, string>;
+    phase: 'setup' | 'warmup' | 'measure' | 'teardown';
+    warmupCompleted: number;
+    /** Measured iterations completed for this variant. */
+    iterationsCompleted: number;
+    /** When the current variant, or the setup/teardown, began. */
+    startedAt: number;
+    /** When the last warmup or measured iteration completed; null until one has. */
+    lastIterationAt: number | null;
+}
+
 interface BenchmarkResult {
     testCase: string;
     params: Record<string, string>;
@@ -1411,6 +1430,28 @@ function getMemoryHooks(): MemoryHooks | null {
 }
 
 /**
+ * Starts a fresh progress record. Callers then update the returned object in place, between
+ * iterations, so recording costs a property write and stays outside the span an iteration times.
+ */
+function publishProgress(
+    testCase: NormalizedTestCase,
+    params: Record<string, string>,
+    phase: BenchmarkProgress['phase']
+): BenchmarkProgress {
+    const progress: BenchmarkProgress = {
+        testCase: testCase.id,
+        params,
+        phase,
+        warmupCompleted: 0,
+        iterationsCompleted: 0,
+        startedAt: performance.now(),
+        lastIterationAt: null,
+    };
+    (window as unknown as { __benchmarkProgress: BenchmarkProgress }).__benchmarkProgress = progress;
+    return progress;
+}
+
+/**
  * Samples frame cadence, long-animation-frame entries, and JS heap usage during a measurement
  * window. The rAF counter is portable. Long-frame detail requires Chromium 123+. GC stats require
  * `performance.memory` (Chromium-only); for byte-precise GC detection in CI, launch Chromium with
@@ -1714,6 +1755,7 @@ class BenchmarkRunner {
 
                 // Setup the test case
                 if (testCase.setup) {
+                    publishProgress(testCase, {}, 'setup');
                     await testCase.setup();
                 }
 
@@ -1727,6 +1769,7 @@ class BenchmarkRunner {
                 }
 
                 if (testCase.teardown) {
+                    publishProgress(testCase, {}, 'teardown');
                     await testCase.teardown();
                 }
 
@@ -1782,6 +1825,7 @@ class BenchmarkRunner {
         let runtimeSamplerStarted = false;
 
         const { updatesPerTest, maxCollectionTimeMs, warmupUpdates } = this.config.config;
+        const progress = publishProgress(testCase, { ...variant.params }, 'warmup');
 
         // The sampling bracket covers all of `variant.run`, including any setup the returned timing
         // excludes, so allocation can slightly exceed the timed span.
@@ -1837,12 +1881,15 @@ class BenchmarkRunner {
                         startTime = performance.now();
                         runtimeSampler.start();
                         runtimeSamplerStarted = true;
+                        progress.phase = 'measure';
                     } else {
                         if (!updateInFlight) {
                             updateInFlight = true;
                             try {
                                 await markIteration('warmup', warmupCount, variant.run);
                                 warmupCount++;
+                                progress.warmupCompleted = warmupCount;
+                                progress.lastIterationAt = performance.now();
                             } finally {
                                 updateInFlight = false;
                             }
@@ -1896,9 +1943,11 @@ class BenchmarkRunner {
                     updateInFlight = true;
                     try {
                         const elapsed = await markIteration('iter', updateCount, measuredRun);
+                        progress.lastIterationAt = performance.now();
                         if (elapsed > 0) {
                             timings.push(elapsed);
                             updateCount++;
+                            progress.iterationsCompleted = updateCount;
                             this.updateIndex++;
                             this.updateProgress();
                         }

@@ -270,7 +270,7 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
     });
 
     describe('translucent shadows', () => {
-        const TRANSLUCENT_RED = { enabled: true, color: 'rgba(255, 0, 0, 0.5)', xOffset: 4, yOffset: 0, blur: 0 };
+        const TRANSLUCENT_RED = { enabled: true, fill: 'rgba(255, 0, 0, 0.5)', xOffset: 4, yOffset: 0, blur: 0 };
 
         /** The colours of the shadow pixels to the left and right of the shape, at one row, in CSS pixels. */
         const shadowRow = (from: number, to: number) => {
@@ -524,7 +524,7 @@ describe('shadow spread without a spread', () => {
     };
 
     it.each<ShadowMode>(['fill', 'stroke', 'silhouette'])('should leave %s mode as it was', (shadowMode) => {
-        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 4 };
+        const shadow = { enabled: true, fill: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 4 };
         const draw = (spread: number | undefined) =>
             render(
                 square({

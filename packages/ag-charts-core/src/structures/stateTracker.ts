@@ -1,6 +1,9 @@
 export class StateTracker<T, K = string> extends Map<K, T> {
     protected cachedState?: K;
     protected cachedValue?: T;
+    /** Whether each cache is current, so a resolved `undefined` (an empty tracker) is cached too. */
+    private stateCached = false;
+    private valueCached = false;
     private locked?: { key: K; value: T };
 
     constructor(
@@ -15,14 +18,12 @@ export class StateTracker<T, K = string> extends Map<K, T> {
         if (value !== undefined) {
             super.set(key, value);
         }
-        delete this.cachedState;
-        delete this.cachedValue;
+        this.invalidate();
         return this;
     }
 
     override delete(key: K) {
-        delete this.cachedState;
-        delete this.cachedValue;
+        this.invalidate();
         return super.delete(key);
     }
 
@@ -33,16 +34,14 @@ export class StateTracker<T, K = string> extends Map<K, T> {
      */
     lock(key: K, value: T) {
         this.locked = { key, value };
-        delete this.cachedState;
-        delete this.cachedValue;
+        this.invalidate();
     }
 
     /** Releases a lock; a no-op unless `key` is the lock holder, so one owner cannot release another's. */
     unlock(key: K) {
         if (this.locked?.key !== key) return;
         this.locked = undefined;
-        delete this.cachedState;
-        delete this.cachedValue;
+        this.invalidate();
     }
 
     isLocked() {
@@ -51,14 +50,27 @@ export class StateTracker<T, K = string> extends Map<K, T> {
 
     stateId(): K | undefined {
         if (this.locked) return this.locked.key;
-        this.cachedState ??= Array.from(this.keys()).pop() ?? this.defaultState;
+        if (!this.stateCached) {
+            this.cachedState = Array.from(this.keys()).pop() ?? this.defaultState;
+            this.stateCached = true;
+        }
         return this.cachedState;
     }
 
     stateValue(): T | undefined {
         if (this.locked) return this.locked.value;
-        this.cachedValue ??= Array.from(this.values()).pop() ?? this.defaultValue;
+        if (!this.valueCached) {
+            this.cachedValue = Array.from(this.values()).pop() ?? this.defaultValue;
+            this.valueCached = true;
+        }
         return this.cachedValue;
+    }
+
+    private invalidate() {
+        this.stateCached = false;
+        this.valueCached = false;
+        delete this.cachedState;
+        delete this.cachedValue;
     }
 }
 

@@ -5,6 +5,7 @@ import {
     type AgChartOptions,
     AgCharts,
     type AgRangeAreaSeriesLabelPlacement,
+    type AgRangeAreaSeriesOptions,
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
@@ -12,6 +13,7 @@ import {
 } from 'ag-charts-community';
 import {
     BIG,
+    type ChartOrProxy,
     HIGH_VOLUME_COUNT,
     HIGH_VOLUME_SIGNALS,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -30,6 +32,10 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesAt,
+    getSeriesNodeData,
+    getSeriesOptions,
+    getSeriesSelectionNodes,
     hoverAction,
     isoEpochPair,
     magnitudePair,
@@ -40,15 +46,38 @@ import {
     spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Transformable } from 'ag-charts-core';
+import { Group, type Shape, Transformable, type WithInternalShadow } from 'ag-charts-core';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import { destroyChart } from '../../test/enterpriseSeriesAccessors';
+import {
+    createEnterpriseChart,
+    pixelAt,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
+import type { RangeAreaMarkerDatum } from './rangeAreaUtil';
+
+const RED = [255, 0, 0];
+const HALF_BLACK = [128, 128, 128];
+
+// A shadow with no blur, so that the colour of a pixel is the strength of the shadows cast on it.
+const shadowAt = (xOffset: number, yOffset = 0) => ({
+    enabled: true,
+    fill: 'rgba(0, 0, 0, 0.5)',
+    xOffset,
+    yOffset,
+    blur: 0,
+});
+
+// The test data rows are keyed by `month`; the datum type keeps its row opaque.
+type ClickableMarkerDatum = RangeAreaMarkerDatum & { datum: { month: string | Date } };
 
 describe('RangeAreaSeries', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: ChartOrProxy<any>;
     const ctx = setupMockCanvas();
 
     function lowAndHigh<T>(p: T): { low: T; high: T } {
@@ -56,10 +85,7 @@ describe('RangeAreaSeries', () => {
     }
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const CATEGORY_DATA: { month: string | Date; high: number; low: number; average: number }[] = [
@@ -177,6 +203,27 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
+    it.each([
+        ['ag-default', 0.5],
+        ['ag-default-dark', 0.5],
+    ])('should default the series and marker shadow fill for %s', async (theme, fillOpacity) => {
+        chart = await createEnterpriseChart({
+            ...RANGE_AREA_OPTIONS,
+            theme,
+            series: [
+                {
+                    ...RANGE_AREA_OPTIONS.series?.[0],
+                    shadow: { enabled: true },
+                    marker: { shadow: { enabled: true } },
+                },
+            ],
+        } as unknown as AgCartesianChartOptions);
+
+        const series = getSeriesOptions<AgRangeAreaSeriesOptions & { marker?: WithInternalShadow }>(chart);
+        expect(series.shadow).toMatchObject({ fill: '#000', fillOpacity });
+        expect(series.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity });
+    });
+
     describe('node interactions with markers disabled (AG-10226)', () => {
         const seriesNodeClick = vi.fn();
 
@@ -198,10 +245,13 @@ describe('RangeAreaSeries', () => {
         });
 
         const clickNode = async (month: string) => {
-            const series = deproxy(chart).series[0] as any;
-            const node = series.getNodeData().find((d: any) => d.datum.month === month);
+            const node = getSeriesNodeData<ClickableMarkerDatum>(chart).find((d) => d.datum.month === month);
             expect(node).toBeDefined();
-            const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(
+                getSeriesAt(chart).contentGroup,
+                node!.point.x,
+                node!.point.y
+            );
             await clickAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
         };
@@ -516,7 +566,7 @@ describe('RangeAreaSeries', () => {
         });
 
         it('reveal by a left-to-right swipe with markers scaling in on the initial load', async () => {
-            chart = deproxy(await createEnterpriseChart({ ...RANGE_AREA_OPTIONS } as AgChartOptions));
+            chart = await createEnterpriseChart({ ...RANGE_AREA_OPTIONS });
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -587,7 +637,7 @@ describe('RangeAreaSeries', () => {
 
     describe('gradient fill', () => {
         it('should render range area series with a default gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...RANGE_AREA_OPTIONS,
                 series: [
                     {
@@ -602,13 +652,13 @@ describe('RangeAreaSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
 
             await compare();
         });
 
         it('should render range area series with a gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...RANGE_AREA_OPTIONS,
                 series: [
                     {
@@ -631,7 +681,7 @@ describe('RangeAreaSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
 
             await compare();
         });
@@ -654,10 +704,10 @@ describe('RangeAreaSeries', () => {
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
         describe('spacing sets the gap between the bar and the label', () => {
-            test('inside', async () => {
+            it('inside', async () => {
                 await testCase({ placement: 'inside', spacing: 30 }, 'AG-8290-range-area-label-spacing-inside');
             });
-            test('outside', async () => {
+            it('outside', async () => {
                 await testCase({ placement: 'outside', spacing: 30 }, 'AG-8290-range-area-label-spacing-outside');
             });
         });
@@ -995,16 +1045,16 @@ describe('RangeAreaSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
             describe('callbacks', () => {
-                test('context', () => {
+                it('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
                     styler.expect().toHaveBeenCalledTimes(2);
                 });
-                test('params', () => {
+                it('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -1066,7 +1116,7 @@ describe('RangeAreaSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -1098,7 +1148,7 @@ describe('RangeAreaSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -1423,7 +1473,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        test('marker enabled', async () => {
+        it('marker enabled', async () => {
             type Ks = 'a' | 'A' | 'b' | 'B' | 'c' | 'C' | 'd' | 'D' | 'e' | 'E' | 'f' | 'F' | 'g' | 'G';
             type D = { x: string } & { [K in Ks]: number };
             const data: D[] = [
@@ -1588,15 +1638,10 @@ describe('RangeAreaSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1666,15 +1711,10 @@ describe('RangeAreaSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1682,15 +1722,10 @@ describe('RangeAreaSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS,
-                series: [
-                    {
-                        ...RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1793,6 +1828,190 @@ describe('RangeAreaSeries', () => {
                     ])
                 )
             );
+        });
+    });
+
+    // AG-9003: 14.2.0 rendering restored for this release
+    describe.skip('shadow root', () => {
+        const FILLS = { fillOpacity: 1, strokeWidth: 0, marker: { enabled: false } };
+        const data = [
+            { x: 1, lowA: 2, highA: 8, lowB: 3, highB: 6 },
+            { x: 4, lowA: 2, highA: 8, lowB: 3, highB: 6 },
+        ];
+
+        const options = (series: AgRangeAreaSeriesOptions[]): AgCartesianChartOptions => ({
+            legend: { enabled: false },
+            data,
+            axes: {
+                x: { ...STRIPPED_NUMBER_AXES.x, type: 'number' },
+                y: { ...STRIPPED_NUMBER_AXES.y, type: 'number' },
+            },
+            series,
+        });
+        const rangeArea = (
+            suffix: 'A' | 'B',
+            extra: Partial<AgRangeAreaSeriesOptions> & { marker?: WithInternalShadow }
+        ): AgRangeAreaSeriesOptions => ({
+            type: 'range-area',
+            xKey: 'x',
+            yLowKey: `low${suffix}`,
+            yHighKey: `high${suffix}`,
+            ...FILLS,
+            ...extra,
+        });
+
+        /** The number of pixels of the canvas whose colour is `[red, green, blue]`, give or take a channel. */
+        const countPixels = (colour: number[]) => {
+            const { scene } = deproxy(chart).ctx;
+            const { width, height } = scene.canvas;
+            const { data: pixels } = scene.canvas.context.getImageData(0, 0, width, height);
+            let count = 0;
+            for (let i = 0; i < pixels.length; i += 4) {
+                if (colour.every((channel, c) => Math.abs(pixels[i + c] - channel) <= 2)) count++;
+            }
+            return count;
+        };
+
+        /** Creates the chart with the root unable to cast, if `rootCasts` is false, so that each series casts its own. */
+        const render = async (series: AgRangeAreaSeriesOptions[], rootCasts: boolean) => {
+            if (!rootCasts) vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+            chart = await createEnterpriseChart(options(series));
+        };
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        it('should not draw the shadow of a later range-area over an earlier one', async () => {
+            // The shadow of the later area falls up, onto the part of the earlier area that shows above it.
+            const series = [
+                rangeArea('A', { fill: 'red' }),
+                rangeArea('B', { fill: 'blue', shadow: shadowAt(0, -30) }),
+            ];
+            const DARKENED_RED = [128, 0, 0];
+
+            await render(series, true);
+            expect(countPixels(RED)).toBeGreaterThan(0);
+            expect(countPixels(DARKENED_RED)).toBe(0);
+
+            chart = destroyChart(chart);
+            await render(series, false);
+            expect(countPixels(DARKENED_RED)).toBeGreaterThan(0);
+        });
+
+        it('should cast the shadow once where the shadows of two range-areas overlap, not stack them', async () => {
+            // To the right of both areas, the shadows of the two overlap over the lower part of the taller one.
+            const series = [
+                rangeArea('A', { fill: 'red', shadow: shadowAt(40) }),
+                rangeArea('B', { fill: 'blue', shadow: shadowAt(40) }),
+            ];
+            const STACKED = [64, 64, 64];
+
+            await render(series, true);
+            expect(countPixels(HALF_BLACK)).toBeGreaterThan(0);
+            expect(countPixels(STACKED)).toBe(0);
+
+            chart = destroyChart(chart);
+            await render(series, false);
+            expect(countPixels(STACKED)).toBeGreaterThan(0);
+        });
+
+        it('should cast the shadow of translucent range-areas once where they overlap, as it is cast for one of them', async () => {
+            // The fill opacity is the default of the theme, which is translucent. The second area is within the first, so
+            // its shadow adds nothing to that of the first, whose pixels are the greys of the canvas.
+            const first = rangeArea('A', { fill: 'red', shadow: shadowAt(40) });
+            const second = rangeArea('B', { fill: 'blue', shadow: shadowAt(40) });
+            const greys = () => {
+                const { scene } = deproxy(chart).ctx;
+                const { width, height } = scene.canvas;
+                const { data: pixels } = scene.canvas.context.getImageData(0, 0, width, height);
+                const counts = new Map<number, number>();
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const grey = pixels[i];
+                    if (grey < 255 && grey === pixels[i + 1] && grey === pixels[i + 2]) {
+                        counts.set(grey, (counts.get(grey) ?? 0) + 1);
+                    }
+                }
+                return counts;
+            };
+            const withDefaultOpacity = (area: AgRangeAreaSeriesOptions) => ({ ...area, fillOpacity: undefined });
+
+            await render([withDefaultOpacity(first), withDefaultOpacity(second)], true);
+            const both = greys();
+            expect(both.size).toBeGreaterThan(0);
+            chart = destroyChart(chart);
+            await render([withDefaultOpacity(first)], true);
+
+            expect(greys()).toEqual(both);
+        });
+
+        it('should draw the shadows of its markers beneath its own fill, not over it', async () => {
+            // Half black over a fill of 0.8 red is [128, 26, 26]; beneath it, the fill leaves [230, 26, 26].
+            const series = [
+                rangeArea('A', {
+                    fill: 'red',
+                    fillOpacity: 0.8,
+                    marker: { enabled: true, size: 8, fill: 'blue', shadow: shadowAt(0, 20) },
+                }),
+            ];
+            const SHADOW_OVER_FILL = [128, 26, 26];
+            const SHADOW_BENEATH_FILL = [230, 26, 26];
+
+            await render(series, true);
+            expect(countPixels(SHADOW_BENEATH_FILL)).toBeGreaterThan(0);
+            expect(countPixels(SHADOW_OVER_FILL)).toBe(0);
+
+            chart = destroyChart(chart);
+            await render(series, false);
+            expect(countPixels(SHADOW_OVER_FILL)).toBeGreaterThan(0);
+        });
+
+        describe('while a highlight dims the series', () => {
+            const dimmed = (shadow: ReturnType<typeof shadowAt>): AgCartesianChartOptions => ({
+                ...options([
+                    rangeArea('A', {
+                        fill: 'red',
+                        marker: { enabled: true, size: 8, fill: 'blue', fillOpacity: 1, shadow },
+                    }),
+                    rangeArea('B', { fill: 'green', marker: { enabled: false } }),
+                ]),
+                highlight: { drawingMode: 'cutout' },
+            });
+            const SOLID = { ...shadowAt(0, 20), fill: 'black' };
+
+            // The mock canvas only backs the first chart a test creates, and this test compares two.
+            const chartCanvas = { getRenderContext2D: () => deproxy(chart).ctx.scene.canvas.context };
+
+            /** The markers of the first series, once a highlight on the second has dimmed it, and a pixel beneath one. */
+            const dim = async (shadow: ReturnType<typeof shadowAt>) => {
+                chart = await createEnterpriseChart(dimmed(shadow));
+                await waitForChartStability(chart);
+                const markers = getSeriesSelectionNodes<Shape>(chart, 'datumSelection', 0).filter(
+                    (node) => node.visible
+                );
+                const [{ x, y, width, height }] = markers.map((node) => Transformable.toCanvas(node));
+
+                const [datum] = getSeriesNodeData(chart, 1);
+                deproxy(chart).ctx.highlightManager.updateHighlight(deproxy(chart).id, datum);
+                await waitForChartStability(chart);
+
+                expect(markers.map((node) => node.drawingMode)).toContain('cutout');
+                return { x: Math.round(x + width / 2), y: Math.round(y + height / 2) };
+            };
+
+            it('should draw the shadows of its markers beneath its own fill', async () => {
+                const { x, y } = await dim(SOLID);
+                const through = pixelAt(chartCanvas, x, y + 20);
+
+                chart = destroyChart(chart);
+                vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+                await dim(SOLID);
+                const local = pixelAt(chartCanvas, x, y + 20);
+
+                // Beneath a translucent red fill, a black shadow lets more red through than the same shadow over it.
+                expect(through[0]).toBeLessThan(255);
+                expect(through[0]).toBeGreaterThan(local[0]);
+            });
         });
     });
 });

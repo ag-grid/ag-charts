@@ -1,7 +1,5 @@
 import { Page, test as base, expect } from '@playwright/test';
 
-import { waitForChartUpdate } from './util';
-
 const LOCATOR_ACTIONS = new Set([
     'click',
     'dblclick',
@@ -37,13 +35,16 @@ const LOCATOR_FACTORIES = new Set([
     'or',
 ]);
 
+// A chart wrapper whose stability attributes are missing or not yet both 'false'.
+const UNSETTLED_CHART = '.ag-charts-wrapper:not([data-update-pending="false"][data-animating="false"])';
+
 async function waitForCharts(page: Page) {
     // rAF then setTimeout(0): lets rAF-scheduled chart updates start and DOMElementProxy's deferred
     // DOM flush run, so the stability attributes are not read before an animation is scheduled.
     await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
-    for (const locator of await page.locator('.ag-charts-wrapper').all()) {
-        await waitForChartUpdate(locator);
-    }
+    // One page-wide count rather than a locator per wrapper: the site's ClientRouter swaps in the
+    // next page after a link click, so a wrapper listed on the outgoing page can vanish mid-wait.
+    await expect(page.locator(UNSETTLED_CHART)).toHaveCount(0, { timeout: 10_000 });
 }
 
 function stabilityProxy(page: Page, instance: any) {

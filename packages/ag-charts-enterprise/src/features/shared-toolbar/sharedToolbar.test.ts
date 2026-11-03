@@ -106,3 +106,85 @@ describe('SharedToolbar width caching', () => {
         expect(shared.getBounds).toHaveBeenCalledTimes(2);
     });
 });
+
+// One pass in chart order: annotations measures first, then the chart toolbar adds a larger button.
+describe('SharedToolbar layout pass', () => {
+    interface LayoutBox {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        shrink(amount: number, position: 'left' | 'right'): void;
+    }
+
+    function createLayoutBox(): LayoutBox {
+        return {
+            x: 0,
+            y: 0,
+            width: 600,
+            height: 400,
+            shrink(amount, position) {
+                if (position === 'left') this.x += amount;
+                this.width -= amount;
+            },
+        };
+    }
+
+    function createPass(isRtl: boolean) {
+        const element = document.createElement('div');
+        let buttons: Array<{ buttonSize?: number }> = [];
+        const sharedToolbar = {
+            horizontalSpacing: 10,
+            getElement: () => element,
+            // The natural column width is the widest button (34px unless sized).
+            getBounds: () => ({ width: Math.max(0, ...buttons.map((b) => b.buttonSize ?? 34)) }),
+            setBounds: vi.fn(),
+            updateButtons: (next: typeof buttons) => {
+                buttons = next;
+            },
+            setButtonHiddenByIndex: vi.fn(),
+            clearActiveButton: vi.fn(),
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+        };
+        const instance = Object.create(SharedToolbar.prototype);
+        Object.assign(instance, {
+            ctx: { domManager: { isRtl } },
+            sharedToolbar,
+            activeSections: new Set(),
+            sectionButtons: { annotations: [], chartToolbar: [] },
+            sectionButtonSize: { annotations: undefined, chartToolbar: undefined },
+        });
+        const annotations = instance.toolbarWithSection('annotations');
+        const chartToolbar = instance.toolbarWithSection('chartToolbar');
+        return { sharedToolbar, annotations, chartToolbar };
+    }
+
+    it.each([false, true])('widens the column to the chart toolbar button size in one pass (rtl %s)', (isRtl) => {
+        const { sharedToolbar, annotations, chartToolbar } = createPass(isRtl);
+        chartToolbar.setButtonSize(44);
+        annotations.updateButtons([{ icon: 'trend-line-drawing' }, { icon: 'text-annotation' }]);
+
+        const layoutBox = createLayoutBox();
+        annotations.layout(layoutBox, 20);
+        chartToolbar.updateButtons([{ icon: 'candlestick-series' }]);
+        chartToolbar.layout(layoutBox);
+
+        expect(sharedToolbar.setBounds).toHaveBeenLastCalledWith({ x: isRtl ? 600 - 44 : 0, y: 0, width: 44 });
+        expect(layoutBox.width).toBe(600 - (44 + 10 + 20));
+        expect(layoutBox.x).toBe(isRtl ? 0 : 44 + 10 + 20);
+    });
+
+    it('does not adjust the layout box when the later section leaves the width unchanged', () => {
+        const { sharedToolbar, annotations, chartToolbar } = createPass(false);
+        annotations.updateButtons([{ icon: 'trend-line-drawing' }]);
+        chartToolbar.updateButtons([{ icon: 'candlestick-series' }]);
+
+        const layoutBox = createLayoutBox();
+        annotations.layout(layoutBox, 20);
+        chartToolbar.layout(layoutBox);
+
+        expect(sharedToolbar.setBounds).toHaveBeenCalledTimes(1);
+        expect(layoutBox.width).toBe(600 - (34 + 10 + 20));
+    });
+});

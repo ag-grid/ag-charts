@@ -1,7 +1,5 @@
 import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
-    CARTESIAN_AXIS_TYPE,
-    CARTESIAN_POSITION,
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
@@ -13,12 +11,15 @@ import {
     NEAREST_NODE_TOOLTIP_THEME,
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     interpolationThemeTemplate,
     themeLineHeight,
+    undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -40,7 +41,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         interpolation: interpolationThemeTemplate(),
         marker: {
             enabled: true,
-            shadow: SHADOW_THEME_DEFAULTS,
+            ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
             shape: 'circle',
             size: 7,
             fillOpacity: 1,
@@ -64,7 +65,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
             placement: 'top',
         },
         tooltip: NEAREST_NODE_TOOLTIP_THEME,
-        highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },
@@ -82,16 +83,6 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = /* 
 
     themeOptions: lineSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
-    defaultAxes: {
-        y: {
-            type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: CARTESIAN_POSITION.LEFT,
-        },
-        x: {
-            type: CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: CARTESIAN_POSITION.BOTTOM,
-        },
-    },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate,
 

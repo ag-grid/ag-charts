@@ -29,6 +29,10 @@ export abstract class NetworkLayout<TVertex, TEdge> {
         return this.contentBBox;
     }
 
+    getRegularBBox(): BBox | undefined {
+        return this.regularBBox;
+    }
+
     clear() {
         this.regularBBox = undefined;
         this.contentBBox = undefined;

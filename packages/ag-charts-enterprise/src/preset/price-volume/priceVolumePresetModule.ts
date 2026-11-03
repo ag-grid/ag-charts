@@ -24,7 +24,7 @@ import { ChartToolbarModule } from '../../features/chart-toolbar/chartToolbarMod
 import { StatusBarModule } from '../../features/status-bar/statusBarModule';
 import { CandlestickSeriesModule } from '../../series/candlestick/candlestickModule';
 import { RangeBarSeriesModule } from '../../series/range-bar/rangeBarModule';
-import { volumeProfileTotalSegmentOptionsDef } from '../volume-profile/volumeProfile';
+import { volumeProfileBarsOptionsDef, volumeProfileTotalSegmentOptionsDef } from '../volume-profile/volumeProfile';
 import { priceVolume } from './priceVolumePreset';
 import { annotationsTheme } from './priceVolumePresetTheme';
 
@@ -44,6 +44,7 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
         priceKey: string,
         upKey: required(string),
         downKey: required(string),
+        ...volumeProfileBarsOptionsDef,
         placement: union('left', 'right'),
         widthRatio: ratio,
         totalSegment: volumeProfileTotalSegmentOptionsDef,
@@ -69,7 +70,6 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     dataSource: defined,
     formatter: defined,
     enableRtl: boolean,
-    enableShadowDom: boolean,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
         foreground: defined,

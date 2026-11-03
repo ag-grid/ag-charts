@@ -61,6 +61,26 @@ describe('CandlestickNode', () => {
             expect(pixelAt(canvasCtx, 120, 50)).toEqual([255, 0, 0, 255]);
         });
 
+        it('should draw the shadow of a wick wider than the body the same from what a group kept as at first', () => {
+            const wide = (centerX: number) =>
+                candlestick({
+                    centerX,
+                    wickStroke: 'black',
+                    wickStrokeWidth: 60,
+                    fillShadow: { ...RED_SHADOW, xOffset: 40 },
+                });
+            const picture = () => Array.from(canvasCtx.getRenderContext2D().getImageData(0, 0, 400, 220).data);
+
+            renderShadowBatch(canvasCtx, [wide(100), wide(250)]);
+            const first = picture();
+            renderShadowBatch(canvasCtx, [wide(100), wide(250)], 3);
+            const kept = picture();
+
+            // The wick is 60px wide and its shadow 40px to the right, so it reaches well past the 6px body.
+            expect(pixelAt(canvasCtx, 160, 50)).toEqual([255, 0, 0, 255]);
+            expect(kept).toEqual(first);
+        });
+
         it('should spread the shadow past the ends of a wick by the spread', () => {
             const wicks = (spread?: number) =>
                 candlestick({

@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_LV_LV: Record<string, string> = {
     ariaLabelColorPickerHue: 'Tonis',
     ariaLabelColorPickerMultiColor: 'Daudzkrāsains',
     ariaLabelColorPickerPalette: 'Palete',
+    ariaLabelCrossLine: '${label}, krustlīnija ${index}[number] no ${count}[number]',
     ariaLabelFinancialCharts: 'Finanšu diagrammas',
     ariaLabelGaugeTarget: 'Mērķis',
     ariaLabelGaugeValue: 'Vērtība',

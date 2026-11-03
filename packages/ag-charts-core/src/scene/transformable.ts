@@ -2,8 +2,9 @@ import { createSvgElement } from '../dom/domElements';
 import { SceneChangeDetection } from '../rendering/changeDetectable';
 import { type CanvasPoint, type Point } from '../types/scene';
 import type { BBox } from './bbox';
-import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
+import { IDENTITY_MATRIX_ELEMENTS, Matrix, type MatrixFrame } from './matrix';
 import { Node, type RenderContext } from './node';
+import type { ShadowCollector } from './shadowCollector';
 
 type Constructor<T> = new (...args: any[]) => T;
 
@@ -26,6 +27,8 @@ type MatrixTransformType<T> = T &
     ParentToLocalCoordinateSpaceTransforms & {
         updateMatrix(matrix: Matrix): void;
         computeBBoxWithoutTransforms(): BBox | undefined;
+        /** Writes `parent` followed by the node's own transform into `out`, without allocating. */
+        composeTransform(parent: Readonly<MatrixFrame>, out: MatrixFrame): void;
     };
 
 function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
@@ -78,6 +81,11 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             this[TRANSFORM_MATRIX].setElements(IDENTITY_MATRIX_ELEMENTS);
             this.updateMatrix(this[TRANSFORM_MATRIX]);
             this._dirtyTransform = false;
+        }
+
+        composeTransform(parent: Readonly<MatrixFrame>, out: MatrixFrame) {
+            this.computeTransformMatrix();
+            this[TRANSFORM_MATRIX].composeAfter(parent, out);
         }
 
         toParent(bbox: BBox) {
@@ -150,6 +158,25 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
                 if (performRestore) {
                     ctx.restore();
                 }
+            }
+        }
+
+        override gatherShadows(collector: ShadowCollector): void {
+            this.computeTransformMatrix();
+
+            const matrix = this[TRANSFORM_MATRIX];
+            if (matrix.identity) {
+                super.gatherShadows(collector);
+                return;
+            }
+
+            const { ctx } = collector;
+            ctx.save();
+            try {
+                matrix.toContext(ctx);
+                super.gatherShadows(collector);
+            } finally {
+                ctx.restore();
             }
         }
 

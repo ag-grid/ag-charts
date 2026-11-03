@@ -81,8 +81,9 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
 
     for (const series of moduleRegistry.listModulesByType(ModuleType.Series)) {
         const { chartType } = series;
+        const chartModule = moduleRegistry.getChartModule(chartType);
         const chartDefs = composeHostContributedDefs(
-            moduleRegistry.getChartModule(chartType).themeOptions,
+            chartModule.themeOptions,
             contributionsFor(chartType),
             'chart',
             (contribution) => contributionMatchesChartType(contribution, chartType),
@@ -102,7 +103,7 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
         } else {
             entries[series.name] = {
                 ...chartDefs,
-                ...(series.defaultAxes == null ? {} : { axes: axesDefs(chartType) }),
+                ...((series.defaultAxes ?? chartModule.defaultAxes) == null ? {} : { axes: axesDefs(chartType) }),
                 series: seriesDefs,
                 visible: undocumented(boolean),
             };

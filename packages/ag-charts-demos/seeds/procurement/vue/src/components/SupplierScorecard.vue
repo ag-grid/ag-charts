@@ -1,7 +1,11 @@
 <script lang="ts">
 import type { CellClassRules } from 'ag-grid-community';
 
+import { compactGridTheme } from '../grid';
 import type { SupplierScorecard as Row } from '../types';
+
+/** A theme param, not the `rowHeight` prop, which leaves cell content above the row's centre. */
+const rosterGridTheme = compactGridTheme.withParams({ rowHeight: 46 });
 
 /** Below-target figures carry the same down-tone the cards gave them. */
 const belowTarget = (target: number): CellClassRules<Row> => ({ 'pc-down': ({ value }) => value < target });
@@ -20,7 +24,7 @@ import { computed } from 'vue';
 
 import { ON_TIME_TARGET, QUALITY_TARGET } from '../data';
 import { fmtCurrencyCompact, fmtInt, fmtPct, fmtSignedPct } from '../format';
-import { baseColDef, compactGridTheme } from '../grid';
+import { baseColDef } from '../grid';
 import ContactActions from './ContactActions.vue';
 import SupplierCell from './SupplierCell.vue';
 
@@ -144,6 +148,7 @@ const columnDefs = computed<ColDef<Row>[]>(() => [
         sortable: false,
         filter: false,
         resizable: false,
+        cellClass: 'pc-cell-centred',
         cellRenderer: ContactActions,
     },
 ]);
@@ -167,16 +172,15 @@ const getRowId = ({ data }: GetRowIdParams<Row>) => data.supplierId;
 </script>
 
 <template>
-    <div class="pc-grid-host">
+    <div class="pc-grid-host" data-keeps-selection="true">
         <AgGridVue
-            :theme="compactGridTheme"
+            :theme="rosterGridTheme"
             :row-data="rows"
             :column-defs="columnDefs"
             :default-col-def="defaultColDef"
             :get-row-id="getRowId"
             row-class="pc-supplier"
             :row-class-rules="rowClassRules"
-            :row-height="46"
             dom-layout="autoHeight"
         />
     </div>
