@@ -64,6 +64,12 @@ export class Navigator extends AbstractModuleInstance {
         this.updateBackground(undefined, this.miniChart.root);
         this.domProxy = new NavigatorDOMProxy(ctx, this);
 
+        const { navigatorManager } = ctx;
+        if (navigatorManager) {
+            navigatorManager.miniChart = this.miniChart;
+            this.cleanup.register(() => (navigatorManager.miniChart = undefined));
+        }
+
         this.cleanup.register(
             ctx.scene.attachNode(this.rangeSelector),
             ctx.eventsHub.on('locale:change', () => this.updateZoom()),

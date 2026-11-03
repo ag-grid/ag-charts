@@ -3,7 +3,6 @@ import type {
     BBox,
     CanvasPoint,
     ChartAnimationPhase,
-    ModuleInstance,
     RequireOptional,
     RequiredRange,
     SeriesChangeType,
@@ -26,7 +25,6 @@ import { NumberAxis } from './axis/numberAxis';
 import { stackCartesianSeries } from './cartesianUtil';
 import { CartesianChartAxes, ChartAxes } from './chartAxes';
 import { ChartAxesComponent } from './chartAxesComponent';
-import type { ChartAxis } from './chartAxis';
 import type { ChartTypeHost, ChartTypeInstance, SeriesAxesHost } from './chartTypeEnv';
 import type { LayoutContext, ScrollbarLayoutMap, SeriesInsetMap } from './layout/layoutManager';
 import { deriveMiniChartOptions, filterMiniChartSeries } from './miniChartOptions';
@@ -63,13 +61,6 @@ function clampPaddingPair(
     padding[high] *= scale;
 }
 
-interface SyncModule extends ModuleInstance {
-    enabled?: boolean;
-    getSyncedDomain(axis: ChartAxis): Promise<any[] | undefined>;
-    removeAxis(axis: ChartAxis): void;
-    updateSiblings(): void;
-}
-
 export class CartesianChartType implements ChartTypeInstance {
     static readonly type = 'cartesian' as const;
     readonly type = CartesianChartType.type;
@@ -102,10 +93,6 @@ export class CartesianChartType implements ChartTypeInstance {
 
     private get series() {
         return this.host.series;
-    }
-
-    private get modulesManager() {
-        return this.host.modulesManager;
     }
 
     private onAxisChange(newValue: CartesianAxis[], oldValue: CartesianAxis[] | undefined) {
@@ -197,10 +184,7 @@ export class CartesianChartType implements ChartTypeInstance {
     }
 
     applyChartTypeOptions(newOpts: AgChartOptions, oldOpts: AgChartOptions & { type?: SeriesType }) {
-        const navigatorModule = this.modulesManager.getModule<{ miniChart?: SeriesAxesHost & { enabled?: boolean } }>(
-            'navigator'
-        );
-        const miniChart = navigatorModule?.miniChart;
+        const miniChart = this.ctx.navigatorManager?.miniChart;
         const miniChartSeries =
             (newOpts.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? newOpts.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
@@ -293,7 +277,7 @@ export class CartesianChartType implements ChartTypeInstance {
 
     async afterSeriesDomains() {
         for (const axis of this.axes) {
-            const syncedDomain = await this.getSyncedDomain(axis);
+            const syncedDomain = await this.ctx.syncManager.getSyncedDomain(axis);
 
             if (syncedDomain == null) {
                 this.warnIfUnused(axis);
@@ -617,17 +601,14 @@ export class CartesianChartType implements ChartTypeInstance {
         seriesRect: BBox,
         visible: boolean
     ): void {
-        const annotationsModule = this.modulesManager.getModule('annotations');
-        const hasAnnotations =
-            annotationsModule?.enabled === true ||
-            this.ctx.annotationManager?.createMemento().some((annotation) => {
-                switch (annotation.type) {
-                    case 'vertical-line':
-                        return axis.direction === ChartAxisDirection.X;
-                    case 'horizontal-line':
-                        return axis.direction === ChartAxisDirection.Y;
-                }
-            });
+        const hasAnnotations = this.ctx.annotationManager?.createMemento().some((annotation) => {
+            switch (annotation.type) {
+                case 'vertical-line':
+                    return axis.direction === ChartAxisDirection.X;
+                case 'horizontal-line':
+                    return axis.direction === ChartAxisDirection.Y;
+            }
+        });
         if (hasAnnotations) return;
 
         const currentWidth = axisWidths.get(axis.id) ?? 0;
@@ -721,23 +702,12 @@ export class CartesianChartType implements ChartTypeInstance {
         return direction === 1 ? Math.min(value, bound + size) : Math.max(value, bound);
     }
 
-    private async getSyncedDomain(axis: CartesianAxis) {
-        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
-        if (!syncModule?.enabled) return;
-        return await syncModule.getSyncedDomain(axis);
-    }
-
     private syncAxisChanges(newValue: CartesianAxis[], oldValue: CartesianAxis[] | undefined) {
-        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
-        if (!syncModule?.enabled) return;
-
         const removed = new Set(oldValue ?? []);
         for (const axis of newValue) {
             removed.delete(axis);
         }
-        for (const removedAxis of removed) {
-            syncModule.removeAxis(removedAxis);
-        }
+        this.ctx.syncManager.removeAxes(removed);
     }
 
     private sizeAxis(axis: CartesianAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {

@@ -10,7 +10,6 @@ import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { ChartAxes } from './chartAxes';
 import type { LayoutContext } from './layout/layoutManager';
-import type { ModulesManager } from './modulesManager';
 import type { SeriesArea } from './series-area/seriesArea';
 import type { UnknownSeries } from './series/series';
 
@@ -21,8 +20,6 @@ export interface ChartEnv {
     axes: ChartAxes;
     seriesArea: SeriesArea;
     chartOptions: ChartOptions;
-    // SPIKE: the navigator and sync lookups this serves move to their modules.
-    modulesManager: ModulesManager;
     layoutContext: LayoutContext;
 }
 
@@ -31,3 +28,19 @@ export type ChartTypeInstance = CoreChartTypeInstance<ChartEnv>;
 export type SeriesHost = CoreSeriesHost<UnknownSeries>;
 export type AxesHost = CoreAxesHost<ChartAxes>;
 export type SeriesAxesHost = SeriesHost & AxesHost;
+
+export interface MiniChartHost extends SeriesAxesHost {
+    readonly enabled: boolean;
+}
+
+/** Installed by the `navigator` module; the cartesian chart type applies the mini chart's series and axes. */
+export interface NavigatorManager {
+    miniChart?: MiniChartHost;
+}
+
+// Declared here rather than in moduleContext.ts, which would otherwise import the series and axes types in a cycle.
+declare module '../module/moduleContext' {
+    interface ChartRegistry {
+        readonly navigatorManager?: NavigatorManager;
+    }
+}

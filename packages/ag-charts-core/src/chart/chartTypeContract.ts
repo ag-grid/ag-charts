@@ -20,7 +20,6 @@ export interface ChartTypeEnv {
     axes?: unknown;
     seriesArea?: unknown;
     chartOptions?: unknown;
-    modulesManager?: unknown;
     layoutContext?: unknown;
 }
 
@@ -48,7 +47,6 @@ export interface ChartTypeHost<E extends ChartTypeEnv = ChartTypeEnv> extends Se
     readonly seriesRect?: BBox;
     readonly chartOptions: EnvType<E, 'chartOptions'>;
     readonly chartAnimationPhase: ChartAnimationPhase;
-    readonly modulesManager: EnvType<E, 'modulesManager'>;
     syncStatus: SyncStatus;
     getOptions(): AgChartOptions;
     getSeriesAreaPadding(): { top: number; right: number; bottom: number; left: number };
