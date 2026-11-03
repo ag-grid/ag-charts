@@ -54,18 +54,6 @@ exports[`AG-15850 activeChange > area > mouse 3`] = `
 [
   [
     {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
-  [
-    {
       "activeItem": {
         "itemId": "myValue",
         "seriesId": "AreaSeries-1",
@@ -223,18 +211,6 @@ exports[`AG-15850 activeChange > bar > mouse 2`] = `
 
 exports[`AG-15850 activeChange > bar > mouse 3`] = `
 [
-  [
-    {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
   [
     {
       "activeItem": {
@@ -434,18 +410,6 @@ exports[`AG-15850 activeChange > box-plot > mouse 2`] = `
 
 exports[`AG-15850 activeChange > box-plot > mouse 3`] = `
 [
-  [
-    {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
   [
     {
       "activeItem": {
@@ -807,18 +771,6 @@ exports[`AG-15850 activeChange > donut-shared-legend > mouse 3`] = `
 [
   [
     {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
-  [
-    {
       "activeItem": {
         "itemId": 4,
         "seriesId": "DonutSeries-1",
@@ -1026,18 +978,6 @@ exports[`AG-15850 activeChange > line > mouse 2`] = `
 
 exports[`AG-15850 activeChange > line > mouse 3`] = `
 [
-  [
-    {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
   [
     {
       "activeItem": {
