@@ -10,7 +10,7 @@ update=false
 production=false
 it_opts=
 passthrough_opts=
-playwright_version=1.52.0
+playwright_version=1.64.1
 
 function sed_inplace {
     if [[ $(uname) == "Darwin" ]] ; then
@@ -126,7 +126,7 @@ if [[ ${mode} == "docker" ]] ; then
         -v $(pwd):/project \
         -e HOSTNAME=docker-desktop \
         $port_spec \
-        mcr.microsoft.com/playwright:v1.52.0 \
+        mcr.microsoft.com/playwright:v1.64.1-noble \
         /bin/bash -il /project/run.sh -c ${passthrough_opts} ${version} /project
     exitCode=$?
 
