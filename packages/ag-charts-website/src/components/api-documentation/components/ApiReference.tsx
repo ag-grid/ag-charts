@@ -490,7 +490,8 @@ function ApiReferenceRow({
     const collapsibleType = getCollapsibleType(additionalDetails, nestedPath);
     const hasChildProps = collapsibleType === 'childrenProperties';
     const isUnionTypes = collapsibleType === 'unionTypes';
-    const signature = isUnionTypesDetails(additionalDetails) ? additionalDetails.signature : undefined;
+    // A recursive row keeps its type signature, so it reads the same as the row it repeats.
+    const signature = isUnionTypesDetails(memberAdditionalDetails) ? memberAdditionalDetails.signature : undefined;
     const isSpecialType = Boolean(config.specialTypes?.[getMemberType(member)]);
 
     return (
@@ -543,9 +544,8 @@ function ApiReferenceRow({
                         <UnionTypesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
                     )}
                     {recursionTarget && (
-                        <a tabIndex={0} href={`#${recursionTarget.anchorId}`} className="meta-link">
-                            Recursive, see <code>{formatPropertyPath(recursionTarget.path)}</code>{' '}
-                            <Icon name="arrowUp" />
+                        <a tabIndex={0} href={`#${recursionTarget.anchorId}`}>
+                            Recursive, see <code>{formatPropertyPath(recursionTarget.path)}</code>
                         </a>
                     )}
                 </div>

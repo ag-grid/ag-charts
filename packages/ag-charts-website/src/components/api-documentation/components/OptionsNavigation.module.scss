@@ -188,6 +188,11 @@ pre.navContainer {
         color: var(--punctuation-color);
     }
 
+    .comment {
+        color: var(--color-code-comment);
+        font-style: italic;
+    }
+
     .unionDiscriminator,
     .recordAlias,
     .unionPipe,
@@ -206,6 +211,7 @@ pre.navContainer {
         right: calc(100% + 10px);
         width: var(--nav-options-indent);
         height: 1px;
+        cursor: default;
         background-color: var(--color-util-gray-300);
 
         #{$selector-darkmode} & {
