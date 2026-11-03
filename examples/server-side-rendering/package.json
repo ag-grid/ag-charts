@@ -8,7 +8,7 @@
     "server": "tsx examples/03-express-server.ts"
   },
   "dependencies": {
-    "ag-charts-server-side": "14.3.0-beta.20261103",
+    "ag-charts-server-side": "14.3.0-beta.20261103.1119",
     "express": "^4.21.0"
   },
   "devDependencies": {
