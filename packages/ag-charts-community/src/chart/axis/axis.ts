@@ -369,7 +369,6 @@ export abstract class Axis<
      * `align` without changing the stored object.
      */
     protected _layoutConstraints: ChartAxis['layoutConstraints'] = {
-        stacked: true,
         align: 'justify',
         width: 100,
         unit: 'percent',
@@ -535,8 +534,8 @@ export abstract class Axis<
      * Replace the axis options reference and re-derive any constructor-time
      * fields that depend on options. Called by `Chart.applyAxes` on the
      * matching-types update path so reactive `chart.update()` invocations
-     * pick up changes to fields like `nice` and `layoutConstraints` instead
-     * of using values frozen at axis construction.
+     * pick up changes to fields like `nice` instead of using values frozen
+     * at axis construction.
      */
     applyOptions(options: TOptions): void {
         this.options = options;
@@ -547,11 +546,6 @@ export abstract class Axis<
 
     private syncOptionDerivedState(options: TOptions): void {
         this.nice = (options as { nice?: boolean }).nice ?? true;
-        const userLayoutConstraints = (options as { layoutConstraints?: Partial<ChartAxis['layoutConstraints']> })
-            .layoutConstraints;
-        if (userLayoutConstraints) {
-            this._layoutConstraints = { ...this._layoutConstraints, ...userLayoutConstraints };
-        }
     }
 
     resetAnimation(_phase: ChartAnimationPhase) {

@@ -287,12 +287,6 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     tick: cartesianAxisTick,
     context: () => true,
     ...undocumentedDefs({
-        layoutConstraints: {
-            stacked: required(boolean),
-            align: required(union('start', 'end')),
-            unit: required(union('percent', 'px')),
-            width: required(positiveNumber),
-        },
         linkZoom: string,
     }),
 };

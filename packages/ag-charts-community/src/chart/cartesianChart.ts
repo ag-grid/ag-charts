@@ -566,10 +566,7 @@ export class CartesianChart extends Chart {
 
                 const axisThickness = axisWidths.get(axis.id) ?? 0;
                 totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
-                if (axis.layoutConstraints.stacked) {
-                    // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
-                    currentOffset += axisThickness + axis.options.spacing;
-                }
+                currentOffset += axisThickness + axis.options.spacing;
             }
 
             // The inset sits between the innermost axis and the series area, so it widens the area after the axes.
