@@ -19,6 +19,7 @@ import type {
     DatumDefault,
     Opacity,
     PixelSize,
+    ResolvedDatumKey,
     TextAlign,
     VerticalAlign,
 } from '../../chart/types';
@@ -30,7 +31,7 @@ export type AgTreemapHighlightState = HierarchyHighlightState;
 export interface AgTreemapSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends
         AgSeriesTooltipRendererParams<TDatum, TContext>,
-        AgTreemapSeriesOptionsKeys,
+        AgTreemapSeriesOptionsKeys<TDatum>,
         AgTreemapSeriesOptionsNames,
         FillOptions,
         StrokeOptions {
@@ -215,24 +216,24 @@ export interface AgTreemapSeriesOptions<TDatum = DatumDefault, TContext = Contex
             AgBaseSeriesOptions<TDatum, TContext>,
             'highlight' | 'highlightStyle' | 'showInLegend' | 'selection' | 'focusIndex'
         >,
-        AgTreemapSeriesOptionsKeys,
+        AgTreemapSeriesOptionsKeys<TDatum>,
         AgTreemapSeriesOptionsNames,
         AgTreemapSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Treemap Series. */
     type: 'treemap';
 }
 
-export interface AgTreemapSeriesOptionsKeys {
+export interface AgTreemapSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the label. */
-    labelKey?: string;
+    labelKey?: ResolvedDatumKey<TDatum>;
     /** The name of the node key containing a secondary label. */
-    secondaryLabelKey?: string;
+    secondaryLabelKey?: ResolvedDatumKey<TDatum>;
     /** The name of the node key containing the children. Defaults to `children`. */
-    childrenKey?: string;
+    childrenKey?: ResolvedDatumKey<TDatum>;
     /** The name of the node key containing the size value. */
-    sizeKey?: string;
+    sizeKey?: ResolvedDatumKey<TDatum>;
     /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the tile colour. */
-    colorKey?: string;
+    colorKey?: ResolvedDatumKey<TDatum>;
 }
 
 export interface AgTreemapSeriesOptionsNames {
@@ -247,14 +248,14 @@ export interface AgTreemapSeriesItemStylerParams<TDatum, TContext = ContextDefau
     extends
         DatumCallbackParams<TDatum, AgTreemapHighlightState>,
         ContextCallbackParams<TContext>,
-        AgTreemapSeriesOptionsKeys,
+        AgTreemapSeriesOptionsKeys<TDatum>,
         AgTreemapSeriesStyle {
     /** The depth of the datum in the hierarchy. */
     depth: number;
 }
 
-export interface AgTreemapSeriesLabelFormatterParams<_TDatum = DatumDefault>
-    extends AgTreemapSeriesOptionsKeys, AgTreemapSeriesOptionsNames {
+export interface AgTreemapSeriesLabelFormatterParams<TDatum = DatumDefault>
+    extends AgTreemapSeriesOptionsKeys<TDatum>, AgTreemapSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
 }

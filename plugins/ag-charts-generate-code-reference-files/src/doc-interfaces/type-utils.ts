@@ -35,7 +35,7 @@ export function formatNode<T extends ts.Node>(node: T | undefined, checker?: ts.
     if (ts.isTypeParameterDeclaration(node)) {
         return {
             kind: 'typeParam',
-            name: printNode(node.name),
+            name: stripUnusedMarker(node.name.text),
             constraint: printNode(node.constraint),
             default: printNode(node.default),
         };
@@ -146,6 +146,10 @@ export function formatNode<T extends ts.Node>(node: T | undefined, checker?: ts.
             type: formatNode(node.objectType),
             index: printNode(node.indexType),
         };
+    }
+
+    if (ts.isIdentifier(node) && isTypeParameterReference(node)) {
+        return stripUnusedMarker(node.text);
     }
 
     switch (node.kind) {
@@ -259,6 +263,22 @@ export function printNode(node: ts.Node | undefined) {
     try {
         return tsPrinter.printNode(ts.EmitHint.Unspecified, node, node.getSourceFile());
     } catch {}
+}
+
+// The `_` prefix only exempts an unused type parameter from lint, so it is not part of the documented name.
+function stripUnusedMarker(name: string) {
+    return name.replace(/^_/, '');
+}
+
+function isTypeParameterReference(node: ts.Identifier) {
+    for (let parent: ts.Node | undefined = node.parent; parent != null; parent = parent.parent) {
+        const typeParameters = (parent as { typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration> })
+            .typeParameters;
+        if (typeParameters?.some((param) => param.name.text === node.text)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function trimArray(array?: string[]): string[] | undefined {

@@ -230,9 +230,9 @@ describe('formatTypeToCode', () => {
         const code = formatTypeToCode(eventNode as any, eventMember, new Map() as any, new Set());
 
         expect(code).toContain("type: 'contextMenuEvent';");
-        expect(code).toContain('context?: ContextDefault;');
+        expect(code).toContain('context?: TContext;');
         expect(code).not.toContain('type: T;');
-        expect(code).not.toContain('context?: TContext;');
+        expect(code).not.toContain('ContextDefault');
     });
 
     // The generic is wrapped in an array (`segments: SegmentOptions[]`), so it must resolve to the default's
@@ -332,6 +332,48 @@ describe('processMembers generic substitution', () => {
             type: 'Wrapper',
             typeArguments: [{ kind: 'array', type: 'AgSeriesShapeSegmentOptions' }],
         });
+    });
+});
+
+describe('processMembers opaque generic defaults', () => {
+    const node = {
+        kind: 'interface' as const,
+        name: 'Params',
+        typeParams: [
+            { kind: 'typeParam', name: 'TDatum', default: 'DatumDefault' },
+            { kind: 'typeParam', name: 'TContext', default: 'ContextDefault' },
+            { kind: 'typeParam', name: 'TValue', default: 'AxisValue' },
+        ],
+        members: [
+            prop('datum', 'TDatum'),
+            prop('items', { kind: 'array', type: 'TDatum' }),
+            prop('context', 'TContext'),
+            prop('value', 'TValue'),
+            prop('label', 'LabelContext'),
+        ],
+        genericsMap: {
+            TDatum: 'DatumDefault',
+            TContext: 'ContextDefault',
+            TValue: 'AxisValue',
+            LabelContext: 'TContext',
+        },
+    };
+
+    it.each([
+        ['from the parameter defaults', undefined],
+        ['from explicit type arguments', ['DatumDefault', 'ContextDefault', 'AxisValue']],
+    ])('keeps the parameter names when bound %s', (_, typeArguments) => {
+        const types = processMembers(node as any, {}, typeArguments).map((member) => normalizeType(member.type));
+
+        expect(types).toEqual(['TDatum', 'TDatum[]', 'TContext', 'TValue', 'TContext']);
+    });
+
+    it('still substitutes a concrete type argument', () => {
+        const types = processMembers(node as any, {}, ['AgDatum', 'AgContext', 'number']).map((member) =>
+            normalizeType(member.type)
+        );
+
+        expect(types).toEqual(['AgDatum', 'AgDatum[]', 'AgContext', 'number', 'AgContext']);
     });
 });
 

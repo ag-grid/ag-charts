@@ -1132,11 +1132,14 @@ function findRequiredRefs(reference: ApiReferenceType) {
     return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
 }
 
+// Placeholder aliases (`any` / `unknown`) that mean nothing to a reader, so the parameter name is shown instead.
+const OPAQUE_GENERIC_DEFAULTS = new Set<unknown>(['DatumDefault', 'ContextDefault', 'AxisValue']);
+
 function resolveGenericType(type: string, genericsMap: Map<unknown, unknown>): string | null {
     let resolvedType = type;
     while (genericsMap.has(resolvedType)) {
         const genericType = genericsMap.get(resolvedType);
-        if (genericType === resolvedType) break;
+        if (genericType === resolvedType || OPAQUE_GENERIC_DEFAULTS.has(genericType)) break;
         resolvedType = genericType as string;
     }
     return resolvedType === type ? null : resolvedType;
