@@ -1,5 +1,6 @@
 ---
 import Layout from '@layouts/Layout.astro';
+import { MENU_GOOGLE_FONTS, googleFontStylesheetUrl } from '@components/theme-builder/fonts';
 import { ThemeBuilderShared as ThemeBuilder } from '@components/theme-builder/ThemeBuilderShared';
 import { getThemeParamDocs } from '@utils/server/getThemeParamDocs';
 
@@ -16,5 +17,11 @@ const paramDocs = getThemeParamDocs();
     hideFooter
     noIndex
 >
+    {/* Declared up front so the preset cards' fonts load while the builder's script downloads. */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    {MENU_GOOGLE_FONTS.map((family) => (
+        <link rel="stylesheet" href={googleFontStylesheetUrl(family)} />
+    ))}
     <ThemeBuilder client:only="react" paramDocs={paramDocs} />
 </Layout>

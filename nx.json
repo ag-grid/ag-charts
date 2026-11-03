@@ -146,6 +146,9 @@
         },
         "production": {
           "sourcemap": false
+        },
+        "archive": {
+          "sourcemap": false
         }
       }
     },
@@ -178,6 +181,9 @@
           "sourcemap": false
         },
         "production": {
+          "sourcemap": false
+        },
+        "archive": {
           "sourcemap": false
         }
       }
