@@ -272,9 +272,13 @@ function stripUnusedMarker(name: string) {
 
 function isTypeParameterReference(node: ts.Identifier) {
     for (let parent: ts.Node | undefined = node.parent; parent != null; parent = parent.parent) {
-        const typeParameters = (parent as { typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration> })
-            .typeParameters;
-        if (typeParameters?.some((param) => param.name.text === node.text)) {
+        if (
+            (ts.isInterfaceDeclaration(parent) ||
+                ts.isTypeAliasDeclaration(parent) ||
+                ts.isFunctionTypeNode(parent) ||
+                ts.isMethodSignature(parent)) &&
+            parent.typeParameters?.some((param) => param.name.text === node.text)
+        ) {
             return true;
         }
     }

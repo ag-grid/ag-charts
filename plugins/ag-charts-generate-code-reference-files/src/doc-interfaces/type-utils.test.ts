@@ -5,9 +5,7 @@ import { formatNode } from './type-utils';
 
 function formatInterface(source: string) {
     const sourceFile = ts.createSourceFile('test.ts', source, ts.ScriptTarget.Latest, true);
-    const declaration = sourceFile.statements.find(ts.isInterfaceDeclaration);
-    expect(declaration).toBeDefined();
-    return formatNode(declaration!);
+    return formatNode(sourceFile.statements.find(ts.isInterfaceDeclaration));
 }
 
 describe('formatNode underscore-prefixed type parameters', () => {
