@@ -26,11 +26,10 @@ import {
     expectNonBlank,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
-    getLegendItemNodes,
-    getLegendModule,
     getSeriesAt,
     getSeriesOptions,
     hoverAction,
+    hoverLegendItem,
     internalOptions,
     isTooltipVisible,
     pressKey,
@@ -48,7 +47,6 @@ import { testLogger } from 'ag-charts-test';
 import {
     destroyChart,
     getHeatmapCellMethods,
-    getLegendItemSuppressHighlight,
     getSeriesInstance,
     getSeriesLabelTexts,
 } from '../../test/enterpriseSeriesAccessors';
@@ -577,6 +575,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('AG-16043: moving from a normal legend item onto a suppressed bin clears the legend-scoped highlight', async () => {
+            const activeChange = vi.fn();
             chart = deproxy(
                 await createEnterpriseChart({
                     data: [
@@ -588,6 +587,7 @@ describe('HeatmapSeries', () => {
                     ],
                     series: [
                         {
+                            id: 'series-a',
                             type: 'bubble',
                             xKey: 'x',
                             yKey: 'y',
@@ -607,31 +607,24 @@ describe('HeatmapSeries', () => {
                             title: 'Series B',
                         },
                     ],
+                    listeners: { activeChange },
                 })
             );
 
-            // Drive Legend.onHover directly: its markerLabel nodes already carry the datum
-            // association, and the MouseEvent is only used for tooltip positioning.
-            const legendModule = getLegendModule(deproxy(chart));
-            const items = getLegendItemNodes(chart);
-            // 1 toggleable Series A + 3 bin items from Series B.
-            expect(items).toHaveLength(4);
-            expect(getLegendItemSuppressHighlight(items[0])).toBeUndefined();
-            expect(getLegendItemSuppressHighlight(items[1])).toBe(true);
+            activeChange.mockClear();
 
-            const { highlightManager } = deproxy(chart).ctx;
-            const mockEvent = new MouseEvent('mousemove');
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-
-            // Hover the toggleable Series A item — the legend sets a highlight under its caller id.
-            legendModule.onHover(mockEvent, items[0]);
+            // Legend item 0 is the toggleable Series A item; items 1-3 are Series B's discrete-colour bins.
+            await hoverLegendItem(chart, 0);
             await waitForChartStability(chart);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
+            expect(activeChange).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    activeItem: expect.objectContaining({ type: 'legend', seriesId: 'series-a' }),
+                })
+            );
 
-            // Move onto a suppressed bin item — the prior legend-scoped highlight must be cleared.
-            legendModule.onHover(mockEvent, items[1]);
+            await hoverLegendItem(chart, 1);
             await waitForChartStability(chart);
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+            expect(activeChange).toHaveBeenLastCalledWith(expect.objectContaining({ activeItem: undefined }));
         });
 
         it('AG-16043: hovering a discrete-bin legend item must not register a highlight', async () => {
