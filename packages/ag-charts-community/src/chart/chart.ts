@@ -738,7 +738,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         this.destroySeries(this.series);
         this.seriesLayerManager.destroy();
 
-        this.chartType.destroy();
+        this.chartType.destroy?.();
 
         // Reset animation state.
         this.animationRect = undefined;

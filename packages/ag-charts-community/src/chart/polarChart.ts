@@ -1,5 +1,5 @@
 import type { BBox, ChartAnimationPhase, Scale, SeriesChangeType } from 'ag-charts-core';
-import { ChartAxisDirection, ZIndexMap, fitCircleToLabels } from 'ag-charts-core';
+import { ChartAxisDirection, ZIndexMap, fitCircleToLabels, isFiniteNumber, isObject } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
@@ -76,8 +76,7 @@ export class PolarChartType implements ChartTypeInstance {
 
         let maxMarkerSize = 0;
         for (const series of host.series) {
-            const { marker } = series.options as { marker?: { size?: number } };
-            maxMarkerSize = Math.max(maxMarkerSize, marker?.size ?? 0);
+            maxMarkerSize = Math.max(maxMarkerSize, getMarkerSize(series.options));
         }
         for (const series of filterPolarSeries(host.series)) {
             series.maxChartMarkerSize = maxMarkerSize;
@@ -140,4 +139,10 @@ function filterPolarSeries(series: UnknownSeries[]): UnknownPolarSeries[] {
         if (s instanceof PolarSeries) result.push(s);
     }
     return result;
+}
+
+function getMarkerSize(options: object): number {
+    if (!('marker' in options) || !isObject(options.marker)) return 0;
+    const { size } = options.marker;
+    return isFiniteNumber(size) ? size : 0;
 }

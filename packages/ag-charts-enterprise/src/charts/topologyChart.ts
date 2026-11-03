@@ -62,10 +62,6 @@ export class TopologyChartType implements ChartTypeInstance<TopologyChartEnv> {
         }
     }
 
-    destroy() {
-        // Nothing to release: the zoom axes are plain ids.
-    }
-
     layout(ctx: _ModuleSupport.LayoutContext) {
         const { host } = this;
 

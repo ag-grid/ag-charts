@@ -104,5 +104,5 @@ export interface ChartTypeInstance<E extends ChartTypeEnv = ChartTypeEnv> {
     onSeriesDestroyed?(): void;
     toAgCoordinates?(point: CanvasPoint): AgCoordinates | undefined;
     getDefaultAriaLabel?(): string;
-    destroy(): void;
+    destroy?(): void;
 }

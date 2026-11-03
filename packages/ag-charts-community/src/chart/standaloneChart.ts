@@ -67,10 +67,6 @@ export class StandaloneChartType implements ChartTypeInstance {
         return this.host.ctx.localeManager.t('ariaAnnounceStandaloneChart', { caption: this.host.getCaptionText() });
     }
 
-    destroy() {
-        // Nothing to release: the zoom axes are plain ids.
-    }
-
     private async layoutSeriesGroups(seriesRect: BBox) {
         const groups = new Map<SeriesAreaLayout, UnknownSeries[]>();
         for (const series of this.host.series) {
