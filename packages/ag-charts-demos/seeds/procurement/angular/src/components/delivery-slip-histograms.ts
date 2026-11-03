@@ -5,8 +5,8 @@ import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgPieSeriesOptions,
-    AgStandaloneChartOptions,
     AgSelectionItemIds,
+    AgStandaloneChartOptions,
 } from 'ag-charts-community';
 
 import { NEUTRAL, THEME } from '../chartTheme';
