@@ -26,6 +26,7 @@ import type {
 } from 'ag-charts-types';
 
 import {
+    createTotalSegmentAxisOptions,
     createVolumeProfileAxis,
     createVolumeProfileSeries,
     createVolumeProfileStatusBarOptions,
@@ -119,7 +120,7 @@ export function priceVolume(
             ...createPriceSeries(chartType, keys, logger),
         ],
         axes: {
-            ...createPriceAxis(tickSize),
+            ...createPriceAxis(tickSize, volumeProfile),
             ...createDateAxis(),
             ...createVolumeAxis(volume),
             ...createVolumeProfileAxis(volumeProfile),
@@ -282,10 +283,10 @@ function createPriceVolumeProfileSeries(
 ) {
     if (volumeProfile == null || levels == null) return [];
 
-    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, undefined, volumeProfile, false);
+    return createVolumeProfileSeries(getTheme, PRICE_AXIS_KEY, levels, undefined, volumeProfile, false);
 }
 
-function createPriceAxis(tickSize: number | undefined) {
+function createPriceAxis(tickSize: number | undefined, volumeProfile: AgVolumeProfileOptions | undefined) {
     // `snapInterval` is undocumented; `snap` is themed so that theme overrides can turn snapping off.
     const crosshair = { enabled: true, snapInterval: tickSize };
     return {
@@ -294,6 +295,10 @@ function createPriceAxis(tickSize: number | undefined) {
             position: 'right',
             crosshair,
             spacing: 0,
+            ...createTotalSegmentAxisOptions(
+                volumeProfile?.totalSegment,
+                volumeProfile?.placement === 'left' ? 'left' : 'right'
+            ),
         } satisfies AgNumberAxisOptions,
     };
 }

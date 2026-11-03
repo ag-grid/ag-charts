@@ -712,11 +712,11 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'FinancialChartModule',
         chartTypes: ['cartesian'],
         enterprise: true,
-        axisTypes: ['category'],
+        axisTypes: ['category', 'number'],
         contributes: [
             {
                 path: 'axes[].axisInsetValue',
-                axisTypes: ['category'],
+                axisTypes: ['category', 'number'],
             },
         ],
     },

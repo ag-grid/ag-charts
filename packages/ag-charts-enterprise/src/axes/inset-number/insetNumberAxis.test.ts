@@ -141,6 +141,39 @@ describe('InsetNumberAxis', () => {
         await compareImageSnapshot(chart, ctx);
     });
 
+    it.each([
+        ['alone on its axis, setting its domain', 'yProfile'],
+        ['sharing an axis, leaving its domain to the other series', 'y'],
+    ])('should tile profile bars one level step each when %s', async (_name, priceAxis) => {
+        chart = await createEnterpriseChart({
+            data: DATA,
+            seriesArea: { clip: true },
+            series: [
+                { type: 'line', xKey: 'year', yKey: 'price' },
+                {
+                    type: 'bar',
+                    direction: 'horizontal',
+                    data: [20, 22, 24, 26, 28, 30, 32, 34, 36].map((price, i) => ({
+                        price,
+                        volume: 3 + ((i * 5) % 7),
+                    })),
+                    xKey: 'price',
+                    yKey: 'volume',
+                    xKeyAxis: priceAxis,
+                    yKeyAxis: 'xProfile',
+                },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'right' },
+                [priceAxis]: { type: 'number', position: priceAxis === 'y' ? 'right' : 'left' },
+                xProfile: { type: 'inset-number', position: 'top', lengthRatio: 0.4, reverse: true },
+            },
+        });
+
+        await compareImageSnapshot(chart, ctx);
+    });
+
     it('should stop clipping series to the band once the axis is a number axis again', async () => {
         const options = (inset: boolean): AgCartesianChartOptions => ({
             data: DATA,

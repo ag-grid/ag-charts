@@ -541,6 +541,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (dataModel == null || processedData == null) return { domain: [] };
 
         if (direction === this.getCategoryDirection()) {
+            if (this.describesOtherSeries()) return { domain: [] };
+
             const keyDef = dataModel.resolveProcessedDataDefById(this, 'xValue');
             const keys = dataModel.getDomain(this, 'xValue', 'key', processedData);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
@@ -782,7 +784,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             crisp:
                 dataAggregationFilter == null &&
                 (this.options.crisp ??
-                    checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval)),
+                    // Profile bars tile fractional steps, which snapped edges would break into uneven gaps.
+                    (!this.isProfile() &&
+                        checkCrisp(
+                            xAxis?.scale,
+                            xAxis?.visibleRange,
+                            this.smallestDataInterval,
+                            this.largestDataInterval
+                        ))),
             isStacked,
             filteredValueExceedUnfiltered,
             animationEnabled: !this.ctx.animationManager.isSkipped(),

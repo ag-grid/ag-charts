@@ -184,10 +184,33 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return { xAxis, yAxis };
     }
 
+    /** Bars along an inset value axis form a profile, so on a continuous category axis each tiles one data step. */
+    isProfile() {
+        return this.getValueAxis()?.lengthRatio != null && ContinuousScale.is(this.getCategoryAxis()?.scale);
+    }
+
+    /** A profile sharing its category axis with other series describes them, so it leaves that axis' domain to them. */
+    protected describesOtherSeries() {
+        if (!this.isProfile()) return false;
+        return (
+            this.getCategoryAxis()?.boundSeries.some(
+                (series) => !(series instanceof AbstractBarSeries && series.isProfile())
+            ) ?? false
+        );
+    }
+
     protected getBandwidth(xAxis: ChartAxis, minWidth?: 1 | 0) {
-        return ContinuousScale.is(xAxis.scale)
-            ? xAxis.scale.calcBandwidth(this.smallestDataInterval, minWidth)
-            : (xAxis.scale.bandwidth ?? 0);
+        const { scale } = xAxis;
+        if (!ContinuousScale.is(scale)) return scale.bandwidth ?? 0;
+
+        const interval = this.smallestDataInterval;
+        if (interval != null && this.isProfile()) {
+            const [d0] = scale.domain;
+            const step = Math.abs(scale.convert(addValues(d0, interval)) - scale.convert(d0));
+            // Whole pixels, as the group scale rounds bars on a category axis.
+            return step >= 1 ? Math.floor(step) : step;
+        }
+        return scale.calcBandwidth(interval, minWidth);
     }
 
     override xCoordinateRange(xValue: any): [number, number] {

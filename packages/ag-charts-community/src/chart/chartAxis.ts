@@ -136,6 +136,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     interactionEnabled: boolean;
     seriesAreaVisible: boolean;
     layoutConstraints: AxisLayoutConstraints;
+    readonly lengthRatio?: number;
     nice: boolean;
     options: TOptions;
     mirrored: boolean;

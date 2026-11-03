@@ -18,7 +18,6 @@ import {
 import type {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
-    AgCategoryAxisOptions,
     AgInsetNumberAxisOptions,
     AgSelectionClickMode,
     AgVolumeProfileOptions,
@@ -289,31 +288,15 @@ export function createSelectedBandAxisOptions(selection: AgVolumeProfileSelectio
 
 export function createVolumeProfileAxis(
     volumeProfile: AgVolumeProfileOptions | undefined
-): Record<string, AgInsetNumberAxisOptions | AgCategoryAxisOptions> {
+): Record<string, AgInsetNumberAxisOptions> {
     if (!volumeProfile) return {};
-
-    const placedRight = volumeProfile.placement !== 'left';
 
     return {
         yVolumeProfile: {
             type: 'inset-number',
             position: 'top',
-            reverse: placedRight,
+            reverse: volumeProfile.placement !== 'left',
             lengthRatio: volumeProfile.widthRatio ?? 0.5,
         } satisfies AgInsetNumberAxisOptions,
-        xVolumeProfilePrice: {
-            type: 'category',
-            position: 'right',
-            tick: { enabled: false },
-            label: { enabled: false },
-            line: { enabled: false },
-            crosshair: { enabled: false },
-            gridLine: { enabled: false },
-            paddingInner: 0,
-            thickness: 0,
-            // @ts-expect-error undocumented option
-            linkZoom: 'y',
-            ...createTotalSegmentAxisOptions(volumeProfile.totalSegment, placedRight ? 'right' : 'left'),
-        } satisfies AgCategoryAxisOptions,
     };
 }

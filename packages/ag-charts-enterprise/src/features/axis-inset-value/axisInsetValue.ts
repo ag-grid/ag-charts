@@ -3,6 +3,7 @@ import {
     AbstractModuleInstance,
     BBox,
     ChartAxisDirection,
+    ContinuousScale,
     type FontOptions,
     Rect,
     Selection,
@@ -11,6 +12,7 @@ import {
     ZIndexMap,
     cachedTextMeasurer,
     callWithContext,
+    clamp,
     createId,
     isFiniteNumber,
 } from 'ag-charts-core';
@@ -56,7 +58,8 @@ export class AxisInsetValue extends AbstractModuleInstance {
     private options: AxisInsetValueOptions | undefined;
     private readonly axisCtx: AxisContext;
     private seriesRect: BBox | undefined;
-    private rowCache: { data: any[]; categoryKey: string; valueKey: string; rows: InsetRow[] } | undefined;
+    private rowCache:
+        { data: any[]; categoryKey: string; valueKey: string; rows: InsetRow[]; step: number | undefined } | undefined;
     private textCache:
         | { rows: readonly InsetRow[]; formatter: AxisInsetValueLabelOptions['formatter']; texts: readonly string[] }
         | undefined;
@@ -302,13 +305,31 @@ export class AxisInsetValue extends AbstractModuleInstance {
         if (cache?.data === data && cache.categoryKey === categoryKey && cache.valueKey === valueKey) return cache.rows;
 
         const rows: InsetRow[] = [];
+        const levels: number[] = [];
         for (const datum of data) {
+            const category: unknown = datum?.[categoryKey];
+            if (isFiniteNumber(category)) levels.push(category);
             const value: unknown = datum?.[valueKey];
             // A category with nothing to show gets neither a block nor a label.
-            if (isFiniteNumber(value) && value !== 0) rows.push({ category: datum[categoryKey], value, datum });
+            if (isFiniteNumber(value) && value !== 0) rows.push({ category, value, datum });
         }
-        this.rowCache = { data, categoryKey, valueKey, rows };
+        this.rowCache = { data, categoryKey, valueKey, rows, step: smallestStep(levels) };
         return rows;
+    }
+
+    /** A level's extent along the axis: its band on a category axis, else one level step centred on its value. */
+    private measureLevel(category: unknown): [number, number] | undefined {
+        const { scale, range } = this.axisCtx;
+        if (!ContinuousScale.is(scale)) return this.axisCtx.measureBand(category as string)?.band;
+
+        const step = this.rowCache?.step;
+        if (step == null || !isFiniteNumber(category)) return;
+
+        const a = scale.convert(category - step / 2);
+        const b = scale.convert(category + step / 2);
+        const min = Math.min(range[0], range[1]);
+        const max = Math.max(range[0], range[1]);
+        return [clamp(min, Math.min(a, b), max), clamp(min, Math.max(a, b), max)];
     }
 
     /** The blocks of the categories in view, valued from the data of the series bound to the axis. */
@@ -317,7 +338,7 @@ export class AxisInsetValue extends AbstractModuleInstance {
         const texts = this.formatRows(rows, this.options?.label?.formatter);
         const blocks: InsetBlock[] = [];
         for (let i = 0; i < rows.length; i++) {
-            const band = this.axisCtx.measureBand(rows[i].category)?.band;
+            const band = this.measureLevel(rows[i].category);
             if (band == null) continue;
 
             // The axis clamps bands to its range, so a level outside the zoomed range collapses to its edge.
@@ -341,4 +362,14 @@ export class AxisInsetValue extends AbstractModuleInstance {
             callWithContext([this.axisCtx.caller, this.ctx.chartService], formatter, { category, value, datum }) ?? ''
         );
     }
+}
+
+function smallestStep(levels: number[]): number | undefined {
+    levels.sort((a, b) => a - b);
+    let step: number | undefined;
+    for (let i = 1; i < levels.length; i++) {
+        const gap = levels[i] - levels[i - 1];
+        if (gap > 0 && (step == null || gap < step)) step = gap;
+    }
+    return step;
 }
