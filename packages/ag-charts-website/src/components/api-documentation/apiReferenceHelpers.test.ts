@@ -393,7 +393,7 @@ describe('processMembers opaque generic defaults', () => {
             typeArguments: ['TDatum'],
         });
 
-        const typeArguments = buildTypeArguments(transaction as any, node.genericsMap);
+        const typeArguments = buildTypeArguments(transaction, node.genericsMap);
         const [add] = processMembers(transactionNode as any, {}, typeArguments);
 
         expect(typeArguments).toEqual(['TDatum']);
