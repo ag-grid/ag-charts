@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
     buildTypeArguments,
+    buildTypeArgumentsFromGenericsMap,
     extractSearchData,
     formatTypeToCode,
     formatUnionSignature,
@@ -358,22 +359,50 @@ describe('processMembers opaque generic defaults', () => {
             LabelContext: 'TContext',
         },
     };
+    const memberTypes = (typeArguments?: string[]) =>
+        processMembers(node as any, {}, typeArguments).map((member) => normalizeType(member.type));
 
     it.each([
         ['from the parameter defaults', undefined],
         ['from explicit type arguments', ['DatumDefault', 'ContextDefault', 'AxisValue']],
-    ])('keeps the parameter names when bound %s', (_, typeArguments) => {
-        const types = processMembers(node as any, {}, typeArguments).map((member) => normalizeType(member.type));
-
-        expect(types).toEqual(['TDatum', 'TDatum[]', 'TContext', 'TValue', 'TContext']);
+    ])('keeps the datum and context parameter names when bound %s', (_, typeArguments) => {
+        expect(memberTypes(typeArguments)).toEqual(['TDatum', 'TDatum[]', 'TContext', 'AxisValue', 'TContext']);
     });
 
     it('still substitutes a concrete type argument', () => {
-        const types = processMembers(node as any, {}, ['AgDatum', 'AgContext', 'number']).map((member) =>
-            normalizeType(member.type)
-        );
+        expect(memberTypes(['AgDatum', 'AgContext', 'number'])).toEqual([
+            'AgDatum',
+            'AgDatum[]',
+            'AgContext',
+            'number',
+            'AgContext',
+        ]);
+    });
 
-        expect(types).toEqual(['AgDatum', 'AgDatum[]', 'AgContext', 'number', 'AgContext']);
+    // Mirrors `AgChartInstance.updateDelta(transaction: AgDataTransaction<TDatum>)`.
+    it('passes the outer parameter name into a nested interface with its own parameter name', () => {
+        const transactionNode = {
+            kind: 'interface' as const,
+            name: 'AgDataTransaction',
+            typeParams: [{ kind: 'typeParam', name: 'T', default: 'unknown' }],
+            members: [prop('add', { kind: 'array', type: 'T' })],
+        };
+        const transaction = prop('transaction', {
+            kind: 'typeRef',
+            type: 'AgDataTransaction',
+            typeArguments: ['TDatum'],
+        });
+
+        const typeArguments = buildTypeArguments(transaction as any, node.genericsMap);
+        const [add] = processMembers(transactionNode as any, {}, typeArguments);
+
+        expect(typeArguments).toEqual(['TDatum']);
+        expect(normalizeType(add.type)).toBe('TDatum[]');
+        expect(buildTypeArgumentsFromGenericsMap(node as any, node.genericsMap)).toEqual([
+            'TDatum',
+            'TContext',
+            'AxisValue',
+        ]);
     });
 });
 

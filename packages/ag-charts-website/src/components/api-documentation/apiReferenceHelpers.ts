@@ -958,6 +958,13 @@ function memberYieldsVariants(member: TypeNode, reference: ApiReferenceType): bo
     return name != null && !isInterfaceHidden(name) && getVariantDiscriminator(node) != null;
 }
 
+// Placeholder aliases (`any` / `unknown`) that mean nothing to a reader, so the parameter name is shown instead.
+const OPAQUE_GENERIC_DEFAULTS = new Set<unknown>(['DatumDefault', 'ContextDefault']);
+
+function bindTypeArgument(name: string, value: TypeNode | undefined): TypeNode {
+    return value == null || OPAQUE_GENERIC_DEFAULTS.has(value) ? name : value;
+}
+
 /** Builds positional type arguments for an interface from a generics map keyed by type-param name. */
 export function buildTypeArgumentsFromGenericsMap(
     interfaceRef: NodeTypes,
@@ -968,7 +975,7 @@ export function buildTypeArgumentsFromGenericsMap(
         return undefined;
     }
     return typeParams.map((typeParam) =>
-        normalizeType(genericsMap[typeParam.name] ?? typeParam.default ?? typeParam.name)
+        normalizeType(bindTypeArgument(typeParam.name, genericsMap[typeParam.name] ?? typeParam.default))
     );
 }
 
@@ -988,7 +995,7 @@ export function buildTypeArguments(member: MemberNode, genericsMap?: Record<stri
     if (typeof memberType === 'object' && memberType.kind === 'typeRef') {
         return memberType.typeArguments?.map((genericType) =>
             typeof genericType === 'string'
-                ? normalizeType(genericsMap?.[genericType] ?? genericType)
+                ? normalizeType(bindTypeArgument(genericType, genericsMap?.[genericType]))
                 : normalizeType(genericType)
         );
     }
@@ -1131,9 +1138,6 @@ function findRequiredRefs(reference: ApiReferenceType) {
     }
     return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
 }
-
-// Placeholder aliases (`any` / `unknown`) that mean nothing to a reader, so the parameter name is shown instead.
-const OPAQUE_GENERIC_DEFAULTS = new Set<unknown>(['DatumDefault', 'ContextDefault', 'AxisValue']);
 
 function resolveGenericType(type: string, genericsMap: Map<unknown, unknown>): string | null {
     let resolvedType = type;
