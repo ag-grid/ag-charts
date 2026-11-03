@@ -299,7 +299,11 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
             'diamonds',
             'stars',
             'hearts',
-            'crosses'
+            'crosses',
+            'polka-dots',
+            'waves',
+            'criss-cross',
+            'zig-zag'
         )
     ),
     path: stringLength(2),
@@ -351,7 +355,11 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
             'diamonds',
             'stars',
             'hearts',
-            'crosses'
+            'crosses',
+            'polka-dots',
+            'waves',
+            'criss-cross',
+            'zig-zag'
         ),
         path: stringLength(2),
         width: positiveNumber,

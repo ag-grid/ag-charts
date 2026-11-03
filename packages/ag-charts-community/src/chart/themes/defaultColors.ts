@@ -1,3 +1,5 @@
+import type { AgMarkerShape, AgPatternColor } from 'ag-charts-types';
+
 export const DEFAULT_FILLS = {
     BLUE: '#5090dc',
     ORANGE: '#ffa03a',
@@ -40,4 +42,8 @@ export type DefaultColors = {
     altUp: { stroke: string; fill: string };
     altDown: { stroke: string; fill: string };
     altNeutral: { stroke: string; fill: string };
+    /** Replaces `fills` in the palette, for themes whose series fills are not plain colours. */
+    paletteFills?: Array<string | AgPatternColor>;
+    markerShapes?: AgMarkerShape[];
+    lineDashes?: number[][];
 };

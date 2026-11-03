@@ -1,0 +1,23 @@
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { DonutSeriesModule, ModuleRegistry } from 'ag-charts-community';
+
+import { getData } from './data';
+
+ModuleRegistry.registerModules([DonutSeriesModule, LegendModule]);
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    theme: 'ag-accessible',
+    data: getData(),
+    title: {
+        text: 'Portfolio Composition',
+    },
+    series: [
+        {
+            type: 'donut',
+            calloutLabelKey: 'asset',
+            angleKey: 'amount',
+        },
+    ],
+};
+
+AgCharts.create(options);

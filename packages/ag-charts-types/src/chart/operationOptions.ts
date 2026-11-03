@@ -78,6 +78,8 @@ type PaletteParam =
     | 'fillFallback'
     | 'strokes'
     | 'stroke'
+    | 'markerShape'
+    | 'lineDash'
     | 'gradients'
     | 'gradient'
     | 'sequentialColors'

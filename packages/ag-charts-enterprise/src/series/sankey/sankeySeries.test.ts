@@ -988,6 +988,22 @@ describe('SankeySeries', () => {
         });
     });
 
+    it('should render with a theme palette mixing colours and patterns', async () => {
+        const options = {
+            ...GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options,
+            theme: {
+                palette: {
+                    fills: ['#4d87cc', { type: 'pattern', pattern: 'forward-slanted-lines', fill: '#257a38' }],
+                    strokes: ['#2c5a91', '#174d23'],
+                },
+            },
+        };
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+
+        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        await compare();
+    });
+
     it('AG-15669 - should correctly invoke itemStyler and apply result to node', async () => {
         const options = {
             title: {

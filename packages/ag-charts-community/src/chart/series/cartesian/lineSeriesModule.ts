@@ -37,6 +37,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         stroke: SAFE_STROKE_FILL_OPERATION,
         strokeWidth: 2,
         ...STROKE_STYLE_THEME_DEFAULTS,
+        lineDash: { $palette: 'lineDash' },
         connectMissingData: false,
         interpolation: interpolationThemeTemplate(),
         marker: {

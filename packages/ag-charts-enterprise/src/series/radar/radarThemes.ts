@@ -62,6 +62,7 @@ export const RADAR_LINE_SERIES_THEME: ExtensibleSeriesTheme<'radar-line'> = merg
         series: {
             stroke: SAFE_STROKE_FILL_OPERATION,
             strokeWidth: 2,
+            lineDash: { $palette: 'lineDash' },
         },
     },
     BASE_RADAR_SERIES_THEME

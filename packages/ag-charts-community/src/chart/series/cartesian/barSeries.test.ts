@@ -3014,6 +3014,29 @@ describe('BarSeries', () => {
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
+        it('should render the polka-dots, waves, criss-cross and zig-zag stock patterns', async () => {
+            const patterns = ['polka-dots', 'waves', 'criss-cross', 'zig-zag'] as const;
+            const options: AgCartesianChartOptions = {
+                data: [{ x: 'A', p0: 40, p1: 40, p2: 40, p3: 40 }],
+                series: patterns.map((pattern, index) => ({
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: `p${index}`,
+                    fill: { type: 'pattern', pattern, fill: 'black', stroke: 'black' },
+                    stroke: 'black',
+                    strokeWidth: 1,
+                })),
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
         it('should render Apple revenue by product with gradient fill segmentation', async () => {
             const options: AgCartesianChartOptions = {
                 title: {

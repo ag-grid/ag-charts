@@ -66,6 +66,8 @@ export function getShapeFill(
             pattern === 'vertical-lines'
         ) {
             strokeWidth ??= defaultPattern.strokeWidth;
+        } else if (pattern === 'waves' || pattern === 'criss-cross' || pattern === 'zig-zag') {
+            strokeWidth ??= 2;
         } else {
             strokeWidth ??= 0;
         }

@@ -35,6 +35,8 @@ const THEMES: Record<AgChartThemeName, boolean> = {
     'ag-vivid-dark': true,
     'ag-financial': false,
     'ag-financial-dark': false,
+    'ag-accessible': true,
+    'ag-accessible-dark': true,
 };
 
 export default async function (options: ExecutorOptions, ctx: ExecutorContext) {

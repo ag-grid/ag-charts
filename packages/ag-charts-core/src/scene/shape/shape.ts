@@ -44,6 +44,7 @@ import { Image } from '../image/image';
 import type { MatrixFrame } from '../matrix';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
+import { LINE_PATTERNS } from '../pattern/patterns';
 import {
     canTintShadows,
     getColourAlpha,
@@ -84,14 +85,6 @@ function gradientAlpha(gradient: Gradient): number {
     // A gradient without stops paints the default black.
     return stops.length === 0 ? 1 : Math.max(...stops.map((stop) => colourAlpha(stop.color)));
 }
-
-/** The patterns that draw open segments, whose fill paints nothing. */
-const LINE_PATTERNS: ReadonlySet<string> = new Set([
-    'vertical-lines',
-    'horizontal-lines',
-    'forward-slanted-lines',
-    'backward-slanted-lines',
-]);
 
 /**
  * The most that a pattern paints. Its background, fill and stroke are drawn over one another, and where all three

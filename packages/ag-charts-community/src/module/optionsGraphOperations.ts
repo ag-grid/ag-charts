@@ -750,6 +750,10 @@ function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
             return graph.palette.strokes;
         case 'gradient':
             return graph.palette.sequentialColors;
+        case 'markerShape':
+            return graph.palette.markerShapes;
+        case 'lineDash':
+            return graph.palette.lineDashes;
     }
 }
 

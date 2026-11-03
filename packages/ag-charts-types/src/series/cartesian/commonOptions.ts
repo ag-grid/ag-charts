@@ -182,7 +182,11 @@ export type AgPatternName =
     | 'diamonds'
     | 'stars'
     | 'hearts'
-    | 'crosses';
+    | 'crosses'
+    | 'polka-dots'
+    | 'waves'
+    | 'criss-cross'
+    | 'zig-zag';
 
 /**
  * Represents options for the strokes in a chart.

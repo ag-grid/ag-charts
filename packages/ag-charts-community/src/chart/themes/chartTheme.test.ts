@@ -517,6 +517,8 @@ describe('ChartTheme', () => {
             ['ag-default-dark', true, 'block', 'center'],
             ['ag-financial', false, 'overlay', 'left'],
             ['ag-financial-dark', true, 'overlay', 'left'],
+            ['ag-accessible', false, 'block', 'center'],
+            ['ag-accessible-dark', true, 'block', 'center'],
         ] as const)(
             'resolves the dark styling scope and caption defaults for %s',
             async (theme, isDark, layoutStyle, textAlign) => {
@@ -1259,6 +1261,106 @@ describe('ChartTheme', () => {
             expect(classCast(series[1], BarSeries).options.strokeWidth).toEqual(16);
             expect(classCast(series[2], LineSeries).options.strokeWidth).toEqual(17);
             expect(classCast(series[3], AreaSeries).options.strokeWidth).toEqual(18);
+        });
+    });
+
+    describe('accessible theme', () => {
+        const createSeriesChart = async (
+            theme: AgChartTheme | 'ag-accessible' | 'ag-accessible-dark',
+            type: 'bar' | 'line'
+        ) => {
+            chart = deproxy(
+                AgCharts.create({
+                    data,
+                    width: 400,
+                    height: 300,
+                    theme,
+                    series: ['v1', 'v2', 'v3'].map((yKey) => ({ type, xKey: 'label', yKey })),
+                })
+            );
+            await waitForChartStability(chart);
+            return chart.chartOptions.processedOptions.series as Array<Record<string, any>>;
+        };
+
+        test.each(['ag-accessible', 'ag-accessible-dark'] as const)(
+            'fills %s bar series solid, then tinted, then patterned',
+            async (theme) => {
+                const series = await createSeriesChart(theme, 'bar');
+                const [solid, tint, patterned] = series.map((s) => s.fill);
+
+                expect(solid).toEqual(expect.any(String));
+                expect(tint).toMatchObject({
+                    type: 'pattern',
+                    strokeWidth: 0,
+                    fillOpacity: 0,
+                    backgroundFillOpacity: 0.2,
+                });
+                expect(patterned).toMatchObject({ type: 'pattern', pattern: 'forward-slanted-lines' });
+            }
+        );
+
+        test.each(['ag-accessible', 'ag-accessible-dark'] as const)(
+            'gives each %s line series its own solid marker shape',
+            async (theme) => {
+                const series = await createSeriesChart(theme, 'line');
+                const markers = series.map((s) => s.marker);
+
+                expect(markers.map((m) => m.shape)).toEqual(['circle', 'square', 'triangle']);
+                for (const marker of markers) {
+                    expect(marker.fill).toMatch(/^#[0-9a-f]{6}$/);
+                }
+                for (const { stroke } of series) {
+                    expect(stroke).toMatch(/^#[0-9a-f]{6}$/);
+                }
+            }
+        );
+
+        test('gives each line series its own dash pattern, starting with a solid line', async () => {
+            const series = await createSeriesChart('ag-accessible', 'line');
+
+            expect(series.map((s) => s.lineDash)).toEqual([[0], [6, 4], [2, 3]]);
+        });
+
+        test('keeps user overrides above the built-in ones', async () => {
+            const series = await createSeriesChart(
+                {
+                    baseTheme: 'ag-accessible',
+                    overrides: { line: { series: { lineDash: [1, 1], marker: { shape: 'pin' } } } },
+                },
+                'line'
+            );
+
+            expect(series.map((s) => s.marker.shape)).toEqual(['pin', 'pin', 'pin']);
+            expect(series.map((s) => s.lineDash)).toEqual([
+                [1, 1],
+                [1, 1],
+                [1, 1],
+            ]);
+        });
+
+        test('outlines bar and pie series with a stroke', async () => {
+            chart = deproxy(
+                AgCharts.create({
+                    data,
+                    width: 400,
+                    height: 300,
+                    theme: 'ag-accessible',
+                    series: [{ type: 'pie', angleKey: 'v1', legendItemKey: 'label' }],
+                })
+            );
+            await waitForChartStability(chart);
+            const [pie] = chart.chartOptions.processedOptions.series as Array<Record<string, any>>;
+            expect(pie.strokeWidth).toBeGreaterThan(0);
+
+            const [bar] = await createSeriesChart('ag-accessible', 'bar');
+            expect(bar.strokeWidth).toBeGreaterThan(0);
+        });
+
+        test('leaves marker shapes and line dashes unchanged in other themes', async () => {
+            const series = await createSeriesChart({ baseTheme: 'ag-default' }, 'line');
+
+            expect(series.map((s) => s.marker.shape)).toEqual(['circle', 'circle', 'circle']);
+            expect(series.map((s) => s.lineDash)).toEqual([[0], [0], [0]]);
         });
     });
 });

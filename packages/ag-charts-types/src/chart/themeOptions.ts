@@ -64,7 +64,9 @@ export type AgChartThemeName =
     | 'ag-material'
     | 'ag-material-dark'
     | 'ag-financial'
-    | 'ag-financial-dark';
+    | 'ag-financial-dark'
+    | 'ag-accessible'
+    | 'ag-accessible-dark';
 
 export interface AgPaletteColors {
     /** The fill colour for the palette. A colour string, or a gradient object. */

@@ -86,6 +86,28 @@ export const SAFE_FILLS_OPERATION: any = {
     ],
 };
 
+const INDEXED_FILL_FALLBACK = { $path: ['/$index', { $ref: 'foregroundColor' }, { $palette: 'fillsFallback' }] };
+
+/** Each palette fill as a solid colour, so a palette mixing colours with patterns, gradients or images still has one. */
+export const SOLID_FILLS_OPERATION: any = {
+    $map: [
+        {
+            $if: [
+                { $isPattern: { $value: '$1' } },
+                { $path: ['/fill', INDEXED_FILL_FALLBACK, { $value: '$1' }] },
+                {
+                    $if: [
+                        { $or: [{ $isGradient: { $value: '$1' } }, { $isImage: { $value: '$1' } }] },
+                        INDEXED_FILL_FALLBACK,
+                        { $value: '$1' },
+                    ],
+                },
+            ],
+        },
+        { $palette: 'fills' },
+    ],
+};
+
 export const SAFE_STROKE_FILL_OPERATION: any = {
     $if: [
         { $isGradient: { $palette: 'fill' } },
@@ -248,6 +270,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
             { $path: './pattern' },
             0,
             [['backward-slanted-lines', 'forward-slanted-lines', 'horizontal-lines', 'vertical-lines'], 4],
+            [['waves', 'criss-cross', 'zig-zag'], 2],
         ],
     },
     backgroundFill: 'none',
