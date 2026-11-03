@@ -76,9 +76,6 @@ export class CartesianChartType implements ChartTypeInstance {
 
     private static readonly AxesPadding = 15; // TODO should come from theme
 
-    /** Integrated Charts feature state - not used in Standalone Charts. */
-    public readonly paired: boolean = true;
-
     private readonly axesComponent: ChartAxesComponent<CartesianChartAxes>;
 
     private lastAreaWidths?: AreaWidthMap;
