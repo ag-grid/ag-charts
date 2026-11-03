@@ -47,15 +47,13 @@ import { Pagination } from '../pagination/pagination';
 import { getShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta } from '../tooltip/tooltip';
 import type { TooltipContent } from '../tooltip/tooltipContent';
-import { LegendDOMProxy } from './legendDOMProxy';
+import { LegendDOMProxy, type LegendHoverEvent, type LegendLeaveEvent } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
 
 type SeriesType = ChartService['series'][number];
-type LegendHoverEvent = FocusEvent | MouseEvent;
-type LegendLeaveEvent = FocusEvent | MouseEvent;
 
 /** Opacity applied to a toggled-off legend item, and to its marker and line individually. */
 const DISABLED_ITEM_OPACITY = 0.5;
@@ -957,7 +955,6 @@ export class Legend {
 
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
-        const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.unsafeNonNullDatum;
 
         this.clearHighlight();
@@ -977,8 +974,7 @@ export class Legend {
         const action = toggleOtherSeriesVisible ? 'show' : 'hide';
         this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
 
-        const { offsetX, offsetY } = sourceEvent;
-        const { canvasX, canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
+        const { canvasX, canvasY } = widgetEvent;
         this.ctx.contextMenuRegistry?.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
     }
 
@@ -1119,13 +1115,13 @@ export class Legend {
         return true;
     }
 
-    private toTooltipMeta(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): TooltipMeta {
+    private toTooltipMeta(event: LegendHoverEvent, node: LegendMarkerLabel): TooltipMeta {
         let canvasX: number, canvasY: number;
-        if (event instanceof FocusEvent) {
+        if (event.type === 'focus') {
             ({ x: canvasX, y: canvasY } = Transformable.toCanvas(node).computeCenter());
         } else {
-            event.preventDefault();
-            ({ canvasX, canvasY } = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY));
+            event.sourceEvent.preventDefault();
+            ({ canvasX, canvasY } = event);
         }
 
         return { canvasX, canvasY, showArrow: false };
@@ -1180,14 +1176,14 @@ export class Legend {
             this.ctx.tooltipManager.removeTooltip(this.id, undefined, true);
         }
 
-        this.updateHighlight(datum?.enabled, datum, series, undefined, event instanceof FocusEvent);
+        this.updateHighlight(datum?.enabled, datum, series, undefined, event.type === 'focus');
         this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
     onLeave(event: LegendLeaveEvent) {
         if (this.checkInteractionState()) return;
         this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
-        this.clearHighlight(event instanceof FocusEvent);
+        this.clearHighlight(event.type !== 'mouseleave');
     }
 
     private clearHighlight(fromKeyboardFocus = false): void {
