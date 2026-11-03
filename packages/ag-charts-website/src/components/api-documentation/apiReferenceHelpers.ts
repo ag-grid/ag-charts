@@ -63,6 +63,7 @@ const hiddenInterfaces = new Set([
     'DurationMs',
     'AgTimeInterval',
     'DatumKey',
+    'ResolvedDatumKey',
 ]);
 
 // OPTIMIZATION: these recur under every colour option, so indexing their members costs ~86k
