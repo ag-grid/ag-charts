@@ -14,7 +14,7 @@ describe('Rect', () => {
 
         const shadowFn = (offset: number) => ({
             enabled: true,
-            color: 'rgba(0, 0, 0, 0.5)',
+            fill: 'rgba(0, 0, 0, 0.5)',
             xOffset: offset,
             yOffset: offset,
             blur: 5,
@@ -499,7 +499,7 @@ describe('Rect', () => {
             ['a clip box', { clipBBox: new BBox(12, 14, 10, 10) }],
             ['a clip', { clip: true, clipX: 15, clipY: 10 }],
             ['a cutout', { drawingMode: 'cutout' as const }],
-            ['a shadow', { fillShadow: { enabled: true, color: 'black', xOffset: 2, yOffset: 2, blur: 3 } }],
+            ['a shadow', { fillShadow: { enabled: true, fill: 'black', xOffset: 2, yOffset: 2, blur: 3 } }],
             [
                 'a gradient fill',
                 {
@@ -666,7 +666,7 @@ describe('Rect', () => {
             paint(rect, ctx);
             expect(fillRect).toHaveBeenCalledTimes(1);
 
-            rect.fillShadow = { enabled: true, color: 'black', xOffset: 2, yOffset: 2, blur: 3 };
+            rect.fillShadow = { enabled: true, fill: 'black', xOffset: 2, yOffset: 2, blur: 3 };
             paint(rect, ctx);
             expect(fillRect).toHaveBeenCalledTimes(1);
 

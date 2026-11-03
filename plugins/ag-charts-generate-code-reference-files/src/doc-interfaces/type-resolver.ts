@@ -219,6 +219,7 @@ function cleanupMembers(members: MemberNode[]) {
         })
         .filter(({ docs }) => !docs?.some((d) => d.includes('@deprecated') || d.includes('@experimental')))
         .map((member) => {
+            extractGroup(member);
             // TODO - handle default values in the docs website, not here
             const matchDefault = member.docs?.at(-1)?.match(/^\s*Default:\s*`([^`]+)`\s*$/);
             if (matchDefault) {
@@ -232,6 +233,21 @@ function cleanupMembers(members: MemberNode[]) {
         })
         .sort(sortByRequired)
         .sort(sortByPriority);
+}
+
+const GROUP_TAG = /^@group\s+(.+)$/;
+
+/** Moves a `@group <name>` line out of the member's docs and onto `member.group`. */
+function extractGroup(member: MemberNode) {
+    const docs = member.docs;
+    const index = docs?.findIndex((line) => GROUP_TAG.test(line)) ?? -1;
+    if (docs == null || index < 0) return;
+
+    member.group = GROUP_TAG.exec(docs[index])![1].trim();
+    docs.splice(index, 1);
+    while (docs.at(-1) === '') {
+        docs.pop();
+    }
 }
 
 function sortByRequired(a: MemberNode, b: MemberNode) {

@@ -162,8 +162,11 @@ interface TickLayout<D, TickLayoutMeta> {
  */
 interface TickLayoutCache<D, TickLayoutMeta> {
     domain: D[];
-    /** Whether comparing `domain` by element identity is sound, which it isn't for objects mutated in place. */
-    domainIsPrimitive: boolean;
+    /**
+     * Whether comparing `domain` by element identity is sound, which it isn't for objects mutated in place. Filled on
+     * first read, as walking a large domain is only worth it for an axis that would otherwise retain its layout.
+     */
+    domainIsPrimitive?: boolean;
     range: [number, number];
     nice: [boolean, boolean];
     gridLength: number;
@@ -183,6 +186,13 @@ type TickLayoutCacheKey<D, TickLayoutMeta> = Omit<
 /** Whether `value` is immutable, so a domain of such values compared by identity can't have changed in place. */
 function isPrimitiveCategory(value: unknown) {
     return value == null || (typeof value !== 'object' && typeof value !== 'function');
+}
+
+function cachedDomainIsPrimitive<D, TickLayoutMeta>(cache: TickLayoutCache<D, TickLayoutMeta> | undefined): boolean {
+    if (cache == null) return true;
+    // The cache's domain is only ever replaced by an array of identical elements, so the result stays valid.
+    cache.domainIsPrimitive ??= cache.domain.every(isPrimitiveCategory);
+    return cache.domainIsPrimitive;
 }
 
 function tickLayoutCacheValid<D, TickLayoutMeta>(
@@ -766,15 +776,14 @@ export abstract class Axis<
     private retainsTickLayoutAcrossData(): boolean {
         const { formatter, itemStyler } = this.options.label;
         // Category objects mutated in place compare equal to themselves, so their labels would never be measured again.
-        const { unzoomedTickLayoutCache, tickLayoutCache } = this;
         return (
             this.tickLayoutIgnoresData &&
             formatter == null &&
             itemStyler == null &&
             this.titleOptions?.formatter == null &&
             this.moduleCtx.formatManager.formatter == null &&
-            (unzoomedTickLayoutCache?.domainIsPrimitive ?? true) &&
-            (tickLayoutCache?.domainIsPrimitive ?? true)
+            cachedDomainIsPrimitive(this.unzoomedTickLayoutCache) &&
+            cachedDomainIsPrimitive(this.tickLayoutCache)
         );
     }
 
@@ -852,11 +861,7 @@ export abstract class Axis<
 
             scale.range = scaleRange;
 
-            this.unzoomedTickLayoutCache = {
-                ...key,
-                domainIsPrimitive: domain.every(isPrimitiveCategory),
-                tickLayout: unzoomedTickLayout,
-            };
+            this.unzoomedTickLayoutCache = { ...key, tickLayout: unzoomedTickLayout };
         } else {
             unzoomedTickLayout = unzoomedTickLayoutCache.tickLayout;
             // So that later passes compare the same array by reference, not element by element.
@@ -930,11 +935,7 @@ export abstract class Axis<
             if (tickLayoutCache == null || !tickLayoutCacheValid(tickLayoutCache, key)) {
                 tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
 
-                this.tickLayoutCache = {
-                    ...key,
-                    domainIsPrimitive: domain.every(isPrimitiveCategory),
-                    tickLayout,
-                };
+                this.tickLayoutCache = { ...key, tickLayout };
                 reused = false;
             } else {
                 tickLayout = tickLayoutCache.tickLayout;

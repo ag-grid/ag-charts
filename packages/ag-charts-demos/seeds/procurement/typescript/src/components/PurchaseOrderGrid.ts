@@ -3,6 +3,7 @@ import {
     type GridApi,
     type GridOptions,
     type ICellRendererParams,
+    type OverlayComponentUserParams,
     type ValueFormatterParams,
     createGrid,
 } from 'ag-grid-community';
@@ -27,7 +28,7 @@ const STATUS_STYLE: Record<PoStatus, { className: string; icon: string }> = {
  * requirement is that this grid and the scorecard are the accessible table equivalents of
  * the sunburst and scatter, so it has to be legible on its own terms.
  */
-function statusCell({ value }: ICellRendererParams<PurchaseOrder, PoStatus>): HTMLElement {
+export function statusCell<TData>({ value }: ICellRendererParams<TData, PoStatus>): HTMLElement {
     const style = STATUS_STYLE[value!];
     return h(
         'span',
@@ -47,7 +48,15 @@ const PO_ACTIONS: { kind: PoActionKind; label: string }[] = [
     { kind: 'Escalated', label: 'Escalate' },
 ];
 
+// No selection means no rows at all, so the grid shows `noRows`; `noMatchingRows`
+// needs rows that the column filters then exclude.
+const overlayComponentParams: OverlayComponentUserParams = {
+    noRows: { overlayText: 'Select a shipment on the map or arrival schedule above to display its order lines.' },
+    noMatchingRows: { overlayText: 'No order lines match the current filters. Try adjusting your filters.' },
+};
+
 interface PurchaseOrderGridProps {
+    /** The lines on the selected shipments; empty until one is selected, which shows the `noRows` prompt. */
     orders: PurchaseOrder[];
     /** What she has already recorded against a line, by PO id. */
     poActions: Record<string, PoActionKind>;
@@ -61,7 +70,7 @@ export interface PurchaseOrderGrid extends View {
 export function createPurchaseOrderGrid({ onAction, ...props }: PurchaseOrderGridProps): PurchaseOrderGrid {
     // `createGrid` inserts its own full-height div into this element and themes that, which is the
     // div ag-grid-react renders, so the class-named element is handed over as is.
-    const el = h('div', { class: 'pc-grid-host' });
+    const el = h('div', { class: 'pc-grid-host', 'data-keeps-selection': 'true' });
     const defaultColDef = baseColDef<PurchaseOrder>();
 
     const columnDefs = memo((poActions: Record<string, PoActionKind>): ColDef<PurchaseOrder>[] => [
@@ -119,6 +128,7 @@ export function createPurchaseOrderGrid({ onAction, ...props }: PurchaseOrderGri
             headerName: 'Status',
             minWidth: 130,
             filter: 'agSetColumnFilter',
+            cellClass: 'pc-cell-centred',
             cellRenderer: statusCell,
         },
         {
@@ -170,6 +180,7 @@ export function createPurchaseOrderGrid({ onAction, ...props }: PurchaseOrderGri
                 rowData: orders,
                 columnDefs: columnDefs(poActions),
                 defaultColDef,
+                overlayComponentParams,
                 rowHeight: 36,
                 headerHeight: 38,
                 domLayout: 'autoHeight',

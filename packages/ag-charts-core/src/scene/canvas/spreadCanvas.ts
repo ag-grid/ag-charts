@@ -45,14 +45,28 @@ export function getSpreadCanvas(
     return spreadCanvas;
 }
 
+/** A canvas and its context, or undefined if the browser can't allocate them. */
+export function allocateCanvas(width: number, height: number): SpreadCanvas | undefined {
+    const OffscreenCanvasCtor = getOffscreenCanvas();
+    const canvas = new OffscreenCanvasCtor(width, height);
+    const context = canvas.getContext('2d');
+    if (context == null) {
+        disposeCanvas(canvas);
+        return;
+    }
+    return { canvas, context };
+}
+
+/** Workaround memory allocation quirks in iOS Safari, as for the layer canvases. */
+export function disposeCanvas(canvas: OffscreenCanvas) {
+    canvas.width = 0;
+    canvas.height = 0;
+}
+
 export function releaseSpreadCanvas(ctx: object) {
     const sizes = spreadCanvases.get(ctx);
     if (sizes == null) return;
 
-    // Workaround memory allocation quirks in iOS Safari, as for the layer canvases.
-    for (const { canvas } of sizes.values()) {
-        canvas.width = 0;
-        canvas.height = 0;
-    }
+    for (const { canvas } of sizes.values()) disposeCanvas(canvas);
     spreadCanvases.delete(ctx);
 }

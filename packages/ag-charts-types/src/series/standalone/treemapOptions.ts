@@ -4,7 +4,6 @@ import type {
     HierarchyHighlightState,
     Styler,
 } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -24,7 +23,7 @@ import type {
     VerticalAlign,
 } from '../../chart/types';
 import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgItemHighlightStyleOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export type AgTreemapHighlightState = HierarchyHighlightState;
 
@@ -83,8 +82,6 @@ export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
     extends AgTreemapSeriesGroupStyle, AgTreemapSeriesGroupLayout<TDatum, TContext> {
     /** Apply rounded corners to each group. */
     cornerRadius?: PixelSize;
-    /** Configuration for the shadow used behind the groups. */
-    shadow?: AgDropShadowOptions;
     /** The colours to cycle through for the fills of the groups, by their depth in the hierarchy. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** Highlight overrides for groups. */
@@ -157,7 +154,7 @@ export interface AgTreemapSeriesTileHighlightOptions {
     /** Style for tiles within the hovered branch. */
     highlightedBranch?: AgTreemapSeriesTileHighlightStyle;
     /** Style for the directly hovered tile. */
-    highlightedItem?: AgTreemapSeriesTileHighlightStyle & AgItemHighlightStyleOptions;
+    highlightedItem?: AgTreemapSeriesTileHighlightStyle;
     /** Style for other tiles within the hovered branch. */
     unhighlightedItem?: AgTreemapSeriesTileHighlightStyle;
     /** Style for tiles outside of the hovered branch. */
@@ -177,7 +174,7 @@ export interface AgTreemapSeriesGroupHighlightOptions {
      */
     enabled?: boolean;
     /** Style for the hovered group. */
-    highlightedItem?: AgTreemapSeriesGroupHighlightStyle & AgItemHighlightStyleOptions;
+    highlightedItem?: AgTreemapSeriesGroupHighlightStyle;
     /** Style for groups that are not hovered when another group is active. */
     unhighlightedItem?: AgTreemapSeriesGroupHighlightStyle;
 }
@@ -186,8 +183,6 @@ export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
     extends AgTreemapSeriesTileStyle, AgTreemapSeriesTileLayout<TDatum, TContext> {
     /** Apply rounded corners to each tile. */
     cornerRadius?: PixelSize;
-    /** Configuration for the shadow used behind the tiles. */
-    shadow?: AgDropShadowOptions;
     /** Highlight overrides for tiles. */
     highlight?: AgTreemapSeriesTileHighlightOptions;
     /** Selection overrides for tiles. */

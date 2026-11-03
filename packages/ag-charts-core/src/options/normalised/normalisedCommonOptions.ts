@@ -1,5 +1,4 @@
 import type {
-    AgDropShadowOptions,
     AgGradientColor,
     AgGradientColorBounds,
     AgGradientColorStop,
@@ -17,6 +16,7 @@ import type {
     TextValue,
 } from 'ag-charts-types';
 
+import type { InternalAgDropShadowOptions } from '../internalShadowOptions';
 import type { Normalised } from './normalise';
 
 export type NormalisedPaddingOptions = Normalised<PaddingOptions, 'top' | 'right' | 'bottom' | 'left'>;
@@ -73,10 +73,19 @@ export type NormalisedColorType = CssColor | InternalAgGradientColor | InternalA
 export type NormalisedFillOptions = Normalised<FillOptions, never, { fill?: NormalisedColorType }>;
 export type NormalisedStrokeOptions = Normalised<StrokeOptions, never, { stroke?: CssColor }>;
 
+/**
+ * Only a glow's `fill` may be unset; the theme has folded the deprecated `color` into `fill`. `glow` marks the shadow
+ * that a highlight `glow` makes, which surrounds an item with no visible fill by its stroke.
+ */
 export type NormalisedDropShadowOptions = Normalised<
-    AgDropShadowOptions,
-    'enabled' | 'color' | 'xOffset' | 'yOffset' | 'blur'
->;
+    InternalAgDropShadowOptions,
+    'enabled' | 'xOffset' | 'yOffset' | 'blur'
+> & {
+    glow?: true;
+};
+
+/** A shadow with the `fill` that it casts in. */
+export type ResolvedDropShadowOptions = NormalisedDropShadowOptions & { fill: string };
 
 export type NormalisedBorderOptions = Normalised<
     BorderOptions,

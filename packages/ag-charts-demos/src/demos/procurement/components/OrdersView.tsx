@@ -1,12 +1,47 @@
+import { useState } from 'react';
+
 import type { Kpi, PoActionKind, PurchaseOrder, TrackedShipment } from '../types';
-import { Button } from '../ui';
+import { Button, ToggleGroup, ToggleIcon, type ToggleOption } from '../ui';
 import { DeliveryMap } from './DeliveryMap';
 import { EmptyState } from './EmptyState';
 import { KpiStrip } from './KpiStrip';
 import { PurchaseOrderGrid } from './PurchaseOrderGrid';
 import { ShipmentSchedule } from './ShipmentSchedule';
+import { ShipmentScheduleGrid } from './ShipmentScheduleGrid';
 import { StatusKeys, statusSegments } from './StatusKeys';
 import { useClickAway } from './useClickAway';
+
+type ScheduleView = 'chart' | 'grid';
+
+/** Icons are Carbon's `ChartBarFloating` and `DataTable` (Apache-2.0). */
+const SCHEDULE_VIEW_OPTIONS: (ToggleOption & { value: ScheduleView })[] = [
+    {
+        value: 'chart',
+        label: 'Range bar',
+        icon: (
+            <ToggleIcon>
+                <path d="M28,24H14V16H28ZM16,22H26V18H16Z" />
+                <path d="M26,12H8V4H26ZM10,10H24V6H10Z" />
+                <path d="M30,30H4a2.0023,2.0023,0,0,1-2-2V2H4V28H30Z" />
+            </ToggleIcon>
+        ),
+    },
+    {
+        value: 'grid',
+        label: 'Table',
+        icon: (
+            <ToggleIcon>
+                <path d="M8 18H12V20H8z" />
+                <path d="M14 18H18V20H14z" />
+                <path d="M8 14H12V16H8z" />
+                <path d="M14 22H18V24H14z" />
+                <path d="M20 14H24V16H20z" />
+                <path d="M20 22H24V24H20z" />
+                <path d="M27,3H5A2.0025,2.0025,0,0,0,3,5V27a2.0025,2.0025,0,0,0,2,2H27a2.0025,2.0025,0,0,0,2-2V5A2.0025,2.0025,0,0,0,27,3Zm0,2,0,4H5V5ZM5,27V11H27l0,16Z" />
+            </ToggleIcon>
+        ),
+    },
+];
 
 interface OrdersViewProps {
     kpis: Kpi[];
@@ -44,6 +79,21 @@ export function OrdersView({
     canClearSelection,
 }: OrdersViewProps) {
     useClickAway(canClearSelection, onClearSelection);
+    const [scheduleView, setScheduleView] = useState<ScheduleView>('chart');
+    const schedule =
+        scheduleView === 'chart' ? (
+            <ShipmentSchedule
+                shipments={shipments}
+                selectedShipmentIds={selectedShipmentIds}
+                onSelectionChange={onShipmentSelectionChange}
+            />
+        ) : (
+            <ShipmentScheduleGrid
+                shipments={shipments}
+                selectedShipmentIds={selectedShipmentIds}
+                onSelectionChange={onShipmentSelectionChange}
+            />
+        );
 
     return (
         <div className="pc-view-content">
@@ -81,14 +131,17 @@ export function OrdersView({
                         <div>
                             <h2 className="pc-card-title">Arrival schedule</h2>
                         </div>
+                        <ToggleGroup
+                            ariaLabel="View as: arrival schedule"
+                            label="View as"
+                            value={scheduleView}
+                            onValueChange={(value) => setScheduleView(value as ScheduleView)}
+                            options={SCHEDULE_VIEW_OPTIONS}
+                        />
                     </div>
                     <div className="pc-chart-box--grow" data-keeps-selection>
                         {shipments.length > 0 ? (
-                            <ShipmentSchedule
-                                shipments={shipments}
-                                selectedShipmentIds={selectedShipmentIds}
-                                onSelectionChange={onShipmentSelectionChange}
-                            />
+                            schedule
                         ) : (
                             <EmptyState
                                 message="Nothing in transit for these filters"

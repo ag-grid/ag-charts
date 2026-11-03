@@ -11,6 +11,7 @@ import {
 } from './chartFeatures';
 import {
     DEFAULT_CHART_TYPE_IDS,
+    MAX_SHARED_TOOLTIP_SERIES,
     PREVIEW_CHART_TYPES,
     PREVIEW_PANES,
     THUMBNAIL_OPTIONS,
@@ -148,8 +149,8 @@ describe('preview chart types', () => {
 
     it('falls back to the default for a feature a stored record predates', () => {
         expect(isFeatureEnabled({}, 'navigator')).toBe(DEFAULT_CHART_FEATURES.navigator);
-        expect(isFeatureEnabled({ navigator: false }, 'navigator')).toBe(false);
-        expect(isFeatureEnabled({ navigator: false }, 'legend')).toBe(DEFAULT_CHART_FEATURES.legend);
+        expect(isFeatureEnabled({ navigator: true }, 'navigator')).toBe(true);
+        expect(isFeatureEnabled({ navigator: true }, 'legend')).toBe(DEFAULT_CHART_FEATURES.legend);
     });
 
     it('holds a feature off while what it needs is off, without forgetting it', () => {
@@ -216,27 +217,6 @@ describe('preview chart types', () => {
         }
     });
 
-    it('shows the zoom buttons without a hover only when asked to', () => {
-        for (const type of PREVIEW_CHART_TYPES.filter((other) => other.features.includes('zoom'))) {
-            const zoomButtons = (shown?: boolean) =>
-                (type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON, shown) as { zoom: Record<string, unknown> }).zoom
-                    .buttons;
-            expect(zoomButtons(true), type.id).toEqual({ visible: 'always' });
-            expect(zoomButtons(), type.id).toBeUndefined();
-        }
-    });
-
-    it('gives the context menu rows beyond its defaults to show the menu styles on', () => {
-        for (const type of PREVIEW_CHART_TYPES) {
-            const { contextMenu } = type.buildOptions(DEFAULT_SERIES_COUNT, ALL_OFF) as {
-                contextMenu: { items: unknown[] };
-            };
-            expect(contextMenu.items, type.id).toContain('defaults');
-            const extraItems = contextMenu.items.filter((item) => typeof item === 'object');
-            expect(extraItems.length, type.id).toBeGreaterThanOrEqual(3);
-        }
-    });
-
     it('draws the candlestick as a series of its own', () => {
         const series = seriesOf(CANDLESTICK.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON));
         expect(series.map((entry) => (entry as { type: string }).type)).toEqual(['candlestick']);
@@ -287,6 +267,21 @@ describe('preview chart types', () => {
                 const ids = seriesOf(options).map((series) => (series as { id?: string }).id);
                 expect(ids, `${type.id} @ ${count}`).toContain(tooltipTarget.seriesId);
             }
+        }
+    });
+
+    it('shares the tooltip up to the series cap, and not beyond it', () => {
+        const tooltipOf = (options: unknown) => (options as { tooltip: unknown }).tooltip;
+        const pastCap = SERIES_COUNT_OPTIONS.find((count) => count > MAX_SHARED_TOOLTIP_SERIES)!;
+        for (const type of COUNTED_TYPES.filter((counted) => counted.countLabel === 'Series')) {
+            expect(tooltipOf(type.buildOptions(MAX_SHARED_TOOLTIP_SERIES, ALL_ON)), type.id).toEqual({
+                enabled: true,
+                mode: 'shared',
+            });
+            expect(tooltipOf(type.buildOptions(pastCap, ALL_OFF)), type.id).toEqual({
+                enabled: false,
+                mode: 'single',
+            });
         }
     });
 

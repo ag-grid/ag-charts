@@ -340,6 +340,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             clipFocusBox: false,
             usesPlacedLabels: true,
         });
+        // AG-9003: shadows are not batched for this release, so each item casts its own shadow, as in 14.2.0.
+        this.contentGroup.batchShadows = false;
     }
 
     override renderToOffscreenCanvas(): boolean {
@@ -1712,11 +1714,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 lineDash,
             },
         };
-    }
-
-    /** The shadows of the low and high markers, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.itemMarkers.low.shadow, this.itemMarkers.high.shadow];
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

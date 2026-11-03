@@ -25,6 +25,7 @@ import {
     getLegendItemNodes,
     getSeriesAt,
     getSeriesContextNodeData,
+    getSeriesDataNodeGroup,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -86,6 +87,15 @@ describe('FunnelSeries', () => {
     const compare = async () => {
         await compareImageSnapshot(chart, ctx);
     };
+
+    describe('shadow layering', () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('should cast the shadows of its stages through the shadow root, as it does those of its connectors', async () => {
+            chart = deproxy(await createEnterpriseChart({ ...FUNNEL_EXAMPLE, animation: { enabled: false } }));
+
+            expect(getSeriesDataNodeGroup(chart).batchShadows).toBe('shared');
+        });
+    });
 
     describe('Theme Overrides', () => {
         it('should apply theme overrides correctly (AG-13910)', async () => {

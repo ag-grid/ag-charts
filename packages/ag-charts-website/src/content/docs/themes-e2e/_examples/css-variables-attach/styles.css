@@ -1,0 +1,9 @@
+body {
+    --attach-color: #0000ff;
+    --attach-background: #00ff00;
+}
+
+#reference,
+#lightHost {
+    height: 300px;
+}

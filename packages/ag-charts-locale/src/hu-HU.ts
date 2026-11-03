@@ -44,6 +44,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaLabelColorPickerHue: 'Színárnyalat',
     ariaLabelColorPickerMultiColor: 'Többszínű',
     ariaLabelColorPickerPalette: 'Színpaletta',
+    ariaLabelCrossLine: '${label}, Keresztvonal ${index}[number] / ${count}[number]',
     ariaLabelFinancialCharts: 'Pénzügyi diagramok',
     ariaLabelGaugeTarget: 'Cél',
     ariaLabelGaugeValue: 'Érték',

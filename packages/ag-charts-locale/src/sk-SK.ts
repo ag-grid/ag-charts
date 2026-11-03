@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaLabelColorPickerHue: 'Odtieň',
     ariaLabelColorPickerMultiColor: 'Viacfarebný',
     ariaLabelColorPickerPalette: 'Paleta',
+    ariaLabelCrossLine: '${label}, Krížová čiara ${index}[number] z ${count}[number]',
     ariaLabelFinancialCharts: 'Finančné grafy',
     ariaLabelGaugeTarget: 'Cieľ',
     ariaLabelGaugeValue: 'Hodnota',

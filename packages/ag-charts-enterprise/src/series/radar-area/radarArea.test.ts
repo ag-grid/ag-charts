@@ -25,6 +25,7 @@ import {
     expectWarningsCalls,
     getSeriesOptions,
     hoverAction,
+    internalOptions,
     looserSnapshotDefaults,
     newFreezableMock,
     setupMockCanvas,
@@ -34,7 +35,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import type { NonNullablePath } from 'ag-charts-core';
+import type { NonNullablePath, WithInternalShadow } from 'ag-charts-core';
 
 import { destroyChart, getRadarAreaGroups } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -923,17 +924,20 @@ describe('RadarAreaSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
-            data: EXAMPLE_OPTIONS.data,
-            series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', shadow: seriesShadow }],
-            legend: { enabled: false },
-        });
+        const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions =>
+            internalOptions<AgChartOptions>({
+                data: EXAMPLE_OPTIONS.data,
+                series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', shadow: seriesShadow }],
+                legend: { enabled: false },
+            });
 
         it('defaults to a disabled shadow', async () => {
             const options = shadowOptions();
             chart = await createEnterpriseChart(options);
 
-            expect(getSeriesOptions<AgRadarAreaSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(getSeriesOptions<AgRadarAreaSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
+                DEFAULT_DISABLED_SHADOW
+            );
         });
 
         it('shadows nothing when no shadow is set', async () => {

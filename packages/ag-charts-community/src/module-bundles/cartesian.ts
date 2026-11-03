@@ -6,6 +6,7 @@ import { LocaleModule } from '../locale/localeModule';
 import { AllCartesianAxesModule } from './cartesian-axes';
 import { AllCartesianSeriesModule } from './cartesian-series';
 
+/** @deprecated v14.3.0 Register `AllCommunityModule`, or the individual modules you need. */
 export const AllCartesianModule: ModuleDefinition[] = [
     AllCartesianAxesModule,
     AllCartesianSeriesModule,

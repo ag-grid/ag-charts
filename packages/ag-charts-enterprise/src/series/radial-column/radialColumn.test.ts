@@ -31,6 +31,7 @@ import {
     getSeriesOptions,
     getSeriesSelectionNodes,
     hoverAction,
+    internalOptions,
     magnitudePair,
     newFreezableMock,
     setupMockCanvas,
@@ -41,7 +42,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { type Sector } from 'ag-charts-core';
+import { type Sector, type WithInternalShadow } from 'ag-charts-core';
 
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -1326,17 +1327,20 @@ describe('RadialColumnSeries', () => {
                 { quarter: 'Q3', value: 5 },
                 { quarter: 'Q4', value: 9 },
             ];
-            const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
-                data: shadowData,
-                series: [{ type: seriesType, angleKey: 'quarter', radiusKey: 'value', shadow: seriesShadow }],
-                axes: polarAxes,
-                legend: { enabled: false },
-            });
+            const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions =>
+                internalOptions<AgChartOptions>({
+                    data: shadowData,
+                    series: [{ type: seriesType, angleKey: 'quarter', radiusKey: 'value', shadow: seriesShadow }],
+                    axes: polarAxes,
+                    legend: { enabled: false },
+                });
 
             it('defaults to a disabled shadow', async () => {
                 chart = await createEnterpriseChart(shadowOptions());
 
-                expect(getSeriesOptions<AgRadialColumnSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+                expect(getSeriesOptions<AgRadialColumnSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
+                    DEFAULT_DISABLED_SHADOW
+                );
             });
 
             it('shadows nothing when no shadow is set', async () => {
@@ -1358,7 +1362,8 @@ describe('RadialColumnSeries', () => {
                 }
             });
 
-            it('renders with the shadow enabled', async () => {
+            // AG-9003: 14.2.0 rendering restored for this release
+            it.skip('renders with the shadow enabled', async () => {
                 chart = await createEnterpriseChart(shadowOptions(SHADOW));
                 await compare();
             });

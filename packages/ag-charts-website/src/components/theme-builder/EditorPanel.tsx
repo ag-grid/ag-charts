@@ -9,7 +9,7 @@ import { Fragment } from 'react';
 
 import { InheritedValueNote } from './InheritedValueNote';
 import { useSetEditedGroup } from './editedGroup';
-import { usePalette } from './paletteModel';
+import { usePalette, usePreviewStrokes, useStrokeDirection } from './paletteModel';
 import { type ChartsParamConfig, type ChartsParamRow, GENERAL_GROUP_ID, PARAM_GROUPS } from './params';
 
 const PALETTE_SECTION = 'Palette';
@@ -44,23 +44,20 @@ const paramRow = (row: ChartsParamRow) =>
 export const EditorPanel = () => {
     const sectionProps = useCollapsibleSections(DEFAULT_OPEN_SECTIONS);
     const [palette, setPalette] = usePalette();
+    const [previewStrokes, setPreviewStrokes] = usePreviewStrokes();
+    const strokeDirection = useStrokeDirection();
     const setEditedGroup = useSetEditedGroup();
 
-    // See `editedGroup.ts`. Capture handlers, so the panel clears the group and
-    // the group under the pointer then names itself; anywhere else in the panel
-    // clears it and stops there. No release on blur: colour pickers render in a
-    // portal, so a swatch click would read as abandoning the panel.
-    const releaseGroup = {
-        onFocusCapture: () => setEditedGroup(null),
-        onPointerDownCapture: () => setEditedGroup(null),
-    };
+    // See `editedGroup.ts`. Capture handlers, so they run after the root clears
+    // the group. No release on blur: colour pickers render in a portal, so a
+    // swatch click would read as abandoning the panel.
     const holdGroup = (id: string) => ({
         onFocusCapture: () => setEditedGroup(id),
         onPointerDownCapture: () => setEditedGroup(id),
     });
 
     return (
-        <PanelWrapper {...releaseGroup}>
+        <PanelWrapper>
             {/* Every group, and every param in it - including params that follow
                 another one, since the panel is where you find out what a theme
                 can change. */}
@@ -71,7 +68,13 @@ export const EditorPanel = () => {
                     </CollapsibleSection>
                     {group.id === GENERAL_GROUP_ID && (
                         <CollapsibleSection {...sectionProps(PALETTE_SECTION)}>
-                            <PaletteEditor value={palette} onChange={setPalette} />
+                            <PaletteEditor
+                                value={palette}
+                                onChange={setPalette}
+                                strokeDirection={strokeDirection}
+                                previewStrokes={previewStrokes}
+                                onPreviewStrokesChange={setPreviewStrokes}
+                            />
                         </CollapsibleSection>
                     )}
                 </Fragment>

@@ -52,6 +52,17 @@ export function PropertyTitle({
     );
 }
 
+/** Joins property path segments for display, e.g. `['text', "[type='text']", 'lineHeight']` → `text[type='text'].lineHeight`. */
+export function formatPropertyPath(segments: string[]) {
+    // Variant segments (`[type='x']`, `[AgColorRef]`) attach without a dot.
+    return segments.reduce((acc, segment) => {
+        if (segment.startsWith('[')) {
+            return `${acc}${segment}`;
+        }
+        return acc === '' ? cleanupName(segment) : `${acc}.${cleanupName(segment)}`;
+    }, '');
+}
+
 export function PropertyNamePrefix({
     as: Component = PropertyName,
     prefixPath,
@@ -61,13 +72,7 @@ export function PropertyNamePrefix({
     prefixPath?: string[];
     nextSegment?: string;
 }) {
-    // Variant segments (`[type='x']`, `[AgColorRef]`) attach without a dot: `text[type='text'].lineHeight`.
-    const parentPrefix = prefixPath?.reduce((acc, segment) => {
-        if (segment.startsWith('[')) {
-            return `${acc}${segment}`;
-        }
-        return acc === '' ? cleanupName(segment) : `${acc}.${cleanupName(segment)}`;
-    }, '');
+    const parentPrefix = prefixPath && formatPropertyPath(prefixPath);
     const separator = nextSegment?.startsWith('[') ? '' : '.';
     return (
         <>

@@ -158,12 +158,6 @@ export interface TrackedShipment extends Shipment {
     position: GeoPoint;
     /** Whole days until (positive) or past (negative) the required date. */
     daysToRequired: number;
-    /**
-     * Days of slack between the projected arrival and the required date. Negative means
-     * the shipment is projected to land late — this, not `daysToRequired`, is what the
-     * status is derived from.
-     */
-    slackDays: number;
 }
 
 /** A node in the spend hierarchy the sunburst renders. */
@@ -286,10 +280,8 @@ export interface Kpi {
     value: string;
     /** Supporting line under the value, e.g. share of her budget. */
     detail?: string;
-    /** Threshold state, which selects the tile's accent. */
+    /** Threshold state, which selects the gauge's fill. */
     tone: 'neutral' | 'good' | 'warn' | 'bad';
-    /** Glyph restating `tone` non-colometrically. */
-    icon: string;
     /** Progress against target, drawn under the figure. Omitted for tiles with no target. */
     gauge?: KpiGauge;
     /** What the figure is drawn from, as one segmented bar. Omitted for tiles with no breakdown. */
@@ -386,6 +378,18 @@ export interface QualityCost {
     deliveredCount: number;
 }
 
+/** One material's rejected cost from a single supplier, beneath that supplier's `QualityCost`. */
+export interface MaterialQualityCost {
+    material: string;
+    subcategory: string;
+    /** Value of the quantity that failed inspection, at the price she paid for it. */
+    rejectedValue: number;
+    /** Share of delivered quantity accepted, 0-1 — the rate the value is derived from. */
+    acceptedRate: number;
+    /** Delivered lines behind the figure. */
+    deliveredCount: number;
+}
+
 /** One day of the budget burn-up. */
 export interface BurnUpPoint {
     date: Date;
@@ -439,22 +443,25 @@ export interface TimeBucket {
     label: string;
 }
 
-/** How wide one bar of the spend trend is. */
+/** How wide one bucket of the spend trend is. */
 export type SpendTrendGrain = 'month' | 'week';
 
+/** What the spend trend's stacks are split by. */
+export type SpendTrendSplit = 'material' | 'supplier';
+
 /**
- * One bucket of committed spend, split across the subcategories it was spent in.
+ * One bucket of committed spend, split across the subcategories or suppliers it was spent with.
  *
- * Keyed by subcategory name rather than held as a nested list, because that is the shape a
- * stacked series reads: one series per subcategory, one datum per bucket.
+ * Keyed by subcategory name or supplier id rather than held as a nested list, because that is the
+ * shape a stacked series reads: one series per key, one datum per bucket.
  */
 export interface SpendTrendRow {
     /** Local midnight at the start of the bucket. */
     start: number;
     /** Short label, e.g. `Mar 26` for a month or `Jul 8` for a week. */
     label: string;
-    /** Spend per subcategory, zero where nothing was bought in that bucket. */
-    [subcategory: string]: string | number;
+    /** Spend per subcategory or supplier, zero where nothing was bought in that bucket. */
+    [key: string]: string | number;
 }
 
 /**
@@ -465,7 +472,10 @@ export interface SpendTrendRow {
  * claim from "per month", and a reader cannot tell which from the bars alone.
  */
 export interface SpendTrend {
+    /** Split by subcategory. */
     rows: SpendTrendRow[];
+    /** The same buckets split by supplier id instead, so the card can switch without recomputing. */
+    supplierRows: SpendTrendRow[];
     grain: SpendTrendGrain;
     /**
      * The last day the trend covers — the end of its final complete bucket.

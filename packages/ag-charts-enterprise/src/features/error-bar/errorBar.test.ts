@@ -27,6 +27,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { compareZIndex } from 'ag-charts-core';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { getSeriesPlacedLabels } from '../../test/featureAccessors';
@@ -1285,6 +1286,52 @@ describe('ErrorBars', () => {
             for (const label of placed) {
                 expect(label.placement).toBe(expected);
             }
+        });
+
+        describe('layering', () => {
+            const DATA = [
+                { q: 'Q1', v: 10, lo: 6, hi: 14 },
+                { q: 'Q2', v: 14, lo: 10, hi: 18 },
+            ];
+            const labelledBar = (errorBar?: object) => ({
+                type: 'bar' as const,
+                xKey: 'q',
+                yKey: 'v',
+                label: { placement: 'inside-end' as const, fontSize: 20 },
+                errorBar,
+            });
+            const thickErrorBar = { yLowerKey: 'lo', yUpperKey: 'hi', offsetLabels: false, strokeWidth: 8 };
+
+            it('AG-19129 draws the labels of a series above its error bars', async () => {
+                chart = await createEnterpriseChart({ data: DATA, series: [labelledBar(thickErrorBar)] });
+                await compare();
+            });
+
+            it('draws the error bars of each series between its highlight and its labels', async () => {
+                chart = await createEnterpriseChart({
+                    data: DATA,
+                    series: [
+                        { ...labelledBar(thickErrorBar), yName: 'first' },
+                        { ...labelledBar(thickErrorBar), yName: 'second' },
+                    ],
+                });
+                const [first, second] = deproxy(chart).series;
+                const drawOrder = [
+                    first.highlightGroup,
+                    first.annotationGroup,
+                    first.labelGroup,
+                    second.highlightGroup,
+                    second.annotationGroup,
+                    second.labelGroup,
+                ];
+
+                for (const group of drawOrder) {
+                    expect(group.parentNode).toBe(first.labelGroup.parentNode);
+                }
+                for (let i = 1; i < drawOrder.length; i++) {
+                    expect(compareZIndex(drawOrder[i - 1].zIndex, drawOrder[i].zIndex)).toBeLessThan(0);
+                }
+            });
         });
 
         describe('when offsetLabels is off', () => {

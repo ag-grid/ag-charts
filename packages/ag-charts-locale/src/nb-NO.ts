@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     ariaLabelColorPickerHue: 'Fargetone',
     ariaLabelColorPickerMultiColor: 'Flerfarget',
     ariaLabelColorPickerPalette: 'Palett',
+    ariaLabelCrossLine: '${label}, Krysslinje ${index}[number] av ${count}[number]',
     ariaLabelFinancialCharts: 'Finansielle diagrammer',
     ariaLabelGaugeTarget: 'Mål',
     ariaLabelGaugeValue: 'Verdi',

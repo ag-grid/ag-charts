@@ -203,7 +203,7 @@ export class ChartCaption implements CaptionLike {
             ];
         }
 
-        if (this.hasClickListener(moduleCtx)) {
+        if (this.needsTabStop(moduleCtx)) {
             // Fully interactive (like a regular button).
             this.proxyText.setCursor('pointer');
             this.proxyText.setAriaRole('button');
@@ -302,6 +302,10 @@ export class ChartCaption implements CaptionLike {
             { widgetEvent: event, canvasX, canvasY },
             { captionType: this.key, text: this.text ?? '' }
         );
+    }
+
+    private needsTabStop(moduleCtx: DynamicContext<ChartRegistry>): boolean {
+        return this.opts.listeners?.click != null || moduleCtx.chartService.listeners?.captionClick != null;
     }
 
     /**

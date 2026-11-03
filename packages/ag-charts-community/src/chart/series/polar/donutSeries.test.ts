@@ -1,5 +1,5 @@
 import { loadImage as skiaLoadImage } from 'skia-canvas';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
 import { Transformable, boxOverlapsSector } from 'ag-charts-core';
 import type { BBox, Line, Sector, Shape, Text } from 'ag-charts-core';
@@ -1460,6 +1460,31 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('sectorLabel layout', () => {
+        const layoutOptions: AgChartOptions = {
+            data: Array.from({ length: 4 }, (_, i) => ({ name: `Item ${i}`, size: 1 + i })),
+            series: [{ type: 'donut', angleKey: 'size', sectorLabelKey: 'name' }],
+        };
+        const labelPositions = (target: Chart) => getVisibleLabelTextNodes(target).map(({ x, y }) => [x, y]);
+
+        it('re-places sector labels when the chart resizes without new data', async () => {
+            const proxy = await createChart(layoutOptions);
+            chart = deproxy(proxy);
+            const before = labelPositions(chart);
+            await proxy.updateDelta({ width: 350 });
+            await waitForChartStability(chart);
+            const resized = labelPositions(chart);
+
+            // New data rebuilds the node data, so it places the labels afresh at the new size.
+            await proxy.updateDelta({ data: structuredClone(layoutOptions.data) });
+            await waitForChartStability(chart);
+
+            expect(resized).toHaveLength(4);
+            expect(resized).not.toEqual(before);
+            expect(resized).toEqual(labelPositions(chart));
+        });
+    });
+
     describe('cutout drawing mode', () => {
         it('should render donut series with cutout highlight drawing mode', async () => {
             const cutoutOptions: AgChartOptions = {
@@ -2272,6 +2297,50 @@ describe('DonutSeries', () => {
 
                 expect(labelsOverlappingEachOther(chart)).toEqual([]);
             });
+        });
+
+        it('registers each shown label with the label solve where it is drawn', async () => {
+            chart = deproxy(await createChart(polarExamples.PIE_CALLOUT_LABELS_COLLISIONS));
+            const [series] = calloutSeries(chart);
+            const shown = getSeriesCalloutNodes<Text>(chart, DonutNodeTag.CalloutLabel)
+                .filter((node) => node.visible)
+                .map((node) => node.getBBox().clone().translate(series.centerX, series.centerY));
+            const registered = series
+                .getLabelData(chart.seriesRect)
+                .map((datum) => datum.positionedCandidates?.[0].box);
+
+            expect(shown.length).toBeGreaterThan(1);
+            expect(registered).toHaveLength(shown.length);
+            for (const [i, box] of shown.entries()) {
+                expect(registered[i]).toEqual({
+                    x: expect.closeTo(box.x, 3),
+                    y: expect.closeTo(box.y, 3),
+                    width: expect.closeTo(box.width, 3),
+                    height: expect.closeTo(box.height, 3),
+                });
+            }
+        });
+
+        it('draws the labels when they are the only labels the series shows', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: ['A', 'B', 'C'].map((name) => ({ name, value: 1 })),
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'name',
+                            sectorLabel: { enabled: false },
+                            title: { enabled: false },
+                        },
+                    ],
+                })
+            );
+            const drawn = getSeriesCalloutNodes<Text>(chart, DonutNodeTag.CalloutLabel)
+                .filter((node) => node.visible)
+                .map((node) => node.text);
+
+            expect(drawn).toEqual(['A', 'B', 'C']);
         });
 
         test('a uniform-radius series keeps every label on its own radius', async () => {

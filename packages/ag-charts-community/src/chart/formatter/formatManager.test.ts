@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgAxisLabelFormatterParams,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgPolarChartOptions,
+} from 'ag-charts-types';
 
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -8,6 +13,8 @@ import {
     createChart,
     deproxy,
     expectWarningsCalls,
+    getAxisTickLayoutLabelTexts,
+    getTooltipElement,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -650,6 +657,63 @@ describe('Format Manager', () => {
                     expectWarningsCalls().toEqual([]);
                 });
             });
+        });
+    });
+
+    describe('axis label formatter source', () => {
+        const stackedBarOptions = (
+            formatter: (params: AgAxisLabelFormatterParams) => string | undefined,
+            normalizedTo?: number
+        ): AgCartesianChartOptions => ({
+            data: [
+                { product: 'iPhone', sales: 347000, returns: 42000 },
+                { product: 'Mac', sales: 24801, returns: 4052 },
+            ],
+            series: ['sales', 'returns'].map((yKey) => ({
+                type: 'bar' as const,
+                xKey: 'product',
+                yKey,
+                stacked: true,
+                normalizedTo,
+                label: { enabled: true },
+            })),
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left', label: { formatter } },
+            },
+            tooltip: { mode: 'shared' },
+        });
+
+        async function hoverFirstCategory() {
+            await hoverAction(200, 300)(chart);
+            await waitForChartStability(chart);
+            return getTooltipElement(deproxy(chart))?.textContent;
+        }
+
+        it('reports the element that inherits the axis label formatter', async () => {
+            const sources = new Set<string | undefined>();
+            chart = await createChart(
+                stackedBarOptions(({ value, source }) => {
+                    sources.add(source);
+                    return String(value);
+                })
+            );
+            await hoverFirstCategory();
+
+            expect(sources).toEqual(new Set(['axis-label', 'series-label', 'tooltip']));
+        });
+
+        it('lets a normalised axis keep its format off raw values', async () => {
+            chart = await createChart(
+                stackedBarOptions(
+                    ({ value, source }) =>
+                        source === 'tooltip' || source === 'series-label' ? undefined : `${Math.round(value)}%`,
+                    100
+                )
+            );
+
+            expect(getAxisTickLayoutLabelTexts(chart, 'left')).toContain('100%');
+            expect(await hoverFirstCategory()).toBe('iPhone sales 347000 returns 42000');
         });
     });
 });

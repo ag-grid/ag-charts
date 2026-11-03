@@ -484,12 +484,14 @@ export function getVisibleLabelNodes<TDatum = any>(
 interface AxisLayoutInternals {
     position: string;
     pickTickData: unknown;
-    scale: { domain: unknown[] };
+    scale: { domain: unknown[]; bandwidth?: number; convert(value: unknown): number };
     tickLabelGroupSelection: {
         nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number; textAlign?: string }>;
     };
     tickLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
     gridLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
+    unzoomedTickLayoutCache?: { domain: unknown[] };
+    tickLayoutCache?: { domain: unknown[] };
     calculateTickLayout(...args: unknown[]): unknown;
 }
 
@@ -536,6 +538,22 @@ export function getAxisScaleDomain(chartOrProxy: ChartOrProxy<any>, position: st
     return findAxisInternals(chartOrProxy, position).scale.domain;
 }
 
+/** The band `category` occupies on the band-scaled axis at `position`: where it starts and how wide it is. */
+export function getAxisBand(
+    chartOrProxy: ChartOrProxy<any>,
+    position: string,
+    category: unknown
+): { start: number; width: number } {
+    const { scale } = findAxisInternals(chartOrProxy, position);
+    expect(scale.bandwidth, `axis ${position} has a bandwidth`).toBeDefined();
+    return { start: scale.convert(category), width: scale.bandwidth! };
+}
+
+/** Where `value` falls along the axis at `position`, in series coordinates. */
+export function getAxisCoordinate(chartOrProxy: ChartOrProxy<any>, position: string, value: unknown): number {
+    return findAxisInternals(chartOrProxy, position).scale.convert(value);
+}
+
 /** The label texts of the axis at `position`, in order along the axis. */
 export function getAxisTickLayoutLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
     return getAxisTickLayout(chartOrProxy, position).labels.map((label) => label.text);
@@ -555,6 +573,46 @@ export function getAxisLabelDatums(chartOrProxy: ChartOrProxy<any>, position: st
 /** Counts the tick layouts the axis at `position` calculates, rather than reuses, from now on. */
 export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string) {
     return vi.spyOn(findAxisInternals(chartOrProxy, position), 'calculateTickLayout');
+}
+
+/**
+ * Counts, per axis position, the walks that check a domain for primitives (`isPrimitiveCategory`, private to the axis,
+ * so counted through its callback) over a domain that axis has cached. A domain the axis has since replaced still
+ * counts, which is how a walk over the previous entry in `processData()` shows. Call `restore()` when done.
+ *
+ * `walks()` throws until the spy has seen the check on some axis, so a rename of the check can't leave every
+ * `walks(...) === 0` assertion passing without measuring anything.
+ */
+export function spyOnAxisPrimitiveDomainWalks(chartOrProxy: ChartOrProxy<any>) {
+    const axes = getAxisInternals(chartOrProxy);
+    const cachedDomains = new Map<string, Set<unknown>>(axes.map((axis) => [axis.position, new Set()]));
+    const sampleCachedDomains = () => {
+        for (const { position, unzoomedTickLayoutCache, tickLayoutCache } of axes) {
+            for (const cache of [unzoomedTickLayoutCache, tickLayoutCache]) {
+                if (cache != null) cachedDomains.get(position)!.add(cache.domain);
+            }
+        }
+    };
+    const walked: unknown[] = [];
+    const every = Array.prototype.every;
+    const spy = vi.spyOn(Array.prototype, 'every').mockImplementation(function (this: unknown[], ...args: any[]) {
+        if (args[0]?.name === 'isPrimitiveCategory') {
+            // The walk may be over the entry about to be replaced, so sample before it is.
+            sampleCachedDomains();
+            walked.push(this);
+        }
+        return every.apply(this, args as Parameters<typeof every>);
+    });
+    return {
+        walks: (position: string) => {
+            if (walked.length === 0) {
+                throw new Error('spyOnAxisPrimitiveDomainWalks never saw the isPrimitiveCategory check run');
+            }
+            sampleCachedDomains();
+            return walked.filter((domain) => cachedDomains.get(position)!.has(domain)).length;
+        },
+        restore: () => spy.mockRestore(),
+    };
 }
 
 function getAxisInternals(chartOrProxy: ChartOrProxy<any>) {
@@ -2415,7 +2473,8 @@ export function computeLegendBBox(chart: Chart): BBox {
 }
 
 export interface LegendTestItemNode {
-    datum?: { id: string; itemId?: string | number };
+    datum?: { id: string; seriesId?: string; itemId?: string | number; enabled?: boolean };
+    proxyButton?: { getElement(): HTMLElement };
     opacity?: number;
     label: { opacity?: number; text?: string };
     symbolsGroup: { opacity?: number };

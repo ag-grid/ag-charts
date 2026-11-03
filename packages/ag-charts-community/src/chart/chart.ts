@@ -155,6 +155,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     readonly seriesRoot = new TranslatableGroup({
         name: `${this.id}-series-root`,
         zIndex: ZIndexMap.SERIES_LAYER,
+        shadowRoot: true,
     });
     readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,

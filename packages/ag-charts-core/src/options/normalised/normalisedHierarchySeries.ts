@@ -24,6 +24,7 @@ import type {
     VerticalAlign,
 } from 'ag-charts-types';
 
+import type { InternalAgGlowHighlightStyleOptions, WithInternalShadow } from '../internalShadowOptions';
 import type { Normalised } from './normalise';
 import type {
     FillStrokeMorph,
@@ -37,7 +38,7 @@ import type {
     NormalisedSeriesLabelOptions,
 } from './normalisedLabelOptions';
 import type { NormalisedColorScaleOptions } from './normalisedScatterSeries';
-import type { NormalisedItemHighlightShadow, NormalisedSeriesSelectionOptions } from './normalisedSeriesOptions';
+import type { NormalisedSeriesSelectionOptions } from './normalisedSeriesOptions';
 
 /** Keys every hierarchy series reads; each leaf's normalised own-options type satisfies this. */
 export interface NormalisedHierarchySeriesKeys {
@@ -53,18 +54,22 @@ export interface NormalisedHierarchySeriesKeys {
 export type NormalisedTreemapSeriesStyle = Normalised<AgTreemapSeriesStyle, never, FillStrokeMorph>;
 
 export type NormalisedTreemapGroupHighlightStyle = Normalised<
-    AgTreemapSeriesGroupHighlightStyle,
+    AgTreemapSeriesGroupHighlightStyle & InternalAgGlowHighlightStyleOptions,
     never,
     FillStrokeMorph
 >;
 
-export type NormalisedTreemapTileHighlightStyle = Normalised<AgTreemapSeriesTileHighlightStyle, never, FillStrokeMorph>;
+export type NormalisedTreemapTileHighlightStyle = Normalised<
+    AgTreemapSeriesTileHighlightStyle & InternalAgGlowHighlightStyleOptions,
+    never,
+    FillStrokeMorph
+>;
 
 export type NormalisedTreemapGroupHighlightOptions = Normalised<
     AgTreemapSeriesGroupHighlightOptions,
     'enabled',
     {
-        highlightedItem?: NormalisedTreemapGroupHighlightStyle & NormalisedItemHighlightShadow;
+        highlightedItem?: NormalisedTreemapGroupHighlightStyle;
         unhighlightedItem?: NormalisedTreemapGroupHighlightStyle;
     }
 >;
@@ -74,7 +79,7 @@ export type NormalisedTreemapTileHighlightOptions = Normalised<
     'enabled',
     {
         highlightedBranch?: NormalisedTreemapTileHighlightStyle;
-        highlightedItem?: NormalisedTreemapTileHighlightStyle & NormalisedItemHighlightShadow;
+        highlightedItem?: NormalisedTreemapTileHighlightStyle;
         unhighlightedItem?: NormalisedTreemapTileHighlightStyle;
         unhighlightedBranch?: NormalisedTreemapTileHighlightStyle;
     }
@@ -102,7 +107,7 @@ type TreemapGroupRequiredKeys =
     | 'highlight';
 
 export type NormalisedTreemapGroupOptions = Normalised<
-    AgTreemapSeriesGroupOptions<unknown, unknown>,
+    AgTreemapSeriesGroupOptions<unknown, unknown> & WithInternalShadow,
     TreemapGroupRequiredKeys,
     {
         fill?: NormalisedColorType;
@@ -128,7 +133,7 @@ type TreemapTileRequiredKeys =
     | 'selection';
 
 export type NormalisedTreemapTileOptions = Normalised<
-    AgTreemapSeriesTileOptions<unknown, unknown>,
+    AgTreemapSeriesTileOptions<unknown, unknown> & WithInternalShadow,
     TreemapTileRequiredKeys,
     {
         fill?: NormalisedColorType;
@@ -162,7 +167,11 @@ export type NormalisedTreemapSeriesOwnOptions = Normalised<
 
 export type NormalisedSunburstSeriesStyle = Normalised<AgSunburstSeriesStyle, never, FillStrokeMorph>;
 
-export type NormalisedSunburstSeriesHighlightStyle = Normalised<AgSunburstSeriesHighlightStyle, never, FillStrokeMorph>;
+export type NormalisedSunburstSeriesHighlightStyle = Normalised<
+    AgSunburstSeriesHighlightStyle & InternalAgGlowHighlightStyleOptions,
+    never,
+    FillStrokeMorph
+>;
 
 export type NormalisedSunburstSeriesHighlightOptions = Normalised<
     AgSunburstSeriesHighlightOptions,
@@ -205,7 +214,7 @@ type SunburstRequiredKeys =
 
 /** Sunburst options the series owns, before the common series keys are layered on. */
 export type NormalisedSunburstSeriesOwnOptions = Normalised<
-    AgSunburstSeriesOptions,
+    AgSunburstSeriesOptions & WithInternalShadow,
     SunburstRequiredKeys,
     {
         fills: NormalisedColorType[];

@@ -314,6 +314,11 @@ export class Text<D = unknown> extends Shape<D> {
         }
     }
 
+    // The bounds follow the scene's text direction, which a cached box may predate.
+    override getShadowSilhouetteBounds(): boolean {
+        return false;
+    }
+
     protected override computeBBox(): BBox {
         return this.computeTextBBox();
     }

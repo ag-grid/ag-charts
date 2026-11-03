@@ -20,7 +20,8 @@ function currentLocation(): ApiReferenceLocation | null {
     return inBrowser() ? { pathname: window.location.pathname, hash: window.location.hash } : null;
 }
 
-function hrefFor({ pathname, hash }: NavigationData) {
+/** URL of a selection, as the navigation tree links to it and `navigateToSelection` navigates to it. */
+export function hrefFor({ pathname, hash }: NavigationData) {
     return hash === '' ? pathname : `${pathname}#${hash}`;
 }
 

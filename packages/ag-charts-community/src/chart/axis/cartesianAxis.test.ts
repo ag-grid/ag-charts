@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Transformable, axisLabelsOverlap, getDocument, rotatePoint } from 'ag-charts-core';
 import type {
@@ -41,6 +41,7 @@ import {
     resizeChartContainer,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisPrimitiveDomainWalks,
     spyOnAxisTickLayout,
     waitForChartStability,
 } from '../test/utils';
@@ -4182,6 +4183,96 @@ describe('CartesianAxis', () => {
 
             expect(xTickLayout).not.toHaveBeenCalled();
             await expectMatchesFresh({ axes: categoryAxes, data: categories(0, 8, alternating(1)) });
+        });
+
+        describe('primitive domain check', () => {
+            afterEach(() => {
+                vi.restoreAllMocks();
+            });
+
+            it('does not walk the domain of an axis whose tick layout depends on the data', async () => {
+                const timeAxes = {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                };
+                const data = (count: number) =>
+                    Array.from({ length: count }, (_, i) => ({ x: new Date(2020, 0, 1 + i), y: i }));
+                chart = await create({ axes: timeAxes, data: data(10) });
+                const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+                const domainWalks = spyOnAxisPrimitiveDomainWalks(chart);
+
+                await update({ data: data(11) });
+
+                expect(xTickLayout).toHaveBeenCalled();
+                expect(domainWalks.walks('bottom')).toBe(0);
+                // Anti-vacuous: the number y axis can retain its layout across data, so it does walk its domain.
+                expect(domainWalks.walks('left')).toBeGreaterThan(0);
+            });
+
+            it('walks each cached domain once, however many data updates reuse it', async () => {
+                chart = await create({ axes: categoryAxes, data: categories(0, 8, alternating(0)) });
+                const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+                const domainWalks = spyOnAxisPrimitiveDomainWalks(chart);
+
+                await update({ data: categories(0, 8, alternating(1)) });
+                const afterFirstUpdate = domainWalks.walks('bottom');
+                await update({ data: categories(0, 8, alternating(0)) });
+                await update({ data: categories(0, 8, alternating(1)) });
+
+                expect(xTickLayout).not.toHaveBeenCalled();
+                // Anti-vacuous: the first update must have walked, or the later counts say nothing about memoising.
+                expect(afterFirstUpdate).toBeGreaterThan(0);
+                expect(domainWalks.walks('bottom')).toBe(afterFirstUpdate);
+            });
+
+            it('does not walk the domain of a category axis that has a label formatter', async () => {
+                const axes = {
+                    x: { type: 'category', position: 'bottom', label: { formatter: ({ value }: any) => `${value}!` } },
+                    y: { type: 'number', position: 'left' },
+                };
+                chart = await create({ axes, data: categories(0, 8, alternating(0)) });
+                const domainWalks = spyOnAxisPrimitiveDomainWalks(chart);
+
+                await update({ data: categories(0, 8, alternating(1)) });
+
+                expect(domainWalks.walks('bottom')).toBe(0);
+                // Anti-vacuous: the y axis has no formatter and a stable layout, so it does walk its domain.
+                expect(domainWalks.walks('left')).toBeGreaterThan(0);
+            });
+
+            // A single in-place object among primitives is enough to make comparing by identity unsound.
+            it.each([
+                { name: 'only objects', objectAt: [0, 1, 2] },
+                { name: 'a single object after primitives', objectAt: [2] },
+                { name: 'a single object before primitives', objectAt: [0] },
+            ])('relabels on every update when the domain has $name mutated in place', async ({ objectAt }) => {
+                const items = [0, 1, 2].map((i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
+                const category = (i: number) => (objectAt.includes(i) ? items[i] : `Item ${i}`);
+                const data = () => [0, 1, 2].map((i) => ({ x: category(i), y: i }));
+                chart = await create({ axes: categoryAxes, data: data() });
+
+                for (const name of ['Renamed', 'Renamed again']) {
+                    items[objectAt[0]].name = name;
+                    await update({ data: data() });
+
+                    expect(getAxisTickLayoutLabelTexts(chart, 'bottom')[objectAt[0]]).toBe(name);
+                }
+            });
+
+            it('detects object categories that replace a primitive domain', async () => {
+                const items = [0, 1, 2].map((i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
+                chart = await create({ axes: categoryAxes, data: categories(0, 3, alternating(0)) });
+                // Let the primitive domain's cache entry be read once, so any stale answer would be remembered.
+                await update({ data: categories(0, 3, alternating(1)) });
+
+                await update({ data: items.map((item, i) => ({ x: item, y: i })) });
+                expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Item 1', 'Item 2']);
+
+                items[1].name = 'Renamed';
+                await update({ data: items.map((item, i) => ({ x: item, y: i })) });
+
+                expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Renamed', 'Item 2']);
+            });
         });
 
         it('follows a new category order', async () => {

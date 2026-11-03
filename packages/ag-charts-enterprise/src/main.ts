@@ -26,9 +26,6 @@ export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisMod
 export { PolarCrossLinesModule } from './axes/polar-crosslines/polarCrossLinesModule';
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
-export { AxisInsetValueModule } from './features/axis-inset-value/axisInsetValueModule';
-export { AxisInteractionModule } from './features/axis-interaction/axisInteractionModule';
-export { AxisSelectedBandModule } from './features/axis-selected-band/axisSelectedBandModule';
 export { BackgroundRegionsModule } from './features/background-regions/backgroundRegionsModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
 export { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
@@ -75,15 +72,16 @@ export { TreemapSeriesModule } from './series/treemap/treemapModule';
 export { WaterfallSeriesModule } from './series/waterfall/waterfallModule';
 
 export { AllEnterpriseModule } from './module-bundles/all';
+export { AxisInteractionModule } from './module-bundles/axis-interaction';
 export { AllCartesianModule } from './module-bundles/cartesian';
 export { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
 export { AllCartesianSeriesModule } from './module-bundles/cartesian-series';
-export { FinancialChartModule } from './module-bundles/financial';
 export { AllGaugeModule } from './module-bundles/gauge';
-export { LicenseManager, AgChartsEnterpriseModule } from './module-bundles/integrated';
 export { AllPolarModule } from './module-bundles/polar';
-export { QuadrantChartModule } from './module-bundles/quadrant';
 export { AllMapSeriesModule } from './module-bundles/topology';
+export { FinancialChartModule } from './module-bundles/financial';
+export { LicenseManager, AgChartsEnterpriseModule } from './module-bundles/integrated';
+export { QuadrantChartModule } from './module-bundles/quadrant';
 
 // Globally registered enterprise setup
 ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.Enterprise);

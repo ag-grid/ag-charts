@@ -223,6 +223,27 @@ describe('BoxPlotNode', () => {
             expect(pixelAt(canvasCtx, 270, 40)).toEqual(unbatched);
         });
 
+        it('should draw the shadow of a whisker wider than the box the same from what a group kept as at first', () => {
+            const wide = (center: number) =>
+                boxPlot({
+                    center,
+                    thickness: 20,
+                    wickStroke: 'black',
+                    wickStrokeWidth: 60,
+                    fillShadow: { ...RED_SHADOW, yOffset: 40 },
+                });
+            const picture = () => Array.from(canvasCtx.getRenderContext2D().getImageData(0, 0, 400, 220).data);
+
+            renderShadowBatch(canvasCtx, [wide(50), wide(150)]);
+            const first = picture();
+            renderShadowBatch(canvasCtx, [wide(50), wide(150)], 3);
+            const kept = picture();
+
+            // The whisker is 60px wide and its shadow 40px below, so it reaches well past the 20px box.
+            expect(pixelAt(canvasCtx, 170, 100)).toEqual([255, 0, 0, 255]);
+            expect(kept).toEqual(first);
+        });
+
         it('should cast the shadow of a translucent box and whisker once where they meet, with a spread', () => {
             const style = {
                 fill: 'rgba(0, 0, 255, 0.5)',

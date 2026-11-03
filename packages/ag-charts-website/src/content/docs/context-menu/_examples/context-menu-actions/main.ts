@@ -52,7 +52,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 showOn: 'axis',
                 label: 'Say hello to an axis',
                 action: (ev: AgAxisContextMenuActionEvent) => {
-                    console.log(`Hello in axis "${ev.axisId}":"`, ev);
+                    console.log(`Hello in axis "${ev.axisId}":`, ev);
                 },
             },
             'separator',

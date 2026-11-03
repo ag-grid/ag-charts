@@ -3,7 +3,6 @@ import type { ModuleDefinition } from 'ag-charts-core';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
 import { AxisInteractionModule } from '../features/axis-interaction/axisInteractionModule';
-import { BackgroundRegionsModule } from '../features/background-regions/backgroundRegionsModule';
 import { BandHighlightModule } from '../features/band-highlight/bandHighlightModule';
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
 import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
@@ -22,6 +21,7 @@ import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
 import { AllCartesianAxesModule } from './cartesian-axes';
 import { AllCartesianSeriesModule } from './cartesian-series';
 
+/** @deprecated v14.3.0 Register `AllEnterpriseModule`, or the individual modules you need. */
 export const AllCartesianModule: ModuleDefinition[] = [
     AllCartesianAxesModule,
     AllCartesianSeriesModule,
@@ -41,7 +41,6 @@ export const AllCartesianModule: ModuleDefinition[] = [
     RangesModule,
     ScrollbarModule,
     SelectionModule,
-    BackgroundRegionsModule,
     StatusBarModule,
     SyncModule,
     ZoomModule,

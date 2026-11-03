@@ -51,3 +51,7 @@ external/ag-shared/
 
 # Licenses
 LICENSE.html
+
+# Rewritten by the link checker (UPDATE_LINK_BASELINE=true), one entry per line so that diffs review cleanly;
+# prettier would collapse short lists and the two would rewrite it in turn.
+packages/ag-charts-website/testing/link-checker-baseline.json

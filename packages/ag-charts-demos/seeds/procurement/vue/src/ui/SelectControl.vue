@@ -54,7 +54,18 @@ function onTriggerKeydown(event: KeyboardEvent) {
     <SelectRoot v-model="model" v-model:open="open">
         <SelectTrigger class="pc-btn pc-select-trigger" :aria-label="ariaLabel" @keydown="onTriggerKeydown">
             <SelectValue />
-            <SelectIcon>▾</SelectIcon>
+            <SelectIcon class="pc-select-icon">
+                <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    focusable="false"
+                >
+                    <path d="M1 2.5h8L5 7.5z" />
+                </svg>
+            </SelectIcon>
         </SelectTrigger>
         <SelectPortal>
             <SelectContent class="pc-portal pc-select-content" position="popper" :side-offset="4">

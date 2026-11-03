@@ -171,11 +171,15 @@ test.describe('Page Verification', () => {
         await expect(page.locator('.site-header')).toBeVisible();
     });
 
-    test('pricing page loads with community and enterprise sections', async ({ page }) => {
-        await gotoUrl(page, toPageUrl('license-pricing'));
+    // Other sites link straight to a product card (Grid to #ag-grid, Studio to #ag-studio),
+    // and the page publishes no paid prices anywhere.
+    test('pricing page shows all three products with no paid prices', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('license-pricing/#ag-charts'));
         await expect(page.locator('.site-header')).toBeVisible();
-        await expect(page.locator('#community')).toBeVisible();
-        await expect(page.locator('#enterprise-charts')).toBeVisible();
+        await expect(page.locator('#ag-charts')).toBeInViewport();
+        await expect(page.locator('#ag-grid')).toBeVisible();
+        await expect(page.locator('#ag-studio')).toBeVisible();
+        await expect(page.locator('body')).not.toContainText(/\$\s?\d/);
     });
 
     // --- Docs pages ---

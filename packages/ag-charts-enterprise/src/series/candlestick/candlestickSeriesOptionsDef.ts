@@ -13,7 +13,7 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
-    multiSeriesShadowHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     positiveNumber,
     ratio,
     required,
@@ -57,9 +57,9 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
     }),
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDefs,
-    shadow: shadowOptionsDefs,
+    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
     ...commonSeriesThemeableOptionsDefs,
-    highlight: multiSeriesShadowHighlightOptionsDef(
+    highlight: multiSeriesGlowHighlightOptionsDef(
         candlestickHighlightStyleOptionsDef,
         candlestickHighlightStyleOptionsDef
     ),

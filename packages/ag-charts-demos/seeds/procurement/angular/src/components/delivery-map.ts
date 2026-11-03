@@ -1,14 +1,21 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, ElementRef, afterNextRender, computed, inject, input, output, signal } from '@angular/core';
 
 import { AgCharts } from 'ag-charts-angular';
-import type { AgMapLineSeriesOptions, AgMapMarkerSeriesOptions, AgTopologyChartOptions } from 'ag-charts-community';
+import type {
+    AgInitialStateZoomOptions,
+    AgMapLineSeriesOptions,
+    AgMapMarkerSeriesOptions,
+    AgSelectionItemIds,
+    AgTopologyChartOptions,
+} from 'ag-charts-community';
 
 import { NEUTRAL, STATUS_COLORS, STATUS_SHAPES, THEME } from '../chartTheme';
 import { PLANTS } from '../data';
-import { fmtCurrency, fmtDate, fmtDaysToGo, fmtPct, fmtSlack } from '../format';
+import { fmtCurrency, fmtDate, fmtDaysToGo, fmtPct } from '../format';
 import { ROUTE_TOPOLOGY, WORLD_TOPOLOGY } from '../routes';
 import type { ShipmentStatus, TrackedShipment } from '../types';
 import { AfterRender } from '../ui';
+import { type ShipmentSelectionChange, shipmentSelection } from './shipment-selection';
 
 /**
  * Everything drawn on the map — moving shipments, their routes, and the fixed plants —
@@ -29,6 +36,10 @@ interface MapPoint {
 // Worst-last, so a late marker draws over an on-time one where routes converge on a plant.
 const STATUS_DRAW_ORDER: ShipmentStatus[] = ['On time', 'At risk', 'Late'];
 
+const markerSeriesId = (status: ShipmentStatus) => `shipments-${status}`;
+
+const shipmentIdOf = (point: MapPoint) => point.shipment?.shipmentId;
+
 const PLANT_POINTS: MapPoint[] = PLANTS.map((plant) => ({
     id: plant.plantId,
     label: plant.name,
@@ -36,74 +47,188 @@ const PLANT_POINTS: MapPoint[] = PLANTS.map((plant) => ({
     longitude: plant.destination.longitude,
 }));
 
-/** The host is the chart's container, the `<div>` the React `AgCharts` wrapper renders. */
+const RADIANS_PER_DEGREE = Math.PI / 180;
+
+/** Projected y on the Web Mercator projection the map series draw with; north is smaller. */
+const mercatorY = (latitude: number) => -Math.log(Math.tan(Math.PI / 4 + (latitude * RADIANS_PER_DEGREE) / 2));
+
+/** Every `[longitude, latitude]` in a geometry's coordinates, however deeply they nest. */
+function* positionsIn(coordinates: unknown): Generator<number[]> {
+    if (!Array.isArray(coordinates)) return;
+    if (typeof coordinates[0] === 'number') {
+        yield coordinates;
+        return;
+    }
+    for (const child of coordinates) yield* positionsIn(child);
+}
+
+function* topologyPositions(topology: typeof WORLD_TOPOLOGY): Generator<number[]> {
+    for (const feature of topology.features) yield* positionsIn(feature.geometry?.coordinates);
+}
+
+function boundsOf(positions: Iterable<number[]>) {
+    let west = Infinity;
+    let east = -Infinity;
+    let south = Infinity;
+    let north = -Infinity;
+    for (const [longitude, latitude] of positions) {
+        west = Math.min(west, longitude);
+        east = Math.max(east, longitude);
+        south = Math.min(south, latitude);
+        north = Math.max(north, latitude);
+    }
+    return { west, east, south, north };
+}
+
+// The chart fits its view to the background's bounds, so zoom ratios are fractions of these.
+const WORLD_BOUNDS = boundsOf(topologyPositions(WORLD_TOPOLOGY));
+const LANE_BOUNDS = boundsOf([
+    ...topologyPositions(ROUTE_TOPOLOGY),
+    ...PLANTS.map(({ destination }) => [destination.longitude, destination.latitude]),
+]);
+
+/**
+ * The zoom that spans the world's full width across the chart, with the band of latitudes it then
+ * has room for centred on the shipping lanes. Undefined when the unzoomed map already fills the width.
+ */
+export function fitWidthZoom(width: number, height: number): AgInitialStateZoomOptions | undefined {
+    if (width <= 0 || height <= 0) return undefined;
+
+    const top = mercatorY(WORLD_BOUNDS.north);
+    const mapWidth = (WORLD_BOUNDS.east - WORLD_BOUNDS.west) * RADIANS_PER_DEGREE;
+    const mapHeight = mercatorY(WORLD_BOUNDS.south) - top;
+    // The share of the map's height still visible once its width fills the chart.
+    const span = (height * mapWidth) / (width * mapHeight);
+    if (span >= 1) return undefined;
+
+    const fromTop = (latitude: number) => (mercatorY(latitude) - top) / mapHeight;
+    const lanesFromTop = (fromTop(LANE_BOUNDS.north) + fromTop(LANE_BOUNDS.south)) / 2;
+    // Zoom ratios run south to north, the reverse of `fromTop`.
+    const start = Math.min(Math.max(1 - lanesFromTop - span / 2, 0), 1 - span);
+    return {
+        ratioX: { start: (1 - span) / 2, end: (1 + span) / 2 },
+        ratioY: { start, end: Math.min(start + span, 1) },
+    };
+}
+
+/**
+ * The React root is the measured box (`boxRef`) holding the `AgCharts` wrapper's `<div>`; the host is
+ * that box, and `<ag-charts>` the wrapper.
+ */
 @Component({
     selector: 'div[pcDeliveryMap]',
     imports: [AfterRender, AgCharts],
     host: { style: 'height: 100%; width: 100%;' },
-    template: '<ag-charts *pcAfterRender style="display: block; height: 100%; width: 100%;" [options]="options()" />',
+    template: `<ag-charts
+        *pcAfterRender
+        style="display: block; height: 100%; width: 100%;"
+        [options]="options()"
+        (chartReady)="selection.chart.set($event)"
+    />`,
 })
 export class DeliveryMap {
     readonly shipments = input.required<TrackedShipment[]>();
-    /** The shipment currently selected, if any. */
-    readonly selectedShipmentId = input<string | undefined>();
-    /** A marker was clicked. Clicking the selected shipment again clears it. */
-    readonly shipmentClick = output<string>();
+    /** The shipments currently selected; empty when none is. */
+    readonly selectedShipmentIds = input.required<string[]>();
+    /** The user changed the selection on the map. */
+    readonly selectionChange = output<ShipmentSelectionChange>();
 
-    private readonly points = computed<MapPoint[]>(() =>
-        this.shipments().map((shipment) => ({
-            id: shipment.shipmentId,
-            label: shipment.shipmentId,
-            latitude: shipment.position.latitude,
-            longitude: shipment.position.longitude,
-            shipment,
-        }))
+    // Series data is not chart data, so `dataIdKey` does not reach it: items are addressed by index.
+    private readonly pointsByStatus = computed(
+        () =>
+            new Map(
+                STATUS_DRAW_ORDER.map((status) => [
+                    status,
+                    this.shipments()
+                        .filter((shipment) => shipment.status === status)
+                        .map<MapPoint>((shipment) => ({
+                            id: shipment.shipmentId,
+                            label: shipment.shipmentId,
+                            latitude: shipment.position.latitude,
+                            longitude: shipment.position.longitude,
+                            shipment,
+                        })),
+                ])
+            )
     );
 
-    protected readonly options = computed<AgTopologyChartOptions<MapPoint>>(() => {
-        const points = this.points();
-        const selectedShipmentId = this.selectedShipmentId();
-        const dimmed = (id: string) => selectedShipmentId != null && id !== selectedShipmentId;
+    private readonly itemsFor = computed(() => {
+        const pointsByStatus = this.pointsByStatus();
+        return (shipmentId: string): AgSelectionItemIds[] =>
+            STATUS_DRAW_ORDER.flatMap((status) => {
+                const itemId = pointsByStatus.get(status)!.findIndex((point) => point.id === shipmentId);
+                return itemId < 0 ? [] : [{ seriesId: markerSeriesId(status), itemId }];
+            });
+    });
 
-        // One route series per status, so a lane's line and marker agree on colour without a per-datum styler.
-        const routeSeries = STATUS_DRAW_ORDER.map<AgMapLineSeriesOptions<MapPoint>>((status) => ({
+    protected readonly selection = shipmentSelection<MapPoint>({
+        selectedShipmentIds: this.selectedShipmentIds,
+        onSelectionChange: (added, removed) => this.selectionChange.emit({ added, removed }),
+        shipmentIdOf,
+        itemsFor: this.itemsFor,
+    });
+
+    // Measured once, on mount, before the chart is created: later resizes leave the reader's own zoom alone.
+    private readonly initialZoom = signal<AgInitialStateZoomOptions | undefined>(undefined);
+
+    constructor() {
+        const box = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+        afterNextRender(() => this.initialZoom.set(fitWidthZoom(box.clientWidth, box.clientHeight)));
+    }
+
+    protected readonly options = computed<AgTopologyChartOptions<MapPoint>>(() => {
+        const pointsByStatus = this.pointsByStatus();
+        const selectedShipmentIds = this.selectedShipmentIds();
+        const initialZoom = this.initialZoom();
+        const dimmed = (id: string) => selectedShipmentIds.length > 0 && !selectedShipmentIds.includes(id);
+
+        // Every lane is drawn alike, so one series carries them all; the markers carry the status.
+        const routes: AgMapLineSeriesOptions<MapPoint> = {
             type: 'map-line',
             topology: ROUTE_TOPOLOGY,
             topologyIdKey: 'id',
             idKey: 'id',
-            data: points.filter((point) => point.shipment?.status === status),
-            stroke: STATUS_COLORS[status],
-            // Light weight: at a heavier one, overlapping lanes blend into a wash that reads as neither status colour.
+            data: STATUS_DRAW_ORDER.flatMap((status) => pointsByStatus.get(status)!),
+            stroke: NEUTRAL,
+            // Light weight: at a heavier one, lanes converging on a plant merge into a single dark band.
             strokeWidth: 1,
-            strokeOpacity: 0.28,
+            strokeOpacity: 0.33,
             // The status key is rendered as HTML beside the card, so nothing needs a legend.
             showInLegend: false,
             itemStyler: ({ datum }) => (dimmed(datum.id) ? { strokeOpacity: 0.08 } : {}),
-            // The marker carries the tooltip; a hit on the line as well would fight it.
+            // The marker carries the tooltip and the selection; a hit on the line as well would fight it.
             tooltip: { enabled: false },
             highlight: { enabled: false },
-        }));
+            selection: { enabled: false },
+        };
 
         // One series per status, so status never rests on colour alone.
         const markerSeries = STATUS_DRAW_ORDER.map<AgMapMarkerSeriesOptions<MapPoint>>((status) => ({
             type: 'map-marker',
+            id: markerSeriesId(status),
             // Positional, so deliberately no `idKey`: with one the series would warn it cannot match the topology.
             latitudeKey: 'latitude',
             longitudeKey: 'longitude',
-            data: points.filter((point) => point.shipment?.status === status),
+            data: pointsByStatus.get(status),
             showInLegend: false,
             shape: STATUS_SHAPES[status],
             size: 11,
             fill: STATUS_COLORS[status],
+            fillOpacity: 1,
             stroke: 'var(--pc-panel)',
-            strokeWidth: 1.5,
-            itemStyler: ({ datum }) =>
-                dimmed(datum.id) ? { fillOpacity: 0.25, strokeOpacity: 0.25 } : { fillOpacity: 1, strokeOpacity: 1 },
+            strokeWidth: 1,
+            selection: {
+                selectedItem: { strokeWidth: 0 },
+                unselectedItem: { opacity: 0.3 },
+                unselectedSeries: { opacity: 0.3 },
+            },
+            highlight: { enabled: false },
             tooltip: {
                 renderer: ({ datum }) => {
                     const shipment = datum.shipment;
                     if (!shipment) return undefined;
                     return {
+                        heading: '',
                         title: `${shipment.shipmentId} · ${shipment.status}`,
                         data: [
                             { label: 'Lane', value: `${shipment.supplierName} → ${shipment.plantName}` },
@@ -118,14 +243,10 @@ export class DeliveryMap {
                                 label: 'Required',
                                 value: `${fmtDate(shipment.requiredDate)} · ${fmtDaysToGo(shipment.daysToRequired)}`,
                             },
-                            { label: 'Against required', value: fmtSlack(shipment.slackDays) },
                             ...(shipment.carrierDelay ? [{ label: 'Carrier', value: 'Delay logged' }] : []),
                         ],
                     };
                 },
-            },
-            listeners: {
-                seriesNodeClick: ({ datum }) => this.shipmentClick.emit(datum.id),
             },
         }));
 
@@ -137,10 +258,10 @@ export class DeliveryMap {
             data: PLANT_POINTS,
             showInLegend: false,
             shape: 'square',
-            size: 9,
+            size: 8,
             fill: 'var(--pc-text)',
             stroke: 'var(--pc-panel)',
-            strokeWidth: 1.5,
+            strokeWidth: 1,
             // Plants sit where every lane converges, so an ordered fallback list is tried until a placement fits.
             label: {
                 fontSize: 11,
@@ -150,25 +271,38 @@ export class DeliveryMap {
             },
             tooltip: {
                 renderer: ({ datum }) => ({
+                    heading: '',
                     title: datum.label,
                     data: [{ label: 'Site', value: 'Receiving plant' }],
                 }),
             },
             highlight: { enabled: false },
+            selection: { enabled: false },
         };
 
         return {
             theme: THEME,
             topology: WORLD_TOPOLOGY,
             series: [
-                { type: 'map-shape-background', fill: 'var(--pc-panel-2)', stroke: NEUTRAL, strokeWidth: 0.5 },
-                ...routeSeries,
+                {
+                    type: 'map-shape-background',
+                    fill: 'var(--pc-border)',
+                    stroke: 'var(--pc-panel)',
+                    strokeWidth: 0.5,
+                    selection: { enabled: false },
+                },
+                routes,
                 plants,
                 ...markerSeries,
             ],
-            // The status legend is rendered as HTML alongside the board, carrying the same glyphs as the tiles.
             legend: { enabled: false },
             padding: 0,
+            // The map sits in a scrolling page, so the wheel scrolls it rather than zooming the map.
+            zoom: { enabled: true, enableScrolling: false },
+            initialState: initialZoom && { zoom: initialZoom },
+            // Ctrl/Cmd-click adds or removes a marker; a click on empty sea clears.
+            selection: { enabled: true },
+            listeners: { selectionChange: this.selection.onChartSelectionChange },
         };
     });
 }

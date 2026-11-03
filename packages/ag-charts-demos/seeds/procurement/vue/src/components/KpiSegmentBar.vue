@@ -2,7 +2,6 @@
 import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-community';
 
 import { SEGMENT_SEPARATOR, THEME } from '../chartTheme';
-import { fmtInt } from '../format';
 import type { KpiSegment } from '../types';
 
 /** One row of stacked bands, so the segments share a single 100%-wide bar. */
@@ -31,13 +30,8 @@ function segmentOptions(segments: KpiSegment[]): AgCartesianChartOptions<Segment
         stacked: true,
         normalizedTo: 100,
         fill: segment.color,
+        cornerRadius: 2,
         ...SEGMENT_SEPARATOR,
-        tooltip: {
-            renderer: () => ({
-                title: segment.label,
-                content: `${fmtInt(segment.count)} ${segment.count === 1 ? 'shipment' : 'shipments'}`,
-            }),
-        },
     }));
 
     return {
@@ -57,6 +51,8 @@ function segmentOptions(segments: KpiSegment[]): AgCartesianChartOptions<Segment
         },
         legend: { enabled: false },
         padding: { top: 0, right: 0, bottom: 0, left: 0 },
+        highlight: { enabled: false },
+        tooltip: { enabled: false },
     };
 }
 </script>

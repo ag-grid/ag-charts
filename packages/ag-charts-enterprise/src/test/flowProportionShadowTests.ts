@@ -2,7 +2,7 @@
 // npm-dev dependency edge from src/ (see the not-to-dev-dep dependency-cruiser rule).
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
-import { deproxy, waitForChartStability } from 'ag-charts-community-test';
+import { deproxy, internalOptions, waitForChartStability } from 'ag-charts-community-test';
 
 import {
     DEFAULT_DISABLED_SHADOW,
@@ -25,7 +25,7 @@ export function flowProportionShadowOptions(
     type: 'sankey' | 'chord',
     parts: { link?: FlowProportionShadow; node?: FlowProportionShadow } = {}
 ): AgChartOptions {
-    return {
+    return internalOptions<AgChartOptions>({
         data: DATA,
         series: [
             {
@@ -38,7 +38,7 @@ export function flowProportionShadowOptions(
             },
         ],
         legend: { enabled: false },
-    } as AgChartOptions;
+    });
 }
 
 interface FlowProportionShadowSuiteConfig {

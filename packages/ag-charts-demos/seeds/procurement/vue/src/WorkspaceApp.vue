@@ -1,23 +1,28 @@
 <script lang="ts">
 import { supplierColors as buildSupplierColors } from './chartTheme';
-import { DEMO_NOW, SUBCATEGORIES } from './data';
+import { SUBCATEGORIES } from './data';
 import { fmtDate, fmtInt } from './format';
 import type { AttentionAction, AttentionItem, PoActionKind } from './types';
 import {
+    ALL_FILTER,
+    DEFAULT_ORDERS_FILTER,
     DEFAULT_PERIOD,
     DEFAULT_SPEND_PERIOD,
     MANAGER,
-    MY_OPEN_ORDERS,
-    MY_ORDERS,
     MY_SUPPLIERS,
     MY_TRACKED_SHIPMENTS,
+    type OrdersFilter,
     PERIOD_OPTIONS,
     type PeriodMonths,
     SPEND_PERIOD_OPTIONS,
     type SpendPeriod,
+    applySelectionChange,
     myAttentionItems,
     myBurnUp,
+    myMaterialQualityCost,
+    myOrdersFilterOptions,
     myOrdersInRange,
+    myOrdersScope,
     myPeriod,
     myQualityCost,
     myScorecard,
@@ -29,7 +34,7 @@ import {
     mySummary,
     mySupplierShare,
     mySupplierTrend,
-    ordersOnShipment,
+    ordersOnShipments,
     periodLabel,
     shipmentCarryingOrder,
     spendKpiLabel,
@@ -58,12 +63,6 @@ const INITIALS = MANAGER.name
     .join('');
 
 /**
- * When the dataset is current to. Fixed, because the data is: a moving wall-clock stamp would
- * claim a freshness the workspace does not have.
- */
-const DATA_AS_OF = fmtDate(DEMO_NOW);
-
-/**
  * The tabs follow her own working cadences, which the spec spells out: she checks the workspace
  * daily, reviews scorecard trends weekly, and does spend and contract work quarterly. Grouping by
  * cadence rather than by chart type is what keeps each tab answerable in one screen.
@@ -87,16 +86,28 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
 
 <script setup lang="ts">
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
-import { computed, ref, shallowRef } from 'vue';
+import { computed, ref, shallowRef, watch } from 'vue';
 
 import AttentionAlert from './components/AttentionAlert.vue';
+import DemoNotice from './components/DemoNotice.vue';
+import HelpCard from './components/HelpCard.vue';
 import { buildKpis, buildSpendKpis } from './components/KpiStrip.vue';
 import OrdersView from './components/OrdersView.vue';
+import SidebarActions from './components/SidebarActions.vue';
 import SpendView from './components/SpendView.vue';
 import SuppliersView from './components/SuppliersView.vue';
 import Select from './ui/Select.vue';
 
 const tab = ref<string>('orders');
+const bodyRef = ref<HTMLDivElement>();
+// The tabs share one scroll region, so each would otherwise open at the last one's offset.
+watch(
+    tab,
+    () => {
+        bodyRef.value?.scrollTo({ top: 0 });
+    },
+    { flush: 'post' }
+);
 /**
  * Selection is per tab, and deliberately does not travel.
  *
@@ -105,7 +116,7 @@ const tab = ref<string>('orders');
  * carried across would rescope a grid on a tab the reader is not looking at — and the two
  * scopes rarely intersect, so it would as often empty a view as narrow it.
  */
-const selectedShipmentId = ref<string>();
+const selectedShipmentIds = shallowRef<string[]>([]);
 const selectedSupplierId = ref<string>();
 /** Items she has acted on, and what she chose — resolved items leave the list. */
 const resolved = shallowRef<Record<string, string>>({});
@@ -114,6 +125,8 @@ const poActions = shallowRef<Record<string, PoActionKind>>({});
 const months = ref<PeriodMonths>(DEFAULT_PERIOD);
 /** The calendar window the spend tab is read over, and budgeted against. */
 const spendPeriod = ref<SpendPeriod>(DEFAULT_SPEND_PERIOD);
+/** The supplier and material subcategory the orders tab is narrowed to. */
+const ordersFilter = shallowRef<OrdersFilter>(DEFAULT_ORDERS_FILTER);
 
 // The controls speak option values (strings); the state is typed.
 const monthsValue = computed({
@@ -128,6 +141,39 @@ const spendPeriodValue = computed({
         spendPeriod.value = value as SpendPeriod;
     },
 });
+const supplierFilterValue = computed({
+    get: () => ordersFilter.value.supplierId,
+    set: (supplierId: string) => onOrdersFilterChange({ supplierId }),
+});
+const subcategoryFilterValue = computed({
+    get: () => ordersFilter.value.subcategory,
+    set: (subcategory: string) => onOrdersFilterChange({ subcategory }),
+});
+
+const ordersScope = computed(() => myOrdersScope(ordersFilter.value));
+
+/** Each filter's choices, led by the option that narrows nothing. */
+const ordersFilterOptions = computed(() => {
+    const { supplierIds, subcategories } = myOrdersFilterOptions(ordersFilter.value);
+    return {
+        suppliers: [
+            { value: ALL_FILTER, label: 'All suppliers' },
+            ...supplierIds.map((supplierId) => ({ value: supplierId, label: SUPPLIER_NAMES.get(supplierId)! })),
+        ],
+        subcategories: [
+            { value: ALL_FILTER, label: 'All subcategories' },
+            ...subcategories.map((subcategory) => ({ value: subcategory, label: subcategory })),
+        ],
+    };
+});
+
+// The grid lists the selected shipments' lines, so a shipment the filters hide cannot stay selected.
+function onOrdersFilterChange(change: Partial<OrdersFilter>) {
+    const next = { ...ordersFilter.value, ...change };
+    const visible = new Set(myOrdersScope(next).shipments.map((shipment) => shipment.shipmentId));
+    ordersFilter.value = next;
+    selectedShipmentIds.value = selectedShipmentIds.value.filter((id) => visible.has(id));
+}
 
 const supplierRange = computed(() => myPeriod(months.value));
 const supplierOrders = computed(() => myOrdersInRange(supplierRange.value));
@@ -135,18 +181,16 @@ const supplierOrders = computed(() => myOrdersInRange(supplierRange.value));
 const spendRange = computed(() => mySpendPeriod(spendPeriod.value));
 const spendOrders = computed(() => myOrdersInRange(spendRange.value));
 
-// Selecting the same thing again clears it, on both tabs.
-function onSelectSupplier(supplierId: string) {
-    selectedSupplierId.value = selectedSupplierId.value === supplierId ? undefined : supplierId;
+function onShipmentSelectionChange(added: string[], removed: string[]) {
+    selectedShipmentIds.value = applySelectionChange(selectedShipmentIds.value, added, removed);
 }
 
-function onSelectShipment(shipmentId: string) {
-    selectedShipmentId.value = selectedShipmentId.value === shipmentId ? undefined : shipmentId;
-}
-
-// The worklist sits on the orders tab, so following an item selects within it.
+// The worklist ignores the filters, so following an item clears any that hide its shipment.
 function onSelectAttention(shipmentId: string) {
-    selectedShipmentId.value = shipmentId;
+    if (!ordersScope.value.shipments.some((shipment) => shipment.shipmentId === shipmentId)) {
+        ordersFilter.value = DEFAULT_ORDERS_FILTER;
+    }
+    selectedShipmentIds.value = [shipmentId];
 }
 
 /** Acting on an item resolves it in place. */
@@ -165,7 +209,11 @@ function onPoAction(poId: string, kind: PoActionKind) {
 }
 
 function clearSelection() {
-    selectedShipmentId.value = undefined;
+    selectedShipmentIds.value = [];
+}
+
+function onSelectedSupplierChange(supplierId: string | undefined) {
+    selectedSupplierId.value = supplierId;
 }
 
 const attentionItems = computed(() => ALL_ATTENTION_ITEMS.filter((item) => resolved.value[item.itemId] == null));
@@ -179,6 +227,7 @@ const scorecardRows = computed(() => myScorecard(supplierOrders.value, MY_TRACKE
 const slipDistributions = computed(() => mySlipDistributions(months.value));
 const supplierTrend = computed(() => mySupplierTrend(months.value));
 const qualityCost = computed(() => myQualityCost(months.value));
+const materialQualityCost = computed(() => myMaterialQualityCost(months.value));
 
 const shareRows = computed(() => mySupplierShare(spendOrders.value));
 // Fixed to the current quarter, matching the allocation it is paced against.
@@ -188,16 +237,22 @@ const burnUp = computed(() => myBurnUp(spendPeriod.value));
 const spendTrend = computed(() => mySpendTrend(spendPeriod.value));
 
 /**
- * A selected shipment scopes the grid over her whole order book rather than her open lines: a
- * shipment is a live entity, and its lines were typically raised long before the tab's default
- * view of what is still outstanding.
+ * The grid starts empty and is filled by selecting a shipment on the map or the schedule. A
+ * shipment's lines are read over her filtered order book, delivered lines included: a shipment
+ * is a live entity, and its lines were typically raised long before they were due.
  */
-const gridOrders = computed(() =>
-    selectedShipmentId.value == null ? MY_OPEN_ORDERS : ordersOnShipment(MY_ORDERS, selectedShipmentId.value)
-);
+const gridOrders = computed(() => ordersOnShipments(ordersScope.value.orders, selectedShipmentIds.value));
 
-const summary = computed(() => mySummary(spendOrders.value));
-const kpis = computed(() => buildKpis(summary.value));
+const summary = computed(() => mySummary(spendOrders.value, ordersScope.value));
+const filterLabel = computed(() => {
+    const filter = ordersFilter.value;
+    const parts = [
+        filter.supplierId === ALL_FILTER ? undefined : SUPPLIER_NAMES.get(filter.supplierId),
+        filter.subcategory === ALL_FILTER ? undefined : filter.subcategory,
+    ].filter((part) => part != null);
+    return parts.length > 0 ? parts.join(' · ') : undefined;
+});
+const kpis = computed(() => buildKpis(summary.value, filterLabel.value));
 const spendPosition = computed(() => mySpendPosition(spendPeriod.value));
 const spendKpis = computed(() =>
     buildSpendKpis({
@@ -207,32 +262,35 @@ const spendKpis = computed(() =>
     })
 );
 const gridSubtitle = computed(() => {
-    const shown = fmtInt(gridOrders.value.length);
-    // A shipment's lines are read over her whole order book, delivered ones included, so this
-    // one cannot claim to be showing open lines.
-    return selectedShipmentId.value == null
-        ? `${shown} of my open order lines`
-        : `${shown} of my order lines on ${selectedShipmentId.value}`;
+    const ids = selectedShipmentIds.value;
+    if (ids.length === 0) return 'No shipment selected.';
+    // Delivered lines are included, so this cannot claim to be showing open lines.
+    const on = ids.length === 1 ? ids[0] : `${fmtInt(ids.length)} shipments`;
+    return `${fmtInt(gridOrders.value.length)} of my order lines on ${on}`;
 });
 </script>
 
 <template>
     <TabsRoot v-model="tab" class="pc-app" orientation="vertical">
         <aside class="pc-sidebar">
-            <span class="pc-brand">
-                <svg class="pc-brand-mark" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 2.5 21 7v10l-9 4.5L3 17V7z" class="pc-brand-mark-box" />
-                    <path d="M3 7l9 4.5L21 7M12 11.5V21.5" class="pc-brand-mark-edge" />
-                </svg>
-                Procurement Workspace
-            </span>
+            <div class="pc-brand-row">
+                <span class="pc-brand">
+                    <svg class="pc-brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 2.5 21 7v10l-9 4.5L3 17V7z" class="pc-brand-mark-box" />
+                        <path d="M3 7l9 4.5L21 7M12 11.5V21.5" class="pc-brand-mark-edge" />
+                    </svg>
+                    Supply Desk
+                </span>
+                <DemoNotice />
+            </div>
             <TabsList class="pc-tabs-list" aria-label="Workspace views">
                 <TabsTrigger v-for="entry in TABS" :key="entry.value" class="pc-tab-trigger" :value="entry.value">
                     {{ entry.label }}
                 </TabsTrigger>
             </TabsList>
             <span class="pc-sidebar-spacer" />
-            <span class="pc-stamp">Data as of {{ DATA_AS_OF }}</span>
+            <HelpCard />
+            <SidebarActions />
             <div class="pc-account">
                 <!-- Titled because the name beside it is hidden in the collapsed layout. -->
                 <span class="pc-avatar" :title="`${MANAGER.name} · ${MANAGER.title}`">{{ INITIALS }}</span>
@@ -243,7 +301,7 @@ const gridSubtitle = computed(() => {
             </div>
         </aside>
 
-        <div class="pc-body">
+        <div ref="bodyRef" class="pc-body">
             <div class="pc-view">
                 <div class="pc-page-head">
                     <h1 class="pc-page-title">{{ TAB_LABELS.get(tab) ?? '' }}</h1>
@@ -251,9 +309,9 @@ const gridSubtitle = computed(() => {
                         <!--
                             The period control belongs to the tab it scopes, and the two tabs that
                             have one do not share a window — so it is rendered per tab rather than
-                            once for the workspace. The orders tab has none: its grid is her open
-                            order book and its KPIs are absolute, so there is nothing for a period
-                            to narrow.
+                            once for the workspace. The orders tab has none: its KPIs follow the
+                            supplier and subcategory filters and its grid the shipment selection,
+                            so there is nothing for a period to narrow.
                         -->
                         <div v-if="tab === 'suppliers'" class="pc-page-controls">
                             <!-- The dates the period resolves to, beside the control that sets it. -->
@@ -282,25 +340,40 @@ const gridSubtitle = computed(() => {
                         </div>
                         <!-- Her landing view only: the worklist's items resolve into the order
                              book and the grid below it, so the alert lives where they land. -->
-                        <AttentionAlert
-                            v-if="tab === 'orders'"
-                            :items="attentionItems"
-                            @select="onSelectAttention"
-                            @resolve="onResolveAttention"
-                        />
+                        <template v-if="tab === 'orders'">
+                            <div class="pc-page-controls">
+                                <Select
+                                    v-model="supplierFilterValue"
+                                    label="Supplier"
+                                    aria-label="Supplier my orders are narrowed to"
+                                    :options="ordersFilterOptions.suppliers"
+                                />
+                                <Select
+                                    v-model="subcategoryFilterValue"
+                                    label="Subcategory"
+                                    aria-label="Material subcategory my orders are narrowed to"
+                                    :options="ordersFilterOptions.subcategories"
+                                />
+                            </div>
+                            <AttentionAlert
+                                :items="attentionItems"
+                                @select="onSelectAttention"
+                                @resolve="onResolveAttention"
+                            />
+                        </template>
                     </div>
                 </div>
 
                 <TabsContent class="pc-tab-content" value="orders">
                     <OrdersView
                         :kpis="kpis"
-                        :shipments="MY_TRACKED_SHIPMENTS"
-                        :selected-shipment-id="selectedShipmentId"
+                        :shipments="ordersScope.shipments"
+                        :selected-shipment-ids="selectedShipmentIds"
                         :orders="gridOrders"
                         :grid-subtitle="gridSubtitle"
                         :po-actions="poActions"
-                        :can-clear-selection="selectedShipmentId != null"
-                        @select-shipment="onSelectShipment"
+                        :can-clear-selection="selectedShipmentIds.length > 0"
+                        @shipment-selection-change="onShipmentSelectionChange"
                         @po-action="onPoAction"
                         @clear-selection="clearSelection"
                     />
@@ -314,8 +387,9 @@ const gridSubtitle = computed(() => {
                         :selected-supplier-id="selectedSupplierId"
                         :slip-distributions="slipDistributions"
                         :quality-cost="qualityCost"
+                        :material-quality-cost="materialQualityCost"
                         :trend="supplierTrend"
-                        @select-supplier="onSelectSupplier"
+                        @selected-supplier-change="onSelectedSupplierChange"
                     />
                 </TabsContent>
 

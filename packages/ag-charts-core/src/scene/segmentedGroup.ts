@@ -2,6 +2,7 @@ import { getPath2D } from '../dom/globalsProxy';
 import { SceneRefChangeDetection } from '../rendering/changeDetectable';
 import { TranslatableGroup } from './group';
 import { type RenderContext } from './node';
+import type { ShadowCollector } from './shadowCollector';
 import { Path } from './shape/path';
 import { type Segment, rect } from './shape/segmentedPath';
 import { Scalable, isScalable } from './transformable';
@@ -9,6 +10,13 @@ import { Scalable, isScalable } from './transformable';
 export class SegmentedGroup extends TranslatableGroup {
     @SceneRefChangeDetection()
     segments?: Segment[] = [];
+
+    protected override gatherShadowClips(collector: ShadowCollector) {
+        const { segments } = this;
+        if (segments == null || segments.length === 0) return;
+
+        collector.pushGaps(segments.map(({ clipRect: { x0, y0, x1, y1 } }) => [x0, y0, x1, y1]));
+    }
 
     private readonly scalablePath = new (Scalable(Path))();
 

@@ -4,6 +4,7 @@ import {
     type AgChartOptions,
     AgCharts,
     type AgPolarChartOptions,
+    type AgRadialBarSeriesOptions,
     type AgRadialSeriesItemStylerParams,
     type AgRadialSeriesStyle,
     type AgRadialSeriesStylerParams,
@@ -25,7 +26,9 @@ import {
     expectSceneTrajectory,
     expectWarningsCalls,
     getSeriesContextNodeData,
+    getSeriesOptions,
     hoverAction,
+    internalOptions,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
@@ -34,13 +37,18 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
+import type { WithInternalShadow } from 'ag-charts-core';
 
 import { destroyChart, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
+    DEFAULT_DISABLED_SHADOW,
+    SHADOW,
+    collectShapes,
     createEnterpriseChart,
     mockCssVarColorSupport,
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
+    shadowedShapes,
 } from '../../test/utils';
 import { RadialBarSeries, type RadialBarSeriesNodeDataContext } from './radialBarSeries';
 
@@ -1038,6 +1046,53 @@ describe('RadialBarSeries', () => {
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+    });
+
+    describe('shadow', () => {
+        const shadowData = [
+            { quarter: 'Q1', value: 4 },
+            { quarter: 'Q2', value: 7 },
+            { quarter: 'Q3', value: 5 },
+            { quarter: 'Q4', value: 9 },
+        ];
+        const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions =>
+            internalOptions<AgChartOptions>({
+                data: shadowData,
+                series: [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter', shadow: seriesShadow }],
+                legend: { enabled: false },
+            });
+
+        it('defaults to a disabled shadow', async () => {
+            chart = await createEnterpriseChart(shadowOptions());
+
+            expect(getSeriesOptions<AgRadialBarSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
+                DEFAULT_DISABLED_SHADOW
+            );
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            chart = await createEnterpriseChart(shadowOptions());
+
+            const { contentGroup } = deproxy(chart).series[0];
+            const shapes = collectShapes(contentGroup);
+            expect(shapes).toHaveLength(shadowData.length);
+            expect(shadowedShapes(contentGroup)).toEqual([]);
+        });
+
+        it('applies an enabled shadow to every shape', async () => {
+            chart = await createEnterpriseChart(shadowOptions(SHADOW));
+
+            const shapes = collectShapes(deproxy(chart).series[0].contentGroup);
+            expect(shapes).toHaveLength(shadowData.length);
+            for (const shape of shapes) {
+                expect(shape.fillShadow).toMatchObject(SHADOW);
+            }
+        });
+
+        it('renders with the shadow enabled', async () => {
+            chart = await createEnterpriseChart(shadowOptions(SHADOW));
+            await compare();
         });
     });
 

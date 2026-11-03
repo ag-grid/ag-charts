@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     ariaLabelColorPickerHue: 'रंगत',
     ariaLabelColorPickerMultiColor: 'बहुरंगी',
     ariaLabelColorPickerPalette: 'पैलेट',
+    ariaLabelCrossLine: '${label}, क्रॉस लाइन ${count}[number] में से ${index}[number]',
     ariaLabelFinancialCharts: 'वित्तीय चार्ट',
     ariaLabelGaugeTarget: 'लक्ष्य',
     ariaLabelGaugeValue: 'मान',

@@ -1,8 +1,8 @@
 {
     "demo": "procurement",
     "framework": "vue",
-    "sourceHash": "sha256-69480d22d2e4e7b44972b0f06812da9f9395ff72edb5b7506e8142de1d6d1195",
-    "sourceCommit": "c4a5aefa8c0235c5988454555a9c7834451ffb27",
+    "sourceHash": "sha256-c38fef8d28800433b3085ffb9d4c7954d75c484e1c1f59f1596a0414f838bbd6",
+    "sourceCommit": "5ed5b76913b23589f31f8b01a5770fcc4161e845",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",
     "dist": "dist",

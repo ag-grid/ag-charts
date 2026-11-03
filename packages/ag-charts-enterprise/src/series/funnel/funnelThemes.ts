@@ -3,6 +3,7 @@ import {
     CARTESIAN_POSITION,
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -14,6 +15,7 @@ import {
     cycledFillThemeTemplate,
     themeLineHeight,
     undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -116,9 +118,12 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
         shadow: SHADOW_THEME_DEFAULTS,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
-            unhighlightedItem: {
-                opacity: 0.6,
-            },
+            ...withGlowThemeDefaults(
+                {
+                    unhighlightedItem: { opacity: 0.6 },
+                },
+                ITEM_GLOW_BUCKETS
+            ),
         },
     },
     axes: {

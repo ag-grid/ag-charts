@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaLabelColorPickerHue: 'גוון',
     ariaLabelColorPickerMultiColor: 'צבעים מרובים',
     ariaLabelColorPickerPalette: 'פלטה',
+    ariaLabelCrossLine: '${label}, קו חוצה ${index}[number] מתוך ${count}[number]',
     ariaLabelFinancialCharts: 'תרשימים פיננסיים',
     ariaLabelGaugeTarget: 'יעד',
     ariaLabelGaugeValue: 'ערך',

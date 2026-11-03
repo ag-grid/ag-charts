@@ -5,6 +5,7 @@ import {
     MementoCaretaker,
     ModuleRegistry,
     type ModuleScope,
+    ModuleType,
     Pool,
     deepClone,
     deepFreeze,
@@ -345,10 +346,12 @@ class AgChartsInternal {
 
         const moduleScope =
             proxy?.chart?.chartOptions.moduleRegistry ?? resolveInstanceModuleScope(optionsMetadata.modules);
-        if (moduleScope.listModules().next().done) {
+        if (moduleScope.listModulesByType(ModuleType.Chart).next().done) {
             throw new Error(
                 [
-                    'AG Charts - No modules have been registered.',
+                    moduleScope.listModules().next().done
+                        ? 'AG Charts - No modules have been registered.'
+                        : 'AG Charts - No series modules have been registered.',
                     '',
                     'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create(),',
                     'or pass them to the chart with AgCharts.create(options, { modules: [...] }).',
@@ -453,6 +456,8 @@ class AgChartsInternal {
                     chartOptions.processedOptions.container
                 );
                 chart.ctx.domManager.updateCSSVariableWatchers(processedCSSVariables);
+                // A styler's result is rebuilt on each render, so it only needs a render after the attach.
+                chart.ctx.domManager.setDeferredCSSVariables(chartOptions.takePartialDeferredCSSVariables());
 
                 return chartOptions.optionsGraph?.resolvePartial(
                     logger,
@@ -503,6 +508,7 @@ class AgChartsInternal {
         }
 
         chart.ctx.domManager.updateCSSVariableWatchers(chartOptions.processedCSSVariables);
+        chart.ctx.domManager.setDeferredCSSVariables(chartOptions.deferredCSSVariables);
 
         chart.setRequestRefreshListener(() => {
             const refreshedChartOptions = new ChartOptions(
@@ -518,6 +524,9 @@ class AgChartsInternal {
                 chart.ctx
             );
             AgChartsInternal.licenseCheck(chartProxy, licenceScope);
+            // A variable that could not be resolved before, such as on a detached container, can be now.
+            chart.ctx.domManager.updateCSSVariableWatchers(refreshedChartOptions.processedCSSVariables);
+            chart.ctx.domManager.setDeferredCSSVariables(refreshedChartOptions.deferredCSSVariables);
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
 

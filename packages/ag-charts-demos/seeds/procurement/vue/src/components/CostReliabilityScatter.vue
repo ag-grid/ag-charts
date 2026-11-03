@@ -1,18 +1,44 @@
+<script lang="ts">
+import type { AgQuadrantChartOptions } from 'ag-charts-enterprise';
+
+import { THEME } from '../chartTheme';
+import type { SupplierScorecard } from '../types';
+import { stylerOwnedSelection } from './chartSelection';
+
+/** Paying exactly list price: left of it is cheaper, right of it dearer. */
+const LIST_PRICE_INDEX = 1;
+
+const SERIES_ID = 'suppliers';
+
+const STROKE_WIDTH = 1.5;
+
+// The preset forwards only chart-level selection options, so the series' styles come through the theme.
+const SCATTER_THEME: AgQuadrantChartOptions['theme'] = {
+    ...THEME,
+    overrides: { ...THEME.overrides, bubble: { series: { selection: stylerOwnedSelection(STROKE_WIDTH) } } },
+};
+
+const supplierIdOfItem = ({ datum }: { datum: SupplierScorecard }) => datum.supplierId;
+</script>
+
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import type { AgBubbleSeriesOptions, AgCartesianChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-vue3';
+import type { AgSelectionItemIds } from 'ag-charts-community';
+import { AgQuadrantChart } from 'ag-charts-vue3';
 
-import { NEUTRAL, THEME } from '../chartTheme';
+import { NEUTRAL, STATUS_COLORS, SUCCESS_FILL } from '../chartTheme';
 import { ON_TIME_TARGET } from '../data';
-import { fmtCurrency, fmtCurrencyCompact, fmtInt, fmtPct, fmtSignedPct } from '../format';
-import type { SupplierScorecard } from '../types';
+import { fmtCurrency, fmtCurrencyCompact, fmtIndex, fmtInt, fmtPct, fmtPctWhole } from '../format';
+import { useSupplierSelection } from './useSupplierSelection';
 
 /**
  * Her roster drawn as price against delivery performance, sized by spend — the same rows
  * the scorecard cards show, positioned instead of listed, so an outlier is visible at a
  * glance and the cards carry the detail.
+ *
+ * The chart is split at list price and her on-time target, so the quadrant a supplier falls in
+ * is the verdict: below list and on target is good value, above list and below target needs action.
  *
  * Bubble area is spend rather than quantity ordered: her commodity is bought in both tonnes and
  * kilos, so a summed quantity is only comparable between suppliers that happen to share a unit,
@@ -29,17 +55,30 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    /** Clicking the selected supplier's bubble again clears it. */
-    select: [supplierId: string];
+    /** The user selected a supplier's bubble, or clicked away to clear the selection. */
+    selectedSupplierChange: [supplierId: string | undefined];
 }>();
 
 // A supplier with no orders in scope has no price to draw, only a card.
 const drawn = computed(() => props.rows.filter((row) => row.orderCount > 0));
 
-const options = computed<AgCartesianChartOptions<SupplierScorecard>>(() => {
+const itemsFor = (supplierId: string): AgSelectionItemIds[] =>
+    drawn.value.some((row) => row.supplierId === supplierId) ? [{ seriesId: SERIES_ID, itemId: supplierId }] : [];
+
+const { chartRef, onChartSelectionChange, onChartClick } = useSupplierSelection<SupplierScorecard>({
+    selectedSupplierId: () => props.selectedSupplierId,
+    onSelectedSupplierChange: (supplierId) => emit('selectedSupplierChange', supplierId),
+    supplierIdOf: supplierIdOfItem,
+    itemsFor,
+});
+
+const options = computed<AgQuadrantChartOptions<SupplierScorecard>>(() => {
     const { supplierColors, selectedSupplierId } = props;
-    const series: AgBubbleSeriesOptions<SupplierScorecard> = {
-        type: 'bubble',
+    return {
+        theme: SCATTER_THEME,
+        data: drawn.value,
+        dataIdKey: 'supplierId',
+        id: SERIES_ID,
         xKey: 'priceIndex',
         xName: 'Price vs list',
         yKey: 'onTimeRate',
@@ -49,77 +88,59 @@ const options = computed<AgCartesianChartOptions<SupplierScorecard>>(() => {
         labelKey: 'supplier',
         minSize: 12,
         maxSize: 46,
-        fillOpacity: 0.78,
-        strokeWidth: 1.5,
+        strokeWidth: STROKE_WIDTH,
         label: { enabled: true, fontSize: 11 },
-        // Each supplier keeps the identity colour it carries on its card and in the
-        // sunburst's outer ring; a dimmed bubble is one outside the current selection.
+        pivot: { x: LIST_PRICE_INDEX, y: ON_TIME_TARGET },
+        regions: {
+            label: { fontSize: 11, fontWeight: 'bold', color: 'var(--pc-muted)' },
+            topLeft: {
+                fill: SUCCESS_FILL,
+                fillOpacity: 0.12,
+                label: { text: 'Retain & expand', color: 'var(--pc-ok)' },
+            },
+            topRight: { fillOpacity: 0, label: { text: 'Renegotiate price' } },
+            bottomLeft: { fillOpacity: 0, label: { text: 'Improve delivery' } },
+            bottomRight: {
+                fill: STATUS_COLORS.Late,
+                fillOpacity: 0.12,
+                label: { text: 'Review / exit', color: 'var(--pc-bad)' },
+            },
+        },
+        // Supplier identity colour, as on its card and the sunburst; `fillOpacity` is explicit so a
+        // bubble never inherits its region's faint tint. A dimmed bubble is outside the selection.
         itemStyler: ({ datum }) => {
             const color = supplierColors[datum.supplierId] ?? NEUTRAL;
             if (selectedSupplierId == null || datum.supplierId === selectedSupplierId) {
-                return { fill: color, stroke: color };
+                return { fill: color, stroke: color, fillOpacity: 0.78 };
             }
             return { fill: NEUTRAL, stroke: NEUTRAL, fillOpacity: 0.28 };
         },
         tooltip: {
             renderer: ({ datum }) => ({
-                title: `${datum.supplier} · ${datum.country}`,
+                title: datum.supplier,
                 data: [
-                    { label: 'Price vs list', value: `${datum.priceIndex.toFixed(2)}×` },
-                    { label: 'vs contract', value: fmtSignedPct(datum.priceVariance) },
+                    { label: 'Price vs list', value: fmtIndex(datum.priceIndex) },
                     datum.rateIsContracted
                         ? { label: 'On-time (contracted)', value: fmtPct(datum.onTimeRate) }
                         : {
                               label: `On-time (${fmtInt(datum.deliveredCount)} delivered)`,
                               value: fmtPct(datum.onTimeRate),
                           },
-                    { label: 'Quality', value: fmtPct(datum.qualityScore) },
                     { label: 'Spend', value: fmtCurrency(datum.spend) },
-                    { label: 'Order lines', value: fmtInt(datum.orderCount) },
                 ],
             }),
         },
-        listeners: {
-            seriesNodeClick: ({ datum }) => emit('select', datum.supplierId),
+        selection: { enabled: true },
+        listeners: { selectionChange: onChartSelectionChange, click: onChartClick },
+        xAxis: {
+            title: { enabled: true, text: 'Price vs list price' },
+            label: { formatter: ({ value }) => fmtIndex(value, 1) },
         },
-    };
-
-    return {
-        theme: THEME,
-        data: drawn.value,
-        series: [series],
-        axes: {
-            x: {
-                type: 'number',
-                position: 'bottom',
-                title: { enabled: true, text: 'Price vs list price' },
-                label: { formatter: ({ value }) => `${value.toFixed(2)}×` },
-            },
-            y: {
-                type: 'number',
-                position: 'left',
-                title: { enabled: true, text: 'On-time delivery' },
-                label: { formatter: ({ value }) => fmtPct(value) },
-                // Her delivery target, so a supplier below it reads as below it.
-                crossLines: [
-                    {
-                        type: 'line',
-                        value: ON_TIME_TARGET,
-                        stroke: 'var(--pc-muted)',
-                        strokeWidth: 1,
-                        lineDash: [4, 4],
-                        label: {
-                            enabled: true,
-                            text: `${fmtPct(ON_TIME_TARGET)} target`,
-                            position: 'top-left',
-                            color: 'var(--pc-muted)',
-                            fontSize: 11,
-                        },
-                    },
-                ],
-            },
+        yAxis: {
+            title: { enabled: true, text: `On-time delivery (target ${fmtPctWhole(ON_TIME_TARGET)})` },
+            label: { formatter: ({ value }) => fmtPctWhole(value) },
+            max: 1,
         },
-        legend: { enabled: false },
         padding: { top: 8, right: 16, bottom: 4, left: 4 },
         formatter: {
             size: ({ value }) => fmtCurrencyCompact(Number(value)),
@@ -129,5 +150,5 @@ const options = computed<AgCartesianChartOptions<SupplierScorecard>>(() => {
 </script>
 
 <template>
-    <AgCharts :options="options" :style="{ height: '100%', width: '100%' }" />
+    <AgQuadrantChart ref="chartRef" :options="options" :style="{ height: '100%', width: '100%' }" />
 </template>

@@ -147,7 +147,7 @@ jobs:
             test_pkg_matrix: ${{ steps.matrix.outputs.pkg_matrix }}
             e2e_matrix: ${{ steps.matrix.outputs.e2e_matrix }}
             e2e_count: ${{ steps.matrix.outputs.e2e_count }}
-            demos_affected: ${{ steps.matrix.outputs.demos_affected }}
+            demos_suites: ${{ steps.matrix.outputs.demos_suites }}
             build_type: ${{ steps.setup.outputs.type }}
             snapshot_branch: ${{ steps.snapshot-prepare.outputs.branch }}
             pkg_tests_modified: ${{ steps.matrix.outputs.pkg_tests_modified }}
@@ -271,18 +271,35 @@ jobs:
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
 
-                  # Whether the demo-apps smoke should run (its own files or an upstream dep changed).
-                  # The seed projects under packages/ag-charts-demos/seeds are the nested project
-                  # ag-charts-demos-seeds, which has no test:e2e target of its own, so a port-only
-                  # change affects only it; it is counted too, since the job carries the parity step
-                  # that gates the ports. Non-zero means run; the value may be 2.
+                  # Which demo-apps suites to run, as the demos_e2e job's matrix. Nothing unless the
+                  # demos or an upstream dep changed. The seed projects under
+                  # packages/ag-charts-demos/seeds are the nested project ag-charts-demos-seeds, which
+                  # has no test:e2e target of its own, so a port-only change affects only it; it is
+                  # counted too, since the job carries the parity suites that gate the ports.
+                  #
+                  # A PR that changes only the library skips the two port suites: the React app and
+                  # the ports get the same library, so what they compare moves only with the demos,
+                  # the seeds, the harness, the framework wrappers or the build inputs. The React
+                  # suites still prove the library against the demos, and pushes run everything. If
+                  # the diff cannot be read, run everything.
+                  demos_all='["functional","self-parity","port-parity","port-specs"]'
+                  demos_react='["functional","self-parity"]'
+                  demos_port_inputs='^(packages/ag-charts-demos/|packages/ag-charts-(react|vue3|angular)/|patches/|\.github/workflows/ci\.yml$|yarn\.lock$|package\.json$|esbuild\.config|tsconfig\.)'
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
-                    demos_affected=1
+                    demos_suites=${demos_all}
+                  elif [[ $(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true) -eq 0 ]] ; then
+                    demos_suites='[]'
+                  elif [[ "${{ github.event_name }}" != "pull_request" ]] ; then
+                    demos_suites=${demos_all}
+                  elif ! demos_changed=$(git diff --name-only ${{ steps.setup.outputs.base }}) ; then
+                    demos_suites=${demos_all}
+                  elif grep -qE "${demos_port_inputs}" <<< "${demos_changed}" ; then
+                    demos_suites=${demos_all}
                   else
-                    demos_affected=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true)
+                    demos_suites=${demos_react}
                   fi
-                  echo "demos_affected=${demos_affected}" >> $GITHUB_OUTPUT
-                  echo "Demos affected: ${demos_affected}"
+                  echo "demos_suites=${demos_suites}" >> $GITHUB_OUTPUT
+                  echo "Demo suites: ${demos_suites}"
 
                   # Check if package test files are directly modified in PR
                   pkg_tests_modified="false"
@@ -1393,9 +1410,13 @@ jobs:
 
     demos_e2e:
         runs-on: ubuntu-24.04
-        name: Demo Apps Smoke
+        name: Demo Apps Smoke (${{ matrix.suite }})
         needs: [detect-changes, init, playwright_image]
-        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.demos_affected != '0'
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.demos_suites != '[]'
+        strategy:
+            fail-fast: false
+            matrix:
+                suite: ${{ fromJson(needs.init.outputs.demos_suites) }}
         permissions:
             contents: read
             packages: read
@@ -1507,6 +1528,7 @@ jobs:
 
             - name: playwright test ag-charts-demos
               id: demos_e2e
+              if: matrix.suite == 'functional'
               run: |
                   docker run --rm --ipc=host --init \
                     -v "$(pwd)":/data \
@@ -1519,10 +1541,10 @@ jobs:
             # Self-parity: the React app served twice from the dist/ the init job built, with
             # vite preview as the port run serves its reference, and compared with itself. Every
             # pixel must match; this proves the demos and the harness are deterministic, which the
-            # port comparison below relies on to mean anything.
+            # port comparison relies on to mean anything.
             - name: playwright self-parity ag-charts-demos
               id: demos_self_parity
-              if: ${{ !cancelled() }}
+              if: matrix.suite == 'self-parity'
               run: |
                   docker run --rm --ipc=host --init \
                     -v "$(pwd)":/data \
@@ -1542,11 +1564,9 @@ jobs:
             # where the checkout's git is set up, and read by the run in the container.
             - name: playwright parity ag-charts-demos
               id: demos_parity
-              if: ${{ !cancelled() }}
+              if: matrix.suite == 'port-parity'
               run: |
-                  # The report goes under the runner's temp folder, mounted read-only into the
-                  # container: e2e/parity/results/ is created by the self-parity container as root,
-                  # so the runner user cannot write into it.
+                  # The report goes under the runner's temp folder, mounted read-only into the container.
                   report="${RUNNER_TEMP}/parity-input/stale-ports.json"
                   mkdir -p "$(dirname "$report")"
                   node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > "$report"
@@ -1568,19 +1588,15 @@ jobs:
             # app, so each runs only its own demo's specs. Stale ports are skipped and named, as
             # in the parity step, and with no current port the step passes saying so. The plan
             # (port-spec-plan.mjs) is made here on the runner, where the checkout's git is set
-            # up, from the stale report the parity step wrote when it ran; run-port-specs.mjs runs
-            # in the container and reports which demo and framework failed.
+            # up; run-port-specs.mjs runs in the container and reports which demo and framework
+            # failed.
             - name: playwright functional specs on framework ports ag-charts-demos
               id: demos_port_specs
-              if: ${{ !cancelled() }}
+              if: matrix.suite == 'port-specs'
               run: |
                   input="${RUNNER_TEMP}/parity-input"
                   mkdir -p "${input}"
-                  stale_report=()
-                  if [ -f "${input}/stale-ports.json" ] ; then
-                    stale_report=(--stale-report "${input}/stale-ports.json")
-                  fi
-                  node packages/ag-charts-demos/tools/seeds/port-spec-plan.mjs "${stale_report[@]}" --out "${input}/port-spec-plan.json"
+                  node packages/ag-charts-demos/tools/seeds/port-spec-plan.mjs --out "${input}/port-spec-plan.json"
                   docker run --rm --ipc=host --init \
                     -v "$(pwd)":/data \
                     -v "${input}":/parity-input:ro \
@@ -1595,7 +1611,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
-                  name: test-results-demos-e2e
+                  name: test-results-demos-e2e-${{ matrix.suite }}
                   path: |
                       reports/
                       packages/ag-charts-demos/test-results/

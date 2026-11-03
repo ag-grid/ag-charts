@@ -285,7 +285,17 @@ describe('moduleRegistry', () => {
             expect(scope.hasModule('global-series')).toBe(true);
             expect(scope.getSeriesModule('global-series')).toBe(globalSeries);
             expect(scope.getSeriesModule('own-series')).toBe(ownSeries);
-            expect(Array.from(scope.listModules())).toEqual([ownSeries, globalSeries]);
+            expect(Array.from(scope.listModules())).toEqual([globalSeries, ownSeries]);
+        });
+
+        test('a child scope lists its own and inherited modules in one name order', () => {
+            const [a, b, c, d] = ['a', 'b', 'c', 'd'].map((name) => createSeriesModule(name));
+            registerModules([d, b]);
+
+            const scope = createModuleScope(resolveModuleScope());
+            scope.registerModules([c, a]);
+
+            expect(Array.from(scope.listModules())).toEqual([a, b, c, d]);
         });
 
         test('instance modules are not visible to the global registry', () => {

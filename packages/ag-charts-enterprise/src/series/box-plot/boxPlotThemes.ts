@@ -4,11 +4,14 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
+    undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -34,18 +37,21 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
-        shadow: SHADOW_THEME_DEFAULTS,
+        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
         cap: { lengthRatio: 0.5 },
         tooltip: SERIES_TOOLTIP_THEME,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             bringToFront: true,
-            unhighlightedItem: {
-                opacity: 0.5,
-            },
-            unhighlightedSeries: {
-                opacity: 0.1,
-            },
+            ...withGlowThemeDefaults(
+                {
+                    unhighlightedItem: {
+                        opacity: 0.5,
+                    },
+                    unhighlightedSeries: { opacity: 0.1 },
+                },
+                SERIES_GLOW_BUCKETS
+            ),
         },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,

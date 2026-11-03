@@ -2,12 +2,13 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-comm
 import type { AgLinearGaugeOptions } from 'ag-charts-enterprise';
 
 import { type ChartHost, chartHost, gaugeHost } from '../chart';
-import { SEGMENT_SEPARATOR, STATUS_COLORS, STATUS_ICONS, THEME } from '../chartTheme';
+import { SEGMENT_SEPARATOR, THEME } from '../chartTheme';
 import { type View, h } from '../dom';
 import { fmtCurrencyCompact, fmtInt, fmtPct } from '../format';
 import { memo } from '../memo';
-import type { Kpi, KpiGauge, KpiSegment, ShipmentStatus } from '../types';
-import { type MySpendPosition, type MySummary, ON_TIME_TARGET } from '../workspace';
+import type { Kpi, KpiGauge, KpiSegment } from '../types';
+import type { MySpendPosition, MySummary } from '../workspace';
+import { STATUS_ORDER, statusKeys, statusSegments } from './StatusKeys';
 
 /** Bar ink per threshold state, matching the tile's own accent. */
 const GAUGE_FILL: Record<Kpi['tone'], string> = {
@@ -34,7 +35,7 @@ function gaugeOptions({ value, target, targetLabel }: KpiGauge, tone: Kpi['tone'
         direction: 'horizontal',
         value: value * 100,
         thickness: 8,
-        cornerRadius: 4,
+        cornerRadius: 2,
         scale: {
             min: 0,
             max,
@@ -57,9 +58,6 @@ function gaugeOptions({ value, target, targetLabel }: KpiGauge, tone: Kpi['tone'
         padding: { top: 0, right: 0, bottom: 0, left: 0 },
     };
 }
-
-/** Bands of the shipment breakdown, worst first. */
-const SEGMENT_ORDER: ShipmentStatus[] = ['Late', 'At risk', 'On time'];
 
 /** One row of stacked bands, so the segments share a single 100%-wide bar. */
 interface SegmentRow {
@@ -87,13 +85,8 @@ function segmentOptions(segments: KpiSegment[]): AgCartesianChartOptions<Segment
         stacked: true,
         normalizedTo: 100,
         fill: segment.color,
+        cornerRadius: 2,
         ...SEGMENT_SEPARATOR,
-        tooltip: {
-            renderer: () => ({
-                title: segment.label,
-                content: `${fmtInt(segment.count)} ${segment.count === 1 ? 'shipment' : 'shipments'}`,
-            }),
-        },
     }));
 
     return {
@@ -113,67 +106,35 @@ function segmentOptions(segments: KpiSegment[]): AgCartesianChartOptions<Segment
         },
         legend: { enabled: false },
         padding: { top: 0, right: 0, bottom: 0, left: 0 },
+        highlight: { enabled: false },
+        tooltip: { enabled: false },
     };
 }
 
-/** The bands in text, so the breakdown survives without colour or a hover. */
-function segmentKeys(segments: KpiSegment[]): HTMLSpanElement {
-    return h(
-        'span',
-        { class: 'pc-kpi-segment-keys' },
-        ...segments.map((segment) =>
-            h(
-                'span',
-                { class: 'pc-kpi-segment-key' },
-                h('span', { 'aria-hidden': 'true', style: `color: ${segment.color};` }, segment.icon),
-                ' ',
-                `${fmtInt(segment.count)} ${segment.label.toLowerCase()}`
-            )
-        )
-    );
-}
-
 /**
- * Her delivery headlines, with the threshold logic that selects each tile's state.
+ * Her delivery headline: the freight from her suppliers that needs watching.
  *
- * These are her scorecard, not a portfolio summary: every one is scoped to her commodity, so
- * the labels say "my" and the denominators are her commodity's, not the company's.
+ * Scoped to her commodity rather than the portfolio, so the denominator is her commodity's
+ * in-transit count, not the company's. Spend against allocation is a spend-tab
+ * figure — see `buildSpendKpis`.
  *
- * Every tile is absolute rather than period-scoped, and says which window it covers — see
- * `mySummary`. Spend against allocation is a spend-tab figure — see `buildSpendKpis`.
+ * `filterLabel` names what the orders tab's filters narrow to, so the detail line says the figure is filtered.
  */
-export function buildKpis(summary: MySummary): Kpi[] {
-    const belowTarget = summary.onTimeRate < ON_TIME_TARGET;
-    const inTransit = SEGMENT_ORDER.reduce((total, status) => total + summary.shipmentsByStatus[status], 0);
+export function buildKpis(summary: MySummary, filterLabel?: string): Kpi[] {
+    const inTransit = STATUS_ORDER.reduce((total, status) => total + summary.shipmentsByStatus[status], 0);
 
     return [
         {
-            key: 'onTime',
-            label: 'My on-time delivery',
-            value: fmtPct(summary.onTimeRate),
-            detail: `${fmtInt(summary.deliveredCount)} deliveries, rolling 12 months · ${fmtPct(ON_TIME_TARGET)} target`,
-            tone: belowTarget ? 'bad' : 'good',
-            icon: belowTarget ? '▼' : '▲',
-            gauge: {
-                value: summary.onTimeRate,
-                target: ON_TIME_TARGET,
-                targetLabel: `${fmtPct(ON_TIME_TARGET)} target`,
-            },
-        },
-        {
             key: 'atRisk',
-            label: 'My at-risk shipments',
+            label: 'At-risk shipments',
             value: fmtInt(summary.atRiskShipments),
-            detail: `Of ${fmtInt(inTransit)} in transit from my suppliers`,
-            tone: summary.atRiskShipments > 0 ? 'bad' : 'good',
-            icon: summary.atRiskShipments > 0 ? '▲' : '●',
-            // Worst first, so the bands she is being measured on lead the bar.
-            segments: SEGMENT_ORDER.map((status) => ({
-                label: status,
-                count: summary.shipmentsByStatus[status],
-                color: STATUS_COLORS[status],
-                icon: STATUS_ICONS[status],
-            })),
+            detail:
+                filterLabel == null
+                    ? `Out of ${fmtInt(inTransit)} in transit from my suppliers`
+                    : `Out of ${fmtInt(inTransit)} in transit · filtered to ${filterLabel}`,
+            // The segmented bar already shows how many are late, so the tile carries no threshold state.
+            tone: 'neutral',
+            segments: statusSegments(summary.shipmentsByStatus),
         },
     ];
 }
@@ -210,7 +171,6 @@ export function buildSpendKpis({ position, label, projectionLabel }: SpendKpis):
             value: fmtCurrencyCompact(position.spend),
             detail: `${fmtPct(position.used)} of my ${fmtCurrencyCompact(position.budget)} ${position.budgetLabel} · ${fmtPct(position.elapsed)} of the ${position.windowLabel} elapsed`,
             tone,
-            icon: tone === 'neutral' ? '●' : '▲',
             // The allocation is the ceiling, so the target sits at the far end of the scale.
             gauge: { value: position.used, target: 1, targetLabel: position.budgetLabel },
         },
@@ -221,7 +181,6 @@ export function buildSpendKpis({ position, label, projectionLabel }: SpendKpis):
             // Says the assumption out loud: a run rate is a projection, not a commitment.
             detail: `${fmtCurrencyCompact(Math.abs(overrun))} ${overrun >= 0 ? 'over' : 'under'} my ${fmtCurrencyCompact(position.budget)} ${position.budgetLabel} at my recent run rate`,
             tone: overrun > 0 ? 'bad' : 'good',
-            icon: overrun > 0 ? '▲' : '▼',
             gauge: { value: projectedShare, target: 1, targetLabel: position.budgetLabel },
         },
     ];
@@ -240,30 +199,23 @@ interface Tile {
     segmentOptions: (segments: KpiSegment[]) => AgCartesianChartOptions<SegmentRow>;
 }
 
-const tileClass = (kpi: Kpi) => (kpi.tone === 'neutral' ? 'pc-kpi' : `pc-kpi is-${kpi.tone}`);
-
-/** The tile's label with the glyph restating the threshold state the accent colour carries. */
-function fillLabel(label: HTMLSpanElement, kpi: Kpi) {
-    label.replaceChildren(kpi.label);
-    if (kpi.tone !== 'neutral') label.append(h('span', { class: 'pc-kpi-icon', 'aria-hidden': 'true' }, kpi.icon));
-}
-
 /**
  * The line explaining the figure and the bands it is drawn from read as one row: the sentence on
  * the left, the counts it refers to ranged right.
  */
 function fillFoot(foot: HTMLSpanElement, kpi: Kpi) {
     foot.replaceChildren();
-    if (kpi.detail) foot.append(h('span', { class: 'pc-kpi-detail' }, kpi.detail));
-    if (kpi.segments) foot.append(segmentKeys(kpi.segments));
+    if (kpi.detail != null && kpi.detail !== '') foot.append(h('span', { class: 'pc-kpi-detail' }, kpi.detail));
+    if (kpi.segments) foot.append(statusKeys({ segments: kpi.segments }));
 }
 
 function createTile(kpi: Kpi): Tile {
-    const label = h('span', { class: 'pc-kpi-label' });
-    fillLabel(label, kpi);
+    const label = h('span', { class: 'pc-kpi-label' }, kpi.label);
     const value = h('span', { class: 'pc-kpi-value' }, kpi.value);
+    // The chart the figure is read against: beside it, or under it when `stacked`.
+    const figure = h('span', { class: 'pc-kpi-figure' }, value);
     const tile: Tile = {
-        el: h('div', { class: tileClass(kpi) }, label, value),
+        el: h('div', { class: 'pc-kpi' }, label, figure),
         kpi,
         label,
         value,
@@ -273,11 +225,11 @@ function createTile(kpi: Kpi): Tile {
     if (kpi.gauge) {
         tile.gauge = gaugeHost();
         // The detail line already states the figure and its target, so the gauge stays out of accessible text.
-        tile.el.append(h('span', { class: 'pc-kpi-gauge', 'aria-hidden': 'true' }, tile.gauge.el));
+        figure.append(h('span', { class: 'pc-kpi-gauge', 'aria-hidden': 'true' }, tile.gauge.el));
     }
     if (kpi.segments) {
         tile.segments = chartHost();
-        tile.el.append(h('span', { class: 'pc-kpi-segments' }, tile.segments.el));
+        figure.append(h('span', { class: 'pc-kpi-segments' }, tile.segments.el));
     }
     if (kpi.detail != null || kpi.segments != null) {
         tile.foot = h('span', { class: 'pc-kpi-foot' });
@@ -298,9 +250,12 @@ export interface KpiStrip extends View {
     update(kpis: Kpi[]): void;
 }
 
-/** Tiles share the row evenly, however many of them a view passes. */
-export function createKpiStrip(kpis: Kpi[]): KpiStrip {
-    const el = h('div', { class: 'pc-kpis' });
+/**
+ * Tiles share one card evenly, however many of them a view passes. `stacked` puts each chart under
+ * its figure rather than beside it.
+ */
+export function createKpiStrip(kpis: Kpi[], stacked = false): KpiStrip {
+    const el = h('div', { class: stacked ? 'pc-kpis pc-kpis--stacked' : 'pc-kpis' });
     let tiles: Tile[] = [];
     let mounted = false;
 
@@ -338,8 +293,7 @@ export function createKpiStrip(kpis: Kpi[]): KpiStrip {
             tiles.forEach((tile, index) => {
                 const kpi = next[index];
                 tile.kpi = kpi;
-                tile.el.className = tileClass(kpi);
-                fillLabel(tile.label, kpi);
+                tile.label.textContent = kpi.label;
                 tile.value.textContent = kpi.value;
                 if (kpi.gauge) tile.gauge?.update(tile.gaugeOptions(kpi.gauge, kpi.tone));
                 if (kpi.segments) tile.segments?.update(tile.segmentOptions(kpi.segments));

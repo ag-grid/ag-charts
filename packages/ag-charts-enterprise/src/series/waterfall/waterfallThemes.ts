@@ -5,6 +5,7 @@ import {
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
@@ -14,6 +15,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     themeLineHeight,
     undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme, Operation } from 'ag-charts-types';
 
@@ -231,7 +233,7 @@ export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
             strokeWidth: 2,
         },
         tooltip: SERIES_TOOLTIP_THEME,
-        highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
+        highlight: withGlowThemeDefaults(SINGLE_SERIES_HIGHLIGHT_STYLE, ITEM_GLOW_BUCKETS),
     },
     legend: {
         enabled: true,

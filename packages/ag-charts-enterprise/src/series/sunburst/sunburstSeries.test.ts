@@ -40,6 +40,7 @@ import {
     getSeriesSelectionNodes,
     hierarchyChartAssertions,
     hoverAction,
+    internalOptions,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -1154,15 +1155,16 @@ describe('SunburstSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 8 };
+        const shadow = { enabled: true, fill: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 8 };
         const data = HIERARCHY_SHADOW_DATA;
         let proxy: AgChartInstance;
-        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
-            data,
-            series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', shadow: seriesShadow }],
-            legend: { enabled: false },
-            animation: { enabled: false },
-        });
+        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions =>
+            internalOptions<AgChartOptions>({
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', shadow: seriesShadow }],
+                legend: { enabled: false },
+                animation: { enabled: false },
+            });
         const renderSeries = async (seriesShadow?: typeof shadow) => {
             proxy = await createEnterpriseChart(shadowOptions(seriesShadow));
             chart = deproxy(proxy);
@@ -1203,7 +1205,7 @@ describe('SunburstSeries', () => {
             await compare();
         });
 
-        // The hovered sector is redrawn on the highlight layer; only that copy casts its shadow.
+        // The hovered sector is redrawn on the highlight layer; its in-place copy keeps casting its shadow.
         it('renders a hovered sector with a single shadow', async () => {
             const series = await renderSeries(shadow);
 

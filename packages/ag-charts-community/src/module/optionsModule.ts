@@ -65,7 +65,7 @@ import {
     type SeriesType,
 } from 'ag-charts-types';
 
-import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
+import { ExpectedModules, type ModulePlaceholder, narrowMissingModule } from '../chart/factory/expectedModules';
 import {
     composeAxisOptionsDefs,
     composeChartOptionsDefs,
@@ -74,7 +74,7 @@ import {
     sanitizeThemeModules,
 } from '../chart/factory/processModuleOptions';
 import { getChartTheme } from '../chart/mapping/themes';
-import { detectChartType, resolveDefaultSeriesType } from '../chart/mapping/types';
+import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import {
     type ChartValidations,
@@ -102,6 +102,15 @@ import type { SeriesGrouping } from './seriesGrouping';
 
 /** What a preset's data transform derives from the rows. */
 type PresetDataUpdate = ReturnType<NonNullable<PresetModuleDefinition<any>['processData']>>;
+
+interface CSSVariableContext {
+    container: HTMLElement;
+    logger: Logger;
+    /** Collects the `var()` values left unresolved on a detached container. */
+    deferred?: Set<string>;
+    /** Set when a value was removed from the node being walked. */
+    removed?: boolean;
+}
 
 interface FontAccumulator {
     /** Google font families to load from the CDN (gated by `loadGoogleFonts`). */
@@ -302,6 +311,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     };
     userDeltaKeys?: Set<string>;
     processedCSSVariables?: Record<string, string>;
+    /**
+     * The `var()` values that could not be resolved on a detached container, to be resolved once it is attached. Unset
+     * when the pass did not process CSS variables and theme params, as the fast path does not, so the previous pass's
+     * stand.
+     */
+    deferredCSSVariables?: string[];
+    /** What stylers' partial options deferred since it was last taken; see `takePartialDeferredCSSVariables`. */
+    private readonly partialDeferred = new Set<string>();
+    /** The theme's params with the unresolvable `var()` values removed; unset when the theme's own are usable. */
+    processedThemeParams?: PlainObject;
     /** Every issue the Logger reported while this pass ran; the chart starts its validation cycle from them. */
     issues: LogIssue[] = [];
     /** False when the fast path or the structural cache carried the previous pass's issues forward unvalidated. */
@@ -626,7 +645,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             presetDef = this.moduleRegistry.getPresetModule(presetType);
             presetDefName = presetDef?.name;
             optionsTheme ??= presetDef?.baseTheme;
-            missingPresetModule = presetDef == null ? ExpectedModules.get(presetType) : undefined;
+            const presetPlaceholder = presetDef == null ? ExpectedModules.get(presetType) : undefined;
+            missingPresetModule = presetPlaceholder && narrowMissingModule(presetPlaceholder, [options.type])[0];
         }
 
         const activeTheme = this.resolveThemeAndArmValidations(optionsTheme, presetDefName);
@@ -712,7 +732,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             options,
             this.processedCSSVariables,
             presetOptions,
-            this.moduleRegistry
+            this.moduleRegistry,
+            this.processedThemeParams
         );
         const resolvedOptions = optionsGraph.resolve(this.logger) as any;
         const themeParameters = optionsGraph.resolveParams();
@@ -946,20 +967,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const seriesCount = options.series?.length ?? 0;
         const missingModules: ModulePlaceholder[] = [];
 
-        if (seriesCount === 0) {
-            // With no `series` the default series type is one in scope, so it can only be missing when no series
-            // module is in scope — the same defect as the explicit mismatch below. Presets supply their own.
-            const defaultType = this.optionsType(options);
-            const defaultPlaceholder = ExpectedModules.get(defaultType);
-            if (
-                this.optionMetadata.presetType == null &&
-                this.moduleRegistry.getSeriesModule(defaultType) == null &&
-                defaultPlaceholder?.type === ModuleType.Series
-            ) {
-                missingModules.push(defaultPlaceholder);
-            }
-        }
-
         let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
             const keyPath = `series[${index}]`;
@@ -1099,7 +1106,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private optionsType(options: Partial<T>) {
-        return options.series?.[0]?.type ?? resolveDefaultSeriesType(this.moduleRegistry);
+        return options.series?.[0]?.type;
     }
 
     private processSeriesOptions(options: T) {
@@ -1540,12 +1547,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * algorithm.
      */
     private predictAxes(
-        seriesType: SeriesType,
+        seriesType: SeriesType | undefined,
         directions: ChartAxisDirection[],
         userSeriesOptions?: any,
         data?: DatumDefault[]
     ): Record<string, PlainObject> | undefined {
-        if (!userSeriesOptions) return;
+        if (!userSeriesOptions || seriesType == null) return;
 
         const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
         if (seriesData == null || seriesData.length === 0) return;
@@ -1597,9 +1604,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return Object.fromEntries(axes) as Record<string, PlainObject>;
     }
 
-    private cloneDefaultAxes(seriesType: SeriesType) {
-        const seriesModule = this.moduleRegistry.getSeriesModule(seriesType);
-        return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : {};
+    private cloneDefaultAxes(seriesType: SeriesType | undefined) {
+        let defaultAxes = this.chartDef?.defaultAxes;
+        if (seriesType != null) {
+            const seriesModule = this.moduleRegistry.getSeriesModule(seriesType);
+            defaultAxes =
+                seriesModule == null
+                    ? undefined
+                    : (seriesModule.defaultAxes ??
+                      this.moduleRegistry.getChartModule(seriesModule.chartType)?.defaultAxes);
+        }
+        return defaultAxes ? deepClone(defaultAxes) : {};
     }
 
     private predictAxesMissingTypesAndPositions(
@@ -1770,7 +1785,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? series
                 : mergeDefaults(
                       series,
-                      resolveSeriesThemeDefaultsMemoised(activeTheme, series.type, this.moduleRegistry, cssVariables)
+                      resolveSeriesThemeDefaultsMemoised(
+                          activeTheme,
+                          series.type,
+                          this.moduleRegistry,
+                          cssVariables,
+                          this.processedThemeParams
+                      )
                   )
         );
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(
@@ -1887,7 +1908,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const isSolo = (seriesType: string) => this.moduleRegistry.getSeriesModule(seriesType)?.solo ?? false;
         const allSeries: SeriesOptionsTypes[] | undefined = options.series;
         if (allSeries && allSeries.length > 1 && allSeries.some((series) => isSolo(series.type))) {
-            const mainSeriesType = this.optionsType(options);
+            const mainSeriesType = allSeries[0].type;
             if (isSolo(mainSeriesType)) {
                 this.logger.warn(
                     `series[0] of type '${mainSeriesType}' is incompatible with other series types. Only processing series[0]`
@@ -2036,7 +2057,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this: void,
         optionsNode: any,
         _parallelNode: any,
-        ctx: { container: HTMLElement | null | undefined; logger: Logger } | undefined,
+        ctx: CSSVariableContext | undefined,
         processedCSSVariables: Record<string, string> | undefined
     ) {
         processedCSSVariables ??= {};
@@ -2055,7 +2076,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (!resolved) continue;
 
             if (!resolved.isValid) {
-                ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                // A detached element has no computed style, so a variable with no value yet may be given one once
+                // the container is attached; the value is left out for now and the attach re-resolves it.
+                if (!container.isConnected && resolved.propertyValue === '') {
+                    ctx.deferred?.add(value);
+                } else {
+                    ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                }
+                ctx.removed = true;
                 delete optionsNode[key];
                 continue;
             }
@@ -2095,17 +2123,39 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return { isValid, propertyValue };
     }
 
-    private processCSSVariables(options: Partial<T>, themeParams?: object) {
+    private processCSSVariables(options: Partial<T>, themeParams?: PlainObject) {
         const { container } = options;
         if (container == null) return;
 
         const skip = new Set(['data']);
-        const ctx = { container, logger: this.logger };
+        // The clone of the user's options holds their `theme` by reference, and the walk below removes values.
+        if (isPlainObject(options.theme)) {
+            options.theme = deepClone(options.theme);
+        }
+        const deferred = new Set<string>();
+        const ctx: CSSVariableContext = { container, logger: this.logger, deferred };
         let processed = jsonWalk(options, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx);
-        // The options graph resolves theme params from `activeTheme.params`, a distinct object from `options`, so an
-        // invalid `var()` colour there must be dropped here too — otherwise it reaches the blend engine unresolved.
-        processed = jsonWalk(themeParams, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx, processed);
+        // The options graph resolves theme params apart from `options`, so an invalid `var()` colour there is dropped
+        // too, from a copy because the theme is shared.
+        if (themeParams != null) {
+            const params = deepClone(themeParams);
+            ctx.removed = false;
+            processed = jsonWalk(params, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx, processed);
+            this.processedThemeParams = ctx.removed ? params : undefined;
+        }
+        // Without the theme params this walk is not authoritative, so it reports nothing rather than a list that
+        // would clear what an earlier pass deferred in them.
+        this.deferredCSSVariables = themeParams == null ? undefined : Array.from(deferred);
         return processed;
+    }
+
+    /** The variables `processCSSVariablesPartial` left out while detached; `undefined` when none, so it never clears. */
+    takePartialDeferredCSSVariables(): string[] | undefined {
+        if (this.partialDeferred.size === 0) return;
+
+        const deferred = Array.from(this.partialDeferred);
+        this.partialDeferred.clear();
+        return deferred;
     }
 
     processCSSVariablesPartial(partialOptions: PlainObject | undefined, container: HTMLElement | null | undefined) {
@@ -2114,7 +2164,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return jsonWalk(partialOptions, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, {
             container,
             logger: this.logger,
-        });
+            deferred: this.partialDeferred,
+        } satisfies CSSVariableContext);
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {

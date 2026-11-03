@@ -30,6 +30,7 @@ export interface MemberNode {
     type: TypeNode;
     optional?: boolean;
     defaultValue?: string;
+    group?: string;
     docs?: string[];
 }
 

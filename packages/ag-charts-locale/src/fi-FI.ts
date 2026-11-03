@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaLabelColorPickerHue: 'Värisävy',
     ariaLabelColorPickerMultiColor: 'Monivärinen',
     ariaLabelColorPickerPalette: 'Värivalitsin',
+    ariaLabelCrossLine: '${label}, Ristiviiva ${index}[number] / ${count}[number]',
     ariaLabelFinancialCharts: 'Taloudelliset kaaviot',
     ariaLabelGaugeTarget: 'Tavoite',
     ariaLabelGaugeValue: 'Arvo',

@@ -66,8 +66,7 @@ export abstract class TopologySeries<
     }
 
     protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
-        const redrawn = this.resolveHighlightedDatum(highlightedDatum as TDatum | undefined);
-        return super.getRedrawnDatumIndex(redrawn);
+        return super.getRedrawnDatumIndex(this.resolveHighlightedDatum(highlightedDatum as TDatum | undefined));
     }
 
     public override isSeriesHighlighted(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined): boolean {

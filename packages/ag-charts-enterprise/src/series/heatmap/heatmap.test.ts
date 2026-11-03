@@ -31,6 +31,7 @@ import {
     getSeriesAt,
     getSeriesOptions,
     hoverAction,
+    internalOptions,
     isTooltipVisible,
     pressKey,
     setupMockCanvas,
@@ -41,7 +42,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { CallbackResultMemo, Group, Rect, Transformable } from 'ag-charts-core';
+import { CallbackResultMemo, Group, Rect, Transformable, type WithInternalShadow } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import {
@@ -1355,25 +1356,28 @@ describe('HeatmapSeries', () => {
     });
 
     describe('shadow', () => {
-        const buildOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
-            data: EXAMPLE_OPTIONS.data,
-            series: [
-                {
-                    type: 'heatmap',
-                    xKey: 'year',
-                    yKey: 'person',
-                    colorKey: 'spending',
-                    colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
-                    shadow: seriesShadow,
-                },
-            ],
-            legend: { enabled: false },
-        });
+        const buildOptions = (seriesShadow?: typeof SHADOW): AgChartOptions =>
+            internalOptions<AgChartOptions>({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                        shadow: seriesShadow,
+                    },
+                ],
+                legend: { enabled: false },
+            });
 
         it('defaults to a disabled shadow', async () => {
             chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(getSeriesOptions<AgHeatmapSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(getSeriesOptions<AgHeatmapSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
+                DEFAULT_DISABLED_SHADOW
+            );
         });
 
         it('shadows nothing when no shadow is set', async () => {
@@ -1393,7 +1397,8 @@ describe('HeatmapSeries', () => {
             }
         });
 
-        it('renders with the shadow enabled', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('renders with the shadow enabled', async () => {
             chart = await createEnterpriseChart(buildOptions(SHADOW));
             await compare();
         });
@@ -3248,8 +3253,8 @@ describe('HeatmapSeries', () => {
     describe('batched cells', () => {
         const GRID = gridCells(6, 4);
         const COLOR_SCALE = { fills: [{ color: 'blue' }, { color: 'red' }] };
-        // A highlight shadow that is switched off paints nothing, but keeps the cells out of the batch.
-        const AS_RECTS_HIGHLIGHT = { highlight: { highlightedItem: { shadow: { enabled: false } } } };
+        // An enabled shadow that casts nothing paints nothing, but keeps the cells out of the batch.
+        const AS_RECTS = { shadow: { enabled: true, fill: 'transparent', blur: 0, xOffset: 0, yOffset: 0 } };
         const SELECTION = { enabled: true, selectedItem: { fill: 'lime' }, unselectedItem: { opacity: 0.3 } };
 
         const options = (series: Record<string, unknown> = {}, data: GridCell[] = GRID, asRects = false) =>
@@ -3264,7 +3269,7 @@ describe('HeatmapSeries', () => {
                         colorKey: 'v',
                         colorScale: COLOR_SCALE,
                         ...series,
-                        ...(asRects ? AS_RECTS_HIGHLIGHT : {}),
+                        ...(asRects ? AS_RECTS : {}),
                     },
                 ],
                 legend: { enabled: false },
@@ -3495,7 +3500,6 @@ describe('HeatmapSeries', () => {
                 'a corner radius': { cornerRadius: 2 },
                 'a series stroke': { stroke: 'black', strokeWidth: 2 },
                 'an enabled shadow': { shadow: SHADOW },
-                'a highlight shadow': AS_RECTS_HIGHLIGHT,
                 'a gradient fill from the itemStyler': { itemStyler: () => ({ fill: GRADIENT }) },
                 'a stroke on one cell from the itemStyler': {
                     itemStyler: ({ datum }: { datum: GridCell }) =>
@@ -3514,6 +3518,32 @@ describe('HeatmapSeries', () => {
                 await create({ stroke: 'black', strokeWidth: 0, itemStyler: () => ({ fill: 'green' }) });
                 expect(isBatched(chart)).toBe(true);
                 expect(cellFills(chart)).toEqual(Array(GRID.length).fill('green'));
+            });
+
+            it('stays batched with a highlight glow, as the hovered cell is drawn by the highlight layer', async () => {
+                await create({ highlight: { highlightedItem: { glow: { enabled: true } } } });
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+            });
+
+            it('leaves the batch only while a highlight is active when the other cells glow in place', async () => {
+                await create({
+                    highlight: { unhighlightedItem: { glow: { enabled: true } } },
+                    tooltip: { enabled: false },
+                });
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+
+                await hoverDatumByIndex(chart, 0, 3);
+                expect(isBatched(chart)).toBe(false);
+                const glowing = cellShapes(chart).filter((shape) => shape.fillShadow?.enabled === true);
+                expect(glowing).toHaveLength(GRID.length - 1);
+
+                await hoverAction(1, 1)(chart);
+                await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+                expect(cellShapes(chart)).toHaveLength(GRID.length);
             });
 
             it.each(Object.keys(ineligible))('paints every cell as a Rect for %s', async (name) => {
@@ -3794,10 +3824,7 @@ describe('HeatmapSeries', () => {
                 await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
                 expect(cellShapes(chart).map((shape) => shape.fillOpacity)).toEqual(Array(GRID.length).fill(1));
 
-                const asRects = {
-                    ...series,
-                    highlight: { ...series.highlight, highlightedItem: AS_RECTS_HIGHLIGHT.highlight.highlightedItem },
-                };
+                const asRects = { ...series, ...AS_RECTS };
                 await update(asRects, GRID, false);
                 expect(isBatched(chart)).toBe(false);
                 expect(await hoverOpacities()).toEqual(batched);

@@ -4,7 +4,15 @@ import type { AgAreaSeriesOptions, AgCartesianChartOptions, AgLineSeriesOptions 
 import { AgCharts } from 'ag-charts-react';
 
 import { NEUTRAL, PALETTE, THEME } from '../chartTheme';
-import { fmtCurrency, fmtCurrencyCompact, fmtCurrencyMillions, fmtDate, fmtPct, wholeMillionStep } from '../format';
+import {
+    fmtCurrency,
+    fmtCurrencyCompact,
+    fmtCurrencyMillions,
+    fmtDate,
+    fmtMonth,
+    fmtPct,
+    wholeMillionStep,
+} from '../format';
 import type { BurnUpPoint } from '../types';
 
 interface BudgetBurnUpProps {
@@ -12,6 +20,12 @@ interface BudgetBurnUpProps {
     /** The allocation the pace line runs to. */
     budget: number;
 }
+
+/** A day of the month, with the month beneath it on the 1st — the same shape as the month axes' year. */
+const dayTick = (value: number | Date) => {
+    const day = new Date(value).getDate();
+    return day === 1 ? `1\n${fmtMonth(value)}` : String(day);
+};
 
 /**
  * Committed spend against a straight-line budget pace, across the whole period.
@@ -68,7 +82,13 @@ export function BudgetBurnUp({ points, budget }: BudgetBurnUpProps) {
             data: points,
             series: [pace, committed],
             axes: {
-                x: { type: 'time', position: 'bottom' },
+                x: {
+                    type: 'unit-time',
+                    position: 'bottom',
+                    // Weekly ticks report a `day` unit; a year to date ticks by month.
+                    label: { formatter: ({ value, unit }) => (unit === 'day' ? dayTick(value) : fmtMonth(value)) },
+                    parentLevel: { label: { formatter: ({ value }) => dayTick(value), fontWeight: 'normal' } },
+                },
                 y: {
                     type: 'number',
                     position: 'left',
@@ -79,13 +99,13 @@ export function BudgetBurnUp({ points, budget }: BudgetBurnUpProps) {
                         {
                             type: 'line',
                             value: budget,
-                            stroke: 'var(--pc-accent)',
+                            stroke: 'var(--pc-muted)',
                             strokeWidth: 1,
                             label: {
                                 enabled: true,
                                 text: `${fmtCurrencyCompact(budget)} allocation`,
                                 placement: 'top-left',
-                                color: 'var(--pc-accent)',
+                                color: 'var(--pc-muted)',
                                 fontSize: 11,
                             },
                         },

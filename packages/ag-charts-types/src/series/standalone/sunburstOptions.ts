@@ -4,7 +4,6 @@ import type {
     HierarchyHighlightState,
     Styler,
 } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
@@ -16,7 +15,7 @@ import type {
     TextOptions,
     TextOrSegments,
 } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgItemHighlightStyleOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export type AgSunburstHighlightState = HierarchyHighlightState;
 
@@ -45,7 +44,7 @@ export interface AgSunburstSeriesHighlightOptions {
     /** Style for nodes within the hovered branch. */
     highlightedBranch?: AgSunburstSeriesHighlightStyle;
     /** Style for the directly hovered node. */
-    highlightedItem?: AgSunburstSeriesHighlightStyle & AgItemHighlightStyleOptions;
+    highlightedItem?: AgSunburstSeriesHighlightStyle;
     /** Style for other nodes within the hovered branch. */
     unhighlightedItem?: AgSunburstSeriesHighlightStyle;
     /** Style for nodes outside of the hovered branch. */
@@ -82,8 +81,6 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     >;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
-    /** Configuration for the shadow used behind the sectors. */
-    shadow?: AgDropShadowOptions;
     /** The ratio of the inner radius of the series. Carves a hole at the centre of the series. */
     innerRadiusRatio?: Ratio;
     /** The size in pixels of the hole carved at the centre of the series, measured outwards from the centre. Must be greater than zero, and is added to any hole `innerRadiusRatio` carves. It is not capped: a value that reaches the series radius leaves the sectors no room, so nothing is rendered. */

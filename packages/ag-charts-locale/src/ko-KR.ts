@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaLabelColorPickerHue: '색조',
     ariaLabelColorPickerMultiColor: '다색',
     ariaLabelColorPickerPalette: '팔레트',
+    ariaLabelCrossLine: '${label}, 교차선 ${index}[number] / ${count}[number]',
     ariaLabelFinancialCharts: '금융 차트',
     ariaLabelGaugeTarget: '목표',
     ariaLabelGaugeValue: '값',

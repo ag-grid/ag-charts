@@ -769,7 +769,7 @@ describe('Navigator', () => {
     });
 
     describe('mini chart shadow inheritance', () => {
-        const SHADOW = { enabled: true, color: '#000000', xOffset: 3, yOffset: 3, blur: 5 };
+        const SHADOW = { enabled: true, fill: '#000000', xOffset: 3, yOffset: 3, blur: 5 };
         const ohlcData = Array.from({ length: 8 }, (_, i) => ({
             date: new Date(2024, 0, i + 1),
             open: 10 + i,

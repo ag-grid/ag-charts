@@ -176,13 +176,13 @@ export function processMembers(
     config: ApiReferenceConfig,
     typeArguments?: string[]
 ) {
-    const { prioritise, include, exclude } = config;
+    const { prioritise, include, includeInOrder, exclude } = config;
     const members = Array.isArray(interfaceRef.members) ? interfaceRef.members : [];
     if (members.length === 0) {
         return [];
     }
 
-    const filteredMembers = filterMembers(members, include, exclude);
+    const filteredMembers = filterMembers(members, include, exclude, includeInOrder);
     const sortedMembers = prioritiseMembers(filteredMembers, prioritise);
 
     if (interfaceRef.kind !== 'interface') {
@@ -360,11 +360,17 @@ export function parseJsDocs(docs?: string[]) {
     return docs?.join('\n').replaceAll(/^@([a-z])/gm, (_, char) => char.toUpperCase());
 }
 
-function filterMembers(members: MemberNode[], include?: string[], exclude?: string[]) {
+function filterMembers(members: MemberNode[], include?: string[], exclude?: string[], includeInOrder?: boolean) {
     if ((include?.length ?? 0) === 0 && (exclude?.length ?? 0) === 0) {
         return members;
     }
-    return members.filter((member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true));
+    const filtered = members.filter(
+        (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
+    );
+    if (!includeInOrder || include == null) {
+        return filtered;
+    }
+    return filtered.sort((a, b) => include.indexOf(a.name) - include.indexOf(b.name));
 }
 
 function prioritiseMembers(members: MemberNode[], prioritise?: string[]) {

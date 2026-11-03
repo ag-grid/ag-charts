@@ -100,7 +100,10 @@ import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLine
 import {
     cartesianMarkerDrawMode,
     computeLineAreaFocusBounds,
+    crossFilterHiddenKey,
+    filterMarkerNodeData,
     getMarkerStyles,
+    hideMarkerWithSize0,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     maxMarkerStrokePickInflation,
@@ -119,15 +122,21 @@ import { calculateSegments } from './util';
 
 type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
 
-/** Per-pass context for the no-itemStyler marker-style pass. */
-interface AreaNoStylerPassCtx {
+/** Per-pass context shared by both marker-style passes. */
+interface AreaMarkerPassCtx {
     marker: NormalisedAreaSeriesOptions['marker'];
     hideWithSize0: boolean;
     isHighlight: boolean;
 }
 
+/** Per-pass context for the no-itemStyler marker-style pass. */
+interface AreaNoStylerPassCtx extends AreaMarkerPassCtx {
+    // An `itemStyler` is not kept while markers are disabled, so only this pass can run with `selectedOnly`.
+    selectedOnly: boolean;
+}
+
 /** Per-pass context for the itemStyler marker-style pass. */
-interface AreaStylerPassCtx extends AreaNoStylerPassCtx {
+interface AreaStylerPassCtx extends AreaMarkerPassCtx {
     dataModel: DataModel<any, any, any>;
     processedData: ProcessedData<any>;
 }
@@ -252,6 +261,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
     public nodeDatumContext: AreaSeriesCreateNodeDatumContext | undefined = undefined;
     private hideWithSize0 = false;
+    private selectedOnly = false;
     private markerNodesPickable = true;
 
     protected override hasPickableNodeShapes(): boolean {
@@ -261,7 +271,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
         zIndex: SeriesZIndexMap.BACKGROUND,
-        batchShadows: true,
+        batchShadows: false,
     });
 
     override get pickModeAxis() {
@@ -1463,14 +1473,16 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
-        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
+        this.selectedOnly = markerDrawMode.selectedOnly === true;
+        // Under `selectedOnly` only the cross-filter-selected datums have a full-size marker, so the rest fall back to markerless picking.
+        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0 && !this.selectedOnly;
 
         if (this.markerDirty) {
             datumSelection.clear();
             datumSelection.cleanup();
         }
 
-        const data = markerDrawMode.needsNodeData ? nodeData : [];
+        const data = filterMarkerNodeData(nodeData, markerDrawMode);
         if (!processedDataIsAnimatable(this.processedData!)) {
             // Optimised update path, no need to match nodes by id
             return datumSelection.update(data);
@@ -1490,7 +1502,12 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             ctx.marker,
             datum,
             undefined,
-            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            {
+                isHighlight: ctx.isHighlight,
+                highlightState,
+                selectionState,
+                hideWithSize0: hideMarkerWithSize0(ctx.hideWithSize0, ctx.selectedOnly, datum),
+            },
             stylerStyle.marker,
             {
                 stroke: stylerStyle.stroke,
@@ -1533,7 +1550,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
         isHighlight: boolean;
     }) {
-        const { hideWithSize0 } = this;
+        const { hideWithSize0, selectedOnly } = this;
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.options;
         const { itemStyler } = marker;
@@ -1543,8 +1560,13 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             this.runMarkerStylePass<AreaNoStylerPassCtx, MarkerSelectionDatum, NormalisedSeriesMarkerStyle, AreaSeries>(
                 datumSelection,
                 isHighlight,
-                { marker, hideWithSize0, isHighlight },
-                { compute: AreaSeries.computeNoStylerMarkerStyle, apply: Series.assignCachedStyle }
+                { marker, hideWithSize0, selectedOnly, isHighlight },
+                {
+                    compute: AreaSeries.computeNoStylerMarkerStyle,
+                    apply: Series.assignCachedStyle,
+                    // The style differs between the datums cross-filtering hides and shows only for this combination.
+                    keyExtra: hideWithSize0 && selectedOnly ? crossFilterHiddenKey : undefined,
+                }
             );
             return;
         }
@@ -1572,7 +1594,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
-        const { contextNodeData, hideWithSize0 } = this;
+        const { contextNodeData, hideWithSize0, selectedOnly } = this;
         if (!contextNodeData) {
             return;
         }
@@ -1596,11 +1618,12 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 crossFilterSelected: datum.crossFilterSelected,
-                hideWithSize0,
+                hideWithSize0: hideMarkerWithSize0(hideWithSize0, selectedOnly, datum),
                 pickInflation,
                 shadow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
+                highlightState: state,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {
@@ -1788,11 +1811,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 lineDash,
             },
         };
-    }
-
-    /** The shadows of the markers, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.options.marker.shadow];
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {

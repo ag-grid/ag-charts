@@ -2,20 +2,11 @@ import { Component, ElementRef, afterRenderEffect, input, output, signal, viewCh
 
 import type { AttentionAction, AttentionItem } from '../types';
 import { PcButton } from '../ui';
+import { FOCUSABLE } from './focusable';
 
 const PANEL_ID = 'pc-attention-panel';
 
 const SEVERITY_GLYPH = { bad: '▲' } as const;
-
-/**
- * What Tab can reach inside the panel.
- *
- * Queried live on each Tab rather than captured on open, because the list is the panel's content
- * and it changes underneath: resolving an item removes its buttons, and the last item's action is
- * exactly where the trap wraps.
- */
-const FOCUSABLE =
-    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /** A decision taken on an item: the React `onResolve(item, action)` pair, as one output payload. */
 export interface AttentionResolution {
@@ -43,7 +34,7 @@ export interface AttentionResolution {
 @Component({
     selector: 'div[pcAttentionAlert]',
     imports: [PcButton],
-    host: { class: 'pc-alert' },
+    host: { class: 'pc-alert', 'data-keeps-selection': '' },
     template: `
         <button
             #trigger
@@ -153,6 +144,7 @@ export class AttentionAlert {
                 }
                 if (event.key !== 'Tab') return;
 
+                // Queried on each Tab, not on open: resolving an item removes its buttons from under the trap.
                 const focusable = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
                     (element) => element.getClientRects().length > 0
                 );

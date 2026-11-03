@@ -122,7 +122,7 @@ export interface ModuleDefinition<
     readonly contributes?: readonly OptionsContribution[];
     /**
      * Services this module provides on the chart context of every chart type it applies to. Several
-     * modules may provide the same name; the first one registered wins, so they must be interchangeable.
+     * modules may provide the same name; the first by module name wins, so they must be interchangeable.
      */
     readonly services?: ModuleServices<any>;
 
@@ -147,6 +147,8 @@ export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<Module
     options: OptionsDefs<TOptions>;
     /** The chart-level theme overrides for series of this chart type. */
     themeOptions: OptionsDefs<any>;
+    /** The default axes of a chart of this type, unless its lead series module declares its own. */
+    defaultAxes?: SeriesDefaultAxes<SeriesType>;
 }
 
 export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<

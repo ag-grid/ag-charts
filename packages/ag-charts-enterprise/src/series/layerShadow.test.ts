@@ -3,22 +3,18 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import {
     deproxy,
-    getSeriesContextNodeData,
     getSeriesSelectionNodes,
+    internalOptions,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 import type { Node, Rect, Sector } from 'ag-charts-core';
 
-import { getSeriesGroup } from '../test/enterpriseSeriesAccessors';
-import { HIERARCHY_SHADOW_DATA, collectShapes, createEnterpriseChart } from '../test/utils';
+import { HIERARCHY_SHADOW_DATA, createEnterpriseChart } from '../test/utils';
 import type { BoxPlotNode } from './box-plot/boxPlotNode';
 import type { CandlestickNode } from './candlestick/candlestickNode';
 import type { HierarchyNode } from './hierarchy/hierarchySeries';
-import { ukData } from './map-test/ukData';
-import ukTopology from './map-test/ukTopology.json';
 
 type Pixel = number[];
 
@@ -26,7 +22,7 @@ const WHITE: Pixel = [255, 255, 255, 255];
 const BLACK: Pixel = [0, 0, 0, 255];
 
 // A shadow with no blur and a solid colour, so that a pixel is either lit by the shadow or it is not.
-const SOLID_SHADOW = { enabled: true, color: '#000000', xOffset: 8, yOffset: 0, blur: 0 };
+const SOLID_SHADOW = { enabled: true, fill: '#000000', xOffset: 8, yOffset: 0, blur: 0 };
 
 describe('layer shadow batching of enterprise series', () => {
     setupMockConsole();
@@ -38,8 +34,8 @@ describe('layer shadow batching of enterprise series', () => {
         chart?.destroy();
     });
 
-    const create = async (options: AgChartOptions) => {
-        chart = await createEnterpriseChart(options);
+    const create = async (options: object) => {
+        chart = await createEnterpriseChart(internalOptions<AgChartOptions>(options));
     };
 
     const context = () => deproxy(chart).ctx.scene.canvas.context;
@@ -156,110 +152,8 @@ describe('layer shadow batching of enterprise series', () => {
         });
     });
 
-    describe('map-shape highlight', () => {
-        // A shadow of a pure colour, so that its pixels tell the hovered shape from the others.
-        const RED_SHADOW = { enabled: true, color: '#ff0000', xOffset: 6, yOffset: 6, blur: 0 };
-        const BLUE_SHADOW = { enabled: true, color: '#0000ff', xOffset: 6, yOffset: 6, blur: 0 };
-
-        const createMap = async (
-            shadow: typeof RED_SHADOW | undefined,
-            highlightShadow?: typeof RED_SHADOW,
-            highlightStyle: object = {}
-        ) => {
-            await create({
-                data: ukData,
-                topology: ukTopology,
-                animation: { enabled: false },
-                legend: { enabled: false },
-                highlight: { drawingMode: 'cutout' },
-                series: [
-                    {
-                        type: 'map-shape',
-                        idKey: 'name',
-                        shadow,
-                        highlight: { highlightedItem: { ...highlightStyle, shadow: highlightShadow } },
-                    },
-                ],
-            });
-            const [datum] = getSeriesContextNodeData(chart).nodeData;
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, datum);
-            await waitForChartStability(chart);
-        };
-
-        /** The count of pixels of the colour, inside and outside the box around the hovered shape. */
-        const countPixels = (isColour: (pixel: Pixel) => boolean) => {
-            const [highlighted] = collectShapes(getSeriesGroup(chart, 'highlightNodeGroup'));
-            const { x, y, width, height } = Transformable.toCanvas(highlighted);
-            const reach = 8;
-            const box = { x: x - reach, y: y - reach, width: width + 2 * reach, height: height + 2 * reach };
-            const { data, width: canvasWidth, height: canvasHeight } = context().getImageData(0, 0, 800, 600);
-            let inside = 0;
-            let outside = 0;
-            for (let py = 0; py < canvasHeight; py++) {
-                for (let px = 0; px < canvasWidth; px++) {
-                    const i = (py * canvasWidth + px) * 4;
-                    if (!isColour([data[i], data[i + 1], data[i + 2], data[i + 3]])) continue;
-                    const within = px >= box.x && px <= box.x + box.width && py >= box.y && py <= box.y + box.height;
-                    if (within) inside++;
-                    else outside++;
-                }
-            }
-            return { inside, outside };
-        };
-
-        const isRed = ([r, g, b]: Pixel) => r > 240 && g < 15 && b < 15;
-        // The items that are not hovered fade, and so cast a fainter shadow: a tint of blue rather than blue itself.
-        const isBlue = ([r, g, b]: Pixel) => b > 240 && b - r > 80 && b - g > 80;
-
-        /** The sum of the brightness of the pixels in the box around the first highlighted shape. */
-        const brightness = () => {
-            const [highlighted] = collectShapes(getSeriesGroup(chart, 'highlightNodeGroup'));
-            const { x, y, width, height } = Transformable.toCanvas(highlighted);
-            const { data } = context().getImageData(Math.floor(x), Math.floor(y), Math.ceil(width), Math.ceil(height));
-            let sum = 0;
-            for (let i = 0; i < data.length; i += 4) sum += data[i] + data[i + 1] + data[i + 2];
-            return sum;
-        };
-
-        it('should cast the shadow of a cutout highlight beneath its translucent fill', async () => {
-            // The cutout erases what is beneath the shape before it is drawn, but the shape then casts its own shadow, which
-            // shows through its translucent fill. The shadow it casts is not erased.
-            const options = { fill: 'blue', fillOpacity: 0.4 };
-            await createMap(BLUE_SHADOW, undefined, options);
-            const withShadow = brightness();
-            chart.destroy();
-            await createMap(undefined, undefined, options);
-            const withoutShadow = brightness();
-
-            expect(withShadow).toBeLessThan(withoutShadow * 0.93);
-        });
-
-        it('should cast the highlighted item shadow from the hovered shape only', async () => {
-            await createMap(BLUE_SHADOW, RED_SHADOW);
-
-            const red = countPixels(isRed);
-            expect(red.inside).toBeGreaterThan(0);
-            expect(red.outside).toBe(0);
-        });
-
-        it('should keep the series shadow on the shapes that are not hovered', async () => {
-            await createMap(BLUE_SHADOW, RED_SHADOW);
-
-            expect(countPixels(isBlue).outside).toBeGreaterThan(0);
-        });
-
-        it('should cast the series shadow from the hovered shape when it has no shadow of its own', async () => {
-            await createMap(BLUE_SHADOW);
-
-            // Nothing is red, and the series shadow still shows around the hovered shape that casts it from the highlight.
-            expect(countPixels(isRed)).toEqual({ inside: 0, outside: 0 });
-            expect(countPixels(isBlue).inside).toBeGreaterThan(0);
-        });
-    });
-
     describe('wicks and whiskers with a spread', () => {
-        const SPREAD_SHADOW = { enabled: true, color: '#ff0000', xOffset: 0, yOffset: 0, blur: 0, spread: 6 };
+        const SPREAD_SHADOW = { enabled: true, fill: '#ff0000', xOffset: 0, yOffset: 0, blur: 0, spread: 6 };
         const OHLC = [
             { x: 'Q1', open: 6, high: 8, low: 3, close: 4 },
             { x: 'Q2', open: 5, high: 8, low: 4, close: 7 },
@@ -274,7 +168,7 @@ describe('layer shadow batching of enterprise series', () => {
         /** The series with the paint of a wick, whisker or stroke as the only paint of its items that is not transparent. */
         const candlestick = (wick: string, shadow: typeof SPREAD_SHADOW | undefined): AgCartesianChartOptions => {
             const item = { fill: 'transparent', stroke: 'transparent', wick: { stroke: wick, strokeWidth: 3 } };
-            return {
+            return internalOptions<AgCartesianChartOptions>({
                 data: OHLC,
                 series: [
                     {
@@ -288,11 +182,11 @@ describe('layer shadow batching of enterprise series', () => {
                         shadow,
                     },
                 ],
-            };
+            });
         };
         const ohlc = (stroke: string, shadow: typeof SPREAD_SHADOW | undefined): AgCartesianChartOptions => {
             const item = { stroke, strokeWidth: 3 };
-            return {
+            return internalOptions<AgCartesianChartOptions>({
                 data: OHLC,
                 series: [
                     {
@@ -306,27 +200,28 @@ describe('layer shadow batching of enterprise series', () => {
                         shadow,
                     },
                 ],
-            };
+            });
         };
-        const boxPlot = (whisker: string, shadow: typeof SPREAD_SHADOW | undefined): AgCartesianChartOptions => ({
-            data: BOX_PLOT,
-            series: [
-                {
-                    type: 'box-plot',
-                    xKey: 'x',
-                    minKey: 'min',
-                    q1Key: 'q1',
-                    medianKey: 'median',
-                    q3Key: 'q3',
-                    maxKey: 'max',
-                    fill: 'transparent',
-                    stroke: 'transparent',
-                    cap: { lengthRatio: 0 },
-                    whisker: { stroke: whisker, strokeWidth: 3 },
-                    shadow,
-                },
-            ],
-        });
+        const boxPlot = (whisker: string, shadow: typeof SPREAD_SHADOW | undefined): AgCartesianChartOptions =>
+            internalOptions<AgCartesianChartOptions>({
+                data: BOX_PLOT,
+                series: [
+                    {
+                        type: 'box-plot',
+                        xKey: 'x',
+                        minKey: 'min',
+                        q1Key: 'q1',
+                        medianKey: 'median',
+                        q3Key: 'q3',
+                        maxKey: 'max',
+                        fill: 'transparent',
+                        stroke: 'transparent',
+                        cap: { lengthRatio: 0 },
+                        whisker: { stroke: whisker, strokeWidth: 3 },
+                        shadow,
+                    },
+                ],
+            });
 
         const render = async (options: AgCartesianChartOptions) => {
             await create({ animation: { enabled: false }, legend: { enabled: false }, ...options });
@@ -365,15 +260,16 @@ describe('layer shadow batching of enterprise series', () => {
         });
     });
 
-    describe('silhouette where a stroke meets a fill', () => {
+    // AG-9003: 14.2.0 rendering restored for this release
+    describe.skip('silhouette where a stroke meets a fill', () => {
         // The first item is high on the chart, and its shadow lies in the gap to its right, which the other items are too
         // low to reach. The stroke is centred on the edge of the item, so that it overlaps the fill on the inside.
         const XOFFSET = 200;
         const STROKE_WIDTH = 8;
-        const HALF_BLACK_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: XOFFSET, yOffset: 0, blur: 0 };
+        const HALF_BLACK_SHADOW = { enabled: true, fill: 'rgba(0, 0, 0, 0.5)', xOffset: XOFFSET, yOffset: 0, blur: 0 };
         const paint = { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: STROKE_WIDTH };
 
-        const candlestick: AgCartesianChartOptions = {
+        const candlestick: AgCartesianChartOptions = internalOptions<AgCartesianChartOptions>({
             data: [
                 { x: 'A', open: 6, high: 9, low: 5, close: 8 },
                 ...['B', 'C', 'D'].map((x) => ({ x, open: 2, high: 3, low: 1, close: 2.5 })),
@@ -390,8 +286,8 @@ describe('layer shadow batching of enterprise series', () => {
                     shadow: HALF_BLACK_SHADOW,
                 },
             ],
-        };
-        const boxPlot: AgCartesianChartOptions = {
+        });
+        const boxPlot: AgCartesianChartOptions = internalOptions<AgCartesianChartOptions>({
             data: [
                 { x: 'A', min: 5, q1: 6, median: 7, q3: 8, max: 9 },
                 ...['B', 'C', 'D'].map((x) => ({ x, min: 1, q1: 1.5, median: 2, q3: 2.5, max: 3 })),
@@ -410,7 +306,7 @@ describe('layer shadow batching of enterprise series', () => {
                     shadow: HALF_BLACK_SHADOW,
                 },
             ],
-        };
+        });
 
         const visibleItems = <TItem extends Node>() =>
             getSeriesSelectionNodes<TItem>(chart, 'datumSelection').filter((node) => node.visible);

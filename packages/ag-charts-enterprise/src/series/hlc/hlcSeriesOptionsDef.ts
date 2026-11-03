@@ -32,7 +32,7 @@ import {
 const hlcSeriesItemLineThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemLineThemeableOptions<unknown, unknown>> = {
     marker: {
         enabled: boolean,
-        shadow: shadowOptionsDefs,
+        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
         ...markerStyleOptionsDefs,
     },
     ...strokeOptionsDef,

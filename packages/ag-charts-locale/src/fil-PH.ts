@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     ariaLabelColorPickerHue: 'Hue',
     ariaLabelColorPickerMultiColor: 'Maraming Kulay',
     ariaLabelColorPickerPalette: 'Paleta',
+    ariaLabelCrossLine: '${label}, Cross line ${index}[number] sa ${count}[number]',
     ariaLabelFinancialCharts: 'Mga Pinansyal na Tsart',
     ariaLabelGaugeTarget: 'Puntirya',
     ariaLabelGaugeValue: 'Halaga',

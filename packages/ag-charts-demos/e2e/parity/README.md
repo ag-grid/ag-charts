@@ -13,24 +13,24 @@ yarn nx test:e2e:parity ag-charts-demos
 The Nx target builds the React app first and `playwright.parity.config.ts` serves `dist/` with
 `vite preview`. With no ports configured the run is **self-parity**: the React app is served on
 ports 4701 and 4702 and compared with itself, and not one pixel may differ. That guards the
-determinism the ports rely on, and CI runs it before the ports.
+determinism the ports rely on, and CI runs it as a suite of its own (`self-parity`).
 
 The config starts every server it needs and never reuses one already listening: a server on one
 of these ports may belong to another checkout, and comparing against its build would pass or fail
 for reasons unrelated to this tree. A busy port fails the run; move the ports with the variables
 below.
 
-| Variable                | Effect                                                                                                                                                                                                                                                                                                                                                              |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PARITY_DISCOVER`       | `1` finds every committed port by its `seeds/<demo>/<framework>/.seed-manifest.json` (all but the generated React seed), skips the stale ones (see "Stale ports are skipped") and serves each remaining one's built `dist` (the manifest's `dist` path) with `serve-dist.mjs` on ports 4710 upwards, in `<demo>/<framework>` order. CI runs this after self-parity. |
-| `PARITY_STALE_REPORT`   | A file holding the output of `tools/seeds/check-seeds.mjs --stale`, relative to the working directory, which a `PARITY_DISCOVER` run reads instead of running the script itself. CI writes it on the runner before starting the run in its container.                                                                                                               |
-| `PARITY_INCLUDE_STALE`  | `1` makes a `PARITY_DISCOVER` run compare the stale ports too, to check a port mid-alignment before its manifest is restamped. Never set in CI.                                                                                                                                                                                                                     |
-| `PARITY_TARGETS`        | JSON array of `{ "demo", "framework", "baseURL" }`. Each entry is one served port to compare. The run then serves only the reference; the caller serves the ports. Takes precedence over `PARITY_DISCOVER`.                                                                                                                                                         |
-| `PARITY_REFERENCE_URL`  | Where the React reference is served. Defaults to `http://localhost:<PARITY_REFERENCE_PORT>`, which the config starts; set it to use one served elsewhere.                                                                                                                                                                                                           |
-| `PARITY_KEEP_ARTEFACTS` | `1` writes the screenshots for passing comparisons too.                                                                                                                                                                                                                                                                                                             |
-| `PARITY_REFERENCE_PORT` | Port the config serves the reference on. Defaults to 4701.                                                                                                                                                                                                                                                                                                          |
-| `PARITY_SELF_PORT`      | Port the config serves the second copy on in a self-parity run. Defaults to 4702.                                                                                                                                                                                                                                                                                   |
-| `PARITY_PORT_BASE`      | First port a `PARITY_DISCOVER` run serves the ports on. Defaults to 4710.                                                                                                                                                                                                                                                                                           |
+| Variable                | Effect                                                                                                                                                                                                                                                                                                                                                                       |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PARITY_DISCOVER`       | `1` finds every committed port by its `seeds/<demo>/<framework>/.seed-manifest.json` (all but the generated React seed), skips the stale ones (see "Stale ports are skipped") and serves each remaining one's built `dist` (the manifest's `dist` path) with `serve-dist.mjs` on ports 4710 upwards, in `<demo>/<framework>` order. CI runs this as the `port-parity` suite. |
+| `PARITY_STALE_REPORT`   | A file holding the output of `tools/seeds/check-seeds.mjs --stale`, relative to the working directory, which a `PARITY_DISCOVER` run reads instead of running the script itself. CI writes it on the runner before starting the run in its container.                                                                                                                        |
+| `PARITY_INCLUDE_STALE`  | `1` makes a `PARITY_DISCOVER` run compare the stale ports too, to check a port mid-alignment before its manifest is restamped. Never set in CI.                                                                                                                                                                                                                              |
+| `PARITY_TARGETS`        | JSON array of `{ "demo", "framework", "baseURL" }`. Each entry is one served port to compare. The run then serves only the reference; the caller serves the ports. Takes precedence over `PARITY_DISCOVER`.                                                                                                                                                                  |
+| `PARITY_REFERENCE_URL`  | Where the React reference is served. Defaults to `http://localhost:<PARITY_REFERENCE_PORT>`, which the config starts; set it to use one served elsewhere.                                                                                                                                                                                                                    |
+| `PARITY_KEEP_ARTEFACTS` | `1` writes the screenshots for passing comparisons too.                                                                                                                                                                                                                                                                                                                      |
+| `PARITY_REFERENCE_PORT` | Port the config serves the reference on. Defaults to 4701.                                                                                                                                                                                                                                                                                                                   |
+| `PARITY_SELF_PORT`      | Port the config serves the second copy on in a self-parity run. Defaults to 4702.                                                                                                                                                                                                                                                                                            |
+| `PARITY_PORT_BASE`      | First port a `PARITY_DISCOVER` run serves the ports on. Defaults to 4710.                                                                                                                                                                                                                                                                                                    |
 
 ### Discovered ports
 
@@ -94,7 +94,7 @@ DEMOS_BASE_URL=http://localhost:4710 npx playwright test
 ```
 
 A port serves only its own demo, so against one, select that demo's specs with `-g <demo>`. CI does
-this for every current (not stale) port, in the step after the pixel comparison; see
+this for every current (not stale) port, as the `port-specs` suite; see
 `tools/seeds/README.md`, "`port-spec-plan.mjs` and `run-port-specs.mjs`".
 
 ## What is compared
@@ -185,7 +185,7 @@ why a normal load never waits. See "Web fonts and the first render" in the packa
 ## Results
 
 Everything a run leaves is under `results/<run>/` (gitignored), where `<run>` is `self-parity` or
-`ports`, so the two runs CI makes one after the other keep their own results. The JUnit report
+`ports`, so the two runs keep their own results. The JUnit report
 and Playwright's output folder are named after the run in the same way.
 
 - `summary.json`, described below.
@@ -195,7 +195,21 @@ and Playwright's output folder are named after the run in the same way.
   concurrent repeats never share one and a retry never overwrites the failure before it. The same
   files are attached to the Playwright report.
 
-In CI the folder is uploaded with the `test-results-demos-e2e` artefact.
+In CI the folder is uploaded with the `test-results-demos-e2e-<suite>` artefact of the suite that ran it.
+
+## When CI runs which suite
+
+The `Demo Apps Smoke` job is a matrix with one entry per suite, chosen by the `init` job.
+
+| Change                                                                                      | `functional`, `self-parity` | `port-parity`, `port-specs` |
+| ------------------------------------------------------------------------------------------- | --------------------------- | --------------------------- |
+| Neither `ag-charts-demos` nor `ag-charts-demos-seeds` is affected                           | No                          | No                          |
+| PR changing only the library                                                                | Yes                         | No                          |
+| PR changing the demos, seeds, framework wrappers, `patches/`, `ci.yml` or root build inputs | Yes                         | Yes                         |
+| Push, or a `run-many` dispatch                                                              | Yes                         | Yes                         |
+
+A library change reaches the React app and the ports alike, so a PR that changes only the library
+is not compared against the ports until it lands.
 
 ### `summary.json`
 

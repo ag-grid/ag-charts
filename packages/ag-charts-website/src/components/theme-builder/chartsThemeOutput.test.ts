@@ -1,3 +1,4 @@
+import { deriveStroke } from '@ag-website-shared/components/theme-builder/palette';
 import { describe, expect, it } from 'vitest';
 
 import { renderChartsThemeCode, toChartTheme } from './chartsThemeOutput';
@@ -21,8 +22,8 @@ describe('toChartTheme', () => {
         // silently unless it is projected out.
         expect(toChartTheme(selection).palette).toEqual({
             fills: ['#5090dc', '#ffa03a'],
-            strokes: ['#2b5c95', '#cc6f10'],
-            up: { fill: '#459d55', stroke: '#1e652e' },
+            strokes: [deriveStroke('#5090dc'), '#cc6f10'],
+            up: { fill: '#459d55', stroke: deriveStroke('#459d55') },
         });
     });
 
@@ -32,16 +33,12 @@ describe('toChartTheme', () => {
         expect(toChartTheme({ ...selection, palette: { fills: [], strokes: [] } }).palette).toBeUndefined();
     });
 
-    it('outlines nothing once the palette says so', () => {
-        // Including the series that draw an outline whether or not the chart
-        // asks for one, which an unset stroke width would not cover.
-        const off = { ...selection, palette: { ...selection.palette, strokesEnabled: false } };
-        expect(toChartTheme(off).palette).toEqual({
+    it('lightens linked strokes on a dark theme, and leaves chosen ones as they are', () => {
+        expect(toChartTheme({ ...selection, strokeDirection: 'lighten' }).palette).toEqual({
             fills: ['#5090dc', '#ffa03a'],
-            strokes: ['#5090dc', '#ffa03a'],
-            up: { fill: '#459d55', stroke: '#459d55' },
+            strokes: [deriveStroke('#5090dc', 'lighten'), '#cc6f10'],
+            up: { fill: '#459d55', stroke: deriveStroke('#459d55', 'lighten') },
         });
-        expect(renderChartsThemeCode(off)).not.toContain('strokesEnabled');
     });
 
     it('converts the scrollbar thickness from its length editor value to a number', () => {
@@ -60,6 +57,11 @@ describe('toChartTheme', () => {
             navigatorTrackBorderRadius: 4,
             navigatorHandleBorderRadius: 2,
         });
+    });
+
+    it('drops a border width that refers to another param, which AG Charts cannot take', () => {
+        const params = { buttonBorder: { color: '#ff0000', width: { ref: 'borderWidth' } } };
+        expect(toChartTheme({ ...selection, params }).params).toEqual({ buttonBorder: { color: '#ff0000' } });
     });
 
     it('keeps every bookkeeping key out of the snippet the user copies', () => {

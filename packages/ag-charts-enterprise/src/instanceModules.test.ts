@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     type AgCartesianChartOptions,
     type AgChartInstance,
-    AllCartesianAxesModule as AllCommunityCartesianAxesModule,
+    AllCommunityModule,
     CategoryAxisModule,
     LineSeriesModule,
     NumberAxisModule,
@@ -11,9 +11,9 @@ import {
 import { clickAction, expectErrorsCalls, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 import { type ModuleDefinition, ModuleRegistry, ModuleScope } from 'ag-charts-core';
 
+import * as enterpriseCartesianAxisModules from './axes/cartesian/cartesianAxisModules';
 import { NumberAxisModule as EnterpriseNumberAxisModule } from './axes/cartesian/cartesianAxisModules';
 import { RangeBarSeriesModule } from './main';
-import { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
 import { PriceVolumePresetModule } from './preset/price-volume/priceVolumePresetModule';
 import { VolumeProfilePresetModule } from './preset/volume-profile/volumeProfilePresetModule';
 import { createEnterpriseChart } from './test/utils';
@@ -36,7 +36,6 @@ describe('instance modules', () => {
         };
         chart = await createEnterpriseChart(options);
 
-        expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
         expect(chart.isModuleRegistered('ZoomModule')).toBe(true);
         expect(chart.isModuleRegistered('QuadrantChartModule')).toBe(true);
         expect(chart.isModuleRegistered('NotAModule')).toBe(false);
@@ -134,7 +133,7 @@ describe('enterprise cartesian axis modules', () => {
         expect(ModuleRegistry.getAxisModule('number')?.enterprise).toBe(true);
     });
 
-    it('fires axis click listeners without registering AxisInteractionModule by hand', async () => {
+    it('fires axis click listeners with only the enterprise axis module registered', async () => {
         ModuleRegistry.registerModules([LineSeriesModule, EnterpriseNumberAxisModule]);
         const click = vi.fn();
         chart = await createEnterpriseChart({
@@ -146,16 +145,16 @@ describe('enterprise cartesian axis modules', () => {
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
         });
 
-        expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
-
         await clickAction(418, 560)(chart);
         expect(click).toHaveBeenCalledTimes(1);
     });
 
     it('wraps every community cartesian axis module', () => {
-        const wrapped = new Map(AllCartesianAxesModule.map((module) => [module.name, module]));
+        const wrapped = new Map(Object.values(enterpriseCartesianAxisModules).map((module) => [module.name, module]));
+        const communityAxes = AllCommunityModule.filter((m) => m.type === 'axis' && m.chartType === 'cartesian');
 
-        for (const community of AllCommunityCartesianAxesModule) {
+        expect(communityAxes.length).toBeGreaterThan(0);
+        for (const community of communityAxes) {
             const module = wrapped.get(community.name);
             expect(module?.enterprise, community.name).toBe(true);
             expect(

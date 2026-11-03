@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     ariaLabelColorPickerHue: 'เฉดสี',
     ariaLabelColorPickerMultiColor: 'หลายสี',
     ariaLabelColorPickerPalette: 'จานสี',
+    ariaLabelCrossLine: '${label}, เส้นตัดที่ ${index}[number] จาก ${count}[number]',
     ariaLabelFinancialCharts: 'แผนภูมิการเงิน',
     ariaLabelGaugeTarget: 'เป้าหมาย',
     ariaLabelGaugeValue: 'ค่า',

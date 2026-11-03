@@ -42,6 +42,8 @@ Select a theme in the example below to apply it to the chart.
 
 ## Making Custom Themes
 
+Design a theme visually in the [Theme Builder](/theme-builder/), then copy it into your application.
+
 You can create your own theme, which builds upon an existing theme and allows you to change as many or as few properties as you like.
 
 A custom theme is an object with the following optional properties:
@@ -52,6 +54,38 @@ A custom theme is an object with the following optional properties:
 - `overrides` - The object to be merged with the base theme's defaults and override them.
 
 See the [Themes API page](/themes-api/) for the complete options structure.
+
+## Order of Application
+
+Theme options can be set at multiple levels, with later levels taking priority. The order of application is as follows, from lowest to highest priority:
+
+1. The `baseTheme`.
+2. `params`.
+3. `overrides`.
+4. The options passed to the chart.
+
+```js format="snippet"
+const myTheme = {
+    baseTheme: 'ag-default',
+    params: { textColor: 'blue' },
+    overrides: { common: { title: { color: 'green' } } },
+};
+
+AgCharts.create({
+    theme: myTheme,
+    title: { text: 'Sales', color: 'pink' },
+    // ...
+});
+```
+
+In this snippet, the title colour is set in four places, each overriding the previous one:
+
+- `baseTheme` is `'ag-default'`, which sets the default title colour to black.
+- `params.textColor` sets it to blue, as this sets the default for all text.
+- `overrides.common.title.color` sets it to green.
+- The chart option `title.color` sets it to pink.
+
+The final colour of the title is pink, because the chart option takes priority over the theme.
 
 ## Palette
 
@@ -76,7 +110,7 @@ The `params` object is used to set styles across the whole chart in one place.
 
 - Set the font with `fontFamily` and `fontSize`.
 - Use `foregroundColor`, `backgroundColor` and `accentColor` to set the main colours on the chart. All other colours will default to a mix of these three.
-- Use specific params to adjust tooltips, menus, panels, toolbars, buttons and text inputs, for example `tooltipBackgroundColor`. Please see the [Themes API reference](/themes-api/#reference-AgChartTheme-params) for the full list of available options.
+- Use specific params to adjust tooltips, menus, panels, toolbars, buttons and text inputs, for example `tooltipBackgroundColor`. See the [Theme Parameters reference](/theme-parameters-api/) for the full list, with the type, default and description of each.
 
 {% chartExampleRunner title="Theme Parameters" name="theme-parameters" type="generated"  /%}
 
@@ -103,6 +137,16 @@ In the above example:
 - The three main colours are defined with some additional specific colours for chrome elements.
 - All text elements are set to the same font family.
 - All text, except the titles and footer, are set to the same font size.
+
+### Parameter Inheritance
+
+The foundation parameters such as `foregroundColor`, `backgroundColor`, `accentColor`, `fontFamily` and `fontSize` set the defaults for more specific parameters.
+Changing any parameter replaces its inherited default, and affects any parameters that inherit from it.
+
+For example, `textColor` defaults to `foregroundColor`, and `subtleTextColor` defaults to a blend of `textColor` and `chartBackgroundColor`.
+Changing `foregroundColor` therefore changes `textColor`, which in turn changes `subtleTextColor`.
+
+See the [Theme Parameters reference](/theme-parameters-api/) for the default of every parameter.
 
 ### Colour References
 
@@ -155,7 +199,7 @@ const myTheme = {
 
 Text uses the natural line height of its font unless a line height is set.
 
-Set `lineHeight` to a ratio of the font size, for example `1.5`. Each text element multiplies the ratio by its own font size, so the spacing stays in proportion when a font size changes. Element parameters such as `axisLabelLineHeight` and `titleLineHeight` override it for one element.
+Set `lineHeight` theme parameters to a ratio of the font size, for example `1.5`. Each text element multiplies the ratio by its own font size, so the spacing stays in proportion when a font size changes.
 
 ```js format="snippet"
 const myTheme = {
@@ -166,8 +210,11 @@ const myTheme = {
 };
 ```
 
-- The `lineHeight` option beside each `fontSize` in the chart options takes a value in pixels, and takes precedence over the theme parameters.
-- A label that shrinks towards its `minimumFontSize` keeps its line height in proportion to its font size.
+- `titleLineHeight` overrides `lineHeight` for the title. Other elements have their own parameters, such as `axisLabelLineHeight`.
+
+{% note %}
+The `lineHeight` properties in the chart options take a fixed pixel value, and override the theme parameters. See [Line Height](./text/#line-height) for more details.
+{% /note %}
 
 ## Overrides
 
@@ -242,12 +289,12 @@ const myTheme = {
             axes: {
                 category: {
                     line: {
-                        width: 4,
+                        strokeWidth: 4,
                     },
                 },
                 number: {
                     line: {
-                        width: 2,
+                        strokeWidth: 2,
                     },
                 },
             },

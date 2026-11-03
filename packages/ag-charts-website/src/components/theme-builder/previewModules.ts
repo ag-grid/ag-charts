@@ -1,9 +1,113 @@
 import type { ModuleDefinition } from 'ag-charts-core';
-import { AllCartesianModule, AllCommunityModule, AllPolarModule } from 'ag-charts-enterprise';
+import {
+    AllCommunityModule,
+    AngleCategoryAxisModule,
+    AngleNumberAxisModule,
+    AnimationModule,
+    AnnotationsModule,
+    BackgroundRegionsModule,
+    BandHighlightModule,
+    BoxPlotSeriesModule,
+    CandlestickSeriesModule,
+    CategoryAxisModule,
+    ChartToolbarModule,
+    ConeFunnelSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    DataSourceModule,
+    ErrorBarsModule,
+    FlashOnUpdateModule,
+    FunnelSeriesModule,
+    GradientLegendModule,
+    GroupedCategoryAxisModule,
+    HeatmapSeriesModule,
+    HlcSeriesModule,
+    LogAxisModule,
+    NavigatorModule,
+    NightingaleSeriesModule,
+    NumberAxisModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+    PolarCrossLinesModule,
+    RadarAreaSeriesModule,
+    RadarLineSeriesModule,
+    RadialBarSeriesModule,
+    RadialColumnSeriesModule,
+    RadiusCategoryAxisModule,
+    RadiusNumberAxisModule,
+    RangeAreaSeriesModule,
+    RangeBarSeriesModule,
+    RangesModule,
+    ScrollbarModule,
+    SelectionModule,
+    StatusBarModule,
+    SyncModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    WaterfallSeriesModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 /**
  * What the preview charts are allowed to draw. Enterprise, for the navigator,
- * toolbars and context menu; named bundles rather than `AllEnterpriseModule`, to
- * keep maps, topology, gauges and tree series out of a page that shows none.
+ * toolbars and context menu; cartesian and polar modules rather than `AllEnterpriseModule`,
+ * to keep maps, topology, gauges and tree series out of a page that shows none.
  */
-export const PREVIEW_MODULES: ModuleDefinition[] = [AllCommunityModule, AllCartesianModule, AllPolarModule].flat();
+export const PREVIEW_MODULES: ModuleDefinition[] = [
+    AllCommunityModule,
+
+    // Cartesian axes
+    NumberAxisModule,
+    LogAxisModule,
+    TimeAxisModule,
+    CategoryAxisModule,
+    GroupedCategoryAxisModule,
+    UnitTimeAxisModule,
+    OrdinalTimeAxisModule,
+
+    // Cartesian series
+    BoxPlotSeriesModule,
+    CandlestickSeriesModule,
+    ConeFunnelSeriesModule,
+    FunnelSeriesModule,
+    HeatmapSeriesModule,
+    HlcSeriesModule,
+    OhlcSeriesModule,
+    RangeAreaSeriesModule,
+    RangeBarSeriesModule,
+    WaterfallSeriesModule,
+
+    // Polar axes
+    AngleNumberAxisModule,
+    AngleCategoryAxisModule,
+    RadiusNumberAxisModule,
+    RadiusCategoryAxisModule,
+    PolarCrossLinesModule,
+
+    // Polar series
+    NightingaleSeriesModule,
+    RadarAreaSeriesModule,
+    RadarLineSeriesModule,
+    RadialBarSeriesModule,
+    RadialColumnSeriesModule,
+
+    // Features
+    AnimationModule,
+    AnnotationsModule,
+    BackgroundRegionsModule,
+    BandHighlightModule,
+    ChartToolbarModule,
+    ContextMenuModule,
+    CrosshairModule,
+    DataSourceModule,
+    ErrorBarsModule,
+    FlashOnUpdateModule,
+    GradientLegendModule,
+    NavigatorModule,
+    RangesModule,
+    ScrollbarModule,
+    SelectionModule,
+    StatusBarModule,
+    SyncModule,
+    ZoomModule,
+].flat();

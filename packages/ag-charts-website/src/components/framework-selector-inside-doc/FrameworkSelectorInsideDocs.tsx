@@ -73,6 +73,7 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework, menuItems 
                     isLarge
                     isPopper
                     options={frameworkOptions}
+                    triggerAriaLabel="Framework selector"
                     value={frameworkOption}
                     className={styles.select}
                     onChange={(newValue) => handleFrameworkChange(newValue.value)}
