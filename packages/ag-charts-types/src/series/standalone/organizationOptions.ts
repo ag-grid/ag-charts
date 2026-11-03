@@ -5,7 +5,6 @@ import type {
     RichFormatter,
     Styler,
 } from '../../chart/callbackOptions';
-import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
@@ -280,8 +279,6 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssO
      * Default: `true`
      */
     truncate?: boolean;
-    /** Controls what happens to text that still does not fit within the node after wrapping and truncation. */
-    collision?: AgOrganizationSeriesNodeTextCollisionOptions;
     spacing?: number;
     textAlign?: TextAlign;
     wrapping?: TextWrap;
@@ -289,24 +286,6 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssO
     cornerRadius?: PixelSize;
     /** Padding between the text and the backing box edge. Has no effect unless `fill` or `stroke` is set. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
-}
-
-export interface AgOrganizationSeriesNodeTextCollisionOptions extends AgChartLabelCollisionOptions {
-    /**
-     * Space in pixels kept between the text and the edge of the space available to it in the node. A positive
-     * value fits the text earlier; a negative value lets it run past the available space by that many pixels
-     * before it is fitted.
-     *
-     * Default: `0`
-     */
-    threshold?: PixelSize;
-    /**
-     * Whether to keep text that does not fit within the node even after wrapping and truncation. When `true` the
-     * text stays visible, clipped by the node; when `false` it is hidden.
-     *
-     * Default: `false`
-     */
-    alwaysShow?: boolean;
 }
 
 export interface AgOrganizationSeriesOptionsKeys {

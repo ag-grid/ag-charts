@@ -39,6 +39,15 @@ describe('annotation datum utils', () => {
         expect(datum.text).not.toBe(text);
     });
 
+    it('does not let a later merge reach a sibling a nested option was copied from', () => {
+        const datum = { id: 'a', type: 'line', end: { x: { value: 1, groupPercentage: 0 }, y: 2 }, endRetracement: {} };
+        applyAnnotationOptions(datum, { endRetracement: datum.end });
+        applyAnnotationOptions(datum, { endRetracement: { x: { value: 9, groupPercentage: 0.5 }, y: 8 } });
+
+        expect(datum.end).toEqual({ x: { value: 1, groupPercentage: 0 }, y: 2 });
+        expect(datum.endRetracement).toEqual({ x: { value: 9, groupPercentage: 0.5 }, y: 8 });
+    });
+
     describe('with a `__proto__` key', () => {
         afterEach(() => {
             delete (Object.prototype as Record<string, unknown>).polluted;

@@ -347,17 +347,21 @@ describe('Annotation datum lifecycle', () => {
     });
 
     describe('toolbar drawing', () => {
-        it('serialises a horizontal line drawn from the toolbar', async () => {
-            await prepareChart([], { ...ANNOTATIONS_EXAMPLE_OPTIONS, annotations: { enabled: true } });
+        async function chooseTool(group: string, tool: string) {
             const body = deproxy(chart).ctx.agDocument.body;
-            body.querySelector<HTMLElement>('button[title="Trend Lines"]')!.click();
+            body.querySelector<HTMLElement>(`button[title="${group}"]`)!.click();
             await waitForChartStability(chart);
             const item = Array.from(body.querySelectorAll<HTMLElement>('.ag-charts-menu__row')).find(
-                (row) => row.textContent === 'Horizontal Line'
+                (row) => row.textContent === tool
             );
             expect(item).toBeDefined();
             item!.click();
             await waitForChartStability(chart);
+        }
+
+        it('serialises a horizontal line drawn from the toolbar', async () => {
+            await prepareChart([], { ...ANNOTATIONS_EXAMPLE_OPTIONS, annotations: { enabled: true } });
+            await chooseTool('Trend Lines', 'Horizontal Line');
 
             const point = toCanvas(new Date(X_MID.value), 40);
             await hoverAction(point.x, point.y)(chart);
@@ -369,6 +373,68 @@ describe('Annotation datum lifecycle', () => {
             expect(annotations[0].type).toBe('horizontal-line');
             expect(annotations[0].value).toBeCloseTo(40, 0);
             expect(annotations).toMatchSnapshot();
+        });
+
+        describe('on a band x axis', () => {
+            const BAND_OPTIONS: AgCartesianChartOptions = {
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: { y: { type: 'number' }, x: { type: 'ordinal-time' } },
+                annotations: {
+                    enabled: true,
+                    toolbar: {
+                        buttons: [
+                            {
+                                icon: 'trend-line-drawing',
+                                tooltip: 'toolbarAnnotationsLineAnnotations',
+                                value: 'line-menu',
+                            },
+                            {
+                                icon: 'fibonacci-retracement-drawing',
+                                tooltip: 'toolbarAnnotationsFibonacciAnnotations',
+                                value: 'fibonacci-menu',
+                            },
+                        ],
+                    },
+                },
+            };
+            const CLICKS = [
+                { x: new Date('2024-01-05'), y: 20 },
+                { x: new Date('2024-06-15'), y: 80 },
+                { x: new Date('2024-12-25'), y: 50 },
+            ];
+
+            it.each([
+                ['Trend Lines', 'Trend Line', 'line', ['start', 'end']],
+                [
+                    'Fibonacci',
+                    'Fib Trend Based',
+                    'fibonacci-retracement-trend-based',
+                    ['start', 'end', 'endRetracement'],
+                ],
+            ] as const)('keeps each handle of a %s > %s where it was clicked', async (group, tool, type, handles) => {
+                await prepareChart([], BAND_OPTIONS);
+                await chooseTool(group, tool);
+
+                for (const { x, y } of CLICKS.slice(0, handles.length)) {
+                    const point = toCanvas(x, y);
+                    await hoverAction(point.x, point.y)(chart);
+                    await clickAction(point.x, point.y)(chart);
+                    await waitForChartStability(chart);
+                }
+
+                const annotations = chart.getState().annotations;
+                expect(annotations).toHaveLength(1);
+                expect(annotations[0].type).toBe(type);
+                for (const [index, handle] of handles.entries()) {
+                    const { x, y } = CLICKS[index];
+                    expect(annotations[0][handle].x).toEqual({
+                        groupPercentage: 0,
+                        value: { __type: 'date', value: x.toISOString() },
+                    });
+                    expect(annotations[0][handle].y).toBeCloseTo(y, 0);
+                }
+            });
         });
     });
 

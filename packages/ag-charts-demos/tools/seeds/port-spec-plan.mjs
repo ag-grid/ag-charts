@@ -18,8 +18,7 @@ import { findStalePorts, readPortManifests } from './stale-ports.mjs';
  *
  * Usage: node tools/seeds/port-spec-plan.mjs [--stale-report <file>] [--out <file>]
  *
- * `--stale-report` reads the output of `check-seeds.mjs --stale` instead of working it out, so the
- * parity step's report can be reused. The plan (`{ run, skipped }`, see `planPortSpecs`) goes to
+ * `--stale-report` reads the output of `check-seeds.mjs --stale` instead of working it out. The plan (`{ run, skipped }`, see `planPortSpecs`) goes to
  * `--out`, or to stdout; the human-readable summary and GitHub annotations go to stderr.
  */
 

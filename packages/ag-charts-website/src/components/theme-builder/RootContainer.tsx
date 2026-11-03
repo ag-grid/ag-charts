@@ -10,6 +10,7 @@ import { PresetSelector } from './PresetSelector';
 import { PreviewPane } from './PreviewPane';
 import { PREVIEW_PANES } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
+import { useSetEditedGroup } from './editedGroup';
 import { withSansFallback } from './fonts';
 import {
     completePalette,
@@ -38,6 +39,7 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const selectedPresetId = useSelectedPresetId();
     const preset = findPreset(selectedPresetId) ?? initialPreset;
     const baseTheme = useBaseThemeName();
+    const setEditedGroup = useSetEditedGroup();
 
     // The palette and the preset live outside the shared param model, so a first
     // visit seeds them here. Guarded separately: a returning user may have edited
@@ -76,7 +78,14 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     }, []);
 
     return (
-        <Container ref={containerRef} style={{ height }}>
+        // See `editedGroup.ts`. Released on capture here, before a param group in the
+        // panel can name itself: a held tooltip sits in the top layer, above any dialog.
+        <Container
+            ref={containerRef}
+            style={{ height }}
+            onFocusCapture={() => setEditedGroup(null)}
+            onPointerDownCapture={() => setEditedGroup(null)}
+        >
             <Menu className={renderedTheme._getParamsClassName()}>
                 <SidebarHeader>Theme Builder</SidebarHeader>
                 <EditorScroller>
