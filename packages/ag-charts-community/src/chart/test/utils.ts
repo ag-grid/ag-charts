@@ -2497,8 +2497,8 @@ export function errorFrom(fn: () => unknown): Error | undefined {
 
 export interface LegendTestInternals {
     itemSelection: { nodes(): (LegendTestItemNode & Node)[] };
-    onHover(event: FocusEvent | MouseEvent, node: unknown, fromKeyboardFocus?: boolean): void;
-    onLeave(fromKeyboardFocus?: boolean): void;
+    onHover(event: FocusEvent | MouseEvent, node: unknown): void;
+    onLeave(event?: FocusEvent | MouseEvent): void;
 }
 
 export function getLegendModule(chart: Chart): LegendTestInternals {
