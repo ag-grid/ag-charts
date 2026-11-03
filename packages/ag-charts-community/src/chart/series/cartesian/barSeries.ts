@@ -1345,11 +1345,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
         const groups = processedData.groups;
 
-        const visibleRange = visibleRangeIndices(1, groups.length, ctx.xAxis.range, (groupIndex) => {
-            const group = groups[groupIndex];
-            const xValue = group.keys[0];
-            return this.xCoordinateRange(xValue);
-        });
+        const groupRange = (groupIndex: number) => this.xCoordinateRange(groups[groupIndex].keys[0]);
+        // Vertical axes and descending keys both run their groups towards lower pixels.
+        const [r0, r1] = ctx.xAxis.range;
+        const descending = groups.length > 1 && groupRange(0)[0] > groupRange(groups.length - 1)[0];
+        const sortOrder = descending ? -1 : 1;
+        const visibleRange = visibleRangeIndices(
+            sortOrder,
+            groups.length,
+            [Math.min(r0, r1), Math.max(r0, r1)],
+            groupRange
+        );
         const start = visibleRange[0];
         const end = visibleRange[1];
 
