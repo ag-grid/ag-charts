@@ -244,7 +244,7 @@ export class CartesianChart extends Chart {
 
     private updateSeriesBands(seriesRect: BBox, seriesPaddedRect: BBox, enableClip: boolean) {
         const bands = new Map<object, BBox>();
-        for (const axis of enableClip ? this.axes : []) {
+        for (const axis of this.axes) {
             if (axis.lengthRatio == null || axis.lineRange == null) continue;
 
             const isHorizontal = axis.position === 'top' || axis.position === 'bottom';
@@ -256,6 +256,8 @@ export class CartesianChart extends Chart {
             const start = bandStart <= 0 ? paddedStart : rectStart + bandStart;
             const end = bandEnd >= rectLength - 1e-6 ? paddedStart + paddedLength : rectStart + bandEnd;
             for (const series of axis.boundSeries) {
+                // A profile tiles half a step past its outer levels, so it stays clipped while the chart is not.
+                if (!enableClip && !series.isProfile?.()) continue;
                 const band = bands.get(series) ?? seriesPaddedRect.clone();
                 if (isHorizontal) {
                     band.x = start;

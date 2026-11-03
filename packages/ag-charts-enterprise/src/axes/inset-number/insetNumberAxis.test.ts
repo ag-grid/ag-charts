@@ -141,15 +141,18 @@ describe('InsetNumberAxis', () => {
         await compareImageSnapshot(chart, ctx);
     });
 
-    it.each([
-        ['alone on its axis, setting its domain', 'yProfile'],
-        ['sharing an axis, leaving its domain to the other series', 'y'],
-    ])('should tile profile bars one level step each when %s', async (_name, priceAxis) => {
+    it('should tile profile bars one level step each, clipped to the series area and formatted as the price', async () => {
+        const priceLabels = new Set<string>();
         chart = await createEnterpriseChart({
             data: DATA,
-            seriesArea: { clip: true },
+            formatter: ({ source, property, boundSeries }) => {
+                if (source === 'axis-label' && boundSeries.some((s) => s.key === 'price')) {
+                    priceLabels.add(`${property}: ${boundSeries.map((s) => s.seriesId).join()}`);
+                }
+                return undefined;
+            },
             series: [
-                { type: 'line', xKey: 'year', yKey: 'price' },
+                { id: 'price', type: 'line', xKey: 'year', yKey: 'price' },
                 {
                     type: 'bar',
                     direction: 'horizontal',
@@ -159,15 +162,31 @@ describe('InsetNumberAxis', () => {
                     })),
                     xKey: 'price',
                     yKey: 'volume',
-                    xKeyAxis: priceAxis,
                     yKeyAxis: 'xProfile',
                 },
             ],
             axes: {
                 x: { type: 'category', position: 'bottom' },
                 y: { type: 'number', position: 'right' },
-                [priceAxis]: { type: 'number', position: priceAxis === 'y' ? 'right' : 'left' },
                 xProfile: { type: 'inset-number', position: 'top', lengthRatio: 0.4, reverse: true },
+            },
+        });
+
+        await compareImageSnapshot(chart, ctx);
+        expect([...priceLabels]).toEqual(['y: price']);
+    });
+
+    it('should keep ordinary bar widths on an inset axis over a time axis', async () => {
+        chart = await createEnterpriseChart({
+            data: DATA.map((d, i) => ({ ...d, date: new Date(2024, 0, 1 + i) })),
+            series: [
+                { type: 'line', xKey: 'date', yKey: 'price' },
+                { type: 'bar', xKey: 'date', yKey: 'volume', yKeyAxis: 'yVolume' },
+            ],
+            axes: {
+                x: { type: 'time', position: 'bottom' },
+                y: { type: 'number', position: 'right' },
+                yVolume: { type: 'inset-number', position: 'left', lengthRatio: 0.25 },
             },
         });
 

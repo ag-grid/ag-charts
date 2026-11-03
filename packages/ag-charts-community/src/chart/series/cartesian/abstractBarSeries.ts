@@ -184,19 +184,22 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return { xAxis, yAxis };
     }
 
-    /** Bars along an inset value axis form a profile, so on a continuous category axis each tiles one data step. */
+    /**
+     * Bars on an inset value axis profile other series when their continuous category axis is those series' value
+     * axis, so each bar tiles one data step.
+     */
     isProfile() {
-        return this.getValueAxis()?.lengthRatio != null && ContinuousScale.is(this.getCategoryAxis()?.scale);
+        if (this.getValueAxis()?.lengthRatio == null) return false;
+        const categoryAxis = this.getCategoryAxis();
+        if (categoryAxis == null || !ContinuousScale.is(categoryAxis.scale)) return false;
+        return categoryAxis.boundSeries.some((series) => series !== this && isValueAxisOf(series, categoryAxis));
     }
 
-    /** A profile sharing its category axis with other series describes them, so it leaves that axis' domain to them. */
+    /** A profile leaves its category axis' domain to the series it describes while any of them is shown. */
     protected describesOtherSeries() {
         if (!this.isProfile()) return false;
-        return (
-            this.getCategoryAxis()?.boundSeries.some(
-                (series) => !(series instanceof AbstractBarSeries && series.isProfile())
-            ) ?? false
-        );
+        const categoryAxis = this.getCategoryAxis()!;
+        return categoryAxis.boundSeries.some((series) => series.isEnabled() && isValueAxisOf(series, categoryAxis));
     }
 
     protected getBandwidth(xAxis: ChartAxis, minWidth?: 1 | 0) {
@@ -205,8 +208,8 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         const interval = this.smallestDataInterval;
         if (interval != null && this.isProfile()) {
-            const [d0] = scale.domain;
-            const step = Math.abs(scale.convert(addValues(d0, interval)) - scale.convert(d0));
+            const d0 = Number(scale.domain[0]);
+            const step = Math.abs(scale.convert(d0 + Number(interval)) - scale.convert(d0));
             // Whole pixels, as the group scale rounds bars on a category axis.
             return step >= 1 ? Math.floor(step) : step;
         }
@@ -398,4 +401,8 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return findQuadtreeMatch(this, point);
     }
+}
+
+function isValueAxisOf(series: ChartAxis['boundSeries'][number], axis: ChartAxis) {
+    return series.resolveKeyDirection(axis.direction) === ChartAxisDirection.Y;
 }

@@ -296,7 +296,8 @@ export class AxisInsetValue extends AbstractModuleInstance {
         if (categoryKey == null || valueKey == null) return NO_ROWS;
 
         const boundIds = this.axisCtx.seriesIds();
-        const series = this.ctx.chartService.series.find((s) => boundIds.includes(s.id));
+        const bound = this.ctx.chartService.series.filter((s) => boundIds.includes(s.id));
+        const series = bound.find((s) => s.isProfile?.()) ?? bound[0];
         const data = (series as { data?: { data?: any[] } } | undefined)?.data?.data;
         if (data == null) return NO_ROWS;
 

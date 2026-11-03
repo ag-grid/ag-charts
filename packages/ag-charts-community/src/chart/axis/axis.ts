@@ -1292,13 +1292,17 @@ export abstract class Axis<
 
     private readonly formatterBoundSeries = new WeakCache<AgAxisBoundSeries[]>(() => {
         const { direction, boundSeries } = this;
-        return deepFreeze(boundSeries.flatMap((series) => series.getFormatterContext(direction)));
+        return deepFreeze(
+            boundSeries.flatMap((series) => (series.isProfile?.() ? [] : series.getFormatterContext(direction)))
+        );
     });
 
+    // A profile describes the other series' values, so the axis formats for those series.
     private getFormatterProperty(): FormatterPropertyType {
         const { direction, boundSeries } = this;
         let resolvedDirection = direction;
         for (const series of boundSeries) {
+            if (series.isProfile?.()) continue;
             const seriesResolvedDirection = series.resolveKeyDirection(direction);
             if (seriesResolvedDirection !== direction) {
                 resolvedDirection = seriesResolvedDirection;
