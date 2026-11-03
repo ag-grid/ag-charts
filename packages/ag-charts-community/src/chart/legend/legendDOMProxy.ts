@@ -11,6 +11,7 @@ import {
 import type {
     ButtonWidget,
     ClickWidgetEvent,
+    FocusWidgetEvent,
     GroupWidget,
     ListWidget,
     MouseWidgetEvent,
@@ -25,14 +26,17 @@ import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 
+export type LegendHoverEvent = FocusWidgetEvent<'focus'> | MouseWidgetEvent<'mouseenter'>;
+export type LegendLeaveEvent = FocusWidgetEvent | MouseWidgetEvent<'mouseleave'>;
+
 type ItemSelection = Selection<CategoryLegendDatum, LegendMarkerLabel>;
 type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): NormalisedTextOrSegments | undefined };
 
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;
     onDoubleClick(event: Event, datum: CategoryLegendDatum): void;
-    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): void;
-    onLeave(event?: FocusEvent | MouseEvent): void;
+    onHover(event: LegendHoverEvent, node: LegendMarkerLabel): void;
+    onLeave(event: LegendLeaveEvent): void;
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel): void;
 }
 
@@ -114,14 +118,12 @@ export class LegendDOMProxy {
             const button = markerLabel.proxyButton;
             button.addListener('click', (ev) => itemListener.onClick(ev.sourceEvent, markerLabel.datum!, button));
             button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum!));
-            button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
-            button.addListener('mouseleave', (ev) => itemListener.onLeave(ev.sourceEvent));
+            button.addListener('mouseenter', (ev) => itemListener.onHover(ev, markerLabel));
+            button.addListener('mouseleave', (ev) => itemListener.onLeave(ev));
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
-            button.addListener('blur', (ev) => itemListener.onLeave(ev.sourceEvent));
+            button.addListener('blur', (ev) => itemListener.onLeave(ev));
             button.addListener('focus', (ev) =>
-                this.shouldApplyHoverOnFocus(button)
-                    ? itemListener.onHover(ev.sourceEvent, markerLabel)
-                    : itemListener.onLeave(ev.sourceEvent)
+                this.shouldApplyHoverOnFocus(button) ? itemListener.onHover(ev, markerLabel) : itemListener.onLeave(ev)
             );
         });
         this.dirty = false;
