@@ -6,7 +6,6 @@ import {
     getSeriesNodeData,
     getSeriesSelectionNodes,
     internalOptions,
-    sceneGroups,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -57,12 +56,6 @@ const STAGES = [
     { group: 'Develop', value: 8170 },
     { group: 'Propose', value: 7260 },
     { group: 'Close', value: 4460 },
-];
-
-const RANGE_DATA = [
-    { x: 'A', low: 2, high: 6 },
-    { x: 'B', low: 3, high: 8 },
-    { x: 'C', low: 1, high: 5 },
 ];
 
 const CHART = { animation: { enabled: false }, legend: { enabled: false } };
@@ -165,8 +158,7 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('focusNodeGroup')).toBe(true);
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should cast the shadows of a pyramid through the root', async () => {
+        it('should cast the shadows of a pyramid through the root', async () => {
             await create({
                 data: STAGES,
                 series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
@@ -184,8 +176,7 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('areaGroup')).toBe('shared');
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should cast the marker shadows of a radar area through the root, as it does its own', async () => {
+        it('should cast the marker shadows of a radar area through the root, as it does its own', async () => {
             await create({
                 data: RADAR_DATA,
                 series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'a' }],
@@ -194,8 +185,7 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('itemGroup')).toBe('shared');
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should cast the shadows of a polar series through the root', async () => {
+        it('should cast the shadows of a polar series through the root', async () => {
             await create({
                 data: NIGHTINGALE_DATA,
                 series: [{ type: 'nightingale', angleKey: 'category', radiusKey: 'a' }],
@@ -204,8 +194,7 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('itemGroup')).toBe('shared');
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip.each(['donut', 'pie'])('should cast the sector shadows of a %s through the root', async (type) => {
+        it.each(['donut', 'pie'])('should cast the sector shadows of a %s through the root', async (type) => {
             await create({
                 data: NIGHTINGALE_DATA,
                 series: [{ type, angleKey: 'a' }],
@@ -214,8 +203,7 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('itemGroup')).toBe('shared');
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip.each(['funnel', 'cone-funnel'])(
+        it.each(['funnel', 'cone-funnel'])(
             'should cast the stages and connectors of a %s through the root',
             async (type) => {
                 await create({
@@ -227,21 +215,6 @@ describe('series that cast their shadows through the shadow root', () => {
                 expect(batching('connectorNodeGroup')).toBe('shared');
             }
         );
-
-        // AG-9003: the series that had a shadow in 14.2.0 cast their own, so no group of theirs hands it to the root.
-        it.each([
-            ['funnel', STAGES, { stageKey: 'group', valueKey: 'value', shadow: SHADOW }],
-            ['pyramid', STAGES, { stageKey: 'group', valueKey: 'value', shadow: SHADOW }],
-            ['range-area', RANGE_DATA, { xKey: 'x', yLowKey: 'low', yHighKey: 'high', shadow: SHADOW }],
-            ['range-bar', RANGE_DATA, { xKey: 'x', yLowKey: 'low', yHighKey: 'high', shadow: SHADOW }],
-            ['waterfall', RANGE_DATA, { xKey: 'x', yKey: 'high', item: { positive: { shadow: SHADOW } } }],
-        ])('should leave no group of the %s series batching its shadows', async (type, data, keys) => {
-            await create({ data, series: [{ type, ...keys }] } as AgChartOptions);
-
-            const groups = sceneGroups(getSeriesGroup(chart!, 'contentGroup'));
-            expect(groups.length).toBeGreaterThan(1);
-            expect(groups.filter((group) => group.batchShadows !== false).map((group) => group.name)).toEqual([]);
-        });
 
         it('should cast the shadows of a map marker through the root', async () => {
             await create({
@@ -263,8 +236,7 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('itemGroup')).toBe('shared');
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip.each([
+        it.each([
             ['radial-bar', { type: 'radial-bar', angleKey: 'a', radiusKey: 'category' }],
             ['radial-column', { type: 'radial-column', angleKey: 'category', radiusKey: 'a' }],
             ['radar-line', { type: 'radar-line', angleKey: 'category', radiusKey: 'a' }],
@@ -274,8 +246,7 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('itemGroup')).toBe('shared');
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip.each([
+        it.each([
             ['sankey', FLOW_DATA, { fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
             ['pyramid', STAGES, { stageKey: 'group', valueKey: 'value' }],
             ['radar-area', RADAR_DATA, { angleKey: 'subject', radiusKey: 'a' }],
@@ -342,8 +313,7 @@ describe('series that cast their shadows through the shadow root', () => {
                 ],
             });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should not draw the marker shadows of a radar area over its own fill', async () => {
+        it('should not draw the marker shadows of a radar area over its own fill', async () => {
             expect(allRed(await fillPixelsAfterCasting(radarMarkers))).toBe(true);
         });
 
@@ -404,8 +374,7 @@ describe('series that cast their shadows through the shadow root', () => {
                 return { x: Math.round(x + width / 2), y: Math.round(y + height / 2) };
             };
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('should draw the shadow of a marker beneath the fill of its radar area', async () => {
+            it('should draw the shadow of a marker beneath the fill of its radar area', async () => {
                 const { x, y } = await dim(SOLID);
                 const through = pixelAt(canvasCtx, x, y + 20);
 
@@ -418,8 +387,7 @@ describe('series that cast their shadows through the shadow root', () => {
                 expect(through[0]).toBeGreaterThan(local[0]);
             });
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('should leave the shadow whole beneath a marker that cuts out the layer above it', async () => {
+            it('should leave the shadow whole beneath a marker that cuts out the layer above it', async () => {
                 // The shadow of a marker falls on the marker itself, which erases the layer above the shadow.
                 const { x, y } = await dim(ON_MARKER);
                 const shadowed = pixelAt(canvasCtx, x, y);
@@ -458,8 +426,7 @@ describe('series that cast their shadows through the shadow root', () => {
                 ],
             }) as AgChartOptions;
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should not draw the sector shadows of a donut over its own inner circle', async () => {
+        it('should not draw the sector shadows of a donut over its own inner circle', async () => {
             expect(allRed(await fillPixelsAfterCasting(donutWithInnerCircle))).toBe(true);
         });
 
@@ -496,8 +463,7 @@ describe('series that cast their shadows through the shadow root', () => {
                 ],
             }) as AgChartOptions;
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should not draw the sector shadows of an inner donut ring over the ring around it', async () => {
+        it('should not draw the sector shadows of an inner donut ring over the ring around it', async () => {
             expect(allRed(await fillPixelsAfterCasting(rings))).toBe(true);
         });
 
@@ -525,8 +491,7 @@ describe('series that cast their shadows through the shadow root', () => {
                 ],
             }) as AgChartOptions;
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should not draw the stage shadows of a funnel over its connectors', async () => {
+        it('should not draw the stage shadows of a funnel over its connectors', async () => {
             expect(allRed(await fillPixelsAfterCasting(connectors))).toBe(true);
         });
 
@@ -581,8 +546,7 @@ describe('series that cast their shadows through the shadow root', () => {
                 ],
             }) as AgChartOptions;
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should not draw the shadow of a later polar series over an earlier one', async () => {
+        it('should not draw the shadow of a later polar series over an earlier one', async () => {
             expect(allRed(await fillPixelsAfterCasting(nightingale))).toBe(true);
         });
 

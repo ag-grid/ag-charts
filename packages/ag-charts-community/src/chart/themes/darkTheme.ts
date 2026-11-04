@@ -77,7 +77,7 @@ export class DarkTheme extends ChartTheme {
             annotationTextboxBackgroundColor: '#28313e',
             annotationTextboxBorderColor: '#4b525d',
             annotationDividerColor: '#fff',
-            shadowFillOpacity: 0.5,
+            shadowFillOpacity: 1,
         };
     }
 
