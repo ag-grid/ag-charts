@@ -116,7 +116,9 @@ function checkPackage(pkgDir, { release = false } = {}) {
     for (const dir of targetDirs) {
         const fullDir = path.join(pkgDir, dir);
         if (!fs.existsSync(fullDir)) continue;
-        for (const entry of fs.readdirSync(fullDir, { withFileTypes: true })) {
+        for (const entry of fs
+            .readdirSync(fullDir, { withFileTypes: true })
+            .sort((a, b) => a.name.localeCompare(b.name, 'en'))) {
             const file = path.posix.join(dir, entry.name);
             if (entry.isFile() && isJs(entry.name) && !expected.has(file)) {
                 errors.push({

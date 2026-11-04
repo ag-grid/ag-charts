@@ -85,7 +85,7 @@ describe('checkPackage', () => {
         ]);
     });
 
-    it('needs no change when an export is removed together with its files', () => {
+    it('follows an export removal without edits, flagging any bundle left behind', () => {
         const withScene = {
             ...STANDARD_EXPORTS,
             exports: {
@@ -100,7 +100,12 @@ describe('checkPackage', () => {
             'dist/package/scene.esm.min.mjs',
         ];
         assert.deepEqual(checkPackage(createPackage(withScene, [...STANDARD_FILES, ...sceneFiles])), []);
-        assert.deepEqual(checkPackage(createPackage(STANDARD_EXPORTS, STANDARD_FILES)), []);
+        assert.deepEqual(summarise(checkPackage(createPackage(STANDARD_EXPORTS, [...STANDARD_FILES, ...sceneFiles]))), [
+            'unexported dist/package/scene.cjs.js',
+            'unexported dist/package/scene.cjs.min.js',
+            'unexported dist/package/scene.esm.min.mjs',
+            'unexported dist/package/scene.esm.mjs',
+        ]);
     });
 
     it('accepts flat export conditions', () => {
