@@ -234,6 +234,18 @@ describe('annotation coordinates', () => {
         it('rejects text that names no category', () => {
             expect(resolveCoordinate(startX, 'apples', context)).toBeUndefined();
         });
+
+        it('shows and matches a category with a line break as the text input holds it', () => {
+            const wrappedScale = new CategoryScale<string>();
+            wrappedScale.domain = ['Sales\nExecutive', 'Manager'];
+            const wrappedContext = createAxesContext(wrappedScale, numberScale([0, 50]));
+            const wrappedDatum = { ...datum, start: { x: 'Sales\nExecutive', y: 2 } };
+            const wrappedStartX = getCoordinateFields(wrappedDatum, wrappedContext)[0];
+
+            expect(wrappedStartX.value).toBe('SalesExecutive');
+            expect(wrappedStartX.suggestions).toEqual(['SalesExecutive', 'Manager']);
+            expect(resolveCoordinate(wrappedStartX, 'SalesExecutive', wrappedContext)).toBe('Sales\nExecutive');
+        });
     });
 
     describe('unit time axis', () => {

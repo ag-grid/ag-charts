@@ -62,11 +62,17 @@ function pad(value: number, length = 2) {
     return String(value).padStart(length, '0');
 }
 
+/** A text input drops line breaks from its value, so categories are shown and matched without them. */
+function withoutLineBreaks(category: unknown) {
+    return String(category).replace(/[\r\n]/g, '');
+}
+
 /** Formats a value for the matching input: a number as-is, a date as the local `datetime-local` value. */
 export function formatCoordinate(point: PointType | undefined, kind: CoordinateKind): string {
     const value = getGroupingValue(point);
     if (value == null) return '';
-    if (kind === 'number' || kind === 'category') return String(value);
+    if (kind === 'number') return String(value);
+    if (kind === 'category') return withoutLineBreaks(value);
 
     const date = new Date(value as Date | number);
     if (Number.isNaN(date.getTime())) return '';
@@ -136,7 +142,7 @@ export function resolveCoordinate(
 
     const axis = field.axis === 'x' ? context.xAxis : context.yAxis;
     if (field.kind === 'category') {
-        return axis.scale.domain.find((category) => String(category) === parsed);
+        return axis.scale.domain.find((category) => withoutLineBreaks(category) === parsed);
     }
     if (field.kind === 'unit-time') {
         return parsed instanceof Date && UnitTimeScale.is(axis.scale) ? floorToBand(parsed, axis.scale) : undefined;
@@ -169,7 +175,7 @@ function createPointField(
         axis,
         kind,
         value: formatCoordinate(current, kind),
-        suggestions: kind === 'category' ? context.scale.domain.map(String) : undefined,
+        suggestions: kind === 'category' ? context.scale.domain.map(withoutLineBreaks) : undefined,
         toProps: (parsed) => toProps(toPointType(parsed, kind, current)),
     };
 }
