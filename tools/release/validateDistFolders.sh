@@ -4,6 +4,7 @@ set -Eeuo pipefail
 
 excluded=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular" "ag-charts-locale")
 frameworks=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular")
+unbundled=("ag-charts-core" "ag-charts-community" "ag-charts-enterprise")
 
 ENV=${1:-prod}
 
@@ -36,24 +37,25 @@ validateCommonDist()
     exit 1
   fi
 
-  local expected_count=4
-  if [[ "$directory" == "dist/packages/contents/ag-charts-community/package" ]]
+  if [[ ${unbundled[@]} =~ $(basename $(dirname "$directory")) ]]
   then
-      expected_count=4
-  fi
-  if [[ "$directory" == "dist/packages/contents/ag-charts-enterprise/package" ]]
-  then
-      expected_count=4
-  fi
-  if [[ "$directory" == "dist/packages/contents/ag-charts-types/package" ]]
-  then
-      expected_count=4
-  fi
-  local count=`find "$directory/dist/package" -type f | wc -l | tr -d ' '`;
-  if [[ $count -ne $expected_count ]]
-  then
-    echo "ERROR: $directory/dist/package should have $expected_count artefacts but has $count"
-    exit 1
+    # ESM ships one file per module, beside the CJS bundle and a single-file ESM bundle.
+    for file in main.cjs.js main.cjs.min.js main.esm.mjs main.bundle.esm.mjs
+    do
+      if [[ ! -s "$directory/dist/package/$file" ]]
+      then
+        echo "ERROR: $directory/dist/package/$file empty or does not exist"
+        exit 1
+      fi
+    done
+  else
+    local expected_count=4
+    local count=`find "$directory/dist/package" -type f | wc -l | tr -d ' '`;
+    if [[ $count -ne $expected_count ]]
+    then
+      echo "ERROR: $directory/dist/package should have $expected_count artefacts but has $count"
+      exit 1
+    fi
   fi
 
   local count=`find "$directory/dist/types" -type f | grep .d.ts | wc -l | tr -d ' '`;
@@ -63,7 +65,7 @@ validateCommonDist()
     exit 1
   fi
 
-  local sourceMappingCount=`grep sourceMappingURL $directory/dist/package/*.*js | wc -l`
+  local sourceMappingCount=`grep -r --include='*.*js' sourceMappingURL $directory/dist/package | wc -l`
   if [[ $sourceMappingCount -ne 0 ]]
   then
     echo "ERROR: $directory/dist/package has source map references"
