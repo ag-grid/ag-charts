@@ -384,8 +384,8 @@ export class WidgetEventUtil {
         sourceEvent: DerivedSourceEventsWhereIsNative[K],
         target: WidgetTarget
     ): DerivedWidgetEventsWhereIsNative[K] {
-        const unsafeAllocator: (sourceEvent: any, target: WidgetTarget) => any = WIDGET_META[type].allocator;
-        return unsafeAllocator(sourceEvent, target);
+        const unsafeMeta: { allocator(sourceEvent: any, target: WidgetTarget): any } = WIDGET_META[type];
+        return unsafeMeta.allocator(sourceEvent, target);
     }
 
     static isHTMLEvent(type: WidgetMetaKeys): type is WidgetMetaKeys & keyof HTMLElementEventMap {
