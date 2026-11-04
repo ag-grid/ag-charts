@@ -89,3 +89,4 @@ function updateLegendItemMaxWidth(event: any) {
 
     document.getElementById('maxWidthValue')!.innerHTML = String(value);
 }
+// E2E scope probe: do not merge
