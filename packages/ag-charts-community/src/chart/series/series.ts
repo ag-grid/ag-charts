@@ -1191,11 +1191,23 @@ export abstract class Series<
         return true;
     }
 
+    /** The canvas-space band the series is clipped to; it takes no interactions outside it. */
+    interactionBand: BBox | undefined = undefined;
+
+    private isInInteractionBand({ x, y }: Point) {
+        const { interactionBand } = this;
+        if (interactionBand == null) return true;
+        // Points arrive relative to the series area.
+        const rect = this.chart?.seriesRect;
+        return interactionBand.containsPoint(x + (rect?.x ?? 0), y + (rect?.y ?? 0));
+    }
+
     protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
+        if (!this.isInInteractionBand(point)) return;
         if (intent !== 'event' && intent !== 'context-menu' && !this.isHoverable()) return;
 
         // Mini-charts render markerless by construction, so they keep the plain 'exact' semantics.
@@ -1361,17 +1373,32 @@ export abstract class Series<
             }
         }
 
+        let box = selectionBox;
+        const { interactionBand } = this;
+        if (interactionBand != null) {
+            const visibleBox = BBox.fromObject(selectionBox).intersection(interactionBand);
+            if (visibleBox == null) return;
+            // Under 'all' a part-hidden node is still tested whole, so only the band overlap gates it.
+            if ((this.options.selection?.containment ?? 'any') === 'any') box = visibleBox;
+        }
+
         const predicate: PickNodesInBBoxPredicate = this.pickNodesInBBoxPredicate();
 
         yield* walkNodes(this.contentGroup, (node) => {
-            if (predicate(selectionBox, node)) {
+            if (predicate(box, node)) {
                 return node.unsafeDatum;
             }
             return undefined;
         });
     }
 
-    isPointInArea?(x: number, y: number): boolean;
+    isPointInArea(x: number, y: number): boolean {
+        return this.isInInteractionBand({ x, y }) && this.isPointInFill(x, y);
+    }
+
+    protected isPointInFill(_x: number, _y: number): boolean {
+        return false;
+    }
 
     public getLabelData(): PointLabelDatum[] {
         return [];

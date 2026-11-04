@@ -2010,7 +2010,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         );
     }
 
-    public override isPointInArea(x: number, y: number): boolean {
+    protected override isPointInFill(x: number, y: number): boolean {
         let fillPath: Path | undefined;
         for (const child of this.backgroundGroup.children()) {
             if (child instanceof Path) {

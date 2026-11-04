@@ -564,12 +564,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             tooltip,
             overlays,
             seriesRoot,
-            getSeriesBand: (series) => this.getSeriesBand(series),
         };
-    }
-
-    protected getSeriesBand(_series: object): BBox | undefined {
-        return undefined;
     }
 
     getModuleContext(): DynamicContext<ChartRegistry> {

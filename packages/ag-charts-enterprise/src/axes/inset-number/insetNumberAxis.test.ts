@@ -5,6 +5,7 @@ import {
     clickAction,
     compareImageSnapshot,
     deproxy,
+    dragAction,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
     hoverAction,
@@ -243,45 +244,73 @@ describe('InsetNumberAxis', () => {
         await expectPixelIdenticalAcrossUpdate(ctx, createEnterpriseChart, options(false), options(true));
     });
 
-    it('should not pick the part of a series clipped outside its band', async () => {
+    describe('outside the band', () => {
         const clicked: unknown[] = [];
-        chart = await createEnterpriseChart({
-            data: DATA,
-            title: { text: 'Volume', fontSize: 60 },
-            series: [
-                {
-                    type: 'bar',
-                    xKey: 'year',
-                    yKey: 'volume',
-                    yKeyAxis: 'yVolume',
-                    listeners: { seriesNodeClick: ({ datum }) => clicked.push(datum.year) },
-                },
-            ],
-            axes: {
-                x: { type: 'category', position: 'bottom' },
-                yVolume: { type: 'inset-number', position: 'left', lengthRatio: 0.25, max: 10 },
-            },
-        });
-        const internal = deproxy(chart);
-        const xScale = internal.axes.find((a) => a.userKey === 'x')!.scale;
-        const { x, y, height } = internal.seriesRect!;
-        const barX = x + xScale.convert('2005') + (xScale.bandwidth ?? 0) / 2;
 
         // The 2005 bar (15) overruns the band's max of 10 up to 37.5% of the height; the band holds the bottom 25%.
-        const [outside, inside] = [y + height * 0.73, y + height * 0.77];
-        expect(y).toBeGreaterThan(height * 0.1);
+        const createOverrunChart = async () => {
+            clicked.length = 0;
+            const created = await createEnterpriseChart({
+                data: DATA,
+                title: { text: 'Volume', fontSize: 60 },
+                selection: { enabled: true, enableDrag: true },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'year',
+                        yKey: 'volume',
+                        yKeyAxis: 'yVolume',
+                        selection: { enabled: true },
+                        listeners: { seriesNodeClick: ({ datum }) => clicked.push(datum.year) },
+                    },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    yVolume: { type: 'inset-number', position: 'left', lengthRatio: 0.25, max: 10 },
+                },
+            });
+            chart = created;
+            const internal = deproxy(created);
+            const xScale = internal.axes.find((a) => a.userKey === 'x')!.scale;
+            const { x, y, height } = internal.seriesRect!;
+            expect(y).toBeGreaterThan(height * 0.1);
+            return {
+                created,
+                internal,
+                barX: x + xScale.convert('2005') + (xScale.bandwidth ?? 0) / 2,
+                above: y + height * 0.7,
+                outside: y + height * 0.73,
+                inside: y + height * 0.77,
+            };
+        };
 
-        await hoverAction(barX, outside)(chart);
-        expect(isTooltipVisible(internal)).toBe(false);
+        it('should not pick the part of a series clipped outside its band', async () => {
+            const { created, internal, barX, outside, inside } = await createOverrunChart();
 
-        await hoverAction(barX, inside)(chart);
-        expect(isTooltipVisible(internal)).toBe(true);
+            await hoverAction(barX, outside)(created);
+            expect(isTooltipVisible(internal)).toBe(false);
 
-        await clickAction(barX, outside)(chart);
-        expect(clicked).toEqual([]);
+            await hoverAction(barX, inside)(created);
+            expect(isTooltipVisible(internal)).toBe(true);
 
-        await clickAction(barX, inside)(chart);
-        expect(clicked).toEqual(['2005']);
+            await clickAction(barX, outside)(created);
+            expect(clicked).toEqual([]);
+
+            await clickAction(barX, inside)(created);
+            expect(clicked).toEqual(['2005']);
+        });
+
+        it('should not drag-select the part of a series clipped outside its band', async () => {
+            const { created, barX, above, outside, inside } = await createOverrunChart();
+
+            await dragAction({ x: barX - 2, y: above }, { x: barX + 2, y: outside })(created);
+            await waitForChartStability(created);
+            expect([...created.getSelection()]).toHaveLength(0);
+
+            await dragAction({ x: barX - 2, y: above }, { x: barX + 2, y: inside })(created);
+            await waitForChartStability(created);
+            expect([...created.getSelection()]).toHaveLength(1);
+        });
     });
 
     it('should require lengthRatio', async () => {
