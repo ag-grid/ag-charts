@@ -86,7 +86,9 @@ describe('resolveCrossLinePlacements', () => {
         expect(anchors).toEqual([anchorOf('top', { horizontal })]);
         expect(warnings).toEqual([
             expect.stringMatching(
-                new RegExp(`^Placement \`${placement}\` does not apply to a line cross line on ${horizontal ? 'a y' : 'an x'} axis and is ignored;`)
+                new RegExp(
+                    `^Placement \`${placement}\` does not apply to a line cross line on ${horizontal ? 'a y' : 'an x'} axis and is ignored;`
+                )
             ),
         ]);
     });
@@ -116,10 +118,10 @@ describe('resolveCrossLinePlacements', () => {
     });
 
     it('accepts every range placement on a range', () => {
-        const { warnings } = resolve(
-            ['left-top', 'top-left', 'inside-top-left', 'inside-bottom-end', 'inside-start'],
-            { type: 'range', horizontal: false }
-        );
+        const { warnings } = resolve(['left-top', 'top-left', 'inside-top-left', 'inside-bottom-end', 'inside-start'], {
+            type: 'range',
+            horizontal: false,
+        });
         expect(warnings).toEqual([]);
     });
 });

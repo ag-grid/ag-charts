@@ -14,6 +14,7 @@ import {
 } from '../text/textUtil';
 import {
     type LabelFit,
+    type OverflowStrategy,
     type RegionAlign,
     drawnLineHeight,
     findLargestFontSizeDescending,
@@ -22,7 +23,6 @@ import {
     hasRealChars,
     isErased,
     labelTextAtShrinkRatio,
-    type OverflowStrategy,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
 import type { Point, SizedPoint } from '../types/scene';

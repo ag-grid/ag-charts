@@ -680,10 +680,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.soloSeriesIntegrity(options);
 
-        const seriesParams = presetDef?.reportsSeriesAdvisories
-            ? { ...this.validateParams, silentAdvisories: true }
-            : this.validateParams;
-        const missingSeriesModules = this.validateSeriesOptions(options, seriesParams);
+        const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
 
         const chartType = detectChartType(options, this.moduleRegistry);
 
@@ -760,7 +757,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
         const secondPassParams: ValidateParams = {
             skipDisabledNodeValidation: true,
-            silentAdvisories: true,
             logger: this.logger,
         };
 

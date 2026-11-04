@@ -20,8 +20,8 @@ import { expectWarningsCalls } from 'ag-charts-test';
 import type {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
-    AgCartesianCrossLineLabelPlacement,
     AgCartesianCrossLineLabelOptions,
+    AgCartesianCrossLineLabelPlacement,
     AgCartesianCrossLineOptions,
     AgCrossLineClickEvent,
     AgCrossLineClickParams,
