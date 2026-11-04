@@ -14,20 +14,18 @@ function stripDotSlash(target) {
     return target.replace(/^\.\//, '');
 }
 
-function collectExportTargets(exports, runtime, types) {
+// Each target is tagged with the export subpath it belongs to, so the conditions of a wildcard export can be compared.
+function collectExportTargets(exports, targets, subpath = '.', isTypes = false) {
     if (typeof exports === 'string') {
-        (exports.endsWith('.d.ts') ? types : runtime).push(exports);
+        targets.push({ target: stripDotSlash(exports), subpath, types: isTypes || exports.endsWith('.d.ts') });
         return;
     }
     if (exports == null || typeof exports !== 'object') return;
 
     for (const [key, value] of Object.entries(exports)) {
         if (key === './package.json') continue;
-        if (key === 'types' || key === 'typings') {
-            collectExportTargets(value, types, types);
-        } else {
-            collectExportTargets(value, runtime, types);
-        }
+        const childSubpath = key.startsWith('.') ? key : subpath;
+        collectExportTargets(value, targets, childSubpath, isTypes || key === 'types' || key === 'typings');
     }
 }
 
@@ -42,25 +40,66 @@ function escapeRegExp(text) {
     return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// Only a single `*` in the final path segment is supported, which covers every export in this repo.
-function expandTarget(pkgDir, target, errors) {
-    if (!target.includes('*')) return [target];
-
+// Only a single `*` in the final path segment is supported, which covers every export in this repo. Returns the
+// strings the `*` stands for in the files that exist.
+function matchSubstitutions(pkgDir, target, errors) {
     const dir = path.posix.dirname(target);
     const base = path.posix.basename(target);
     if (dir.includes('*') || base.split('*').length !== 2) {
         errors.push({ kind: 'bad-pattern', file: target, message: `unsupported export pattern: ${target}` });
-        return [];
+        return undefined;
     }
 
-    const [prefix, suffix] = base.split('*').map(escapeRegExp);
-    const pattern = new RegExp(`^${prefix}.+${suffix}$`);
+    const [prefix, suffix] = base.split('*');
+    const pattern = new RegExp(`^${escapeRegExp(prefix)}(.+)${escapeRegExp(suffix)}$`);
     const fullDir = path.join(pkgDir, dir);
-    const matches = fs.existsSync(fullDir) ? fs.readdirSync(fullDir).filter((f) => pattern.test(f)) : [];
-    if (matches.length === 0) {
-        errors.push({ kind: 'no-match', file: target, message: `export pattern matches no files: ${target}` });
+    if (!fs.existsSync(fullDir)) return [];
+    return fs
+        .readdirSync(fullDir)
+        .map((f) => pattern.exec(f)?.[1])
+        .filter((match) => match != null);
+}
+
+// Every condition of a wildcard export must provide the same substitutions, so the union across conditions is what
+// each one is expected to ship. A locale missing only its ESM bundle is then reported, not hidden by the others.
+function expandTargets(pkgDir, targets, errors) {
+    const substitutions = new Map();
+    for (const { target, subpath } of targets) {
+        if (!target.includes('*')) continue;
+        const matches = matchSubstitutions(pkgDir, target, errors);
+        if (matches == null) continue;
+        if (!substitutions.has(subpath)) substitutions.set(subpath, new Set());
+        for (const match of matches) substitutions.get(subpath).add(match);
     }
-    return matches.map((f) => path.posix.join(dir, f));
+
+    const expanded = [];
+    for (const { target, subpath, types } of targets) {
+        if (!target.includes('*')) {
+            expanded.push({ file: target, types });
+            continue;
+        }
+        const subs = substitutions.get(subpath);
+        if (subs == null) continue;
+        if (subs.size === 0) {
+            errors.push({ kind: 'no-match', file: target, message: `export pattern matches no files: ${target}` });
+        }
+        for (const sub of [...subs].sort()) expanded.push({ file: target.replace('*', sub), types });
+    }
+    return expanded;
+}
+
+function* walkFiles(pkgDir, dir) {
+    const entries = fs
+        .readdirSync(path.join(pkgDir, dir), { withFileTypes: true })
+        .sort((a, b) => a.name.localeCompare(b.name, 'en'));
+    for (const entry of entries) {
+        const file = path.posix.join(dir, entry.name);
+        if (entry.isDirectory()) {
+            yield* walkFiles(pkgDir, file);
+        } else if (entry.isFile()) {
+            yield file;
+        }
+    }
 }
 
 function readPackageJson(pkgDir) {
@@ -83,44 +122,48 @@ function checkPackage(pkgDir, { release = false } = {}) {
         return errors;
     }
 
-    const runtimeTargets = [];
-    const typeTargets = [];
+    const targets = [];
     for (const field of ['main', 'module']) {
-        if (typeof packageJson[field] === 'string') runtimeTargets.push(packageJson[field]);
+        if (typeof packageJson[field] === 'string') {
+            targets.push({ target: stripDotSlash(packageJson[field]), subpath: '.', types: false });
+        }
     }
     for (const field of ['types', 'typings']) {
-        if (typeof packageJson[field] === 'string') typeTargets.push(packageJson[field]);
+        if (typeof packageJson[field] === 'string') {
+            targets.push({ target: stripDotSlash(packageJson[field]), subpath: '.', types: true });
+        }
     }
-    collectExportTargets(packageJson.exports, runtimeTargets, typeTargets);
+    collectExportTargets(packageJson.exports, targets);
 
+    const expanded = expandTargets(pkgDir, targets, errors);
+    const typeFiles = [...new Set(expanded.filter((t) => t.types).map((t) => t.file))];
     const expected = new Set();
     const targetDirs = new Set();
-    for (const target of new Set(runtimeTargets.map(stripDotSlash))) {
-        targetDirs.add(path.posix.dirname(target));
-        for (const file of expandTarget(pkgDir, target, errors)) {
-            expected.add(file);
-            if (!fs.existsSync(path.join(pkgDir, file))) {
-                errors.push({ kind: 'missing-target', file, message: `exported file is missing: ${file}` });
-            }
+    for (const target of targets) {
+        if (!target.types) targetDirs.add(path.posix.dirname(target.target));
+    }
+    for (const file of new Set(expanded.filter((t) => !t.types).map((t) => t.file))) {
+        expected.add(file);
+        if (!fs.existsSync(path.join(pkgDir, file))) {
+            errors.push({ kind: 'missing-target', file, message: `exported file is missing: ${file}` });
+        }
 
-            const twin = minifiedTwin(file);
-            if (twin == null) continue;
-            expected.add(twin);
-            if (!fs.existsSync(path.join(pkgDir, twin))) {
-                errors.push({ kind: 'missing-twin', file: twin, message: `minified file is missing: ${twin}` });
-            }
+        const twin = minifiedTwin(file);
+        if (twin == null) continue;
+        expected.add(twin);
+        if (!fs.existsSync(path.join(pkgDir, twin))) {
+            errors.push({ kind: 'missing-twin', file: twin, message: `minified file is missing: ${twin}` });
         }
     }
 
-    // Non-recursive, so a build that started emitting shared chunks would be reported here too.
+    // Recursive, so a build that started emitting shared chunks would be reported here too.
+    const scanned = new Set();
     for (const dir of targetDirs) {
-        const fullDir = path.join(pkgDir, dir);
-        if (!fs.existsSync(fullDir)) continue;
-        for (const entry of fs
-            .readdirSync(fullDir, { withFileTypes: true })
-            .sort((a, b) => a.name.localeCompare(b.name, 'en'))) {
-            const file = path.posix.join(dir, entry.name);
-            if (entry.isFile() && isJs(entry.name) && !expected.has(file)) {
+        if (!fs.existsSync(path.join(pkgDir, dir))) continue;
+        for (const file of walkFiles(pkgDir, dir)) {
+            if (scanned.has(file)) continue;
+            scanned.add(file);
+            if (isJs(file) && !expected.has(file)) {
                 errors.push({
                     kind: 'unexported',
                     file,
@@ -131,13 +174,13 @@ function checkPackage(pkgDir, { release = false } = {}) {
     }
 
     if (release) {
-        errors.push(...checkReleaseArtefacts(pkgDir, expected, typeTargets));
+        errors.push(...checkReleaseArtefacts(pkgDir, expected, typeFiles));
     }
 
     return errors;
 }
 
-function checkReleaseArtefacts(pkgDir, expected, typeTargets) {
+function checkReleaseArtefacts(pkgDir, expected, typeFiles) {
     const errors = [];
 
     for (const file of expected) {
@@ -155,19 +198,16 @@ function checkReleaseArtefacts(pkgDir, expected, typeTargets) {
         }
     }
 
-    const types = [...new Set(typeTargets.map(stripDotSlash))];
-    if (types.length === 0) {
+    if (typeFiles.length === 0) {
         errors.push({
             kind: 'missing-types',
             file: 'package.json',
             message: 'package.json declares no type definitions',
         });
     }
-    for (const target of types) {
-        for (const file of expandTarget(pkgDir, target, errors)) {
-            if (!fs.existsSync(path.join(pkgDir, file))) {
-                errors.push({ kind: 'missing-types', file, message: `type definitions file is missing: ${file}` });
-            }
+    for (const file of typeFiles) {
+        if (!fs.existsSync(path.join(pkgDir, file))) {
+            errors.push({ kind: 'missing-types', file, message: `type definitions file is missing: ${file}` });
         }
     }
 

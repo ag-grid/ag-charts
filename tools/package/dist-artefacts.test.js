@@ -85,6 +85,13 @@ describe('checkPackage', () => {
         ]);
     });
 
+    it('reports a bundle nested below an export directory', () => {
+        const files = [...STANDARD_FILES, 'dist/package/chunks/shared.js'];
+        assert.deepEqual(summarise(checkPackage(createPackage(STANDARD_EXPORTS, files))), [
+            'unexported dist/package/chunks/shared.js',
+        ]);
+    });
+
     it('follows an export removal without edits, flagging any bundle left behind', () => {
         const withScene = {
             ...STANDARD_EXPORTS,
@@ -159,6 +166,23 @@ describe('checkPackage', () => {
             const files = [...STANDARD_FILES, ...localeFiles, 'dist/package/de-DE.cjs.min.js'];
             assert.deepEqual(summarise(checkPackage(createPackage(localeExports, files))), [
                 'unexported dist/package/de-DE.cjs.min.js',
+            ]);
+        });
+
+        it('reports a file one condition lacks while the others ship it', () => {
+            const missingEsm = ['dist/package/fr-FR.esm.mjs', 'dist/package/fr-FR.esm.min.mjs'];
+            const files = [...STANDARD_FILES, ...localeFiles].filter((f) => !missingEsm.includes(f));
+            assert.deepEqual(summarise(checkPackage(createPackage(localeExports, files))), [
+                'missing-target dist/package/fr-FR.esm.mjs',
+                'missing-twin dist/package/fr-FR.esm.min.mjs',
+            ]);
+        });
+
+        it('reports a type definition one substitution lacks', () => {
+            const files = [...STANDARD_FILES, ...localeFiles].filter((f) => f !== 'dist/types/src/fr-FR.d.ts');
+            assert.deepEqual(checkPackage(createPackage(localeExports, files)), []);
+            assert.deepEqual(summarise(checkPackage(createPackage(localeExports, files), { release: true })), [
+                'missing-types dist/types/src/fr-FR.d.ts',
             ]);
         });
 
