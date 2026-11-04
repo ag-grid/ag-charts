@@ -308,7 +308,14 @@ function NavProperty({
                         ) : (
                             ''
                         )}
-                        {isRecursive && <span className={styles.comment}>{' // recursive'}</span>}
+                        {isRecursive && (
+                            <>
+                                <span className={styles.comment} aria-hidden="true">
+                                    {' // recursive'}
+                                </span>
+                                <span className={styles.srOnly}> (recursive)</span>
+                            </>
+                        )}
                     </NavLink>
                     {expandable && (
                         <OpeningBrackets
