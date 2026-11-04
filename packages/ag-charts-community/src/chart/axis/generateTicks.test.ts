@@ -808,26 +808,36 @@ describe('generateTicks with a configured interval', () => {
     const weeks = Array.from({ length: 52 }, (_, i) => new Date(2024, 0, i * 7 + 1));
 
     // `tickFormatter` is asked once per pass of the label thinning search, so its calls count the passes.
-    function run({ interval, domain = [0, 100], pixels = 300, avoidCollisions = true }: RunOptions) {
-        const scale = new LinearScale();
-        scale.domain = domain;
-        scale.range = [0, pixels];
-
+    function countPasses<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+        params: Parameters<typeof tickGenerationParams<TScale, TDatum>>[0]
+    ) {
         let passes = 0;
         const { tickData } = generateTicks(
-            tickGenerationParams<LinearScale, AgNumericValue>({
-                scale,
-                domain,
-                range: [0, pixels],
+            tickGenerationParams<TScale, TDatum>({
                 niceMode: [NiceMode.TickAndDomain, NiceMode.TickAndDomain],
-                interval,
-                label: tickLabelOptions({ avoidCollisions }),
+                label: tickLabelOptions(),
+                ...params,
                 tickFormatter: () => {
                     passes++;
                     return (value: unknown) => `a rather long label for ${String(value)}`;
                 },
             })
         );
+        return { passes, tickData };
+    }
+
+    function run({ interval, domain = [0, 100], pixels = 300, avoidCollisions = true }: RunOptions) {
+        const scale = new LinearScale();
+        scale.domain = domain;
+        scale.range = [0, pixels];
+
+        const { passes, tickData } = countPasses<LinearScale, AgNumericValue>({
+            scale,
+            domain,
+            range: [0, pixels],
+            interval,
+            label: tickLabelOptions({ avoidCollisions }),
+        });
         return { passes, niceDomain: tickData.niceDomain.map(Number) };
     }
 
@@ -836,23 +846,8 @@ describe('generateTicks with a configured interval', () => {
         scale.domain = weeks;
         scale.range = [0, 300];
 
-        let passes = 0;
-        generateTicks(
-            tickGenerationParams({
-                scale,
-                domain: weeks,
-                range: [0, 300],
-                niceMode: [NiceMode.TickAndDomain, NiceMode.TickAndDomain],
-                interval: { step: 'day' },
-                primaryTickCount,
-                label: tickLabelOptions(),
-                tickFormatter: () => {
-                    passes++;
-                    return (value: unknown) => `a rather long label for ${String(value)}`;
-                },
-            })
-        );
-        return passes;
+        return countPasses({ scale, domain: weeks, range: [0, 300], interval: { step: 'day' }, primaryTickCount })
+            .passes;
     }
 
     const everyTenth = Array.from({ length: 11 }, (_, i) => i * 10);

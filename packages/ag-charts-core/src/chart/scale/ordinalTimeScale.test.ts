@@ -769,6 +769,14 @@ describe('OrdinalTimeScale', () => {
             ]);
         });
     });
+    const tickParams = (tickCount: number, interval?: AgTimeInterval | AgTimeIntervalUnit) => ({
+        nice: [true, true] as [boolean, boolean],
+        interval,
+        tickCount,
+        minTickCount: 0,
+        maxTickCount: Infinity,
+    });
+
     // A scale that drops its interval must say so, or the axis stops thinning its automatic ticks.
     describe('intervalIgnored', () => {
         const weeklyScale = (range: [number, number]) => {
@@ -777,35 +785,19 @@ describe('OrdinalTimeScale', () => {
             scale.range = range;
             return scale;
         };
-        const params = (interval: AgTimeInterval | AgTimeIntervalUnit) => ({
-            nice: [true, true] as [boolean, boolean],
-            interval,
-            tickCount: 5,
-            minTickCount: 0,
-            maxTickCount: Infinity,
-        });
-
         it('is unset when the interval is honoured', () => {
-            expect(weeklyScale([0, 1000]).ticks(params('month'))?.intervalIgnored).toBeUndefined();
+            expect(weeklyScale([0, 1000]).ticks(tickParams(5, 'month'))?.intervalIgnored).toBeUndefined();
         });
 
         it('is set when the interval is rejected as too dense', () => {
             // A day interval over a year is more than one tick per pixel of this 50px range.
-            expect(weeklyScale([0, 50]).ticks(params('day'))?.intervalIgnored).toBe(true);
+            expect(weeklyScale([0, 50]).ticks(tickParams(5, 'day'))?.intervalIgnored).toBe(true);
         });
     });
 
     // A scale that was narrowed to a temporary domain and restored must answer exactly as one that never left
     // its domain: the cached band arrays are an optimisation, so no result may depend on them.
     describe('results after a temporary domain round trip', () => {
-        const tickParams = (tickCount: number, interval?: AgTimeInterval | AgTimeIntervalUnit) => ({
-            nice: [true, true] as [boolean, boolean],
-            interval,
-            tickCount,
-            minTickCount: 0,
-            maxTickCount: Infinity,
-        });
-
         function pair(domain: Date[], temporary: Date[]) {
             const control = new OrdinalTimeScale();
             control.domain = domain;

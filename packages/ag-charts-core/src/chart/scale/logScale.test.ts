@@ -275,18 +275,17 @@ describe('LogScale intervalIgnored', () => {
         return scale;
     }
 
-    // A decade span of six or more takes the power-of-ten tick path; fewer decades take the multiples path.
-    test.each([
+    // A span of at least `tickCount` decades takes the power-of-ten tick path; fewer decades take the multiples path.
+    const tickPaths = [
         { path: 'power-of-ten', domain: [1, 1e6] },
         { path: 'multiples', domain: [1, 100] },
-    ])('is set when the interval is too dense on the $path tick path', ({ domain }) => {
+    ];
+
+    test.each(tickPaths)('is set when the interval is too dense on the $path tick path', ({ domain }) => {
         expect(scaleOver(domain).ticks(params(0.001))?.intervalIgnored).toBe(true);
     });
 
-    test.each([
-        { path: 'power-of-ten', domain: [1, 1e6] },
-        { path: 'multiples', domain: [1, 100] },
-    ])('is unset when the interval is honoured on the $path tick path', ({ domain }) => {
+    test.each(tickPaths)('is unset when the interval is honoured on the $path tick path', ({ domain }) => {
         expect(scaleOver(domain).ticks(params(1))?.intervalIgnored).toBeUndefined();
     });
 
