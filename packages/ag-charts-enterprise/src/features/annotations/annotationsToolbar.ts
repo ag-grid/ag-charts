@@ -16,6 +16,7 @@ const { LayoutElement, Menu } = _ModuleSupport;
 interface EventMap {
     'cancel-create-annotation': null;
     'pressed-create-annotation': { annotation: AnnotationType };
+    'pressed-place-annotation': { sourceEvent: KeyboardEvent };
     'pressed-clear': null;
     'pressed-show-menu': null;
     'pressed-unrelated': null;
@@ -48,6 +49,7 @@ export class AnnotationsToolbar {
     private enabled: boolean = true;
     private padding: number = 20;
     private buttons: AnnotationsToolbarButtonOptions[] = [];
+    private activeToolButton?: AnnotationsToolbarButtonValue;
 
     readonly events = new EventEmitter<EventMap>();
 
@@ -125,7 +127,14 @@ export class AnnotationsToolbar {
     }
 
     public clearActiveButton() {
+        this.activeToolButton = undefined;
         this.toolbar.clearActiveButton();
+    }
+
+    /** Focus the button the current tool was chosen from, which a menu's item leaves to its menu button. */
+    public focusActiveToolButton() {
+        const index = this.buttons.findIndex((button) => button.value === this.activeToolButton);
+        this.toolbar.focusButton(index);
     }
 
     private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
@@ -147,6 +156,12 @@ export class AnnotationsToolbar {
         buttonBounds,
         buttonWidget,
     }: _ModuleSupport.ToolbarEventMap<AnnotationsToolbarButtonOptions>['button-pressed']) {
+        // The button of a chosen tool places its annotation when pressed with the keyboard, rather than choosing the tool again.
+        if (event.device === 'keyboard' && button.value === this.activeToolButton) {
+            this.events.emit('pressed-place-annotation', { sourceEvent: event.sourceEvent });
+            return;
+        }
+
         const axisScale = this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y)[0].scale;
 
         switch (button.value) {
@@ -302,13 +317,17 @@ export class AnnotationsToolbar {
         this.updateButtonByIndex(index, { icon: item.icon });
         this.menuItemPicked = true;
         this.events.emit('pressed-create-annotation', { annotation: item.value });
+        this.activeToolButton = menu;
         this.annotationMenu.hide();
+        // Hiding destroys the menu before its row can restore focus to the menu's button, which would drop it to the body.
+        this.focusActiveToolButton();
     }
 
     private onButtonPressCreateAnnotation(item: AnnotationsToolbarButtonValue, annotation: AnnotationType) {
         const index = this.buttons.findIndex((button) => button.value === item);
         this.toolbar.toggleActiveButtonByIndex(index);
         this.events.emit('pressed-create-annotation', { annotation });
+        this.activeToolButton = item;
     }
 
     private onKeyDown({ sourceEvent }: KeyboardWidgetEvent) {

@@ -166,6 +166,10 @@ export abstract class BaseToolbar<
         return this.buttonWidgets.at(index);
     }
 
+    public focusButton(index: number) {
+        this.buttonWidgets.at(index)?.focus({ preventScroll: true });
+    }
+
     public setButtonHiddenByIndex(index: number, hidden: boolean) {
         // This method should be usually be avoided as it breaks keyboard navigation if a single
         // button in a toolbar is hidden.

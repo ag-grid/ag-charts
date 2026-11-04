@@ -17,6 +17,7 @@ export interface SharedToolbarWithSection<
     | 'toggleActiveButtonByIndex'
     | 'toggleButtonEnabledByIndex'
     | 'clearActiveButton'
+    | 'focusButton'
 > {
     layout: (layoutBox: BBox, padding?: number) => void;
     setButtonSize: (buttonSize: number | undefined) => void;
@@ -171,6 +172,9 @@ export class SharedToolbar extends AbstractModuleInstance {
                 if (this.activeSections.size === 0) {
                     this.destroy();
                 }
+            },
+            focusButton: (index: number) => {
+                sharedToolbar.focusButton(this.getIndex(section, index));
             },
             clearActiveButton: sharedToolbar.clearActiveButton.bind(sharedToolbar),
             addListener: sharedToolbar.addListener.bind(sharedToolbar),

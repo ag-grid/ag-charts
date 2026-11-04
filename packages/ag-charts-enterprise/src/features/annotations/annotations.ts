@@ -33,7 +33,7 @@ import type {
 } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs } from './annotationsConfig';
-import { LINE_STYLE_TYPE_ITEMS } from './annotationsMenuOptions';
+import { LINE_STYLE_TYPE_ITEMS, getAnnotationLabel } from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type {
     AnnotationDatum,
@@ -49,6 +49,7 @@ import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
+import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
@@ -115,6 +116,9 @@ export class Annotations extends AbstractModuleInstance {
 
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
+
+    // The tool chosen from the toolbar while nothing has been placed yet, which Enter places at a default position.
+    private pendingCreateType?: AnnotationType;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -503,15 +507,17 @@ export class Annotations extends AbstractModuleInstance {
 
             // Toolbar
             toolbar.events.on('cancel-create-annotation', () => {
-                this.cancel();
-                this.reset();
-                this.update();
+                this.cancelCreate();
             }),
             toolbar.events.on('pressed-create-annotation', ({ annotation }) => {
                 this.cancel();
                 this.pushAnnotationState(InteractionState.Annotations);
                 this.state.transition(annotation);
+                this.pendingCreateType = annotation;
                 this.update();
+            }),
+            toolbar.events.on('pressed-place-annotation', ({ sourceEvent }) => {
+                this.createPendingAnnotation(sourceEvent);
             }),
             toolbar.events.on('pressed-clear', () => {
                 this.clear();
@@ -968,6 +974,8 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context || event.device === 'keyboard') return;
 
+        this.pendingCreateType = undefined;
+
         const shiftKey = event.sourceEvent.shiftKey;
         const point = invertCoords(Vec2.from(event), context);
         const textInputValue = this.textInput.getValue();
@@ -981,6 +989,8 @@ export class Annotations extends AbstractModuleInstance {
 
         const context = this.getAnnotationContext();
         if (!context) return;
+
+        this.pendingCreateType = undefined;
 
         const offset = Vec2.from(event);
 
@@ -1018,6 +1028,15 @@ export class Annotations extends AbstractModuleInstance {
 
         state.transition('click', { point, shiftKey: false });
 
+        this.update();
+    }
+
+    /** Abandon the chosen tool and put focus back on its button, where the user chose it. */
+    private cancelCreate() {
+        // Focus the button first: cancelling clears the toolbar's active tool
+        if (this.pendingCreateType != null) this.toolbar.focusActiveToolButton();
+        this.cancel();
+        this.reset();
         this.update();
     }
 
@@ -1075,6 +1094,29 @@ export class Annotations extends AbstractModuleInstance {
         this.reset();
     }
 
+    /** Place the annotation of the chosen tool at once, without a pointer. */
+    private createPendingAnnotation(sourceEvent: KeyboardEvent) {
+        const type = this.pendingCreateType;
+        const context = this.getAnnotationContext();
+        if (type == null || !context) return;
+
+        sourceEvent.preventDefault();
+        this.pendingCreateType = undefined;
+
+        const { width, height } = context.seriesRect;
+        const points = getKeyboardCreateOffsets(type, { width, height }).map((offset) => invertCoords(offset, context));
+
+        // The tool's button can be a menu item that is gone by now, so make sure focus lands somewhere that takes the
+        // arrow keys once the annotation is selected; a text annotation moves it to its text input when that opens.
+        const { seriesWidget } = this.ctx.widgets;
+        seriesWidget.focus({ preventScroll: true });
+        const label = getAnnotationLabel(type);
+        if (label != null) seriesWidget.swapChain.update(this.ctx.localeManager.t(label));
+
+        this.state.transition('create', { points });
+        this.update();
+    }
+
     private onDelete() {
         if (this.textInput.isVisible()) return;
         this.cancel();
@@ -1128,7 +1170,14 @@ export class Annotations extends AbstractModuleInstance {
                 translation.x = xStep;
                 break;
             case 'Escape':
-                this.onCancel();
+                if (this.pendingCreateType == null) {
+                    this.onCancel();
+                } else {
+                    this.cancelCreate();
+                }
+                return;
+            case 'Enter':
+                this.createPendingAnnotation(sourceEvent);
                 return;
             case 'Backspace':
             case 'Delete':
@@ -1178,10 +1227,12 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private reset() {
+        this.pendingCreateType = undefined;
         this.state.transition('reset');
     }
 
     private cancel() {
+        this.pendingCreateType = undefined;
         this.state.transition('cancel');
     }
 

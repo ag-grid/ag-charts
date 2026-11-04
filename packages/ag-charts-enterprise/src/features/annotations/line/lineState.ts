@@ -18,10 +18,10 @@ interface LineStateMachineContext<Datum extends LineTypeDatum> extends Omit<
 }
 
 export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends StateMachine<
-    'start' | 'waiting-first-render' | 'end',
+    'start' | 'waiting-first-render' | 'waiting-create-render' | 'end',
     Pick<
         AnnotationStateEvents,
-        'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'reset' | 'cancel' | 'render'
+        'click' | 'create' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'reset' | 'cancel' | 'render'
     >
 > {
     override debug = Debug.create(true, 'annotations');
@@ -40,6 +40,12 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends 
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
             applyAnnotationOptions(datum, { start: point, end: point });
+            ctx.create(datum);
+        };
+
+        const actionCreateAll = ({ points: [start, end] }: { points: DataPoint[] }) => {
+            const datum = this.createDatum();
+            applyAnnotationOptions(datum, { start, end });
             ctx.create(datum);
         };
 
@@ -69,6 +75,11 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends 
             ctx.recordAction(`Create ${this.datum?.type} annotation`);
         };
 
+        const actionCreatedRender = () => {
+            this.node?.toggleActive(true);
+            onExitEnd();
+        };
+
         super('start', {
             start: {
                 click: {
@@ -79,12 +90,22 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends 
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
+                create: {
+                    target: 'waiting-create-render',
+                    action: actionCreateAll,
+                },
                 reset: StateMachine.parent,
             },
             'waiting-first-render': {
                 render: {
                     target: 'end',
                     action: actionFirstRender,
+                },
+            },
+            'waiting-create-render': {
+                render: {
+                    target: StateMachine.parent,
+                    action: actionCreatedRender,
                 },
             },
             end: {
