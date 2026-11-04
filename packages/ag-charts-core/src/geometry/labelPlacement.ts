@@ -289,9 +289,9 @@ export interface PointLabelDatum {
     readonly spacing?: number;
     /**
      * Resolved per-category obstacle configuration. Overrides the series
-     * {@link SeriesLabelDefaults.collideWith} when set.
+     * {@link SeriesLabelDefaults.avoid} when set.
      */
-    readonly collideWith?: CollideWith;
+    readonly avoid?: LabelAvoidance;
     /**
      * Collision clearance for this label's box. Overrides the series
      * {@link SeriesLabelDefaults.threshold} when set — waterfall styles each item type separately, so
@@ -327,10 +327,10 @@ export interface PointLabelDatum {
      */
     readonly positionedCandidates?: readonly PositionedLabelCandidate[];
     /**
-     * The label's own bar rect (full-column geometry, matching its `seriesItem` obstacle box). Any
-     * `seriesItem` obstacle intersecting it is treated as non-colliding, so a bar label avoids other
+     * The label's own bar rect (full-column geometry, matching its `shape` obstacle box). Any
+     * `shape` obstacle intersecting it is treated as non-colliding, so a bar label avoids other
      * bars without ever colliding with its own bar, its stacked siblings, or `grouped:false`
-     * behind-bars that overlap it. Set only on the positioned-candidate path with `seriesItem`
+     * behind-bars that overlap it. Set only on the positioned-candidate path with `shape`
      * avoidance enabled.
      */
     readonly ownBox?: BoxBounds;
@@ -346,13 +346,13 @@ export interface PointLabelDatum {
     readonly stack?: LabelStack;
 }
 
-export type ObstacleCategory = 'marker' | 'label' | 'seriesItem' | 'axisLabel';
+export type ObstacleCategory = 'marker' | 'label' | 'shape' | 'axisLabel';
 
 /** Per-category toggle: `false` disables avoidance of that obstacle category. */
-export interface CollideWith {
+export interface LabelAvoidance {
     readonly marker?: boolean;
     readonly label?: boolean;
-    readonly seriesItem?: boolean;
+    readonly shape?: boolean;
     /** Whether the label must stay inside the series plotting area; a series attaches its plot region when set. */
     readonly seriesArea?: boolean;
     /** Opt-in, unlike the other categories: only `true` makes axis tick labels obstacles. */
@@ -370,7 +370,7 @@ export interface SeriesLabelDefaults {
     readonly spacing?: number;
     /** Collision-detection threshold applied to the label's own box: positive grows it, negative shrinks it. */
     readonly threshold?: number;
-    readonly collideWith?: CollideWith;
+    readonly avoid?: LabelAvoidance;
     readonly placements?: readonly LabelPlacement[];
 }
 
@@ -424,27 +424,27 @@ export interface SeriesLabels {
 /** Whether any label opts in to avoiding axis labels, so a solve without one can skip gathering them. */
 export function labelsAvoidAxisLabels(labelData: ReadonlyMap<string, SeriesLabels>): boolean {
     for (const { datums, defaults } of labelData.values()) {
-        // OPTIMIZATION: series share one `collideWith` across their datums, so test each object once.
-        let tested: CollideWith | undefined;
+        // OPTIMIZATION: series share one `avoid` object across their datums, so test each object once.
+        let tested: LabelAvoidance | undefined;
         for (const d of datums) {
-            const collideWith = d.collideWith ?? defaults?.collideWith;
-            if (collideWith === tested) continue;
-            if (collideWith?.axisLabel === true) return true;
-            tested = collideWith;
+            const avoid = d.avoid ?? defaults?.avoid;
+            if (avoid === tested) continue;
+            if (avoid?.axisLabel === true) return true;
+            tested = avoid;
         }
     }
     return false;
 }
 
-/** Resolves the user-facing `collideWith` flags into the engine's {@link CollideWith}, applying the defaults. */
-export function resolveCollideWith(collision: NormalisedChartLabelCollisionOptions): CollideWith {
-    const { markers, labels, seriesItems, seriesArea, axisLabels } = collision.collideWith ?? {};
+/** Inverts the user-facing `collideWith` flags, where `true` allows overlap, into what a label avoids. */
+export function resolveLabelAvoidance(collision: NormalisedChartLabelCollisionOptions): LabelAvoidance {
+    const { markers, labels, shapes, seriesArea, axisLabels } = collision.collideWith ?? {};
     return {
-        marker: markers ?? true,
-        label: labels ?? true,
-        seriesItem: seriesItems ?? false,
-        seriesArea: seriesArea ?? true,
-        axisLabel: axisLabels ?? false,
+        marker: markers !== true,
+        label: labels !== true,
+        shape: shapes === false,
+        seriesArea: seriesArea !== true,
+        axisLabel: axisLabels === false,
     };
 }
 
@@ -458,7 +458,7 @@ export function resolveSeriesLabelDefaults(
         alwaysShow: src.alwaysShow,
         spacing,
         threshold: src.threshold,
-        collideWith: resolveCollideWith(src),
+        avoid: resolveLabelAvoidance(src),
         placements,
     };
 }
@@ -716,7 +716,7 @@ const fitRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const candidateRect: OrientedRect = { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 };
 let candidateOriented = false;
 // The candidate datum's per-category obstacle config, set before each obstacle query.
-let candidateCollideWith: CollideWith | undefined;
+let candidateAvoid: LabelAvoidance | undefined;
 // Collision-detection threshold applied to the candidate's own box: positive grows it (more clearance),
 // negative shrinks it (tolerates overlap). Set per label before its obstacle queries.
 let candidateThreshold = 0;
@@ -914,7 +914,7 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         return true;
     }
 
-    const category = o.category ?? 'seriesItem';
+    const category = o.category ?? 'shape';
     // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
     // directional labels fall through to the circle test, which measures their real clearance.
     if (
@@ -940,7 +940,7 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     }
 
     if (o.overlay === true) return false;
-    const enabled = candidateCollideWith?.[category];
+    const enabled = candidateAvoid?.[category];
     return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
 
@@ -2086,7 +2086,7 @@ function tryPlaceLabel(
     // A datum's own field overrides the series default; when neither is set the label is kept.
     const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
     const placements = d.placements ?? defaults?.placements;
-    const collideWith = d.collideWith ?? defaults?.collideWith;
+    const avoid = d.avoid ?? defaults?.avoid;
     const gap = labelGapOf(d);
     const spacing = d.spacing ?? defaults?.spacing ?? padding;
     const threshold = d.threshold ?? defaults?.threshold ?? 0;
@@ -2122,7 +2122,7 @@ function tryPlaceLabel(
     return placeAvoidingLabel(
         d,
         placements,
-        collideWith,
+        avoid,
         alwaysShow,
         index,
         bounds,
@@ -2452,7 +2452,7 @@ function shrinkToClear(d: PointLabelDatum, pass: () => PlacedLabel | undefined):
 function placeAvoidingLabel(
     d: PointLabelDatum,
     placements: readonly LabelPlacement[] | undefined,
-    collideWith: CollideWith | undefined,
+    avoid: LabelAvoidance | undefined,
     alwaysShow: boolean,
     index: number,
     bounds: BoxBounds,
@@ -2466,7 +2466,7 @@ function placeAvoidingLabel(
     bestChoice.score = Infinity;
     candidateStack = undefined;
     if (d.positionedCandidates != null) {
-        return placeFromPositionedCandidates(d, collideWith, threshold, index, bounds, resolveCandidate);
+        return placeFromPositionedCandidates(d, avoid, threshold, index, bounds, resolveCandidate);
     }
     const { fit } = d;
     // Measured once here rather than per candidate: every candidate refits the same source text. A styled
@@ -2487,7 +2487,7 @@ function placeAvoidingLabel(
     cascadeSpacing = spacing;
     cascadeInflate = Math.max(threshold, 0);
     cascadeThreshold = threshold;
-    candidateCollideWith = collideWith;
+    candidateAvoid = avoid;
     candidateThreshold = threshold;
     markerCentreOf(d);
     candidateOwnMarkerCx = markerCentre.cx;
@@ -2542,13 +2542,13 @@ const keptLineContainer = { width: 0, height: 0 };
  */
 function placeFromPositionedCandidates(
     d: PointLabelDatum,
-    collideWith: CollideWith | undefined,
+    avoid: LabelAvoidance | undefined,
     threshold: number,
     index: number,
     bounds: BoxBounds,
     resolveCandidate: PositionedCandidateResolver | undefined
 ): PlacedLabel | undefined {
-    candidateCollideWith = collideWith;
+    candidateAvoid = avoid;
     candidateThreshold = threshold;
     // No compass placement and no own marker on this path (bars): the own-marker gate in
     // obstacleOverlapsCandidate must stay inert, so no obstacle centre can match.

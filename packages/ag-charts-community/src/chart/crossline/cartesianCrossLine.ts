@@ -15,7 +15,7 @@ import {
     fitLabelText,
     fitLabelTextAutoSize,
     fontWithSize,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     resolveLabelFit,
     resolvePadding,
     toRadians,
@@ -316,8 +316,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const { collision, reserveSpace } = this.label;
         const keep = this.keepsLabel;
         // Not themed, as the cross-line theme also reaches polar axes; outer labels sit outside the series area.
-        const seriesArea = collision?.collideWith?.seriesArea ?? false;
-        const collideWith = { ...resolveCollideWith(collision ?? { alwaysShow: true }), seriesArea };
+        const seriesArea = collision?.collideWith?.seriesArea === false;
+        const avoid = { ...resolveLabelAvoidance(collision ?? { alwaysShow: true }), seriesArea };
         const { width, height } = box;
 
         // A re-layout settles the placement already chosen rather than choosing again.
@@ -352,7 +352,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             alwaysShow: keep ? undefined : false,
             neverDrop: keep,
             obstacle: keep ? reserveSpace : true,
-            collideWith,
+            avoid,
             threshold: collision?.threshold,
             positionedCandidates,
         };

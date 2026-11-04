@@ -11,6 +11,7 @@ import {
     autoSizedLabelOptionsDefs,
     boolean,
     callbackDefs,
+    collisionOptionsDef,
     colorOrRef,
     colorScaleOptionsDef,
     colorUnion,
@@ -61,8 +62,12 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     label: {
         spacing: positiveNumber,
         ...autoSizedLabelOptionsDefs,
+        collision: collisionOptionsDef,
     },
-    secondaryLabel: autoSizedLabelOptionsDefs,
+    secondaryLabel: {
+        ...autoSizedLabelOptionsDefs,
+        collision: collisionOptionsDef,
+    },
     tooltip: tooltipOptionsDefs,
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
     ...without(fillOptionsDef, ['fill']),

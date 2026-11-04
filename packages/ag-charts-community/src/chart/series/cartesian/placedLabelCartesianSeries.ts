@@ -1,4 +1,5 @@
 import type {
+    BoxBounds,
     CandidateStyleResolver,
     LabelMeasureContext,
     MeasuredLabel,
@@ -53,6 +54,8 @@ export interface PlacedLabelContext extends LabelMeasureContext {
     readonly labelInsideSize: { width: number; height: number } | undefined;
     /** Marker anchor, so a label placed on an anchored/off-centre shape (e.g. pin) tracks its drawn centre. */
     readonly labelAnchor: Point | undefined;
+    /** The series area a directional label must stay inside, unless it may overflow it. */
+    readonly labelRegion: BoxBounds | undefined;
 }
 
 /** A marker-anchored placed label's series-constant geometry, plus whether it is drawn at all. */
@@ -68,6 +71,7 @@ const DISABLED_LABEL_CONTEXT: MarkerLabelContext = {
     labelInsideOffset: undefined,
     labelInsideSize: undefined,
     labelAnchor: undefined,
+    labelRegion: undefined,
 };
 
 /**
@@ -147,6 +151,8 @@ export abstract class PlacedLabelCartesianSeries<
             labelInsideOffset,
             labelInsideSize,
             labelAnchor: Marker.anchor(shape),
+            // Inside-only labels ride with their marker, so only directional placements can spill out.
+            labelRegion: insideOnly ? undefined : this.resolveLabelPlotRegion(collision),
         };
     }
 

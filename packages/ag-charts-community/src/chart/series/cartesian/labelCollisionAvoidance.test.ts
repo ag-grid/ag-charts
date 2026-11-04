@@ -32,8 +32,8 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 
-// `collideWith` is an undocumented opt-in model (see chartDefaults.ts), so these option objects are
-// built untyped and passed through to `createChart` unchecked.
+// Placements differ per series type, so these option objects are built untyped and passed through to
+// `createChart` unchecked.
 type LabelCollisionConfig = {
     placement?: string[];
     collision?: {
@@ -698,16 +698,23 @@ describe('label collision avoidance', () => {
     });
 
     describe('series-area overflow (marker series)', () => {
-        // Series-area containment is opt-in via `collideWith.seriesArea`: off by default a label spilling into
-        // the chart's outer padding band is kept; on, the overflow counts as a collision and hides it.
+        // Marker series labels may spill into the chart's outer padding band by default; with
+        // `collideWith.seriesArea: false` the overflow counts as a collision and hides it.
         const topEdgeData = [{ x: 5, y: 10, size: 4, label: 'Edge' }];
         const edgeAxes = {
             x: { position: 'bottom', type: 'number', min: 0, max: 10 },
             y: { position: 'left', type: 'number', min: 0, max: 10 },
         };
 
+        const seriesOptions = (markerSize: number) => ({
+            scatter: { labelKey: 'label', size: markerSize },
+            bubble: { labelKey: 'label', sizeKey: 'size', minSize: markerSize, maxSize: markerSize },
+            line: { marker: { enabled: true, size: markerSize } },
+            area: { marker: { enabled: true, size: markerSize } },
+        });
+
         const render = async (
-            type: 'scatter' | 'bubble',
+            type: 'scatter' | 'bubble' | 'line' | 'area',
             opts: {
                 seriesAreaPaddingTop?: number;
                 placement?: string;
@@ -727,12 +734,10 @@ describe('label collision avoidance', () => {
                         type,
                         xKey: 'x',
                         yKey: 'y',
-                        labelKey: 'label',
-                        ...(type === 'bubble'
-                            ? { sizeKey: 'size', minSize: markerSize, maxSize: markerSize }
-                            : { size: markerSize }),
+                        ...seriesOptions(markerSize)[type],
                         label: {
                             enabled: true,
+                            formatter: () => 'Edge',
                             placement,
                             collision: {
                                 alwaysShow: false,
@@ -746,34 +751,65 @@ describe('label collision avoidance', () => {
             return placedLabelPlacements();
         };
 
-        for (const type of ['scatter', 'bubble'] as const) {
-            it(`${type}: keeps a label overflowing the series area by default (seriesArea off)`, async () => {
+        // Over the animatable-node limit, so the update reuses the line's existing node data in place.
+        it('line: drops a label overflowing the series area after seriesArea is updated to false', async () => {
+            const data = Array.from({ length: 1001 }, (_, x) => ({ x, y: x === 500 ? 10 : 0 }));
+            const options = (seriesArea: boolean): AgCartesianChartOptions => ({
+                data,
+                legend: { enabled: false },
+                padding: { top: 80, right: 10, bottom: 10, left: 10 },
+                axes: { x: { type: 'number' }, y: { type: 'number', min: 0, max: 10 } },
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            enabled: true,
+                            formatter: ({ value }) => (value === 10 ? 'Edge' : ''),
+                            collision: { alwaysShow: false, collideWith: { seriesArea } },
+                        },
+                    },
+                ],
+            });
+            const edgeLabels = () => renderedLabelTexts().filter((text) => text === 'Edge');
+
+            chart = await createChart(options(true));
+            expect(edgeLabels()).toHaveLength(1);
+
+            await chart.update(options(false));
+            await waitForChartStability(chart);
+            expect(edgeLabels()).toHaveLength(0);
+        });
+
+        for (const type of ['scatter', 'bubble', 'line', 'area'] as const) {
+            it(`${type}: keeps a label overflowing the series area by default`, async () => {
                 const placed = await render(type);
                 expect(placed.length).toBe(1);
             });
 
-            it(`${type}: drops a label overflowing the series area when collideWith.seriesArea is on`, async () => {
-                const placed = await render(type, { seriesArea: true });
+            it(`${type}: drops a label overflowing the series area when collideWith.seriesArea is false`, async () => {
+                const placed = await render(type, { seriesArea: false });
                 expect(placed.length).toBe(0);
             });
 
             it(`${type}: keeps the label when seriesArea padding grows the region to contain it`, async () => {
-                const placed = await render(type, { seriesArea: true, seriesAreaPaddingTop: 80 });
+                const placed = await render(type, { seriesArea: false, seriesAreaPaddingTop: 80 });
                 expect(placed.length).toBe(1);
             });
 
             // An `inside` label is fitted to and centred on its marker, so it is exempt from the series-area
             // containment that hides directional labels spilling into the padding band.
-            it(`${type}: keeps an inside label centred on an edge marker even with seriesArea on`, async () => {
-                const placed = await render(type, { seriesArea: true, placement: 'inside', markerSize: 60 });
+            it(`${type}: keeps an inside label centred on an edge marker even with seriesArea false`, async () => {
+                const placed = await render(type, { seriesArea: false, placement: 'inside', markerSize: 60 });
                 expect(placed.length).toBe(1);
             });
         }
     });
 
     describe('bar collideWith overrides', () => {
-        // Bars resolve collideWith from their theme (seriesItem/seriesArea on; marker/label inherit the
-        // global on) merged with the user's, so a user override must reach the bar label placement path.
+        // Bars resolve collideWith from their theme (shapes and the series area avoided, markers and labels
+        // by default) merged with the user's, so a user override must reach the bar label placement path.
         const barAxes = {
             x: { position: 'bottom', type: 'category' },
             y: { position: 'left', type: 'number', min: 0, max: 10 },
@@ -807,12 +843,78 @@ describe('label collision avoidance', () => {
                 return visibleBarLabelCount();
             };
 
-            it('drops an outside label overflowing the series area by default (seriesArea on)', async () => {
+            it('drops an outside label overflowing the series area by default', async () => {
                 expect(await render({ alwaysShow: false })).toBe(0);
             });
 
-            it('keeps the outside label when collideWith.seriesArea is disabled', async () => {
-                expect(await render({ alwaysShow: false, collideWith: { seriesArea: false } })).toBe(1);
+            it('keeps the outside label when collideWith.seriesArea is true', async () => {
+                expect(await render({ alwaysShow: false, collideWith: { seriesArea: true } })).toBe(1);
+            });
+
+            // The tallest bar's `outside-end` label fits the 40px series-area padding but not the narrower
+            // chart padding, so allowing overflow must not leave it less room than containment does.
+            it.each([true, false])(
+                'keeps an outside label within a wide series-area padding when seriesArea is %s',
+                async (seriesArea) => {
+                    chart = await createChart({
+                        data: [
+                            { x: 'A', y: 10 },
+                            { x: 'B', y: 40 },
+                        ],
+                        legend: { enabled: false },
+                        padding: { top: 10 },
+                        seriesArea: { padding: { top: 40 } },
+                        axes: { x: { position: 'bottom', type: 'category' }, y: { ...barAxes.y, max: 40 } },
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'x',
+                                yKey: 'y',
+                                label: {
+                                    enabled: true,
+                                    placement: ['outside-end', 'inside-end'],
+                                    collision: { collideWith: { seriesArea } },
+                                },
+                            },
+                        ],
+                    } as AgCartesianChartOptions);
+                    const placements = getVisibleLabelNodes<{ label?: { placement?: string } }>(chart).map(
+                        (node) => node.datum?.label?.placement
+                    );
+                    expect(placements).toEqual(['outside-end', 'outside-end']);
+                }
+            );
+        });
+
+        describe('shapes', () => {
+            // Closely spaced bars, so each beside-after-center label lands on its neighbouring bar.
+            const besideData = Array.from({ length: 10 }, (_, i) => ({ x: `c${i}`, y: 10 }));
+
+            const render = async (collideWith: object) => {
+                chart = await createChart({
+                    data: besideData,
+                    legend: { enabled: false },
+                    axes: barAxes,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: {
+                                placement: 'beside-after-center',
+                                formatter: () => 'WWWW',
+                                collision: { alwaysShow: false, collideWith },
+                            },
+                        },
+                    ],
+                } as AgCartesianChartOptions);
+                return visibleBarLabelCount();
+            };
+
+            it('keeps avoiding neighbouring bars when another collideWith key is set', async () => {
+                const avoiding = await render({ seriesArea: true });
+                const overlapping = await render({ seriesArea: true, shapes: true });
+                expect(avoiding).toBeLessThan(overlapping);
             });
         });
 
@@ -848,13 +950,13 @@ describe('label collision avoidance', () => {
                 return visibleBarLabelCount(1);
             };
 
-            it('drops the bar label colliding with the line label by default (labels on)', async () => {
-                // seriesArea off so the label is not dropped for overflowing the plot area instead.
-                expect(await render({ alwaysShow: false, collideWith: { seriesArea: false } })).toBe(0);
+            it('drops the bar label colliding with the line label by default', async () => {
+                // seriesArea allowed so the label is not dropped for overflowing the series area instead.
+                expect(await render({ alwaysShow: false, collideWith: { seriesArea: true } })).toBe(0);
             });
 
-            it('keeps the bar label when collideWith.labels is disabled', async () => {
-                expect(await render({ alwaysShow: false, collideWith: { seriesArea: false, labels: false } })).toBe(1);
+            it('keeps the bar label when collideWith.labels is true', async () => {
+                expect(await render({ alwaysShow: false, collideWith: { seriesArea: true, labels: true } })).toBe(1);
             });
         });
     });
@@ -886,8 +988,8 @@ describe('label collision avoidance', () => {
                             enabled: true,
                             placement: 'outside-end',
                             formatter: () => LABEL_TEXT,
-                            // seriesArea off so a dropped label can only be the neighbouring-label collision.
-                            collision: { alwaysShow: false, collideWith: { seriesArea: false } },
+                            // seriesArea allowed so a dropped label can only be the neighbouring-label collision.
+                            collision: { alwaysShow: false, collideWith: { seriesArea: true } },
                             ...label,
                         },
                     },
@@ -908,7 +1010,7 @@ describe('label collision avoidance', () => {
         it('shrinks bar labels that may not be hidden instead of overlapping them', async () => {
             const texts = await renderCrowdedBarLabels({
                 truncate: true,
-                collision: { alwaysShow: true, collideWith: { seriesArea: false } },
+                collision: { alwaysShow: true, collideWith: { seriesArea: true } },
             });
             expect(texts.length).toBe(8);
             // Kept-forever labels still adapt: they wrap into the room their neighbours leave.
@@ -1319,8 +1421,8 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // Bar/histogram contribute their rects as `seriesItem` obstacles; a placing series only routes
-    // its labels around them when its label opts into that category via collideWith.seriesItems.
+    // Bar/histogram contribute their rects as `shape` obstacles; a placing series only routes its labels
+    // around them when its label sets collideWith.shapes to false.
     describe('cross-series obstacles (bar + line)', () => {
         const comboData = Array.from({ length: 16 }, (_, i) => ({
             x: `C${i}`,
@@ -1340,7 +1442,7 @@ describe('label collision avoidance', () => {
         });
         const series = (config: LabelCollisionConfig) => [{ type: 'bar', xKey: 'x', yKey: 'bar' }, lineLabel(config)];
 
-        it('routes line labels around bars when seriesItems is enabled', async () => {
+        it('routes line labels around bars when shapes is false', async () => {
             await renderAndSnapshot({
                 data: comboData,
                 legend: { enabled: false },
@@ -1349,13 +1451,13 @@ describe('label collision avoidance', () => {
                     placement: ['top', 'bottom'],
                     collision: {
                         alwaysShow: false,
-                        collideWith: { seriesItems: true },
+                        collideWith: { shapes: false },
                     },
                 }),
             });
         });
 
-        it('leaves line labels over the bars by default (seriesItems off)', async () => {
+        it('leaves line labels over the bars by default', async () => {
             await renderAndSnapshot({
                 data: comboData,
                 legend: { enabled: false },
@@ -1526,18 +1628,21 @@ describe('label collision avoidance', () => {
         };
 
         it('drops a hideable outside label overflowing the series area', async () => {
-            expect(await render({ alwaysShow: false, collideWith: { seriesArea: true } })).toBe(0);
+            expect(await render({ alwaysShow: false, collideWith: { seriesArea: false } })).toBe(0);
         });
 
         it('keeps the same label when it is not hideable (alwaysShow: true)', async () => {
-            expect(await render({ alwaysShow: true, collideWith: { seriesArea: true } })).toBe(1);
+            expect(await render({ alwaysShow: true, collideWith: { seriesArea: false } })).toBe(1);
         });
 
         it('cascades a hideable outside label to an inside placement that fits', async () => {
             // The single `outside-end` label above hides (0); the array falls through to `inside-center`,
             // which fits inside the tall bin, so the label is kept even though `alwaysShow` is false.
             expect(
-                await render({ alwaysShow: false, collideWith: { seriesArea: true } }, ['outside-end', 'inside-center'])
+                await render({ alwaysShow: false, collideWith: { seriesArea: false } }, [
+                    'outside-end',
+                    'inside-center',
+                ])
             ).toBe(1);
         });
 
@@ -1600,7 +1705,7 @@ describe('label collision avoidance', () => {
                             formatter: ({ binIndex, frequency }: any) =>
                                 binIndex === 3 ? 'WWWWWWWWWWWWWWWWWWWW' : String(frequency),
                             placement: ['outside-end', 'inside-center'],
-                            collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                            collision: { alwaysShow: false, collideWith: { seriesArea: false } },
                             ...label,
                         },
                     },
@@ -1999,9 +2104,9 @@ describe('label collision avoidance', () => {
             chart = await createChart(options);
 
             const obstacles = getSeriesLabelObstacles(chart);
-            // Anti-vacuous guard: the bar still contributes its rects as `seriesItem` obstacles.
+            // Anti-vacuous guard: the bar still contributes its rects as `shape` obstacles.
             expect(obstacles.length).toBe(barData.length);
-            expect(obstacles.every((o) => o.category === 'seriesItem')).toBe(true);
+            expect(obstacles.every((o) => o.category === 'shape')).toBe(true);
         });
     });
 
@@ -2461,8 +2566,8 @@ describe('label collision avoidance', () => {
             expect(await placementsOnAxis()).toEqual(['bottom', 'bottom', 'bottom']);
         });
 
-        it('moves labels off the axis labels when collideWith.axisLabels is on', async () => {
-            expect(await placementsOnAxis({ axisLabels: true })).toEqual(['top', 'top', 'top']);
+        it('moves labels off the axis labels when collideWith.axisLabels is false', async () => {
+            expect(await placementsOnAxis({ axisLabels: false })).toEqual(['top', 'top', 'top']);
         });
 
         type CanvasNode = Parameters<typeof Transformable.toCanvas>[0] & { visible: boolean; text?: unknown };
@@ -2493,14 +2598,14 @@ describe('label collision avoidance', () => {
         const boxesOverlap = (a: LabelBox, b: LabelBox) =>
             a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
-        const optedIn = { alwaysShow: false, collideWith: { axisLabels: true } };
+        const avoidsAxisLabels = { alwaysShow: false, collideWith: { axisLabels: false } };
 
         it('moves bubble labels off the labels of axes crossing the series area', async () => {
             const bubbleLabel = (placement: string[]) => ({
                 enabled: true,
                 formatter: ({ datum }: any) => `(${datum.x}, ${datum.y})`,
                 placement,
-                collision: optedIn,
+                collision: avoidsAxisLabels,
             });
             // Bubbles at the even ticks label straight onto a tick label; the odd ones fall between them.
             const steps = [-9, -8, -7, -6, -5, -4, -3, -2, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -2558,7 +2663,7 @@ describe('label collision avoidance', () => {
                 enabled: true,
                 formatter: ({ datum }: any) => `${prefix}${datum.x}`,
                 placement: ['bottom', 'top'],
-                collision: optedIn,
+                collision: avoidsAxisLabels,
                 truncate: false,
             });
             await expectSeriesLabelsClearAxisLabels({

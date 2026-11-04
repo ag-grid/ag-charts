@@ -18,6 +18,7 @@ import type {
     AgRangeBarSeriesLabelPlacement,
     AgRangeBarSeriesOptions,
     AgSankeySeriesOptions,
+    AgSeriesLabelCollisionOptions,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesOptions,
 } from 'ag-charts-community';
@@ -40,16 +41,6 @@ import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/uti
 import { ukRoadData } from './map-test/ukRoadData';
 import ukRoadTopology from './map-test/ukRoadTopology.json';
 import ukTopology from './map-test/ukTopology.json';
-
-/** The public collision options plus `collideWith`, which the public types do not have. */
-type CollisionOptions = AgChartLabelCollisionOptions & {
-    collideWith?: { seriesArea?: boolean; seriesItems?: boolean };
-};
-
-/** A series' label options with the collision options widened to take `collideWith`. */
-type CollisionLabel<TLabel extends { collision?: object } | undefined> = Omit<NonNullable<TLabel>, 'collision'> & {
-    collision?: NonNullable<NonNullable<TLabel>['collision']> & CollisionOptions;
-};
 
 describe('label collision avoidance', () => {
     setupMockConsole();
@@ -82,8 +73,11 @@ describe('label collision avoidance', () => {
     const visibleLabelCount = (seriesIndex = 0) => visibleLabelNodes(seriesIndex).length;
 
     const renderPlacementCount = async <TPlacement extends string>(
-        makeOptions: (collision: CollisionOptions, placement?: TPlacement | TPlacement[]) => AgChartOptions,
-        collision: CollisionOptions,
+        makeOptions: (
+            collision: AgSeriesLabelCollisionOptions,
+            placement?: TPlacement | TPlacement[]
+        ) => AgChartOptions,
+        collision: AgSeriesLabelCollisionOptions,
         placement?: TPlacement | TPlacement[]
     ) => {
         chart = await createEnterpriseChart(makeOptions(collision, placement));
@@ -167,6 +161,37 @@ describe('label collision avoidance', () => {
             expect(far).toBeGreaterThan(near);
             expect(far - near).toBeCloseTo(35, 0);
         });
+
+        // The northernmost marker sits on the series area's top edge, so its `top` label spills into the padding.
+        it.each([
+            [undefined, 1],
+            [true, 1],
+            [false, 0],
+        ])(
+            'keeps a label overflowing the series area unless seriesArea is false (%s)',
+            async (seriesArea, expected) => {
+                chart = await createEnterpriseChart({
+                    topology: ukTopology,
+                    padding: { top: 60 },
+                    series: [
+                        { type: 'map-shape-background' },
+                        {
+                            type: 'map-marker',
+                            data: [{ name: 'North', lat: 60.86, lon: -0.88 }],
+                            latitudeKey: 'lat',
+                            longitudeKey: 'lon',
+                            labelKey: 'name',
+                            label: {
+                                enabled: true,
+                                placement: 'top',
+                                collision: { alwaysShow: false, collideWith: { seriesArea } },
+                            },
+                        },
+                    ],
+                });
+                expect(visibleLabelCount(MAP_MARKER_SERIES)).toBe(expected);
+            }
+        );
     });
 
     // Map-line labels centre on the line, so collision only decides hidden vs kept.
@@ -207,6 +232,44 @@ describe('label collision avoidance', () => {
             const explicitVisible = await render({ collision: { alwaysShow: false } });
             expect(defaultVisible).toBe(explicitVisible);
         });
+
+        // The outer routes bound the map extent, so their centred labels straddle the series area's edges.
+        it.each([
+            [undefined, 3],
+            [true, 3],
+            [false, 1],
+        ])(
+            'keeps route labels overflowing the series area unless seriesArea is false (%s)',
+            async (seriesArea, expected) => {
+                const route = (name: string, lat: number) => ({
+                    type: 'Feature' as const,
+                    properties: { name },
+                    geometry: {
+                        type: 'LineString' as const,
+                        coordinates: [
+                            [-5, lat],
+                            [5, lat],
+                        ],
+                    },
+                });
+                chart = await createEnterpriseChart({
+                    topology: {
+                        type: 'FeatureCollection',
+                        features: [route('North', 60), route('Middle', 55), route('South', 50)],
+                    },
+                    data: [{ name: 'North' }, { name: 'Middle' }, { name: 'South' }],
+                    series: [
+                        {
+                            type: 'map-line',
+                            idKey: 'name',
+                            labelKey: 'name',
+                            label: { enabled: true, collision: { alwaysShow: false, collideWith: { seriesArea } } },
+                        },
+                    ],
+                });
+                expect(visibleLabelCount()).toBe(expected);
+            }
+        );
     });
 
     // A `placement` array is an ordered fallback list: the first candidate that clears its obstacles wins.
@@ -494,7 +557,7 @@ describe('label collision avoidance', () => {
         });
 
         const renderLabelBoxes = async (
-            label: CollisionLabel<AgWaterfallSeriesOptions['label']>,
+            label: NonNullable<AgWaterfallSeriesOptions['label']>,
             atSeriesLevel: boolean
         ) => {
             chart = await createEnterpriseChart(options(label, atSeriesLevel));
@@ -503,21 +566,21 @@ describe('label collision avoidance', () => {
             return boxes;
         };
 
-        it.each<[string, CollisionLabel<AgWaterfallSeriesOptions['label']>]>([
+        it.each<[string, NonNullable<AgWaterfallSeriesOptions['label']>]>([
             [
                 'kept by alwaysShow',
-                { enabled: true, collision: { alwaysShow: true, collideWith: { seriesArea: true } } },
+                { enabled: true, collision: { alwaysShow: true, collideWith: { seriesArea: false } } },
             ],
             [
                 'hidden by series-area avoidance',
-                { enabled: true, collision: { alwaysShow: false, collideWith: { seriesArea: true } } },
+                { enabled: true, collision: { alwaysShow: false, collideWith: { seriesArea: false } } },
             ],
             [
                 'cascaded to an inside placement',
                 {
                     enabled: true,
                     placement: ['outside-end', 'inside-center'],
-                    collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                    collision: { alwaysShow: false, collideWith: { seriesArea: false } },
                 },
             ],
         ])('resolves identically to the item-level equivalent (%s)', async (_name, label) => {
@@ -529,7 +592,7 @@ describe('label collision avoidance', () => {
 
         it('renders labels at series level, so the parity cases above are not comparing two blank charts', async () => {
             const boxes = await renderLabelBoxes(
-                { enabled: true, collision: { alwaysShow: true, collideWith: { seriesArea: true } } },
+                { enabled: true, collision: { alwaysShow: true, collideWith: { seriesArea: false } } },
                 true
             );
 
@@ -541,7 +604,7 @@ describe('label collision avoidance', () => {
         // The bar's `outside-end` label overflows the series area, so series-area avoidance must
         // drop a single-placement label and cascade a placement array to an inside candidate.
         const options = (
-            collision: CollisionOptions,
+            collision: AgSeriesLabelCollisionOptions,
             placement: AgWaterfallSeriesLabelPlacement | AgWaterfallSeriesLabelPlacement[] = 'outside-end'
         ): AgChartOptions => ({
             data: [{ x: 'A', y: 10 }],
@@ -559,13 +622,13 @@ describe('label collision avoidance', () => {
         });
 
         it('drops a hideable outside label overflowing the series area', async () => {
-            expect(await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } })).toBe(
+            expect(await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: false } })).toBe(
                 0
             );
         });
 
         it('keeps the same label when it is not hideable (alwaysShow: true)', async () => {
-            expect(await renderPlacementCount(options, { alwaysShow: true, collideWith: { seriesArea: true } })).toBe(
+            expect(await renderPlacementCount(options, { alwaysShow: true, collideWith: { seriesArea: false } })).toBe(
                 1
             );
         });
@@ -574,7 +637,7 @@ describe('label collision avoidance', () => {
             // The single `outside-end` label above hides (0); the array falls through to `inside-center`,
             // which fits inside the tall bar, so the label is kept even though `alwaysShow` is false.
             expect(
-                await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } }, [
+                await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: false } }, [
                     'outside-end',
                     'inside-center',
                 ])
@@ -614,10 +677,10 @@ describe('label collision avoidance', () => {
 
         // Bars sized to cover each outcome: outside-end fits, overflows and cascades inside, or is too wide inside.
         const multiBarCascade = (label: AgWaterfallSeriesOptions['label']): AgChartOptions => {
-            const barLabel: CollisionLabel<AgWaterfallSeriesOptions['label']> = {
+            const barLabel: NonNullable<AgWaterfallSeriesOptions['label']> = {
                 enabled: true,
                 placement: ['outside-end', 'inside-center'],
-                collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                collision: { alwaysShow: false, collideWith: { seriesArea: false } },
                 ...label,
             };
             return {
@@ -664,7 +727,7 @@ describe('label collision avoidance', () => {
         // The bar's high end sits at the axis max, so its `outside` label overflows the top series-area
         // padding band; the low end sits mid-plot with room, so its `outside` label clears it.
         const options = (
-            collision: CollisionOptions,
+            collision: AgSeriesLabelCollisionOptions,
             placement: AgRangeBarSeriesLabelPlacement | AgRangeBarSeriesLabelPlacement[] = 'outside'
         ): AgChartOptions => ({
             data: [{ x: 'A', low: 2, high: 10 }],
@@ -683,13 +746,13 @@ describe('label collision avoidance', () => {
         });
 
         it('drops only the colliding high-end label, keeping the low-end label', async () => {
-            expect(await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } })).toBe(
+            expect(await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: false } })).toBe(
                 1
             );
         });
 
         it('keeps both labels when not hideable (alwaysShow: true)', async () => {
-            expect(await renderPlacementCount(options, { alwaysShow: true, collideWith: { seriesArea: true } })).toBe(
+            expect(await renderPlacementCount(options, { alwaysShow: true, collideWith: { seriesArea: false } })).toBe(
                 2
             );
         });
@@ -697,7 +760,7 @@ describe('label collision avoidance', () => {
         it('cascades the colliding high-end label to an inside placement, keeping both', async () => {
             // Only the high end overflows: it falls through to `inside`, while the low end stays outside.
             expect(
-                await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } }, [
+                await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: false } }, [
                     'outside',
                     'inside',
                 ])
@@ -706,7 +769,7 @@ describe('label collision avoidance', () => {
 
         // One render, every outcome: A keeps both outside, B's high end cascades inside, C's high label is dropped.
         const multiBarCascade = (label: AgRangeBarSeriesOptions['label']): AgChartOptions => {
-            const barLabel: CollisionLabel<AgRangeBarSeriesOptions['label']> = {
+            const barLabel: NonNullable<AgRangeBarSeriesOptions['label']> = {
                 enabled: true,
                 // Range-bar labels default to white (usually drawn inside the bar); force a dark
                 // colour so the outside labels are legible against the series area background too.
@@ -714,7 +777,7 @@ describe('label collision avoidance', () => {
                 formatter: ({ datum }: { datum: { x: string } }) =>
                     datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined,
                 placement: ['outside', 'inside'],
-                collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                collision: { alwaysShow: false, collideWith: { seriesArea: false } },
                 ...label,
             };
             return {
@@ -911,6 +974,26 @@ describe('label collision avoidance', () => {
             expect(hidden.length).toBeLessThan(kept.length);
             expect(kept).toHaveLength(24);
         });
+
+        // The high value sits on the axis maximum, so its outside label overflows into the top padding.
+        it.each([
+            [undefined, 2],
+            [true, 2],
+            [false, 1],
+        ])(
+            'keeps an outside label overflowing the series area unless seriesArea is false (%s)',
+            async (seriesArea, expected) => {
+                const labels = await placedLabels({
+                    ...narrowBand({
+                        enabled: true,
+                        placement: 'outside',
+                        collision: { alwaysShow: false, collideWith: { seriesArea } },
+                    }),
+                    data: [{ x: 'A', low: 20, high: 100 }],
+                });
+                expect(labels).toHaveLength(expected);
+            }
+        );
 
         // `low > high` draws the low value above the high value, so each label's facing side flips: the
         // `high` label of an inverted datum must render below its own stroke, not above it.
@@ -1111,7 +1194,7 @@ describe('label collision avoidance', () => {
 
         describe('funnel', () => {
             const options = (
-                label: CollisionLabel<AgFunnelSeriesOptions['label']> = {},
+                label: NonNullable<AgFunnelSeriesOptions['label']> = {},
                 series: Partial<AgFunnelSeriesOptions> = {},
                 chartOptions: StageChartOptions = {}
             ): AgChartOptions => ({
@@ -1275,9 +1358,9 @@ describe('label collision avoidance', () => {
                         collision: { alwaysShow: false, collideWith: { seriesArea } },
                     });
                 // The widest stage spans the series area, so only ignoring that boundary keeps every label outside.
-                const fitting = await anchors(cascade(() => 'A', false));
+                const fitting = await anchors(cascade(() => 'A', true));
                 const fittingBars = bars();
-                const overflowing = await anchors(cascade(() => 'A very long funnel stage label', true));
+                const overflowing = await anchors(cascade(() => 'A very long funnel stage label', false));
                 const overflowingBars = bars();
 
                 expect(fitting.map((label) => label.placement)).toEqual(stageData.map(() => 'outside-before'));
@@ -1305,15 +1388,15 @@ describe('label collision avoidance', () => {
                 expect(inside[0]).not.toBe(outside[0]);
             });
 
-            it('drops a hideable outside label overflowing the series area and keeps it when opted out', async () => {
+            it('drops a hideable outside label overflowing the series area and keeps it when allowed', async () => {
                 const overflowing = (seriesArea: boolean) =>
                     options({
                         placement: 'outside-start',
                         collision: { alwaysShow: false, collideWith: { seriesArea } },
                     });
 
-                expect(await visibleCount(overflowing(true))).toBeLessThan(stageData.length);
-                expect(await visibleCount(overflowing(false))).toBe(stageData.length);
+                expect(await visibleCount(overflowing(false))).toBeLessThan(stageData.length);
+                expect(await visibleCount(overflowing(true))).toBe(stageData.length);
             });
 
             it('hides colliding labels only while they are hideable', async () => {
@@ -1340,17 +1423,17 @@ describe('label collision avoidance', () => {
             });
 
             it('drops a hideable outside label overlapping the neighbouring stage', async () => {
-                // Taller than the gap between stages, with seriesArea off: only the stage above is left.
-                const overlapping = (seriesItems?: boolean) =>
+                // Taller than the gap between stages, with the series area allowed: only the stage above is left.
+                const overlapping = (shapes?: boolean) =>
                     options({
                         placement: 'outside-start',
                         formatter: () => 'A',
                         fontSize: 30,
-                        collision: { alwaysShow: false, collideWith: { seriesArea: false, seriesItems } },
+                        collision: { alwaysShow: false, collideWith: { seriesArea: true, shapes } },
                     });
 
                 expect(await visibleCount(overlapping())).toBe(0);
-                expect(await visibleCount(overlapping(false))).toBeGreaterThan(0);
+                expect(await visibleCount(overlapping(true))).toBeGreaterThan(0);
             });
 
             it('cascades to the first placement that fits', async () => {
@@ -1382,7 +1465,7 @@ describe('label collision avoidance', () => {
             ];
 
             const options = (
-                label: CollisionLabel<AgConeFunnelSeriesOptions['label']> = {},
+                label: NonNullable<AgConeFunnelSeriesOptions['label']> = {},
                 series: Partial<AgConeFunnelSeriesOptions> = {},
                 chartOptions: StageChartOptions = {}
             ): AgChartOptions => ({
@@ -1418,6 +1501,25 @@ describe('label collision avoidance', () => {
                 }
                 expect(seen.size).toBe(CONE_PLACEMENTS.length);
             });
+
+            // Without series-area padding, the first divider's `start-before` label overflows the series area.
+            it.each([
+                [undefined, 3],
+                [false, 3],
+                [true, 4],
+            ])(
+                'drops a hideable divider label overflowing the series area unless seriesArea is true (%s)',
+                async (seriesArea, expected) => {
+                    const count = await visibleCount({
+                        ...options({
+                            placement: 'start-before',
+                            collision: { alwaysShow: false, collideWith: { seriesArea } },
+                        }),
+                        seriesArea: { padding: { top: 0, bottom: 0 } },
+                    });
+                    expect(count).toBe(expected);
+                }
+            );
 
             it('keeps a middle placement visible with alwaysShow off', async () => {
                 const middle = await anchors(options({ placement: 'middle-center', collision: { alwaysShow: false } }));
@@ -1488,7 +1590,7 @@ describe('label collision avoidance', () => {
 
         describe('pyramid', () => {
             const options = (
-                label: CollisionLabel<AgPyramidSeriesOptions['label']> = {},
+                label: NonNullable<AgPyramidSeriesOptions['label']> = {},
                 series: Partial<AgPyramidSeriesOptions> = {},
                 chartOptions: StageChartOptions = {}
             ): AgChartOptions => ({
