@@ -2051,7 +2051,7 @@ jobs:
                   description: Latest commit to pass GitHub Actions workflow on ${{ github.ref_name }} branch.
 
             - name: Tag Latest Full Run Commit
-              if: success() && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/latest' && github.event.inputs.clean_checkout == 'true' && github.event.inputs.nx_command == 'run-many' && needs.init.result == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              if: success() && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/latest' && github.event.inputs.clean_checkout == 'true' && github.event.inputs.nx_command == 'run-many' && needs.init.result == 'success' && needs.bundle_tests.result == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               uses: EndBug/latest-tag@8fcae8848c1e23fd8212258f69a9619bc62cad67 # v1.6.3
               with:
                   ref: latest-full-success
