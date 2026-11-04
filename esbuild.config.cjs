@@ -58,6 +58,7 @@ const postBuildMinificationPlugin = {
     name: 'minification-plugin',
     setup(build) {
         build.initialOptions.metafile = true;
+        const sourcemap = Boolean(build.initialOptions.sourcemap);
 
         /** @type {Map<string, AbortController>} */
         const writeState = new Map();
@@ -78,7 +79,7 @@ const postBuildMinificationPlugin = {
                 if (signal.aborted) return;
                 const minified = await esbuild.transform(contents, {
                     minify: true,
-                    sourcemap: true,
+                    sourcemap,
                 });
 
                 if (signal.aborted) return;
@@ -86,7 +87,7 @@ const postBuildMinificationPlugin = {
                 const minifiedFile = path.resolve(path.dirname(outputFile), `${name}.min${ext}`);
                 await Promise.all([
                     fs.writeFile(minifiedFile, minified.code, { signal }),
-                    fs.writeFile(`${minifiedFile}.map`, minified.map, { signal }),
+                    sourcemap && fs.writeFile(`${minifiedFile}.map`, minified.map, { signal }),
                 ]);
             } catch (e) {
                 if (e.name !== 'AbortError') throw e;
