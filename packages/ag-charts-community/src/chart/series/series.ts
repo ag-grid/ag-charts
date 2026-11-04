@@ -1047,6 +1047,8 @@ export abstract class Series<
      * every series. Every in-place copy casts the item's own `shadow` in the base pass that keeps it behind every
      * series, except where its highlight state sets a `glow`: that glow replaces the shadow, as an item has one shadow
      * slot. The exception is the item this series' highlight layer redraws, whose in-place copy keeps its `shadow`.
+     * While no highlight state sets a `glow`, the highlight layer's copy casts nothing and every in-place copy casts its
+     * `shadow`.
      */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
