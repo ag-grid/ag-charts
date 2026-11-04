@@ -126,9 +126,11 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
     }
 }
 
-function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']): ProxyMeta[T] {
+function allocateMeta<T extends keyof ProxyMeta>(ctx: ChartRegistry, params: ProxyMeta[T]['params']): ProxyMeta[T] {
     const meta = { params, result: undefined } as unknown as ProxyMeta[T];
     meta.result = allocateResult(meta.params.type);
+    // TODO: AG−18361 Phase 3 "Common Widget Ancestor" - set result as a descendant of the DOM Manager root.
+    meta.result.setCanvasOrigin(ctx.domManager);
     return meta;
 }
 
@@ -150,7 +152,7 @@ export class ProxyInteractionService {
     createProxyContainer<T extends ProxyContainerType>(
         args: { type: T } & ProxyMeta[T]['params']
     ): ProxyMeta[T]['result'] {
-        const meta: ProxyMeta[T] = allocateMeta(args);
+        const meta: ProxyMeta[T] = allocateMeta(this.ctx, args);
         const { params, result } = meta;
         const div = result.getElement();
 
@@ -173,7 +175,7 @@ export class ProxyInteractionService {
     }
 
     createProxyElement<T extends ProxyElementType>(args: { type: T } & ProxyMeta[T]['params']): ProxyMeta[T]['result'] {
-        const meta: ProxyMeta[T] = allocateMeta(args);
+        const meta: ProxyMeta[T] = allocateMeta(this.ctx, args);
 
         if (checkType('button', meta)) {
             const { params, result } = meta;
