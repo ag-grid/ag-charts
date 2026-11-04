@@ -12,10 +12,10 @@ import {
     type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
-    type CollideWith,
     type DomainWithMetadata,
     type DynamicContext,
     type FillStrokeMorph,
+    type LabelAvoidance,
     type Mutable,
     type Normalised,
     type NormalisedColorType,
@@ -48,7 +48,7 @@ import {
     measureLabelText,
     mergeDefaults,
     minValue,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     resolveLabelFit,
     resolveLabelFitDescriptors,
     subtractValues,
@@ -1194,15 +1194,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         if (!this.usesPlacedLabels) return [];
         const data: PointLabelDatum[] = [];
         // One `collideWith` per item type keeps datums sharing it, which placement relies on to test it once.
-        const collideWithByLabel = new Map<object, CollideWith>();
+        const avoidByLabel = new Map<object, LabelAvoidance>();
         for (const node of this.contextNodeData?.labelData ?? []) {
             const nodeLabel = node.label;
             if (nodeLabel == null || nodeLabel.text === '') continue;
             const label = this.getItemConfig(node.itemType).label;
-            let collideWith = collideWithByLabel.get(label);
-            if (collideWith == null) {
-                collideWith = resolveCollideWith(label.collision);
-                collideWithByLabel.set(label, collideWith);
+            let avoid = avoidByLabel.get(label);
+            if (avoid == null) {
+                avoid = resolveLabelAvoidance(label.collision);
+                avoidByLabel.set(label, avoid);
             }
             const threshold = label.collision.threshold ?? 0;
             // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
@@ -1237,7 +1237,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         label: nodeLabel,
                         config: label,
                         size: styled?.size ?? measured,
-                        collideWith,
+                        avoid,
                         threshold,
                         fit:
                             configuredFit == null || styled == null
@@ -1257,7 +1257,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         nodeLabel,
                         ownBox,
                         label.collision.alwaysShow,
-                        collideWith,
+                        avoid,
                         threshold,
                         false,
                         configuredFit,

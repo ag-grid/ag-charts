@@ -8,7 +8,7 @@ import type {
     AgCartesianChartOptions,
     AgChartTheme,
     AgLineSeriesOptions,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -259,7 +259,7 @@ describe('ChartTheme', () => {
                 },
             },
         };
-        const polarChartOptions: AgPolarChartOptions = {
+        const pieChartOptions: AgStandaloneChartOptions = {
             theme,
             title: {
                 enabled: true,
@@ -279,15 +279,15 @@ describe('ChartTheme', () => {
             ],
         };
 
-        const serializedOptions = JSON.stringify(polarChartOptions);
+        const serializedOptions = JSON.stringify(pieChartOptions);
 
         // The chart is also inspected synchronously, before it has settled.
         beforeEach(() => {
-            chart = deproxy(AgCharts.create(polarChartOptions));
+            chart = deproxy(AgCharts.create(pieChartOptions));
         });
 
         it('Options are not mutated after AgCharts.create', () => {
-            expect(JSON.stringify(polarChartOptions)).toBe(serializedOptions);
+            expect(JSON.stringify(pieChartOptions)).toBe(serializedOptions);
         });
 
         it('Pie chart instance properties', () => {
@@ -417,7 +417,7 @@ describe('ChartTheme', () => {
             ],
         };
 
-        const polarChartOptions: AgPolarChartOptions = {
+        const pieChartOptions: AgStandaloneChartOptions = {
             theme,
             title: {
                 enabled: true,
@@ -465,7 +465,7 @@ describe('ChartTheme', () => {
         });
 
         it('Pie chart instance properties', async () => {
-            chart = deproxy(AgCharts.create(polarChartOptions));
+            chart = deproxy(AgCharts.create(pieChartOptions));
             if (!(chart instanceof StandaloneChart)) fail();
 
             await waitForChartStability(chart);

@@ -10,9 +10,9 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "ag-charts-community": "latest",
-    "ag-charts-enterprise": "latest",
-    "ag-charts-vue3": "latest",
+    "ag-charts-community": "14.3.0",
+    "ag-charts-enterprise": "14.3.0",
+    "ag-charts-vue3": "14.3.0",
     "ag-grid-community": "~36.2.0",
     "ag-grid-vue3": "~36.2.0",
     "reka-ui": "^2.10.5",

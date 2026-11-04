@@ -1398,7 +1398,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.options.label.enabled) return [];
         const { label } = this.options;
-        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
+        const { alwaysShow, avoid, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const resolveStyle =
             label.itemStyler == null
                 ? undefined
@@ -1411,7 +1411,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     ...buildBarLabelData([labelDatum], () => ({
                         label: labelDatum,
                         config: label,
-                        collideWith,
+                        avoid,
                         threshold,
                     }))
                 );
@@ -1438,7 +1438,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         label: labelDatum,
                         config: label,
                         size: styled?.size ?? measureBox(labelDatum.text),
-                        collideWith,
+                        avoid,
                         threshold,
                         fit:
                             configuredFit == null || styled == null
@@ -1459,7 +1459,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         labelDatum,
                         ownBox,
                         alwaysShow,
-                        collideWith,
+                        avoid,
                         threshold,
                         true,
                         configuredFit,

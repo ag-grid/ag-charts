@@ -292,7 +292,7 @@ interface NavigatorRangeHost {
     domProxy: { _min: number; _max: number };
     x: number;
     width: number;
-    onDrag(handle: 'min' | 'max' | 'pan', event: { offsetX: number }): void;
+    onDrag(handle: 'min' | 'max' | 'pan', event: { canvasX: number }): void;
 }
 
 /** The range the navigator shows as a ratio of the full data, from `0` to `1`. */
@@ -311,7 +311,7 @@ export function dragNavigatorHandle(
     ratio: number
 ): void {
     const navigator = getNavigator(chartOrProxy) as unknown as NavigatorRangeHost;
-    navigator.onDrag(handle, { offsetX: navigator.x + navigator.width * ratio });
+    navigator.onDrag(handle, { canvasX: navigator.x + navigator.width * ratio });
 }
 
 /** The mini chart of the navigator, which the navigator keeps even while the mini chart is disabled. */

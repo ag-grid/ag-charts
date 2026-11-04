@@ -5,8 +5,8 @@ import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgPieSeriesOptions,
-    AgPolarChartOptions,
     AgSelectionItemIds,
+    AgStandaloneChartOptions,
 } from 'ag-charts-community';
 
 import { NEUTRAL, THEME } from '../chartTheme';
@@ -123,8 +123,8 @@ function splitOptions(
     row: SlipDistribution,
     lateCount: number,
     color: string,
-    listeners: NonNullable<AgPolarChartOptions<Slice>['listeners']>
-): AgPolarChartOptions<Slice> {
+    listeners: NonNullable<AgStandaloneChartOptions<Slice>['listeners']>
+): AgStandaloneChartOptions<Slice> {
     const series: AgPieSeriesOptions<Slice> = {
         type: 'pie',
         id: SPLIT_SERIES_ID,

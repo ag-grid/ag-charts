@@ -5,14 +5,14 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, PixelSize } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'focusIndex'>,
-        AgSankeySeriesOptionsKeys,
+        AgSankeySeriesOptionsKeys<TDatum>,
         AgSankeySeriesOptionsNames,
         AgSankeySeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Sankey Series. */
@@ -44,14 +44,14 @@ export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = ContextDe
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgSankeySeriesOptionsKeys,
+        AgSankeySeriesOptionsKeys<TDatum>,
         Required<AgSankeySeriesLinkStyle> {}
 
 export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgSankeySeriesOptionsKeys,
+        AgSankeySeriesOptionsKeys<TDatum>,
         Required<AgSankeySeriesNodeStyle> {
     /** Label of the node. */
     label: string | undefined;
@@ -146,13 +146,13 @@ export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> ex
     itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<TDatum, TContext>, AgSankeySeriesNodeStyle>;
 }
 
-export interface AgSankeySeriesOptionsKeys {
+export interface AgSankeySeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key containing the start node of each link. */
-    fromKey?: string;
+    fromKey?: DatumKey<TDatum>;
     /** The key containing the end node of each link. */
-    toKey?: string;
+    toKey?: DatumKey<TDatum>;
     /** The key containing the size of each link. */
-    sizeKey?: string;
+    sizeKey?: DatumKey<TDatum>;
 }
 
 export interface AgSankeySeriesOptionsNames {
@@ -169,9 +169,9 @@ interface SizeParams {
 export interface AgSankeySeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends
         AgSeriesTooltipRendererParams<TDatum, TContext>,
-        AgSankeySeriesOptionsKeys,
+        AgSankeySeriesOptionsKeys<TDatum>,
         AgSankeySeriesOptionsNames,
         SizeParams {}
 
-export interface AgSankeySeriesLabelFormatterParams<_TDatum = DatumDefault>
-    extends AgSankeySeriesOptionsKeys, SizeParams {}
+export interface AgSankeySeriesLabelFormatterParams<TDatum = DatumDefault>
+    extends AgSankeySeriesOptionsKeys<TDatum>, SizeParams {}

@@ -5,7 +5,6 @@ import type {
     AxisWidget,
     CanvasPoint,
     ClickWidgetEvent,
-    CurrentPoint,
     DblClickWidgetEvent,
     DragWidgetEvent,
     DynamicContext,
@@ -322,10 +321,6 @@ export class AxisInteraction extends AbstractModuleInstance {
         return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(point);
     }
 
-    private toCanvasPoint(div: AxisWidget, point: Readonly<CurrentPoint>): CanvasPoint {
-        return { canvasX: point.currentX + div.cssLeft(), canvasY: point.currentY + div.cssTop() };
-    }
-
     /**
      * Fires the `axes[].listeners` callbacks and their chart-level `axisClick` / `axisDoubleClick`
      * counterparts. The picked value is resolved exactly as it is for the axis context menu.
@@ -334,8 +329,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         // Keyboard-synthetic clicks carry no pointer coordinates, so there is nothing to pick.
         if (widgetEvent.device === 'keyboard') return;
 
-        const div = this.axes.find((axis) => axis.axisId === axisId)?.div;
-        if (!div) return;
+        if (!this.axes.some((axis) => axis.axisId === axisId)) return;
 
         const isDoubleClick = widgetEvent.type === 'dblclick';
         const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
@@ -352,7 +346,7 @@ export class AxisInteraction extends AbstractModuleInstance {
             return;
         }
 
-        const pick = axisCtx?.pickValue(this.toCanvasPoint(div, widgetEvent));
+        const pick = axisCtx?.pickValue({ canvasX: widgetEvent.canvasX, canvasY: widgetEvent.canvasY });
         if (!axisCtx || !pick) return;
 
         const { direction, boundSeries, domain, value, index, depth, groupPercentage } = pick;
@@ -497,11 +491,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
         div.addListener('contextmenu', (event) => {
             if (!this.isEnabled() || !this.isEnabledContextMenu()) return;
-            // currentX/currentY are relative to the region regardless of which descendant (e.g. the
-            // nested axis title) was actually hit, so they stay correct once the title is nested.
-            const canvasX = event.currentX + div.cssLeft();
-            const canvasY = event.currentY + div.cssTop();
-            this.dispatchAxisContextMenu(axisId, event, canvasX, canvasY);
+            this.dispatchAxisContextMenu(axisId, event, event.canvasX, event.canvasY);
         });
 
         return { axisId, div, direction };

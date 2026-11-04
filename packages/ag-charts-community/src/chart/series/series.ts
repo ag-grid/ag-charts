@@ -50,7 +50,7 @@ import {
     isSupportedMarkerShape,
     jsonDiff,
     nearestSquared,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     without,
 } from 'ag-charts-core';
 import type {
@@ -236,7 +236,9 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 
 export type UnknownSeries = Series<SeriesNodeDatum, object>;
 
-export type SeriesAreaLayout = (series: UnknownSeries[], seriesRect: BBox) => Promise<void>;
+export interface SeriesAreaLayout<T = UnknownSeries> {
+    layoutSeries(series: T[], seriesRect: BBox): Promise<void>;
+}
 
 export abstract class Series<
     TDatum extends SeriesNodeDatum,
@@ -260,8 +262,8 @@ export abstract class Series<
     readonly supportsDataTransactions: boolean = true;
     /** Lets the standalone chart round the series area origin down to whole pixels. */
     readonly snapsSeriesAreaOrigin: boolean = true;
-    /** Lays out every series sharing this function, before the chart updates them. */
-    readonly seriesAreaLayout?: SeriesAreaLayout;
+    /** Lays out every series sharing this layout, before the chart updates them. */
+    readonly seriesAreaLayout?: SeriesAreaLayout<this>;
 
     protected hasChangesOnHighlight: boolean = false;
     protected hasChangesOnSelection: boolean = false;
@@ -1917,9 +1919,9 @@ export abstract class Series<
         };
     }
 
-    /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
+    /** The series-area containment rect unless the label may overflow it (`collideWith.seriesArea: true`). */
     protected resolveLabelPlotRegion(collision: NormalisedChartLabelCollisionOptions): BoxBounds | undefined {
-        return resolveCollideWith(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
+        return resolveLabelAvoidance(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;

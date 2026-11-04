@@ -14,6 +14,7 @@ import {
     AgSelectionChangeEvent,
     AgSelectionItem,
     AgSelectionItemIds,
+    type AgStandaloneChartOptions,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -459,7 +460,7 @@ function createBarStackMixOptions(): AgCartesianChartOptions<StackMixDatum, unkn
 }
 
 type RingDatum = { sector: string; value: number };
-function createPieDonutOptions(): AgPolarChartOptions<RingDatum, unknown> {
+function createPieDonutOptions(): AgStandaloneChartOptions<RingDatum, unknown> {
     // Three concentric rings split into the same four equal-angle quadrants, so a drag-box over a compass
     // quadrant maps to obvious sectors: clockwise from 12 o'clock, NE, SE, SW, NW.
     const center: RingDatum[] = [
@@ -540,7 +541,7 @@ function createPieDonutOptions(): AgPolarChartOptions<RingDatum, unknown> {
 }
 
 type AirGasesDatum = { gas: string; percent: number };
-function createAirGasesOptions(): AgPolarChartOptions<AirGasesDatum, unknown> {
+function createAirGasesOptions(): AgStandaloneChartOptions<AirGasesDatum, unknown> {
     return {
         data: [
             { gas: 'nitrogen', percent: 78 },

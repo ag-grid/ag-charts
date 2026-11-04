@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 
 import { AgCharts } from 'ag-charts-angular';
-import type { AgPolarChartOptions } from 'ag-charts-community';
+import type { AgStandaloneChartOptions } from 'ag-charts-community';
 
 import { THEME } from '../chartTheme';
 import { fmtInt } from '../format';
@@ -16,7 +16,7 @@ import type { VisitorDatum } from '../types';
 export class VisitorBreakdownChart {
     readonly data = input.required<VisitorDatum[]>();
 
-    protected readonly options = computed<AgPolarChartOptions>(() => ({
+    protected readonly options = computed<AgStandaloneChartOptions>(() => ({
         theme: THEME,
         data: this.data(),
         series: [

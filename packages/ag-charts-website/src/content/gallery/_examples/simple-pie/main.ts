@@ -1,6 +1,6 @@
 import {
     AgCharts,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     AnimationModule,
     ContextMenuModule,
     ModuleRegistry,
@@ -18,7 +18,7 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 
 const totalRevenue = getData().reduce((sum, d) => sum + d.revenue, 0);
 
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Technology Revenue by Segment',

@@ -107,8 +107,6 @@ export type NormalisedOrganizationSeriesNodeTextOptions = Normalised<
 > & {
     /** Undocumented: set by the theme when `key` was configured rather than left at its theme default. */
     _isUserKey?: boolean;
-    /** Undocumented: defaulted by the theme. */
-    collision: { threshold: number; alwaysShow: boolean };
 };
 
 export type NormalisedOrganizationSeriesNodeOptions = Normalised<
