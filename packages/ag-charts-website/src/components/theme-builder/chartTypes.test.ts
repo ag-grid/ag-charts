@@ -255,6 +255,30 @@ describe('preview chart types', () => {
         expect(CANDLESTICK.features).not.toContain('seriesStrokes');
     });
 
+    it('offers series labels on every type with a label option', () => {
+        for (const type of PREVIEW_CHART_TYPES.filter((other) => other !== CANDLESTICK)) {
+            expect(type.features, type.id).toContain('seriesLabels');
+        }
+        expect(CANDLESTICK.features).not.toContain('seriesLabels');
+    });
+
+    it('switches series labels on without restyling them', () => {
+        for (const type of PREVIEW_CHART_TYPES.filter((other) => other.id !== 'donut' && other !== CANDLESTICK)) {
+            for (const series of seriesOf(type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON))) {
+                expect((series as { label?: unknown }).label, type.id).toEqual({ enabled: true });
+            }
+            for (const series of seriesOf(type.buildOptions(DEFAULT_SERIES_COUNT, ALL_OFF))) {
+                expect(series, type.id).not.toHaveProperty('label');
+            }
+        }
+    });
+
+    it('gives the donut sector labels for the inside label colour', () => {
+        const donut = PREVIEW_CHART_TYPES.find((type) => type.id === 'donut')!;
+        expect(seriesOf(donut.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON))[0]).toHaveProperty('sectorLabelKey');
+        expect(seriesOf(donut.buildOptions(DEFAULT_SERIES_COUNT, ALL_OFF))[0]).not.toHaveProperty('sectorLabelKey');
+    });
+
     it('points every tooltip target at a series the options actually carry', () => {
         // The target is a `seriesId` handed back to the chart, so it is only as
         // good as the ids the options set: a series left to AG Charts' generated

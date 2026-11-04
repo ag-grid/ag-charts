@@ -166,7 +166,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             spacing: 10,
             padding: 10,
-            collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
+            collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW, collideWith: { seriesArea: true } },
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside', 'textColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
         },

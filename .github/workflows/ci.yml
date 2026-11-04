@@ -164,6 +164,12 @@ jobs:
               with:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
                   free_disk_space: false
+                  # Above a clean baseline on disk (~1.7GB restored from latest), so PR runs reuse it
+                  # instead of always resetting. It compresses to ~100MB when stored.
+                  tidy_nx_cache_pr_threshold_mb: 2560
+                  # PRs restore from the entry latest saved; saving their own would use ~260MB of the
+                  # shared 10GB quota each time the lockfile changes.
+                  save_yarn_cache: ${{ github.event_name == 'push' }}
                   # Safe for init only: its own build step materialises all plugin outputs.
                   # Measured net win (~30s): the graph computation moves into the build step,
                   # but the plugin-build invocation's own fixed overhead is avoided.

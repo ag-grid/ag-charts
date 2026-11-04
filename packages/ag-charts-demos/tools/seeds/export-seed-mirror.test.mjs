@@ -469,10 +469,17 @@ describe('export-seed-mirror command line', () => {
         outDir = join(root, 'out');
     });
 
-    it('rewrites the dist-tag seeds with --charts-build', () => {
+    it('applies --charts-build according to the pin of the committed seed', () => {
         const result = cli('--out', outDir, '--ref', 'staging', '--charts-build', PREFIX);
         expect(result.status, result.stderr).toBe(0);
+        const seedDir = join(SEEDS_DIR, 'trading-terminal', 'react');
+        const manifest = JSON.parse(readFileSync(join(seedDir, '.seed-manifest.json'), 'utf8'));
         const packageJson = JSON.parse(readFileSync(join(outDir, 'trading-terminal', 'react', 'package.json'), 'utf8'));
+        // A release prep or its merge-back pins every seed to `release`, which the export leaves alone.
+        if (manifest.pinSource !== 'dist-tag') {
+            expect(packageJson).toEqual(JSON.parse(readFileSync(join(seedDir, 'package.json'), 'utf8')));
+            return;
+        }
         expect(packageJson.dependencies['ag-charts-react']).toBe(`${PREFIX}/ag-charts-react.tgz`);
         expect(packageJson.overrides['ag-charts-react']).toBe(`${PREFIX}/ag-charts-react.tgz`);
     });

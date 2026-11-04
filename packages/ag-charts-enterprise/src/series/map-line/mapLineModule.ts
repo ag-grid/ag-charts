@@ -48,7 +48,7 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                 fontFamily: { $ref: 'seriesLabelFontFamily' },
                 fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
-                collision: { alwaysShow: false },
+                collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             },
             tooltip: SERIES_TOOLTIP_THEME,
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),

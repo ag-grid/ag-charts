@@ -28,7 +28,7 @@ import type { FitRegion } from './fitRegion';
 import {
     type CandidateLabelStyle,
     type CandidateStyleResolver,
-    type CollideWith,
+    type LabelAvoidance,
     type LabelObstacle,
     type LabelPlacement,
     type OrientationAnchor,
@@ -658,7 +658,7 @@ describe('placeLabels', () => {
         expect(result!.y).toBeLessThan(bounds.y);
     });
 
-    it('skips obstacle categories disabled via collideWith', () => {
+    it('skips obstacle categories disabled via avoid', () => {
         const marker: PointLabelDatum = {
             point: { x: 100, y: 100, size: 60 },
             label: { text: '', width: 0, height: 0 },
@@ -672,10 +672,10 @@ describe('placeLabels', () => {
             placement: 'top',
             placements: ['top'],
             gap: 0,
-            collideWith: {
+            avoid: {
                 marker: markerEnabled,
                 label: true,
-                seriesItem: true,
+                shape: true,
             },
         });
 
@@ -698,14 +698,14 @@ describe('placeLabels', () => {
             box: { x: 80, y: 90, width: 40, height: 20 },
             category: 'axisLabel',
         };
-        const label = (collideWith?: PointLabelDatum['collideWith']): PointLabelDatum => ({
+        const label = (avoid?: PointLabelDatum['avoid']): PointLabelDatum => ({
             point: { x: 100, y: 100, size: 0 },
             label: { text: 'X', width: 30, height: 12 },
             anchor: undefined,
             placement: 'top',
             placements: ['top'],
             gap: 0,
-            collideWith,
+            avoid,
         });
         const place = (datum: PointLabelDatum) =>
             placeLabels(new Map([['s', seriesLabels([datum], { alwaysShow: false })]]), bounds, 5, [axisLabel]).get(
@@ -714,10 +714,10 @@ describe('placeLabels', () => {
 
         it('ignores axis labels unless the label opts in', () => {
             expect(place(label())).toHaveLength(1);
-            expect(place(label({ marker: true, label: true, seriesItem: true }))).toHaveLength(1);
+            expect(place(label({ marker: true, label: true, shape: true }))).toHaveLength(1);
         });
 
-        it('avoids axis labels when collideWith enables them', () => {
+        it('avoids axis labels when avoid enables them', () => {
             expect(place(label({ axisLabel: true }))).toHaveLength(0);
         });
 
@@ -728,8 +728,8 @@ describe('placeLabels', () => {
 
             expect(avoids([label(), label(shared), label(shared)])).toBe(false);
             expect(avoids([label(shared), label({ axisLabel: true })])).toBe(true);
-            expect(avoids([label()], { collideWith: { axisLabel: true } })).toBe(true);
-            expect(avoids([label({ axisLabel: false })], { collideWith: { axisLabel: true } })).toBe(false);
+            expect(avoids([label()], { avoid: { axisLabel: true } })).toBe(true);
+            expect(avoids([label({ axisLabel: false })], { avoid: { axisLabel: true } })).toBe(false);
         });
     });
 
@@ -916,14 +916,14 @@ describe('placeLabels', () => {
         expect(placeAgainstOtherMarker(marker, label, -10).some((l) => l.datum === label)).toBe(true);
     });
 
-    it('routes labels around external seriesItem obstacles only when that category is enabled', () => {
-        // A bar-style rect obstacle (category 'seriesItem') sits where the label's only placement lands.
+    it('routes labels around external shape obstacles only when that category is enabled', () => {
+        // A bar-style rect obstacle (category 'shape') sits where the label's only placement lands.
         const obstacle: LabelObstacle = {
             kind: 'rect',
             box: { x: 80, y: 96, width: 60, height: 16 },
-            category: 'seriesItem',
+            category: 'shape',
         };
-        const label = (seriesItemEnabled: boolean): PointLabelDatum => ({
+        const label = (shapeEnabled: boolean): PointLabelDatum => ({
             point: { x: 100, y: 100, size: 0 },
             label: { text: 'X', width: 30, height: 12 },
             anchor: undefined,
@@ -931,10 +931,10 @@ describe('placeLabels', () => {
             placements: ['top'],
             gap: 0,
             alwaysShow: false,
-            collideWith: {
+            avoid: {
                 marker: true,
                 label: true,
-                seriesItem: seriesItemEnabled,
+                shape: shapeEnabled,
             },
         });
 
@@ -948,25 +948,25 @@ describe('placeLabels', () => {
 
     it('disabled-category obstacles do not perturb placement of other categories', () => {
         const data = makeFixture(2, 40, bounds, 12345);
-        // Stamp a collideWith that disables seriesItem on every datum (matches a series that opts
+        // Stamp an `avoid` that skips shapes on every datum (matches a series that opts
         // into avoidance but not cross-series geometry).
         for (const { datums } of data.values()) {
             for (const d of datums) {
-                (d as { collideWith?: unknown }).collideWith = {
+                (d as { avoid?: unknown }).avoid = {
                     marker: true,
                     label: true,
-                    seriesItem: false,
+                    shape: false,
                 };
             }
         }
-        const seriesItemObstacles: LabelObstacle[] = Array.from({ length: 30 }, (_, i) => ({
+        const shapeObstacles: LabelObstacle[] = Array.from({ length: 30 }, (_, i) => ({
             kind: 'rect',
             box: { x: (i % 6) * 90, y: Math.floor(i / 6) * 70, width: 80, height: 60 },
-            category: 'seriesItem',
+            category: 'shape',
         }));
 
         const without = placeLabels(structuredClone(data), bounds, 5);
-        const with_ = placeLabels(structuredClone(data), bounds, 5, seriesItemObstacles);
+        const with_ = placeLabels(structuredClone(data), bounds, 5, shapeObstacles);
         expect(normalise(with_)).toEqual(normalise(without));
     });
 
@@ -1269,10 +1269,10 @@ describe('placeLabels orientation candidates', () => {
     });
 
     it('falls through orientations on collision with another label', () => {
-        const labelOnly: CollideWith = {
+        const labelOnly: LabelAvoidance = {
             label: true,
             marker: false,
-            seriesItem: false,
+            shape: false,
         };
         // A occupies a wide flat band. B's horizontal box reaches into it, but B's vertical
         // (narrow-tall) footprint sits clear to the left, so B rotates to avoid A.
@@ -1284,7 +1284,7 @@ describe('placeLabels orientation candidates', () => {
             orientation: 'horizontal',
             gap: 0,
             alwaysShow: false,
-            collideWith: labelOnly,
+            avoid: labelOnly,
         };
         const b: PointLabelDatum = {
             point: { x: 30, y: 100, size: 0 },
@@ -1294,7 +1294,7 @@ describe('placeLabels orientation candidates', () => {
             orientation: ['horizontal', 'vertical'],
             gap: 0,
             alwaysShow: false,
-            collideWith: labelOnly,
+            avoid: labelOnly,
         };
 
         const placed = placeLabels(new Map([['s', seriesLabels([a, b])]]), bounds, 5).get('s')!;
@@ -1454,14 +1454,14 @@ describe('bar label placement helpers', () => {
     });
 
     describe('rectLabelObstacles', () => {
-        it('maps rect node data to seriesItem rect obstacles', () => {
+        it('maps rect node data to shape rect obstacles', () => {
             const result = rectLabelObstacles([
                 { x: 0, y: 10, width: 20, height: 30 },
                 { x: 50, y: 5, width: 15, height: 25 },
             ]);
             expect(result).toEqual([
-                { kind: 'rect', box: { x: 0, y: 10, width: 20, height: 30 }, category: 'seriesItem' },
-                { kind: 'rect', box: { x: 50, y: 5, width: 15, height: 25 }, category: 'seriesItem' },
+                { kind: 'rect', box: { x: 0, y: 10, width: 20, height: 30 }, category: 'shape' },
+                { kind: 'rect', box: { x: 50, y: 5, width: 15, height: 25 }, category: 'shape' },
             ]);
         });
 
@@ -1470,9 +1470,7 @@ describe('bar label placement helpers', () => {
                 { x: 0, y: 0, width: 10, height: 10, phantom: true },
                 { x: 0, y: 0, width: 10, height: 10, phantom: false },
             ]);
-            expect(result).toEqual([
-                { kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'seriesItem' },
-            ]);
+            expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);
         });
 
         it('skips zero-area rects', () => {
@@ -1481,9 +1479,7 @@ describe('bar label placement helpers', () => {
                 { x: 0, y: 0, width: 10, height: 0 },
                 { x: 0, y: 0, width: 10, height: 10 },
             ]);
-            expect(result).toEqual([
-                { kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'seriesItem' },
-            ]);
+            expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);
         });
 
         it('returns undefined when there is nothing to contribute', () => {
@@ -1553,9 +1549,9 @@ describe('bar label placement helpers', () => {
     describe('buildBarLabelDatum + applyBarLabelOrientation', () => {
         const region: BoxBounds = { x: 0, y: 0, width: 30, height: 200 };
         const anchor: OrientationAnchor = { x: 15, y: 100, textAlign: 'center', textBaseline: 'middle' };
-        const collideWith = { marker: true, label: true, seriesItem: true, seriesArea: true };
+        const avoid = { marker: true, label: true, shape: true, seriesArea: true };
 
-        it('centres the candidate box, constrains it to the region, and stamps the resolved collideWith', () => {
+        it('centres the candidate box, constrains it to the region, and stamps the resolved avoid', () => {
             const target = { rotation: 0 };
             const datum = buildBarLabelDatum(
                 anchor,
@@ -1564,7 +1560,7 @@ describe('bar label placement helpers', () => {
                 10,
                 ['horizontal', 'vertical'],
                 region,
-                collideWith,
+                avoid,
                 0,
                 target
             );
@@ -1575,7 +1571,7 @@ describe('bar label placement helpers', () => {
             expect(datum.neverDrop).toBe(true);
             expect(datum.placement).toBeUndefined();
             expect(datum.orientation).toEqual(['horizontal', 'vertical']);
-            expect(datum.collideWith).toBe(collideWith);
+            expect(datum.avoid).toBe(avoid);
             expect(datum.target).toBe(target);
         });
 
@@ -1588,7 +1584,7 @@ describe('bar label placement helpers', () => {
                 10,
                 ['horizontal', 'vertical'],
                 region,
-                collideWith,
+                avoid,
                 0,
                 target
             );
@@ -1615,7 +1611,7 @@ describe('bar label placement helpers', () => {
                 10,
                 ['horizontal', 'vertical'],
                 wideRegion,
-                collideWith,
+                avoid,
                 0,
                 target
             );
@@ -1658,26 +1654,17 @@ describe('placeLabels positioned candidates', () => {
         obstacles: LabelObstacle[] = [],
         ownBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 },
         alwaysShow = true,
-        collideWith = { marker: true, label: true, seriesItem: true, seriesArea: true }
+        avoid = { marker: true, label: true, shape: true, seriesArea: true }
     ) => {
         const target: BarLabelTarget = { rotation: 0 };
-        const datum = buildBarPositionedLabelDatum(
-            'label',
-            20,
-            10,
-            candidates,
-            target,
-            ownBox,
-            alwaysShow,
-            collideWith
-        );
+        const datum = buildBarPositionedLabelDatum('label', 20, 10, candidates, target, ownBox, alwaysShow, avoid);
         const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, obstacles).get(
             's'
         ) as PlacedLabel[];
         return { placed, target };
     };
 
-    const seriesItemRect = (box: BoxBounds): LabelObstacle => ({ kind: 'rect', box, category: 'seriesItem' });
+    const shapeRect = (box: BoxBounds): LabelObstacle => ({ kind: 'rect', box, category: 'shape' });
 
     it('returns the first candidate that fits its region', () => {
         const first: BarCandidate = {
@@ -1783,7 +1770,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: undefined,
                 placement: undefined,
                 alwaysShow: false,
-                collideWith: { marker: true, label: true, seriesItem: false, seriesArea: true },
+                avoid: { marker: true, label: true, shape: false, seriesArea: true },
                 threshold: 10,
                 labelGroup,
                 positionedCandidates: [{ box, region: bounds, flushToRegion: false, size: box }],
@@ -1892,7 +1879,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(55, 98),
                 placement: 'inside-center',
             };
-            const { placed } = place([beside, inside], [seriesItemRect(ownBar), seriesItemRect(neighbourBar)], ownBar);
+            const { placed } = place([beside, inside], [shapeRect(ownBar), shapeRect(neighbourBar)], ownBar);
             expect(placed[0].candidate).toBe(inside);
         });
 
@@ -1912,11 +1899,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(131, 88),
                 placement: 'outside-end',
             };
-            const { placed } = place(
-                [insideOwn, elsewhere],
-                [seriesItemRect(ownColumn), seriesItemRect(sibling)],
-                ownColumn
-            );
+            const { placed } = place([insideOwn, elsewhere], [shapeRect(ownColumn), shapeRect(sibling)], ownColumn);
             expect(placed[0].candidate).toBe(insideOwn);
         });
 
@@ -1937,11 +1920,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(131, 108),
                 placement: 'outside-end',
             };
-            const { placed } = place(
-                [insideFront, elsewhere],
-                [seriesItemRect(frontBar), seriesItemRect(behindBar)],
-                frontBar
-            );
+            const { placed } = place([insideFront, elsewhere], [shapeRect(frontBar), shapeRect(behindBar)], frontBar);
             expect(placed[0].candidate).toBe(insideFront);
         });
     });
@@ -1976,7 +1955,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(132, 98),
                 placement: 'beside-after-center',
             };
-            const { placed } = place([beside], [seriesItemRect(ownBar), seriesItemRect(neighbourBar)], ownBar, false);
+            const { placed } = place([beside], [shapeRect(ownBar), shapeRect(neighbourBar)], ownBar, false);
             expect(placed).toHaveLength(0);
         });
 
@@ -1988,7 +1967,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(55, 98),
                 placement: 'inside-center',
             };
-            const { placed } = place([inside], [seriesItemRect(ownBar)], ownBar, false);
+            const { placed } = place([inside], [shapeRect(ownBar)], ownBar, false);
             expect(placed).toHaveLength(1);
             expect(placed[0].candidate).toBe(inside);
         });
@@ -2019,7 +1998,7 @@ describe('placeLabels sole positioned candidate', () => {
     });
 
     it('keeps its own box through an obstacle without gathering obstacles', () => {
-        const gather = vi.fn((): LabelObstacle[] => [{ kind: 'rect', category: 'seriesItem', box: bounds }]);
+        const gather = vi.fn((): LabelObstacle[] => [{ kind: 'rect', category: 'shape', box: bounds }]);
         const placed = placeLabels(new Map([['fixed', seriesLabels([fixedLabel()])]]), bounds, 5, gather).get('fixed');
 
         expect(gather).not.toHaveBeenCalled();
@@ -2759,9 +2738,9 @@ describe('placeLabels obstacle-driven shrink', () => {
         const wide: LabelObstacle = {
             kind: 'rect',
             box: { x: TOP_BOX.x + TOP_BOX.width - 10, y: TOP_BOX.y, width: 400, height: TOP_BOX.height },
-            category: 'seriesItem',
+            category: 'shape',
         };
-        const placed = placeOne(shrinkableLabel({ collideWith: { seriesItem: true } }), [wide]);
+        const placed = placeOne(shrinkableLabel({ avoid: { shape: true } }), [wide]);
         expect(placed.text).toBe('WWW…');
         expect(placed.x + placed.width).toBeLessThanOrEqual(wide.box.x);
     });
@@ -3369,7 +3348,7 @@ describe('placeLabels positioned shrink ladder', () => {
 // Deliberately covers the no-fit case only — a datum without `fit` skips every shrink and re-fit
 // branch, leaving the candidate cascade itself as the thing under test.
 function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
-    const category = o.category ?? 'seriesItem';
+    const category = o.category ?? 'shape';
     const { ownBox } = d;
     if (
         ownBox != null &&
@@ -3378,7 +3357,7 @@ function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
     ) {
         return true;
     }
-    const enabled = d.collideWith?.[category];
+    const enabled = d.avoid?.[category];
     return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
 
@@ -3496,7 +3475,7 @@ function makePositionedFixture(seriesCount: number, perSeries: number, bounds: B
                     {} as BarLabelTarget,
                     ownBox,
                     alwaysShow,
-                    { marker: true, label: true, seriesItem: true },
+                    { marker: true, label: true, shape: true },
                     0,
                     next() < 0.3
                 )
@@ -3529,7 +3508,7 @@ describe('placeLabels (positioned candidates)', () => {
 
     it('matches the brute-force oracle with cross-series obstacles', () => {
         const obstacles: LabelObstacle[] = [
-            { kind: 'rect', category: 'seriesItem', box: { x: 100, y: 150, width: 120, height: 80 } },
+            { kind: 'rect', category: 'shape', box: { x: 100, y: 150, width: 120, height: 80 } },
             { kind: 'rect', category: 'label', box: { x: 380, y: 60, width: 90, height: 40 } },
         ];
         for (let seed = 1; seed <= 12; seed++) {

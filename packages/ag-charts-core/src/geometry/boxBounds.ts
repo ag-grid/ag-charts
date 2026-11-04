@@ -41,21 +41,18 @@ export function toCurrentPoint(canvasPoint: CanvasPoint, currentBounds: BoxBound
 }
 
 /**
- * Convert & clip current point to a canvas-point.
+ * Clip a canvas point within canvas-relative bounds.
  *
- * @param currentPoint The local point to transform & clip.
- * @param canvasBounds Canvas-relative bounds. If `undefined`, then no transformation nor clipping occurs.
- * @return A canvas point, translated relative to `canvasBounds['x'|'y']` and clipped within those bounds when
- * applicable.
+ * @param canvasPoint The canvas point to clip.
+ * @param canvasBounds Canvas-relative bounds. If `undefined`, then no clipping occurs.
+ * @return The canvas point, clipped within `canvasBounds` when applicable.
  */
-export function toClippedCanvasPoint(currentPoint: CurrentPoint, canvasBounds: BoxBounds | undefined): CanvasPoint {
-    let { currentX: canvasX, currentY: canvasY } = currentPoint;
+export function clipCanvasPoint(canvasPoint: CanvasPoint, canvasBounds: BoxBounds | undefined): CanvasPoint {
+    let { canvasX, canvasY } = canvasPoint;
     if (!canvasBounds) {
         return { canvasX, canvasY };
     }
 
-    canvasX += canvasBounds.x;
-    canvasY += canvasBounds.y;
     canvasX = clamp(canvasBounds.x, canvasX, canvasBounds.x + canvasBounds.width);
     canvasY = clamp(canvasBounds.y, canvasY, canvasBounds.y + canvasBounds.height);
     return { canvasX, canvasY };

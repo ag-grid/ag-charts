@@ -44,7 +44,7 @@ import {
     measureLabelText,
     mergeDefaults,
     resetRememberedResults,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     resolveTextAlign,
     upsertNodeDatum,
     writeLabelBoxCentre,
@@ -1135,7 +1135,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         for (const { point, width, height } of nodeData) {
             if (width <= 0 || height <= 0) continue;
             const box = { x: point.x - width / 2, y: point.y - height / 2, width, height };
-            obstacles.push({ kind: 'rect', box, category: 'seriesItem' });
+            obstacles.push({ kind: 'rect', box, category: 'shape' });
         }
         return obstacles;
     }
@@ -1144,7 +1144,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { label } = this.options;
         if (!this.usesPlacedLabels || !label.enabled) return [];
         const alwaysShow = label.collision?.alwaysShow === true;
-        const collideWith = resolveCollideWith({ ...label.collision, alwaysShow });
+        const avoid = resolveLabelAvoidance({ ...label.collision, alwaysShow });
         const threshold = label.collision?.threshold ?? 0;
         const boxPadding = expandLabelBoxExtent(label);
         const data: HeatmapPlacedLabelDatum[] = [];
@@ -1172,7 +1172,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 anchor: undefined,
                 placement: undefined,
                 neverDrop: alwaysShow,
-                collideWith,
+                avoid,
                 threshold,
                 positionedCandidates: [candidate],
                 ownBox: region,

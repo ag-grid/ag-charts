@@ -18,12 +18,6 @@ const NODE_TEXT_FIT_DEFAULTS = {
     truncate: {
         $isUserOption: ['./overflowStrategy', { $eq: [{ $path: './overflowStrategy' }, 'ellipsis'] }, true],
     },
-    ...undocumentedThemeOptions({
-        collision: {
-            threshold: 0,
-            alwaysShow: false,
-        },
-    }),
 } as const;
 
 export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {

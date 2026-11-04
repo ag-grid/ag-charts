@@ -10,6 +10,7 @@ import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart
 import type {
     ContextDefault,
     DatumDefault,
+    DatumKey,
     FontWeight,
     Opacity,
     OverflowStrategy,
@@ -32,7 +33,7 @@ import type { AgNetworkSeriesTreeLayout } from './networkOptions';
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'focusIndex'>,
-        AgOrganizationSeriesOptionsKeys,
+        AgOrganizationSeriesOptionsKeys<TDatum>,
         AgOrganizationSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Organization Series. */
     type: 'organization';
@@ -288,20 +289,20 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssO
     padding?: Padding;
 }
 
-export interface AgOrganizationSeriesOptionsKeys {
+export interface AgOrganizationSeriesOptionsKeys<TDatum = DatumDefault> {
     /**
      * The key of the data field containing the unique node identifier.
      *
      * Default: `'id'`
      */
-    idKey?: string;
+    idKey?: DatumKey<TDatum>;
     /**
      * The key of the data field containing the parent node identifier. The root node should
      * have a `null` value for this field.
      *
      * Default: `'parentId'`
      */
-    parentIdKey?: string;
+    parentIdKey?: DatumKey<TDatum>;
 }
 
 export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TContext = ContextDefault> {
@@ -380,4 +381,4 @@ export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault,
 }
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>, AgOrganizationSeriesOptionsKeys {}
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>, AgOrganizationSeriesOptionsKeys<TDatum> {}

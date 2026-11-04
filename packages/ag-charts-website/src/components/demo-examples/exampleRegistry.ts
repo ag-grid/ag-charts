@@ -35,7 +35,7 @@ export const DEMO_EXAMPLES: DemoExample[] = [
         id: 'procurement',
         title: 'Procurement Manager',
         path: './examples-procurement/',
-        description: 'Spend, supplier and delivery charts for a procurement manager workspace.',
+        description: 'Sunburst, heatmap, map and range-bar charts with synced selection.',
         demoAppId: 'procurement',
         image: '/images/demos/procurement.webp',
     },

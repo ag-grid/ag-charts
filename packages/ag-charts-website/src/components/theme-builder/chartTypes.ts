@@ -89,7 +89,7 @@ const CARTESIAN_AXES = {
 };
 
 /** The features every chart here can show, whatever shape it is. */
-const COMMON_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'legend', 'tooltip', 'contextMenu'];
+const COMMON_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'seriesLabels', 'legend', 'tooltip', 'contextMenu'];
 
 /** Zoom, scrollbar and navigator are cartesian-only in AG Charts. */
 const CARTESIAN_FEATURES: ChartFeatureId[] = [...COMMON_FEATURES, 'crosshairs', 'zoom', 'scrollbar', 'navigator'];
@@ -110,6 +110,10 @@ const shapeStroke = (features: ChartFeatures) =>
 /** A line series draws its line in the palette *fill*, leaving only the markers. */
 const markerStroke = (features: ChartFeatures) =>
     isFeatureActive(features, 'seriesStrokes') ? { marker: { strokeWidth: MARKER_STROKE_WIDTH } } : {};
+
+/** Series labels are off by default, so without this the Series Labels group edits nothing visible. */
+const seriesLabel = (features: ChartFeatures) =>
+    isFeatureActive(features, 'seriesLabels') ? { label: { enabled: true } } : {};
 
 /**
  * Crosshairs default on for continuous axes only, so a category x-axis must ask
@@ -182,6 +186,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yKey: key,
                 yName: name,
                 ...shapeStroke(features),
+                ...seriesLabel(features),
             })),
     },
     {
@@ -199,6 +204,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yName: name,
                 stacked: true,
                 ...shapeStroke(features),
+                ...seriesLabel(features),
             })),
     },
     {
@@ -215,6 +221,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yKey: key,
                 yName: name,
                 ...markerStroke(features),
+                ...seriesLabel(features),
             })),
     },
     {
@@ -232,6 +239,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yName: name,
                 stacked: true,
                 ...shapeStroke(features),
+                ...seriesLabel(features),
             })),
     },
     {
@@ -252,7 +260,9 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                     type: 'donut',
                     id: previewSeriesId(0),
                     angleKey: 'revenue',
+                    // A donut has no `label.enabled`; naming a key is what draws its sector labels.
                     calloutLabelKey: 'country',
+                    ...(isFeatureActive(features, 'seriesLabels') ? { sectorLabelKey: 'revenue' } : {}),
                     innerRadiusRatio: 0.6,
                     ...shapeStroke(features),
                 },
@@ -267,8 +277,12 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         /**
          * No series-strokes switch: daily candles render barely a pixel wide,
          * below the three AG Charts needs to draw a body rather than a wick.
+         * No series labels either, as a candlestick series has no label option.
          */
-        features: [...CARTESIAN_FEATURES.filter((id) => id !== 'seriesStrokes'), 'rangeButtons'],
+        features: [
+            ...CARTESIAN_FEATURES.filter((id) => id !== 'seriesStrokes' && id !== 'seriesLabels'),
+            'rangeButtons',
+        ],
         tooltipTarget: CANDLESTICK_TOOLTIP_TARGET,
         buildOptions: (_count, features) => {
             const crosshair = { enabled: isFeatureActive(features, 'crosshairs') };
