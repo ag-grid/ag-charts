@@ -239,6 +239,17 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             ctx.update();
         };
 
+        const actionApplyProps = (props: object) => {
+            const { datum } = this;
+            if (datum) applyAnnotationOptions(datum, props);
+            ctx.update();
+            ctx.recordAction(
+                `Change ${datum?.type} ${Object.entries(props)
+                    .map(([key, value]) => `${key} to ${JSON.stringify(value)}`)
+                    .join(', ')}`
+            );
+        };
+
         const actionLineStyle = (lineStyle: AnnotationLineStyle) => {
             const { datum, node } = this;
             if (!datum || !node || !hasLineStyle(datum)) return;
@@ -397,18 +408,14 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     action: actionFontSize,
                 },
 
+                coordinates: {
+                    guard: guardActive,
+                    action: actionApplyProps,
+                },
+
                 lineProps: {
                     guard: guardActive,
-                    action: (props) => {
-                        const { datum } = this;
-                        if (datum) applyAnnotationOptions(datum, props);
-                        ctx.update();
-                        ctx.recordAction(
-                            `Change ${datum?.type} ${Object.entries(props)
-                                .map(([key, value]) => `${key} to ${value}`)
-                                .join(', ')}`
-                        );
-                    },
+                    action: actionApplyProps,
                 },
 
                 lineStyle: {

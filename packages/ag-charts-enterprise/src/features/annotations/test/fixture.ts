@@ -2,6 +2,7 @@ import { type AgAnnotation, type AgCartesianChartOptions, type AgChartInstance, 
 import { compareImageSnapshot, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../../test/utils';
+import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
 
 type MockCanvas = ReturnType<typeof setupMockCanvas>;
 
@@ -15,6 +16,17 @@ export const ANNOTATIONS_EXAMPLE_OPTIONS: AgCartesianChartOptions = {
     axes: { y: { type: 'number' }, x: { type: 'time' } },
     annotations: { enabled: true, toolbar: { enabled: false } },
 };
+
+/** The axes of an annotation context, which is all the coordinate editing reads; the rest of the interface is unused. */
+export function createAxesContext(
+    xScale: AnnotationAxisContext['scale'],
+    yScale: AnnotationAxisContext['scale']
+): AnnotationContext {
+    return {
+        xAxis: { scale: xScale, continuous: true },
+        yAxis: { scale: yScale, continuous: true },
+    } as unknown as AnnotationContext;
+}
 
 export async function createAnnotationsChart(options: AgCartesianChartOptions) {
     prepareEnterpriseTestOptions(options);

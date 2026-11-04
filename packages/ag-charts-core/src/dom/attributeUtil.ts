@@ -54,6 +54,7 @@ export type BaseAttributeTypeMap = {
 };
 
 type InputAttributeTypeMap = BaseAttributeTypeMap & {
+    list: ElementID;
     placeholder: string;
 };
 
@@ -90,6 +91,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     id: stringParser<ElementID>,
     tabindex: numberParser<0 | -1>,
     title: stringParser,
+    list: stringParser<ElementID>,
     placeholder: stringParser,
 };
 
