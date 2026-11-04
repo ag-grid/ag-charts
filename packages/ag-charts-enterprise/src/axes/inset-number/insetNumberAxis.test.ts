@@ -8,6 +8,7 @@ import {
     expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
+    waitForChartStability,
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../../test/utils';
@@ -142,18 +143,18 @@ describe('InsetNumberAxis', () => {
     });
 
     it('should tile profile bars one level step each, clipped to the series area and formatted as the price', async () => {
-        const priceLabels = new Set<string>();
+        const axisLabels = new Set<string>();
         chart = await createEnterpriseChart({
             data: DATA,
             formatter: ({ source, property, boundSeries }) => {
-                if (source === 'axis-label' && boundSeries.some((s) => s.key === 'price')) {
-                    priceLabels.add(`${property}: ${boundSeries.map((s) => s.seriesId).join()}`);
-                }
+                if (source === 'axis-label')
+                    axisLabels.add(`${property}: ${boundSeries.map((s) => s.seriesId).join()}`);
                 return undefined;
             },
             series: [
                 { id: 'price', type: 'line', xKey: 'year', yKey: 'price' },
                 {
+                    id: 'profile',
                     type: 'bar',
                     direction: 'horizontal',
                     data: [20, 22, 24, 26, 28, 30, 32, 34, 36].map((price, i) => ({
@@ -173,7 +174,10 @@ describe('InsetNumberAxis', () => {
         });
 
         await compareImageSnapshot(chart, ctx);
-        expect([...priceLabels]).toEqual(['y: price']);
+
+        await chart.updateDelta({ axes: { xProfile: { label: { enabled: true } } } });
+        await waitForChartStability(chart);
+        expect([...axisLabels].sort((a, b) => a.localeCompare(b))).toEqual(['x: price', 'y: price', 'y: profile']);
     });
 
     it('should keep ordinary bar widths on an inset axis over a time axis', async () => {

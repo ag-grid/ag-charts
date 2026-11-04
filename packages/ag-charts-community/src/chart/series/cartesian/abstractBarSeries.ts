@@ -206,21 +206,37 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         const { scale } = xAxis;
         if (!ContinuousScale.is(scale)) return scale.bandwidth ?? 0;
 
-        const interval = this.smallestDataInterval;
-        if (interval != null && this.isProfile()) {
-            const d0 = Number(scale.domain[0]);
-            const step = Math.abs(scale.convert(d0 + Number(interval)) - scale.convert(d0));
-            // Whole pixels, as the group scale rounds bars on a category axis.
-            return step >= 1 ? Math.floor(step) : step;
+        if (!this.isProfile()) return scale.calcBandwidth(this.smallestDataInterval, minWidth);
+
+        let step = this.profileStep(scale);
+        if (!Number.isFinite(step)) {
+            // A single level fills the axis less its outer padding, as a lone category band does.
+            step = Math.abs(scale.range[1] - scale.range[0]) * (1 - 2 * this.getBandScalePadding().outer);
         }
-        return scale.calcBandwidth(interval, minWidth);
+        // Whole pixels, as the group scale rounds bars on a category axis.
+        return step >= 1 ? Math.floor(step) : step;
+    }
+
+    /** The pixel distance between neighbouring profile levels, or `NaN` for a single level. */
+    private profileStep(scale: ChartAxis['scale']) {
+        const interval = this.smallestDataInterval;
+        if (interval == null) return Number.NaN;
+        const d0 = Number(scale.domain[0]);
+        return Math.abs(scale.convert(d0 + Number(interval)) - scale.convert(d0));
+    }
+
+    /** How far a single profile level moves to sit centred on its axis, regardless of its value. */
+    private singleLevelOffset(scale: ChartAxis['scale']) {
+        if (Number.isFinite(this.profileStep(scale)) || !this.isProfile()) return 0;
+        const level = this.processedData?.domain.keys[0]?.[0];
+        return (scale.range[0] + scale.range[1]) / 2 - scale.convert(level);
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
         const xAxis = this.axes[this.getCategoryDirection()]!;
         const xScale = xAxis.scale;
         const bandWidth = this.getBandwidth(xAxis, 0);
-        const barOffset = ContinuousScale.is(xScale) ? bandWidth * -0.5 : 0;
+        const barOffset = ContinuousScale.is(xScale) ? bandWidth * -0.5 + this.singleLevelOffset(xScale) : 0;
         const x = xScale.convert(xValue) + barOffset;
         return [x, x + bandWidth];
     }
@@ -245,6 +261,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         const barWidth = this.getBarWidth();
         const barOffset = this.getBarOffset(barWidth);
         let groupOffset = this.getGroupOffset();
+        if (ContinuousScale.is(categoryAxis.scale)) groupOffset += this.singleLevelOffset(categoryAxis.scale);
 
         if (this.ctx.domManager.isRtl && this.seriesGrouping != null) {
             const groupBandWidth = this.ctx.seriesStateManager.getGroupBandWidth(this);

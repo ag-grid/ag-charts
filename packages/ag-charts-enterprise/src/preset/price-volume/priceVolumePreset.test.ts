@@ -280,6 +280,11 @@ describe('priceVolumePreset', () => {
             'smaller tick size': { data: getStockData(), volumeProfile, tickSize: 1 },
             'matching tick size': { data: getStockData(), volumeProfile, tickSize: 2.5 },
             'larger tick size': { data: getStockData(), volumeProfile, tickSize: 5 },
+            'single level': {
+                data: getStockData(),
+                volumeProfile: { ...volumeProfile, totalSegment: { enabled: true } },
+                tickSize: 1000,
+            },
             'total segment placement left': {
                 data: getStockData(),
                 volumeProfile: { ...volumeProfile, placement: 'left', totalSegment: { enabled: true } },
