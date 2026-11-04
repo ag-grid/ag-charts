@@ -1,5 +1,7 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
+import type { AgDonutSeriesOptions } from '../polar/donutOptions';
+import type { AgPieSeriesOptions } from '../polar/pieOptions';
 import type { AgChordSeriesOptions } from './chordOptions';
 import type { AgOrganizationSeriesOptions } from './organizationOptions';
 import type { AgPyramidSeriesOptions } from './pyramidOptions';
@@ -8,6 +10,8 @@ import type { AgSunburstSeriesOptions } from './sunburstOptions';
 import type { AgTreemapSeriesOptions } from './treemapOptions';
 
 export type AgStandaloneSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> =
+    | AgDonutSeriesOptions<TDatum, TContext>
+    | AgPieSeriesOptions<TDatum, TContext>
     | AgOrganizationSeriesOptions<TDatum, TContext>
     | AgPyramidSeriesOptions<TDatum, TContext>
     | AgTreemapSeriesOptions<TDatum, TContext>

@@ -1,6 +1,4 @@
-import type { AgDonutSeriesOptions } from '../series/polar/donutOptions';
 import type { AgNightingaleSeriesOptions } from '../series/polar/nightingaleOptions';
-import type { AgPieSeriesOptions } from '../series/polar/pieOptions';
 import type { AgRadarAreaSeriesOptions } from '../series/polar/radarAreaOptions';
 import type { AgRadarLineSeriesOptions } from '../series/polar/radarLineOptions';
 import type { AgRadialBarSeriesOptions } from '../series/polar/radialBarOptions';
@@ -20,8 +18,6 @@ import type {
 import type { ContextDefault, DatumDefault } from './types';
 
 export type AgPolarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> =
-    | AgDonutSeriesOptions<TDatum, TContext>
-    | AgPieSeriesOptions<TDatum, TContext>
     | AgRadarLineSeriesOptions<TDatum, TContext>
     | AgRadarAreaSeriesOptions<TDatum, TContext>
     | AgRadialBarSeriesOptions<TDatum, TContext>

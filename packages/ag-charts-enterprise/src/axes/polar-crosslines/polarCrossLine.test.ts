@@ -589,6 +589,7 @@ describe('PolarCrossLine listeners', () => {
 
     it('pie and donut charts reject cross-line listeners', async () => {
         chart = deproxy(
+            // @ts-expect-error pie and donut chart options do not declare cross-line listeners
             await createEnterpriseChart({
                 data: [{ label: 'a', value: 1 }],
                 series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],

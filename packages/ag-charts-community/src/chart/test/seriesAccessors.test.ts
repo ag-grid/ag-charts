@@ -4,7 +4,7 @@ import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgChartInstance,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-types';
 
 import {
@@ -44,7 +44,7 @@ describe('series test accessors', () => {
         ],
         series: barSeries,
     };
-    const pieOptions: AgPolarChartOptions = {
+    const pieOptions: AgStandaloneChartOptions = {
         data: [
             { label: 'A', value: 10 },
             { label: 'B', value: 20 },

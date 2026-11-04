@@ -60,6 +60,7 @@ import type {
     AgGaugeOptions,
     AgPolarChartOptions,
     AgSparklineOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -103,8 +104,8 @@ export interface CartesianTestCase extends ChartTestCase {
     options: AgCartesianChartOptions;
 }
 
-export interface PolarTestCase extends ChartTestCase {
-    options: AgPolarChartOptions;
+export interface StandaloneTestCase extends ChartTestCase {
+    options: AgStandaloneChartOptions;
 }
 
 const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);

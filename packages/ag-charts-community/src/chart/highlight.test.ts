@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Rect } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartOptions, AgPolarChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions, AgStandaloneChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { Chart } from './chart';
@@ -326,7 +326,7 @@ describe('Chart highlighting', () => {
                         sectorLabel: { enabled: true },
                     },
                 ],
-            } as AgPolarChartOptions,
+            } as AgStandaloneChartOptions,
             seriesIndex: 0,
             datumIndex: 2,
         },
@@ -346,7 +346,7 @@ describe('Chart highlighting', () => {
                         innerRadiusRatio: 0.6,
                     },
                 ],
-            } as AgPolarChartOptions,
+            } as AgStandaloneChartOptions,
             seriesIndex: 0,
             datumIndex: 1,
         },

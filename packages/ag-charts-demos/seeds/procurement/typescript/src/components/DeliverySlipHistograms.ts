@@ -2,8 +2,8 @@ import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgPieSeriesOptions,
-    AgPolarChartOptions,
     AgSelectionItemIds,
+    AgStandaloneChartOptions,
 } from 'ag-charts-community';
 
 import { chartHost } from '../chart';
@@ -137,8 +137,8 @@ function splitOptions(
     row: SlipDistribution,
     lateCount: number,
     color: string,
-    listeners: NonNullable<AgPolarChartOptions<Slice>['listeners']>
-): AgPolarChartOptions<Slice> {
+    listeners: NonNullable<AgStandaloneChartOptions<Slice>['listeners']>
+): AgStandaloneChartOptions<Slice> {
     const series: AgPieSeriesOptions<Slice> = {
         type: 'pie',
         id: SPLIT_SERIES_ID,
@@ -205,7 +205,7 @@ const facetClass = (isLast: boolean) => (isLast ? 'pc-facet pc-facet--axis' : 'p
 
 /** One supplier's row: its late share and its histogram, each a chart that selects the supplier as a whole. */
 function createSlipFacet({ onSelectedSupplierChange, ...props }: SlipFacetProps): SlipFacet {
-    const pie = chartHost<AgPolarChartOptions<Slice>>();
+    const pie = chartHost<AgStandaloneChartOptions<Slice>>();
     const chart = chartHost<AgCartesianChartOptions<Bar>>();
 
     let current: FacetProps = props;
