@@ -6,7 +6,5 @@
     "pinnedVersion": "14.3.0",
     "pinSource": "release",
     "dist": "dist",
-    "vendored": [
-        "web-analytics/topology.ts"
-    ]
+    "vendored": ["web-analytics/topology.ts"]
 }

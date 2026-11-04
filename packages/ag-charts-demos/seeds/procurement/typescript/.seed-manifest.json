@@ -5,8 +5,6 @@
     "sourceCommit": "bd22a8dcfe4379f181bba7367911d47d0e33ec36",
     "pinnedVersion": "14.3.0",
     "pinSource": "release",
-    "vendored": [
-        "web-analytics/topology.ts"
-    ],
+    "vendored": ["web-analytics/topology.ts"],
     "dist": "dist"
 }
