@@ -25,7 +25,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { mapValues } from 'ag-charts-core';
+import { Transformable, mapValues } from 'ag-charts-core';
 import type { AgAnnotation } from 'ag-charts-types';
 
 import { getCrosshairLine } from '../../test/featureAccessors';
@@ -881,6 +881,24 @@ describe('Crosshair', () => {
                 "44px 250px (-100% -50%)",
               ]
             `);
+        });
+
+        it('should place an edge title beyond the crosshair label band of a crossAt axis', async () => {
+            const { x, y } = axesAt({ value: 0 });
+            await hoverWithAxes({ x: { ...x, title: { text: 'X Axis' } }, y: { ...y, title: { text: 'Y Axis' } } });
+
+            const seriesRect = getSeriesRect(chart);
+            const xTitle = Transformable.toCanvas(findAxis(chart, 'bottom').caption.node);
+            const yTitle = Transformable.toCanvas(findAxis(chart, 'left').caption.node);
+
+            const xBand = getAxisLayoutState(chart, 'bottom').labelThickness ?? 0;
+            const yBand = getAxisLayoutState(chart, 'left').labelThickness ?? 0;
+
+            expect(labelPlacement('x')).toHaveLength(1);
+            expect(labelPlacement('y')).toHaveLength(1);
+            expect(Math.min(xBand, yBand)).toBeGreaterThan(0);
+            expect(xTitle.y).toBeGreaterThanOrEqual(seriesRect.y + seriesRect.height + xBand);
+            expect(yTitle.x + yTitle.width).toBeLessThanOrEqual(seriesRect.x - yBand);
         });
 
         it('should keep labels at the position edges when crossAt moves the axis lines', async () => {
