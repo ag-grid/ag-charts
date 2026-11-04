@@ -730,6 +730,98 @@ describe('Crosshair', () => {
         }
     );
 
+    describe('label text', () => {
+        const MARKUP_CATEGORY = '<b class="m">A</b> & "B"';
+
+        const labelOptions = (
+            xCrosshair: NonNullable<AgCartesianAxesOptions['x']>['crosshair'] = {},
+            yAxis: AgCartesianAxesOptions['y'] = { type: 'number', position: 'left' }
+        ): AgCartesianChartOptions => ({
+            data: [
+                { x: 'A', y: 100 },
+                { x: MARKUP_CATEGORY, y: 200 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    crosshair: { ...CROSSHAIR_OPTIONS, snap: true, ...xCrosshair },
+                },
+                y: { crosshair: { ...CROSSHAIR_OPTIONS, snap: true }, ...yAxis },
+            },
+        });
+
+        const labelContent = (axisId: string) => {
+            const labels = Array.from(
+                document.querySelectorAll<HTMLElement>(
+                    `.ag-charts-crosshair-label[data-axis-id="${axisId}"]:not(.ag-charts-crosshair-label--hidden)`
+                )
+            ).filter((label) => label.childElementCount > 0);
+            expect(labels.length).toBeGreaterThan(0);
+            return {
+                text: labels.map((label) => label.textContent).join(),
+                has: (selector: string) => labels.some((label) => label.querySelector(selector) != null),
+            };
+        };
+
+        const hoverMarkupCategory = async (options: AgCartesianChartOptions) => {
+            chart = await createEnterpriseChart(options);
+            await hoverAction(600, 200)(chart);
+            await waitForChartStability(chart);
+        };
+
+        it('renders markup characters in category values as text', async () => {
+            await hoverMarkupCategory(labelOptions());
+
+            const label = labelContent('x');
+            expect(label.has('b')).toBe(false);
+            expect(label.text).toContain(MARKUP_CATEGORY);
+        });
+
+        it.each([
+            ['crosshair label formatter', { crosshair: { snap: true, label: { formatter: () => '<i>x</i> & y' } } }],
+            ['axis label formatter', { label: { formatter: () => '<i>x</i> & y' } }],
+        ] as const)('renders markup characters in %s output as text', async (_name, yAxis) => {
+            await hoverMarkupCategory(labelOptions({}, { type: 'number', position: 'left', ...yAxis }));
+
+            const label = labelContent('y');
+            expect(label.has('i')).toBe(false);
+            expect(label.text).toContain('<i>x</i> & y');
+        });
+
+        it('inserts renderer string output as HTML and passes it the raw value', async () => {
+            const values: unknown[] = [];
+            await hoverMarkupCategory(
+                labelOptions({
+                    label: {
+                        renderer: ({ value }) => {
+                            values.push(value);
+                            return '<b class="r">R</b>';
+                        },
+                    },
+                })
+            );
+
+            expect(labelContent('x').has('b.r')).toBe(true);
+            expect(values).toContain(MARKUP_CATEGORY);
+        });
+
+        it('inserts renderer object text as HTML', async () => {
+            await hoverMarkupCategory(labelOptions({ label: { renderer: () => ({ text: '<b class="r">R</b>' }) } }));
+
+            expect(labelContent('x').has('b.r')).toBe(true);
+        });
+
+        it('escapes the default text when a renderer object omits text', async () => {
+            await hoverMarkupCategory(labelOptions({ label: { renderer: () => ({ color: 'red' }) } }));
+
+            const label = labelContent('x');
+            expect(label.has('b')).toBe(false);
+            expect(label.text).toContain(MARKUP_CATEGORY);
+        });
+    });
+
     describe('label placement', () => {
         // The label is a DOM element in the canvas overlay, so its placement is invisible to an image
         // snapshot — read the positional styles instead.

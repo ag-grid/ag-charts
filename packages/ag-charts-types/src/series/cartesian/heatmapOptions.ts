@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedSecondaryLabelOptions,
     AgChartLabelStyleOptions,
@@ -6,7 +7,12 @@ import type {
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgGlowHighlightOptions,
+    AgHighlightStyleOptions,
+} from '../seriesOptions';
 import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
 
 export type AgHeatmapSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
@@ -69,6 +75,10 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext
      * Default: `0`
      */
     cornerRadius?: PixelSize;
+    /** Configuration for the shadow used behind the cells. */
+    shadow?: AgDropShadowOptions;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Horizontal position of the label.
      *
      * @deprecated v14.2.0 Use `label.textAlign` instead.
@@ -109,7 +119,7 @@ export interface AgHeatmapSeriesOptionsNames {
 
 export interface AgHeatmapSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend' | 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         AgHeatmapSeriesOptionsKeys<TDatum>,
         AgHeatmapSeriesOptionsNames,

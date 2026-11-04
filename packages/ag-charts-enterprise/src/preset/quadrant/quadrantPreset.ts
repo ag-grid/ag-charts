@@ -1,7 +1,6 @@
 import {
     type CartesianAxisDirection,
     Logger,
-    type WithInternalShadow,
     datumKeyReader,
     isFiniteNumericValue,
     mergeDefaults,
@@ -369,7 +368,7 @@ export function createQuadrant(
 
     if (options.sizeKey == null) {
         series.push({
-            ...pick(options as typeof options & WithInternalShadow, scatterSeriesKeys),
+            ...pick(options, scatterSeriesKeys),
             id: options.id ?? DEFAULT_SERIES_ID,
             type: 'scatter',
             context,
@@ -388,7 +387,7 @@ export function createQuadrant(
     } else {
         series.push({
             minSize: options.size, // Default minSize to size
-            ...pick(options as typeof options & WithInternalShadow, bubbleSeriesKeys),
+            ...pick(options, bubbleSeriesKeys),
             sizeKey: options.sizeKey, // Tell typescript that sizeKey is not undefined
             id: options.id ?? DEFAULT_SERIES_ID,
             type: 'bubble',

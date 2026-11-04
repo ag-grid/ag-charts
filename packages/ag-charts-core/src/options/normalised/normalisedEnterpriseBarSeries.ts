@@ -44,7 +44,6 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import type { WithInternalShadow } from '../internalShadowOptions';
 import type { BivariantCallback, Normalised } from './normalise';
 import type {
     NormalisedBarSeriesLabelOptions,
@@ -124,7 +123,7 @@ export type NormalisedBoxPlotWhiskerOptions = Normalised<AgBoxPlotWhiskerOptions
 
 /** Box plot options the series owns, before the common series keys are layered on. */
 export type NormalisedBoxPlotSeriesOwnOptions = Normalised<
-    AgBoxPlotSeriesOptions & WithInternalShadow,
+    AgBoxPlotSeriesOptions,
     | 'xKey'
     | 'minKey'
     | 'q1Key'
@@ -189,7 +188,7 @@ export type NormalisedOhlcSeriesBaseOwnOptions = Omit<
 
 /** OHLC options the series owns, before the common series keys are layered on. */
 export type NormalisedOhlcSeriesOwnOptions = Normalised<
-    AgOhlcSeriesOptions & WithInternalShadow,
+    AgOhlcSeriesOptions,
     'item' | 'shadow',
     {
         item: Record<'up' | 'down', NormalisedOhlcSeriesItemOptions>;
@@ -203,7 +202,7 @@ export type NormalisedOhlcSeriesOptions = NormalisedSeriesOptions<NormalisedOhlc
 
 /** Candlestick options the series owns, before the common series keys are layered on. */
 export type NormalisedCandlestickSeriesOwnOptions = Normalised<
-    AgCandlestickSeriesOptions & WithInternalShadow,
+    AgCandlestickSeriesOptions,
     'item' | 'shadow',
     {
         item: Record<'up' | 'down', NormalisedCandlestickSeriesItemOptions>;
@@ -271,7 +270,7 @@ type ConeFunnelLabelPlacement = AgConeFunnelSeriesLabelPlacement | AgConeFunnelS
 
 /** Cone funnel options the series owns, before the common series keys are layered on. */
 export type NormalisedConeFunnelSeriesOwnOptions = Normalised<
-    AgConeFunnelSeriesOptions & WithInternalShadow,
+    AgConeFunnelSeriesOptions,
     FunnelStyleRequiredKeys | 'direction' | 'label' | 'shadow',
     {
         fills: NormalisedColorType[];

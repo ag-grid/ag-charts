@@ -34,7 +34,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
         },
     },
     tooltip: tooltipOptionsDefs,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: multiSeriesGlowHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };

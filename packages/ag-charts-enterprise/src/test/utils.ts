@@ -119,13 +119,16 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
     });
 
     const view = container.ownerDocument.defaultView!;
-    const originalGetComputedStyle = view.getComputedStyle;
-    view.getComputedStyle = () =>
-        ({ getPropertyValue: (key: string) => vars[key] ?? '' }) as unknown as CSSStyleDeclaration;
+    const getComputedStyleDescriptor = Object.getOwnPropertyDescriptor(view, 'getComputedStyle')!;
+    Object.defineProperty(view, 'getComputedStyle', {
+        configurable: true,
+        writable: true,
+        value: () => ({ getPropertyValue: (key: string) => vars[key] ?? '' }) as unknown as CSSStyleDeclaration,
+    });
 
     return () => {
         Object.defineProperty(CSSStyleDeclaration.prototype, 'color', descriptor);
-        view.getComputedStyle = originalGetComputedStyle;
+        Object.defineProperty(view, 'getComputedStyle', getComputedStyleDescriptor);
     };
 }
 
@@ -164,7 +167,6 @@ export const DEFAULT_DISABLED_SHADOW = {
     blur: 5,
     fill: '#000',
     fillOpacity: 0.5,
-    color: 'rgba(0, 0, 0, 0.5)',
 };
 
 /** The shadow the series tests turn on. */

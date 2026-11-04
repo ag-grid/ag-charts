@@ -302,7 +302,7 @@ export abstract class Series<
     readonly contentGroup = new TranslatableGroup({
         name: `${this.internalId}-content`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
-        batchShadows: false,
+        batchShadows: true,
     });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -311,11 +311,11 @@ export abstract class Series<
     readonly highlightGroup = new TranslatableGroup({
         name: `${this.internalId}-highlight`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
-        batchShadows: false,
+        batchShadows: true,
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(
-        new Group<TDatum>({ name: `${this.internalId}-highlight-node`, batchShadows: false })
+        new Group<TDatum>({ name: `${this.internalId}-highlight-node`, batchShadows: true })
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(
@@ -1071,7 +1071,8 @@ export abstract class Series<
      * every series. Every in-place copy casts the item's own `shadow` in the base pass that keeps it behind every
      * series, except where its highlight state sets a `glow`: that glow replaces the shadow, as an item has one shadow
      * slot. The exception is the item this series' highlight layer redraws, whose in-place copy keeps its `shadow`.
-     * AG-9003: while no `glow` is set, every copy casts its `shadow`, as in 14.2.0.
+     * While no highlight state sets a `glow`, the highlight layer's copy casts nothing and every in-place copy casts its
+     * `shadow`.
      */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
@@ -1080,7 +1081,7 @@ export abstract class Series<
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ): NormalisedDropShadowOptions | undefined {
-        if (!this.hasAnyGlow()) return shadow;
+        if (!this.hasAnyGlow()) return isHighlight ? undefined : shadow;
         if (isHighlight) return this.getStateGlow(HighlightState.Item);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();

@@ -142,7 +142,7 @@ export abstract class FlowProportionSeries<
     private readonly focusNodeGroup = this.highlightGroup.appendChild(
         new Group({ name: 'nodeGroup', batchShadows: true })
     );
-    // The hovered link's shadow is cast by the focus layer, so this copy of it casts none and has nothing to batch.
+    // This copy of the hovered link casts only its `glow`, never its `shadow`, and holds one link: nothing to batch.
     private readonly highlightLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
 
     protected labelSelection: Selection<TLabel, TransformableText<TLabel>> = Selection.select(

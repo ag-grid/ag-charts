@@ -45,7 +45,7 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
         overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
     },
     tooltip: tooltipOptionsDefs,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,

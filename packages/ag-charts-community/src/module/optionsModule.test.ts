@@ -1049,7 +1049,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1173,7 +1172,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1297,7 +1295,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1421,7 +1418,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1523,7 +1519,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -1649,7 +1644,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -1808,7 +1802,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1932,7 +1925,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2056,7 +2048,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2180,7 +2171,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2282,7 +2272,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -2408,7 +2397,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -2567,7 +2555,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2691,7 +2678,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2815,7 +2801,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2939,7 +2924,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -3041,7 +3025,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -3167,7 +3150,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,

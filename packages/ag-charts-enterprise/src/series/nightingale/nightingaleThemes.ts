@@ -12,7 +12,6 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     themeLineHeight,
-    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -28,7 +27,7 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
         strokeWidth: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
-        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,

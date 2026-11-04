@@ -99,6 +99,7 @@ export const testDefaults = {
         '@typescript-eslint/no-unsafe-argument': 0,
         '@typescript-eslint/no-unsafe-call': 0,
         '@typescript-eslint/no-unsafe-member-access': 0,
+        '@typescript-eslint/unbound-method': 0,
         'sonarjs/assertions-in-tests': 0,
         'sonarjs/no-empty-test-file': 0,
         'sonarjs/stable-tests': 0,
