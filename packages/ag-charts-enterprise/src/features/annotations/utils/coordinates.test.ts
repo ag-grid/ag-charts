@@ -65,8 +65,18 @@ describe('annotation coordinates', () => {
         });
 
         it('round-trips a date as a local date-time', () => {
-            expect(formatCoordinate(DAY, 'time')).toBe('2024-01-05T09:30');
-            expect(parseCoordinate('2024-01-05T09:30', 'time')).toEqual(DAY);
+            expect(formatCoordinate(DAY, 'time')).toBe('2024-01-05T09:30:00');
+            expect(parseCoordinate('2024-01-05T09:30:00', 'time')).toEqual(DAY);
+        });
+
+        it('keeps the seconds and shows milliseconds only when present', () => {
+            const withSeconds = new Date(2024, 0, 5, 9, 30, 15);
+            const withMilliseconds = new Date(2024, 0, 5, 9, 30, 15, 70);
+
+            expect(formatCoordinate(withSeconds, 'time')).toBe('2024-01-05T09:30:15');
+            expect(parseCoordinate('2024-01-05T09:30:15', 'time')).toEqual(withSeconds);
+            expect(formatCoordinate(withMilliseconds, 'time')).toBe('2024-01-05T09:30:15.070');
+            expect(parseCoordinate('2024-01-05T09:30:15.070', 'time')).toEqual(withMilliseconds);
         });
 
         it('formats the value of a grouped point', () => {
@@ -152,9 +162,22 @@ describe('annotation coordinates', () => {
             );
 
             expect(fields.filter((f) => f.axis === 'x').map((f) => [f.kind, f.value])).toEqual([
-                ['time', '2024-01-05T09:30'],
-                ['time', '2024-01-05T09:30'],
+                ['time', '2024-01-05T09:30:00'],
+                ['time', '2024-01-05T09:30:00'],
             ]);
+        });
+
+        it('steps a time input by the second, or the millisecond when the value has them', () => {
+            const datum = {
+                ...lineDatum.create(),
+                start: { x: new Date(2024, 0, 5, 9, 30, 15, 70), y: 2 },
+                end: { x: DAY, y: 4 },
+            };
+
+            const fields = getCoordinateFields(datum, createAxesContext(timeScale([DAY, DAY]), numberScale([0, 50])));
+
+            expect(fields.filter((f) => f.axis === 'x').map((f) => f.step)).toEqual([0.001, 1]);
+            expect(fields.filter((f) => f.axis === 'y').map((f) => f.step)).toEqual([undefined, undefined]);
         });
 
         it('lists the single value of a cross line on its own axis', () => {
@@ -284,7 +307,7 @@ describe('annotation coordinates', () => {
 
         it('floors a date to the band holding it', () => {
             expect(startX.kind).toBe('unit-time');
-            expect(startX.value).toBe('2024-01-02T00:00');
+            expect(startX.value).toBe('2024-01-02T00:00:00');
             expect(floorToBand(new Date(2024, 0, 3, 23, 59), scale)).toEqual(new Date(2024, 0, 3));
             expect(floorToBand(new Date(2024, 0, 2, 1), scale)).toEqual(new Date(2024, 0, 2));
         });
@@ -329,7 +352,7 @@ describe('annotation coordinates', () => {
             const startX = getCoordinateFields(datum, context)[0];
 
             expect(startX.kind).toBe('ordinal-time');
-            expect(startX.value).toBe('2024-01-01T00:00');
+            expect(startX.value).toBe('2024-01-01T00:00:00');
 
             const resolved = resolveCoordinate(startX, new Date(2024, 0, 2, 5), context);
 

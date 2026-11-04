@@ -329,6 +329,7 @@ export class AnnotationSettingsDialog extends Dialog {
             ariaLabel,
             type: COORDINATE_INPUT_TYPES[field.kind],
             value: field.value,
+            step: field.step,
             list: suggestions?.id,
             onChange: (text) => {
                 if (text === committed) return;

@@ -47,6 +47,8 @@ export interface CoordinateField {
     kind: CoordinateKind;
     /** The datum's current value, formatted for the input. */
     value: string;
+    /** The input's granularity in seconds, so that a time shows the precision of its value. */
+    step?: number;
     /** The axis's categories, for the input to suggest. */
     suggestions?: string[];
     /** The datum change for a parsed value. */
@@ -72,7 +74,7 @@ function withoutLineBreaks(category: unknown) {
     return String(category).replace(/[\r\n]/g, '');
 }
 
-/** Formats a value for the matching input: a number as-is, a date as the local `datetime-local` value. */
+/** Formats a value for the matching input: a number as-is, a date as the local `datetime-local` value. Milliseconds are shown only when present. */
 export function formatCoordinate(point: PointType | undefined, kind: CoordinateKind): string {
     const value = getGroupingValue(point);
     if (value == null) return '';
@@ -82,7 +84,9 @@ export function formatCoordinate(point: PointType | undefined, kind: CoordinateK
     const date = new Date(value as Date | number);
     if (Number.isNaN(date.getTime())) return '';
     const day = `${pad(date.getFullYear(), 4)}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-    return `${day}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const time = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    const milliseconds = date.getMilliseconds() === 0 ? '' : `.${pad(date.getMilliseconds(), 3)}`;
+    return `${day}T${time}${milliseconds}`;
 }
 
 function toPointType(parsed: ParsedCoordinate, kind: CoordinateKind, current: PointType | undefined): PointType {
@@ -169,17 +173,24 @@ function getCoordinateAxis(axis: 'x' | 'y', context: AnnotationAxisContext): Coo
     return kind == null ? undefined : { axis, context, kind };
 }
 
+function getTimeStep(kind: CoordinateKind, formatted: string) {
+    if (kind === 'number' || kind === 'category') return;
+    return formatted.includes('.') ? 0.001 : 1;
+}
+
 function createPointField(
     row: CoordinateRow,
     { axis, context, kind }: CoordinateAxis,
     current: PointType | undefined,
     toProps: (value: PointType) => CoordinateChangeProps
 ): CoordinateField {
+    const value = formatCoordinate(current, kind);
     return {
         row,
         axis,
         kind,
-        value: formatCoordinate(current, kind),
+        value,
+        step: getTimeStep(kind, value),
         suggestions: kind === 'category' ? context.scale.domain.map(withoutLineBreaks) : undefined,
         toProps: (parsed) => toProps(toPointType(parsed, kind, current)),
     };

@@ -266,9 +266,9 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createInput({ ariaLabel, type, value, onChange, list }: InputOptions) {
+    protected createInput({ ariaLabel, type, value, step, onChange, list }: InputOptions) {
         return createInput(
-            { type, value, onChange },
+            { type, value, step, onChange },
             { class: 'ag-charts-dialog__input', 'aria-label': ariaLabel, title: ariaLabel, list }
         );
     }

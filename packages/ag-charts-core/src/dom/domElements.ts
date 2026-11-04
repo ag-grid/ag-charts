@@ -157,12 +157,15 @@ export function createTextArea(options: TextAreaOptions, attrs?: InputAttributeS
 export interface InputOptions {
     type: 'number' | 'datetime-local' | 'text';
     value: string;
+    /** The granularity of a `datetime-local` input, in seconds. */
+    step?: number;
     onChange: (value: string, event: Event) => void;
 }
 export function createInput(options: InputOptions, attrs?: InputAttributeSet) {
     const input = createElement('input', getClassName('ag-charts-input', attrs));
     input.type = options.type;
     if (options.type === 'number') input.step = 'any';
+    else if (options.step != null) input.step = String(options.step);
     input.value = options.value;
     input.addEventListener('change', (event) => options.onChange(input.value, event));
     setAttributes(input, attrs);
