@@ -115,13 +115,13 @@ export class LegendDOMProxy {
             button.addListener('click', (ev) => itemListener.onClick(ev.sourceEvent, markerLabel.datum!, button));
             button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum!));
             button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
-            button.addListener('mouseleave', () => itemListener.onLeave());
+            button.addListener('mouseleave', (ev) => itemListener.onLeave(ev.sourceEvent));
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
             button.addListener('blur', (ev) => itemListener.onLeave(ev.sourceEvent));
             button.addListener('focus', (ev) =>
                 this.shouldApplyHoverOnFocus(button)
                     ? itemListener.onHover(ev.sourceEvent, markerLabel)
-                    : itemListener.onLeave()
+                    : itemListener.onLeave(ev.sourceEvent)
             );
         });
         this.dirty = false;

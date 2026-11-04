@@ -55,6 +55,8 @@ import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
 
 type SeriesType = ChartService['series'][number];
+type LegendHoverEvent = FocusEvent | MouseEvent;
+type LegendLeaveEvent = FocusEvent | MouseEvent;
 
 /** Opacity applied to a toggled-off legend item, and to its marker and line individually. */
 const DISABLED_ITEM_OPACITY = 0.5;
@@ -1184,7 +1186,7 @@ export class Legend {
         return [{ type: 'structured', title: this.getItemLabel(datum) }];
     }
 
-    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
+    onHover(event: LegendHoverEvent, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
         if (!this.opts.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
@@ -1205,7 +1207,7 @@ export class Legend {
         this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
-    onLeave(event?: FocusEvent | MouseEvent) {
+    onLeave(event: LegendLeaveEvent) {
         if (this.checkInteractionState()) return;
         this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
         this.clearHighlight(event instanceof FocusEvent);

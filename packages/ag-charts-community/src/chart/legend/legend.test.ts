@@ -1196,7 +1196,7 @@ describe('Legend', () => {
 
             // Legend highlight clears are deferred to batch stop, so the baseline has to be allowed
             // to land before the suppression case is measured against it.
-            legend.onLeave();
+            legend.onLeave(new MouseEvent('mouseleave'));
             await waitForChartStability(chart);
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
             updateTooltip.mockClear();
