@@ -138,3 +138,4 @@ export function safeCall<T = unknown>(
         logger?.warnOnce(`Uncaught exception in user callback${postfix}`, error);
     }
 }
+// Demo seeds probe: do not merge
