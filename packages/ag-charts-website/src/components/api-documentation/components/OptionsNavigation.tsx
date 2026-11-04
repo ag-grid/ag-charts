@@ -292,7 +292,15 @@ function NavProperty({
                     )}
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
-                    <NavLink navData={navData} onClick={onClick}>
+                    <NavLink
+                        navData={navData}
+                        onClick={onClick}
+                        ariaLabel={
+                            isRecursive
+                                ? `${cleanupName(member.name)}${isInterfaceRecord ? '.key' : ''} (recursive)`
+                                : undefined
+                        }
+                    >
                         {isStringLiteralType(memberType) ? (
                             <>
                                 {member.name} <span className={styles.punctuation}>= '</span>
@@ -308,14 +316,7 @@ function NavProperty({
                         ) : (
                             ''
                         )}
-                        {isRecursive && (
-                            <>
-                                <span className={styles.comment} aria-hidden="true">
-                                    {' // recursive'}
-                                </span>
-                                <span className={styles.srOnly}> (recursive)</span>
-                            </>
-                        )}
+                        {isRecursive && <span className={styles.comment}>{' // recursive'}</span>}
                     </NavLink>
                     {expandable && (
                         <OpeningBrackets
@@ -580,10 +581,12 @@ function NavBreadcrumb({
 function NavLink({
     navData,
     onClick,
+    ariaLabel,
     children,
 }: {
     navData: NavigationData;
     onClick?: (navData: NavigationData) => void;
+    ariaLabel?: string;
     children: ReactNode;
 }) {
     const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -596,7 +599,7 @@ function NavLink({
     };
 
     return (
-        <a className={styles.navLink} href={hrefFor(navData)} onClick={handleClick}>
+        <a className={styles.navLink} href={hrefFor(navData)} aria-label={ariaLabel} onClick={handleClick}>
             {children}
         </a>
     );
