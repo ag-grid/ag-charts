@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import {
@@ -101,7 +101,7 @@ describe('Context Menu RTL', () => {
     });
 
     describe('submenu expansion', () => {
-        test('hover submenu parent shows submenu', async () => {
+        it('hover submenu parent shows submenu', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
@@ -113,7 +113,7 @@ describe('Context Menu RTL', () => {
             await compare();
         });
 
-        test('nested submenu (3 levels)', async () => {
+        it('nested submenu (3 levels)', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
@@ -133,7 +133,7 @@ describe('Context Menu RTL', () => {
     });
 
     describe('keyboard navigation', () => {
-        test('ArrowLeft opens submenu in RTL', async () => {
+        it('ArrowLeft opens submenu in RTL', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
@@ -154,7 +154,7 @@ describe('Context Menu RTL', () => {
             await compare();
         });
 
-        test('ArrowRight closes submenu in RTL', async () => {
+        it('ArrowRight closes submenu in RTL', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
@@ -175,7 +175,7 @@ describe('Context Menu RTL', () => {
             await compare();
         });
 
-        test('Escape closes submenu', async () => {
+        it('Escape closes submenu', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
@@ -194,7 +194,7 @@ describe('Context Menu RTL', () => {
             await compare();
         });
 
-        test('ArrowDown/ArrowUp navigate items', async () => {
+        it('ArrowDown/ArrowUp navigate items', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
