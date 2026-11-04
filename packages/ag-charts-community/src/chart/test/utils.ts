@@ -2498,8 +2498,6 @@ export function errorFrom(fn: () => unknown): Error | undefined {
 
 export interface LegendTestInternals {
     itemSelection: { nodes(): (LegendTestItemNode & Node)[] };
-    onHover(event: FocusEvent | MouseEvent, node: unknown): void;
-    onLeave(event?: FocusEvent | MouseEvent): void;
 }
 
 export function getLegendModule(chart: Chart): LegendTestInternals {
@@ -2512,13 +2510,23 @@ export function getLegendModule(chart: Chart): LegendTestInternals {
  * that goes on to compare the chart moves it off again (`hoverAction`) to clear the item's highlight.
  */
 export async function clickLegendItem(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const [centreX, centreY] = getLegendItemCentre(chartOrProxy, index);
+    await hoverAction(centreX, centreY)(chartOrProxy);
+    await clickAction(centreX, centreY)(chartOrProxy);
+}
+
+/** Moves the pointer onto the centre of the legend item at `index` (legend order) the way a pointer does. */
+export async function hoverLegendItem(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const [centreX, centreY] = getLegendItemCentre(chartOrProxy, index);
+    await hoverAction(centreX, centreY)(chartOrProxy);
+}
+
+function getLegendItemCentre(chartOrProxy: ChartOrProxy<any>, index: number): [number, number] {
     const items = getLegendModule(deproxy(chartOrProxy)).itemSelection.nodes();
     expect(items.length).toBeGreaterThan(index);
 
     const { x, y, width, height } = Transformable.toCanvas(items[index]);
-    const [centreX, centreY] = [x + width / 2, y + height / 2];
-    await hoverAction(centreX, centreY)(chartOrProxy);
-    await clickAction(centreX, centreY)(chartOrProxy);
+    return [x + width / 2, y + height / 2];
 }
 
 /**
