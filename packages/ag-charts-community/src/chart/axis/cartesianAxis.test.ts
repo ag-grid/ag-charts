@@ -938,7 +938,7 @@ describe('CartesianAxis', () => {
 
             it('should render the labels at the edge', async () => {
                 await renderAndSnapshot(
-                    optionsFactory({ value: 0, labelPlacement: 'edge' }),
+                    optionsFactory({ value: 0, titlePlacement: 'crossing', labelPlacement: 'edge' }),
                     'cartesian-axes-cross-at-0-labels-at-edge'
                 );
             });
