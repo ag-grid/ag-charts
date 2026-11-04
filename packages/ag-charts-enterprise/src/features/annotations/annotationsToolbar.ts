@@ -127,8 +127,13 @@ export class AnnotationsToolbar {
     }
 
     public clearActiveButton() {
-        this.activeToolButton = undefined;
+        this.releaseActiveTool();
         this.toolbar.clearActiveButton();
+    }
+
+    /** Stops the chosen tool's button placing on Enter, while it stays highlighted for the drawing in progress. */
+    public releaseActiveTool() {
+        this.activeToolButton = undefined;
     }
 
     /** Focus the button the current tool was chosen from, which a menu's item leaves to its menu button. */

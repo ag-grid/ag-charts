@@ -3,7 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import { getChartState } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { SELECTORS, canvasToPageTransformer, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 // The fixture's axes both span 0 to 100, so a data value is a position as a percentage of the series area.
 const THIRD = 100 / 3;
@@ -232,6 +232,19 @@ test.describe('annotations keyboard create', () => {
 
         await expect(page.locator(MENU_ROW).first()).toBeVisible();
         expect(await getAnnotations(page)).toHaveLength(1);
+    });
+
+    test('Enter on a tool button opens its menu once a click has started the drawing', async ({ page }) => {
+        await chooseTool(page, TREND_LINE);
+
+        const toPage = await canvasToPageTransformer(page);
+        const { x, y } = toPage(300, 200);
+        await page.mouse.click(x, y);
+
+        await menuButton(page, TREND_LINE).focus();
+        await page.keyboard.press('Enter');
+
+        await expect(page.locator(MENU_ROW).first()).toBeVisible();
     });
 
     test('Enter on the chart places the chosen annotation once the chart is focused', async ({ page }) => {

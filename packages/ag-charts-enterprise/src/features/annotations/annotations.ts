@@ -974,7 +974,7 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context || event.device === 'keyboard') return;
 
-        this.pendingCreateType = undefined;
+        this.clearPendingCreate();
 
         const shiftKey = event.sourceEvent.shiftKey;
         const point = invertCoords(Vec2.from(event), context);
@@ -990,7 +990,7 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        this.pendingCreateType = undefined;
+        this.clearPendingCreate();
 
         const offset = Vec2.from(event);
 
@@ -1101,7 +1101,7 @@ export class Annotations extends AbstractModuleInstance {
         if (type == null || !context) return;
 
         sourceEvent.preventDefault();
-        this.pendingCreateType = undefined;
+        this.clearPendingCreate();
 
         const { width, height } = context.seriesRect;
         const points = getKeyboardCreateOffsets(type, { width, height }).map((offset) => invertCoords(offset, context));
@@ -1226,13 +1226,18 @@ export class Annotations extends AbstractModuleInstance {
         this.reset();
     }
 
-    private reset() {
+    private clearPendingCreate() {
         this.pendingCreateType = undefined;
+        this.toolbar.releaseActiveTool();
+    }
+
+    private reset() {
+        this.clearPendingCreate();
         this.state.transition('reset');
     }
 
     private cancel() {
-        this.pendingCreateType = undefined;
+        this.clearPendingCreate();
         this.state.transition('cancel');
     }
 
