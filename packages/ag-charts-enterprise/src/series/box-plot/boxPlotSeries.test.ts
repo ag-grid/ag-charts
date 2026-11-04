@@ -40,7 +40,6 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import type { WithInternalShadow } from 'ag-charts-core';
 
 import {
     DEFAULT_DISABLED_SHADOW,
@@ -408,9 +407,7 @@ describe('BoxPlotSeries', () => {
         it('defaults to a disabled shadow', async () => {
             const chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(getSeriesOptions<AgBoxPlotSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
-                DEFAULT_DISABLED_SHADOW
-            );
+            expect(getSeriesOptions<AgBoxPlotSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 

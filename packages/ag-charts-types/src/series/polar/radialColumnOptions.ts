@@ -1,7 +1,9 @@
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { ContextDefault, DatumDefault, Ratio } from '../../chart/types';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgMultiSeriesGlowHighlightOptions } from '../seriesOptions';
 import type {
     AgBaseRadialSeriesThemeableOptions,
+    AgRadialHighlightStyleOptions,
     AgRadialSeriesOptionsKeys,
     AgRadialSeriesOptionsNames,
 } from './radialOptions';
@@ -11,7 +13,7 @@ export interface AgBaseRadialColumnSeriesOptions<TDatum = DatumDefault, TContext
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
-        AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
+        Omit<AgBaseRadialSeriesThemeableOptions<TDatum, TContext>, 'highlight'> {
     /** Base configuration for Radial Column series. */
     type: 'radial-column' | 'nightingale';
 
@@ -33,6 +35,10 @@ export interface AgRadialColumnSeriesThemeableOptions<
     columnWidthRatio?: Ratio;
     /** Prevents columns from becoming too wide. This value is relative to the diameter of the polar chart. */
     maxColumnWidthRatio?: Ratio;
+    /** Configuration for the shadow used behind the series items. */
+    shadow?: AgDropShadowOptions;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgRadialHighlightStyleOptions, AgRadialHighlightStyleOptions>;
 }
 
 export interface AgRadialColumnSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

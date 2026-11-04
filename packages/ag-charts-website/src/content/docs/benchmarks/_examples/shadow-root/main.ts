@@ -4,6 +4,7 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     AgDropShadowOptions,
+    AgGlowOptions,
     AreaSeriesModule,
     BarSeriesModule,
     CategoryAxisModule,
@@ -29,13 +30,9 @@ ModuleRegistry.registerModules([
 
 (window as any).agChartsDebug = 'scene:stats';
 
-// `fill`, `fillOpacity`, `spread` and `glow` are accepted at runtime but are not part of the public types.
-type ShadowOptions = AgDropShadowOptions & { fill?: string; fillOpacity?: number; spread?: number };
-type GlowOptions = { enabled?: boolean; fill?: string; fillOpacity?: number; blur?: number; spread?: number };
-
-const SHADOW: ShadowOptions = { enabled: true, fill: '#000', fillOpacity: 0.5, xOffset: 4, yOffset: 4, blur: 8 };
-const SPREAD_SHADOW: ShadowOptions = { ...SHADOW, spread: 14 };
-const GLOW: GlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35, blur: 6, spread: 14 };
+const SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000', fillOpacity: 0.5, xOffset: 4, yOffset: 4, blur: 8 };
+const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 14 };
+const GLOW: AgGlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35, blur: 6, spread: 14 };
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -60,7 +57,7 @@ type Variants = BenchmarkConfig['testCases'][number]['variants'];
 // `many-markers` is 1,400px wide, as a line series draws no markers when its points are under 1px apart.
 /** inScope */
 function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOptions {
-    const shadow = <T extends ShadowOptions>(value: T) => (shadowOn ? value : undefined);
+    const shadow = <T extends AgDropShadowOptions>(value: T) => (shadowOn ? value : undefined);
 
     if (scenario === 'bars') {
         return {
@@ -101,7 +98,7 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
             fillOpacity: 0.6,
             shadow: shadow(SHADOW),
             marker: { enabled: true, size: 8, shadow: shadow(SHADOW) },
-            ...(highlighted ? { highlight: { highlightedItem: { glow: shadowOn ? GLOW : undefined } } as any } : {}),
+            ...(highlighted ? { highlight: { highlightedItem: { glow: shadowOn ? GLOW : undefined } } } : {}),
         })),
     };
 }

@@ -33,7 +33,6 @@ import {
     getLegendItemNodes,
     getTooltipElement,
     hoverAction,
-    internalOptions,
     isTooltipVisible,
     magnitudePair,
     pressKey,
@@ -176,15 +175,13 @@ describe('HlcSeries', () => {
 
         it('renders a marker shadow', async () => {
             await renderSeries(
-                withSeries(
-                    internalOptions<Partial<AgHlcSeriesOptions>>({
-                        marker: {
-                            enabled: true,
-                            size: 14,
-                            shadow: { enabled: true, fill: '#000000', xOffset: 6, yOffset: 6, blur: 0 },
-                        },
-                    })
-                )
+                withSeries({
+                    marker: {
+                        enabled: true,
+                        size: 14,
+                        shadow: { enabled: true, fill: '#000000', xOffset: 6, yOffset: 6, blur: 0 },
+                    },
+                })
             );
             await compare();
         });

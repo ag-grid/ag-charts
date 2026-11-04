@@ -30,7 +30,6 @@ import {
     getSeriesOptions,
     hoverAction,
     hoverLegendItem,
-    internalOptions,
     isTooltipVisible,
     pressKey,
     setupMockCanvas,
@@ -41,7 +40,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { CallbackResultMemo, Group, Rect, Transformable, type WithInternalShadow } from 'ag-charts-core';
+import { CallbackResultMemo, Group, Rect, Transformable } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import {
@@ -1349,28 +1348,25 @@ describe('HeatmapSeries', () => {
     });
 
     describe('shadow', () => {
-        const buildOptions = (seriesShadow?: typeof SHADOW): AgChartOptions =>
-            internalOptions<AgChartOptions>({
-                data: EXAMPLE_OPTIONS.data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
-                        shadow: seriesShadow,
-                    },
-                ],
-                legend: { enabled: false },
-            });
+        const buildOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
+            data: EXAMPLE_OPTIONS.data,
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'year',
+                    yKey: 'person',
+                    colorKey: 'spending',
+                    colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                    shadow: seriesShadow,
+                },
+            ],
+            legend: { enabled: false },
+        });
 
         it('defaults to a disabled shadow', async () => {
             chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(getSeriesOptions<AgHeatmapSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
-                DEFAULT_DISABLED_SHADOW
-            );
+            expect(getSeriesOptions<AgHeatmapSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {

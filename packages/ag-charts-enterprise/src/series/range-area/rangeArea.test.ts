@@ -48,7 +48,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Group, type Shape, Transformable, type WithInternalShadow } from 'ag-charts-core';
+import { Group, type Shape, Transformable } from 'ag-charts-core';
 
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -217,9 +217,9 @@ describe('RangeAreaSeries', () => {
                     marker: { shadow: { enabled: true } },
                 },
             ],
-        } as unknown as AgCartesianChartOptions);
+        } as AgCartesianChartOptions);
 
-        const series = getSeriesOptions<AgRangeAreaSeriesOptions & { marker?: WithInternalShadow }>(chart);
+        const series = getSeriesOptions<AgRangeAreaSeriesOptions>(chart);
         expect(series.shadow).toMatchObject({ fill: '#000', fillOpacity });
         expect(series.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity });
     });
@@ -1847,10 +1847,7 @@ describe('RangeAreaSeries', () => {
             },
             series,
         });
-        const rangeArea = (
-            suffix: 'A' | 'B',
-            extra: Partial<AgRangeAreaSeriesOptions> & { marker?: WithInternalShadow }
-        ): AgRangeAreaSeriesOptions => ({
+        const rangeArea = (suffix: 'A' | 'B', extra: Partial<AgRangeAreaSeriesOptions>): AgRangeAreaSeriesOptions => ({
             type: 'range-area',
             xKey: 'x',
             yLowKey: `low${suffix}`,

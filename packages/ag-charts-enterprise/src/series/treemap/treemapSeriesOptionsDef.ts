@@ -58,7 +58,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+        shadow: shadowOptionsDefs,
         fills: arrayOf(colorUnion),
         textAlign: deprecated(textAlign, 'Use `label.textAlign` instead.'),
         interactive: boolean,
@@ -83,7 +83,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+        shadow: shadowOptionsDefs,
         textAlign: deprecated(textAlign, 'Use `label.textAlign` and `secondaryLabel.textAlign` instead.'),
         verticalAlign: deprecated(
             verticalAlign,
