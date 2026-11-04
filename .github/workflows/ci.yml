@@ -64,7 +64,7 @@ jobs:
     detect-changes:
         runs-on: ubuntu-24.04
         name: Detect Changes
-        if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+        if: true
         outputs:
             run_full_ci: ${{ steps.decide.outputs.run_full_ci }}
             locale: ${{ steps.filter.outputs.locale }}
@@ -134,7 +134,7 @@ jobs:
         # Deliberately does not wait for detect-changes (~20-30s off the critical path):
         # init consumes none of its outputs. On the rare docs-only PR this wastes one
         # init run — every downstream job is still gated by detect-changes.
-        if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+        if: true
         permissions:
             contents: write
         env:
