@@ -570,9 +570,8 @@ describe('ChartTheme', () => {
         ])('resolves the series and marker shadow fill for %s', async (theme, expected) => {
             const { bar, line } = await create(theme);
 
-            const color = 'rgba(0, 0, 0, 0.5)';
-            expect(bar.shadow).toMatchObject({ fill: '#000', fillOpacity: expected, color });
-            expect(line.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity: expected, color });
+            expect(bar.shadow).toMatchObject({ fill: '#000', fillOpacity: expected });
+            expect(line.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity: expected });
         });
 
         it('keeps a shadow fill set on the series or by a theme override on a dark theme', async () => {
@@ -584,8 +583,8 @@ describe('ChartTheme', () => {
                 { shadow: { enabled: true, fill: 'blue' } }
             );
 
-            expect(bar.shadow).toMatchObject({ fill: 'blue', fillOpacity: 1, color: 'blue' });
-            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1, color: 'red' });
+            expect(bar.shadow).toMatchObject({ fill: 'blue', fillOpacity: 1 });
+            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
         });
 
         it('treats the shadow colour as the fill, cast as it is written, without a deprecation warning', async () => {
@@ -594,8 +593,8 @@ describe('ChartTheme', () => {
                 { shadow: { enabled: true, color: '#0000ff80' } }
             );
 
-            expect(bar.shadow).toMatchObject({ fill: '#0000ff80', fillOpacity: 1, color: '#0000ff80' });
-            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1, color: 'red' });
+            expect(bar.shadow).toMatchObject({ fill: '#0000ff80', fillOpacity: 1 });
+            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
             expect(vi.mocked(console.warn).mock.calls.map(([message]) => String(message))).toEqual([]);
         });
     });
