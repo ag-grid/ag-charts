@@ -901,7 +901,11 @@ describe('CartesianAxis', () => {
             const data = [...dataNeg, { x: 0, y: null }, ...dataPos];
 
             const optionsFactory =
-                (crossAt: AgCartesianAxisCrossAt): OptionsFactory =>
+                (
+                    crossAt: AgCartesianAxisCrossAt,
+                    xPosition: 'bottom' | 'top' = 'bottom',
+                    yPosition: 'left' | 'right' = 'left'
+                ): OptionsFactory =>
                 () => ({
                     title: { text: 'Axes crossing at 0', fontWeight: 'bold' },
                     data,
@@ -909,7 +913,7 @@ describe('CartesianAxis', () => {
                     axes: {
                         x: {
                             type: 'number',
-                            position: 'bottom',
+                            position: xPosition,
                             min: -6,
                             max: 6,
                             title: { text: 'X Axis Title' },
@@ -918,7 +922,7 @@ describe('CartesianAxis', () => {
                         },
                         y: {
                             type: 'number',
-                            position: 'left',
+                            position: yPosition,
                             min: -6,
                             max: 6,
                             title: { text: 'Y Axis Title' },
@@ -948,6 +952,60 @@ describe('CartesianAxis', () => {
                     optionsFactory({ value: 0, titlePlacement: 'edge', labelPlacement: 'edge' }),
                     'cartesian-axes-cross-at-0-title-and-labels-at-edge'
                 );
+            });
+
+            it('should render the title at the crossing point', async () => {
+                await renderAndSnapshot(
+                    optionsFactory({ value: 0, titlePlacement: 'crossing' }),
+                    'cartesian-axes-cross-at-0-title-at-crossing'
+                );
+            });
+
+            it('should render the title at the top and right edges by default', async () => {
+                await renderAndSnapshot(
+                    optionsFactory({ value: 0 }, 'top', 'right'),
+                    'cartesian-axes-cross-at-0-title-default-top-right'
+                );
+            });
+
+            describe.each([
+                { name: 'bottom and left', x: 'bottom', y: 'left' },
+                { name: 'top and right', x: 'top', y: 'right' },
+            ] as const)('on $name axes', ({ x, y }) => {
+                const options = (crossAt: AgCartesianAxisCrossAt) => optionsFactory(crossAt, x, y)();
+
+                it('should default the title placement to the edge', async () => {
+                    await expectPixelIdenticalAcrossUpdate(
+                        ctx,
+                        createChart,
+                        options({ value: 0 }),
+                        options({ value: 0, titlePlacement: 'edge' })
+                    );
+                });
+
+                it('should render the default title placement differently from the crossing point', async () => {
+                    chart = await createChart(options({ value: 0 }));
+                    const defaultImage = ctx.snapshot();
+
+                    await chart.update(
+                        prepareTestOptions({
+                            animation: { enabled: false },
+                            ...options({ value: 0, titlePlacement: 'crossing' }),
+                        })
+                    );
+                    await waitForChartStability(chart);
+
+                    expect(ctx.snapshot()).not.toMatchImage(defaultImage, { writeDiff: false });
+                });
+
+                it('should default the label placement to the crossing point', async () => {
+                    await expectPixelIdenticalAcrossUpdate(
+                        ctx,
+                        createChart,
+                        options({ value: 0, titlePlacement: 'edge' }),
+                        options({ value: 0, titlePlacement: 'edge', labelPlacement: 'crossing' })
+                    );
+                });
             });
         });
 
