@@ -10,7 +10,7 @@ import {
 } from 'ag-charts-community-test';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-test';
 
-import { createEnterpriseChart } from '../../test/utils';
+import { createEnterpriseChart, findContextMenuItem } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
 describe('Context Menu RTL', () => {
@@ -106,15 +106,9 @@ describe('Context Menu RTL', () => {
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
 
-            const menuItems = Array.from(
-                document.body.getElementsByClassName(
-                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
-                ) as HTMLCollectionOf<HTMLElement>
-            );
-            const submenuParent = menuItems.find((item) => item.textContent?.includes('מכירות Sales מוצרים'));
-            expect(submenuParent).toBeDefined();
+            const submenuParent = findContextMenuItem('מכירות Sales מוצרים');
 
-            submenuParent!.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+            submenuParent.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
             await waitForChartStability(chart);
             await compare();
         });
@@ -125,25 +119,13 @@ describe('Context Menu RTL', () => {
             await waitForChartStability(chart);
 
             // Open level 1 submenu.
-            const menuItems = Array.from(
-                document.body.getElementsByClassName(
-                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
-                ) as HTMLCollectionOf<HTMLElement>
-            );
-            const level1Parent = menuItems.find((item) => item.textContent?.includes('מכירות Sales מוצרים'));
-            expect(level1Parent).toBeDefined();
-            level1Parent!.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+            const level1Parent = findContextMenuItem('מכירות Sales מוצרים');
+            level1Parent.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
             await waitForChartStability(chart);
 
             // Open level 2 submenu.
-            const allItems = Array.from(
-                document.body.getElementsByClassName(
-                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
-                ) as HTMLCollectionOf<HTMLElement>
-            );
-            const level2Parent = allItems.find((item) => item.textContent?.includes('מכירות Q1 2024'));
-            expect(level2Parent).toBeDefined();
-            level2Parent!.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+            const level2Parent = findContextMenuItem('מכירות Q1 2024');
+            level2Parent.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
             await waitForChartStability(chart);
 
             await compare();
@@ -178,14 +160,8 @@ describe('Context Menu RTL', () => {
             await waitForChartStability(chart);
 
             // Open submenu via hover first.
-            const menuItems = Array.from(
-                document.body.getElementsByClassName(
-                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
-                ) as HTMLCollectionOf<HTMLElement>
-            );
-            const submenuParent = menuItems.find((item) => item.textContent?.includes('מכירות Sales מוצרים'));
-            expect(submenuParent).toBeDefined();
-            submenuParent!.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+            const submenuParent = findContextMenuItem('מכירות Sales מוצרים');
+            submenuParent.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
             await waitForChartStability(chart);
 
             // Find the submenu and dispatch ArrowRight to close it.
@@ -205,14 +181,8 @@ describe('Context Menu RTL', () => {
             await waitForChartStability(chart);
 
             // Open submenu via hover.
-            const menuItems = Array.from(
-                document.body.getElementsByClassName(
-                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
-                ) as HTMLCollectionOf<HTMLElement>
-            );
-            const submenuParent = menuItems.find((item) => item.textContent?.includes('מכירות Sales מוצרים'));
-            expect(submenuParent).toBeDefined();
-            submenuParent!.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+            const submenuParent = findContextMenuItem('מכירות Sales מוצרים');
+            submenuParent.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
             await waitForChartStability(chart);
 
             // Dispatch Escape on the submenu.
