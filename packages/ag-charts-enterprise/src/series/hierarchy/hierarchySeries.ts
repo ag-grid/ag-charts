@@ -4,7 +4,6 @@ import type {
     ChartAnimationPhase,
     DeepPartial,
     DynamicContext,
-    InternalAgGlowOptions,
     Node,
     NormalisedDropShadowOptions,
     NormalisedHierarchySeriesKeys,
@@ -30,7 +29,7 @@ import {
     toNumber,
     withoutGlow,
 } from 'ag-charts-core';
-import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
+import type { AgActiveItemState, AgGlowOptions, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 
@@ -606,10 +605,10 @@ export abstract class HierarchySeries<
     }
 
     /** The merged `glow` of the highlight styles of a node. */
-    protected getHierarchyHighlightGlow<TStyle extends { glow?: DeepPartial<InternalAgGlowOptions> }>(
+    protected getHierarchyHighlightGlow<TStyle extends { glow?: DeepPartial<AgGlowOptions> }>(
         highlightState: HierarchyHighlightState,
         highlight: HierarchyHighlightBuckets<TStyle>
-    ): DeepPartial<InternalAgGlowOptions> | undefined {
+    ): DeepPartial<AgGlowOptions> | undefined {
         const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
         return style && mergeGlow(style);
     }

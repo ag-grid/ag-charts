@@ -45,7 +45,6 @@ import {
     getSeriesRect,
     getSeriesSelectionNodes,
     hoverAction,
-    internalOptions,
     isoEpochPair,
     magnitudePair,
     newFreezableMock,
@@ -307,7 +306,7 @@ describe('RangeBarSeries', () => {
     });
 
     it(`should render a range-bar chart with a shadow`, async () => {
-        const options = internalOptions<AgChartOptions>({
+        const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             series: [
                 {
@@ -315,7 +314,7 @@ describe('RangeBarSeries', () => {
                     shadow: { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 },
                 },
             ],
-        });
+        };
 
         chart = await createEnterpriseChart(options);
         await compare();

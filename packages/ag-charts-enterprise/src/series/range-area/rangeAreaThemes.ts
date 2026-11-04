@@ -22,7 +22,6 @@ import {
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
     themeLineHeight,
-    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 
@@ -96,16 +95,14 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         lineDashOffset: {
             $path: '/series/$index/marker/lineDashOffset',
         },
-        ...undocumentedThemeOptions({
-            shadow: {
-                enabled: { $path: '/series/$index/marker/shadow/enabled' },
-                ...inheritedShadowFillTheme('/series/$index/marker/shadow'),
-                xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
-                yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
-                blur: { $path: '/series/$index/marker/shadow/blur' },
-                spread: { $path: '/series/$index/marker/shadow/spread' },
-            },
-        }),
+        shadow: {
+            enabled: { $path: '/series/$index/marker/shadow/enabled' },
+            ...inheritedShadowFillTheme('/series/$index/marker/shadow'),
+            xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
+            yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
+            blur: { $path: '/series/$index/marker/shadow/blur' },
+            spread: { $path: '/series/$index/marker/shadow/spread' },
+        },
         shape: {
             $path: '/series/$index/marker/shape',
         },
@@ -141,7 +138,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         ...STROKE_STYLE_THEME_DEFAULTS,
         marker: {
             enabled: false,
-            ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+            shadow: SHADOW_THEME_DEFAULTS,
             fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             shape: 'circle',
             stroke: { $palette: 'stroke' },

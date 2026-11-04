@@ -20,7 +20,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { FeatureCollection } from '../../types/geojson';
-import type { WithInternalShadow } from '../internalShadowOptions';
 import type { Normalised } from './normalise';
 import type { FillStrokeMorph, NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions, NormalisedSeriesLabelOptions } from './normalisedLabelOptions';
@@ -55,7 +54,7 @@ type TopologyStrokeRequiredKeys = 'stroke' | 'strokeWidth' | 'strokeOpacity' | '
 
 /** Map shape options the series owns, before the common series keys are layered on. */
 export type NormalisedMapShapeSeriesOwnOptions = Normalised<
-    AgMapShapeSeriesOptions & WithInternalShadow,
+    AgMapShapeSeriesOptions,
     | 'idKey'
     | 'topologyIdKey'
     | 'fill'
@@ -91,7 +90,7 @@ export type NormalisedMapLineSeriesOwnOptions = Normalised<
 
 /** Map marker options the series owns, before the common series keys are layered on. */
 export type NormalisedMapMarkerSeriesOwnOptions = Normalised<
-    AgMapMarkerSeriesOptions & WithInternalShadow,
+    AgMapMarkerSeriesOptions,
     | 'topologyIdKey'
     | 'shape'
     | 'size'
