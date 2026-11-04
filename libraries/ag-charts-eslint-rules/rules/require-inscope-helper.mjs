@@ -50,11 +50,9 @@ function containsGetElementById(sourceCode, node) {
 }
 
 /**
- * The framework example generator moves `/** inScope *\/` function declarations and index.html event handlers into
- * the generated component, alongside `options` and `chart`. Every other top-level function and variable stays at
- * module scope, where those names do not exist, so reading them there throws on React, Angular and Vue even though
- * the vanilla example works. Multi-chart examples emit no inScope methods on React and Angular, so marking a helper
- * does not make a multi-chart example framework-safe.
+ * The example generator moves only `/** inScope *\/` functions and index.html handlers into the React/Angular/Vue
+ * component beside `options` and `chart`; everything else stays at module scope, where those names do not exist.
+ * Multi-chart examples get no inScope methods on React and Angular, so marking does not make them framework-safe.
  *
  * @type {import('eslint').Rule.RuleModule}
  */
