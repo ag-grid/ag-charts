@@ -115,6 +115,18 @@ describe('LabelManager', () => {
             expect(first.getLabelData).toHaveBeenCalledTimes(2);
             expect(second.getLabelData).toHaveBeenCalledTimes(1);
         });
+
+        it('re-solves when a series is replaced under the same id and node-data version', () => {
+            const manager = new LabelManager();
+            const original = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+            const replacement = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'two')] });
+
+            manager.updateLabels([original], NO_PADDING, RECT);
+            manager.updateLabels([replacement], NO_PADDING, RECT);
+
+            expect(replacement.getLabelData).toHaveBeenCalledTimes(1);
+            expect(placedTexts(replacement)).toEqual(['two']);
+        });
     });
 
     describe('no placed-label series', () => {
