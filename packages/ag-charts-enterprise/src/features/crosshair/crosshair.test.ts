@@ -15,6 +15,7 @@ import {
     delay,
     findAxis,
     getAxisLayoutState,
+    getAxisTitleBBox,
     getSeriesNodeData,
     getSeriesRect,
     hoverAction,
@@ -25,7 +26,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable, mapValues } from 'ag-charts-core';
+import { mapValues } from 'ag-charts-core';
 import type { AgAnnotation } from 'ag-charts-types';
 
 import { getCrosshairLine } from '../../test/featureAccessors';
@@ -888,8 +889,8 @@ describe('Crosshair', () => {
             await hoverWithAxes({ x: { ...x, title: { text: 'X Axis' } }, y: { ...y, title: { text: 'Y Axis' } } });
 
             const seriesRect = getSeriesRect(chart);
-            const xTitle = Transformable.toCanvas(findAxis(chart, 'bottom').caption.node);
-            const yTitle = Transformable.toCanvas(findAxis(chart, 'left').caption.node);
+            const xTitle = getAxisTitleBBox(chart, 'bottom');
+            const yTitle = getAxisTitleBBox(chart, 'left');
 
             const xBand = getAxisLayoutState(chart, 'bottom').labelThickness ?? 0;
             const yBand = getAxisLayoutState(chart, 'left').labelThickness ?? 0;

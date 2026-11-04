@@ -27,7 +27,7 @@ import {
     getSeriesRect,
     pickAxisValue,
 } from '../test/axisAccessors';
-import { BIG, expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
+import { BIG, expectPixelIdenticalAcrossUpdate, expectPixelsChangeAcrossUpdate } from '../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -984,18 +984,12 @@ describe('CartesianAxis', () => {
                 });
 
                 it('should render the default title placement differently from the crossing point', async () => {
-                    chart = await createChart(options({ value: 0 }));
-                    const defaultImage = ctx.snapshot();
-
-                    await chart.update(
-                        prepareTestOptions({
-                            animation: { enabled: false },
-                            ...options({ value: 0, titlePlacement: 'crossing' }),
-                        })
+                    await expectPixelsChangeAcrossUpdate(
+                        ctx,
+                        createChart,
+                        options({ value: 0 }),
+                        options({ value: 0, titlePlacement: 'crossing' })
                     );
-                    await waitForChartStability(chart);
-
-                    expect(ctx.snapshot()).not.toMatchImage(defaultImage, { writeDiff: false });
                 });
 
                 it('should default the label placement to the crossing point', async () => {
