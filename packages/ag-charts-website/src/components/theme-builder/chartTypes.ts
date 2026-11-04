@@ -1,6 +1,6 @@
 import type { IconName } from '@ag-website-shared/components/icon/Icon';
 import { type PersistentAtom, atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 
 import type { AgCartesianChartOptions, AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-community';
 
@@ -378,3 +378,16 @@ const chartFeatureAtoms: Record<PreviewPaneId, PersistentAtom<ChartFeatures>> = 
 };
 
 export const usePreviewFeatures = (pane: PreviewPaneId) => useAtom(chartFeatureAtoms[pane]);
+
+/** Whether a pane outlines its series - never for a type with no series strokes to show. */
+export const showsSeriesStrokes = (chartType: PreviewChartType, features: ChartFeatures) =>
+    chartType.features.includes('seriesStrokes') && isFeatureActive(features, 'seriesStrokes');
+
+/** Whether either pane outlines its series, so the palette's stroke inputs change what is on screen. */
+export const useSeriesStrokesPreviewed = () => {
+    const [left] = usePreviewChartType('left');
+    const [right] = usePreviewChartType('right');
+    const leftFeatures = useAtomValue(chartFeatureAtoms.left);
+    const rightFeatures = useAtomValue(chartFeatureAtoms.right);
+    return showsSeriesStrokes(left, leftFeatures) || showsSeriesStrokes(right, rightFeatures);
+};
