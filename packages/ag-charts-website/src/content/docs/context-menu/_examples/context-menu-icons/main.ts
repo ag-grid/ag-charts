@@ -88,9 +88,10 @@ function downloadJSON() {
 
 /** inScope */
 function downloadCSV() {
-    const headers = Object.keys(options.data![0]).join(',') + '\n';
-    const rows = options
-        .data!.map((row) =>
+    const data = options.data!;
+    const headers = Object.keys(data[0]).join(',') + '\n';
+    const rows = data
+        .map((row) =>
             Object.values(row)
                 .map((value) => `"${String(value).replace(/"/g, '""')}"`)
                 .join(',')
