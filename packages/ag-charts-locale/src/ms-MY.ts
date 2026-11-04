@@ -181,6 +181,7 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Ofset',
     dialogInputCoordinatesStartOffset: 'Ofset mula',
     dialogInputCoordinatesEndOffset: 'Ofset tamat',
+    dialogInputCoordinatesEndRetracement: 'Penghujung retracement',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

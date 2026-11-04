@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Kaydırma',
     dialogInputCoordinatesStartOffset: 'Başlangıç kaydırması',
     dialogInputCoordinatesEndOffset: 'Bitiş kaydırması',
+    dialogInputCoordinatesEndRetracement: 'Geri çekilme sonu',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

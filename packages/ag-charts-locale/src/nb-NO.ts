@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Forskyvning',
     dialogInputCoordinatesStartOffset: 'Startforskyvning',
     dialogInputCoordinatesEndOffset: 'Sluttforskyvning',
+    dialogInputCoordinatesEndRetracement: 'Retracement-slutt',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

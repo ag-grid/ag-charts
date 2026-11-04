@@ -181,6 +181,7 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Offset',
     dialogInputCoordinatesStartOffset: 'Offset ng simula',
     dialogInputCoordinatesEndOffset: 'Offset ng wakas',
+    dialogInputCoordinatesEndRetracement: 'Dulo ng retracement',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

@@ -181,6 +181,7 @@ export const AG_CHARTS_LOCALE_SR_LATN_RS: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Pomak',
     dialogInputCoordinatesStartOffset: 'Početni pomak',
     dialogInputCoordinatesEndOffset: 'Krajnji pomak',
+    dialogInputCoordinatesEndRetracement: 'Kraj povlačenja',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

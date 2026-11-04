@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Μετατόπιση',
     dialogInputCoordinatesStartOffset: 'Μετατόπιση αρχής',
     dialogInputCoordinatesEndOffset: 'Μετατόπιση τέλους',
+    dialogInputCoordinatesEndRetracement: 'Τέλος ανάκαμψης',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

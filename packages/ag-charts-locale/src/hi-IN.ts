@@ -181,6 +181,7 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     dialogInputCoordinatesOffset: 'ऑफ़सेट',
     dialogInputCoordinatesStartOffset: 'आरंभ ऑफ़सेट',
     dialogInputCoordinatesEndOffset: 'अंत ऑफ़सेट',
+    dialogInputCoordinatesEndRetracement: 'रिट्रेसमेंट अंत',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

@@ -339,6 +339,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputCoordinatesStartOffset: 'Start offset',
     // Text for the annotation dialog's disjoint channel end offset label
     dialogInputCoordinatesEndOffset: 'End offset',
+    // Text for the annotation dialog's trend based fibonacci retracement end point coordinates label
+    dialogInputCoordinatesEndRetracement: 'Retracement end',
     // Text for the annotation dialog's x axis coordinate input
     dialogInputCoordinatesAxisX: 'X',
     // Text for the annotation dialog's y axis coordinate input

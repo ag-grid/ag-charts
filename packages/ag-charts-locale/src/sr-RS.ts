@@ -181,6 +181,7 @@ export const AG_CHARTS_LOCALE_SR_RS: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Помак',
     dialogInputCoordinatesStartOffset: 'Почетни помак',
     dialogInputCoordinatesEndOffset: 'Крајњи помак',
+    dialogInputCoordinatesEndRetracement: 'Крај повлачења',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

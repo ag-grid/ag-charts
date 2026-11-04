@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Forskydning',
     dialogInputCoordinatesStartOffset: 'Startforskydning',
     dialogInputCoordinatesEndOffset: 'Slutforskydning',
+    dialogInputCoordinatesEndRetracement: 'Retracement-slutning',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

@@ -67,6 +67,7 @@ export interface LinearSettingsDialogTextChangeProps {
 const COORDINATE_ROW_LABELS: Record<CoordinateRow, string> = {
     start: 'dialogInputCoordinatesStart',
     end: 'dialogInputCoordinatesEnd',
+    endRetracement: 'dialogInputCoordinatesEndRetracement',
     value: 'dialogInputCoordinatesValue',
     offset: 'dialogInputCoordinatesOffset',
     startOffset: 'dialogInputCoordinatesStartOffset',

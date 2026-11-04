@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     dialogInputCoordinatesOffset: '오프셋',
     dialogInputCoordinatesStartOffset: '시작 오프셋',
     dialogInputCoordinatesEndOffset: '끝 오프셋',
+    dialogInputCoordinatesEndRetracement: '되돌림 종료',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

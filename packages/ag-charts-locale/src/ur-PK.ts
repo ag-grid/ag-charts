@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     dialogInputCoordinatesOffset: 'آفسیٹ',
     dialogInputCoordinatesStartOffset: 'آغاز آفسیٹ',
     dialogInputCoordinatesEndOffset: 'اختتام آفسیٹ',
+    dialogInputCoordinatesEndRetracement: 'ریٹریسمنٹ کا اختتام',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

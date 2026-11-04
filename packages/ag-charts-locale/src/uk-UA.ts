@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Зміщення',
     dialogInputCoordinatesStartOffset: 'Зміщення початку',
     dialogInputCoordinatesEndOffset: 'Зміщення кінця',
+    dialogInputCoordinatesEndRetracement: 'Кінець корекції',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

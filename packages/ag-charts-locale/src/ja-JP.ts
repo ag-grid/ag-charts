@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     dialogInputCoordinatesOffset: 'オフセット',
     dialogInputCoordinatesStartOffset: '開始オフセット',
     dialogInputCoordinatesEndOffset: '終了オフセット',
+    dialogInputCoordinatesEndRetracement: 'リトレースメント終了',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

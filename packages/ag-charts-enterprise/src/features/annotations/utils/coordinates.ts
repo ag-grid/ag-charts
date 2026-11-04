@@ -12,7 +12,9 @@ import type { AgNumericValue } from 'ag-charts-types';
 
 import { type AnnotationAxisContext, type AnnotationContext, AnnotationType, type DataPoint } from '../annotationTypes';
 import type { LinearDialogDatumType } from '../annotationsSuperTypes';
+import type { CrossLineDatum } from '../cross-line/crossLineDatum';
 import { disjointChannelDatum } from '../disjoint-channel/disjointChannelDatum';
+import { fibonacciRetracementTrendBasedDatum } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { getGrouping, getGroupingValue } from './scale';
 import type { PointType } from './scale';
@@ -24,12 +26,15 @@ export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 
 
 export type ParsedCoordinate = number | Date | string;
 
-export type CoordinateRow = 'start' | 'end' | 'value' | 'offset' | 'startOffset' | 'endOffset';
+type PointRow = 'start' | 'end' | 'endRetracement';
+
+export type CoordinateRow = PointRow | 'value' | 'offset' | 'startOffset' | 'endOffset';
 
 /** The datum properties a coordinate edit can change, merged onto the datum as-is. */
 export interface CoordinateChangeProps {
     start?: DataPoint;
     end?: DataPoint;
+    endRetracement?: DataPoint;
     value?: PointType;
     height?: number;
     startHeight?: number;
@@ -207,6 +212,15 @@ function getOffsetFields(datum: LinearDialogDatumType): CoordinateField[] {
     return [];
 }
 
+function getPointRows(datum: Exclude<LinearDialogDatumType, CrossLineDatum>): [PointRow, DataPoint][] {
+    const rows: [PointRow, DataPoint][] = [
+        ['start', datum.start],
+        ['end', datum.end],
+    ];
+    if (fibonacciRetracementTrendBasedDatum.is(datum)) rows.push(['endRetracement', datum.endRetracement]);
+    return rows;
+}
+
 /** The editable coordinates of an annotation, in the order the dialog lists them. */
 export function getCoordinateFields(datum: LinearDialogDatumType, context: AnnotationContext): CoordinateField[] {
     const x = getCoordinateAxis('x', context.xAxis);
@@ -218,8 +232,7 @@ export function getCoordinateFields(datum: LinearDialogDatumType, context: Annot
     }
 
     const fields: CoordinateField[] = [];
-    for (const row of ['start', 'end'] as const) {
-        const point = datum[row];
+    for (const [row, point] of getPointRows(datum)) {
         if (x) fields.push(createPointField(row, x, point.x, (value) => ({ [row]: { x: value } })));
         if (y) fields.push(createPointField(row, y, point.y, (value) => ({ [row]: { y: value } })));
     }

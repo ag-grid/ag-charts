@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_ZH_HK: Record<string, string> = {
     dialogInputCoordinatesOffset: '偏移',
     dialogInputCoordinatesStartOffset: '起點偏移',
     dialogInputCoordinatesEndOffset: '終點偏移',
+    dialogInputCoordinatesEndRetracement: '回撤結束',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

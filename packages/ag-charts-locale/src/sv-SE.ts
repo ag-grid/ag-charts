@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Förskjutning',
     dialogInputCoordinatesStartOffset: 'Startförskjutning',
     dialogInputCoordinatesEndOffset: 'Slutförskjutning',
+    dialogInputCoordinatesEndRetracement: 'Retracement-slut',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

@@ -181,6 +181,7 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Смещение',
     dialogInputCoordinatesStartOffset: 'Смещение начала',
     dialogInputCoordinatesEndOffset: 'Смещение конца',
+    dialogInputCoordinatesEndRetracement: 'Конец коррекции',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Decalaj',
     dialogInputCoordinatesStartOffset: 'Decalaj de început',
     dialogInputCoordinatesEndOffset: 'Decalaj de sfârșit',
+    dialogInputCoordinatesEndRetracement: 'Sfârșitul retragerii',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

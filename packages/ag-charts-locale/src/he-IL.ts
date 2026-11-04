@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     dialogInputCoordinatesOffset: 'היסט',
     dialogInputCoordinatesStartOffset: 'היסט התחלה',
     dialogInputCoordinatesEndOffset: 'היסט סיום',
+    dialogInputCoordinatesEndRetracement: 'סוף התיקון',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

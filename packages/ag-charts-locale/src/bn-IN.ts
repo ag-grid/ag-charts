@@ -183,6 +183,7 @@ export const AG_CHARTS_LOCALE_BN_IN: Record<string, string> = {
     dialogInputCoordinatesOffset: 'অফসেট',
     dialogInputCoordinatesStartOffset: 'শুরুর অফসেট',
     dialogInputCoordinatesEndOffset: 'শেষের অফসেট',
+    dialogInputCoordinatesEndRetracement: 'রিট্রেসমেন্ট শেষ',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

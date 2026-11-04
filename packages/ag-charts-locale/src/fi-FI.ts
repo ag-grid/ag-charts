@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Siirtymä',
     dialogInputCoordinatesStartOffset: 'Alkusiirtymä',
     dialogInputCoordinatesEndOffset: 'Loppusiirtymä',
+    dialogInputCoordinatesEndRetracement: 'Retracementin loppu',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

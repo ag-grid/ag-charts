@@ -12,6 +12,7 @@ import {
 
 import { horizontalLineDatum, verticalLineDatum } from '../cross-line/crossLineDatum';
 import { disjointChannelDatum } from '../disjoint-channel/disjointChannelDatum';
+import { fibonacciRetracementTrendBasedDatum } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
 import { lineDatum } from '../line/lineDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { createAxesContext } from '../test/fixture';
@@ -105,6 +106,27 @@ describe('annotation coordinates', () => {
             ]);
             expect(fields[0].toProps(7)).toEqual({ start: { x: 7 } });
             expect(fields[3].toProps(9)).toEqual({ end: { y: 9 } });
+        });
+
+        it('adds the retracement end of a trend based fibonacci as a third point', () => {
+            const datum = {
+                ...fibonacciRetracementTrendBasedDatum.create(),
+                start: { x: 1, y: 2 },
+                end: { x: 3, y: 4 },
+                endRetracement: { x: 5, y: 6 },
+            };
+
+            const fields = getCoordinateFields(datum, context);
+
+            expect(fields.map((f) => [f.row, f.axis, f.value])).toEqual([
+                ['start', 'x', '1'],
+                ['start', 'y', '2'],
+                ['end', 'x', '3'],
+                ['end', 'y', '4'],
+                ['endRetracement', 'x', '5'],
+                ['endRetracement', 'y', '6'],
+            ]);
+            expect(fields[5].toProps(9)).toEqual({ endRetracement: { y: 9 } });
         });
 
         it('omits the x fields on an axis that is not editable', () => {

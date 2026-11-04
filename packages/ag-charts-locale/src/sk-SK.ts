@@ -86,6 +86,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Posun',
     dialogInputCoordinatesStartOffset: 'Počiatočný posun',
     dialogInputCoordinatesEndOffset: 'Koncový posun',
+    dialogInputCoordinatesEndRetracement: 'Koniec retracementu',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

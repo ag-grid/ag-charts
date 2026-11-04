@@ -181,6 +181,7 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Offset',
     dialogInputCoordinatesStartOffset: 'Offset awal',
     dialogInputCoordinatesEndOffset: 'Offset akhir',
+    dialogInputCoordinatesEndRetracement: 'Akhir retracement',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

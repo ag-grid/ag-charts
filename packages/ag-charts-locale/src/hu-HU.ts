@@ -87,6 +87,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Eltolás',
     dialogInputCoordinatesStartOffset: 'Kezdő eltolás',
     dialogInputCoordinatesEndOffset: 'Záró eltolás',
+    dialogInputCoordinatesEndRetracement: 'Visszahúzódás vége',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',
