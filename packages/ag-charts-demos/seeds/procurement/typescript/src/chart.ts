@@ -61,3 +61,4 @@ export const gaugeHost = <O extends AgGaugeOptions>(): ChartHost<O> =>
 /** `<AgQuadrantChart options style={{ height: '100%', width: '100%' }} />`. */
 export const quadrantHost = <O extends AgQuadrantChartOptions<any>>(): ChartHost<O> =>
     host<O>((options) => AgCharts.createQuadrantChart(options));
+// Demo seeds probe: do not merge
