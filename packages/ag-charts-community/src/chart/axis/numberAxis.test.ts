@@ -183,6 +183,13 @@ describe('NumberAxis fixed interval too small to honour', () => {
         expect(d1).toBeCloseTo(1.15, 10);
     });
 
+    it('keeps the 14.2.0 x domain and labels for three evenly spaced values', async () => {
+        chart = await createChart(barOptions({ interval: { values: [0, 5000, 10000] } }));
+
+        expect(xDomain()).toEqual([-5000, 15000]);
+        expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['0', '5000', '10000']);
+    });
+
     it('leaves the y domain on the data when two sparse values imply a wide step', async () => {
         // Two values are always evenly spaced, so their whole gap must not become the nice step.
         const options: AgCartesianChartOptions = {
@@ -224,5 +231,70 @@ describe('NumberAxis fixed interval too small to honour', () => {
         // Automatic ticks are not pinned, so the overlap search can still thin them.
         expect(getAxisLabelTexts(chart, 'bottom').length).toBe(2);
         expect(xDomain()).toEqual([-500, 8500]);
+    });
+});
+
+// Behaviour that differs from 14.2.0 and was accepted for 15.0.0: an `interval` is honoured over the data fit,
+// so a configured value outside the nice domain is dropped and the domain follows the data and step.
+describe('NumberAxis accepted interval behaviour', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        if (chart != null) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const shares = [
+        { os: 'Windows', share: 88.07 },
+        { os: 'macOS', share: 9.44 },
+        { os: 'Linux', share: 1.87 },
+    ];
+
+    const shareOptions = (interval: object, height?: number): AgCartesianChartOptions => ({
+        height,
+        data: shares,
+        series: [{ type: 'bar', xKey: 'os', yKey: 'share' }],
+        axes: {
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'number', position: 'left', interval },
+        },
+    });
+
+    // Instruments by year of invention; only the years and the 0–10 difficulty scale matter to the x axis.
+    const years = [1500, 1000, -5000, 1896, 1892, 1100, -600, 300, 1920, 1761];
+    const bubbleOptions = (): AgCartesianChartOptions => ({
+        data: years.map((year, i) => ({ year, difficulty: (i * 3) % 10, popularity: 20 + i * 8 })),
+        series: [{ type: 'bubble', xKey: 'year', yKey: 'difficulty', sizeKey: 'popularity', maxSize: 50, minSize: 15 }],
+        axes: {
+            x: { type: 'number', position: 'bottom', interval: { values: [-250, 250] } },
+            y: { type: 'number', position: 'left', min: 0, max: 10, interval: { values: [0, 10] } },
+        },
+    });
+
+    it.each([
+        { name: 'a single value beyond the data', values: [100], domain: [0, 90], labels: [] },
+        { name: 'values with one beyond the data', values: [50, 88, 100], domain: [0, 90], labels: ['50', '88'] },
+    ])('drops a configured value outside the domain: $name', async ({ values, domain, labels }) => {
+        chart = await createChart(shareOptions({ values }));
+
+        expect(getAxisDomain(chart, 'left').map(Number)).toEqual(domain);
+        expect(getAxisLabelTexts(chart, 'left')).toEqual(labels);
+    });
+
+    it('lets the earliest bubble sit on the left edge of the x domain', async () => {
+        chart = await createChart(bubbleOptions());
+
+        expect(getAxisDomain(chart, 'bottom').map(Number)).toEqual([-5000, 2000]);
+    });
+
+    it('snaps a dense step up to the next multiple instead of thinning it', async () => {
+        chart = await createChart(shareOptions({ step: 25 }, 150));
+
+        expect(getAxisDomain(chart, 'left').map(Number)).toEqual([0, 100]);
     });
 });

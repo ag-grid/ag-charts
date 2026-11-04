@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    type AxisPrimaryTickCount,
     CategoryScale,
     EllipsisChar,
     LinearScale,
@@ -790,5 +791,140 @@ describe('tick label lineHeight', () => {
         const primaryLabel = tickLabelOptions({ lineHeight: 60, format: '%b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 2, 10)];
         expect(timeIntervalMaxLabelSize(label, primaryLabel, domain, 'day').height).toBe(60);
+    });
+});
+
+describe('generateTicks with a configured interval', () => {
+    setupMockCanvas();
+
+    interface RunOptions {
+        interval?: GenerateTicksOptions<LinearScale, AgNumericValue>['interval'];
+        domain?: number[];
+        pixels?: number;
+        avoidCollisions?: boolean;
+    }
+
+    // Weekly dates over a year: a day interval is denser than one tick per pixel of a 300px range.
+    const weeks = Array.from({ length: 52 }, (_, i) => new Date(2024, 0, i * 7 + 1));
+
+    // `tickFormatter` is asked once per pass of the label thinning search, so its calls count the passes.
+    function run({ interval, domain = [0, 100], pixels = 300, avoidCollisions = true }: RunOptions) {
+        const scale = new LinearScale();
+        scale.domain = domain;
+        scale.range = [0, pixels];
+
+        let passes = 0;
+        const { tickData } = generateTicks(
+            tickGenerationParams<LinearScale, AgNumericValue>({
+                scale,
+                domain,
+                range: [0, pixels],
+                niceMode: [NiceMode.TickAndDomain, NiceMode.TickAndDomain],
+                interval,
+                label: tickLabelOptions({ avoidCollisions }),
+                tickFormatter: () => {
+                    passes++;
+                    return (value: unknown) => `a rather long label for ${String(value)}`;
+                },
+            })
+        );
+        return { passes, niceDomain: tickData.niceDomain.map(Number) };
+    }
+
+    function passesOnWeeklyDates(primaryTickCount: AxisPrimaryTickCount | undefined) {
+        const scale = new OrdinalTimeScale();
+        scale.domain = weeks;
+        scale.range = [0, 300];
+
+        let passes = 0;
+        generateTicks(
+            tickGenerationParams({
+                scale,
+                domain: weeks,
+                range: [0, 300],
+                niceMode: [NiceMode.TickAndDomain, NiceMode.TickAndDomain],
+                interval: { step: 'day' },
+                primaryTickCount,
+                label: tickLabelOptions(),
+                tickFormatter: () => {
+                    passes++;
+                    return (value: unknown) => `a rather long label for ${String(value)}`;
+                },
+            })
+        );
+        return passes;
+    }
+
+    const everyTenth = Array.from({ length: 11 }, (_, i) => i * 10);
+
+    // The labels overlap at every density tried, but only automatic ticks can be thinned to clear them.
+    describe('label thinning', () => {
+        it.each([
+            { name: 'step', interval: { step: 10 } },
+            { name: 'values', interval: { values: everyTenth } },
+        ])('stops after the first pass when the $name overlap', ({ interval }) => {
+            expect(run({ interval }).passes).toBe(1);
+        });
+
+        it.each([
+            { name: 'a step too dense for the scale to honour', interval: { step: 0.1 } },
+            { name: 'no interval', interval: undefined },
+        ])('keeps thinning for $name', ({ interval }) => {
+            expect(run({ interval, domain: [0, 1000] }).passes).toBeGreaterThan(1);
+        });
+
+        it.each([
+            { name: 'automatic ticks', primaryTickCount: undefined },
+            { name: 'secondary axis ticks', primaryTickCount: { unzoomed: 5, zoomed: 5 } },
+        ])('keeps thinning a rejected time step on $name', ({ primaryTickCount }) => {
+            expect(passesOnWeeklyDates(primaryTickCount)).toBeGreaterThan(1);
+        });
+    });
+
+    // Label thinning is off so that only the domain fit is under test.
+    describe('domain fit for explicit values', () => {
+        const fit = (interval: RunOptions['interval'], domain: number[]) =>
+            run({ interval, domain, avoidCollisions: false }).niceDomain;
+
+        it.each([
+            { name: 'values much finer than the data', domain: [3, 15847.74], values: [0, 0.00001] },
+            { name: 'a descending domain', domain: [101.68, 17], values: [-50, 1320, 1950] },
+            { name: 'a narrow descending domain', domain: [-46.31, -47], values: [100, 200, 300, 400, 500, 600] },
+        ])('encloses the data for $name', ({ domain, values }) => {
+            const [d0, d1] = fit({ values }, domain);
+
+            expect(Math.min(d0, d1)).toBeLessThanOrEqual(Math.min(...domain));
+            expect(Math.max(d0, d1)).toBeGreaterThanOrEqual(Math.max(...domain));
+        });
+
+        it('fits evenly spaced values with no step to their spacing', () => {
+            expect(fit({ values: [0, 25, 50, 75, 100] }, [3, 97])).toEqual([0, 100]);
+        });
+
+        it('fits evenly spaced values given out of order as it fits them in order', () => {
+            expect(fit({ values: [7, 5] }, [-3.5, 49.5])).toEqual(fit({ values: [5, 7] }, [-3.5, 49.5]));
+        });
+
+        it('treats a slight irregularity in the spacing like a large one, not as even', () => {
+            const hundreds = Array.from({ length: 40 }, (_, i) => (i + 1) * 100);
+            const shifted = (by: number) => hundreds.map((value) => (value === 2100 ? value + by : value));
+
+            const slight = fit({ values: shifted(37) }, [17, 15403]);
+
+            expect(slight).toEqual(fit({ values: shifted(300) }, [17, 15403]));
+            // Evenly spaced values fit the domain more tightly than any irregular set does.
+            expect(slight[1]).toBeGreaterThan(fit({ values: hundreds }, [17, 15403])[1]);
+        });
+
+        it('lets a configured step override the spacing of the values', () => {
+            expect(fit({ values: [0, 25, 50, 75, 100], step: 40 }, [3, 97])).toEqual([0, 120]);
+        });
+
+        it.each([
+            { name: 'a single value', values: [50] },
+            { name: 'repeated values', values: [50, 50, 50] },
+        ])('fits $name as it would automatic ticks', ({ values }) => {
+            expect(fit({ values }, [3, 97])).toEqual(fit(undefined, [3, 97]));
+        });
     });
 });
