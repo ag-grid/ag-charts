@@ -73,7 +73,7 @@ const TOOLS: ToolCase[] = [
         menu: 'Text Annotations',
         item: 'Callout',
         type: 'callout',
-        expected: { 'start.x': THIRD, 'start.y': THIRD, 'end.x': TWO_THIRDS, 'end.y': TWO_THIRDS },
+        expected: {},
         opensTextInput: true,
     },
     {
@@ -191,6 +191,22 @@ test.describe('annotations keyboard create', () => {
             await expectChartScreenshot(page, chartArea(page), `annotations-keyboard-create-${tool.type}.png`);
         });
     }
+
+    test('Enter places a callout about 20px across, unlike the third of the chart of other drawings', async ({
+        page,
+    }) => {
+        const callout = TOOLS.find((tool) => tool.type === 'callout')!;
+        await chooseTool(page, callout);
+        await page.keyboard.press('Enter');
+
+        const series = await page.locator('.ag-charts-series-area').boundingBox();
+        const [annotation] = await getAnnotations(page);
+        const width = ((numberAt(annotation, 'end.x') - numberAt(annotation, 'start.x')) * series!.width) / 100;
+        const height = ((numberAt(annotation, 'end.y') - numberAt(annotation, 'start.y')) * series!.height) / 100;
+        expect(width).toBeCloseTo(20, 0);
+        expect(height).toBeCloseTo(20, 0);
+        expect(numberAt(annotation, 'start.x') + numberAt(annotation, 'end.x')).toBeCloseTo(100, 3);
+    });
 
     for (const tool of TOOLS.filter((t) => t.move)) {
         const { key, path } = tool.move!;

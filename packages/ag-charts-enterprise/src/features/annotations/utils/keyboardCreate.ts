@@ -5,8 +5,11 @@ import { AnnotationType } from '../annotationTypes';
 /** The share of the series area, in each dimension, covered by an annotation created with the keyboard. */
 const KEYBOARD_CREATE_SIZE_RATIO = 1 / 3;
 
+/** The distance, in pixels, between a callout's handles in each dimension. */
+const KEYBOARD_CREATE_CALLOUT_SPAN = 20;
+
 /** How many points a creation gesture takes and where in the centred box they go. */
-type KeyboardCreateShape = 'point' | 'diagonal' | 'parallel-channel' | 'disjoint-channel' | 'trend';
+type KeyboardCreateShape = 'point' | 'diagonal' | 'callout' | 'parallel-channel' | 'disjoint-channel' | 'trend';
 
 const KEYBOARD_CREATE_SHAPES: Record<AnnotationType, KeyboardCreateShape> = {
     [AnnotationType.HorizontalLine]: 'point',
@@ -17,9 +20,10 @@ const KEYBOARD_CREATE_SHAPES: Record<AnnotationType, KeyboardCreateShape> = {
     [AnnotationType.ArrowUp]: 'point',
     [AnnotationType.ArrowDown]: 'point',
 
+    [AnnotationType.Callout]: 'callout',
+
     [AnnotationType.Line]: 'diagonal',
     [AnnotationType.Arrow]: 'diagonal',
-    [AnnotationType.Callout]: 'diagonal',
     [AnnotationType.FibonacciRetracement]: 'diagonal',
     [AnnotationType.DateRange]: 'diagonal',
     [AnnotationType.PriceRange]: 'diagonal',
@@ -35,7 +39,7 @@ const KEYBOARD_CREATE_SHAPES: Record<AnnotationType, KeyboardCreateShape> = {
 /**
  * The offsets, relative to the series area, of the points that create an annotation of the given type without a
  * pointer, in the order the creation gesture takes them. Annotations without a size get a single point at the centre,
- * the others span a box a third of the series area wide and high, centred in it.
+ * the others span a box a third of the series area wide and high, centred in it, apart from a callout, which is small.
  */
 export function getKeyboardCreateOffsets(type: AnnotationType, seriesSize: { width: number; height: number }) {
     const { width, height } = seriesSize;
@@ -55,6 +59,11 @@ export function getKeyboardCreateOffsets(type: AnnotationType, seriesSize: { wid
             return [
                 { x: left, y: bottom },
                 { x: right, y: top },
+            ];
+        case 'callout':
+            return [
+                { x: centre.x - KEYBOARD_CREATE_CALLOUT_SPAN / 2, y: centre.y + KEYBOARD_CREATE_CALLOUT_SPAN / 2 },
+                { x: centre.x + KEYBOARD_CREATE_CALLOUT_SPAN / 2, y: centre.y - KEYBOARD_CREATE_CALLOUT_SPAN / 2 },
             ];
         case 'parallel-channel':
             // The last point sets the height, so the channel's lower edge ends at the bottom of the box
