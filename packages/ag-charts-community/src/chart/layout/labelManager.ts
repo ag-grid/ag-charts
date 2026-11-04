@@ -97,13 +97,17 @@ export class LabelManager {
     updateLabels(
         visibleSources: PlacedLabelSource[],
         padding: NormalisedPaddingOptions,
-        seriesRect = BBox.zero
+        seriesRect = BBox.zero,
+        seriesAreaPadding: NormalisedPaddingOptions = padding
     ): boolean {
+        // A label allowed outside the series area must get at least the room one kept inside it does.
+        const left = Math.max(padding.left, seriesAreaPadding.left);
+        const top = Math.max(padding.top, seriesAreaPadding.top);
         const bounds = {
-            x: -padding.left,
-            y: -padding.top,
-            width: seriesRect.width + padding.left + padding.right,
-            height: seriesRect.height + padding.top + padding.bottom,
+            x: -left,
+            y: -top,
+            width: seriesRect.width + left + Math.max(padding.right, seriesAreaPadding.right),
+            height: seriesRect.height + top + Math.max(padding.bottom, seriesAreaPadding.bottom),
         };
         const allSources: LabelSource[] = [...this.sources.values(), ...visibleSources];
         const placedLabelSources = allSources.filter(placesLabels);

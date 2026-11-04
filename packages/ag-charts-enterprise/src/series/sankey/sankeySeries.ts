@@ -28,7 +28,7 @@ import {
     lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     toPlainText,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
@@ -776,7 +776,7 @@ export class SankeySeries extends FlowProportionSeries<
         if (!this.isLabelEnabled()) return [];
         const { collision } = this.options.label;
         const policy = this.labelFitPolicy();
-        const collideWith = resolveCollideWith(collision);
+        const avoid = resolveLabelAvoidance(collision);
         const threshold = collision.threshold ?? 0;
         const data: SankeyPlacedLabelDatum[] = [];
         // Placement is greedy, so a label within its own column claims its room before one running past it.
@@ -802,7 +802,7 @@ export class SankeySeries extends FlowProportionSeries<
                     placement: undefined,
                     gap: 0,
                     neverDrop: collision.alwaysShow,
-                    collideWith,
+                    avoid,
                     threshold,
                     positionedCandidates: [
                         {
@@ -832,7 +832,7 @@ export class SankeySeries extends FlowProportionSeries<
         for (const datum of this.contextNodeData?.nodeData ?? []) {
             if (datum.type !== FlowProportionDatumType.Node) continue;
             const { x, y, width, height } = datum;
-            obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'seriesItem' });
+            obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'shape' });
         }
         return obstacles;
     }

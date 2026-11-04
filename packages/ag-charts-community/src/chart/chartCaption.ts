@@ -1,6 +1,5 @@
 import type {
     BoundedTextWidget,
-    CanvasPoint,
     ClickWidgetEvent,
     DblClickWidgetEvent,
     DynamicContext,
@@ -272,18 +271,9 @@ export class ChartCaption implements CaptionLike {
         moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
     }
 
-    private eventToCanvas(event: MouseWidgetEvent<'mousemove' | 'contextmenu'>): CanvasPoint {
-        const bbox = Transformable.toCanvas(this.node);
-        return {
-            canvasX: event.sourceEvent.offsetX + bbox.x,
-            canvasY: event.sourceEvent.offsetY + bbox.y,
-        };
-    }
-
     private handleMouseMove(moduleCtx: DynamicContext<ChartRegistry>, event?: MouseWidgetEvent<'mousemove'>) {
         if (event == null) return;
-        const { canvasX, canvasY } = this.eventToCanvas(event);
-        this.showTooltip(moduleCtx, canvasX, canvasY);
+        this.showTooltip(moduleCtx, event.canvasX, event.canvasY);
     }
 
     private handleFocus(moduleCtx: DynamicContext<ChartRegistry>) {
@@ -296,7 +286,7 @@ export class ChartCaption implements CaptionLike {
     }
 
     private handleContextMenu(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'contextmenu'>) {
-        const { canvasX, canvasY } = this.eventToCanvas(event);
+        const { canvasX, canvasY } = event;
         moduleCtx.contextMenuRegistry?.dispatchContext(
             'caption',
             { widgetEvent: event, canvasX, canvasY },

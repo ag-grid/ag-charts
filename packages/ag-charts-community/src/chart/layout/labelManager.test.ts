@@ -170,7 +170,7 @@ describe('LabelManager', () => {
             const blocker = fakeSeries({
                 id: 'b',
                 usesPlacedLabels: false,
-                obstacles: [{ kind: 'rect', category: 'seriesItem', box: new BBox(0, 0, 200, 200) }],
+                obstacles: [{ kind: 'rect', category: 'shape', box: new BBox(0, 0, 200, 200) }],
             });
 
             manager.updateLabels([series, blocker], NO_PADDING, RECT);
@@ -313,7 +313,7 @@ describe('LabelManager', () => {
             const manager = new LabelManager();
             const line = fakeSeries({
                 id: 'line',
-                datums: [labelDatum(50, 50, 'series', { collideWith: { label: true } })],
+                datums: [labelDatum(50, 50, 'series', { avoid: { label: true } })],
             });
             manager.updateLabels([line], NO_PADDING, RECT);
 
@@ -363,7 +363,7 @@ describe('LabelManager', () => {
     });
 
     describe('axis label sources', () => {
-        const OPTED_IN = { marker: true, label: true, seriesItem: true, seriesArea: false, axisLabel: true };
+        const OPTED_IN = { marker: true, label: true, shape: true, seriesArea: false, axisLabel: true };
 
         function axisSource() {
             const boxes = vi.fn(() => [new BBox(30, 40, 40, 20)]);
@@ -388,7 +388,7 @@ describe('LabelManager', () => {
         it('gathers axis labels, and re-solves on their invalidation, once a label avoids them', () => {
             const manager = new LabelManager();
             const { source, boxes } = axisSource();
-            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one', { collideWith: OPTED_IN })] });
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one', { avoid: OPTED_IN })] });
             manager.registerSource(source);
 
             manager.updateLabels([series], NO_PADDING, RECT);
