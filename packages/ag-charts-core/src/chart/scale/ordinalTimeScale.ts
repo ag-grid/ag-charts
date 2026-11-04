@@ -220,8 +220,6 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             extend,
             logger: this.logger,
         });
-        // A rejected interval leaves automatic ticks driven by tickCount, so the axis overlap search
-        // must keep thinning them rather than stopping after its first pass.
         const intervalIgnored = intervalTicks == null;
         const dateTicks = intervalTicks ?? this.getDefaultTicks(domain, tickCount, visibleRange, extend).ticks;
 

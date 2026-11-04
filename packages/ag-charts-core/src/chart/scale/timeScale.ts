@@ -79,8 +79,6 @@ export class TimeScale extends ContinuousScale<Date, TimeTickInterval> {
                 extend,
                 logger: this.logger,
             });
-            // A rejected interval leaves automatic ticks driven by tickCount, which the axis overlap
-            // search can still thin; an honoured one pins them.
             const intervalIgnored = intervalTicks == null;
             const result: ScaleTickResult<Date> = {
                 ticks:
