@@ -610,8 +610,7 @@ export class CartesianChart extends Chart {
         crossPosition: number | undefined,
         seriesRect: BBox
     ): number {
-        const { titlePlacement, labelPlacement } = axis.options.crossAt ?? {};
-        if (titlePlacement !== 'edge' && labelPlacement !== 'edge' && !axis.crosshairLabelNeedsEdgeSpace()) {
+        if (!axis.isTitleAtEdge() && !axis.isLabelsAtEdge() && !axis.crosshairLabelNeedsEdgeSpace()) {
             return this.calculateAxisBleedingWidth(axis, currentWidth, crossPosition, seriesRect);
         }
 

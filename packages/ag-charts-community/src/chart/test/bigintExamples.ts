@@ -147,6 +147,25 @@ export async function expectPixelIdenticalAcrossUpdate(
     }
 }
 
+/** Assert that updating one chart from `before` to `after` changes its pixels. */
+export async function expectPixelsChangeAcrossUpdate(
+    ctx: Snapshotter,
+    create: ChartFactory,
+    before: AgChartOptions,
+    after: AgChartOptions
+): Promise<void> {
+    const chart = await create(before);
+    try {
+        const beforeImage = ctx.snapshot();
+        expectNonBlank(beforeImage);
+        await chart.update(prepareTestOptions({ animation: { enabled: false }, ...after }));
+        await waitForChartStability(chart);
+        expect(ctx.snapshot()).not.toMatchImage(beforeImage, { writeDiff: false });
+    } finally {
+        chart.destroy();
+    }
+}
+
 /** Assert the `small` (Number) and `large` (bigint) variants of a {@link MagnitudePair} render identically. */
 export async function expectPixelIdenticalAcrossMagnitude(
     ctx: Snapshotter,
