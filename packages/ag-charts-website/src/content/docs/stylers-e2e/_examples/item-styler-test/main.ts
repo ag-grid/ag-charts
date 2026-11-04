@@ -807,6 +807,7 @@ const mapOptions: AgTopologyChartOptions = {
 
 let chart: any;
 
+// eslint-disable-next-line aglint/require-inscope-helper -- multi-chart createChart; this example is pinned to vanilla
 function createChart(newOptions: AgChartOptions, chartType: string) {
     if (chart) {
         chart.destroy();

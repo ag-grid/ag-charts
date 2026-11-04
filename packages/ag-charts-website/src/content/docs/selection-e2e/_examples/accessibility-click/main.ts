@@ -45,10 +45,12 @@ const options: AgCartesianChartOptions<{ population: number; city: string }, unk
 const chart = AgCharts.create(options);
 let events: unknown[] = [];
 
+/** inScope */
 function initChartSelection(): void {
     chart.setSelection([{ seriesId: 'myBarSeries', itemId: 'New York' }]);
 }
 
+/** inScope */
 function getChartSelection() {
     return Array.from(chart.getSelection());
 }

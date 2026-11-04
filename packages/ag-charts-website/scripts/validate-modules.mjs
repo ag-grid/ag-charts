@@ -4,7 +4,10 @@ import unusedImports from 'eslint-plugin-unused-imports';
 import fg from 'fast-glob';
 import tseslint from 'typescript-eslint';
 
+import inScopeRule from '../../../libraries/ag-charts-eslint-rules/rules/require-inscope-helper.mjs';
 import rule from '../../../libraries/ag-charts-eslint-rules/rules/validate-module-registration.mjs';
+
+const aglint = { rules: { 'validate-module-registration': rule, 'require-inscope-helper': inScopeRule } };
 
 const args = process.argv.slice(2);
 const shouldFix = args.includes('--fix');
@@ -23,8 +26,11 @@ const moduleEslint = new ESLint({
         {
             files: ['**/*.ts'],
             languageOptions: { parser: tseslint.parser, parserOptions: { project: false, projectService: false } },
-            plugins: { aglint: { rules: { 'validate-module-registration': rule } } },
-            rules: { 'aglint/validate-module-registration': ['error', { warnOverRegistration: true }] },
+            plugins: { aglint },
+            rules: {
+                'aglint/validate-module-registration': ['error', { warnOverRegistration: true }],
+                'aglint/require-inscope-helper': 'error',
+            },
         },
     ],
 });
@@ -48,7 +54,8 @@ if (shouldFix) {
             {
                 files: ['**/*.ts'],
                 languageOptions: { parser: tseslint.parser, parserOptions: { project: false, projectService: false } },
-                plugins: { 'unused-imports': unusedImports },
+                linterOptions: { reportUnusedDisableDirectives: 'off' },
+                plugins: { aglint, 'unused-imports': unusedImports },
                 rules: {
                     'unused-imports/no-unused-imports': 'error',
                     'no-duplicate-imports': 'error',
