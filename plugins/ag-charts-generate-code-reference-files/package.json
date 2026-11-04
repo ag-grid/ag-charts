@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-generate-code-reference-files",
-  "version": "14.3.0-beta.20261103",
+  "version": "14.3.0-beta.20261103.1119",
   "private": true,
   "dependencies": {
     "@nx/devkit": "^18.3.4",

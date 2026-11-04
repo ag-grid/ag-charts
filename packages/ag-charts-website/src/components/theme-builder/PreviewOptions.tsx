@@ -34,24 +34,23 @@ export const PreviewOptions = ({
     features,
     availableFeatures,
     onFeaturesChange,
-}: Props) => (
-    <Wrapper>
-        <TypeField>
-            <Label aria-hidden="true">Preview</Label>
-            <Select
-                isLarge
-                isPopper
-                options={PREVIEW_CHART_TYPES}
-                value={chartType}
-                onChange={onChartTypeChange}
-                getKey={getTypeId}
-                renderItem={renderTypeItem}
-                triggerAriaLabel={`${paneLabel} preview chart type`}
-            />
-        </TypeField>
-        {chartType.countLabel != null && (
-            <Field>
-                <Label aria-hidden="true">{chartType.countLabel}</Label>
+}: Props) => {
+    const countNoun = chartType.countLabel?.toLowerCase();
+    return (
+        <Wrapper>
+            <TypeField>
+                <Select
+                    isLarge
+                    isPopper
+                    options={PREVIEW_CHART_TYPES}
+                    value={chartType}
+                    onChange={onChartTypeChange}
+                    getKey={getTypeId}
+                    renderItem={renderTypeItem}
+                    triggerAriaLabel={`${paneLabel} preview chart type`}
+                />
+            </TypeField>
+            {countNoun != null && (
                 <Select
                     isLarge
                     isPopper
@@ -59,21 +58,21 @@ export const PreviewOptions = ({
                     value={seriesCount}
                     onChange={onSeriesCountChange}
                     getKey={String}
-                    getLabel={String}
-                    triggerAriaLabel={`Number of ${chartType.countLabel.toLowerCase()} in the ${paneLabel.toLowerCase()} preview`}
+                    getLabel={(count) => `${count} ${countNoun}`}
+                    triggerAriaLabel={`Number of ${countNoun} in the ${paneLabel.toLowerCase()} preview`}
                 />
-            </Field>
-        )}
-        <FeaturesField>
-            <PreviewFeatures
-                paneLabel={paneLabel}
-                available={availableFeatures}
-                features={features}
-                onChange={onFeaturesChange}
-            />
-        </FeaturesField>
-    </Wrapper>
-);
+            )}
+            <FeaturesField>
+                <PreviewFeatures
+                    paneLabel={paneLabel}
+                    available={availableFeatures}
+                    features={features}
+                    onChange={onFeaturesChange}
+                />
+            </FeaturesField>
+        </Wrapper>
+    );
+};
 
 const getTypeId = ({ id }: PreviewChartType) => id;
 
@@ -86,9 +85,10 @@ const renderTypeItem = (type: PreviewChartType) => (
 
 const Wrapper = styled('div')`
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 16px;
-    flex-shrink: 0;
+    gap: 8px 16px;
+    min-width: 0;
 `;
 
 const Field = styled('div')`
@@ -129,10 +129,4 @@ const TypeItem = styled('span')`
     .icon {
         fill: var(--color-fg-secondary);
     }
-`;
-
-const Label = styled('span')`
-    color: var(--color-fg-secondary);
-    font-size: var(--text-fs-xs);
-    white-space: nowrap;
 `;

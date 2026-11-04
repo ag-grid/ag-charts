@@ -182,11 +182,14 @@ const Main = styled('div')`
 `;
 
 // Side by side rather than stacked: the panes share the height they would
-// otherwise halve, and the tool refuses to render below 900px wide anyway.
+// otherwise halve, and the tool refuses to render below 900px wide anyway. The
+// panes share the toolbar row, so the charts stay level when only one wraps.
 const PreviewRow = styled('div')`
     flex: 1;
     min-width: 0;
     min-height: 0;
-    display: flex;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 12px 16px;
 `;
