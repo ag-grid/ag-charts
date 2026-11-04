@@ -281,6 +281,7 @@ export class CartesianChart extends Chart {
             const band = seriesBands.get(series);
             if (band == null && !bandClippedSeries.has(series)) continue;
 
+            series.pickClipRect = band;
             for (const group of [
                 series.contentGroup,
                 series.highlightGroup,

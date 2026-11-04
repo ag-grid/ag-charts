@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
+    clickAction,
     compareImageSnapshot,
     deproxy,
     expectPixelIdenticalAcrossUpdate,
@@ -238,6 +239,37 @@ describe('InsetNumberAxis', () => {
         });
 
         await expectPixelIdenticalAcrossUpdate(ctx, createEnterpriseChart, options(false), options(true));
+    });
+
+    it('should not pick the part of a series clipped outside its band', async () => {
+        const clicked: unknown[] = [];
+        chart = await createEnterpriseChart({
+            data: DATA,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'year',
+                    yKey: 'volume',
+                    yKeyAxis: 'yVolume',
+                    listeners: { seriesNodeClick: ({ datum }) => clicked.push(datum.year) },
+                },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                yVolume: { type: 'inset-number', position: 'left', lengthRatio: 0.25, max: 10 },
+            },
+        });
+        const internal = deproxy(chart);
+        const xScale = internal.axes.find((a) => a.userKey === 'x')!.scale;
+        const { x, y, height } = internal.seriesRect!;
+        const barX = x + xScale.convert('2005') + (xScale.bandwidth ?? 0) / 2;
+
+        // The 2005 bar (15) overruns the band's max of 10 up to 37.5% of the height; the band holds the bottom 25%.
+        await clickAction(barX, y + height * 0.7)(chart);
+        expect(clicked).toEqual([]);
+
+        await clickAction(barX, y + height * 0.9)(chart);
+        expect(clicked).toEqual(['2005']);
     });
 
     it('should require lengthRatio', async () => {

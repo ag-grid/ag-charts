@@ -1191,11 +1191,15 @@ export abstract class Series<
         return true;
     }
 
+    /** Picking ignores points outside this, so geometry clipped out of view takes no interactions. */
+    pickClipRect: BBox | undefined = undefined;
+
     protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
+        if (this.pickClipRect?.containsPoint(point.x, point.y) === false) return;
         if (intent !== 'event' && intent !== 'context-menu' && !this.isHoverable()) return;
 
         // Mini-charts render markerless by construction, so they keep the plain 'exact' semantics.
