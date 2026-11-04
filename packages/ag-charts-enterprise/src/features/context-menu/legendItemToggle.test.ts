@@ -163,13 +163,18 @@ function casesFor(mode: Mode): Case[] {
     const add = (interaction: Interaction, title: string, rest: Omit<Case, 'mode' | 'interaction' | 'title'>) =>
         cases.push({ mode, interaction, title, ...rest });
 
-    const clickTargets = mode.lines ? (mode.units.length === 2 ? mode.units : [focus]) : [mode.units[0], focus];
-    clickTargets.forEach((u, i) => {
-        // On rings, alternate between the inner and outer copy of the name.
-        const target = mode.lines || i === 0 ? indexOf(u) : u.otherIndex!;
+    const targets = mode.units.length === 2 ? mode.units : [focus];
+    // On rings, click both the inner and the outer copy of a name.
+    const clickTargets = mode.lines
+        ? targets.map((u) => ({ u, target: indexOf(u) }))
+        : [
+              { u: mode.units[0], target: mode.units[0].index },
+              { u: focus, target: indexOf(focus) },
+          ];
+    for (const { u, target } of clickTargets) {
         add('click', `hides ${u.name}`, { setup: [], target, hidden: u.ids });
-    });
-    for (const u of mode.units.length === 2 ? mode.units : [focus]) {
+    }
+    for (const u of targets) {
         add('menu: Toggle Visibility', `hides ${u.name}`, { setup: [], target: indexOf(u), hidden: u.ids });
     }
 
@@ -177,7 +182,7 @@ function casesFor(mode: Mode): Case[] {
         // With two series sharing a legendItemName beside an unnamed one, double-click counts only the named items
         // and so shows everything. The FOLLOWUP proposal in AG-19153 tracks the fix.
         const fails = mode.units.length === 2;
-        for (const u of mode.units.length === 2 ? mode.units : [focus]) {
+        for (const u of targets) {
             for (const interaction of ['double-click', 'menu: Toggle Other Series'] as const) {
                 add(interaction, `leaves only ${u.name} visible`, {
                     setup: [],
@@ -219,7 +224,7 @@ function casesFor(mode: Mode): Case[] {
     // Double-click always shows the clicked item, so these rows hold whether or not the guard works.
     if (mode.lines) {
         phaRow('double-click', `on the last visible ${survivor.name} shows every series`, []);
-        phaRow('menu: Toggle Other Series', `on the last visible ${survivor.name} shows every series`, []);
+        phaRow('menu: Toggle Other Series', `on the last visible ${survivor.name} shows every series`, [], 'true');
     } else {
         phaRow('double-click', `on the last visible ${survivor.name} changes nothing`, stillHidden);
     }
@@ -277,9 +282,9 @@ describe('legend item toggles across shared series identities', () => {
             await doubleClickLegendItem(chart, target);
         } else {
             await openLegendItemContextMenu(chart, target);
-            if (menuDisabled) {
-                expect(findContextMenuItem('Toggle Visibility').getAttribute('aria-disabled')).toBe(menuDisabled);
-            }
+            expect(findContextMenuItem('Toggle Visibility').getAttribute('aria-disabled')).toBe(
+                menuDisabled ?? 'false'
+            );
             const label = interaction === 'menu: Toggle Visibility' ? 'Toggle Visibility' : 'Toggle Other Series';
             findContextMenuItem(label).dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
             await waitForChartStability(chart);
