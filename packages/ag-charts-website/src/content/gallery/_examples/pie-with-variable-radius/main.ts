@@ -1,7 +1,7 @@
 import {
     AgCharts,
     AgPieSeriesOptions,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     ContextMenuModule,
     ModuleRegistry,
     PieSeriesModule,
@@ -22,7 +22,7 @@ const usdFullFormatter = new Intl.NumberFormat('en-US', {
 const data = getData();
 const totalGDP = data.reduce((sum, d) => sum + d.population * d.gdpPerCapita, 0);
 
-const options: AgPolarChartOptions<DataType> = {
+const options: AgStandaloneChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Baltic States Economic Comparison',

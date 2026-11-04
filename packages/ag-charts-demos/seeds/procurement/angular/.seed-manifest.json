@@ -1,8 +1,8 @@
 {
     "demo": "procurement",
     "framework": "angular",
-    "sourceHash": "sha256-c38fef8d28800433b3085ffb9d4c7954d75c484e1c1f59f1596a0414f838bbd6",
-    "sourceCommit": "5ed5b76913b23589f31f8b01a5770fcc4161e845",
+    "sourceHash": "sha256-2467be29e812b1467a547ccd81e274dea6a68be6081a574bdbf5d1037b9aac35",
+    "sourceCommit": "bd22a8dcfe4379f181bba7367911d47d0e33ec36",
     "pinnedVersion": "14.3.0",
     "pinSource": "release",
     "dist": "dist",

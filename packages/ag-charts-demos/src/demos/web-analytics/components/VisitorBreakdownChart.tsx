@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import type { AgPolarChartOptions } from 'ag-charts-community';
+import type { AgStandaloneChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { THEME } from '../chartTheme';
@@ -12,7 +12,7 @@ interface VisitorBreakdownChartProps {
 }
 
 export function VisitorBreakdownChart({ data }: VisitorBreakdownChartProps) {
-    const options = useMemo<AgPolarChartOptions>(
+    const options = useMemo<AgStandaloneChartOptions>(
         () => ({
             theme: THEME,
             data,

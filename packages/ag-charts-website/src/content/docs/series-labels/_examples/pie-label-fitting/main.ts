@@ -1,4 +1,4 @@
-import { AgCharts, AgPolarChartOptions, LegendModule } from 'ag-charts-community';
+import { AgCharts, AgStandaloneChartOptions, LegendModule } from 'ag-charts-community';
 import { DonutSeriesModule, ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 import { TextWrap } from 'ag-charts-types';
 
@@ -16,7 +16,7 @@ const fit = {
 let calloutLabelEnabled = true;
 let sectorLabelEnabled = true;
 
-function buildSeries(): AgPolarChartOptions<DataType>['series'] {
+function buildSeries(): AgStandaloneChartOptions<DataType>['series'] {
     const calloutLabel = { ...fit, enabled: calloutLabelEnabled };
     const sectorLabel = {
         ...fit,
@@ -49,7 +49,7 @@ function buildSeries(): AgPolarChartOptions<DataType>['series'] {
     ];
 }
 
-const options: AgPolarChartOptions<DataType> = {
+const options: AgStandaloneChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Global Electricity Generation by Source' },
     data: getData(),
