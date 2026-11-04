@@ -75,10 +75,16 @@ function placementSignature(sources: LabelSource[], bounds: BoxBounds, avoidsAxi
     return `${ids}|${bounds.x},${bounds.y},${bounds.width},${bounds.height}`;
 }
 
+// A source replaced under the same id can restart at the same node-data version, so the signature alone misses it.
+function sameSources(sources: LabelSource[], previous: LabelSource[] | undefined): boolean {
+    return previous?.length === sources.length && sources.every((source, index) => source === previous[index]);
+}
+
 export class LabelManager {
     private labelData: Map<string, SeriesLabels> = new Map();
     private lastPlacementSignature?: string;
     private lastPlacedLabels?: Map<string, PlacedLabel[]>;
+    private lastSources?: LabelSource[];
     private readonly sources = new Map<string, LabelSource>();
     private holdingPlacements = false;
     private avoidsAxisLabels = false;
@@ -117,6 +123,7 @@ export class LabelManager {
             this.labelData.clear();
             this.lastPlacementSignature = undefined;
             this.lastPlacedLabels = undefined;
+            this.lastSources = undefined;
             this.holdingPlacements = false;
             this.avoidsAxisLabels = false;
             return false;
@@ -127,7 +134,9 @@ export class LabelManager {
         const { avoidsAxisLabels } = this;
         let signature = placementSignature(allSources, bounds, avoidsAxisLabels);
         let placedLabels = this.lastPlacedLabels;
-        if (placedLabels == null || signature !== this.lastPlacementSignature) {
+        const sourcesReplaced = !sameSources(allSources, this.lastSources);
+        this.lastSources = allSources;
+        if (placedLabels == null || sourcesReplaced || signature !== this.lastPlacementSignature) {
             placedLabels = this.computePlacement(placedLabelSources, allSources, bounds, seriesRect);
             if (this.avoidsAxisLabels !== avoidsAxisLabels) {
                 signature = placementSignature(allSources, bounds, this.avoidsAxisLabels);
