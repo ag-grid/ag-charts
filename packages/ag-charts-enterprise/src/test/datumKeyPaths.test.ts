@@ -37,8 +37,6 @@ interface KeyPathCase {
     name: string;
     options: Options;
     keys: string[];
-    /** Keys whose dot path does not render as the flat key does yet, with what goes wrong. */
-    broken?: Record<string, string>;
     factory?: Factory;
     /** Options only `create` accepts, left out of later updates. */
     createOptions?: Options;
@@ -225,22 +223,12 @@ const statusBarTexts = ([target]: AgChartInstance[]) =>
             Array.from(group.descendants(), (node) => (node instanceof Text && node.visible ? node.text : undefined))
     );
 
-const TOOLTIP_NAME = 'the default tooltip names the value by its key path';
-const FOCUS_LINE = 'the focused item has no horizontal guide line';
-const VOLUME_DIRECTION = 'volume bars are not coloured by price direction';
-const STATUS_BAR_VALUE = 'the status bar value is empty';
-const NOT_FOUND = 'the key is not found in the data';
-
-const brokenKeys = (keys: string[], reason: string) =>
-    Object.fromEntries(keys.map((key) => [`series.0.${key}`, reason]));
-
 const SERIES: KeyPathCase[] = [
     cartesian('line', categories, { xKey: 'x', yKey: 'y' }, ['xKey', 'yKey']),
     { ...cartesian('line', points, { xKey: 'x', yKey: 'y' }, ['xKey']), name: 'line with a number x' },
     {
         ...cartesian('line', dated, { xKey: 'date', yKey: 'y' }, ['xKey']),
         name: 'line with a time x',
-        broken: { 'series.0.xKey': 'the default axis is a category axis, not a time axis' },
     },
     cartesian('area', categories, { xKey: 'x', yKey: 'y' }, ['xKey', 'yKey']),
     cartesian('bar', categories, { xKey: 'x', yKey: 'y' }, ['xKey', 'yKey']),
@@ -251,10 +239,6 @@ const SERIES: KeyPathCase[] = [
             { xKey: 'x', yKey: 'y', labelKey: 'label', colorKey: 'color', label: { enabled: true } },
             ['xKey', 'yKey', 'labelKey', 'colorKey']
         ),
-        broken: {
-            ...brokenKeys(['xKey', 'labelKey', 'colorKey'], TOOLTIP_NAME),
-            'series.0.yKey': `${TOOLTIP_NAME}; ${FOCUS_LINE}`,
-        },
     },
     {
         ...cartesian(
@@ -263,27 +247,29 @@ const SERIES: KeyPathCase[] = [
             { xKey: 'x', yKey: 'y', sizeKey: 'size', labelKey: 'label', colorKey: 'color', label: { enabled: true } },
             ['xKey', 'yKey', 'sizeKey', 'labelKey', 'colorKey']
         ),
-        broken: {
-            ...brokenKeys(['xKey', 'sizeKey', 'labelKey', 'colorKey'], TOOLTIP_NAME),
-            'series.0.yKey': `${TOOLTIP_NAME}; ${FOCUS_LINE}`,
-        },
     },
     {
         ...cartesian('histogram', points, { xKey: 'x', yKey: 'y', aggregation: 'sum' }, ['xKey', 'yKey']),
-        broken: brokenKeys(['xKey', 'yKey'], TOOLTIP_NAME),
     },
     {
         ...cartesian('heatmap', points, { xKey: 'label', yKey: 'y', colorKey: 'color' }, ['xKey', 'yKey', 'colorKey']),
-        broken: brokenKeys(['xKey', 'yKey', 'colorKey'], TOOLTIP_NAME),
     },
     cartesian('waterfall', categories, { xKey: 'x', yKey: 'y' }, ['xKey', 'yKey']),
+    {
+        ...cartesian(
+            'waterfall',
+            categories,
+            { xKey: 'x', yKey: 'y', totals: [{ totalType: 'total', index: 2, axisLabel: 'Total' }] },
+            ['xKey']
+        ),
+        name: 'waterfall with a total',
+    },
     {
         ...cartesian('range-bar', categories, { xKey: 'x', yLowKey: 'low', yHighKey: 'high' }, [
             'xKey',
             'yLowKey',
             'yHighKey',
         ]),
-        broken: brokenKeys(['yLowKey', 'yHighKey'], FOCUS_LINE),
     },
     {
         ...cartesian('range-area', categories, { xKey: 'x', yLowKey: 'low', yHighKey: 'high' }, [
@@ -291,7 +277,6 @@ const SERIES: KeyPathCase[] = [
             'yLowKey',
             'yHighKey',
         ]),
-        broken: brokenKeys(['yLowKey', 'yHighKey'], FOCUS_LINE),
     },
     {
         ...cartesian(
@@ -300,7 +285,6 @@ const SERIES: KeyPathCase[] = [
             { xKey: 'x', minKey: 'min', q1Key: 'q1', medianKey: 'median', q3Key: 'q3', maxKey: 'max' },
             ['xKey', 'minKey', 'q1Key', 'medianKey', 'q3Key', 'maxKey']
         ),
-        broken: brokenKeys(['minKey', 'q1Key', 'medianKey', 'q3Key', 'maxKey'], TOOLTIP_NAME),
     },
     {
         ...cartesian(
@@ -309,7 +293,6 @@ const SERIES: KeyPathCase[] = [
             { xKey: 'date', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
             ['xKey', 'openKey', 'highKey', 'lowKey', 'closeKey']
         ),
-        broken: brokenKeys(['openKey', 'highKey', 'lowKey', 'closeKey'], TOOLTIP_NAME),
     },
     {
         ...cartesian(
@@ -318,7 +301,6 @@ const SERIES: KeyPathCase[] = [
             { xKey: 'date', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
             ['xKey', 'openKey', 'highKey', 'lowKey', 'closeKey']
         ),
-        broken: brokenKeys(['openKey', 'highKey', 'lowKey', 'closeKey'], TOOLTIP_NAME),
     },
     {
         ...cartesian('hlc', prices, { xKey: 'date', highKey: 'high', lowKey: 'low', closeKey: 'close' }, [
@@ -327,7 +309,6 @@ const SERIES: KeyPathCase[] = [
             'lowKey',
             'closeKey',
         ]),
-        broken: brokenKeys(['highKey', 'lowKey', 'closeKey'], TOOLTIP_NAME),
     },
     {
         ...cartesian('bar', categories, { xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'low', yUpperKey: 'high' } }, [
@@ -335,10 +316,6 @@ const SERIES: KeyPathCase[] = [
             'errorBar.yUpperKey',
         ]),
         name: 'bar error bars',
-        broken: {
-            'series.0.errorBar.yLowerKey': 'the error bars are not drawn',
-            'series.0.errorBar.yUpperKey': 'the error bars are not drawn',
-        },
     },
     {
         ...cartesian('scatter', points, { xKey: 'x', yKey: 'y', errorBar: { xLowerKey: 'xLow', xUpperKey: 'xHigh' } }, [
@@ -346,10 +323,6 @@ const SERIES: KeyPathCase[] = [
             'errorBar.xUpperKey',
         ]),
         name: 'scatter error bars',
-        broken: {
-            'series.0.errorBar.xLowerKey': 'the error bars are not drawn',
-            'series.0.errorBar.xUpperKey': 'the error bars are not drawn',
-        },
     },
     cartesian('funnel', stages, { stageKey: 'stage', valueKey: 'value' }, ['stageKey', 'valueKey']),
     cartesian('cone-funnel', stages, { stageKey: 'stage', valueKey: 'value' }, ['stageKey', 'valueKey']),
@@ -386,13 +359,6 @@ const SERIES: KeyPathCase[] = [
             },
             ['labelKey', 'secondaryLabelKey', 'childrenKey', 'sizeKey', 'colorKey']
         ),
-        broken: {
-            'series.0.labelKey': 'hierarchy keys read top-level node properties only',
-            'series.0.secondaryLabelKey': 'hierarchy keys read top-level node properties only',
-            'series.0.childrenKey': 'hierarchy keys read top-level node properties only',
-            'series.0.sizeKey': 'hierarchy keys read top-level node properties only',
-            'series.0.colorKey': 'hierarchy keys read top-level node properties only',
-        },
     })),
     cartesian('sankey', links, { fromKey: 'from', toKey: 'to', sizeKey: 'size' }, ['fromKey', 'toKey', 'sizeKey']),
     cartesian('chord', links, { fromKey: 'from', toKey: 'to', sizeKey: 'size' }, ['fromKey', 'toKey', 'sizeKey']),
@@ -423,7 +389,6 @@ const SERIES: KeyPathCase[] = [
             ],
         },
         keys: ['series.0.idKey', 'series.0.colorKey', 'series.0.labelKey'],
-        broken: brokenKeys(['colorKey', 'labelKey'], TOOLTIP_NAME),
     },
     {
         name: 'map-marker',
@@ -451,7 +416,6 @@ const SERIES: KeyPathCase[] = [
             'series.0.colorKey',
             'series.0.labelKey',
         ],
-        broken: brokenKeys(['sizeKey', 'colorKey', 'labelKey'], TOOLTIP_NAME),
     },
     {
         name: 'map-marker by id',
@@ -482,7 +446,6 @@ const SERIES: KeyPathCase[] = [
             ],
         },
         keys: ['series.0.idKey', 'series.0.sizeKey', 'series.0.colorKey', 'series.0.labelKey'],
-        broken: brokenKeys(['sizeKey', 'colorKey', 'labelKey'], TOOLTIP_NAME),
     },
 ];
 
@@ -502,7 +465,6 @@ const FEATURE_CASES: KeyPathCase[] = [
             series: [{ type: 'bar', id: 'bars', xKey: 'x', yKey: 'y' }],
         },
         keys: ['dataIdKey'],
-        broken: { dataIdKey: 'no item is found by its id' },
         interact: async ([target]) => {
             await target.setState({
                 version: target.getState().version,
@@ -520,7 +482,6 @@ const FEATURE_CASES: KeyPathCase[] = [
             series: [{ type: 'bar', id: 'bars', xKey: 'x', yKey: 'y' }],
         },
         keys: ['dataIdKey'],
-        broken: { dataIdKey: 'the focused item is not identified by its id' },
         interact: focusSecondItem,
         probe: activeItem,
     },
@@ -532,7 +493,6 @@ const FEATURE_CASES: KeyPathCase[] = [
             series: [{ type: 'sankey', id: 'flows', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
         },
         keys: ['dataIdKey'],
-        broken: { dataIdKey: 'no item is found by its id' },
         interact: async ([target]) => {
             await target.setState({
                 version: target.getState().version,
@@ -553,7 +513,6 @@ const FEATURE_CASES: KeyPathCase[] = [
             },
         },
         keys: ['series.0.xKey'],
-        broken: { 'series.0.xKey': 'the x label is empty' },
         interact: hoverCentre,
         probe: () =>
             Array.from(
@@ -569,7 +528,6 @@ const FEATURE_CASES: KeyPathCase[] = [
             sync: { groupId: 'datum-key-paths', axes: 'x', nodeInteraction: true },
         },
         keys: ['series.0.xKey'],
-        broken: { 'series.0.xKey': 'the other chart does not highlight the matching item' },
         chartCount: 2,
         interact: async ([receiver, sender]) => {
             await hoverCentre([sender]);
@@ -582,7 +540,6 @@ const FEATURE_CASES: KeyPathCase[] = [
         options: { data: categories, type: 'bar', xKey: 'x', yKey: 'y' },
         createOptions: { pool: false },
         keys: ['xKey', 'yKey'],
-        broken: { xKey: 'the tooltip drops the x value', yKey: 'the tooltip shows undefined' },
         interact: hoverCentre,
         probe: () => document.querySelector('.ag-charts-tooltip')?.textContent,
     },
@@ -591,7 +548,6 @@ const FEATURE_CASES: KeyPathCase[] = [
         factory: 'createQuadrantChart',
         options: { data: points, xKey: 'x', yKey: 'y', sizeKey: 'size' },
         keys: ['xKey', 'yKey', 'sizeKey'],
-        broken: { xKey: 'items are not coloured by region', yKey: 'items are not coloured by region' },
     },
     {
         name: 'quadrant chart context menu region',
@@ -606,7 +562,6 @@ const FEATURE_CASES: KeyPathCase[] = [
             contextMenu: { enabled: true, getItems: ({ region }: { region?: string }) => [{ label: `${region}` }] },
         },
         keys: ['xKey', 'yKey'],
-        broken: { xKey: 'the menu gets no region', yKey: 'the menu gets no region' },
         interact: async ([target]) => {
             const [node] = getSeriesNodeData<{ point: Point }>(target);
             if (node == null) return;
@@ -625,22 +580,12 @@ const FEATURE_CASES: KeyPathCase[] = [
         factory: 'createFinancialChart',
         options: { data: prices, chartType, ...FINANCIAL_KEYS },
         keys: ['dateKey', ...priceKeys, 'volumeKey'],
-        broken: Object.fromEntries(
-            ['openKey', 'closeKey'].filter((key) => priceKeys.includes(key)).map((key) => [key, VOLUME_DIRECTION])
-        ),
     })),
     {
         name: 'financial chart status bar',
         factory: 'createFinancialChart',
         options: { data: prices, ...FINANCIAL_KEYS },
         keys: Object.keys(FINANCIAL_KEYS),
-        broken: {
-            openKey: `${STATUS_BAR_VALUE}; ${VOLUME_DIRECTION}`,
-            highKey: STATUS_BAR_VALUE,
-            lowKey: STATUS_BAR_VALUE,
-            closeKey: `${STATUS_BAR_VALUE}; ${VOLUME_DIRECTION}`,
-            volumeKey: STATUS_BAR_VALUE,
-        },
         interact: hoverCentre,
         probe: statusBarTexts,
     },
@@ -659,11 +604,6 @@ const FEATURE_CASES: KeyPathCase[] = [
             volumeProfile: { enabled: true, data: volumeLevels, priceKey: 'price', upKey: 'up', downKey: 'down' },
         },
         keys: ['volumeProfile.priceKey', 'volumeProfile.upKey', 'volumeProfile.downKey'],
-        broken: {
-            'volumeProfile.priceKey': NOT_FOUND,
-            'volumeProfile.upKey': NOT_FOUND,
-            'volumeProfile.downKey': NOT_FOUND,
-        },
     },
     {
         name: 'volume profile chart',
@@ -676,7 +616,6 @@ const FEATURE_CASES: KeyPathCase[] = [
             totalSegment: { enabled: true },
         },
         keys: ['priceKey', 'upKey', 'downKey'],
-        broken: { priceKey: NOT_FOUND, upKey: NOT_FOUND, downKey: NOT_FOUND },
     },
 ];
 
@@ -729,7 +668,7 @@ describe('datum key paths', () => {
         return { image: ctx.snapshot(), probe: probed, warnings };
     }
 
-    // Renders are shared by a key's two tests, so a known failure cannot pass on a broken harness.
+    // Renders are shared by a key's two tests, so a dot path is only compared with a render the chart was shown to use.
     const renders = new Map<string, Promise<Record<'absent' | 'nested' | 'flat' | 'flatAgain', Render>>>();
     function renderKey(keyPathCase: KeyPathCase, keyPath: string) {
         const id = `${keyPathCase.name}:${keyPath}`;
@@ -750,9 +689,7 @@ describe('datum key paths', () => {
     }
 
     describe.each([...SERIES_CASES, ...FEATURE_CASES])('$name', (keyPathCase) => {
-        const { keys, broken = {} } = keyPathCase;
-        const working = keys.filter((key) => !(key in broken));
-        const failing = keys.filter((key) => key in broken);
+        const { keys } = keyPathCase;
 
         it.each(keys)('%s is exercised by the chart', async (keyPath) => {
             const { absent, flat, flatAgain } = await renderKey(keyPathCase, keyPath);
@@ -762,19 +699,38 @@ describe('datum key paths', () => {
             expect(same(flatAgain, flat), 'the chart must render the same options the same way').toBe(true);
         });
 
-        const expectDotPathWorks = async (keyPath: string) => {
+        it.each(keys)('%s accepts a dot path', async (keyPath) => {
             const { nested, flat } = await renderKey(keyPathCase, keyPath);
             renders.delete(`${keyPathCase.name}:${keyPath}`);
             expect(nested.warnings).toEqual([]);
             expect(same(nested, flat), 'a dot path must render as the flat key does').toBe(true);
-        };
+        });
+    });
 
-        if (working.length > 0) it.each(working)('%s accepts a dot path', expectDotPathWorks);
-        if (failing.length > 0) {
-            it.fails.each(failing.map((key) => [key, broken[key]]))(
-                '%s accepts a dot path (known failure: %s)',
-                (key) => expectDotPathWorks(key)
-            );
-        }
+    it('reads keys as literal property names when dot notation is suppressed', async () => {
+        const series = { type: 'bar', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'low', yUpperKey: 'high' } };
+        const literal = categories.map(({ y, low, high, ...datum }) => ({
+            ...datum,
+            [`${NESTED}.y`]: y,
+            [`${NESTED}.low`]: low,
+            [`${NESTED}.high`]: high,
+        }));
+        const literalSeries = {
+            ...series,
+            yKey: `${NESTED}.y`,
+            errorBar: { yLowerKey: `${NESTED}.low`, yUpperKey: `${NESTED}.high` },
+        };
+        const keyPathCase: KeyPathCase = { name: 'suppressFieldDotNotation', options: {}, keys: [] };
+
+        const flat = await render(keyPathCase, { data: categories, series: [series] });
+        const suppressed = await render(keyPathCase, {
+            data: literal,
+            series: [literalSeries],
+            suppressFieldDotNotation: true,
+        });
+
+        expectNonBlank(flat.image);
+        expect(suppressed.warnings).toEqual([]);
+        expect(same(suppressed, flat), 'a literal key must render as the flat key does').toBe(true);
     });
 });

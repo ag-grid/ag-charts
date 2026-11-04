@@ -1,4 +1,4 @@
-import { isDate, isNumber, isString, simpleMemorize, toTextString } from 'ag-charts-core';
+import { isDate, isNumber, isString, readDatumKey, simpleMemorize, toTextString } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgAreaSeriesTooltipRendererParams,
@@ -122,8 +122,8 @@ const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, dat
     return (
         params: AgBarSeriesTooltipRendererParams | AgLineSeriesTooltipRendererParams | AgAreaSeriesTooltipRendererParams
     ): AgTooltipRendererResult | string => {
-        const xValue = params.datum[params.xKey];
-        const yValue = params.datum[params.yKey];
+        const xValue = readDatumKey(params.datum, params.xKey, false);
+        const yValue = readDatumKey(params.datum, params.yKey, false);
         const datum = datumKey == null ? params.datum : params.datum[datumKey];
 
         // Read `context` from params (set per-chart by `callWithContext`) rather than

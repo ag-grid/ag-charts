@@ -21,6 +21,7 @@ import {
     coerceTextValue,
     createId,
     forceLtrNumbersIn,
+    readDatumKey,
     toPlainText,
 } from 'ag-charts-core';
 import type { ClickWidgetEvent, DragWidgetEvent, MouseWidgetEvent } from 'ag-charts-core';
@@ -417,6 +418,10 @@ export class Crosshair
         });
     }
 
+    private readKey(datum: unknown, key: string) {
+        return readDatumKey(datum, key, this.ctx.chartState.getValue('options', 'suppressFieldDotNotation'));
+    }
+
     private getData(event: CurrentPoint): {
         [key: string]: { position: number; value: any };
     } {
@@ -433,7 +438,7 @@ export class Crosshair
         if (!this.isInRange(position)) return {};
 
         if (!axisCtx.continuous) {
-            return { [key]: { position, value: datum?.[isVertical ? xKey : yKey] ?? '' } };
+            return { [key]: { position, value: this.readKey(datum, isVertical ? xKey : yKey) ?? '' } };
         }
 
         const snapInterval = this.snapInterval();
@@ -473,7 +478,7 @@ export class Crosshair
 
         if (isXKey) {
             const position = (this.isVertical() ? midPoint?.x : midPoint?.y) ?? 0;
-            const value = axisCtx.continuous ? axisCtx.scaleInvert(position) : datum?.[xKey];
+            const value = axisCtx.continuous ? axisCtx.scaleInvert(position) : this.readKey(datum, xKey);
             return this.isInRange(position) ? { xKey: { value, position } } : {};
         }
 
@@ -484,7 +489,7 @@ export class Crosshair
             const keyValue: unknown = series.options[unsafeKey as keyof typeof series.options];
             if (typeof keyValue !== 'string') continue;
 
-            const value = datum?.[keyValue];
+            const value = this.readKey(datum, keyValue);
             const position = axisCtx.scale.convert(value) + halfBandwidth;
             const isInRange = this.isInRange(position);
 

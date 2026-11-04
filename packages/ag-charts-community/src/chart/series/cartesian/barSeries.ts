@@ -2078,7 +2078,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: yKey,
+                        fallbackLabel: this.keyName(yKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                         missing: isTooltipValueMissing(yValue),
                     },

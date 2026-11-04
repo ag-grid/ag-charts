@@ -1204,7 +1204,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: yKey,
+                        fallbackLabel: this.keyName(yKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                         missing: isTooltipValueMissing(yValue),
                     },

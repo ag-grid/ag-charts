@@ -44,6 +44,7 @@ import {
     boxContains,
     callWithContext,
     createId,
+    datumKeyName,
     glowToShadow,
     isGradientFill,
     isPatternFill,
@@ -604,6 +605,15 @@ export abstract class Series<
         return this.ctx.chartState.getValue('options')?.highlight;
     }
 
+    protected get suppressFieldDotNotation(): boolean {
+        return this.ctx.chartState.getValue('options')?.suppressFieldDotNotation ?? false;
+    }
+
+    /** The tooltip name for a datum key that has no display name set. */
+    protected keyName(key: string): string {
+        return datumKeyName(key, this.suppressFieldDotNotation);
+    }
+
     protected getChartHighlightDrawingMode(): AgDrawingMode {
         return this.getChartHighlightOptions()?.drawingMode ?? 'overlay';
     }
@@ -736,7 +746,11 @@ export abstract class Series<
     }
 
     /** The chart's data set when this series needs more than a flat one. */
-    createChartDataSet(_data: unknown[], _dataIdKey: string | undefined): DataSet | undefined {
+    createChartDataSet(
+        _data: unknown[],
+        _dataIdKey: string | undefined,
+        _suppressFieldDotNotation: boolean
+    ): DataSet | undefined {
         return undefined;
     }
 
@@ -1458,7 +1472,7 @@ export abstract class Series<
             totalValue: datum.totalValue,
             seriesId: this.id,
             dataIdKey,
-            itemId: getItemId(datum, dataIdKey),
+            itemId: getItemId(datum, this.data),
             selectionState: this.getSelectionStateString(datum.datumIndex),
             isCollapsed: datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId),
         };

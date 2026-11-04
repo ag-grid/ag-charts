@@ -1662,19 +1662,23 @@ export abstract class BubbleScatterSeries<
                 domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+            data.push({
+                label: labelName,
+                fallbackLabel: this.keyName(labelKey),
+                value: content ?? formatValue(value),
+            });
         }
 
         data.push(
             {
                 label: xName,
-                fallbackLabel: xKey,
+                fallbackLabel: this.keyName(xKey),
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
                 missing: isTooltipValueMissing(xValue, allowNullKeys),
             },
             {
                 label: yName,
-                fallbackLabel: yKey,
+                fallbackLabel: this.keyName(yKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName, allowNullKeys),
                 missing: isTooltipValueMissing(yValue, allowNullKeys),
             }
@@ -1703,7 +1707,7 @@ export abstract class BubbleScatterSeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: name, fallbackLabel: key, value: content ?? formatValue(value) });
+            data.push({ label: name, fallbackLabel: this.keyName(key), value: content ?? formatValue(value) });
             return value;
         };
 

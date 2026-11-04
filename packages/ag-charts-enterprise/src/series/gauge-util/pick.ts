@@ -15,7 +15,7 @@ type GaugeSeries = {
         nodeData: SeriesNodeDatum[];
         targetData: SeriesNodeDatum[];
     };
-    data?: { dataIdKey?: string };
+    data?: Parameters<typeof _ModuleSupport.findNodeDatumInArray>[2];
     datumUnion: SelectionLike;
     targetSelection: SelectionLike;
     pickNodeNearestDistantObject(point: Point, items: Iterable<SceneNode>): SeriesNodePickMatch | undefined;
@@ -53,9 +53,8 @@ export function pickGaugeFocus(self: GaugeSeries, opts: PickFocusInputs): PickFo
 }
 
 export function findGaugeNodeDatum(self: GaugeSeries, itemId: AgActiveItemState['itemId']) {
-    const dataIdKey = self.data?.dataIdKey;
     return (
-        _ModuleSupport.findNodeDatumInArray(itemId, self.contextNodeData?.nodeData, dataIdKey) ??
-        _ModuleSupport.findNodeDatumInArray(itemId, self.contextNodeData?.targetData, dataIdKey)
+        _ModuleSupport.findNodeDatumInArray(itemId, self.contextNodeData?.nodeData, self.data) ??
+        _ModuleSupport.findNodeDatumInArray(itemId, self.contextNodeData?.targetData, self.data)
     );
 }

@@ -1586,7 +1586,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
+                        fallbackLabel: `${yLowName ?? this.keyName(yLowKey)} - ${yHighName ?? this.keyName(yHighKey)}`,
                         value,
                         missing:
                             _ModuleSupport.isTooltipValueMissing(yHighValue) &&

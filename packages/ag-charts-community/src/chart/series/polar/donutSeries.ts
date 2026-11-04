@@ -2446,7 +2446,7 @@ export class DonutSeries extends PolarSeries<
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label: toPlainText(label), fallbackLabel: angleKey, value: angleContent }],
+                data: [{ label: toPlainText(label), fallbackLabel: this.keyName(angleKey), value: angleContent }],
             },
             {
                 seriesId,

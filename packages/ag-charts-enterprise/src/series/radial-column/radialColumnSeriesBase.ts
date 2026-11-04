@@ -633,7 +633,7 @@ export abstract class RadialColumnSeriesBase<
                 data: [
                     {
                         label: radiusName,
-                        fallbackLabel: radiusKey,
+                        fallbackLabel: this.keyName(radiusKey),
                         value: this.getAxisValueText(radiusAxis, 'tooltip', radiusValue, datum, radiusKey, undefined),
                         missing: _ModuleSupport.isTooltipValueMissing(radiusValue),
                     },

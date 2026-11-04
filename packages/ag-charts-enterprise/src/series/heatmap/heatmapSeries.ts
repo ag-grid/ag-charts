@@ -1326,7 +1326,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const binLabel = findDiscreteColorBinLabel(colorScale, options.colorScale.fills, colorValue, formatValue);
             data.push({
                 label: colorName,
-                fallbackLabel: colorKey!,
+                fallbackLabel: this.keyName(colorKey!),
                 value: content ?? binLabel ?? formatValue(colorValue),
             });
         }
@@ -1334,12 +1334,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         data.push(
             {
                 label: xName,
-                fallbackLabel: xKey,
+                fallbackLabel: this.keyName(xKey),
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, undefined),
             },
             {
                 label: yName,
-                fallbackLabel: yKey,
+                fallbackLabel: this.keyName(yKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, undefined),
             }
         );

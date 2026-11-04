@@ -15,6 +15,7 @@ import {
     findMinMax,
     isDefined,
     mergeDefaults,
+    readDatumKey,
 } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 
@@ -319,14 +320,15 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         nodeDatum: ErrorBarNodeDatum,
         key: string | undefined,
         offset: number,
-        logger: Logger
+        logger: Logger,
+        suppressFieldDotNotation: boolean
     ): number | undefined {
         // Check if the user input datum has the error value for `key`:
         if (key == null) {
             return;
         }
         const datum = readDatum(nodeDatum);
-        const value: unknown = datum?.[key];
+        const value: unknown = readDatumKey(datum, key, suppressFieldDotNotation);
         if (value == null) {
             return;
         }
@@ -348,13 +350,15 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         // But generally, these offsets will both be 0.
         const d = datum.cumulativeValue == null || !this.isStacked() ? 0 : datum.cumulativeValue - datum.yValue;
         const [xOffset, yOffset] = this.cartesianSeries.shouldFlipXY() ? [d, 0] : [0, d];
+        const { logger } = this.ctx;
+        const suppress = this.dataModel?.suppressFieldDotNotation ?? false;
 
         return {
             midPoint: datum.midPoint,
-            xLower: ErrorBars.getDatumKey(datum, xLowerKey, xOffset, this.ctx.logger),
-            xUpper: ErrorBars.getDatumKey(datum, xUpperKey, xOffset, this.ctx.logger),
-            yLower: ErrorBars.getDatumKey(datum, yLowerKey, yOffset, this.ctx.logger),
-            yUpper: ErrorBars.getDatumKey(datum, yUpperKey, yOffset, this.ctx.logger),
+            xLower: ErrorBars.getDatumKey(datum, xLowerKey, xOffset, logger, suppress),
+            xUpper: ErrorBars.getDatumKey(datum, xUpperKey, xOffset, logger, suppress),
+            yLower: ErrorBars.getDatumKey(datum, yLowerKey, yOffset, logger, suppress),
+            yUpper: ErrorBars.getDatumKey(datum, yUpperKey, yOffset, logger, suppress),
         };
     }
 

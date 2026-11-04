@@ -1,5 +1,5 @@
 import { _Theme } from 'ag-charts-community';
-import { type Logger } from 'ag-charts-core';
+import { type Logger, readDatumKey } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
@@ -266,7 +266,12 @@ function createVolumeSeries(
             // @ts-expect-error undocumented option
             simpleItemStyler(datum: DatumDefault) {
                 const { up, down } = getTheme().palette;
-                return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
+                return {
+                    fill:
+                        readDatumKey(datum, openKey, false) < readDatumKey(datum, closeKey, false)
+                            ? up?.fill
+                            : down?.fill,
+                };
             },
             focusIndex: 1,
             highlight: { unhighlightedSeries: { opacity: 1 } },

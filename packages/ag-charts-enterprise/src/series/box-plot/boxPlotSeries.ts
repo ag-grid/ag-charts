@@ -588,31 +588,31 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const data: _ModuleSupport.TooltipContentDataRow[] = [
             {
                 label: minName,
-                fallbackLabel: minKey,
+                fallbackLabel: this.keyName(minKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', minValue, datum, minKey, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(minValue),
             },
             {
                 label: q1Name,
-                fallbackLabel: q1Key,
+                fallbackLabel: this.keyName(q1Key),
                 value: this.getAxisValueText(yAxis, 'tooltip', q1Value, datum, q1Key, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(q1Value),
             },
             {
                 label: medianName,
-                fallbackLabel: medianKey,
+                fallbackLabel: this.keyName(medianKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', medianValue, datum, medianKey, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(medianValue),
             },
             {
                 label: q3Name,
-                fallbackLabel: q3Key,
+                fallbackLabel: this.keyName(q3Key),
                 value: this.getAxisValueText(yAxis, 'tooltip', q3Value, datum, q3Key, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(q3Value),
             },
             {
                 label: maxName,
-                fallbackLabel: maxKey,
+                fallbackLabel: this.keyName(maxKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', maxValue, datum, maxKey, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(maxValue),
             },

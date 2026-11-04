@@ -1,4 +1,4 @@
-import { type Logger, isFiniteNumber, stripFloatNoise } from 'ag-charts-core';
+import { type Logger, isFiniteNumber, readDatumKey, stripFloatNoise } from 'ag-charts-core';
 import type { DatumDefault } from 'ag-charts-types';
 
 export interface VolumeProfileKeys {
@@ -12,19 +12,22 @@ export function warnMissingVolumeProfileKeys(data: DatumDefault[], keys: VolumeP
     if (data.length === 0) return;
 
     for (const key of new Set([keys.priceKey, keys.upKey, keys.downKey])) {
-        if (data.some((d) => d?.[key] !== undefined)) continue;
+        if (data.some((d) => readDatumKey(d, key, false) !== undefined)) continue;
         logger.warnOnce(`the key '${key}' was not found in any data element.`);
     }
 }
 
 /** Whether neither volume key is in the data, so every level would be drawn empty. */
 export function lacksVolumeProfileVolumes(data: DatumDefault[], { upKey, downKey }: VolumeProfileKeys) {
-    return data.length > 0 && !data.some((d) => d?.[upKey] !== undefined || d?.[downKey] !== undefined);
+    return (
+        data.length > 0 &&
+        !data.some((d) => readDatumKey(d, upKey, false) !== undefined || readDatumKey(d, downKey, false) !== undefined)
+    );
 }
 
 export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: string): number | undefined {
     const prices = data
-        .map((d) => d[priceKey])
+        .map((d) => readDatumKey(d, priceKey, false))
         .filter((price) => isFiniteNumber(price))
         .sort((a, b) => a - b);
 
@@ -89,12 +92,12 @@ function mergeVolumeProfileLevels(
 ) {
     const byLevel = new Map<number, { upVolume: number; downVolume: number }>();
     for (const d of data) {
-        const price = d[priceKey];
+        const price = readDatumKey(d, priceKey, false);
         if (!isFiniteNumber(price)) continue;
         const index = Math.round(stripFloatNoise(price / tickSize));
         const level = byLevel.get(index) ?? { upVolume: 0, downVolume: 0 };
-        level.upVolume += d[upKey] ?? 0;
-        level.downVolume += d[downKey] ?? 0;
+        level.upVolume += readDatumKey(d, upKey, false) ?? 0;
+        level.downVolume += readDatumKey(d, downKey, false) ?? 0;
         byLevel.set(index, level);
     }
     return byLevel;

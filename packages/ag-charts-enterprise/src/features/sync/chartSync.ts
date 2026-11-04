@@ -18,6 +18,7 @@ import {
     isDate,
     isDefined,
     isObjectWithStringProperty,
+    readDatumKey,
     unique,
 } from 'ag-charts-core';
 
@@ -242,7 +243,10 @@ export class ChartSync extends AbstractModuleInstance {
 
         const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];
         const datum = readDatum(event.currentHighlight);
-        let eventValue = primaryKeys?.[0] == null ? undefined : datum?.[primaryKeys[0]];
+        const suppressFieldDotNotation =
+            this.moduleContext.chartState.getValue('options', 'suppressFieldDotNotation') ?? false;
+        let eventValue =
+            primaryKeys?.[0] == null ? undefined : readDatumKey(datum, primaryKeys[0], suppressFieldDotNotation);
         let valueIsDate: boolean = false;
         if (isDate(eventValue)) {
             valueIsDate = true;
@@ -315,7 +319,15 @@ export class ChartSync extends AbstractModuleInstance {
                         }
                         return true;
                     })
-                    .map(this.findMatchingNodes(axis, primaryDirection, valueIsDate, eventValue))
+                    .map(
+                        this.findMatchingNodes(
+                            axis,
+                            primaryDirection,
+                            valueIsDate,
+                            eventValue,
+                            chart.ctx.chartState.getValue('options', 'suppressFieldDotNotation')
+                        )
+                    )
                     .filter(isDefined);
 
                 if (
@@ -339,7 +351,8 @@ export class ChartSync extends AbstractModuleInstance {
         axis: _ModuleSupport.CartesianAxis<any, any>,
         mainDirection: string,
         valueIsDate: boolean,
-        eventValue: any
+        eventValue: any,
+        suppressFieldDotNotation: boolean | undefined
     ) {
         return (series: _ModuleSupport.ISeries<_ModuleSupport.SeriesNodeDatum, any, any>) => {
             const seriesKeyAxis = series.getKeyAxis(axis.direction);
@@ -354,7 +367,7 @@ export class ChartSync extends AbstractModuleInstance {
 
             const valueKey = firstNode[mainDirectionKey];
             const nodeDatum = nodeData.find((datum: any) => {
-                const nodeValue = datum.datum[valueKey];
+                const nodeValue = readDatumKey(datum.datum, valueKey, suppressFieldDotNotation ?? false);
                 return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
             });
 

@@ -5,6 +5,7 @@ import {
     isFiniteNumericValue,
     mergeDefaults,
     pick,
+    readDatumKey,
 } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
@@ -124,7 +125,12 @@ function getRegionMeta(
     pivotX: AgNumericValue,
     pivotY: AgNumericValue
 ) {
-    return getRegionMetaForValues(params.datum[params.xKey], params.datum[params.yKey], pivotX, pivotY);
+    return getRegionMetaForValues(
+        readDatumKey(params.datum, params.xKey, false),
+        readDatumKey(params.datum, params.yKey, false),
+        pivotX,
+        pivotY
+    );
 }
 
 function getRegionMetaForValues(
@@ -345,7 +351,10 @@ export function createQuadrant(
         coordinates: AgCoordinates | undefined
     ): AgQuadrantRegion | undefined => {
         if (scope.showOn === 'series-node') {
-            return regionForValues(scope.datum?.[options.xKey], scope.datum?.[options.yKey]);
+            return regionForValues(
+                readDatumKey(scope.datum, options.xKey, false),
+                readDatumKey(scope.datum, options.yKey, false)
+            );
         }
         if (scope.showOn === 'series-area') {
             return regionForValues(coordinates?.x?.value, coordinates?.y?.value);

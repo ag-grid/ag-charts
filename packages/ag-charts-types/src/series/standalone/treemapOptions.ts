@@ -18,9 +18,9 @@ import type {
     ContextDefault,
     CssColor,
     DatumDefault,
+    DatumKey,
     Opacity,
     PixelSize,
-    ResolvedDatumKey,
     TextAlign,
     VerticalAlign,
 } from '../../chart/types';
@@ -240,15 +240,15 @@ export interface AgTreemapSeriesOptions<TDatum = DatumDefault, TContext = Contex
 
 export interface AgTreemapSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the label. */
-    labelKey?: ResolvedDatumKey<TDatum>;
+    labelKey?: DatumKey<TDatum>;
     /** The name of the node key containing a secondary label. */
-    secondaryLabelKey?: ResolvedDatumKey<TDatum>;
+    secondaryLabelKey?: DatumKey<TDatum>;
     /** The name of the node key containing the children. Defaults to `children`. */
-    childrenKey?: ResolvedDatumKey<TDatum>;
+    childrenKey?: DatumKey<TDatum>;
     /** The name of the node key containing the size value. */
-    sizeKey?: ResolvedDatumKey<TDatum>;
+    sizeKey?: DatumKey<TDatum>;
     /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the tile colour. */
-    colorKey?: ResolvedDatumKey<TDatum>;
+    colorKey?: DatumKey<TDatum>;
 }
 
 export interface AgTreemapSeriesOptionsNames {

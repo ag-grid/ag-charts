@@ -1166,7 +1166,7 @@ export class MapMarkerSeries
                 domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
+            data.push({ label: labelName, fallbackLabel: this.keyName(labelKey), value: content ?? labelValue });
         }
         if (sizeKey != null && sizeValue != null) {
             const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
@@ -1184,7 +1184,7 @@ export class MapMarkerSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
+            data.push({ label: sizeName, fallbackLabel: this.keyName(sizeKey), value: content ?? String(sizeValue) });
         }
         if (colorKey != null && colorValue != null) {
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
@@ -1208,7 +1208,11 @@ export class MapMarkerSeries
                 colorValue,
                 formatValue
             );
-            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? binLabel ?? String(colorValue) });
+            data.push({
+                label: colorName,
+                fallbackLabel: this.keyName(colorKey),
+                value: content ?? binLabel ?? String(colorValue),
+            });
         }
 
         let heading: string | undefined;

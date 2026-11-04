@@ -1,7 +1,8 @@
-import type { BBox, ChartAxisDirection, EventEmitter } from 'ag-charts-core';
+import type { BBox, ChartAxisDirection, EventEmitter, ReactiveState } from 'ag-charts-core';
 
 import type { EventsHubMap } from '../../core/eventsHub';
 import type { ModuleMap } from '../../module/moduleMap';
+import type { ChartState } from '../chartState';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
 import type { TooltipContent } from '../tooltip/tooltip';
 import type { HighlightManager } from './highlightManager';
@@ -32,6 +33,7 @@ export type SyncChartLike = {
     seriesAreaBoundingBox: BBox;
     tooltip: { enabled: boolean };
     ctx: {
+        chartState: ReactiveState<ChartState>;
         eventsHub: EventEmitter<EventsHubMap>;
         highlightManager: HighlightManager;
         tooltipManager: TooltipManager;

@@ -1763,7 +1763,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: yKey,
+                        fallbackLabel: this.keyName(yKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                         missing: isTooltipValueMissing(yValue),
                     },

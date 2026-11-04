@@ -1076,7 +1076,7 @@ export class MapShapeSeries
                 domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
+            data.push({ label: labelName, fallbackLabel: this.keyName(labelKey), value: content ?? labelValue });
         }
         if (colorValue != null) {
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
@@ -1100,7 +1100,11 @@ export class MapShapeSeries
                 colorValue,
                 formatValue
             );
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? binLabel ?? String(colorValue) });
+            data.push({
+                label: colorName,
+                fallbackLabel: this.keyName(colorKey!),
+                value: content ?? binLabel ?? String(colorValue),
+            });
         }
 
         const format = this.getItemStyle({ datum, datumIndex, colorValue }, false);
