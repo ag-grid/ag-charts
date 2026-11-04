@@ -32,10 +32,8 @@ interface Mode {
     /** Legend item ids, in legend order. */
     ids: string[];
     units: Unit[];
-    /** The unit most interactions target. */
+    /** The unit most interactions target, and the last one left visible in the preventHidingAll rows. */
     focus: string;
-    /** The unit left as the last visible one for the preventHidingAll rows. */
-    survivor: string;
     lines: boolean;
 }
 
@@ -96,7 +94,6 @@ function lineMode(name: string, yKeys: string[]): Mode {
         ids: ids.map((id, index) => `${id}:${yKeys[index]}`),
         units: ids.map((id, index) => ({ name: id, ids: [`${id}:${yKeys[index]}`], index })),
         focus: 'b',
-        survivor: 'b',
         lines: true,
     };
 }
@@ -116,7 +113,6 @@ function sharedNameMode(name: string, reverseB: boolean): Mode {
             { name: 'c', ids: ['c:y'], index: 2 },
         ],
         focus: 'Shared',
-        survivor: 'Shared',
         lines: true,
     };
 }
@@ -134,7 +130,6 @@ function sharedKeyMode(name: string, outer: string[]): Mode {
             otherIndex: inner.length + outer.indexOf(unit),
         })),
         focus: 'Beta',
-        survivor: 'Beta',
         lines: false,
     };
 }
@@ -156,9 +151,9 @@ function casesFor(mode: Mode): Case[] {
     const indexOf = (u: Unit) => u.otherIndex ?? u.index;
 
     const focus = unit(mode.focus);
-    const survivor = unit(mode.survivor);
-    const [hiddenTarget] = others(mode.survivor);
-    const hideAllButSurvivor = others(mode.survivor).map((u) => u.index);
+    const survivor = focus;
+    const [hiddenTarget] = others(mode.focus);
+    const hideAllButSurvivor = others(mode.focus).map((u) => u.index);
     const cases: Case[] = [];
     const add = (interaction: Interaction, title: string, rest: Omit<Case, 'mode' | 'interaction' | 'title'>) =>
         cases.push({ mode, interaction, title, ...rest });
@@ -204,11 +199,11 @@ function casesFor(mode: Mode): Case[] {
         preventHidingAll: true,
         setup: hideAllButSurvivor,
         target: indexOf(hiddenTarget),
-        hidden: idsOf(others(mode.survivor, hiddenTarget.name)),
+        hidden: idsOf(others(mode.focus, hiddenTarget.name)),
         menuDisabled: 'false',
     });
 
-    const stillHidden = idsOf(others(mode.survivor));
+    const stillHidden = idsOf(others(mode.focus));
     const phaRow = (interaction: Interaction, title: string, hidden: string[], menuDisabled?: 'true') =>
         add(interaction, title, {
             preventHidingAll: true,
@@ -227,10 +222,10 @@ function casesFor(mode: Mode): Case[] {
         phaRow('double-click', `on the last visible ${survivor.name} changes nothing`, stillHidden);
     }
 
-    const [extra] = others(mode.survivor);
+    const [extra] = others(mode.focus);
     add('menu: Toggle Visibility', `hides ${survivor.name} while ${extra.name} is still visible`, {
         preventHidingAll: true,
-        setup: others(mode.survivor, extra.name).map((u) => u.index),
+        setup: others(mode.focus, extra.name).map((u) => u.index),
         target: indexOf(survivor),
         hidden: idsOf(others(extra.name)),
         menuDisabled: 'false',
