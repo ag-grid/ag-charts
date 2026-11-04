@@ -173,7 +173,7 @@ describe('checkPackage', () => {
             const missingEsm = ['dist/package/fr-FR.esm.mjs', 'dist/package/fr-FR.esm.min.mjs'];
             const files = [...STANDARD_FILES, ...localeFiles].filter((f) => !missingEsm.includes(f));
             assert.deepEqual(summarise(checkPackage(createPackage(localeExports, files))), [
-                'missing-target dist/package/fr-FR.esm.mjs',
+                'missing-wildcard-target dist/package/fr-FR.esm.mjs',
                 'missing-twin dist/package/fr-FR.esm.min.mjs',
             ]);
         });

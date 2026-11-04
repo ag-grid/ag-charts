@@ -83,7 +83,7 @@ function expandTargets(pkgDir, targets, errors) {
         if (subs.size === 0) {
             errors.push({ kind: 'no-match', file: target, message: `export pattern matches no files: ${target}` });
         }
-        for (const sub of [...subs].sort()) expanded.push({ file: target.replace('*', sub), types });
+        for (const sub of [...subs].sort()) expanded.push({ file: target.replace('*', sub), types, wildcard: true });
     }
     return expanded;
 }
@@ -142,10 +142,17 @@ function checkPackage(pkgDir, { release = false } = {}) {
     for (const target of targets) {
         if (!target.types) targetDirs.add(path.posix.dirname(target.target));
     }
-    for (const file of new Set(expanded.filter((t) => !t.types).map((t) => t.file))) {
+    // A file named outright is reported as `missing-target`; one only implied by a wildcard gets its own kind, as
+    // `sanity-check-package.js` reports the former itself but cannot see the latter.
+    const runtimeFiles = new Map();
+    for (const { file, types, wildcard = false } of expanded) {
+        if (!types) runtimeFiles.set(file, (runtimeFiles.get(file) ?? true) && wildcard);
+    }
+    for (const [file, wildcard] of runtimeFiles) {
         expected.add(file);
         if (!fs.existsSync(path.join(pkgDir, file))) {
-            errors.push({ kind: 'missing-target', file, message: `exported file is missing: ${file}` });
+            const kind = wildcard ? 'missing-wildcard-target' : 'missing-target';
+            errors.push({ kind, file, message: `exported file is missing: ${file}` });
         }
 
         const twin = minifiedTwin(file);
