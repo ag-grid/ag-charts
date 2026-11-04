@@ -809,34 +809,6 @@ describe('TreemapSeries', () => {
             const [primary, secondary] = textBBoxes();
             expect(primary.y + primary.height).toBeLessThanOrEqual(secondary.y + 0.5);
         });
-
-        it('forwards the deprecated tile and group alignment into the labels', async () => {
-            chart = deproxy(
-                await createEnterpriseChart(
-                    alignmentOptions({
-                        group: { textAlign: 'right' },
-                        tile: { textAlign: 'left', verticalAlign: 'bottom' },
-                    })
-                )
-            );
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`series[0].group.textAlign\` is deprecated. Use \`label.textAlign\` instead.",
-                ],
-                [
-                  "AG Charts - Option \`series[0].tile.textAlign\` is deprecated. Use \`label.textAlign\` and \`secondaryLabel.textAlign\` instead.",
-                ],
-                [
-                  "AG Charts - Option \`series[0].tile.verticalAlign\` is deprecated. Use \`label.verticalAlign\` and \`secondaryLabel.verticalAlign\` instead.",
-                ],
-              ]
-            `);
-            const { group, tile } = resolvedOptions(chart);
-            expect(group.label.textAlign).toBe('right');
-            expect([tile.label.textAlign, tile.label.verticalAlign]).toEqual(['left', 'bottom']);
-            expect([tile.secondaryLabel.textAlign, tile.secondaryLabel.verticalAlign]).toEqual(['left', 'bottom']);
-        });
     });
 
     describe('group label fit', () => {

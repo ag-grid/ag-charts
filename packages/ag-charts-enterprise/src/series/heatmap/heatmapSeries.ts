@@ -561,7 +561,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         if (!dataModel || !processedData) return undefined;
 
         const { xKey, xName, yKey, yName, colorKey, colorName, itemPadding } = this.options;
-        // The top-level textAlign/verticalAlign are write-only forwarders, never read by the series.
         const { textAlign, verticalAlign } = this.options.label;
 
         const xScale = xAxis.scale;

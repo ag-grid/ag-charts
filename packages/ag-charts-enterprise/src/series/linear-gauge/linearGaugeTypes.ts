@@ -59,7 +59,6 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
 
 export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum {
     placements: AgLinearGaugeLabelPlacement[];
-    avoidCollisions: boolean | undefined;
     spacing: number;
     maxWidth: number | undefined;
     maxHeight: number | undefined;

@@ -1,6 +1,5 @@
 import { type AgTreemapSeriesOptions, StandaloneChartModule, VERSION } from 'ag-charts-community';
 import {
-    AUTO_SIZED_LABEL_TRUNCATE,
     BRANCH_GLOW_BUCKETS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FONT_SIZE_RATIO,
@@ -62,7 +61,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     ...LABEL_OVERFLOW_DEFAULTS,
                     collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
                     spacing: 4,
-                    textAlign: { $path: ['../textAlign', 'left'] },
+                    textAlign: 'left',
                     verticalAlign: 'middle',
                 },
                 fill: undefined, // Override default fill
@@ -100,10 +99,10 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'on-space',
-                    truncate: AUTO_SIZED_LABEL_TRUNCATE,
+                    truncate: true,
                     spacing: 2,
-                    textAlign: { $path: ['../textAlign', 'center'] },
-                    verticalAlign: { $path: ['../verticalAlign', 'middle'] },
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
                 },
                 secondaryLabel: {
                     ...LABEL_BOXING_DEFAULTS,
@@ -116,9 +115,9 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'never',
-                    truncate: AUTO_SIZED_LABEL_TRUNCATE,
-                    textAlign: { $path: ['../textAlign', 'center'] },
-                    verticalAlign: { $path: ['../verticalAlign', 'middle'] },
+                    truncate: true,
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
                 },
                 fill: undefined, // Override default fill
                 fillOpacity: 1,

@@ -1,4 +1,4 @@
-import type { AgChartLabelOrientation, OverflowStrategy, PaddingOptions, TextWrap } from 'ag-charts-types';
+import type { AgChartLabelOrientation, PaddingOptions, TextWrap } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
@@ -22,6 +22,7 @@ import {
     hasRealChars,
     isErased,
     labelTextAtShrinkRatio,
+    type OverflowStrategy,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
 import type { Point, SizedPoint } from '../types/scene';

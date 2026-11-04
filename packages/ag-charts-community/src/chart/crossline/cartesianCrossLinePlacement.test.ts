@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import type { CrossLineType } from 'ag-charts-core';
-import type { AgCrossLineLabelPosition } from 'ag-charts-types';
 
 import { type CrossLinePlacementContext, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
 
@@ -11,25 +10,21 @@ function resolve(
         type = 'line',
         horizontal = true,
         rtl = false,
-        position,
     }: Partial<{
         type: CrossLineType;
         horizontal: boolean;
         rtl: boolean;
-        position: AgCrossLineLabelPosition;
     }> = {}
 ) {
     const warnings: string[] = [];
-    const deprecations: string[] = [];
     const context: CrossLinePlacementContext = {
         type,
         horizontal,
         rtl,
         warn: (message) => warnings.push(message),
-        deprecate: (message) => deprecations.push(message),
     };
-    const anchors = resolveCrossLinePlacements(placement, position, context);
-    return { anchors, warnings, deprecations };
+    const anchors = resolveCrossLinePlacements(placement, context);
+    return { anchors, warnings };
 }
 
 function anchorOf(placement: string, options?: Parameters<typeof resolve>[1]) {
@@ -39,10 +34,6 @@ function anchorOf(placement: string, options?: Parameters<typeof resolve>[1]) {
 describe('resolveCrossLinePlacements', () => {
     it('defaults to top when nothing is set', () => {
         expect(resolve(undefined).anchors).toEqual([anchorOf('top')]);
-    });
-
-    it('prefers placement over the deprecated position', () => {
-        expect(resolve('bottom', { position: 'top' }).anchors).toEqual([anchorOf('bottom')]);
     });
 
     it('keeps every entry of an array in order', () => {
@@ -85,24 +76,18 @@ describe('resolveCrossLinePlacements', () => {
     });
 
     it.each([
-        [true, 'inside-top', 'top'],
-        [true, 'inside-bottom-left', 'bottom-left'],
-        [false, 'inside-left', 'left'],
-        [false, 'top-right', 'right-top'],
-        [false, 'inside-bottom-left', 'left-bottom'],
-    ])('deprecates a line placement on a horizontal=%s line in favour of its replacement', (horizontal, from, to) => {
-        const { anchors, deprecations, warnings } = resolve(from, { horizontal });
-        expect(anchors).toEqual([anchorOf(to, { horizontal })]);
-        expect(deprecations).toEqual([
-            `Placement \`${from}\` is deprecated on a line cross line on ${horizontal ? 'a y' : 'an x'} axis. Use \`${to}\` instead.`,
-        ]);
-        expect(warnings).toEqual([]);
-    });
-
-    it('names the replacement in twin form when the deprecated value was twinned', () => {
-        const { deprecations } = resolve('top-start', { horizontal: false });
-        expect(deprecations).toEqual([
-            'Placement `top-start` is deprecated on a line cross line on an x axis. Use `start-top` instead.',
+        [true, 'inside-top'],
+        [true, 'inside-bottom-left'],
+        [false, 'inside-left'],
+        [false, 'top-right'],
+        [false, 'top-start'],
+    ])('ignores a placement that applies only to a range on a horizontal=%s line: %s', (horizontal, placement) => {
+        const { anchors, warnings } = resolve(placement, { horizontal });
+        expect(anchors).toEqual([anchorOf('top', { horizontal })]);
+        expect(warnings).toEqual([
+            expect.stringMatching(
+                new RegExp(`^Placement \`${placement}\` does not apply to a line cross line on ${horizontal ? 'a y' : 'an x'} axis and is ignored;`)
+            ),
         ]);
     });
 
@@ -131,38 +116,10 @@ describe('resolveCrossLinePlacements', () => {
     });
 
     it('accepts every range placement on a range', () => {
-        const { warnings, deprecations } = resolve(
+        const { warnings } = resolve(
             ['left-top', 'top-left', 'inside-top-left', 'inside-bottom-end', 'inside-start'],
             { type: 'range', horizontal: false }
         );
         expect(warnings).toEqual([]);
-        expect(deprecations).toEqual([]);
-    });
-
-    describe('deprecated position', () => {
-        it.each([
-            ['top-left', 'left-top'],
-            ['top-right', 'right-top'],
-            ['bottom-left', 'left-bottom'],
-            ['bottom-right', 'right-bottom'],
-        ] as const)('keeps %s on an x-axis range where it rendered, as %s', (position, placement) => {
-            const xRange = { type: 'range' as const, horizontal: false };
-            const { anchors, warnings, deprecations } = resolve(undefined, { ...xRange, position });
-            expect(anchors).toEqual([anchorOf(placement, xRange)]);
-            expect([...warnings, ...deprecations]).toEqual([]);
-        });
-
-        it('keeps a y-axis range corner on the named edge', () => {
-            const yRange = { type: 'range' as const, horizontal: true };
-            expect(resolve(undefined, { ...yRange, position: 'top-left' }).anchors).toEqual([
-                anchorOf('top-left', yRange),
-            ]);
-        });
-
-        it('maps a line value to its replacement without warning again', () => {
-            const { anchors, deprecations } = resolve(undefined, { horizontal: false, position: 'inside-left' });
-            expect(anchors).toEqual([anchorOf('left', { horizontal: false })]);
-            expect(deprecations).toEqual([]);
-        });
     });
 });

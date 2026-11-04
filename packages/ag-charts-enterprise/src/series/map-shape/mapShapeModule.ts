@@ -49,15 +49,8 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 // The shape always bounds the label, so the shared opt-in triggers do not apply: wrapping is
-                // always on and overflow hides unless `truncate` (or the deprecated `ellipsis`) is asked for.
+                // always on and overflow hides unless `truncate` is asked for.
                 wrapping: 'on-space',
-                truncate: {
-                    $isUserOption: [
-                        './overflowStrategy',
-                        { $eq: [{ $path: './overflowStrategy' }, 'ellipsis'] },
-                        undefined,
-                    ],
-                },
                 enabled: true,
                 color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'seriesLabelFontFamily' },

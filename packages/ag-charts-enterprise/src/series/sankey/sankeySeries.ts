@@ -28,12 +28,13 @@ import {
     lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
+    type OverflowStrategy,
     resolveLabelAvoidance,
     toPlainText,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type { Path, Selection, TransformableText } from 'ag-charts-core';
-import type { OverflowStrategy, PaddingOptions } from 'ag-charts-types';
+import type { PaddingOptions } from 'ag-charts-types';
 
 import {
     type FlowLinkDatumIndex,

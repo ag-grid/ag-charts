@@ -4,7 +4,7 @@ import type { AgDropShadowOptions, CssColor, Opacity, PixelSize, Ratio } from 'a
 
 /** The public shadow options with the undocumented fields. */
 export interface InternalAgDropShadowOptions extends AgDropShadowOptions {
-    /** The fill colour of the shadow. The deprecated `color` is its alias. */
+    /** The fill colour of the shadow. The public `color` is its alias. */
     fill?: CssColor;
     /** The opacity of the shadow's fill, from `0` to `1`. It multiplies any alpha that `fill` already has. */
     fillOpacity?: Opacity;

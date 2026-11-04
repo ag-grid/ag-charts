@@ -71,12 +71,6 @@ export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefa
 export interface AgTreemapSeriesGroupLayout<TDatum, TContext = ContextDefault> {
     /** Options for the label in a group. */
     label?: AgTreemapSeriesGroupLabelOptions<TDatum, TContext>;
-    /**
-     * Horizontal position of the label.
-     *
-     * @deprecated v14.3.0 Use `label.textAlign` instead.
-     */
-    textAlign?: TextAlign;
     /** The distance between the edges of the outer-most title to the edges of the group. */
     padding?: PixelSize;
     /** Gap between adjacent groups. */
@@ -137,18 +131,6 @@ export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     label?: AgTreemapSeriesTileLabelOptions<TDatum, TContext>;
     /** Options for a secondary, smaller label in a tile. */
     secondaryLabel?: AgTreemapSeriesTileSecondaryLabelOptions<TDatum, TContext>;
-    /**
-     * Horizontal position of the label.
-     *
-     * @deprecated v14.3.0 Use `label.textAlign` and `secondaryLabel.textAlign` instead.
-     */
-    textAlign?: TextAlign;
-    /**
-     * Vertical position of the label.
-     *
-     * @deprecated v14.3.0 Use `label.verticalAlign` and `secondaryLabel.verticalAlign` instead.
-     */
-    verticalAlign?: VerticalAlign;
     /** Distance between the tile edges and the text. */
     padding?: PixelSize;
     /** Gap between adjacent tile. */

@@ -1,6 +1,7 @@
 import {
     type FontOptions,
     type NormalisedTextOrSegments,
+    type OverflowStrategy,
     cachedTextMeasurer,
     drawnLineHeight,
     findLargestFittingFontSize,
@@ -16,7 +17,6 @@ import type {
     AgChartAutoSizedSecondaryLabelOptions,
     AgChartLabelFitOptions,
     FontSize,
-    OverflowStrategy,
     TextWrap,
 } from 'ag-charts-types';
 

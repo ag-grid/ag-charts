@@ -8,7 +8,6 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
-    deprecatedValue,
     fillOptionsDef,
     highlightOptionsDef,
     labelAutoFontSizeOptionsDefs,
@@ -38,10 +37,7 @@ const coneFunnelPlacementDef = unionOrArray(
     'middle-after',
     'end-before',
     'end-center',
-    'end-after',
-    deprecatedValue('before', 'Use `start-center` instead.'),
-    deprecatedValue('middle', 'Use `middle-center` instead.'),
-    deprecatedValue('after', 'Use `end-center` instead.')
+    'end-after'
 );
 
 export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeriesThemeableOptions> = {

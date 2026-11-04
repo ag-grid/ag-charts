@@ -15,7 +15,6 @@ import type {
     AgMapShapeSeriesOptions,
     AgMapShapeSeriesStyle,
     CssColor,
-    OverflowStrategy,
     Styler,
 } from 'ag-charts-types';
 
@@ -36,11 +35,9 @@ export type NormalisedMapShapeSeriesStyle = Normalised<AgMapShapeSeriesStyle, ne
 export type NormalisedMapLineSeriesStyle = Normalised<AgMapLineSeriesStyle, never, { stroke?: CssColor }>;
 export type NormalisedMapMarkerSeriesStyle = Normalised<AgMapMarkerSeriesStyle, never, FillStrokeMorph>;
 
-/** Shape label; the deprecated `overflowStrategy` is folded into `truncate` by the theme. */
 export type NormalisedMapShapeSeriesLabelOptions =
     NormalisedCollisionFreeSeriesLabelOptions<AgMapShapeSeriesLabelFormatterParams> & {
         lineHeight?: number;
-        overflowStrategy?: OverflowStrategy;
     };
 
 export type NormalisedMapLineSeriesLabelOptions = NormalisedSeriesLabelOptions<AgMapLineSeriesLabelFormatterParams>;

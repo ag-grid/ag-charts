@@ -7,6 +7,7 @@ import {
     type LabelFit,
     type NormalisedTextOrSegments,
     OrdinalTimeScale,
+    type OverflowStrategy,
     type ResolvedTextAlign,
     type Scale,
     ScaleAlignment,
@@ -50,7 +51,6 @@ import type {
     AgTimeInterval,
     AgTimeIntervalUnit,
     DateFormatterStyle,
-    OverflowStrategy,
     TextWrap,
     VerticalAlign,
 } from 'ag-charts-types';

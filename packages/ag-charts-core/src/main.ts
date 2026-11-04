@@ -159,7 +159,6 @@ export * from './time/ticks';
 export * from './time/timeFormat';
 export * from './time/timeFormatDefaults';
 export * from './time/timeFormatUtil';
-export * from './time/timeInterop';
 export * from './time/timeInterval';
 
 // format
