@@ -57,7 +57,7 @@ export interface AgChartOverlayOptions<TContext = ContextDefault> {
     enabled?: boolean;
     /** Text to render in the overlay. Plain text, or an array of segments for rich content. */
     text?: TextOrSegments;
-    /** A function for generating HTML element or string for overlay content. */
+    /** A function for generating HTML element or string for overlay content. A returned string is inserted as HTML, so escape any values derived from chart data. */
     renderer?: Renderer<AgChartOverlayRendererParams<TContext>, HTMLElement>;
 }
 
@@ -93,7 +93,7 @@ export interface AgCaptionTooltipOptions<TContext = ContextDefault> {
     /** Static text to display in the tooltip. Overrides the default caption text. */
     text?: string;
     /**
-     * Function to produce tooltip content. Return a plain string or an HTML string. Takes precedence over `text`.
+     * Function to produce tooltip content. Return a plain string or an HTML string; escape any values derived from chart data. Takes precedence over `text`.
      *
      * Returning `undefined` falls back to `text` (or the caption's own text). Returning an empty string suppresses the tooltip.
      */

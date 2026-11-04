@@ -62,7 +62,7 @@ export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, T
 }
 
 export interface AgWaterfallSeriesItemTooltip<TDatum = DatumDefault, TContext = ContextDefault> {
-    /** Function used to create the content for tooltips. */
+    /** Function used to create the content for tooltips. A returned string is inserted as HTML, so escape any values derived from chart data. */
     renderer?: Renderer<AgWaterfallSeriesTooltipRendererParams<TDatum, TContext>, AgTooltipRendererResult>;
 }
 
