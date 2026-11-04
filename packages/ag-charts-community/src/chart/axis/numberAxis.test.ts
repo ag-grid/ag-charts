@@ -4,7 +4,13 @@ import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { getAxisDomain, getAxisLabelTexts } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
-import { createChart, expectWarningMessages, setupMockCanvas, setupMockConsole } from '../test/utils';
+import {
+    createChart,
+    expectWarningMessages,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 
 // BigInt numeric-axis ticks must render at full precision end-to-end, so these drive a real chart.
 describe('NumberAxis BigInt labels', () => {
@@ -255,8 +261,7 @@ describe('NumberAxis accepted interval behaviour', () => {
         { os: 'Linux', share: 1.87 },
     ];
 
-    const shareOptions = (interval: object, height?: number): AgCartesianChartOptions => ({
-        height,
+    const shareOptions = (interval: object): AgCartesianChartOptions => ({
         data: shares,
         series: [{ type: 'bar', xKey: 'os', yKey: 'share' }],
         axes: {
@@ -293,7 +298,11 @@ describe('NumberAxis accepted interval behaviour', () => {
     });
 
     it('snaps a dense step up to the next multiple instead of thinning it', async () => {
-        chart = await createChart(shareOptions({ step: 25 }, 150));
+        const options = shareOptions({ step: 25 });
+        chart = await createChart(options);
+        // `createChart` fixes the height, so shrink the chart afterwards to a size where step 25 cannot fit.
+        await chart.update({ ...options, height: 150 });
+        await waitForChartStability(chart);
 
         expect(getAxisDomain(chart, 'left').map(Number)).toEqual([0, 100]);
     });
