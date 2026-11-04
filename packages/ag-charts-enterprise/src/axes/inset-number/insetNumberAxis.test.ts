@@ -7,6 +7,8 @@ import {
     deproxy,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
+    hoverAction,
+    isTooltipVisible,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -245,6 +247,7 @@ describe('InsetNumberAxis', () => {
         const clicked: unknown[] = [];
         chart = await createEnterpriseChart({
             data: DATA,
+            title: { text: 'Volume', fontSize: 60 },
             series: [
                 {
                     type: 'bar',
@@ -265,10 +268,19 @@ describe('InsetNumberAxis', () => {
         const barX = x + xScale.convert('2005') + (xScale.bandwidth ?? 0) / 2;
 
         // The 2005 bar (15) overruns the band's max of 10 up to 37.5% of the height; the band holds the bottom 25%.
-        await clickAction(barX, y + height * 0.7)(chart);
+        const [outside, inside] = [y + height * 0.73, y + height * 0.77];
+        expect(y).toBeGreaterThan(height * 0.1);
+
+        await hoverAction(barX, outside)(chart);
+        expect(isTooltipVisible(internal)).toBe(false);
+
+        await hoverAction(barX, inside)(chart);
+        expect(isTooltipVisible(internal)).toBe(true);
+
+        await clickAction(barX, outside)(chart);
         expect(clicked).toEqual([]);
 
-        await clickAction(barX, y + height * 0.9)(chart);
+        await clickAction(barX, inside)(chart);
         expect(clicked).toEqual(['2005']);
     });
 

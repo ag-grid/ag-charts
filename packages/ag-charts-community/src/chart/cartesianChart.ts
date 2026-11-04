@@ -242,6 +242,13 @@ export class CartesianChart extends Chart {
     private seriesBands = new Map<object, BBox>();
     private bandClippedSeries = new Set<object>();
 
+    protected override getSeriesBand(series: object) {
+        const band = this.seriesBands.get(series);
+        const { seriesRect } = this;
+        // Picks arrive relative to the series area, while bands clip in canvas space.
+        return band && seriesRect ? band.clone().translate(-seriesRect.x, -seriesRect.y) : band;
+    }
+
     private updateSeriesBands(seriesRect: BBox, seriesPaddedRect: BBox, enableClip: boolean) {
         const bands = new Map<object, BBox>();
         for (const axis of this.axes) {
@@ -281,7 +288,6 @@ export class CartesianChart extends Chart {
             const band = seriesBands.get(series);
             if (band == null && !bandClippedSeries.has(series)) continue;
 
-            series.pickClipRect = band;
             for (const group of [
                 series.contentGroup,
                 series.highlightGroup,

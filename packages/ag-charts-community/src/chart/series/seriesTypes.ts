@@ -219,6 +219,8 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
     resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection;
     /** Whether the series profiles the values of other series along its key axis, so that axis serves them. */
     isProfile?(): boolean;
+    /** A profile level's band along the profile's key axis, which its bar fills to whole pixels. */
+    profileLevelExtent?(level: unknown): [number, number] | undefined;
     datumMidPoint?<T extends SeriesNodeDatum>(datum: T): Point | undefined;
     isEnabled(): boolean;
     type: string;

@@ -23,6 +23,7 @@ import type { AxisInsetValueLabelOptions, AxisInsetValueOptions } from './axisIn
 const { LayoutElement, fitLabelToContainer } = _ModuleSupport;
 
 type AxisContext = _ModuleSupport.AxisContext;
+type BoundSeries = _ModuleSupport.ChartAxisRegistry<AxisContext>['chartService']['series'][number];
 
 const DEFAULT_FONT_SIZE = 12;
 
@@ -59,15 +60,8 @@ export class AxisInsetValue extends AbstractModuleInstance {
     private readonly axisCtx: AxisContext;
     private seriesRect: BBox | undefined;
     private rowCache:
-        | {
-              data: any[];
-              categoryKey: string;
-              valueKey: string;
-              rows: InsetRow[];
-              step: number | undefined;
-              profileOuterPadding: number | undefined;
-          }
-        | undefined;
+        { data: any[]; categoryKey: string; valueKey: string; rows: InsetRow[]; step: number | undefined } | undefined;
+    private profile: BoundSeries | undefined = undefined;
     private textCache:
         | { rows: readonly InsetRow[]; formatter: AxisInsetValueLabelOptions['formatter']; texts: readonly string[] }
         | undefined;
@@ -305,8 +299,8 @@ export class AxisInsetValue extends AbstractModuleInstance {
 
         const boundIds = this.axisCtx.seriesIds();
         const bound = this.ctx.chartService.series.filter((s) => boundIds.includes(s.id));
-        const profile = bound.find((s) => s.isProfile?.());
-        const series = profile ?? bound[0];
+        this.profile = bound.find((s) => s.isProfile?.());
+        const series = this.profile ?? bound[0];
         const data = (series as { data?: { data?: any[] } } | undefined)?.data?.data;
         if (data == null) return NO_ROWS;
 
@@ -323,28 +317,23 @@ export class AxisInsetValue extends AbstractModuleInstance {
             // A category with nothing to show gets neither a block nor a label.
             if (isFiniteNumber(value) && value !== 0) rows.push({ category, value, datum });
         }
-        const profileOuterPadding = profile?.getBandScalePadding?.().outer;
-        this.rowCache = { data, categoryKey, valueKey, rows, step: smallestStep(levels), profileOuterPadding };
+        this.rowCache = { data, categoryKey, valueKey, rows, step: smallestStep(levels) };
         return rows;
     }
 
-    /** A level's extent along the axis: its band on a category axis, else one level step centred on its value. */
+    /** A level's extent along the axis: its category band, its profile bar's band, else one level step about it. */
     private measureLevel(category: unknown): [number, number] | undefined {
         const { scale, range } = this.axisCtx;
         if (!ContinuousScale.is(scale)) return this.axisCtx.measureBand(category as string)?.band;
 
-        const step = this.rowCache?.step;
-        const outer = this.rowCache?.profileOuterPadding;
-        if (step == null && outer != null) {
-            // A single profile level is centred on the axis, as its bar is.
-            const half = (Math.abs(range[1] - range[0]) * (1 - 2 * outer)) / 2;
-            const mid = (range[0] + range[1]) / 2;
-            return [mid - half, mid + half];
+        let extent = this.profile?.profileLevelExtent?.(category);
+        if (extent == null) {
+            const step = this.rowCache?.step;
+            if (step == null || !isFiniteNumber(category)) return;
+            extent = [scale.convert(category - step / 2), scale.convert(category + step / 2)];
         }
-        if (step == null || !isFiniteNumber(category)) return;
 
-        const a = scale.convert(category - step / 2);
-        const b = scale.convert(category + step / 2);
+        const [a, b] = extent;
         const min = Math.min(range[0], range[1]);
         const max = Math.max(range[0], range[1]);
         return [clamp(min, Math.min(a, b), max), clamp(min, Math.max(a, b), max)];

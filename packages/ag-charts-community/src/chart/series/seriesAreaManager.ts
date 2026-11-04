@@ -125,6 +125,8 @@ export interface SeriesAreaChartDependencies {
         purpose: 'aria-label' | 'tooltip'
     ) => TooltipContent[];
     seriesRoot: TranslatableGroup;
+    /** The band a series is clipped to, outside which it takes no picks. */
+    getSeriesBand(series: UnknownSeries): BBox | undefined;
     ctx: DynamicContext<ChartRegistry>;
     tooltip: Tooltip;
     overlays: ChartOverlays;
@@ -1637,11 +1639,16 @@ export class SeriesAreaManager extends BaseManager {
             return undefined;
         };
 
-        // Check if any series with 'area' range (for the current intent) contains the point.
         const { x, y } = point;
+        const isPickable = (series: UnknownSeries) =>
+            series.visible &&
+            series.contentGroup.visible &&
+            this.chart.getSeriesBand(series)?.containsPoint(x, y) !== false;
+
+        // Check if any series with 'area' range (for the current intent) contains the point.
         const seriesContainingPoint = new Set<UnknownSeries>();
         for (const series of reverseSeries) {
-            if (series.visible && series.contentGroup.visible && getIntentRange(series) === 'area') {
+            if (isPickable(series) && getIntentRange(series) === 'area') {
                 if (series.isPointInArea?.(x, y)) {
                     seriesContainingPoint.add(series);
                 }
@@ -1652,7 +1659,7 @@ export class SeriesAreaManager extends BaseManager {
 
         let result: PickedNodes | undefined;
         for (const series of reverseSeries) {
-            if (!series.visible || !series.contentGroup.visible) continue;
+            if (!isPickable(series)) continue;
 
             // If we found series with 'area' range containing the point, prefer those series.
             if (hasSeriesContainingPoint) {
