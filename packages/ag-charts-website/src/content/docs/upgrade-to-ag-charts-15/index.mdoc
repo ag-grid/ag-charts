@@ -1,0 +1,126 @@
+---
+# Replace these:
+# * `!x.x!` - the major/minor version of the migration eg, 33.2
+# * `!x.x.x!` - the version of the migration eg, 33.2.1
+# * `!PREV_x.x!` - a previous version before migration version eg, 33.1
+# * `!BLOG_LINK!` - the link to the blog post for the release
+
+# Useful markdoc commands:
+# * `migrationVersion()` - returns the major/minor version eg, `33.2.1` returns `33.2`
+# * `migrationVersionPatch()` - returns the major/minor and highest patch version available eg, `33.2.0` returns `33.2.2` as it is the highest patch release for `33.2`
+# * `{% if isFramework("react") %}` - wrap around blocks specific to a framework
+# * `{% if not(isFramework("react")) %}` - wrap around blocks where it does *not* apply to a framework
+# * `{% metaTag tags=[...] %}` - add meta tags to the page for search engines
+
+title: 'Upgrade to AG Charts 15'
+description: "See what's new in AG Charts v15. View a full list of breaking changes, behaviour changes and deprecations. Read the release post for feature highlights."
+migrationVersion: '15.0.0'
+---
+
+## What's New
+
+<!-- Description with !BLOG_LINK! -->
+<!-- Add the release post link here once it is published. -->
+
+Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid {% gridVersion() %}.
+
+<!--
+Documentation to the highest patch release of the major/minor
+NOTE: This will not show if the current library version is the same as the migration version.
+DO NOT TOUCH.
+-->
+
+{% documentationArchiveSection version=migrationVersionPatch() /%}
+
+## Breaking Changes
+
+<!-- If breaking changes do *not* exist, add the following: -->
+<!--
+There are no breaking changes in AG Charts version {% migrationVersion() %}.
+-->
+
+<!-- Otherwise -->
+
+The full list of breaking changes across all features for version {% migrationVersion() %}.
+
+{% expandingSection headerText="Breaking Changes" %}
+
+This release includes the following breaking changes:
+
+### Number Axis Interval
+
+- A number axis with `interval.step` no longer widens its domain to make room for its labels. The domain now follows the data and the step. For example, a bar chart with x values from `0` to `11000` and `interval: { step: 100 }` now has an x domain of `-500` to `11500`, where it was `-10000` to `20000`.
+- `interval.step` rounds the domain out to a multiple of the step, even when the axis is short or `interval.minSpacing` is large, so the domain can differ from version 14. For example, `interval: { step: 25 }` on a y axis 150 pixels high, with data up to `88.07`, now spans `0` to `100`, where it spanned `0` to `90`.
+- A value in `interval.values` that falls outside the axis domain is no longer shown, and the domain is no longer extended to include it. For example, `interval: { values: [50, 88, 100] }` on data with a maximum of `88.07` now shows `50` and `88` on an axis from `0` to `90`, where it showed all three on an axis from `0` to `100`. A `values` array that only contains `100` shows no labels. To keep a value, extend the domain with `min`, `max`, `preferredMin` or `preferredMax`, for example `max: 100`.
+- With `interval.values`, the domain no longer leaves extra room beyond the data, so a data point can sit on the edge of the series area. For example, the x axis of the Bubble with Images gallery example, with `interval: { values: [-250, 250] }`, now spans `-5000` to `2000` and the "drums" bubble at `-5000` sits on its left edge, where the axis spanned `-6000` to `2000`. To keep the space, set `min` or `preferredMin`, for example `min: -6000`.
+
+### Radius Axis Interval
+
+- A radius axis with `interval.step` can have a different domain when the step is very small or `interval.minSpacing` is large. For example, `interval: { step: 30, minSpacing: 400 }` on data up to `92` now spans `0` to `120`, where it spanned `0` to `100`, and `interval: { step: 1 }` now spans `0` to `92`, where it spanned `0` to `100`.
+
+### Gradient Legend Interval
+
+- A gradient legend with `scale.interval.step` and a large `scale.interval.minSpacing` now places its ticks at multiples of the step, so its labels can differ. For example, a legend over values from `10` to `50` with `interval: { step: 30, minSpacing: 400 }` now shows `30`, where it showed `10` and `40`.
+
+{% /expandingSection %}
+
+## Behaviour Changes
+
+<!-- If behaviour changes do *not* exist, add the following: -->
+
+There are no behaviour changes in AG Charts version {% migrationVersion() %}.
+
+<!-- Otherwise -->
+<!--
+The full list of behaviour changes across all features for version {% migrationVersion() %}.
+
+{% expandingSection headerText="Behaviour Changes" %}
+
+This release includes the following behaviour changes:
+
+### Behaviour Changes section Name
+
+- item...
+
+{% /expandingSection %}
+-->
+
+## Removal of Deprecated APIs
+
+<!-- If there are *no* deprecated APIs, add the following: -->
+
+There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}.
+
+<!-- Otherwise: -->
+<!--
+The following APIs have been deprecated since version !PREV_x.x! and have now been removed.
+
+{% expandingSection headerText="Removed Deprecated APIs" %}
+
+### Deprecated APIs section Name
+
+- item...
+
+{% /expandingSection %}
+-->
+
+## Deprecations
+
+<!-- If there are *no* deprecations, add the following: -->
+
+There are no deprecations in AG Charts version {% migrationVersion() %}.
+
+<!-- Otherwise: -->
+<!--
+{% expandingSection headerText="Deprecations" %}
+
+### Deprecation section Name
+
+- item...
+
+{% /expandingSection %}
+-->
+
+<!-- Changelog for the `migrationVersion` property DO NOT TOUCH -->
+
+{% changelogSection version=$migrationVersion /%}
