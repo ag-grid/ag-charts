@@ -164,7 +164,6 @@ function casesFor(mode: Mode): Case[] {
         cases.push({ mode, interaction, title, ...rest });
 
     const targets = mode.units.length === 2 ? mode.units : [focus];
-    // On rings, click both the inner and the outer copy of a name.
     const clickTargets = mode.lines
         ? targets.map((u) => ({ u, target: indexOf(u) }))
         : [
@@ -179,8 +178,7 @@ function casesFor(mode: Mode): Case[] {
     }
 
     if (mode.lines) {
-        // With two series sharing a legendItemName beside an unnamed one, double-click counts only the named items
-        // and so shows everything. The FOLLOWUP proposal in AG-19153 tracks the fix.
+        // Known defect: beside an unnamed series, double-click counts only the named items and so shows everything.
         const fails = mode.units.length === 2;
         for (const u of targets) {
             for (const interaction of ['double-click', 'menu: Toggle Other Series'] as const) {
