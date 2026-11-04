@@ -364,7 +364,8 @@ test.describe('api-ref-page', () => {
     const NESTED_ITEMS_ID = 'reference-AgChartOptions-contextMenu-items-axis-items';
 
     test('stops a nested contextMenu items row expanding its type again', async ({ page }) => {
-        await gotoUrl(page, toPageUrl(`options/#${NESTED_ITEMS_ID}`));
+        // A deep link below the row expands it whenever it can expand.
+        await gotoUrl(page, toPageUrl(`options/#${NESTED_ITEMS_ID}-axis`));
 
         const nestedItems = page.locator(`#${NESTED_ITEMS_ID}`);
         await expect(nestedItems).toBeVisible();
