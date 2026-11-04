@@ -19,7 +19,7 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, _Mo
     },
     themeTemplate: {
         enabled: true,
-        allowBrowserMenuWithModifierKey: false,
+        allowBrowserMenuWithModifierKey: true,
     },
 
     services: { contextMenuRegistry: (c) => new _ModuleSupport.ContextMenuRegistry(c) },

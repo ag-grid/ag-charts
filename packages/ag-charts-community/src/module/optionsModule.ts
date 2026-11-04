@@ -757,6 +757,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
         const secondPassParams: ValidateParams = {
             skipDisabledNodeValidation: true,
+            silentAdvisories: true,
             logger: this.logger,
         };
 

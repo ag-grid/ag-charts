@@ -24,6 +24,7 @@ import {
     color,
     constant,
     date,
+    deprecated,
     enterprise,
     greaterThan,
     instanceOf,
@@ -246,6 +247,43 @@ describe('Validation utils', () => {
                 expect(() => enterprise(required(string))).toThrow(/enterprise.*required/);
                 expect(() => required(enterprise(string))).toThrow(/required.*enterprise/);
             });
+        });
+    });
+
+    describe('deprecated wrapper', () => {
+        afterEach(() => validationLogger.setEnabledLevels(['error', 'warning', 'deprecation']));
+
+        test('reports the notice and path once at the default console level', () => {
+            const { cleared, invalid } = validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') }
+            );
+            expect(cleared).toEqual({ colorScale: 'red' });
+            expect(invalid).toEqual([]);
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect((console.warn as Mock).mock.calls[0][0]).toContain(
+                'Option `colorScale` is deprecated. Use `colorScale.fills` instead.'
+            );
+        });
+
+        test('silences the notice once "deprecation" is deselected from the console levels', () => {
+            validationLogger.setEnabledLevels(['error', 'warning']);
+            const { cleared } = validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') }
+            );
+            expect(cleared).toEqual({ colorScale: 'red' });
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        test('stays silent under silentAdvisories', () => {
+            validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') },
+                '',
+                { silentAdvisories: true }
+            );
+            expect(console.warn).not.toHaveBeenCalled();
         });
     });
 

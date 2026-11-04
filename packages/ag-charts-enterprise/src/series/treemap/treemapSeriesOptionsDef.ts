@@ -57,7 +57,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+        shadow: shadowOptionsDefs,
         fills: arrayOf(colorUnion),
         interactive: boolean,
         highlight: {
@@ -81,7 +81,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+        shadow: shadowOptionsDefs,
         label: {
             ...autoSizedLabelOptionsDefs,
             collision: collisionOptionsDef,

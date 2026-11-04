@@ -25,7 +25,6 @@ import {
     strokeOptionsDef,
     textAlign,
     tooltipOptionsDefs,
-    undocumentedDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -34,7 +33,7 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     title: string,
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     itemStyler: callbackDefs<AgHeatmapSeriesStyle>(
         {
             ...fillOptionsDef,

@@ -1190,11 +1190,31 @@ describe('Context Menu', () => {
             expect(menuItemCount()).toBeGreaterThan(0);
         });
 
-        it.each([
-            ['false', { allowBrowserMenuWithModifierKey: false }],
-            ['unset', {}],
-        ])('opens the chart menu on Ctrl/Cmd + right-click when the option is %s', async (_name, contextMenu) => {
-            const { getItems } = await prepare(contextMenu, coordinatesOptions());
+        it.each(['ctrlKey', 'metaKey'] as const)(
+            'lets the browser menu through with %s when the option is unset',
+            async (modifier) => {
+                const { getItems } = await prepare({}, coordinatesOptions());
+
+                const event = await rightClick(seriesAreaCentre, { [modifier]: true });
+
+                expect(event.defaultPrevented).toBe(false);
+                expect(getItems).not.toHaveBeenCalled();
+                expect(menuItemCount()).toBe(0);
+            }
+        );
+
+        it('opens the chart menu without a modifier key when the option is unset', async () => {
+            const { getItems } = await prepare({}, coordinatesOptions());
+
+            const event = await rightClick(seriesAreaCentre, {});
+
+            expect(event.defaultPrevented).toBe(true);
+            expect(getItems).toHaveBeenCalledTimes(1);
+            expect(menuItemCount()).toBeGreaterThan(0);
+        });
+
+        it('opens the chart menu on Ctrl/Cmd + right-click when the option is false', async () => {
+            const { getItems } = await prepare({ allowBrowserMenuWithModifierKey: false }, coordinatesOptions());
 
             const ctrlEvent = await rightClick(seriesAreaCentre, { ctrlKey: true });
             const metaEvent = await rightClick(seriesAreaCentre, { metaKey: true });

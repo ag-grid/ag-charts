@@ -48,7 +48,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Group, type Shape, Transformable, type WithInternalShadow } from 'ag-charts-core';
+import { Group, type Shape, Transformable } from 'ag-charts-core';
 
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -205,7 +205,7 @@ describe('RangeAreaSeries', () => {
 
     it.each([
         ['ag-default', 0.5],
-        ['ag-default-dark', 0.5],
+        ['ag-default-dark', 1],
     ])('should default the series and marker shadow fill for %s', async (theme, fillOpacity) => {
         chart = await createEnterpriseChart({
             ...RANGE_AREA_OPTIONS,
@@ -217,9 +217,9 @@ describe('RangeAreaSeries', () => {
                     marker: { shadow: { enabled: true } },
                 },
             ],
-        } as unknown as AgCartesianChartOptions);
+        } as AgCartesianChartOptions);
 
-        const series = getSeriesOptions<AgRangeAreaSeriesOptions & { marker?: WithInternalShadow }>(chart);
+        const series = getSeriesOptions<AgRangeAreaSeriesOptions>(chart);
         expect(series.shadow).toMatchObject({ fill: '#000', fillOpacity });
         expect(series.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity });
     });
@@ -1831,8 +1831,7 @@ describe('RangeAreaSeries', () => {
         });
     });
 
-    // AG-9003: 14.2.0 rendering restored for this release
-    describe.skip('shadow root', () => {
+    describe('shadow root', () => {
         const FILLS = { fillOpacity: 1, strokeWidth: 0, marker: { enabled: false } };
         const data = [
             { x: 1, lowA: 2, highA: 8, lowB: 3, highB: 6 },
@@ -1848,10 +1847,7 @@ describe('RangeAreaSeries', () => {
             },
             series,
         });
-        const rangeArea = (
-            suffix: 'A' | 'B',
-            extra: Partial<AgRangeAreaSeriesOptions> & { marker?: WithInternalShadow }
-        ): AgRangeAreaSeriesOptions => ({
+        const rangeArea = (suffix: 'A' | 'B', extra: Partial<AgRangeAreaSeriesOptions>): AgRangeAreaSeriesOptions => ({
             type: 'range-area',
             xKey: 'x',
             yLowKey: `low${suffix}`,
