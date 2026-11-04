@@ -12,6 +12,7 @@ import {
     cachedTextMeasurer,
     callWithContext,
     createId,
+    datumKeyReader,
     isFiniteNumber,
 } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
@@ -56,7 +57,9 @@ export class AxisInsetValue extends AbstractModuleInstance {
     private options: AxisInsetValueOptions | undefined;
     private readonly axisCtx: AxisContext;
     private seriesRect: BBox | undefined;
-    private rowCache: { data: any[]; categoryKey: string; valueKey: string; rows: InsetRow[] } | undefined;
+    private rowCache:
+        | { data: any[]; categoryKey: string; valueKey: string; suppressFieldDotNotation: boolean; rows: InsetRow[] }
+        | undefined;
     private textCache:
         | { rows: readonly InsetRow[]; formatter: AxisInsetValueLabelOptions['formatter']; texts: readonly string[] }
         | undefined;
@@ -294,20 +297,31 @@ export class AxisInsetValue extends AbstractModuleInstance {
 
         const boundIds = this.axisCtx.seriesIds();
         const series = this.ctx.chartService.series.find((s) => boundIds.includes(s.id));
-        const data = (series as { data?: { data?: any[] } } | undefined)?.data?.data;
-        if (data == null) return NO_ROWS;
+        const dataSet = (series as { data?: { data?: any[]; suppressFieldDotNotation: boolean } } | undefined)?.data;
+        const data = dataSet?.data;
+        if (dataSet == null || data == null) return NO_ROWS;
+        const { suppressFieldDotNotation } = dataSet;
 
         // Reuse the rows while the series keeps the same data array and keys.
         const cache = this.rowCache;
-        if (cache?.data === data && cache.categoryKey === categoryKey && cache.valueKey === valueKey) return cache.rows;
+        if (
+            cache?.data === data &&
+            cache.categoryKey === categoryKey &&
+            cache.valueKey === valueKey &&
+            cache.suppressFieldDotNotation === suppressFieldDotNotation
+        ) {
+            return cache.rows;
+        }
 
+        const readCategory = datumKeyReader(categoryKey, suppressFieldDotNotation);
+        const readValue = datumKeyReader(valueKey, suppressFieldDotNotation);
         const rows: InsetRow[] = [];
         for (const datum of data) {
-            const value: unknown = datum?.[valueKey];
+            const value: unknown = readValue(datum);
             // A category with nothing to show gets neither a block nor a label.
-            if (isFiniteNumber(value) && value !== 0) rows.push({ category: datum[categoryKey], value, datum });
+            if (isFiniteNumber(value) && value !== 0) rows.push({ category: readCategory(datum), value, datum });
         }
-        this.rowCache = { data, categoryKey, valueKey, rows };
+        this.rowCache = { data, categoryKey, valueKey, suppressFieldDotNotation, rows };
         return rows;
     }
 

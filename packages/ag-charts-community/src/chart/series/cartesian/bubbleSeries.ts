@@ -1841,7 +1841,7 @@ export abstract class BubbleScatterSeries<
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: legendItemName ?? title ?? yName ?? itemId,
+                    text: legendItemName ?? title ?? yName ?? this.keyName(itemId),
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,

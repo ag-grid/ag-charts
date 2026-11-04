@@ -7,6 +7,7 @@ import {
     getSeriesAt,
     getSeriesNodeData,
     hoverAction,
+    hoverLegendItem,
     prepareFinancialTestOptions,
     prepareTestOptions,
     pressKey,
@@ -86,6 +87,24 @@ function withKey(options: Options, keyPath: string, mode: 'nested' | 'absent'): 
     }
     setAt(result, keyPath, mode === 'nested' ? `${NESTED}.${field}` : ABSENT);
     return result;
+}
+
+// Renames each key's field to a dotted property name, which only a chart with dot notation suppressed reads back.
+function withLiteralKeys(options: Options, keyPaths: string[]): Options {
+    const result = deepClone(options);
+    for (const keyPath of keyPaths) {
+        const field: string = getAt(result, keyPath);
+        const literal = `${NESTED}.${field}`;
+        const rename = (data: Options[]) =>
+            data.map(({ [field]: value, ...datum }) => (value === undefined ? datum : { ...datum, [literal]: value }));
+        const parts = keyPath.split('.');
+        for (let depth = 0; depth < parts.length; depth++) {
+            const host = depth === 0 ? result : getAt(result, parts.slice(0, depth).join('.'));
+            if (Array.isArray(host?.data)) host.data = rename(host.data);
+        }
+        setAt(result, keyPath, literal);
+    }
+    return { ...result, suppressFieldDotNotation: true };
 }
 
 const categories = [
@@ -456,6 +475,8 @@ const SERIES_CASES = SERIES.map((keyPathCase): KeyPathCase => ({
     ...keyPathCase,
 }));
 
+const highlight = { highlightedItem: { fill: 'red' }, unhighlightedSeries: { opacity: 0.2 } };
+
 const FEATURE_CASES: KeyPathCase[] = [
     {
         name: 'dataIdKey',
@@ -501,6 +522,42 @@ const FEATURE_CASES: KeyPathCase[] = [
             await waitForChartStability(target);
         },
         probe: ([target]) => target.getState().active,
+    },
+    {
+        name: 'donuts sharing legend items',
+        options: {
+            data: slices,
+            legend: { enabled: true },
+            series: [
+                { type: 'donut', angleKey: 'value', legendItemKey: 'legend', innerRadiusRatio: 0.7, highlight },
+                {
+                    type: 'donut',
+                    angleKey: 'value',
+                    legendItemKey: 'legend',
+                    innerRadiusRatio: 0.3,
+                    outerRadiusRatio: 0.6,
+                    highlight,
+                },
+            ],
+        },
+        keys: ['series.0.legendItemKey'],
+        interact: async ([target]) => {
+            await hoverAction(0, 0)(target);
+            await hoverLegendItem(target, 0);
+            await waitForChartStability(target);
+        },
+    },
+    {
+        name: 'key names in the legend',
+        options: {
+            data: categories,
+            legend: { enabled: true },
+            series: [
+                { type: 'bar', xKey: 'x', yKey: 'y' },
+                { type: 'line', xKey: 'x', yKey: 'high' },
+            ],
+        },
+        keys: ['series.0.yKey', 'series.1.yKey'],
     },
     {
         name: 'crosshair on a category axis',
@@ -707,30 +764,28 @@ describe('datum key paths', () => {
         });
     });
 
-    it('reads keys as literal property names when dot notation is suppressed', async () => {
-        const series = { type: 'bar', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'low', yUpperKey: 'high' } };
-        const literal = categories.map(({ y, low, high, ...datum }) => ({
-            ...datum,
-            [`${NESTED}.y`]: y,
-            [`${NESTED}.low`]: low,
-            [`${NESTED}.high`]: high,
-        }));
-        const literalSeries = {
-            ...series,
-            yKey: `${NESTED}.y`,
-            errorBar: { yLowerKey: `${NESTED}.low`, yUpperKey: `${NESTED}.high` },
-        };
-        const keyPathCase: KeyPathCase = { name: 'suppressFieldDotNotation', options: {}, keys: [] };
+    const SUPPRESSED_CASES: KeyPathCase[] = [
+        {
+            name: 'bar with error bars',
+            options: {
+                data: categories,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'low', yUpperKey: 'high' } }],
+            },
+            keys: ['series.0.yKey', 'series.0.errorBar.yLowerKey', 'series.0.errorBar.yUpperKey'],
+        },
+        ...FEATURE_CASES.filter(({ factory = 'create' }) => factory !== 'create'),
+    ];
 
-        const flat = await render(keyPathCase, { data: categories, series: [series] });
-        const suppressed = await render(keyPathCase, {
-            data: literal,
-            series: [literalSeries],
-            suppressFieldDotNotation: true,
-        });
+    it.each(SUPPRESSED_CASES)(
+        '$name reads literal dotted keys when dot notation is suppressed',
+        async (keyPathCase) => {
+            // Suppressed first, so text a literal key fails to resolve cannot be left over from a flat render.
+            const suppressed = await render(keyPathCase, withLiteralKeys(keyPathCase.options, keyPathCase.keys));
+            const flat = await render(keyPathCase, keyPathCase.options);
 
-        expectNonBlank(flat.image);
-        expect(suppressed.warnings).toEqual([]);
-        expect(same(suppressed, flat), 'a literal key must render as the flat key does').toBe(true);
-    });
+            expectNonBlank(flat.image);
+            expect(suppressed.warnings).toEqual([]);
+            expect(same(suppressed, flat), 'a literal key must render as the flat key does').toBe(true);
+        }
+    );
 });

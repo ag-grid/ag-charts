@@ -1509,12 +1509,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { xKey, xName, yName, yLowKey, yLowName, yHighKey, yHighName, legendItemName } = this.options;
         return {
             xKey,
-            xName: xName ?? xKey,
+            xName: xName ?? this.keyName(xKey),
             yName,
             yLowKey,
-            yLowName: yLowName ?? yLowKey,
+            yLowName: yLowName ?? this.keyName(yLowKey),
             yHighKey,
-            yHighName: yHighName ?? yHighKey,
+            yHighName: yHighName ?? this.keyName(yHighKey),
             legendItemName,
         };
     }
@@ -1639,7 +1639,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { id: seriesId, visible } = this;
 
         const { yName, yLowName, yHighName, yLowKey, yHighKey, legendItemName, showInLegend } = this.options;
-        const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const legendItemText =
+            legendItemName ?? yName ?? `${yLowName ?? this.keyName(yLowKey)} - ${yHighName ?? this.keyName(yHighKey)}`;
         const itemId = `${yLowKey}-${yHighKey}`;
 
         return [

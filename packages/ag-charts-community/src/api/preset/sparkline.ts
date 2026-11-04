@@ -118,40 +118,43 @@ const defaultTooltipContent = (
     return showXValue ? `${String(xValue)} ${String(yValue)}` : String(yValue);
 };
 
-const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
-    return (
-        params: AgBarSeriesTooltipRendererParams | AgLineSeriesTooltipRendererParams | AgAreaSeriesTooltipRendererParams
-    ): AgTooltipRendererResult | string => {
-        const xValue = readDatumKey(params.datum, params.xKey, false);
-        const yValue = readDatumKey(params.datum, params.yKey, false);
-        const datum = datumKey == null ? params.datum : params.datum[datumKey];
+const tooltipRendererFn = simpleMemorize(
+    (tooltip: AgSparklineTooltip<any> | undefined, datumKey: string | undefined, suppressFieldDotNotation: boolean) => {
+        return (
+            params:
+                AgBarSeriesTooltipRendererParams | AgLineSeriesTooltipRendererParams | AgAreaSeriesTooltipRendererParams
+        ): AgTooltipRendererResult | string => {
+            const xValue = readDatumKey(params.datum, params.xKey, suppressFieldDotNotation);
+            const yValue = readDatumKey(params.datum, params.yKey, suppressFieldDotNotation);
+            const datum = datumKey == null ? params.datum : params.datum[datumKey];
 
-        // Read `context` from params (set per-chart by `callWithContext`) rather than
-        // capturing it at wrap time, so the structural cache can share this wrapper.
-        const userContent = tooltip?.renderer?.({ context: params.context, datum, xValue, yValue });
+            // Read `context` from params (set per-chart by `callWithContext`) rather than
+            // capturing it at wrap time, so the structural cache can share this wrapper.
+            const userContent = tooltip?.renderer?.({ context: params.context, datum, xValue, yValue });
 
-        if (isString(userContent) || isNumber(userContent) || isDate(userContent)) {
-            return toTextString(userContent);
-        }
+            if (isString(userContent) || isNumber(userContent) || isDate(userContent)) {
+                return toTextString(userContent);
+            }
 
-        // Absent renderer or one returning `undefined` falls through to the default content.
-        const userTitle = userContent?.title;
-        const hasUserTitle = userTitle != null && userTitle !== '';
-        const content = userContent?.content ?? defaultTooltipContent(xValue, yValue, datumKey, hasUserTitle);
+            // Absent renderer or one returning `undefined` falls through to the default content.
+            const userTitle = userContent?.title;
+            const hasUserTitle = userTitle != null && userTitle !== '';
+            const content = userContent?.content ?? defaultTooltipContent(xValue, yValue, datumKey, hasUserTitle);
 
-        return hasUserTitle
-            ? {
-                  heading: undefined,
-                  title: undefined,
-                  data: [{ label: userTitle, value: content }],
-              }
-            : {
-                  heading: undefined,
-                  title: content,
-                  data: [],
-              };
-    };
-});
+            return hasUserTitle
+                ? {
+                      heading: undefined,
+                      title: undefined,
+                      data: [{ label: userTitle, value: content }],
+                  }
+                : {
+                      heading: undefined,
+                      title: content,
+                      data: [],
+                  };
+        };
+    }
+);
 
 export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const {
@@ -177,6 +180,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         tooltip,
         context,
         styleNonce,
+        suppressFieldDotNotation,
         ...seriesOptions
     } = opts as AgSparklineOptions & SparklineUndocumentedProperties;
 
@@ -194,6 +198,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         padding,
         width,
         styleNonce,
+        suppressFieldDotNotation,
     };
 
     const { data, series: [seriesOverrides] = [], datumKey } = sparklineDataPreset(baseData);
@@ -205,7 +210,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     seriesConfig.id ??= DEFAULT_SERIES_ID;
     seriesConfig.tooltip = {
         ...tooltip,
-        renderer: tooltipRendererFn(tooltip, datumKey),
+        renderer: tooltipRendererFn(tooltip, datumKey, suppressFieldDotNotation ?? false),
     };
 
     chartOpts.data = data;

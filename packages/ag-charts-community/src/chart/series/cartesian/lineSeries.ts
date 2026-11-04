@@ -1285,7 +1285,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: legendItemName ?? title ?? yName ?? itemId,
+                    text: legendItemName ?? title ?? yName ?? this.keyName(itemId),
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: showInLegend === false,

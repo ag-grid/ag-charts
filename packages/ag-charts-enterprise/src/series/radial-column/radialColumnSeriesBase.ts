@@ -706,7 +706,7 @@ export abstract class RadialColumnSeriesBase<
                 seriesId,
                 enabled: visible,
                 label: {
-                    text: legendItemName ?? radiusName ?? radiusKey,
+                    text: legendItemName ?? radiusName ?? this.keyName(radiusKey),
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,

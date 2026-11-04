@@ -2,15 +2,14 @@ import {
     type CartesianAxisDirection,
     Logger,
     type WithInternalShadow,
+    datumKeyReader,
     isFiniteNumericValue,
     mergeDefaults,
     pick,
-    readDatumKey,
 } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
     AgCartesianChartOptions,
-    AgChartCallbackParams,
     AgChartLabelFormatterParams,
     AgChartLabelStylerParams,
     AgContextMenuGetItemsParams,
@@ -26,7 +25,6 @@ import type {
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
-    AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
     AgSeriesAreaBackgroundRegion,
     AgSeriesAreaBackgroundRegionLabel,
@@ -120,19 +118,6 @@ function createRegionLabel(
     };
 }
 
-function getRegionMeta(
-    params: AgChartCallbackParams<any, any> & AgScatterSeriesOptionsKeys,
-    pivotX: AgNumericValue,
-    pivotY: AgNumericValue
-) {
-    return getRegionMetaForValues(
-        readDatumKey(params.datum, params.xKey, false),
-        readDatumKey(params.datum, params.yKey, false),
-        pivotX,
-        pivotY
-    );
-}
-
 function getRegionMetaForValues(
     xValue: AgNumericValue,
     yValue: AgNumericValue,
@@ -185,6 +170,7 @@ export function createQuadrant(
         'padding',
         'selection',
         'subtitle',
+        'suppressFieldDotNotation',
         'title',
         'theme',
         'width',
@@ -224,6 +210,10 @@ export function createQuadrant(
 
     const pivotX = pivot?.x ?? 0;
     const pivotY = pivot?.y ?? 0;
+    const suppressFieldDotNotation = options.suppressFieldDotNotation ?? false;
+    const readX = datumKeyReader(options.xKey, suppressFieldDotNotation);
+    const readY = datumKeyReader(options.yKey, suppressFieldDotNotation);
+    const getRegionMeta = (datum: unknown) => getRegionMetaForValues(readX(datum), readY(datum), pivotX, pivotY);
 
     const { marker: topLeftMarker, ...topLeft } = regions?.topLeft ?? {};
     const { marker: topRightMarker, ...topRight } = regions?.topRight ?? {};
@@ -258,7 +248,7 @@ export function createQuadrant(
     };
 
     const composedItemStyler = (params: AgScatterSeriesItemStylerParams): AgSeriesMarkerStyle => {
-        const { regionName, index } = getRegionMeta(params, pivotX, pivotY);
+        const { regionName, index } = getRegionMeta(params.datum);
 
         let defaultMarker = bottomLeftMarker;
         if (regionName === 'top-right') {
@@ -316,20 +306,20 @@ export function createQuadrant(
     };
 
     const composedTooltipRenderer = (params: AgScatterSeriesTooltipRendererParams) => {
-        const { regionName } = getRegionMeta(params, pivotX, pivotY);
+        const { regionName } = getRegionMeta(params.datum);
         return options.tooltip?.renderer?.({ ...params, region: regionName });
     };
 
     const composedLabelFormatter = options.label?.formatter
         ? (params: AgChartLabelFormatterParams<any, any> & AgScatterSeriesLabelFormatterParams) => {
-              const { regionName } = getRegionMeta(params, pivotX, pivotY);
+              const { regionName } = getRegionMeta(params.datum);
               return options.label?.formatter?.({ ...params, region: regionName });
           }
         : undefined;
 
     const composedLabelItemStyler = options.label?.itemStyler
         ? (params: AgChartLabelStylerParams<any, any> & AgScatterSeriesLabelFormatterParams) => {
-              const { regionName } = getRegionMeta(params, pivotX, pivotY);
+              const { regionName } = getRegionMeta(params.datum);
               return options.label?.itemStyler?.({ ...params, region: regionName });
           }
         : undefined;
@@ -351,10 +341,7 @@ export function createQuadrant(
         coordinates: AgCoordinates | undefined
     ): AgQuadrantRegion | undefined => {
         if (scope.showOn === 'series-node') {
-            return regionForValues(
-                readDatumKey(scope.datum, options.xKey, false),
-                readDatumKey(scope.datum, options.yKey, false)
-            );
+            return regionForValues(readX(scope.datum), readY(scope.datum));
         }
         if (scope.showOn === 'series-area') {
             return regionForValues(coordinates?.x?.value, coordinates?.y?.value);

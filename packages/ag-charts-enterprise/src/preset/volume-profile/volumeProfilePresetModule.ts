@@ -47,6 +47,7 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     dataSource: defined,
     formatter: defined,
     enableRtl: boolean,
+    suppressFieldDotNotation: boolean,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
         foreground: defined,
@@ -66,7 +67,8 @@ export const VolumeProfilePresetModule: PresetModuleDefinition<
     options: volumeProfileChartOptionsDef,
 
     create: volumeProfileChart,
-    transformSeriesData: (data, opts, logger) => groupVolumeProfile(data, opts, opts.tickSize, logger),
+    transformSeriesData: (data, opts, logger) =>
+        groupVolumeProfile(data, opts, opts.tickSize, opts.suppressFieldDotNotation ?? false, logger),
 
     baseTheme: 'ag-financial',
     themeTemplate: {

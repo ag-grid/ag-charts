@@ -418,10 +418,6 @@ export class Crosshair
         });
     }
 
-    private readKey(datum: unknown, key: string) {
-        return readDatumKey(datum, key, this.ctx.chartState.getValue('options', 'suppressFieldDotNotation'));
-    }
-
     private getData(event: CurrentPoint): {
         [key: string]: { position: number; value: any };
     } {
@@ -438,7 +434,9 @@ export class Crosshair
         if (!this.isInRange(position)) return {};
 
         if (!axisCtx.continuous) {
-            return { [key]: { position, value: this.readKey(datum, isVertical ? xKey : yKey) ?? '' } };
+            const suppressFieldDotNotation = this.ctx.chartState.getValue('options', 'suppressFieldDotNotation');
+            const value = readDatumKey(datum, isVertical ? xKey : yKey, suppressFieldDotNotation);
+            return { [key]: { position, value: value ?? '' } };
         }
 
         const snapInterval = this.snapInterval();
@@ -456,6 +454,7 @@ export class Crosshair
         const { series, xKey = '', aggregatedValue, cumulativeValue, cumulativeValueExact, midPoint } = activeHighlight;
         const datum = readDatum(activeHighlight);
         const seriesKeyProperties = series.getKeyProperties(axisCtx.direction);
+        const suppressFieldDotNotation = this.ctx.chartState.getValue('options', 'suppressFieldDotNotation');
 
         const halfBandwidth = (axisCtx.scale.bandwidth ?? 0) / 2;
 
@@ -478,7 +477,9 @@ export class Crosshair
 
         if (isXKey) {
             const position = (this.isVertical() ? midPoint?.x : midPoint?.y) ?? 0;
-            const value = axisCtx.continuous ? axisCtx.scaleInvert(position) : this.readKey(datum, xKey);
+            const value = axisCtx.continuous
+                ? axisCtx.scaleInvert(position)
+                : readDatumKey(datum, xKey, suppressFieldDotNotation);
             return this.isInRange(position) ? { xKey: { value, position } } : {};
         }
 
@@ -489,7 +490,7 @@ export class Crosshair
             const keyValue: unknown = series.options[unsafeKey as keyof typeof series.options];
             if (typeof keyValue !== 'string') continue;
 
-            const value = this.readKey(datum, keyValue);
+            const value = readDatumKey(datum, keyValue, suppressFieldDotNotation);
             const position = axisCtx.scale.convert(value) + halfBandwidth;
             const isInRange = this.isInRange(position);
 

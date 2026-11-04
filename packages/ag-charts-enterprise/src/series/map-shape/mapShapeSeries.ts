@@ -1025,7 +1025,7 @@ export class MapShapeSeries
                 itemId: seriesId,
                 seriesId,
                 enabled: visible,
-                label: { text: legendItemName ?? title ?? idName ?? idKey },
+                label: { text: legendItemName ?? title ?? idName ?? this.keyName(idKey) },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: showInLegend === false,

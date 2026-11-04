@@ -1323,7 +1323,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: yName ?? itemId ?? 'Frequency',
+                    text: yName ?? (itemId == null ? undefined : this.keyName(itemId)) ?? 'Frequency',
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: showInLegend === false,

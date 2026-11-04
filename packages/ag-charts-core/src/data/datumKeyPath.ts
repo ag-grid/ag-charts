@@ -1,3 +1,5 @@
+import { LRUCache } from '../structures/lruCache';
+
 /**
  * Parses a property path string into components.
  * Supports dot notation (a.b), bracket notation (a['b']), and array indices (a[0]).
@@ -70,7 +72,8 @@ function isKeyPath(key: string): boolean {
     return key.includes('.') || key.includes('[');
 }
 
-const pathReaders = new Map<string, DatumKeyReader>();
+const pathReaders = new LRUCache<DatumKeyReader>(256);
+const pathNames = new LRUCache<string>(256);
 
 function pathReader(key: string): DatumKeyReader {
     let reader = pathReaders.get(key);
@@ -124,5 +127,10 @@ export function withDatumKey(datum: object, key: string, value: unknown, suppres
 /** The name a key is shown under when no display name is set: the last segment of a path. */
 export function datumKeyName(key: string, suppressFieldDotNotation: boolean): string {
     if (suppressFieldDotNotation || !isKeyPath(key)) return key;
-    return getPathComponents(key)?.at(-1) ?? key;
+    let name = pathNames.get(key);
+    if (name == null) {
+        name = getPathComponents(key)?.at(-1) ?? key;
+        pathNames.set(key, name);
+    }
+    return name;
 }

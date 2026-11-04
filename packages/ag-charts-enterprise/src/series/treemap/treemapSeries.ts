@@ -839,12 +839,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         return {
             childrenKey,
             colorKey,
-            colorName: colorName ?? colorKey,
+            colorName: colorName ?? this.optionalKeyName(colorKey),
             depth: node.depth ?? Number.NaN,
             labelKey,
             secondaryLabelKey,
             sizeKey,
-            sizeName: sizeName ?? sizeKey,
+            sizeName: sizeName ?? this.optionalKeyName(sizeKey),
         };
     }
 

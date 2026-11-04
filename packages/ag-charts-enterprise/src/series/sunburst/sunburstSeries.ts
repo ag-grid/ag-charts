@@ -791,12 +791,12 @@ export class SunburstSeries extends HierarchySeries<
         return {
             childrenKey,
             colorKey,
-            colorName: colorName ?? colorKey,
+            colorName: colorName ?? this.optionalKeyName(colorKey),
             depth: node.depth ?? Number.NaN,
             labelKey,
             secondaryLabelKey,
             sizeKey,
-            sizeName: sizeName ?? sizeKey,
+            sizeName: sizeName ?? this.optionalKeyName(sizeKey),
         };
     }
 

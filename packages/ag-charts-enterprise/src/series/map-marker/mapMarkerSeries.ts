@@ -1100,7 +1100,7 @@ export class MapMarkerSeries
                 itemId: seriesId,
                 seriesId,
                 enabled: visible,
-                label: { text: legendItemName ?? title ?? idName ?? idKey ?? seriesId },
+                label: { text: legendItemName ?? title ?? idName ?? this.optionalKeyName(idKey) ?? seriesId },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: showInLegend === false,

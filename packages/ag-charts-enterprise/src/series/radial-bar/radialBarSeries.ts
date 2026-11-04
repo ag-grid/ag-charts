@@ -690,7 +690,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 seriesId,
                 enabled: visible,
                 label: {
-                    text: legendItemName ?? angleName ?? angleKey,
+                    text: legendItemName ?? angleName ?? this.keyName(angleKey),
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,

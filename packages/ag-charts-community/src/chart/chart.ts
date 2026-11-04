@@ -1668,10 +1668,14 @@ export abstract class Chart implements ModuleInstance, ChartService {
             dataSetRecreated = true;
         }
         const resolvedOptions = this.ctx.chartState.getValue('options');
+        const suppressFieldDotNotation = resolvedOptions?.suppressFieldDotNotation ?? false;
+        if ('suppressFieldDotNotation' in deltaOptions) {
+            for (const series of this.series) series.setOptionsDataSuppressFieldDotNotation(suppressFieldDotNotation);
+        }
         const dataSetKeysChanged =
             ('dataIdKey' in deltaOptions && this.data.dataIdKey !== resolvedOptions?.dataIdKey) ||
             ('suppressFieldDotNotation' in deltaOptions &&
-                this.data.suppressFieldDotNotation !== (resolvedOptions?.suppressFieldDotNotation ?? false));
+                this.data.suppressFieldDotNotation !== suppressFieldDotNotation);
         if (dataSetKeysChanged && !(deltaOptions.data && userExplicitlyPassedData)) {
             this.data = this.createDataSet(this.data.data);
             dataSetRecreated = true;
@@ -2032,7 +2036,11 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
 
         if ('data' in changedOptions) {
-            target.setOptionsData(data == null ? undefined : DataSet.wrap(data, this.ctx.logger));
+            const suppressFieldDotNotation =
+                this.ctx.chartState.getValue('options', 'suppressFieldDotNotation') ?? false;
+            target.setOptionsData(
+                data == null ? undefined : DataSet.wrap(data, this.ctx.logger, undefined, suppressFieldDotNotation)
+            );
         }
 
         if ('seriesGrouping' in changedOptions) {

@@ -449,6 +449,12 @@ export abstract class Series<
         this.onDataChange();
     }
 
+    setOptionsDataSuppressFieldDotNotation(suppressFieldDotNotation: boolean) {
+        const data = this._data;
+        if (data == null || data.suppressFieldDotNotation === suppressFieldDotNotation) return;
+        this.setOptionsData(DataSet.wrap(data.data, this.ctx.logger, data.dataIdKey, suppressFieldDotNotation));
+    }
+
     public isHighlightEnabled(): boolean {
         return this.options.highlight?.enabled !== false;
     }
@@ -612,6 +618,10 @@ export abstract class Series<
     /** The tooltip name for a datum key that has no display name set. */
     protected keyName(key: string): string {
         return datumKeyName(key, this.suppressFieldDotNotation);
+    }
+
+    protected optionalKeyName(key: string | undefined): string | undefined {
+        return key == null ? undefined : this.keyName(key);
     }
 
     protected getChartHighlightDrawingMode(): AgDrawingMode {

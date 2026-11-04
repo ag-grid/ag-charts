@@ -12,6 +12,7 @@ import {
     type ScaleType,
     Selection,
     type SeriesPluginModuleInstance,
+    datumKeyName,
     findMinMax,
     isDefined,
     mergeDefaults,
@@ -437,15 +438,17 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     getTooltipParams() {
+        const suppress = this.dataModel?.suppressFieldDotNotation ?? false;
+        const keyName = (key: string | undefined) => (key == null ? undefined : datumKeyName(key, suppress));
         const {
             xLowerKey,
             xUpperKey,
             yLowerKey,
             yUpperKey,
-            xLowerName = xLowerKey,
-            xUpperName = xUpperKey,
-            yLowerName = yLowerKey,
-            yUpperName = yUpperKey,
+            xLowerName = keyName(xLowerKey),
+            xUpperName = keyName(xUpperKey),
+            yLowerName = keyName(yLowerKey),
+            yUpperName = keyName(yUpperKey),
         } = this.options;
         return { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName };
     }

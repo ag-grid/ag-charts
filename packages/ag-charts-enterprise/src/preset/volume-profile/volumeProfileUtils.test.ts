@@ -9,7 +9,8 @@ describe('volumeProfileUtils', () => {
             normaliseVolumeProfile(
                 prices.map((price) => ({ price, up: 1, down: 2 })),
                 keys,
-                tickSize
+                tickSize,
+                false
             );
 
         it('should give each level a price range of half the tick size either side', () => {
