@@ -1184,7 +1184,7 @@ export class Legend {
         return [{ type: 'structured', title: this.getItemLabel(datum) }];
     }
 
-    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel, fromKeyboardFocus = false) {
+    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
         if (!this.opts.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
@@ -1201,14 +1201,14 @@ export class Legend {
             this.ctx.tooltipManager.removeTooltip(this.id, undefined, true);
         }
 
-        this.updateHighlight(datum?.enabled, datum, series, undefined, fromKeyboardFocus);
+        this.updateHighlight(datum?.enabled, datum, series, undefined, event instanceof FocusEvent);
         this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
-    onLeave(fromKeyboardFocus = false) {
+    onLeave(event?: FocusEvent | MouseEvent) {
         if (this.checkInteractionState()) return;
         this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
-        this.clearHighlight(fromKeyboardFocus);
+        this.clearHighlight(event instanceof FocusEvent);
     }
 
     private clearHighlight(fromKeyboardFocus = false): void {

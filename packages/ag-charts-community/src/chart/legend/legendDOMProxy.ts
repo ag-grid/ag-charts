@@ -31,8 +31,8 @@ type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): Nor
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;
     onDoubleClick(event: Event, datum: CategoryLegendDatum): void;
-    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel, fromKeyboardFocus?: boolean): void;
-    onLeave(fromKeyboardFocus?: boolean): void;
+    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): void;
+    onLeave(event?: FocusEvent | MouseEvent): void;
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel): void;
 }
 
@@ -117,12 +117,10 @@ export class LegendDOMProxy {
             button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
             button.addListener('mouseleave', () => itemListener.onLeave());
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
-            // Keyboard focus/blur must interrupt any in-progress animation, so they pass fromKeyboardFocus=true;
-            // a non-keyboard focus is treated as a leave and keeps the deferred behaviour.
-            button.addListener('blur', () => itemListener.onLeave(true));
+            button.addListener('blur', (ev) => itemListener.onLeave(ev.sourceEvent));
             button.addListener('focus', (ev) =>
                 this.shouldApplyHoverOnFocus(button)
-                    ? itemListener.onHover(ev.sourceEvent, markerLabel, true)
+                    ? itemListener.onHover(ev.sourceEvent, markerLabel)
                     : itemListener.onLeave()
             );
         });
