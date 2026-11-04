@@ -18,7 +18,7 @@ import {
     toMatchImage,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, type Point, Text, Transformable } from 'ag-charts-core';
+import { Group, type Point, Text, Transformable, deepClone } from 'ag-charts-core';
 
 import { DEFAULT_CONTEXT_MENU_CLASS } from '../features/context-menu/contextMenuStyles';
 import ukRoadTopology from '../series/map-test/ukRoadTopology.json';
@@ -72,18 +72,10 @@ function nestField(value: unknown, field: string): unknown {
     return result;
 }
 
-// Unlike `structuredClone`, keeps the callbacks some cases configure.
-function clone<T>(value: T): T {
-    if (Array.isArray(value)) return value.map(clone) as T;
-    if (value instanceof Date) return new Date(value) as T;
-    if (value == null || typeof value !== 'object') return value;
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, clone(item)])) as T;
-}
-
 // Nests the field in every `data` along the key path: the chart's, a series' or a preset section's.
 function withKey(options: Options, keyPath: string, mode: 'nested' | 'absent'): Options {
     const field: string = getAt(options, keyPath);
-    const result = clone(options);
+    const result = deepClone(options);
     if (mode === 'nested') {
         const parts = keyPath.split('.');
         for (let depth = 0; depth < parts.length; depth++) {
@@ -701,7 +693,7 @@ describe('datum key paths', () => {
     });
 
     function prepare(options: Options, factory: Factory) {
-        const copy = clone(options);
+        const copy = deepClone(options);
         if (factory === 'createFinancialChart' || factory === 'createVolumeProfileChart')
             return prepareFinancialTestOptions(copy);
         if (factory === '__createSparkline') return prepareTestOptions(copy);
