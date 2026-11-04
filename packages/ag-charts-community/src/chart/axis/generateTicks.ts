@@ -145,8 +145,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         rawFirstTickIndex: 0,
     };
 
-    // A configured step or explicit values pin the ticks, so lowering the count only decays the
-    // nice domain: at tickCount 1 the scale stops honouring the interval and widens past the data.
+    // A configured step or explicit values pin the ticks, so thinning cannot reduce label overlap.
     const fixedInterval = options.interval?.step != null || options.interval?.values != null;
 
     const { autoRotation } = thinTickLabels(
@@ -154,7 +153,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
             if (index > maxIterations) return;
             let intervalIgnored: boolean | undefined;
             ({ tickData, index, intervalIgnored } = buildTickData(options, tickGenerationType, tickData, index));
-            // A step the scale rejected as too dense leaves automatic ticks, which the search can still thin.
+            // A step the scale rejected leaves automatic ticks, which the search can still thin.
             return { candidate: tickData, pinned: fixedInterval && !intervalIgnored };
         },
         checkLabelOverlap,
@@ -307,11 +306,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
     };
 }
 
-/**
- * Explicit values pin the ticks, leaving no meaningful tick count for the bounds to be niced
- * against: a count that suits the data can snap them to a grid the data does not sit on, leaving
- * the axis wider than another nicing would. Take whichever encloses the data most tightly.
- */
+// Explicit values leave no meaningful tick count to nice against: take the tightest enclosing candidate.
 function calculateNiceDomain<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     scale: TScale,
     domainParams: ScaleTickParams<any>,
@@ -361,8 +356,7 @@ function evenValueSpacing(values: unknown[]): number | undefined {
     const spacing = (sorted.at(-1)! - sorted[0]) / (sorted.length - 1);
     if (spacing <= 0) return;
 
-    // Adjacent subtractions of a decimal sequence each round differently, so compare every value
-    // against the position it would occupy rather than against its neighbour.
+    // Compare each value with its expected position, as adjacent decimal differences round unevenly.
     const tolerance = spacing * 1e-6;
     for (let i = 1; i < sorted.length - 1; i += 1) {
         if (Math.abs(sorted[i] - (sorted[0] + i * spacing)) > tolerance) return;

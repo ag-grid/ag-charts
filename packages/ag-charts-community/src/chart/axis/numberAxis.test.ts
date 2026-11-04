@@ -116,9 +116,8 @@ describe('NumberAxis bigint bounds and interval (AG-16608)', () => {
     });
 });
 
-// A fixed `interval` — step or values — must never let the label-overlap search widen the domain
-// beyond the data: each pass lowers tickCount until the scale stops honouring the interval.
-describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
+// A fixed `interval` must not let the label-overlap search widen the domain beyond the data.
+describe('NumberAxis fixed interval too small to honour', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -131,7 +130,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         }
     });
 
-    // Nine bars spanning 0..11000, as in the reporter's repro.
+    // Nine bars spanning 0..11000.
     const data = [
         { x: 0, value: 2 },
         { x: 1000, value: 5 },
@@ -158,22 +157,19 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
     it('keeps the x domain fitted to the data when interval.step is dense', async () => {
         chart = await createChart(barOptions({ interval: { step: 100 } }));
 
-        // Bars pad the 0..11000 keys by half the 1000 key interval, then the domain snaps to the 100 step.
+        // Bars pad the keys by half the 1000 key interval, then the domain snaps to the 100 step.
         expect(xDomain()).toEqual([-500, 11500]);
     });
 
     it('keeps the x domain fitted to the data when interval.values is dense', async () => {
-        // 116 explicit values at spacing 100 cover the padded data extent.
         const values = Array.from({ length: 116 }, (_, i) => -500 + i * 100);
         chart = await createChart(barOptions({ interval: { values } }));
 
-        // Pinned ticks leave no tick count for the bounds to be niced against, so they stay on the data.
         expect(xDomain()).toEqual([-500, 11500]);
     });
 
     it('fits the x domain to decimal values whose spacing does not subtract exactly', async () => {
-        // (-500 + i * 100) / 10000 is spaced 0.01 apart, but adjacent subtractions disagree in the
-        // last bits, so an exact comparison would miss the spacing and leave the bounds on [-1, 2].
+        // Adjacent subtractions disagree in the last bits, so an exact spacing check would miss them.
         const values = Array.from({ length: 116 }, (_, i) => (-500 + i * 100) / 10000);
         chart = await createChart(
             barOptions(
@@ -188,8 +184,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
     });
 
     it('leaves the y domain on the data when two sparse values imply a wide step', async () => {
-        // Any two values are evenly spaced, so the implied step is the whole gap between them, and
-        // rounding the bounds out to a multiple of that gap would leave the data in a narrow band.
+        // Two values are always evenly spaced, so their whole gap must not become the nice step.
         const options: AgCartesianChartOptions = {
             data: [
                 { x: 0, y: 1 },
@@ -208,8 +203,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
     });
 
     it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {
-        // Over an 8000-wide domain this is far more than one tick per pixel, so the scale rejects the
-        // step and falls back to automatic ticks driven by the tick count.
+        // Far more than one tick per pixel, so the scale rejects the step and uses automatic ticks.
         chart = await createChart(
             barOptions(
                 {
@@ -227,11 +221,8 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
             'AG Charts - the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration',
         ]);
 
-        // Automatic ticks are not pinned, so the overlap search is still free to thin them:
-        // ending the search after the first pass would leave three labels colliding here.
+        // Automatic ticks are not pinned, so the overlap search can still thin them.
         expect(getAxisLabelTexts(chart, 'bottom').length).toBe(2);
-        // The search does keep decaying tickCount here, so this is the path that proves niceDomain
-        // itself honours the configured interval rather than widening to a power of ten.
         expect(xDomain()).toEqual([-500, 8500]);
     });
 });

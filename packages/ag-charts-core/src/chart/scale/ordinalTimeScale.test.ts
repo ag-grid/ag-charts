@@ -769,8 +769,7 @@ describe('OrdinalTimeScale', () => {
             ]);
         });
     });
-    // The axis label-overlap search terminates after one pass on a pinned interval, so a scale that
-    // silently drops the interval must say so or its automatic ticks stop thinning (AG-18574).
+    // A scale that drops its interval must say so, or the axis stops thinning its automatic ticks.
     describe('intervalIgnored', () => {
         const weeklyScale = (range: [number, number]) => {
             const scale = new OrdinalTimeScale();
@@ -791,7 +790,7 @@ describe('OrdinalTimeScale', () => {
         });
 
         it('is set when the interval is rejected as too dense', () => {
-            // A day interval over a year needs more than one tick per pixel of this 50px range.
+            // A day interval over a year is more than one tick per pixel of this 50px range.
             expect(weeklyScale([0, 50]).ticks(params('day'))?.intervalIgnored).toBe(true);
         });
     });
