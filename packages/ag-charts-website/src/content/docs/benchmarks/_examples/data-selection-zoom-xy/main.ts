@@ -124,6 +124,7 @@ async function clearSelection(): Promise<void> {
     await chartRef.current!.waitForUpdate();
 }
 
+/** inScope */
 async function applySeriesAndUpdate(type: SeriesType): Promise<void> {
     options.series = buildSeries(type);
     await chartRef.current!.update(options);

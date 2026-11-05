@@ -17,7 +17,6 @@ import type {
 import type { Normalised } from './normalise';
 import type { NormalisedColorType, NormalisedPaddingOptions } from './normalisedCommonOptions';
 
-/** Tree-layout gaps the network layouts read; `verticalSpacing` is a deprecated alias the theme folds into `depthSpacing`. */
 export type NormalisedNetworkSeriesTreeLayoutOptions = Normalised<
     Omit<AgNetworkSeriesTreeLayout, 'direction'>,
     'depthSpacing' | 'innerSpacing' | 'outerSpacing'

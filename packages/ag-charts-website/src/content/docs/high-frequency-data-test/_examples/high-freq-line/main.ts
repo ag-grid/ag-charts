@@ -264,7 +264,7 @@ function setMatchingMode(mode: string) {
     const newMode = mode as MatchingMode;
     if (newMode === matchingMode) return;
 
-    const wasRunning = feed.running;
+    const wasRunning = getFeed().running;
     if (wasRunning) toggleFeed();
 
     matchingMode = newMode;
@@ -286,37 +286,39 @@ function setMatchingMode(mode: string) {
 
 function toggleFeed() {
     const button = document.getElementById('toggleFeedBtn');
-    if (feed.running) {
-        feed.stop();
+    if (getFeed().running) {
+        getFeed().stop();
         if (button) button.textContent = 'Start Feed';
     } else {
         // Stop rapid feed if running
-        if (rapidFeed.running) {
+        if (getRapidFeed().running) {
             toggleRapidFeed();
         }
-        feed.start();
+        getFeed().start();
         if (button) button.textContent = 'Stop Feed';
     }
 }
 
+/** inScope */
 function toggleRapidFeed() {
-    if (rapidFeed.running) {
-        rapidFeed.stop();
+    if (getRapidFeed().running) {
+        getRapidFeed().stop();
     } else {
         // Stop regular feed if running
-        if (feed.running) {
+        if (getFeed().running) {
             toggleFeed();
         }
         // Reset update tracking for rapid feed
         updateCount = 0;
         updateCountStartTime = performance.now();
         updateRateHistory = [];
-        rapidFeed.start();
+        getRapidFeed().start();
     }
 }
 
+/** inScope */
 function tickFeed() {
-    feed.tick();
+    getFeed().tick();
 }
 
 let method = config.method ?? DEFAULT_CONFIG.method;
@@ -330,7 +332,8 @@ function use(newMethod: string) {
     setConfigValue('method', method);
 }
 
-const updateCallback = async () => {
+/** inScope */
+async function updateCallback() {
     const startTime = performance.now();
     updateCount++;
     const isPrepend = method.includes('prepend');
@@ -395,7 +398,7 @@ const updateCallback = async () => {
     // Update stats display
     const statsElement = document.getElementById('cpuUsage');
     if (statsElement) {
-        if (rapidFeed.running) {
+        if (getRapidFeed().running) {
             // Show updates per second for rapid feed
             const currentTime = performance.now();
             const timeDiff = currentTime - updateCountStartTime;
@@ -416,7 +419,7 @@ const updateCallback = async () => {
                     updateCountStartTime = currentTime;
                 }
             }
-        } else if (feed.running) {
+        } else if (getFeed().running) {
             // Show CPU usage for regular feed
             const effectiveInterval = STREAM_INTERVAL_MS;
             const cpuUsage = (elapsedTime / effectiveInterval) * 100;
@@ -434,10 +437,20 @@ const updateCallback = async () => {
             statsElement.textContent = `CPU: 0%`;
         }
     }
-};
+}
 
-const feed = new RealTimeDataFeed(updateCallback);
-const rapidFeed = new RapidDataFeed(updateCallback);
+let feed: RealTimeDataFeed | undefined;
+let rapidFeed: RapidDataFeed | undefined;
+
+/** inScope */
+function getFeed() {
+    return (feed ??= new RealTimeDataFeed(updateCallback));
+}
+
+/** inScope */
+function getRapidFeed() {
+    return (rapidFeed ??= new RapidDataFeed(updateCallback));
+}
 
 // Initialize form controls from config
 const methodSelect = document.getElementById('methodSelect') as HTMLSelectElement | null;

@@ -67,8 +67,3 @@ function toggleConnectMissingData() {
 
     chart.update(options);
 }
-
-function reset() {
-    options.data = getData();
-    chart.update(options);
-}

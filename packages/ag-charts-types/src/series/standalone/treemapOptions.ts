@@ -5,6 +5,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -25,7 +26,7 @@ import type {
     VerticalAlign,
 } from '../../chart/types';
 import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgGlowHighlightStyleOptions } from '../seriesOptions';
 
 export type AgTreemapHighlightState = HierarchyHighlightState;
 
@@ -71,12 +72,6 @@ export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefa
 export interface AgTreemapSeriesGroupLayout<TDatum, TContext = ContextDefault> {
     /** Options for the label in a group. */
     label?: AgTreemapSeriesGroupLabelOptions<TDatum, TContext>;
-    /**
-     * Horizontal position of the label.
-     *
-     * @deprecated v14.3.0 Use `label.textAlign` instead.
-     */
-    textAlign?: TextAlign;
     /** The distance between the edges of the outer-most title to the edges of the group. */
     padding?: PixelSize;
     /** Gap between adjacent groups. */
@@ -89,6 +84,8 @@ export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
     extends AgTreemapSeriesGroupStyle, AgTreemapSeriesGroupLayout<TDatum, TContext> {
     /** Apply rounded corners to each group. */
     cornerRadius?: PixelSize;
+    /** Configuration for the shadow used behind the groups. */
+    shadow?: AgDropShadowOptions;
     /** The colours to cycle through for the fills of the groups, by their depth in the hierarchy. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** Highlight overrides for groups. */
@@ -137,25 +134,13 @@ export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     label?: AgTreemapSeriesTileLabelOptions<TDatum, TContext>;
     /** Options for a secondary, smaller label in a tile. */
     secondaryLabel?: AgTreemapSeriesTileSecondaryLabelOptions<TDatum, TContext>;
-    /**
-     * Horizontal position of the label.
-     *
-     * @deprecated v14.3.0 Use `label.textAlign` and `secondaryLabel.textAlign` instead.
-     */
-    textAlign?: TextAlign;
-    /**
-     * Vertical position of the label.
-     *
-     * @deprecated v14.3.0 Use `label.verticalAlign` and `secondaryLabel.verticalAlign` instead.
-     */
-    verticalAlign?: VerticalAlign;
     /** Distance between the tile edges and the text. */
     padding?: PixelSize;
     /** Gap between adjacent tile. */
     gap?: PixelSize;
 }
 
-export interface AgTreemapSeriesTileHighlightStyle extends AgTreemapSeriesTileStyle {
+export interface AgTreemapSeriesTileHighlightStyle extends AgTreemapSeriesTileStyle, AgGlowHighlightStyleOptions {
     /** Opacity to apply to the tile and its labels. */
     opacity?: Opacity;
 }
@@ -177,7 +162,7 @@ export interface AgTreemapSeriesTileHighlightOptions {
     unhighlightedBranch?: AgTreemapSeriesTileHighlightStyle;
 }
 
-export interface AgTreemapSeriesGroupHighlightStyle extends FillOptions, StrokeOptions {
+export interface AgTreemapSeriesGroupHighlightStyle extends FillOptions, StrokeOptions, AgGlowHighlightStyleOptions {
     /** Opacity to apply to the group tile and its child tiles. */
     opacity?: Opacity;
 }
@@ -199,6 +184,8 @@ export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
     extends AgTreemapSeriesTileStyle, AgTreemapSeriesTileLayout<TDatum, TContext> {
     /** Apply rounded corners to each tile. */
     cornerRadius?: PixelSize;
+    /** Configuration for the shadow used behind the tiles. */
+    shadow?: AgDropShadowOptions;
     /** Highlight overrides for tiles. */
     highlight?: AgTreemapSeriesTileHighlightOptions;
     /** Selection overrides for tiles. */

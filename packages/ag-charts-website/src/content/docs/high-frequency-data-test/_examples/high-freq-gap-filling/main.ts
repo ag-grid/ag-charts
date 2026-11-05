@@ -276,37 +276,37 @@ function changeSeriesType(type: 'line' | 'area' | 'bar' | 'scatter' | 'bubble') 
 
 function toggleFeed() {
     const button = document.getElementById('toggleFeedBtn');
-    if (feed.running) {
-        feed.stop();
+    if (getFeed().running) {
+        getFeed().stop();
         if (button) button.textContent = 'Start Feed';
     } else {
-        if (rapidFeed.running) {
+        if (getRapidFeed().running) {
             toggleRapidFeed();
         }
-        feed.start();
+        getFeed().start();
         if (button) button.textContent = 'Stop Feed';
     }
 }
 
 function toggleRapidFeed() {
     const button = document.getElementById('toggleRapidFeedBtn');
-    if (rapidFeed.running) {
-        rapidFeed.stop();
+    if (getRapidFeed().running) {
+        getRapidFeed().stop();
         if (button) button.textContent = 'Start Rapid Feed';
     } else {
-        if (feed.running) {
+        if (getFeed().running) {
             toggleFeed();
         }
         updateCount = 0;
         updateCountStartTime = performance.now();
         updateRateHistory = [];
-        rapidFeed.start();
+        getRapidFeed().start();
         if (button) button.textContent = 'Stop Rapid Feed';
     }
 }
 
 function tickFeed() {
-    feed.tick();
+    getFeed().tick();
 }
 
 let method = 'applyTransaction-fill-gap';
@@ -320,7 +320,8 @@ function use(newMethod: string) {
     console.log(method);
 }
 
-const updateCallback = async () => {
+/** inScope */
+async function updateCallback() {
     const startTime = performance.now();
     updateCount++;
 
@@ -329,8 +330,8 @@ const updateCallback = async () => {
         const newDatum = createGapFillingDatum();
         if (!newDatum) {
             console.log('Gap fully filled, stopping feed');
-            if (feed.running) toggleFeed();
-            if (rapidFeed.running) toggleRapidFeed();
+            if (getFeed().running) toggleFeed();
+            if (getRapidFeed().running) toggleRapidFeed();
             return;
         }
 
@@ -347,8 +348,8 @@ const updateCallback = async () => {
         const newDatum = createGapFillingDatum();
         if (!newDatum) {
             console.log('Gap fully filled, stopping feed');
-            if (feed.running) toggleFeed();
-            if (rapidFeed.running) toggleRapidFeed();
+            if (getFeed().running) toggleFeed();
+            if (getRapidFeed().running) toggleRapidFeed();
             return;
         }
 
@@ -369,7 +370,7 @@ const updateCallback = async () => {
     // Update stats display
     const statsElement = document.getElementById('cpuUsage');
     if (statsElement) {
-        if (rapidFeed.running) {
+        if (getRapidFeed().running) {
             const currentTime = performance.now();
             const timeDiff = currentTime - updateCountStartTime;
 
@@ -387,7 +388,7 @@ const updateCallback = async () => {
                     updateCountStartTime = currentTime;
                 }
             }
-        } else if (feed.running) {
+        } else if (getFeed().running) {
             const effectiveInterval = STREAM_INTERVAL_MS;
             const cpuUsage = (elapsedTime / effectiveInterval) * 100;
 
@@ -411,7 +412,17 @@ const updateCallback = async () => {
         const percentFilled = (filledPoints / totalGapPoints) * 100;
         progressElement.textContent = `Gap filled: ${percentFilled.toFixed(1)}%`;
     }
-};
+}
 
-const feed = new RealTimeDataFeed(updateCallback);
-const rapidFeed = new RapidDataFeed(updateCallback);
+let feed: RealTimeDataFeed | undefined;
+let rapidFeed: RapidDataFeed | undefined;
+
+/** inScope */
+function getFeed() {
+    return (feed ??= new RealTimeDataFeed(updateCallback));
+}
+
+/** inScope */
+function getRapidFeed() {
+    return (rapidFeed ??= new RapidDataFeed(updateCallback));
+}

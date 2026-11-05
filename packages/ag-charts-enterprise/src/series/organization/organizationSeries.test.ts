@@ -2317,28 +2317,6 @@ describe('OrganizationSeries', () => {
     });
 
     describe('layout', () => {
-        it('should treat the deprecated verticalSpacing as depthSpacing', async () => {
-            const parentChildGap = async (spacing: { depthSpacing?: number; verticalSpacing?: number }) => {
-                const options: AgChartOptions = {
-                    ...SIMPLE_ORG_CHART,
-                    series: SIMPLE_ORG_CHART.series.map((series) => ({ ...series, ...spacing })),
-                };
-
-                chart = await createEnterpriseChart(options);
-                const gap = centreOf('cto', OrganizationNodeTag.Card).y - centreOf('ceo', OrganizationNodeTag.Card).y;
-                chart.destroy();
-                (chart as unknown) = undefined;
-                return gap;
-            };
-
-            const aliased = await parentChildGap({ verticalSpacing: 120 });
-            expectWarningsCalls().toEqual([
-                ['AG Charts - Option `series[0].verticalSpacing` is deprecated. Use `depthSpacing` instead.'],
-            ]);
-            expect(aliased).toBe(await parentChildGap({ depthSpacing: 120 }));
-            expect(aliased).not.toBe(await parentChildGap({}));
-        });
-
         it('should not overlap younger siblings over older siblings with no children', async () => {
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
@@ -2471,7 +2449,7 @@ describe('OrganizationSeries', () => {
             await compare();
         });
 
-        it('AG-17253 should truncate long labels with explicit narrow maxWidth and overflowStrategy: ellipsis', async () => {
+        it('AG-17253 should truncate long labels with explicit narrow maxWidth and truncate: true', async () => {
             const options: AgChartOptions = {
                 data: LONG_LABEL_DATA,
                 series: [
@@ -2481,9 +2459,9 @@ describe('OrganizationSeries', () => {
                         parentIdKey: 'parentId',
                         node: {
                             maxWidth: 140,
-                            title: { key: 'name', wrapping: 'never', overflowStrategy: 'ellipsis' },
-                            subtitle: { key: 'job', wrapping: 'never', overflowStrategy: 'ellipsis' },
-                            labels: [{ key: 'location', wrapping: 'never', overflowStrategy: 'ellipsis' }],
+                            title: { key: 'name', wrapping: 'never', truncate: true },
+                            subtitle: { key: 'job', wrapping: 'never', truncate: true },
+                            labels: [{ key: 'location', wrapping: 'never', truncate: true }],
                         },
                     },
                 ],
@@ -2491,19 +2469,6 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
             await compare();
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`series[0].node.labels[0].overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                ],
-                [
-                  "AG Charts - Option \`series[0].node.title.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                ],
-                [
-                  "AG Charts - Option \`series[0].node.subtitle.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                ],
-              ]
-            `);
         });
 
         // Clamping the card via `maxWidth`/`maxHeight` must not leave children drawing outside it.
@@ -2708,55 +2673,6 @@ describe('OrganizationSeries', () => {
             expect(titleOf(defaults)).toContain('…');
         });
 
-        it.each([
-            ['ellipsis', true],
-            ['hide', false],
-        ] as const)(
-            'should map overflowStrategy: %s onto truncate: %s and warn once per option path',
-            async (overflowStrategy, truncate) => {
-                const { texts, series } = await render({
-                    ...BASE_NODE,
-                    title: { key: 'name', overflowStrategy, wrapping: 'never' },
-                    labels: [
-                        { key: 'location', overflowStrategy },
-                        { key: 'job', overflowStrategy },
-                    ],
-                });
-                await chart.update({ ...chart.getOptions() });
-                await waitForChartStability(chart);
-
-                expect(series.options.node.title.truncate).toBe(truncate);
-                expect(series.options.node.labels?.map((l) => l.truncate)).toEqual([truncate, truncate]);
-                expect(titleOf(texts)).toEqual(truncate ? expect.stringContaining('…') : '');
-                expectWarningsCalls().toEqual([
-                    [
-                        'AG Charts - Option `series[0].node.labels[0].overflowStrategy` is deprecated. Use `truncate` instead.',
-                    ],
-                    [
-                        'AG Charts - Option `series[0].node.labels[1].overflowStrategy` is deprecated. Use `truncate` instead.',
-                    ],
-                    [
-                        'AG Charts - Option `series[0].node.title.overflowStrategy` is deprecated. Use `truncate` instead.',
-                    ],
-                ]);
-            }
-        );
-
-        it('should let truncate win over overflowStrategy when both are set', async () => {
-            const { texts } = await render({
-                ...BASE_NODE,
-                title: { key: 'name', wrapping: 'never', overflowStrategy: 'hide', truncate: true },
-            });
-            expect(titleOf(texts)).toContain('…');
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`series[0].node.title.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                ],
-              ]
-            `);
-        });
-
         it('should hide text that does not fit with truncate: false', async () => {
             const { texts } = await render({
                 ...BASE_NODE,
@@ -2781,34 +2697,6 @@ describe('OrganizationSeries', () => {
             );
             expect(series.options.node.title.truncate).toBe(false);
             expect(titleOf(texts)).toBe('');
-        });
-
-        it('should map a theme overflowStrategy onto truncate without warning', async () => {
-            const { texts } = await render(
-                { ...BASE_NODE, title: { key: 'name', wrapping: 'never' } },
-                {
-                    theme: {
-                        overrides: { organization: { series: { node: { title: { overflowStrategy: 'hide' } } } } },
-                    },
-                }
-            );
-            expect(titleOf(texts)).toBe('');
-        });
-
-        it('should map an overflowStrategy returned by a text itemStyler', async () => {
-            const { texts } = await render({
-                ...BASE_NODE,
-                title: { key: 'name', wrapping: 'never', itemStyler: () => ({ overflowStrategy: 'hide' }) },
-            });
-            expect(titleOf(texts)).toBe('');
-            expect(titleOf(texts, 'cto')).toBe('Bob');
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`series[0].node.title.itemStyler.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                ],
-              ]
-            `);
         });
 
         it('should pass truncate to text itemStyler params', async () => {

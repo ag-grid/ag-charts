@@ -1,9 +1,4 @@
-import type {
-    AgCrossLineLabelPosition,
-    AgCrossLineListeners,
-    AgTimeInterval,
-    AgTimeIntervalUnit,
-} from 'ag-charts-types';
+import type { AgCrossLineListeners, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { BoxBounds } from '../geometry/boxBounds';
 import type { PointLabelDatum, PositionedLabelCandidate } from '../geometry/labelPlacement';
@@ -21,6 +16,25 @@ import type { PolarAxisLayout } from './polarAxisLayout';
 import { isValidScaleValue } from './scale/scaleValue';
 
 export type CrossLineType = 'line' | 'range';
+
+export type CrossLineLabelPosition =
+    | 'top'
+    | 'left'
+    | 'right'
+    | 'bottom'
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'inside'
+    | 'inside-left'
+    | 'inside-right'
+    | 'inside-top'
+    | 'inside-bottom'
+    | 'inside-top-left'
+    | 'inside-bottom-left'
+    | 'inside-top-right'
+    | 'inside-bottom-right';
 
 interface ICrossLine {
     type: CrossLineType;
@@ -61,7 +75,7 @@ export function crossLineHitTolerance(strokeWidth: number | undefined): number {
 
 export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {
     calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
-    calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
+    calculatePadding?(padding: Partial<Record<CrossLineLabelPosition, number>>): void;
     /**
      * Hit-tests a canvas-space point against the cross line's rendered line, fill or label, widened
      * by a small fixed pixel tolerance. Returns `false` when the cross line is not currently visible.

@@ -33,6 +33,7 @@ function testRule(ruleNameSuffix: string) {
 testRule('change-detection');
 testRule('no-unscoped-logger');
 testRule('require-explicit-generic');
+testRule('require-inscope-helper');
 testRule('require-shared-renderer');
 testRule('validate-module-registration');
 testRule('validate-module-registration-implied');

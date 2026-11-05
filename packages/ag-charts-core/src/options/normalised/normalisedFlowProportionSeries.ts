@@ -26,7 +26,6 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import type { WithInternalShadow } from '../internalShadowOptions';
 import type { BivariantCallback, Normalised } from './normalise';
 import type {
     FillStrokeMorph,
@@ -88,7 +87,7 @@ export type NormalisedSankeySeriesLabelOptions = NormalisedSeriesLabelOptions<Ag
 
 /** Link styling; `fill`/`stroke` fall back to the series palette cycled by source node at render time. */
 export type NormalisedSankeySeriesLinkOptions = Normalised<
-    AgSankeySeriesLinkOptions<unknown, unknown> & WithInternalShadow,
+    AgSankeySeriesLinkOptions<unknown, unknown>,
     FlowStyleRequiredKeys | 'shadow',
     {
         fill?: NormalisedColorType;
@@ -99,7 +98,7 @@ export type NormalisedSankeySeriesLinkOptions = Normalised<
 >;
 
 export type NormalisedSankeySeriesNodeOptions = Normalised<
-    AgSankeySeriesNodeOptions<unknown, unknown> & WithInternalShadow,
+    AgSankeySeriesNodeOptions<unknown, unknown>,
     | FlowStyleRequiredKeys
     | 'spacing'
     | 'minSpacing'
@@ -149,7 +148,7 @@ export type NormalisedChordSeriesLabelOptions =
 
 /** Link styling; `fill`/`stroke` fall back to the series palette cycled by source node at render time. */
 export type NormalisedChordSeriesLinkOptions = Normalised<
-    AgChordSeriesLinkOptions<unknown, unknown> & WithInternalShadow,
+    AgChordSeriesLinkOptions<unknown, unknown>,
     FlowStyleRequiredKeys | 'tension' | 'shadow',
     {
         fill?: NormalisedColorType;
@@ -160,7 +159,7 @@ export type NormalisedChordSeriesLinkOptions = Normalised<
 >;
 
 export type NormalisedChordSeriesNodeOptions = Normalised<
-    AgChordSeriesNodeOptions<unknown, unknown> & WithInternalShadow,
+    AgChordSeriesNodeOptions<unknown, unknown>,
     FlowStyleRequiredKeys | 'spacing' | 'width' | 'cornerRadius' | 'shadow',
     {
         fill?: NormalisedColorType;

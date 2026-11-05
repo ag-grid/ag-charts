@@ -21,7 +21,7 @@ import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesGlowHighlightOptions,
     AgSeriesLineSegmentOptions,
     AgSeriesSegmentation,
 } from '../seriesOptions';
@@ -78,7 +78,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgLineHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgLineHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesLineSegmentOptions>;
 }

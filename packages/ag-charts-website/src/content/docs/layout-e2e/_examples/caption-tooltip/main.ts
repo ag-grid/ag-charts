@@ -47,6 +47,7 @@ function effectiveVisible(tooltip: AgCaptionTooltipOptions | undefined) {
     return tooltip?.visible ?? (tooltip?.text != null || tooltip?.renderer != null ? 'always' : 'auto');
 }
 
+/** inScope */
 function syncControls() {
     const tooltip = options.title?.tooltip;
     // Each visibility option applies to both captions, so the group only shows one as applied

@@ -34,7 +34,6 @@ import {
     getSeriesSelectionNodes,
     hierarchyChartAssertions,
     hoverAction,
-    internalOptions,
     isTooltipVisible,
     pressKey,
     setupMockCanvas,
@@ -808,34 +807,6 @@ describe('TreemapSeries', () => {
             );
             const [primary, secondary] = textBBoxes();
             expect(primary.y + primary.height).toBeLessThanOrEqual(secondary.y + 0.5);
-        });
-
-        it('forwards the deprecated tile and group alignment into the labels', async () => {
-            chart = deproxy(
-                await createEnterpriseChart(
-                    alignmentOptions({
-                        group: { textAlign: 'right' },
-                        tile: { textAlign: 'left', verticalAlign: 'bottom' },
-                    })
-                )
-            );
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`series[0].group.textAlign\` is deprecated. Use \`label.textAlign\` instead.",
-                ],
-                [
-                  "AG Charts - Option \`series[0].tile.textAlign\` is deprecated. Use \`label.textAlign\` and \`secondaryLabel.textAlign\` instead.",
-                ],
-                [
-                  "AG Charts - Option \`series[0].tile.verticalAlign\` is deprecated. Use \`label.verticalAlign\` and \`secondaryLabel.verticalAlign\` instead.",
-                ],
-              ]
-            `);
-            const { group, tile } = resolvedOptions(chart);
-            expect(group.label.textAlign).toBe('right');
-            expect([tile.label.textAlign, tile.label.verticalAlign]).toEqual(['left', 'bottom']);
-            expect([tile.secondaryLabel.textAlign, tile.secondaryLabel.verticalAlign]).toEqual(['left', 'bottom']);
         });
     });
 
@@ -1863,22 +1834,21 @@ describe('TreemapSeries', () => {
     describe('shadow', () => {
         const shadow = { enabled: true, fill: 'rgba(0, 0, 0, 0.7)', xOffset: 8, yOffset: 8, blur: 8 };
         const data = HIERARCHY_SHADOW_DATA;
-        const shadowOptions = (parts: { group?: typeof shadow; tile?: typeof shadow } = {}): AgChartOptions =>
-            internalOptions<AgChartOptions>({
-                data,
-                series: [
-                    {
-                        type: 'treemap',
-                        labelKey: 'name',
-                        sizeKey: 'size',
-                        fills: ['#c3dafe', '#fbd38d'],
-                        group: { shadow: parts.group, gap: 12, padding: 10 },
-                        tile: { shadow: parts.tile },
-                    },
-                ],
-                legend: { enabled: false },
-                animation: { enabled: false },
-            });
+        const shadowOptions = (parts: { group?: typeof shadow; tile?: typeof shadow } = {}): AgChartOptions => ({
+            data,
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    fills: ['#c3dafe', '#fbd38d'],
+                    group: { shadow: parts.group, gap: 12, padding: 10 },
+                    tile: { shadow: parts.tile },
+                },
+            ],
+            legend: { enabled: false },
+            animation: { enabled: false },
+        });
         const renderRects = async (options: AgChartOptions) => {
             chart = deproxy(await createEnterpriseChart(options));
             const rects: { isLeaf: boolean; rect: Rect }[] = [];
