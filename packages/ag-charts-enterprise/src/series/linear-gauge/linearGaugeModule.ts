@@ -1,6 +1,5 @@
 import { type AgLinearGaugePreset, VERSION } from 'ag-charts-community';
 import {
-    AUTO_SIZED_LABEL_TRUNCATE,
     FONT_SIZE,
     FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
@@ -75,7 +74,7 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             minimumFontSize: FONT_SIZE.SMALL,
             spacing: 18,
             wrapping: 'on-space',
-            truncate: AUTO_SIZED_LABEL_TRUNCATE,
+            truncate: true,
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside', 'chartBackgroundColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside', 'foregroundColor'),
         },

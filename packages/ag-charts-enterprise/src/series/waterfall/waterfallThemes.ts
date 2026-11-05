@@ -14,7 +14,6 @@ import {
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
     themeLineHeight,
-    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme, Operation } from 'ag-charts-types';
@@ -141,16 +140,14 @@ function itemTheme(
                     false
                 ),
                 // Toggle by toggle, not as a block: a lower-priority edge is dropped once its
-                // vertex has user-defined children, and an absent `seriesItems` reads as `false`.
-                ...undocumentedThemeOptions({
-                    collideWith: {
-                        markers: inherited('collision/collideWith/markers', 5),
-                        labels: inherited('collision/collideWith/labels', 5),
-                        seriesItems: inherited('collision/collideWith/seriesItems', 5),
-                        seriesArea: inherited('collision/collideWith/seriesArea', 5),
-                        axisLabels: inherited('collision/collideWith/axisLabels', 5),
-                    },
-                }),
+                // vertex has user-defined children, and an absent `shapes` reads as `true`.
+                collideWith: {
+                    markers: inherited('collision/collideWith/markers', 5),
+                    labels: inherited('collision/collideWith/labels', 5),
+                    shapes: inherited('collision/collideWith/shapes', 5),
+                    seriesArea: inherited('collision/collideWith/seriesArea', 5),
+                    axisLabels: inherited('collision/collideWith/axisLabels', 5),
+                },
             },
             insideStyle: placementStyle('insideStyle'),
             outsideStyle: placementStyle('outsideStyle'),

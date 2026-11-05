@@ -1,9 +1,10 @@
 import {
     BBox,
     type BoxBounds,
+    DescriptionWidget,
     type DynamicContext,
+    type ElementID,
     type NormalisedTextOrSegments,
-    type StrictHTMLElement,
     Transformable,
     createElementId,
     toPlainText,
@@ -11,6 +12,7 @@ import {
 import type {
     ButtonWidget,
     ClickWidgetEvent,
+    FocusWidgetEvent,
     GroupWidget,
     ListWidget,
     MouseWidgetEvent,
@@ -25,14 +27,17 @@ import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 
+export type LegendHoverEvent = FocusWidgetEvent<'focus'> | MouseWidgetEvent<'mouseenter'>;
+export type LegendLeaveEvent = FocusWidgetEvent | MouseWidgetEvent<'mouseleave'>;
+
 type ItemSelection = Selection<CategoryLegendDatum, LegendMarkerLabel>;
 type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): NormalisedTextOrSegments | undefined };
 
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;
     onDoubleClick(event: Event, datum: CategoryLegendDatum): void;
-    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel, fromKeyboardFocus?: boolean): void;
-    onLeave(fromKeyboardFocus?: boolean): void;
+    onHover(event: LegendHoverEvent, node: LegendMarkerLabel): void;
+    onLeave(event: LegendLeaveEvent): void;
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel): void;
 }
 
@@ -59,14 +64,15 @@ export class LegendDOMProxy {
     private dirty = true;
 
     private readonly itemList: ListWidget;
-    private readonly itemDescription: HTMLParagraphElement & StrictHTMLElement;
+    private readonly itemDescription = new DescriptionWidget();
+    private readonly itemDescriptionId: ElementID = createElementId();
     private readonly paginationGroup: GroupWidget;
     private prevButton?: ButtonWidget;
     private nextButton?: ButtonWidget;
 
     private shouldApplyHoverOnFocus(button: SwitchWidget): boolean {
-        const element = button.getElement();
-        return [':hover', ':focus-visible'].some((selector) => element.matches(selector));
+        // Check `:hover` first: jsdom rejects the `:focus-visible` selector.
+        return button.isHovered() || button.isFocusVisible();
     }
 
     public constructor(
@@ -85,11 +91,9 @@ export class LegendDOMProxy {
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'ariaLabelLegendPagination' },
         });
-        this.itemDescription = ctx.agDocument.createElement('p');
-        this.itemDescription.style.display = 'none';
-        this.itemDescription.id = createElementId();
-        this.itemDescription.textContent = this.getItemAriaDescription();
-        this.itemList.getElement().append(this.itemDescription);
+        this.itemDescription.id = this.itemDescriptionId;
+        this.itemDescription.setTextContent(this.getItemAriaDescription());
+        this.itemList.setDescription(this.itemDescription);
     }
 
     private initLegendList(params: LegendDOMProxyUpdateParams) {
@@ -106,7 +110,7 @@ export class LegendDOMProxy {
                 type: 'listswitch',
                 textContent: this.getItemAriaText(toPlainText(datumReader.getItemLabel(datum)), index, count),
                 ariaChecked: !!markerLabel.unsafeNonNullDatum.enabled,
-                ariaDescribedBy: this.itemDescription.id,
+                ariaDescribedBy: this.itemDescriptionId,
                 parent: this.itemList,
             });
             // Read the datum from the node: the `each()` parameter is destroyed when Series.getLegendData()
@@ -114,16 +118,12 @@ export class LegendDOMProxy {
             const button = markerLabel.proxyButton;
             button.addListener('click', (ev) => itemListener.onClick(ev.sourceEvent, markerLabel.datum!, button));
             button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum!));
-            button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
-            button.addListener('mouseleave', () => itemListener.onLeave());
+            button.addListener('mouseenter', (ev) => itemListener.onHover(ev, markerLabel));
+            button.addListener('mouseleave', (ev) => itemListener.onLeave(ev));
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
-            // Keyboard focus/blur must interrupt any in-progress animation, so they pass fromKeyboardFocus=true;
-            // a non-keyboard focus is treated as a leave and keeps the deferred behaviour.
-            button.addListener('blur', () => itemListener.onLeave(true));
+            button.addListener('blur', (ev) => itemListener.onLeave(ev));
             button.addListener('focus', (ev) =>
-                this.shouldApplyHoverOnFocus(button)
-                    ? itemListener.onHover(ev.sourceEvent, markerLabel, true)
-                    : itemListener.onLeave()
+                this.shouldApplyHoverOnFocus(button) ? itemListener.onHover(ev, markerLabel) : itemListener.onLeave(ev)
             );
         });
         this.dirty = false;
@@ -142,11 +142,10 @@ export class LegendDOMProxy {
     private syncItemLabels({ itemSelection, datumReader }: LegendDOMProxyUpdateParams) {
         const count = itemSelection.length;
         itemSelection.each(({ proxyButton }, datum, index) => {
-            const element = proxyButton?.getElement();
-            if (element != null) {
+            if (proxyButton != null) {
                 const text = this.getItemAriaText(toPlainText(datumReader.getItemLabel(datum)), index, count);
-                if (element.textContent !== text) {
-                    element.textContent = text;
+                if (proxyButton.getTextContent() !== text) {
+                    proxyButton.setTextContent(text);
                 }
             }
         });
@@ -184,7 +183,7 @@ export class LegendDOMProxy {
                 l.proxyButton.setEnabled(enabled);
                 l.proxyButton.setPointerEvents(pointerEnabled ? undefined : 'none');
                 l.proxyButton.setBounds(bbox);
-                l.proxyButton.setAriaDescribedBy(enabled ? this.itemDescription.id : undefined);
+                l.proxyButton.setAriaDescribedBy(enabled ? this.itemDescriptionId : undefined);
             }
         });
     }
@@ -280,13 +279,12 @@ export class LegendDOMProxy {
     public onLocaleChanged(itemSelection: ItemSelection, datumReader: CategoryLegendDatumReader) {
         const count = itemSelection.length;
         itemSelection.each(({ proxyButton }, datum, index) => {
-            const button = proxyButton?.getElement();
-            if (button != null) {
+            if (proxyButton != null) {
                 const label = toPlainText(datumReader.getItemLabel(datum));
-                button.textContent = this.getItemAriaText(label, index, count);
+                proxyButton.setTextContent(this.getItemAriaText(label, index, count));
             }
         });
-        this.itemDescription.textContent = this.getItemAriaDescription();
+        this.itemDescription.setTextContent(this.getItemAriaDescription());
     }
 
     public onPageChange(params: LegendDOMProxyPageChangeParams) {

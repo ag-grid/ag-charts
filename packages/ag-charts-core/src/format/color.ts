@@ -10,7 +10,8 @@ interface IColor {
 const lerp = (x: number, y: number, t: number) => x * (1 - t) + y * t;
 
 // Anchored on the leading function token so that the supported `oklch()` is never matched by `lch`.
-const unsupportedColorFormat = /^\s*(oklab|lab|lch|color)\(/i;
+const unsupportedColorFormat = /^\s*(oklab|lab|lch|color|light-dark)\(/i;
+const lightDarkColor = /^\s*light-dark\(/i;
 
 /**
  * Colour formats that AG Charts deliberately does not support, and which therefore cannot be
@@ -19,6 +20,11 @@ const unsupportedColorFormat = /^\s*(oklab|lab|lch|color)\(/i;
  */
 export function isUnsupportedColorFormat(value: string): boolean {
     return unsupportedColorFormat.test(value);
+}
+
+/** Whether the value is a CSS `light-dark()` colour, which a canvas cannot resolve. */
+export function isLightDarkColor(value: string): boolean {
+    return lightDarkColor.test(value);
 }
 
 const srgbToLinear = (value: number) => {

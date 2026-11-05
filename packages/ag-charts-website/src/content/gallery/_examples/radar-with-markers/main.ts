@@ -67,7 +67,7 @@ const options: AgChartOptions = {
                     strokeOpacity: 0.3,
                     label: {
                         text: 'INTIMATE',
-                        padding: -30,
+                        spacing: -30,
                     },
                 },
                 {
@@ -76,7 +76,7 @@ const options: AgChartOptions = {
                     strokeOpacity: 0.3,
                     label: {
                         text: 'BEST FRIENDS',
-                        padding: -30,
+                        spacing: -30,
                     },
                 },
                 {
@@ -85,7 +85,7 @@ const options: AgChartOptions = {
                     strokeOpacity: 0.3,
                     label: {
                         text: 'FRIENDS',
-                        padding: -30,
+                        spacing: -30,
                     },
                 },
                 {
@@ -94,7 +94,7 @@ const options: AgChartOptions = {
                     strokeWidth: 0,
                     label: {
                         text: 'ACQUAINTANCES',
-                        padding: -30,
+                        spacing: -30,
                     },
                 },
             ],

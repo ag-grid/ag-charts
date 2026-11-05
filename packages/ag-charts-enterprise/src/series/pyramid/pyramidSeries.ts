@@ -179,7 +179,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return highlightedDatum?.datum == null ? undefined : super.getRedrawnDatumIndex(highlightedDatum);
     }
 
-    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup', batchShadows: false }));
+    private readonly itemGroup = this.contentGroup.appendChild(
+        new Group({ name: 'itemGroup', batchShadows: 'shared' })
+    );
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
     private readonly stageLabelGroup = this.contentGroup.appendChild(new Group({ name: 'stageLabelGroup' }));
 
@@ -714,7 +716,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 kind: 'custom',
                 box: trapezoidBox(trapezoid),
                 overlaps: (box) => trapezoidOverlapsBox(trapezoid, box),
-                category: 'seriesItem',
+                category: 'shape',
             });
         }
         const stageLabels = bakedLabelObstacles(this.contextNodeData?.stageLabelData, (labelDatum) => ({
@@ -739,7 +741,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     override getLabelData(): PointLabelDatum[] {
         const { label } = this.options;
         if (!this.usesPlacedLabels || !label.enabled) return [];
-        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
+        const { alwaysShow, avoid, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '' || labelDatum.candidates == null) continue;
@@ -754,7 +756,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     labelDatum,
                     labelDatum.ownBox ?? { x: labelDatum.x, y: labelDatum.y, width: 0, height: 0 },
                     alwaysShow,
-                    collideWith,
+                    avoid,
                     threshold,
                     true,
                     fitFor(labelDatum.text),

@@ -1,8 +1,6 @@
 import type { AxisID, AxisWidget, BoundedTextWidget, BoxBounds, DynamicContext, Widget } from 'ag-charts-core';
-import { NativeWidget } from 'ag-charts-core';
+import { FocusIndicator, FocusSwapChain, NativeWidget } from 'ag-charts-core';
 
-import { FocusIndicator } from '../../dom/focusIndicator';
-import { FocusSwapChain } from '../../dom/focusSwapChain';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { DragInterpreter, LongTapInterpreter } from './dragInterpreter';
 
@@ -192,6 +190,11 @@ export class AxisWidgets {
     }
 }
 
+// TODO: Phase 3 "Common Widget Ancestor" - extend a real Widget base instead of the DOMManagerWidget fallback.
+/**
+ * Owns the series area's focus machinery: the FocusSwapChain that carries keyboard focus and screen-reader
+ * announcements, and the FocusIndicator drawn over the focused item. Callers reach both through this widget.
+ */
 class SeriesAreaWidget extends DOMManagerWidget {
     public readonly swapChain: FocusSwapChain;
     public readonly focusIndicator?: FocusIndicator;
@@ -225,6 +228,9 @@ export class WidgetSet {
         this.seriesBoundsWidget = new DOMManagerWidget(domManager.getParent('series-area-bounds'));
         this.chartWidget = new DOMManagerWidget(domManager.getParent('canvas-proxy'));
         this.containerWidget = new DOMManagerWidget(domManager.getParent('canvas-container'));
+        // TODO: AG−18361 Phase 3 "Common Widget Ancestor" - set these widgets as descendants of the DOM Manager root.
+        this.containerWidget.setCanvasOrigin(domManager);
+        this.seriesBoundsWidget.setCanvasOrigin(domManager);
         this.containerWidget.addChild(this.chartWidget);
         this.chartWidget.addChild(this.seriesWidget);
         if (opts.withDragInterpretation) {

@@ -50,7 +50,7 @@ import {
     isSupportedMarkerShape,
     jsonDiff,
     nearestSquared,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     without,
 } from 'ag-charts-core';
 import type {
@@ -236,7 +236,9 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 
 export type UnknownSeries = Series<SeriesNodeDatum, object>;
 
-export type SeriesAreaLayout = (series: UnknownSeries[], seriesRect: BBox) => Promise<void>;
+export interface SeriesAreaLayout<T = UnknownSeries> {
+    layoutSeries(series: T[], seriesRect: BBox): Promise<void>;
+}
 
 export abstract class Series<
     TDatum extends SeriesNodeDatum,
@@ -260,8 +262,8 @@ export abstract class Series<
     readonly supportsDataTransactions: boolean = true;
     /** Lets the standalone chart round the series area origin down to whole pixels. */
     readonly snapsSeriesAreaOrigin: boolean = true;
-    /** Lays out every series sharing this function, before the chart updates them. */
-    readonly seriesAreaLayout?: SeriesAreaLayout;
+    /** Lays out every series sharing this layout, before the chart updates them. */
+    readonly seriesAreaLayout?: SeriesAreaLayout<this>;
 
     protected hasChangesOnHighlight: boolean = false;
     protected hasChangesOnSelection: boolean = false;
@@ -299,7 +301,7 @@ export abstract class Series<
     readonly contentGroup = new TranslatableGroup({
         name: `${this.internalId}-content`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
-        batchShadows: false,
+        batchShadows: true,
     });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -308,11 +310,11 @@ export abstract class Series<
     readonly highlightGroup = new TranslatableGroup({
         name: `${this.internalId}-highlight`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
-        batchShadows: false,
+        batchShadows: true,
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(
-        new Group<TDatum>({ name: `${this.internalId}-highlight-node`, batchShadows: false })
+        new Group<TDatum>({ name: `${this.internalId}-highlight-node`, batchShadows: true })
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(
@@ -1045,7 +1047,8 @@ export abstract class Series<
      * every series. Every in-place copy casts the item's own `shadow` in the base pass that keeps it behind every
      * series, except where its highlight state sets a `glow`: that glow replaces the shadow, as an item has one shadow
      * slot. The exception is the item this series' highlight layer redraws, whose in-place copy keeps its `shadow`.
-     * AG-9003: while no `glow` is set, every copy casts its `shadow`, as in 14.2.0.
+     * While no highlight state sets a `glow`, the highlight layer's copy casts nothing and every in-place copy casts its
+     * `shadow`.
      */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
@@ -1054,7 +1057,7 @@ export abstract class Series<
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ): NormalisedDropShadowOptions | undefined {
-        if (!this.hasAnyGlow()) return shadow;
+        if (!this.hasAnyGlow()) return isHighlight ? undefined : shadow;
         if (isHighlight) return this.getStateGlow(HighlightState.Item);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
@@ -1944,9 +1947,9 @@ export abstract class Series<
         };
     }
 
-    /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
+    /** The series-area containment rect unless the label may overflow it (`collideWith.seriesArea: true`). */
     protected resolveLabelPlotRegion(collision: NormalisedChartLabelCollisionOptions): BoxBounds | undefined {
-        return resolveCollideWith(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
+        return resolveLabelAvoidance(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;

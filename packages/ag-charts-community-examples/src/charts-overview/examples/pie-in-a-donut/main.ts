@@ -1,6 +1,6 @@
 import type {
   AgPieSeriesOptions,
-  AgPolarChartOptions,
+  AgStandaloneChartOptions,
 } from "ag-charts-community";
 import {
   AgCharts
@@ -35,7 +35,7 @@ const sharedSeriesOptions: AgPieSeriesOptions = {
   },
 }
 
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
   container: document.getElementById("myChart"),
   title: {
     text: "Desktop Browser Market Share 2020 vs 2022",

@@ -19,8 +19,8 @@ const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px² */
 function makeSynthetic(type: 'click', event: DragWidgetEvent): ClickWidgetEvent;
 function makeSynthetic(type: 'dblclick', event: DragWidgetEvent): DblClickWidgetEvent;
 function makeSynthetic(type: 'click' | 'dblclick', event: DragWidgetEvent): ClickWidgetEvent | DblClickWidgetEvent {
-    const { device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent } = event;
-    return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+    const { device, offsetX, offsetY, clientX, clientY, currentX, currentY, canvasX, canvasY, sourceEvent } = event;
+    return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, canvasX, canvasY, sourceEvent };
 }
 
 function checkDragDistance(dx: number, dy: number) {
@@ -235,6 +235,8 @@ export class LongTapInterpreter {
         const { candidate } = this;
         if (candidate == null) return;
         const { touch, target } = candidate;
+        // TODO: Phase 3 "Common Widget Ancestor" - the gesture listeners below need capture and non-passive options,
+        // which Widget listeners do not offer.
         const element = this.widget.getElement();
         this.disarm();
 

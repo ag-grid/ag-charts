@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 
 import { AgCharts } from 'ag-charts-angular';
-import type { AgPolarChartOptions } from 'ag-charts-community';
+import type { AgStandaloneChartOptions } from 'ag-charts-community';
 
 import { THEME } from '../chartTheme';
 import { fmtInt } from '../format';
@@ -21,7 +21,7 @@ export class DeviceBreakdownChart {
         this.data().map((d) => ({ device: d.device, sessions: d.new + d.returning }))
     );
 
-    protected readonly options = computed<AgPolarChartOptions>(() => ({
+    protected readonly options = computed<AgStandaloneChartOptions>(() => ({
         theme: THEME,
         data: this.totals(),
         series: [

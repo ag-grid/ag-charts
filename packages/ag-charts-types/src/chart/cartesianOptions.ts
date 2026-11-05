@@ -24,7 +24,6 @@ import type { AgBaseThemeableChartOptions, AgSeriesAreaOptions } from './chartOp
 import type { AgChartLabelCollisionOptions } from './collisionAvoidanceOptions';
 import type {
     AgBaseCrossLineLabelOptions,
-    AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
     AgLineCrossLineOptions,
     AgRangeCrossLineOptions,
@@ -92,7 +91,7 @@ export interface AgCartesianAxisCrossAt {
     /**
      * Whether the axis title is placed at the crossing point, or at the axis' `position` edge.
      *
-     * Default: `'crossing'`
+     * Default: `'edge'`
      */
     titlePlacement?: AgCartesianAxisCrossAtPlacement;
     /**
@@ -746,12 +745,6 @@ export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDe
 
 export interface AgCartesianCrossLineLabelOptions
     extends AgBaseCrossLineLabelOptions, AgChartLabelFitOptions, AgChartLabelAutoFontSizeOptions {
-    /**
-     * The position of the Cross Line label.
-     *
-     * @deprecated v14.3.0 Use `placement` instead.
-     */
-    position?: AgCrossLineLabelPosition;
     /**
      * Where to place the label. An array is tried in order, and the first placement that fits is used.
      *

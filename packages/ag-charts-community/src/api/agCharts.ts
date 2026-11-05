@@ -601,7 +601,7 @@ class AgChartsInternal {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
         const chartType = detectChartType(options.processedOptions, options.moduleRegistry);
         const chartDef = options.moduleRegistry.getChartModule(chartType);
-        return chartDef.create(options, transferableResource) as Chart;
+        return new Chart(options, chartDef, transferableResource);
     }
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();

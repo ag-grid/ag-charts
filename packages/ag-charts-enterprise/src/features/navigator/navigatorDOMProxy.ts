@@ -1,12 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, SliderWidget, clamp, isFocused } from 'ag-charts-core';
+import { type BoxBounds, SliderWidget, clamp } from 'ag-charts-core';
 import type { DragWidgetEvent, MouseWidgetEvent, ToolbarWidget, Widget } from 'ag-charts-core';
 
 export type NavigatorButtonType = 'min' | 'max' | 'pan';
 
 type SliderDragHandlers = {
-    onDragStart(type: NavigatorButtonType, event: { offsetX: number }): void;
-    onDrag(type: NavigatorButtonType, event: { offsetX: number }): void;
+    onDragStart(type: NavigatorButtonType, event: { canvasX: number }): void;
+    onDrag(type: NavigatorButtonType, event: { canvasX: number }): void;
     toZoomRatios(ratios: { min: number; max: number }): { min: number; max: number };
 };
 
@@ -20,8 +20,6 @@ export class NavigatorDOMProxy {
     public _max = 1;
 
     public readonly minRange = 0.001;
-
-    private dragStartX = 0;
 
     private readonly toolbar: ToolbarWidget;
     private readonly sliders: [SliderWidget, SliderWidget, SliderWidget];
@@ -75,7 +73,7 @@ export class NavigatorDOMProxy {
             slider.addListener('drag-start', (ev) => this.onDragStart(index, ev, key));
             slider.addListener('drag-move', (ev) => this.onDrag(slider, ev, key));
             slider.addListener('drag-end', () => this.updateSliderRatios());
-            slider.addListener('contextmenu', (ev) => this.onContextMenu(slider, ev));
+            slider.addListener('contextmenu', (ev) => this.onContextMenu(ev));
         }
         this.sliders[0].addListener('change', () => this.onMinSliderChange());
         this.sliders[1].addListener('change', () => this.onPanSliderChange());
@@ -126,10 +124,6 @@ export class NavigatorDOMProxy {
         this.sliders[2].setValueRatio(max);
     }
 
-    private toCanvasOffsets(event: { originDeltaX: number }): { offsetX: number } {
-        return { offsetX: this.dragStartX + event.originDeltaX };
-    }
-
     private moveToFront(index: number) {
         if (index === 1) return; // ignore pan-handle
 
@@ -143,33 +137,26 @@ export class NavigatorDOMProxy {
     }
 
     private onKeyDown(slider: Widget) {
-        if (isFocused(slider.getElement())) {
+        if (slider.isFocused()) {
             slider.setFocusOverride(true);
         }
     }
 
     private onDragStart(index: number, event: DragWidgetEvent<'drag-start'>, key: NavigatorButtonType) {
         const slider: SliderWidget = this.sliders[index];
-        const toolbarLeft = this.toolbar.cssLeft();
-        const sliderLeft = slider.cssLeft();
-        this.dragStartX = toolbarLeft + sliderLeft + event.offsetX;
         this.moveToFront(index); // AG-13780
         event.sourceEvent.preventDefault();
         slider.focus();
         slider.setFocusOverride(false);
-        this.sliderHandlers.onDragStart(key, this.toCanvasOffsets(event));
+        this.sliderHandlers.onDragStart(key, event);
     }
 
     private onDrag(_slider: SliderWidget, event: DragWidgetEvent<'drag-move'>, key: NavigatorButtonType) {
-        this.sliderHandlers.onDrag(key, this.toCanvasOffsets(event));
+        this.sliderHandlers.onDrag(key, event);
     }
 
-    private onContextMenu(slider: SliderWidget, widgetEvent: MouseWidgetEvent<'contextmenu'>) {
-        const { offsetX, offsetY } = widgetEvent;
-        const { x: toolbarX, y: toolbarY } = this.toolbar.getBounds();
-        const { x: sliderX, y: sliderY } = slider.getBounds();
-        const canvasX = offsetX + toolbarX + sliderX;
-        const canvasY = offsetY + toolbarY + sliderY;
+    private onContextMenu(widgetEvent: MouseWidgetEvent<'contextmenu'>) {
+        const { canvasX, canvasY } = widgetEvent;
         this.ctx.contextMenuRegistry?.dispatchContext('always', { widgetEvent, canvasX, canvasY }, undefined);
     }
 

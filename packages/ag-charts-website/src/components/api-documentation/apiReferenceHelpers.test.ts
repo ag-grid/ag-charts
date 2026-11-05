@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
     buildTypeArguments,
+    buildTypeArgumentsFromGenericsMap,
     extractSearchData,
     formatTypeToCode,
     formatUnionSignature,
@@ -230,9 +231,9 @@ describe('formatTypeToCode', () => {
         const code = formatTypeToCode(eventNode as any, eventMember, new Map() as any, new Set());
 
         expect(code).toContain("type: 'contextMenuEvent';");
-        expect(code).toContain('context?: ContextDefault;');
+        expect(code).toContain('context?: TContext;');
         expect(code).not.toContain('type: T;');
-        expect(code).not.toContain('context?: TContext;');
+        expect(code).not.toContain('ContextDefault');
     });
 
     // The generic is wrapped in an array (`segments: SegmentOptions[]`), so it must resolve to the default's
@@ -332,6 +333,76 @@ describe('processMembers generic substitution', () => {
             type: 'Wrapper',
             typeArguments: [{ kind: 'array', type: 'AgSeriesShapeSegmentOptions' }],
         });
+    });
+});
+
+describe('processMembers opaque generic defaults', () => {
+    const node = {
+        kind: 'interface' as const,
+        name: 'Params',
+        typeParams: [
+            { kind: 'typeParam', name: 'TDatum', default: 'DatumDefault' },
+            { kind: 'typeParam', name: 'TContext', default: 'ContextDefault' },
+            { kind: 'typeParam', name: 'TValue', default: 'AxisValue' },
+        ],
+        members: [
+            prop('datum', 'TDatum'),
+            prop('items', { kind: 'array', type: 'TDatum' }),
+            prop('context', 'TContext'),
+            prop('value', 'TValue'),
+            prop('label', 'LabelContext'),
+        ],
+        genericsMap: {
+            TDatum: 'DatumDefault',
+            TContext: 'ContextDefault',
+            TValue: 'AxisValue',
+            LabelContext: 'TContext',
+        },
+    };
+    const memberTypes = (typeArguments?: string[]) =>
+        processMembers(node as any, {}, typeArguments).map((member) => normalizeType(member.type));
+
+    it.each([
+        ['from the parameter defaults', undefined],
+        ['from explicit type arguments', ['DatumDefault', 'ContextDefault', 'AxisValue']],
+    ])('keeps the datum and context parameter names when bound %s', (_, typeArguments) => {
+        expect(memberTypes(typeArguments)).toEqual(['TDatum', 'TDatum[]', 'TContext', 'AxisValue', 'TContext']);
+    });
+
+    it('still substitutes a concrete type argument', () => {
+        expect(memberTypes(['AgDatum', 'AgContext', 'number'])).toEqual([
+            'AgDatum',
+            'AgDatum[]',
+            'AgContext',
+            'number',
+            'AgContext',
+        ]);
+    });
+
+    // Mirrors `AgChartInstance.updateDelta(transaction: AgDataTransaction<TDatum>)`.
+    it('passes the outer parameter name into a nested interface with its own parameter name', () => {
+        const transactionNode = {
+            kind: 'interface' as const,
+            name: 'AgDataTransaction',
+            typeParams: [{ kind: 'typeParam', name: 'T', default: 'unknown' }],
+            members: [prop('add', { kind: 'array', type: 'T' })],
+        };
+        const transaction = prop('transaction', {
+            kind: 'typeRef',
+            type: 'AgDataTransaction',
+            typeArguments: ['TDatum'],
+        });
+
+        const typeArguments = buildTypeArguments(transaction, node.genericsMap);
+        const [add] = processMembers(transactionNode as any, {}, typeArguments);
+
+        expect(typeArguments).toEqual(['TDatum']);
+        expect(normalizeType(add.type)).toBe('TDatum[]');
+        expect(buildTypeArgumentsFromGenericsMap(node as any, node.genericsMap)).toEqual([
+            'TDatum',
+            'TContext',
+            'AxisValue',
+        ]);
     });
 });
 

@@ -17,7 +17,12 @@ env:
     SONAR_SOURCE_PROJECT: ag-charts-community-latest
     IBM_TELEMETRY_DISABLED: 'true'
 
-on: workflow_dispatch
+on:
+    workflow_dispatch:
+    # Fires once Publish Package has succeeded, unlike the release-* tag push, which
+    # also fires for attempts that fail. Excludes prereleases such as cloud-cache.
+    release:
+        types: [released]
 
 permissions:
     contents: read
@@ -28,6 +33,8 @@ concurrency:
 
 jobs:
     sonar_scanner:
+        # Automatic runs cover major and minor releases only; patches can be dispatched by hand.
+        if: ${{ github.event_name == 'workflow_dispatch' || endsWith(github.event.release.tag_name, '.0') }}
         runs-on: ubuntu-24.04
         steps:
             - name: Checkout

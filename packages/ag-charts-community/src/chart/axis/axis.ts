@@ -556,14 +556,14 @@ export abstract class Axis<
     private isHovering = false;
 
     private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
-        const node = this.tickLabelGroup.pickNode(event.currentX, event.currentY);
+        const node = this.tickLabelGroup.pickNode(event.canvasX, event.canvasY);
         const datum: LabelNodeDatum | undefined = node?.unsafeDatum;
         const { textUntruncated: title = undefined } = datum ?? {};
 
         if (title != null && title !== '') {
             this.moduleCtx.tooltipManager.updateTooltip(
                 this.id,
-                { canvasX: event.currentX, canvasY: event.currentY, showArrow: false },
+                { canvasX: event.canvasX, canvasY: event.canvasY, showArrow: false },
                 [{ type: 'structured', title }]
             );
             this.isHovering = true;

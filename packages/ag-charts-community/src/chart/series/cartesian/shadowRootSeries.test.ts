@@ -1,14 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Group, Transformable } from 'ag-charts-core';
-import type { InternalAgDropShadowOptions, Node, Shape } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
+import type { Node, Shape } from 'ag-charts-core';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
 import { expectSamePixels } from '../../test/expectSamePixels';
-import { getSeriesAt, getSeriesNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
-import { internalOptions, sceneGroups } from '../../test/shadowFixtures';
+import { getSeriesNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
 import {
     type Chart,
     createChart,
@@ -20,7 +19,7 @@ import {
 } from '../../test/utils';
 
 // A shadow with no blur and an exact offset, so that the alpha of a pixel is the strength of the shadow cast on it.
-const shadowAt = (xOffset: number, yOffset = 0): InternalAgDropShadowOptions => ({
+const shadowAt = (xOffset: number, yOffset = 0): AgDropShadowOptions => ({
     enabled: true,
     fill: 'rgba(0, 0, 0, 0.5)',
     xOffset,
@@ -119,72 +118,9 @@ describe('cartesian series shadow root', () => {
         return { through, local: canvasImage() };
     };
 
-    describe('14.2.0 shadow rendering of the series that had a shadow then', () => {
-        const data = [
-            { category: 'A', first: 6, second: 6 },
-            { category: 'B', first: 4, second: 7 },
-        ];
-        const SERIES = [
-            ['bar', { type: 'bar', xKey: 'category', yKey: 'first', fill: 'red', fillOpacity: 1 }],
-            ['area', { type: 'area', xKey: 'category', yKey: 'first', fill: 'red', fillOpacity: 1 }],
-            ['pie', { type: 'pie', angleKey: 'first', fill: 'red', fillOpacity: 1 }],
-            ['donut', { type: 'donut', angleKey: 'first', innerRadiusRatio: 0.5 }],
-        ] as const;
-
-        // The invariant: no group of these series hands its shadow to the root, so the root casts nothing for them and
-        // each item sets its own shadow, whatever the series draws beneath or beside it.
-        it.each(SERIES)('should leave no group of the %s series batching its shadows', async (_name, series) => {
-            await create({ data, series: [{ ...series, shadow: shadowAt(20, 10) }] } as AgChartOptions);
-
-            const groups = sceneGroups(getSeriesAt(chart!).contentGroup);
-            expect(groups.length).toBeGreaterThan(1);
-            expect(groups.filter((group) => group.batchShadows !== false).map((group) => group.name)).toEqual([]);
-        });
-
-        // The shadow of the later bar is offset onto the earlier bar. In 14.2.0 each item cast its own, over everything
-        // drawn before it, so the earlier bar is shaded; the root would have cast the shadows beneath every series.
-        it('should cast the shadow of a later bar over the bars of an earlier series', async () => {
-            const bars = (shadow: InternalAgDropShadowOptions | undefined): AgChartOptions => ({
-                data: [{ category: 'A', first: 6, second: 6 }],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'category',
-                        yKey: 'first',
-                        fill: 'red',
-                        fillOpacity: 1,
-                        strokeWidth: 0,
-                        shadow,
-                    },
-                    {
-                        type: 'bar',
-                        xKey: 'category',
-                        yKey: 'second',
-                        fill: 'blue',
-                        fillOpacity: 1,
-                        strokeWidth: 0,
-                        shadow,
-                    },
-                ],
-            });
-            await create(bars(undefined));
-            const [first] = itemCentres(0);
-            const [second] = itemCentres(1);
-            const offset = Math.round(first.x - second.x);
-            expect(pixelAt(first.x, first.y)).toEqual(RED);
-
-            await create(bars(shadowAt(offset)));
-
-            expect(pixelAt(first.x, first.y)).not.toEqual(RED);
-            expect(pixelAt(first.x, first.y)[0]).toBeLessThan(RED[0]);
-            // The shadow of the earlier bar falls on nothing to its left, and is cast once.
-            expect(isHalfBlack(pixelAt(first.x + (first.x - second.x), first.y))).toBe(true);
-        });
-    });
-
     describe('bars (the first repro)', () => {
         const data = [{ category: 'A', first: 6, second: 6 }];
-        const bars = (shadow: InternalAgDropShadowOptions | undefined): AgCartesianChartOptions => ({
+        const bars = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
             data,
             series: [
                 { type: 'bar', xKey: 'category', yKey: 'first', fill: 'red', fillOpacity: 1, strokeWidth: 0, shadow },
@@ -200,8 +136,7 @@ describe('cartesian series shadow root', () => {
             return shadowAt(Math.round(first.x - second.x));
         };
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should not draw the shadow of a later series over the bars of an earlier series', async () => {
+        it('should not draw the shadow of a later series over the bars of an earlier series', async () => {
             const shadow = await shadowOntoFirst();
             await create(bars(shadow));
 
@@ -233,7 +168,7 @@ describe('cartesian series shadow root', () => {
         });
 
         it('should draw one series the same through the root as through its own batch', async () => {
-            const options = (shadow: InternalAgDropShadowOptions): AgCartesianChartOptions => ({
+            const options = (shadow: AgDropShadowOptions): AgCartesianChartOptions => ({
                 data,
                 series: [{ type: 'bar', xKey: 'category', yKey: 'first', fill: 'red', strokeWidth: 0, shadow }],
             });
@@ -277,15 +212,13 @@ describe('cartesian series shadow root', () => {
             return pixelAt(last.x + 15, last.y + 30);
         };
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should cast the shadow once where the shadows of two areas overlap, not stack them', async () => {
+        it('should cast the shadow once where the shadows of two areas overlap, not stack them', async () => {
             await create(areas);
 
             expect(isHalfBlack(besideBothAreas())).toBe(true);
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should cast the shadow of translucent areas once where they overlap, as it is cast for one of them', async () => {
+        it('should cast the shadow of translucent areas once where they overlap, as it is cast for one of them', async () => {
             // The fill opacity is the default of the theme, which is translucent.
             const translucent = (series: AgCartesianChartOptions['series']): AgCartesianChartOptions => ({
                 ...areas,
@@ -306,8 +239,7 @@ describe('cartesian series shadow root', () => {
             expect(both).toEqual(pixelAt(x, y));
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should not stack the shadow, whatever the number of areas', async () => {
+        it('should not stack the shadow, whatever the number of areas', async () => {
             const copies = Array.from({ length: 6 }, (_, i) => ({
                 type: 'area' as const,
                 xKey: 'x',
@@ -323,7 +255,7 @@ describe('cartesian series shadow root', () => {
 
         describe('an opaque later area whose shadow falls on an earlier area', () => {
             // The earlier area is the taller, so it shows above the top of the later one, where the later shadow falls.
-            const overlapping = (shadow: InternalAgDropShadowOptions | undefined): AgCartesianChartOptions => ({
+            const overlapping = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
                 ...areas,
                 series: [
                     { type: 'area', xKey: 'x', yKey: 'high', fill: 'red', fillOpacity: 1, strokeWidth: 0 },
@@ -346,8 +278,7 @@ describe('cartesian series shadow root', () => {
                 return pixelAt((start.x + end.x) / 2, start.y - 10);
             };
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('should not draw the shadow over the earlier area', async () => {
+            it('should not draw the shadow over the earlier area', async () => {
                 await create(overlapping(shadowAt(0, -30)));
 
                 expect(onEarlierArea()).toEqual(RED);
@@ -364,7 +295,7 @@ describe('cartesian series shadow root', () => {
 
         describe('markers whose shadows fall on the fill of their own area', () => {
             // An opaque fill, so that a shadow beneath it can't show, and one over it darkens the fill.
-            const withMarkerShadows: AgCartesianChartOptions = internalOptions<AgCartesianChartOptions>({
+            const withMarkerShadows: AgCartesianChartOptions = {
                 ...areas,
                 series: [
                     {
@@ -377,7 +308,7 @@ describe('cartesian series shadow root', () => {
                         marker: { enabled: true, size: 8, fill: 'blue', shadow: shadowAt(0, 20) },
                     },
                 ],
-            });
+            };
 
             /** A pixel of the fill below the first marker, where the shadow of that marker falls. */
             const belowMarker = async () => {
@@ -386,8 +317,7 @@ describe('cartesian series shadow root', () => {
                 return { x, y: y + 20 };
             };
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('should not draw the shadow over the fill', async () => {
+            it('should not draw the shadow over the fill', async () => {
                 const { x, y } = await belowMarker();
 
                 expect(pixelAt(x, y)).toEqual(RED);
@@ -402,17 +332,15 @@ describe('cartesian series shadow root', () => {
             });
 
             it('should still cast the shadow where nothing else is drawn', async () => {
-                await create(
-                    internalOptions<AgCartesianChartOptions>({
-                        ...withMarkerShadows,
-                        series: [
-                            {
-                                ...(withMarkerShadows.series![0] as object),
-                                marker: { enabled: true, size: 8, fill: 'blue', shadow: shadowAt(-30) },
-                            },
-                        ],
-                    })
-                );
+                await create({
+                    ...withMarkerShadows,
+                    series: [
+                        {
+                            ...(withMarkerShadows.series![0] as object),
+                            marker: { enabled: true, size: 8, fill: 'blue', shadow: shadowAt(-30) },
+                        },
+                    ],
+                } as AgCartesianChartOptions);
                 const [{ x, y }] = itemCentres(0);
 
                 // Left of the first point of the area, there is neither fill nor marker to cover it.
@@ -423,26 +351,25 @@ describe('cartesian series shadow root', () => {
         describe('while a highlight dims the area', () => {
             // The shadow is opaque, but dimmed to the strength of the markers that cast it, so what it lets through
             // of the area's fill, which is translucent while it is dimmed, depends on whether it falls beneath or over it.
-            const dimmed = (shadow: InternalAgDropShadowOptions): AgCartesianChartOptions =>
-                internalOptions<AgCartesianChartOptions>({
-                    ...areas,
-                    highlight: { drawingMode: 'cutout' },
-                    series: [
-                        {
-                            type: 'area',
-                            xKey: 'x',
-                            yKey: 'high',
-                            fill: 'red',
-                            fillOpacity: 1,
-                            strokeWidth: 0,
-                            marker: { enabled: true, size: 8, fill: 'blue', fillOpacity: 1, shadow },
-                        },
-                        { type: 'line', xKey: 'x', yKey: 'low' },
-                    ],
-                });
+            const dimmed = (shadow: AgDropShadowOptions): AgCartesianChartOptions => ({
+                ...areas,
+                highlight: { drawingMode: 'cutout' },
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'high',
+                        fill: 'red',
+                        fillOpacity: 1,
+                        strokeWidth: 0,
+                        marker: { enabled: true, size: 8, fill: 'blue', fillOpacity: 1, shadow },
+                    },
+                    { type: 'line', xKey: 'x', yKey: 'low' },
+                ],
+            });
             const SOLID = { ...shadowAt(0, 20), fill: 'black' };
 
-            const dim = async (shadow: InternalAgDropShadowOptions) => {
+            const dim = async (shadow: AgDropShadowOptions) => {
                 await create(dimmed(shadow));
                 const [{ x, y }] = itemCentres(0);
                 await hoverSeries(1);
@@ -450,8 +377,7 @@ describe('cartesian series shadow root', () => {
                 return { x, y };
             };
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('should draw the shadow of a marker beneath the fill of its area', async () => {
+            it('should draw the shadow of a marker beneath the fill of its area', async () => {
                 const { x, y } = await dim(SOLID);
                 const through = pixelAt(x, y + 20);
 
@@ -464,8 +390,7 @@ describe('cartesian series shadow root', () => {
                 expect(through[0]).toBeGreaterThan(local[0]);
             });
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('should leave the shadow whole beneath a marker that cuts out the layer above it', async () => {
+            it('should leave the shadow whole beneath a marker that cuts out the layer above it', async () => {
                 // The shadow of a marker falls on the marker itself, which erases the layer above the shadow.
                 const { x, y } = await dim(shadowAt(0, 0));
                 const shadowed = pixelAt(x, y);
@@ -486,10 +411,7 @@ describe('cartesian series shadow root', () => {
     });
 
     describe('series with segments', () => {
-        const segmented = (
-            shadow: InternalAgDropShadowOptions | undefined,
-            segments: boolean
-        ): AgCartesianChartOptions => ({
+        const segmented = (shadow: AgDropShadowOptions | undefined, segments: boolean): AgCartesianChartOptions => ({
             data: [
                 { x: 'A', y: 10 },
                 { x: 'B', y: 20 },
@@ -529,7 +451,7 @@ describe('cartesian series shadow root', () => {
         });
 
         describe('after an earlier series', () => {
-            const options = (shadow: InternalAgDropShadowOptions | undefined): AgCartesianChartOptions => ({
+            const options = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
                 data: [{ category: 'A', first: 6, second: 6 }],
                 series: [
                     {
@@ -565,8 +487,7 @@ describe('cartesian series shadow root', () => {
                 return { x: first.x + first.width / 2, y: first.y + 3 };
             };
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('should not draw the shadow of a segmented series over an earlier series', async () => {
+            it('should not draw the shadow of a segmented series over an earlier series', async () => {
                 const { x, y } = await aboveSegment();
 
                 expect(pixelAt(x, y)).toEqual(RED);
@@ -588,31 +509,29 @@ describe('cartesian series shadow root', () => {
         ];
         const square = { shape: 'square' as const, size: 20, fill: 'red', fillOpacity: 1, strokeWidth: 0 };
 
-        const scatters = (shadow: InternalAgDropShadowOptions | undefined): AgCartesianChartOptions =>
-            internalOptions<AgCartesianChartOptions>({
-                data,
-                axes: AXES,
-                series: [
-                    { type: 'scatter', xKey: 'x', yKey: 'y', ...square },
-                    { type: 'scatter', xKey: 'x', yKey: 'z', ...square, fill: 'blue', shadow },
-                ],
-            });
+        const scatters = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
+            data,
+            axes: AXES,
+            series: [
+                { type: 'scatter', xKey: 'x', yKey: 'y', ...square },
+                { type: 'scatter', xKey: 'x', yKey: 'z', ...square, fill: 'blue', shadow },
+            ],
+        });
 
-        const lines = (shadow: InternalAgDropShadowOptions | undefined): AgCartesianChartOptions =>
-            internalOptions<AgCartesianChartOptions>({
-                data,
-                axes: AXES,
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 0, marker: { enabled: true, ...square } },
-                    {
-                        type: 'line',
-                        xKey: 'x',
-                        yKey: 'z',
-                        strokeWidth: 0,
-                        marker: { enabled: true, ...square, fill: 'blue', shadow },
-                    },
-                ],
-            });
+        const lines = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
+            data,
+            axes: AXES,
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 0, marker: { enabled: true, ...square } },
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'z',
+                    strokeWidth: 0,
+                    marker: { enabled: true, ...square, fill: 'blue', shadow },
+                },
+            ],
+        });
 
         describe.each([
             ['scatter', scatters],
@@ -626,8 +545,7 @@ describe('cartesian series shadow root', () => {
                 return { shadow: shadowAt(Math.round(first.x - second.x), Math.round(first.y - second.y)), first };
             };
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('should not draw the shadow of the markers of a later series over those of an earlier series', async () => {
+            it('should not draw the shadow of the markers of a later series over those of an earlier series', async () => {
                 const { shadow, first } = await shadowOntoFirst();
                 await create(build(shadow));
 
@@ -653,27 +571,26 @@ describe('cartesian series shadow root', () => {
         // Solid, so that a shadow beneath a translucent marker is plainly apart from one over it.
         const SOLID = 'black';
 
-        const lines = (shadow: InternalAgDropShadowOptions | undefined): AgCartesianChartOptions =>
-            internalOptions<AgCartesianChartOptions>({
-                data,
-                axes: AXES,
-                highlight: { drawingMode: 'cutout' },
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 0, marker: { enabled: true, ...square } },
-                    {
-                        type: 'line',
-                        xKey: 'x',
-                        yKey: 'z',
-                        strokeWidth: 0,
-                        marker: { enabled: true, ...square, fill: 'blue', shadow },
-                    },
-                    { type: 'line', xKey: 'x', yKey: 'w', strokeWidth: 0, marker: { enabled: true, ...square } },
-                ],
-            });
+        const lines = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
+            data,
+            axes: AXES,
+            highlight: { drawingMode: 'cutout' },
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 0, marker: { enabled: true, ...square } },
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'z',
+                    strokeWidth: 0,
+                    marker: { enabled: true, ...square, fill: 'blue', shadow },
+                },
+                { type: 'line', xKey: 'x', yKey: 'w', strokeWidth: 0, marker: { enabled: true, ...square } },
+            ],
+        });
 
         describe('line markers', () => {
             /** Dims the first two series by raising the highlight on the third, and returns the marker that the shadow falls on. */
-            const dim = async (shadow?: InternalAgDropShadowOptions) => {
+            const dim = async (shadow?: AgDropShadowOptions) => {
                 await create(lines(undefined));
                 const [first] = itemCentres(0);
                 const [second] = itemCentres(1);
@@ -687,8 +604,7 @@ describe('cartesian series shadow root', () => {
                 return first;
             };
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('should cast the shadow beneath the markers of an earlier series', async () => {
+            it('should cast the shadow beneath the markers of an earlier series', async () => {
                 const first = await dim();
                 const through = pixelAt(first.x, first.y);
 

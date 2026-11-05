@@ -23,10 +23,11 @@ import {
     getAxisLabelDatums,
     getAxisPickTickData,
     getCrossLinesPlugin,
-    getLegendModule,
     getSeriesRect,
     getSwapChainText,
     hoverAction,
+    hoverLegendItem,
+    isTooltipVisible,
     mouseDownAction,
     mouseMoveAction,
     mouseUpAction,
@@ -1813,6 +1814,8 @@ describe('Zoom', () => {
     });
 
     describe('CRT-1193 legend hover during a series-area drag', () => {
+        const activeChange = vi.fn();
+
         const LEGEND_EXAMPLE_OPTIONS: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             data: [
@@ -1826,38 +1829,33 @@ describe('Zoom', () => {
                 { x: 7, y: 75, y2: 80 },
             ],
             series: [
-                { type: 'line', xKey: 'x', yKey: 'y', yName: 'Series Y' },
-                { type: 'line', xKey: 'x', yKey: 'y2', yName: 'Series Y2' },
+                { id: 'series-y', type: 'line', xKey: 'x', yKey: 'y', yName: 'Series Y' },
+                { id: 'series-y2', type: 'line', xKey: 'x', yKey: 'y2', yName: 'Series Y2' },
             ],
-            legend: { enabled: true },
+            // Shows the legend item tooltip on every hover, so a hover the legend acts on is visible.
+            legend: { enabled: true, item: { tooltip: { visible: 'always' } } },
+            listeners: { activeChange },
         } as AgChartOptions;
 
-        it('should drop legend hover while a real drag holds ZoomDrag', async () => {
+        beforeEach(async () => {
             await prepareChart({ axes: 'x', enableSelecting: true }, undefined, LEGEND_EXAMPLE_OPTIONS);
             await waitForChartStability(chart);
+            activeChange.mockClear();
+        });
 
-            const instance = deproxy(chart);
-            const { highlightManager, interactionManager, tooltipManager } = instance.ctx;
-            const legend = getLegendModule(instance);
-            const items = legend.itemSelection.nodes();
+        it('should highlight a hovered legend item when nothing is dragging', async () => {
+            await hoverLegendItem(chart, 0);
 
-            const updateTooltip = vi.spyOn(tooltipManager, 'updateTooltip');
-            const removeTooltip = vi.spyOn(tooltipManager, 'removeTooltip');
+            expect(isTooltipVisible(deproxy(chart))).toBe(true);
+            expect(activeChange).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    activeItem: expect.objectContaining({ type: 'legend', seriesId: 'series-y' }),
+                })
+            );
+        });
 
-            // Positive control: the same hover on the same chart does highlight, and does reach the
-            // tooltip manager, when nothing is dragging.
-            legend.onHover(new MouseEvent('mouseenter'), items[0]);
-            expect(highlightManager.getActiveHighlight()?.series.id).toBe(items[0].datum?.id);
-            expect(updateTooltip.mock.calls.length + removeTooltip.mock.calls.length).toBeGreaterThan(0);
-
-            // Legend highlight clears are deferred to batch stop, so the baseline has to be allowed
-            // to land before the suppression case is measured against it.
-            legend.onLeave();
-            await waitForChartStability(chart);
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-
-            // A real series-area drag: mouse down inside the series area, then two moves without a
-            // mouse up, which is what leaves the chart mid-drag.
+        it('should not highlight a legend item hovered while a series-area drag is held', async () => {
+            // Mouse down inside the series area, then two moves without a mouse up, which leaves the chart mid-drag.
             const { x, y, width, height } = getSeriesRect(chart);
             const from = { x: x + width * 0.25, y: y + height * 0.5 };
             const to = { x: x + width * 0.75, y: y + height * 0.5 };
@@ -1865,25 +1863,14 @@ describe('Zoom', () => {
             await delay(500);
             await mouseMoveAction(from.x, from.y)(chart);
             await mouseMoveAction(to.x, to.y)(chart);
+            activeChange.mockClear();
 
-            // The drag's own updates request layout with skipAnimations, so no animation batch is in
-            // flight to outrank ZoomDrag in the state queue - isState() reads only its lowest set bit.
-            expect(interactionManager.isState(_ModuleSupport.InteractionState.ZoomDrag)).toBe(true);
+            await hoverLegendItem(chart, 1);
 
-            updateTooltip.mockClear();
-            removeTooltip.mockClear();
-
-            legend.onHover(new MouseEvent('mouseenter'), items[1]);
-
-            // Highlight application is separately gated on the state queue, so the tooltip calls are what
-            // distinguish the guard returning early from a highlight that merely never lands.
-            expect(updateTooltip).not.toHaveBeenCalled();
-            expect(removeTooltip).not.toHaveBeenCalled();
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+            expect(isTooltipVisible(deproxy(chart))).toBe(false);
+            expect(activeChange).not.toHaveBeenCalled();
 
             await mouseUpAction(to.x, to.y)(chart);
-            updateTooltip.mockRestore();
-            removeTooltip.mockRestore();
         });
     });
 
@@ -1981,6 +1968,45 @@ describe('Zoom', () => {
             expect(start).toBeGreaterThan(0);
             expect(end).toBeGreaterThan(0.25);
             expect(end - start).toBeCloseTo(0.25, 10);
+        });
+
+        it('fires the zoom event after activeChange when panning a map to the focused shape', async () => {
+            const square = (lon: number, lat: number) => [
+                [
+                    [lon, lat],
+                    [lon + 1, lat],
+                    [lon + 1, lat + 1],
+                    [lon, lat + 1],
+                    [lon, lat],
+                ],
+            ];
+            const events: string[] = [];
+            chart = await createEnterpriseChart({
+                animation: { enabled: false },
+                data: [{ name: 'a' }, { name: 'b' }],
+                topology: {
+                    type: 'FeatureCollection',
+                    features: ['a', 'b'].map((name, index) => ({
+                        type: 'Feature',
+                        properties: { name },
+                        geometry: { type: 'Polygon', coordinates: square(index * 10, 0) },
+                    })),
+                },
+                zoom: { enabled: true },
+                initialState: { zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } } },
+                series: [{ type: 'map-shape', idKey: 'name' }],
+                listeners: {
+                    activeChange: () => events.push('activeChange'),
+                    zoom: () => events.push('zoom'),
+                },
+            });
+
+            await tabIntoChart(chart);
+            events.length = 0;
+            await pressKey(chart, 'ArrowRight');
+            await waitForChartStability(chart);
+
+            expect(events).toEqual(['activeChange', 'zoom']);
         });
 
         describe('AG-14101 ArrowDown into a series whose datum is outside the viewport', () => {

@@ -24,13 +24,6 @@
     --align-items: flex-start;
 }
 
-.ag-charts-tab-guard {
-    width: 0;
-    height: 0;
-    position: absolute;
-    pointer-events: none;
-}
-
 .ag-charts-canvas-center {
     position: absolute;
     touch-action: auto;

@@ -528,7 +528,6 @@ describe('Navigator', () => {
                     x: { position: 'bottom', type: 'number', crossAt: { value: 0 }, interval: { step: 2 } },
                     y: { position: 'left', type: 'number' },
                 },
-                // `collideWith` is not in the public label collision options, hence the cast.
                 series: [
                     {
                         type: 'line',
@@ -538,7 +537,7 @@ describe('Navigator', () => {
                             enabled: true,
                             formatter: ({ datum }: { datum: { x: number } }) => `x${datum.x}`,
                             placement: ['bottom', 'top'],
-                            collision: { alwaysShow: false, collideWith: { axisLabels: true } },
+                            collision: { alwaysShow: false, collideWith: { axisLabels: false } },
                             truncate: false,
                         },
                     } as AgLineSeriesOptions,
@@ -685,14 +684,6 @@ describe('Navigator', () => {
                 expectWarningsCalls().toEqual([]);
             }
         );
-
-        it('for the deprecated mask over the track params it should render to canvas as expected', async () => {
-            await render({ navigatorTrackBackgroundColor: 'red' }, { mask: { fill: 'blue' } });
-
-            expectWarningsCalls().toEqual([
-                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
-            ]);
-        });
     });
 
     describe('track and thumb options', () => {
@@ -708,22 +699,6 @@ describe('Navigator', () => {
         it('styles the track from `track`', async () => {
             const track = await create({ track: { fill: 'red', fillOpacity: 0.5, strokeWidth: 3 } });
             expect([track.fill, track.fillOpacity, track.strokeWidth]).toEqual(['red', 0.5, 3]);
-        });
-
-        it('still styles the track from deprecated `mask`, with a deprecation warning', async () => {
-            const track = await create({ mask: { fill: 'blue', strokeWidth: 2 } });
-            expect([track.fill, track.strokeWidth]).toEqual(['blue', 2]);
-            expectWarningsCalls().toEqual([
-                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
-            ]);
-        });
-
-        it('prefers `track` over `mask`', async () => {
-            const track = await create({ mask: { fill: 'blue', strokeWidth: 2 }, track: { fill: 'red' } });
-            expect([track.fill, track.strokeWidth]).toEqual(['red', 2]);
-            expectWarningsCalls().toEqual([
-                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
-            ]);
         });
 
         it('styles the selected range from `thumb`', async () => {

@@ -49,7 +49,7 @@ import {
     fontOptionsDef,
     labelBoxOptionsDef,
     lineDashOptionsDef,
-    signedPadding,
+    padding,
     strokeOptionsDef,
     textAlign,
     textWrap,
@@ -71,7 +71,6 @@ import {
     constant,
     date,
     defined,
-    deprecated,
     greaterThan,
     lessThan,
     lessThanOrEqual,
@@ -94,8 +93,8 @@ import {
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
     text: string,
-    // Signed: label padding positions the label relative to the line, so negative values are meaningful.
-    padding: signedPadding,
+    padding,
+    spacing: number,
     border: borderOptionsDef,
     cornerRadius: positiveNumber,
     ...fontOptionsDef,
@@ -278,7 +277,6 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     label: commonAxisLabelOptionsDefs,
     line: {
         enabled: boolean,
-        width: deprecated(positiveNumber, 'Use `strokeWidth` instead.'),
         stroke: colorOrRef,
         strokeWidth: positiveNumber,
         strokeOpacity: ratio,

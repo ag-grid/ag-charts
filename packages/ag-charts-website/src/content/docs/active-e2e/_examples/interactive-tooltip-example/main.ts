@@ -61,6 +61,7 @@ export function onPopEvents() {
     console.log(events);
 }
 
+/** inScope */
 export function onClear() {
     chart.setState({ version, active: { activeItem: undefined } });
 }

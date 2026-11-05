@@ -32,6 +32,7 @@ import {
     pointOnPolarCrossLine,
     polarCanvasPoint,
     polarCrossLineAt,
+    polarRadiusOf,
 } from '../../test/polarCrossLines';
 import {
     createEnterpriseChart,
@@ -589,6 +590,7 @@ describe('PolarCrossLine listeners', () => {
 
     it('pie and donut charts reject cross-line listeners', async () => {
         chart = deproxy(
+            // @ts-expect-error pie and donut chart options do not declare cross-line listeners
             await createEnterpriseChart({
                 data: [{ label: 'a', value: 1 }],
                 series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],
@@ -685,5 +687,75 @@ describe('PolarCrossLine listeners', () => {
                 await expectClickTarget(chart, 'radius', listener);
             }
         );
+    });
+});
+
+describe('AG-18119: polar cross-line label spacing', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const renderLabel = async (axis: 'angle' | 'radius', label: AgAngleCrossLineOptions['label']) => {
+        const crossLines = {
+            angle: axis === 'angle' ? [{ type: 'line' as const, value: 'Q2', label }] : [],
+            radius: axis === 'radius' ? [{ type: 'line' as const, value: 5, label }] : [],
+        };
+        chart?.destroy();
+        chart = deproxy(
+            await createEnterpriseChart({
+                data: [
+                    { q: 'Q1', v: 2 },
+                    { q: 'Q2', v: 4 },
+                    { q: 'Q3', v: 6 },
+                    { q: 'Q4', v: 8 },
+                ],
+                series: [{ type: 'radar-line', angleKey: 'q', radiusKey: 'v' }],
+                axes: {
+                    angle: { type: 'angle-category', shape: 'circle', crossLines: crossLines.angle },
+                    radius: { type: 'radius-number', shape: 'circle', min: 0, max: 10, crossLines: crossLines.radius },
+                },
+            })
+        );
+        return polarCrossLineAt(chart, axis);
+    };
+    const labelCentreFor = async (axis: 'angle' | 'radius', label: AgAngleCrossLineOptions['label']) =>
+        (await renderLabel(axis, label)).getLabelBox()!.computeCenter();
+
+    // Q2 is a horizontal line through the centre with its label below; the radius label sits above the circle's top.
+    const gapToLine = async (axis: 'angle' | 'radius', label: AgAngleCrossLineOptions['label']) => {
+        const crossLine = await renderLabel(axis, label);
+        const box = crossLine.getLabelBox()!;
+        if (axis === 'angle') return box.y - polarCanvasPoint(crossLine, 0, 0).canvasY;
+        const lineY = polarCanvasPoint(crossLine, polarRadiusOf(crossLine, 5), -Math.PI / 2).canvasY;
+        return lineY - (box.y + box.height);
+    };
+
+    it.each(
+        (['angle', 'radius'] as const).flatMap((axis) =>
+            [
+                ['unboxed', {}],
+                ['fill-only', { fill: '#eeeeee' }],
+                ['bordered', { border: { enabled: true, stroke: 'red' } }],
+                ['fill with uneven insets', { fill: '#eeeeee', padding: { top: 3, bottom: 9, left: 1, right: 1 } }],
+            ].flatMap(([boxing, style]) => [-20, 0, 20].map((spacing) => [axis, boxing, spacing, style] as const))
+        )
+    )('places a %s %s label box edge %ipx from the line', async (axis, _, spacing, style) => {
+        expect(await gapToLine(axis, { text: 'Label', ...(style as object), spacing })).toBeCloseTo(spacing, 0);
+    });
+
+    it.each([
+        ['unboxed', 5, {}],
+        ['fill-only', 0, { fill: '#eeeeee' }],
+    ])('defaults the spacing of a %s radius label to %ipx', async (_, expected, style) => {
+        const byDefault = await labelCentreFor('radius', { text: 'Label', ...style });
+        const explicit = await labelCentreFor('radius', { text: 'Label', ...style, spacing: expected });
+
+        expect(byDefault).toEqual(explicit);
     });
 });

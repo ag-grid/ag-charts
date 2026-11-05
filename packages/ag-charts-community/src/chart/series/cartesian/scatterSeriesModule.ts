@@ -16,7 +16,6 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     themeLineHeight,
-    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -40,7 +39,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
         fillOpacity: 0.8,
         strokeWidth: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
-        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+        shadow: SHADOW_THEME_DEFAULTS,
         maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
@@ -53,7 +52,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
             padding: 8,
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
-            collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesArea: false } }) },
+            collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             placement: 'top',
         },
         tooltip: NEAREST_NODE_TOOLTIP_THEME,

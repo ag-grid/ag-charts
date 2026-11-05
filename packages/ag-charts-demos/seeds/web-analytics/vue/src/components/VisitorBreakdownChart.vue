@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import type { AgPolarChartOptions } from 'ag-charts-community';
+import type { AgStandaloneChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-vue3';
 
 import { THEME } from '../chartTheme';
@@ -10,7 +10,7 @@ import type { VisitorDatum } from '../types';
 
 const props = defineProps<{ data: VisitorDatum[] }>();
 
-const options = computed<AgPolarChartOptions>(() => ({
+const options = computed<AgStandaloneChartOptions>(() => ({
     theme: THEME,
     data: props.data,
     series: [

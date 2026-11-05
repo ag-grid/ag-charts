@@ -73,7 +73,7 @@ import { SelectionState } from './seriesTypes';
 import { getDatumRefPoint, isDatumHighlight } from './util';
 
 type ClickLikeEvent = ClickWidgetEvent | DblClickWidgetEvent;
-type HoverLikeEvent = Readonly<CurrentPoint> & {
+type HoverLikeEvent = Readonly<CurrentPoint & CanvasPoint> & {
     readonly type: 'click' | 'dblclick' | 'mousemove' | 'drag-move';
     readonly device: 'mouse' | 'touch' | 'pen';
     readonly sourceEvent: PointerEvent | MouseEvent | TouchEvent;
@@ -471,8 +471,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onContextMenu(event: MouseWidgetEvent<'contextmenu'>, current: Widget): void {
-        const { sourceEvent } = event;
-        if (sourceEvent.currentTarget != current.getElement()) return;
+        if (!current.isEventCurrentTarget(event)) return;
 
         if (current !== this.chart.ctx.widgets.seriesWidget) {
             this.onContainerContextMenu(event);
@@ -505,7 +504,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.clearAll();
-        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+        const { canvasX, canvasY } = event;
 
         const contexts: ContextMenuRegionContexts = {};
         const nodeContexts = seriesNodeContexts(pickedNodes);
@@ -530,12 +529,10 @@ export class SeriesAreaManager extends BaseManager {
     // A region drawn outside the series area, such as a cross-line label, is on the container, so it is hit-tested here.
     private onContainerContextMenu(event: MouseWidgetEvent<'contextmenu'>): void {
         // The series widget is nested inside the container, so its right-clicks bubble here after being dispatched.
-        const seriesElement = this.chart.ctx.widgets.seriesWidget.getElement();
-        if (seriesElement.contains(event.sourceEvent.target as Node | null)) return;
+        if (this.chart.ctx.widgets.seriesWidget.containsTarget(event)) return;
         if (!this.isState(InteractionState.ContextMenuable)) return;
 
-        // Container-widget coordinates are already canvas-relative (matches the container branch of `onClick`).
-        const { currentX: canvasX, currentY: canvasY } = event;
+        const { canvasX, canvasY } = event;
         const pointerEvent = { widgetEvent: event, canvasX, canvasY };
 
         // Only primary regions are offered here; offering the rest would widen them beyond the series area.
@@ -646,10 +643,10 @@ export class SeriesAreaManager extends BaseManager {
         // `seriesWidget` hits land on a swapchain descendant, so test containment; `containerWidget`
         // needs an exact match to exclude the `seriesWidget` nested inside it.
         if (current === this.chart.ctx.widgets.seriesWidget) {
-            if (!current.getElement().contains(event.sourceEvent.target as Node | null)) {
+            if (!current.containsTarget(event)) {
                 return;
             }
-        } else if (event.sourceEvent.target != current.getElement()) {
+        } else if (!current.isEventTarget(event)) {
             return;
         }
 
@@ -667,9 +664,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const canvasPoint: CanvasPoint = isSeriesWidget
-            ? this.toCanvasCoordinates(event)
-            : { canvasX: event.currentX, canvasY: event.currentY };
+        const canvasPoint: CanvasPoint = { canvasX: event.canvasX, canvasY: event.canvasY };
 
         const claims = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
         const claimedParams = claims.flatMap((claim) => claim.matchedParams);
@@ -708,7 +703,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private emitSeriesAreaHoverEvent(event: HoverLikeEvent, consumed: boolean): void {
-        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+        const { canvasX, canvasY } = event;
         const payload: SeriesAreaHoverEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
         this.chart.ctx.eventsHub.emit('series-area:hover', payload);
     }
@@ -743,13 +738,6 @@ export class SeriesAreaManager extends BaseManager {
         if (oldSelectionState !== newSelectionState) {
             this.announceDataSelectionChange();
         }
-    }
-
-    private toCanvasCoordinates(event: CurrentPoint): CanvasPoint {
-        return {
-            canvasX: event.currentX + (this.hoverRect?.x ?? this.seriesRect?.x ?? 0),
-            canvasY: event.currentY + (this.hoverRect?.y ?? this.seriesRect?.y ?? 0),
-        };
     }
 
     private onFocus(): void {
@@ -980,7 +968,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkSeriesNodeClick(
-        event: ClickLikeEvent & CurrentPoint & { preventZoomDblClick?: boolean },
+        event: ClickLikeEvent & CurrentPoint & CanvasPoint & { preventZoomDblClick?: boolean },
         claimedParams: AgMatchedParams<unknown>[]
     ): SeriesNodeClickCheck | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
@@ -989,7 +977,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const distance = updated.paginationState == null ? pickedNodes.distance : 0;
 
-        const canvasPoint: CanvasPoint = this.toCanvasCoordinates(event);
+        const canvasPoint: CanvasPoint = { canvasX: event.canvasX, canvasY: event.canvasY };
         const coordinates: AgCoordinates | undefined = this.chart.ctx.chartService.toAgCoordinates(canvasPoint);
 
         // A dedicated control (e.g. the org-chart expander) owns its clicks: it drives itself via
@@ -1472,7 +1460,7 @@ export class SeriesAreaManager extends BaseManager {
         const event = this.highlight.appliedHoverEvent;
         if (!event || !this.isState(InteractionState.Hoverable)) return;
 
-        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+        const { canvasX, canvasY } = event;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             this.clearHighlight();
             return;
@@ -1504,7 +1492,7 @@ export class SeriesAreaManager extends BaseManager {
     private handleHoverTooltip(event: HoverLikeEvent, redisplay: boolean) {
         if (!this.isState(InteractionState.Hoverable)) return;
 
-        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+        const { canvasX, canvasY } = event;
         const targetElement = event.sourceEvent.target as HTMLElement;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             if (this.getHoverDevice() == 'pointer') this.clearTooltip();

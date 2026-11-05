@@ -165,11 +165,7 @@ export class Caption implements CaptionLike {
 
     private handleMouseMove(moduleCtx: DynamicContext<ChartRegistry>, event?: MouseWidgetEvent<'mousemove'>) {
         if (event == null) return;
-
-        const { x, y } = Transformable.toCanvas(this.node);
-        const canvasX = event.sourceEvent.offsetX + x;
-        const canvasY = event.sourceEvent.offsetY + y;
-        this.showTooltip(moduleCtx, canvasX, canvasY);
+        this.showTooltip(moduleCtx, event.canvasX, event.canvasY);
     }
 
     private handleFocus(moduleCtx: DynamicContext<ChartRegistry>) {

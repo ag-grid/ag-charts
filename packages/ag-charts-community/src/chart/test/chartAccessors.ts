@@ -4,10 +4,9 @@ import type { PreSeriesUpdateEvent } from '../../core/eventsHub';
 import type { ChartCaption } from '../chartCaption';
 import { type ChartOrProxy, deproxy } from './utils';
 
-// The state `Chart.preSeriesUpdate` reads is private, and the method itself is protected.
+// The required range is private to the cartesian chart type, and `Chart.preSeriesUpdate` is private.
 interface PreSeriesUpdateHost {
-    _requiredRange: number;
-    _requiredRangeDirection: ChartAxisDirection;
+    chartType: { _requiredRange: number; _requiredRangeDirection: ChartAxisDirection };
     preSeriesUpdate(): void;
 }
 
@@ -34,8 +33,8 @@ export function firePreSeriesUpdate(
 
     const host = chart as unknown as PreSeriesUpdateHost;
     chart.seriesRect = seriesRect;
-    host._requiredRange = requiredRange;
-    host._requiredRangeDirection = requiredRangeDirection;
+    host.chartType._requiredRange = requiredRange;
+    host.chartType._requiredRangeDirection = requiredRangeDirection;
     host.preSeriesUpdate();
 
     off();

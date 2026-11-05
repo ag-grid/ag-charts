@@ -58,7 +58,7 @@ export interface SessionsGridHandle {
 
 // The chart selection supplies row data, not a filter model, so the column filters
 // narrow those rows and never feed back to the chart.
-export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(function SessionsGrid(
+export const SessionsGrid = forwardRef<SessionsGridHandle, SessionsGridProps>(function SessionsGridImpl(
     { sessions, onGridStateChange },
     ref
 ) {

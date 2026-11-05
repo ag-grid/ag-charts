@@ -22,7 +22,6 @@ import type {
     AgCartesianCrossLineLabelPlacement,
     AgCartesianTimeAxisLabelOptions,
     AgCategoryAxisOptions,
-    AgCrossLineLabelPosition,
     AgCrosshairLabel,
     AgCrosshairOptions,
     AgGroupedCategoryAxisLabelOptions,
@@ -130,7 +129,7 @@ export type NormalisedAngleAxisFormattableLabelOptions<TContext = ContextDefault
 
 // --- Line / tick / gridLine normalised shapes ---
 export type NormalisedAxisLineOptions = Normalised<
-    Omit<AgAxisLineOptions, 'width'>,
+    AgAxisLineOptions,
     'enabled' | 'strokeWidth' | 'strokeOpacity' | 'lineDash',
     { stroke?: CssColor }
 >;
@@ -392,15 +391,13 @@ export type CrossLineLabelOverflow = 'pad-chart' | 'realign-text' | 'clip-text';
 // themed in `crossLinesModule.ts`, so they are absent from the public label options.
 export type NormalisedAxisCrossLineLabelOptions = Normalised<
     AgBaseCrossLineLabelOptions,
-    'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'color' | 'cornerRadius',
+    'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'spacing' | 'color' | 'cornerRadius',
     { fontFamily: string; color?: CssColor; fill?: NormalisedColorType; border?: NormalisedBorderOptions }
 > &
     // The fit options apply to cartesian cross lines only.
     NormalisedLabelFitOptions & {
         overflow?: CrossLineLabelOverflow;
         reserveSpace?: boolean;
-        /** Cartesian cross lines only. */
-        position?: AgCrossLineLabelPosition;
         /** Cartesian cross lines only. */
         placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
         /** Cartesian cross lines only. */
