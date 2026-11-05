@@ -34,6 +34,12 @@ const STAGES = [
     { stage: 'Sign-ups', value: 60 },
     { stage: 'Paid', value: 20 },
 ];
+const GRID = [
+    { x: 'a', y: 'p', value: 1 },
+    { x: 'b', y: 'p', value: 3 },
+    { x: 'a', y: 'q', value: 2 },
+    { x: 'b', y: 'q', value: 5 },
+];
 const POLAR = [
     { quarter: 'Q1', value: 5, low: 2 },
     { quarter: 'Q2', value: 8, low: 3 },
@@ -81,6 +87,8 @@ interface SeriesCase {
     /** Which shapes the series casts the glow from, where they share the group with shapes that do not. */
     only?: (shape: Shape) => boolean;
     chartOptions?: object;
+    /** The shapes the series casts the glow from have no `shadow` option to cast beside it. */
+    noShadow?: boolean;
     /** The series has a datum to hover, and options to set on a highlight state. */
     hoverable?: boolean;
     /** How many shapes the hover moves to the highlight layer: the three markers of an HLC item. */
@@ -161,6 +169,25 @@ const SERIES: SeriesCase[] = [
         name: 'funnel',
         data: STAGES,
         series: (glow, shadow) => ({ type: 'funnel', stageKey: 'stage', valueKey: 'value', glow, shadow }),
+    },
+    {
+        name: 'cone funnel connectors',
+        data: STAGES,
+        count: STAGES.length - 1,
+        noShadow: true,
+        series: (glow) => ({ type: 'cone-funnel', stageKey: 'stage', valueKey: 'value', glow }),
+    },
+    {
+        name: 'heatmap',
+        data: GRID,
+        series: (glow, shadow) => ({
+            type: 'heatmap',
+            xKey: 'x',
+            yKey: 'y',
+            colorKey: 'value',
+            glow,
+            shadow,
+        }),
     },
     {
         name: 'pyramid',
@@ -424,16 +451,19 @@ describe('series-level glow (enterprise series)', () => {
             expect(glowing(testCase)).toHaveLength(0);
         });
 
-        it('casts the shadow and the glow of a shape together, each in its own slot', async () => {
-            await create(testCase, GLOW, SHADOW);
+        it.skipIf(testCase.noShadow)(
+            'casts the shadow and the glow of a shape together, each in its own slot',
+            async () => {
+                await create(testCase, GLOW, SHADOW);
 
-            const shapes = glowing(testCase);
-            expect(shapes.length).toBeGreaterThan(0);
-            for (const shape of shapes) {
-                expect(shape.fillGlow).toMatchObject(glowShadow(GLOW));
-                expect(shape.fillShadow).toMatchObject(SHADOW);
+                const shapes = glowing(testCase);
+                expect(shapes.length).toBeGreaterThan(0);
+                for (const shape of shapes) {
+                    expect(shape.fillGlow).toMatchObject(glowShadow(GLOW));
+                    expect(shape.fillShadow).toMatchObject(SHADOW);
+                }
             }
-        });
+        );
     });
 
     describe.each(SERIES.filter((testCase) => testCase.hoverable))('$name, hovered', (testCase) => {
