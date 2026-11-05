@@ -53,6 +53,16 @@ describe('Widget', () => {
         });
     });
 
+    describe('setBorderRadius', () => {
+        it('writes and removes a border radius in pixels', () => {
+            const widget = makeWidget();
+            widget.setBorderRadius(6);
+            expect(widget.getElement().style.borderRadius).toBe('6px');
+            widget.setBorderRadius(undefined);
+            expect(widget.getElement().style.borderRadius).toBe('');
+        });
+    });
+
     describe('isEventTarget and isEventCurrentTarget', () => {
         it('distinguish the target from the current target of a bubbled event', () => {
             const parent = makeWidget();
@@ -94,6 +104,17 @@ describe('Widget', () => {
             expect(parent.contains(child)).toBe(true);
             expect(child.contains(parent)).toBe(false);
             expect(parent.contains(unrelated)).toBe(false);
+        });
+    });
+
+    describe('getTextContent', () => {
+        it('returns the text written by setTextContent', () => {
+            const widget = makeWidget();
+            expect(widget.getTextContent()).toBe('');
+            widget.setTextContent('Series 1');
+            expect(widget.getTextContent()).toBe('Series 1');
+            widget.setTextContent(undefined);
+            expect(widget.getTextContent()).toBe('');
         });
     });
 

@@ -152,6 +152,10 @@ export abstract class Widget<
         this.elem.textContent = textContent ?? null;
     }
 
+    getTextContent(): string {
+        return this.elem.textContent ?? '';
+    }
+
     setAriaRole(role: BaseAttributeTypeMap['role'] | undefined) {
         setAttribute(this.elem, 'role', role);
     }
@@ -200,6 +204,11 @@ export abstract class Widget<
     /** Positions the element with a CSS `translate()` transform, in CSS pixels, replacing any existing transform. */
     setTranslate(x: number, y: number) {
         this.elem.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    /** Sets the CSS `border-radius` in CSS pixels, or removes it when `undefined`. */
+    setBorderRadius(radius: number | undefined) {
+        this.elem.style.borderRadius = radius == null ? '' : `${radius}px`;
     }
 
     setInnerHTML(html: string) {

@@ -106,16 +106,14 @@ class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
     }
 
     private updateFillColor(options: AnnotationOptionsButtonOptions) {
-        const element = this.getElement();
-        element.classList.add('ag-charts-annotations__color-picker-button');
-        element.classList.toggle('ag-charts-annotations__color-picker-button--multi-color', options.isMultiColor);
-        element.style.setProperty('--color', options.color ?? null);
+        this.addClass('ag-charts-annotations__color-picker-button');
+        this.toggleClass('ag-charts-annotations__color-picker-button--multi-color', options.isMultiColor);
+        this.setCSSVariable('--color', options.color ?? null);
     }
 
     private updateLineStrokeWidth(options: AnnotationOptionsButtonOptions) {
-        const element = this.getElement();
-        element.classList.add('ag-charts-annotations__stroke-width-button');
-        element.style.setProperty('--stroke-width', `${options.strokeWidth}px`);
+        this.addClass('ag-charts-annotations__stroke-width-button');
+        this.setCSSVariable('--stroke-width', `${options.strokeWidth}px`);
     }
 }
 

@@ -1,9 +1,10 @@
 import {
     BBox,
     type BoxBounds,
+    DescriptionWidget,
     type DynamicContext,
+    type ElementID,
     type NormalisedTextOrSegments,
-    type StrictHTMLElement,
     Transformable,
     createElementId,
     toPlainText,
@@ -63,14 +64,15 @@ export class LegendDOMProxy {
     private dirty = true;
 
     private readonly itemList: ListWidget;
-    private readonly itemDescription: HTMLParagraphElement & StrictHTMLElement;
+    private readonly itemDescription = new DescriptionWidget();
+    private readonly itemDescriptionId: ElementID = createElementId();
     private readonly paginationGroup: GroupWidget;
     private prevButton?: ButtonWidget;
     private nextButton?: ButtonWidget;
 
     private shouldApplyHoverOnFocus(button: SwitchWidget): boolean {
-        const element = button.getElement();
-        return [':hover', ':focus-visible'].some((selector) => element.matches(selector));
+        // Check `:hover` first: jsdom rejects the `:focus-visible` selector.
+        return button.isHovered() || button.isFocusVisible();
     }
 
     public constructor(
@@ -89,11 +91,9 @@ export class LegendDOMProxy {
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'ariaLabelLegendPagination' },
         });
-        this.itemDescription = ctx.agDocument.createElement('p');
-        this.itemDescription.style.display = 'none';
-        this.itemDescription.id = createElementId();
-        this.itemDescription.textContent = this.getItemAriaDescription();
-        this.itemList.getElement().append(this.itemDescription);
+        this.itemDescription.id = this.itemDescriptionId;
+        this.itemDescription.setTextContent(this.getItemAriaDescription());
+        this.itemList.setDescription(this.itemDescription);
     }
 
     private initLegendList(params: LegendDOMProxyUpdateParams) {
@@ -110,7 +110,7 @@ export class LegendDOMProxy {
                 type: 'listswitch',
                 textContent: this.getItemAriaText(toPlainText(datumReader.getItemLabel(datum)), index, count),
                 ariaChecked: !!markerLabel.unsafeNonNullDatum.enabled,
-                ariaDescribedBy: this.itemDescription.id,
+                ariaDescribedBy: this.itemDescriptionId,
                 parent: this.itemList,
             });
             // Read the datum from the node: the `each()` parameter is destroyed when Series.getLegendData()
@@ -142,11 +142,10 @@ export class LegendDOMProxy {
     private syncItemLabels({ itemSelection, datumReader }: LegendDOMProxyUpdateParams) {
         const count = itemSelection.length;
         itemSelection.each(({ proxyButton }, datum, index) => {
-            const element = proxyButton?.getElement();
-            if (element != null) {
+            if (proxyButton != null) {
                 const text = this.getItemAriaText(toPlainText(datumReader.getItemLabel(datum)), index, count);
-                if (element.textContent !== text) {
-                    element.textContent = text;
+                if (proxyButton.getTextContent() !== text) {
+                    proxyButton.setTextContent(text);
                 }
             }
         });
@@ -184,7 +183,7 @@ export class LegendDOMProxy {
                 l.proxyButton.setEnabled(enabled);
                 l.proxyButton.setPointerEvents(pointerEnabled ? undefined : 'none');
                 l.proxyButton.setBounds(bbox);
-                l.proxyButton.setAriaDescribedBy(enabled ? this.itemDescription.id : undefined);
+                l.proxyButton.setAriaDescribedBy(enabled ? this.itemDescriptionId : undefined);
             }
         });
     }
@@ -280,13 +279,12 @@ export class LegendDOMProxy {
     public onLocaleChanged(itemSelection: ItemSelection, datumReader: CategoryLegendDatumReader) {
         const count = itemSelection.length;
         itemSelection.each(({ proxyButton }, datum, index) => {
-            const button = proxyButton?.getElement();
-            if (button != null) {
+            if (proxyButton != null) {
                 const label = toPlainText(datumReader.getItemLabel(datum));
-                button.textContent = this.getItemAriaText(label, index, count);
+                proxyButton.setTextContent(this.getItemAriaText(label, index, count));
             }
         });
-        this.itemDescription.textContent = this.getItemAriaDescription();
+        this.itemDescription.setTextContent(this.getItemAriaDescription());
     }
 
     public onPageChange(params: LegendDOMProxyPageChangeParams) {

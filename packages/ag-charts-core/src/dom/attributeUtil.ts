@@ -20,6 +20,7 @@ type AriaRole =
     | 'presentation'
     | 'radio'
     | 'radiogroup'
+    | 'region'
     | 'separator'
     | 'status'
     | 'switch'

@@ -189,6 +189,7 @@ export * from './widget/boundedTextWidget';
 export * from './widget/buttonWidget';
 export * from './widget/collapseMode';
 export * from './widget/contextMenuContainerWidget';
+export * from './widget/descriptionWidget';
 export * from './widget/expandableWidget';
 export * from './widget/expansionControllerImpl';
 export * from './widget/groupWidget';
