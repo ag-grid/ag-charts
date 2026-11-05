@@ -6,8 +6,10 @@ import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../module
 import { textOrSegments } from './chartDefaults';
 import { colorOrRef, colorOrRefNoOperator, fontFamilyFull, fontFamilyNoOperator, padding } from './optionsDefaults';
 import {
+    ErrorType,
     type OptionsDefs,
     type ValidateParams,
+    ValidationError,
     type Validator,
     type ValidatorContext,
     type ValidatorResult,
@@ -698,6 +700,35 @@ describe('Validation utils', () => {
             expect(validate(validOptions, complexOptionsDef)).toMatchSnapshot();
             expect(validate(invalidOptions, complexOptionsDef)).toMatchSnapshot();
             expect(validate({ employees: [] }, complexOptionsDef)).toMatchSnapshot();
+        });
+
+        it('omits the generic error only when the validator reported one at the same path', () => {
+            const selfError = attachDescription(
+                (value: unknown, context: ValidatorContext): ValidatorResult => ({
+                    valid: false,
+                    cleared: null,
+                    invalid: [new ValidationError(ErrorType.Invalid, 'a specific value', value, context.path)],
+                }),
+                'a generic value'
+            );
+            const childError = attachDescription(
+                (value: unknown, context: ValidatorContext): ValidatorResult => ({
+                    valid: false,
+                    cleared: null,
+                    invalid: [new ValidationError(ErrorType.Invalid, 'a specific value', value, context.path, 'child')],
+                }),
+                'a generic value'
+            );
+
+            const messages = (defs: OptionsDefs<any>) => validate({ option: 'bad' }, defs, 'root').invalid.map(String);
+
+            expect(messages({ option: selfError })).toEqual([
+                'Option `root.option` cannot be set to `"bad"`; expecting a specific value, ignoring.',
+            ]);
+            expect(messages({ option: childError })).toEqual([
+                'Option `root.option.child` cannot be set to `"bad"`; expecting a specific value, ignoring.',
+                'Option `root.option` cannot be set to `"bad"`; expecting a generic value, ignoring.',
+            ]);
         });
     });
 
