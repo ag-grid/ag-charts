@@ -262,6 +262,133 @@ describe('Shadow root', () => {
         it('should leave a shadow cast by a group on its own as it was', () => {
             expectSameAsLocal(() => [group('shared', [square(120, 40, { fillShadow: RED_HALF })])]);
         });
+
+        it('should cast nothing for the glow of a shape that a root does not cast through', () => {
+            const scene = draw(false, () => [group('shared', [square(120, 40, { fillGlow: HALF_BLUE })])]);
+
+            expect(at(scene, 150, 70)).toEqual(BLACK);
+            expect(at(scene, 150, 130)).toEqual([0, 0, 0, 0]);
+        });
+
+        it('should keep casting the shadow of a shape with a glow when no root casts through it', () => {
+            const scene = draw(false, () => [
+                group('shared', [square(120, 40, { fillShadow: RED_HALF, fillGlow: HALF_BLUE })]),
+            ]);
+
+            expect(isHalfRed(at(scene, 210, 70))).toBe(true);
+            expect(at(scene, 150, 130)).toEqual([0, 0, 0, 0]);
+        });
+
+        it('should cast no glow for a caster that is not visible', () => {
+            const scene = draw(true, () => [
+                group('shared', [square(120, 40, { fillGlow: HALF_BLUE, visible: false })]),
+            ]);
+
+            expect(at(scene, 150, 130)).toEqual([0, 0, 0, 0]);
+        });
+
+        // A cast is kept from the second repeat, on a canvas as large as the reach of its keys.
+        const drawKept = (build: () => Group[]) => {
+            const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+            for (const child of build()) root.appendChild(child);
+            const scene = newScene(root);
+            for (let i = 0; i < 4; i++) {
+                root.markDirty();
+                scene.render();
+            }
+            return scene;
+        };
+
+        it('should reach as far as the spread of the glow, whatever the spread of the shadow', () => {
+            const scene = drawKept(() => [
+                group('shared', [
+                    square(120, 40, {
+                        fillShadow: { ...RED_HALF, xOffset: 0 },
+                        fillGlow: { ...BLUE, spread: 20 },
+                    }),
+                ]),
+            ]);
+
+            // 10px left of the square: inside the spread of the glow, and beyond the reach of the shadow, which has none.
+            expect(at(scene, 110, 70)).toEqual([0, 0, 255, 255]);
+            // And not as far as the 30px that neither reaches.
+            expect(at(scene, 90, 70)).toEqual([0, 0, 0, 0]);
+        });
+
+        it('should reach as far as the spread of the shadow, whatever the spread of the glow', () => {
+            const scene = drawKept(() => [
+                group('shared', [
+                    square(120, 40, {
+                        fillShadow: { ...RED_HALF, xOffset: 0, spread: 20 },
+                        fillGlow: { ...BLUE, yOffset: 200 },
+                    }),
+                ]),
+            ]);
+
+            expect(isHalfRed(at(scene, 110, 70))).toBe(true);
+            expect(at(scene, 90, 70)).toEqual([0, 0, 0, 0]);
+        });
+
+        it('should cast the glow of a shape with only a stroke from that stroke, beside a shadow that does not', () => {
+            const GLOW = {
+                enabled: true,
+                glow: true as const,
+                fill: 'rgb(0, 255, 0)',
+                fillOpacity: 1,
+                xOffset: 0,
+                yOffset: 0,
+                blur: 0,
+                spread: 8,
+            };
+            const outline = (mixin: Partial<Rect>) => () => [
+                group('shared', [square(120, 40, { fill: undefined, stroke: 'black', strokeWidth: 4, ...mixin })]),
+            ];
+            const alone = pixelsOf(draw(true, outline({ fillShadow: GLOW })));
+            expect(alone.some((value) => value !== 0)).toBe(true);
+
+            expect(pixelsOf(draw(true, outline({ fillGlow: GLOW })))).toEqual(alone);
+            // The shadow slot has no `glow` flag, so on its own it casts from the fill, of which there is none.
+            expect(pixelsOf(draw(true, outline({ fillGlow: GLOW, fillShadow: RED_HALF })))).toEqual(alone);
+        });
+
+        // The glow slot is a second instance of the shadow slot, so what the slot casts alone matches the shadow slot.
+        describe.each([
+            ['an offset', RED_HALF],
+            ['a spread', { ...RED_HALF, xOffset: 0, spread: 8 }],
+            ['a spread and an offset', { ...RED_HALF, xOffset: 10, yOffset: 10, spread: 8 }],
+            ['no fill', { enabled: true, xOffset: 0, yOffset: 0, blur: 0, spread: 8, fillOpacity: 1, glow: true }],
+        ] as const)('with %s', (_name, options) => {
+            const items = (slot: 'fillShadow' | 'fillGlow') => () =>
+                ['rgb(255, 0, 0)', 'rgb(0, 255, 0)', 'rgb(0, 0, 255)'].map((fill, i) =>
+                    group('shared', [square(20 + i * 70, 60, { fill, width: 40, height: 40, [slot]: options })])
+                );
+
+            it('should cast a glow as it casts a shadow', () => {
+                const shadow = pixelsOf(draw(true, items('fillShadow')));
+                expect(shadow.some((value) => value !== 0)).toBe(true);
+
+                expect(pixelsOf(draw(true, items('fillGlow')))).toEqual(shadow);
+            });
+
+            it('should cast a glow as it casts a shadow where the canvas cannot blur a mask of many colours', () => {
+                overrideTintableShadows(false);
+                try {
+                    const shadow = pixelsOf(draw(true, items('fillShadow')));
+                    expect(pixelsOf(draw(true, items('fillGlow')))).toEqual(shadow);
+                } finally {
+                    overrideTintableShadows();
+                }
+            });
+
+            it('should cast a glow as it casts a shadow through a group with an opacity', () => {
+                const withOpacity = (slot: 'fillShadow' | 'fillGlow') => () =>
+                    items(slot)().map((node) => Object.assign(node, { opacity: 0.5 }));
+
+                expect(pixelsOf(draw(true, withOpacity('fillGlow')))).toEqual(
+                    pixelsOf(draw(true, withOpacity('fillShadow')))
+                );
+            });
+        });
     });
 
     describe('segments', () => {
