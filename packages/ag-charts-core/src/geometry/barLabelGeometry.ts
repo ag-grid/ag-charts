@@ -9,7 +9,7 @@ import type { FontOptions } from '../types/text';
 import { toDegrees, toRadians } from './angle';
 import type { BoxBounds } from './boxBounds';
 import {
-    type CollideWith,
+    type LabelAvoidance,
     type LabelFitDescriptor,
     type LabelFitOptions,
     type LabelObstacle,
@@ -279,8 +279,8 @@ export function labelFootprintBox(
 /**
  * Builds the {@link PointLabelDatum} routing a bar label through the placement engine: centred on its
  * glyph box, constrained to `region` (its bar rect, or `undefined` for the plot bounds), offering the
- * `orientations` candidates, avoiding the obstacle categories `collideWith` enables. The `region` doubles
- * as the label's own-shape box: it lies within the bar rect, so a `seriesItem` obstacle for the label's
+ * `orientations` candidates, avoiding the obstacle categories its `avoid` enables. The `region` doubles
+ * as the label's own-shape box: it lies within the bar rect, so a `shape` obstacle for the label's
  * own bar (which the region overlaps) is excluded while neighbouring bars — which the region cannot reach
  * — are still avoided.
  */
@@ -291,7 +291,7 @@ export function buildBarLabelDatum(
     height: number,
     orientations: AgChartLabelOrientation[],
     region: BoxBounds | undefined,
-    collideWith: CollideWith,
+    avoid: LabelAvoidance,
     threshold: number,
     target: BarLabelTarget,
     fit?: LabelFitDescriptor
@@ -306,7 +306,7 @@ export function buildBarLabelDatum(
         orientation: orientations,
         gap: 0,
         neverDrop: true,
-        collideWith,
+        avoid,
         threshold,
         region,
         ownBox: region,
@@ -328,7 +328,7 @@ export function buildBarPositionedLabelDatum(
     target: BarLabelTarget,
     ownBox: BoxBounds,
     alwaysShow: boolean,
-    collideWith: CollideWith,
+    avoid: LabelAvoidance,
     threshold: number,
     ownBoxLabelsCollide = false,
     fit?: LabelFitDescriptor,
@@ -344,7 +344,7 @@ export function buildBarPositionedLabelDatum(
         // When labels are hideable (`alwaysShow: false`) a no-fit candidate is dropped so the caller
         // can hide it; otherwise the engine keeps the least-overflowing candidate.
         neverDrop: alwaysShow,
-        collideWith,
+        avoid,
         threshold,
         positionedCandidates: candidates,
         ownBox,
@@ -487,7 +487,7 @@ export interface BarLabelSource {
     /** Pre-measured footprint (text plus box padding/border); falls back to measuring `label.text` with `config`. */
     readonly size?: { width: number; height: number };
     /** Resolved obstacle-category toggles for this label, stamped onto the datum. */
-    readonly collideWith: CollideWith;
+    readonly avoid: LabelAvoidance;
     /** Collision clearance for this label's box, stamped onto the datum. */
     readonly threshold: number;
     /** Per-candidate fit inputs, so each orientation gets the text refitted to the room it actually has. */
@@ -518,7 +518,7 @@ export function buildBarLabelData<T>(
                 height,
                 orientations,
                 label.region,
-                source.collideWith,
+                source.avoid,
                 source.threshold,
                 label,
                 source.fit
@@ -538,7 +538,7 @@ export interface RectObstacleSource {
 }
 
 /**
- * Maps rect-shaped node data (bars, histogram bins) to `seriesItem` label obstacles so that labels from
+ * Maps rect-shaped node data (bars, histogram bins) to `shape` label obstacles so that labels from
  * other series route around them. Skips phantom (stacking/feather) nodes and zero-area rects.
  */
 export function rectLabelObstacles(nodeData: readonly RectObstacleSource[] | undefined): LabelObstacle[] | undefined {
@@ -546,7 +546,7 @@ export function rectLabelObstacles(nodeData: readonly RectObstacleSource[] | und
     const obstacles: LabelObstacle[] = [];
     for (const { x, y, width, height, phantom } of nodeData) {
         if (phantom === true || width <= 0 || height <= 0) continue;
-        obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'seriesItem' });
+        obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'shape' });
     }
     return obstacles.length > 0 ? obstacles : undefined;
 }
@@ -583,7 +583,7 @@ export function bakedLabelObstacles<T>(
 }
 
 /**
- * Combines a bar-family series' rendered-rect obstacles (`seriesItem`) with the footprints of its baked
+ * Combines a bar-family series' rendered-rect obstacles (`shape`) with the footprints of its baked
  * labels (`label`) — the obstacle set other series' labels must avoid. `bakeLabels` must be false when the
  * series routes its labels through {@link placeLabels}: the engine indexes each routed label as it places
  * it, so baking them here too would double-count them (see the caller's `usesPlacedLabels` guard).

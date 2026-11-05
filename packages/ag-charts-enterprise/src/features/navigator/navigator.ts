@@ -188,17 +188,17 @@ export class Navigator extends AbstractModuleInstance {
         return this.enabled && this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.ZoomDraggable);
     }
 
-    onDragStart(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {
+    onDragStart(dragging: NavigatorButtonType, { canvasX }: { canvasX: number }) {
         if (!this.canDrag()) return;
 
         if (dragging === 'pan') {
-            this.panStart = (offsetX - this.x) / this.width - this.domProxy._min;
+            this.panStart = (canvasX - this.x) / this.width - this.domProxy._min;
         }
 
         this.ctx.zoomManager?.fireZoomPanStartEvent('navigator');
     }
 
-    onDrag(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {
+    onDrag(dragging: NavigatorButtonType, { canvasX }: { canvasX: number }) {
         if (!this.canDrag()) return;
 
         const { panStart, x, width } = this;
@@ -209,7 +209,7 @@ export class Navigator extends AbstractModuleInstance {
         if (!zoom?.x) return;
         let { min, max } = this.toNavigatorRatios(zoom.x);
 
-        const ratio = (offsetX - x) / width;
+        const ratio = (canvasX - x) / width;
 
         if (dragging === 'min') {
             min = clamp(0, ratio, max - minRange);

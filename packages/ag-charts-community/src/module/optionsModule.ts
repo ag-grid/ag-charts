@@ -680,10 +680,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.soloSeriesIntegrity(options);
 
-        const seriesParams = presetDef?.reportsSeriesAdvisories
-            ? { ...this.validateParams, silentAdvisories: true }
-            : this.validateParams;
-        const missingSeriesModules = this.validateSeriesOptions(options, seriesParams);
+        const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
 
         const chartType = detectChartType(options, this.moduleRegistry);
 

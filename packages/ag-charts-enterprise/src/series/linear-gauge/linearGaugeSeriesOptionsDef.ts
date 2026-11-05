@@ -16,7 +16,6 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
-    deprecated,
     fillOptionsDef,
     fontOptionsDef,
     greaterThan,
@@ -115,7 +114,6 @@ export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThem
         spacing: positiveNumber,
         maxWidth: positiveNumber,
         maxHeight: positiveNumber,
-        avoidCollisions: deprecated(boolean, 'Use `collision.alwaysShow` instead.'),
         placement: unionOrArray(
             'inside-start',
             'outside-start',

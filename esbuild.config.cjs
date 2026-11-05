@@ -58,6 +58,7 @@ const postBuildMinificationPlugin = {
     name: 'minification-plugin',
     setup(build) {
         build.initialOptions.metafile = true;
+        const sourcemap = Boolean(build.initialOptions.sourcemap);
 
         /** @type {Map<string, AbortController>} */
         const writeState = new Map();
@@ -78,7 +79,7 @@ const postBuildMinificationPlugin = {
                 if (signal.aborted) return;
                 const minified = await esbuild.transform(contents, {
                     minify: true,
-                    sourcemap: true,
+                    sourcemap,
                 });
 
                 if (signal.aborted) return;
@@ -86,7 +87,7 @@ const postBuildMinificationPlugin = {
                 const minifiedFile = path.resolve(path.dirname(outputFile), `${name}.min${ext}`);
                 await Promise.all([
                     fs.writeFile(minifiedFile, minified.code, { signal }),
-                    fs.writeFile(`${minifiedFile}.map`, minified.map, { signal }),
+                    sourcemap && fs.writeFile(`${minifiedFile}.map`, minified.map, { signal }),
                 ]);
             } catch (e) {
                 if (e.name !== 'AbortError') throw e;
@@ -147,19 +148,10 @@ const umdWrapperAdaptorPlugin = {
             path: path.join(args.resolveDir, args.path.replace('.cjs.js', '.esm.mjs')),
         }));
 
-        // Creates UMD banner + footer config.
+        // Creates UMD banner + footer config, mapping externals to their published global names.
         const exportedName = exportedNames[process.env.NX_TASK_TARGET_PROJECT];
-        const umdWrapperInstance = umdWrapper({ libraryName: exportedName });
+        const umdWrapperInstance = umdWrapper({ libraryName: exportedName, globals: exportedNames });
         umdWrapperInstance.setup(build);
-
-        // Correct global variable name references.
-        const { banner } = build.initialOptions;
-        for (const external of initialOptions.external ?? []) {
-            const globalName = exportedNames[external];
-            if (globalName) {
-                banner.js = banner.js.replaceAll(`g["${external}"]`, `g["${globalName}"]`);
-            }
-        }
 
         // Add `require()` function which uses resolved module references.
         const externalsMap =

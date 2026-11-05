@@ -51,8 +51,8 @@ export const SelectionContext = createContext<{
     basePath: string;
 } | null>(null);
 
-/** Types expanded by the ancestors of a nav entry, keyed by type name, mapped to the first entry that expanded them. */
-type AncestorTypes = ReadonlyMap<string, NavigationData>;
+/** Type names expanded by the ancestors of a nav entry. */
+type AncestorTypes = ReadonlySet<string>;
 
 export function OptionsNavigation({
     basePath,
@@ -198,10 +198,10 @@ function NavProperty({
     const isTypedUnion = Boolean(unionVariants);
     const noExpand = config.noExpand?.includes(cleanupName(member.name));
     // A type that recurses (e.g. a context-menu item's submenu `items`) would expand without end, so a repeat
-    // of an ancestor's type links back to that ancestor instead of expanding.
-    const recursionTarget = ancestorTypes?.get(memberType);
+    // of an ancestor's type is marked recursive instead of expanding.
+    const isRecursive = ancestorTypes?.has(memberType) === true;
     const expandable =
-        !noExpand && !recursionTarget && (isInterface || isInterfaceArray || isInterfaceRecord || isTypedUnion);
+        !noExpand && !isRecursive && (isInterface || isInterfaceArray || isInterfaceRecord || isTypedUnion);
     const isObjectArray =
         !isInterfaceArray &&
         !isInterfaceRecord &&
@@ -218,7 +218,7 @@ function NavProperty({
         (isObjectArray === true && !isUnionArray) || (isTypedUnion && unionVariants?.isArray === true);
 
     const navData = getNavigationDataFromPath(path, config.specialTypes);
-    const childAncestorTypes = expandable ? new Map(ancestorTypes).set(memberType, navData) : undefined;
+    const childAncestorTypes = expandable ? new Set(ancestorTypes).add(memberType) : undefined;
 
     const [isExpanded, toggleExpanded] = useAutoExpand(() => {
         if (config.keepExpanded?.includes(member.name)) {
@@ -292,7 +292,15 @@ function NavProperty({
                     )}
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
-                    <NavLink navData={recursionTarget ?? navData} onClick={onClick}>
+                    <NavLink
+                        navData={navData}
+                        onClick={onClick}
+                        ariaLabel={
+                            isRecursive
+                                ? `${cleanupName(member.name)}${isInterfaceRecord ? '.key' : ''} (recursive)`
+                                : undefined
+                        }
+                    >
                         {isStringLiteralType(memberType) ? (
                             <>
                                 {member.name} <span className={styles.punctuation}>= '</span>
@@ -308,8 +316,8 @@ function NavProperty({
                         ) : (
                             ''
                         )}
+                        {isRecursive && <span className={styles.comment}>{' // recursive'}</span>}
                     </NavLink>
-                    {recursionTarget && <span className={styles.punctuation}>{' // recursive'}</span>}
                     {expandable && (
                         <OpeningBrackets
                             isOpen={isExpanded}
@@ -466,7 +474,7 @@ function NavTypedUnionProperty({
                                 depth={depth + 1}
                                 genericsMap={interfaceRef.genericsMap}
                                 path={path.concat({ name: member.name, type: getMemberType(member) })}
-                                ancestorTypes={new Map(ancestorTypes).set(variantType, navData)}
+                                ancestorTypes={new Set(ancestorTypes).add(variantType)}
                                 onClick={onClick}
                             />
                         ))}
@@ -573,10 +581,12 @@ function NavBreadcrumb({
 function NavLink({
     navData,
     onClick,
+    ariaLabel,
     children,
 }: {
     navData: NavigationData;
     onClick?: (navData: NavigationData) => void;
+    ariaLabel?: string;
     children: ReactNode;
 }) {
     const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -589,7 +599,7 @@ function NavLink({
     };
 
     return (
-        <a className={styles.navLink} href={hrefFor(navData)} onClick={handleClick}>
+        <a className={styles.navLink} href={hrefFor(navData)} aria-label={ariaLabel} onClick={handleClick}>
             {children}
         </a>
     );

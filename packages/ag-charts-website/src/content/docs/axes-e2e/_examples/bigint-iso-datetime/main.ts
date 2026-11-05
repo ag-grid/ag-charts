@@ -305,6 +305,7 @@ const chart = AgCharts.create<AgChartOptions>(options);
 // it is mutated through a loose view rather than re-declaring a typed literal per branch.
 const mutableOptions = options as { data: unknown[]; series: unknown; axes?: unknown };
 
+/** inScope */
 function applyState() {
     mutableOptions.data = getData(effectiveDataMode());
     if (isRadial()) {

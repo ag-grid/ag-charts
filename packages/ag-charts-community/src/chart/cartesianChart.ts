@@ -136,16 +136,13 @@ export class CartesianChartType implements ChartTypeInstance {
         const chartRanges: Record<string, number> = {};
         const seriesTypes = new Map();
 
-        this._requiredRangeDirection = ChartAxisDirection.X;
+        this._requiredRangeDirection = this.getDomainDirection();
 
         // First apply the minimum range from each series by type.
         for (const series of this.series) {
             if (!series.visible) continue;
             seriesRanges[series.type] ??= [];
             series.getMinimumRangeSeries(seriesRanges[series.type]);
-            if (series.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y) {
-                this._requiredRangeDirection = ChartAxisDirection.Y;
-            }
             if (!seriesTypes.has(series.type)) {
                 seriesTypes.set(series.type, series);
             }
@@ -195,6 +192,13 @@ export class CartesianChartType implements ChartTypeInstance {
         }
     }
 
+    private getDomainDirection() {
+        const flipped = this.series.some(
+            (s) => s.visible && s.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y
+        );
+        return flipped ? ChartAxisDirection.Y : ChartAxisDirection.X;
+    }
+
     private applyMiniChartOptions(
         miniChart: SeriesAxesHost,
         miniChartSeries: NonNullable<AgChartOptions['series']>,
@@ -213,11 +217,7 @@ export class CartesianChartType implements ChartTypeInstance {
 
         // The navigator overlay derives from the main domain-direction axis after `nice` rounding, so the
         // matching mini-chart axis must inherit `nice` or the handles drift; cross axes keep `nice = false`.
-        const domainDirection = this.series.some(
-            (s) => s.visible && s.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y
-        )
-            ? ChartAxisDirection.Y
-            : ChartAxisDirection.X;
+        const domainDirection = this.getDomainDirection();
         const mainDomainAxis = this.axes.find((axis) => axis.direction === domainDirection);
         for (const axis of miniChart.axes) {
             axis.nice = axis.direction === domainDirection ? (mainDomainAxis?.nice ?? true) : false;
@@ -624,8 +624,7 @@ export class CartesianChartType implements ChartTypeInstance {
         crossPosition: number | undefined,
         seriesRect: BBox
     ): number {
-        const { titlePlacement, labelPlacement } = axis.options.crossAt ?? {};
-        if (titlePlacement !== 'edge' && labelPlacement !== 'edge' && !axis.crosshairLabelNeedsEdgeSpace()) {
+        if (!axis.isTitleAtEdge() && !axis.isLabelsAtEdge() && !axis.crosshairLabelNeedsEdgeSpace()) {
             return this.calculateAxisBleedingWidth(axis, currentWidth, crossPosition, seriesRect);
         }
 

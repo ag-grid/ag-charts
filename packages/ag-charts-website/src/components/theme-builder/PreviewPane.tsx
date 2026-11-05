@@ -59,18 +59,18 @@ export const PreviewPane = ({ pane, theme, strokesEnabled }: Props) => {
 };
 
 const Pane = styled('div')`
-    flex: 1;
+    grid-row: span 2;
     min-width: 0;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-rows: subgrid;
 `;
 
 // Flush with the left edge of the chart below, so each pair reads as one column.
 const Toolbar = styled('div')`
-    flex-shrink: 0;
+    min-width: 0;
     display: flex;
+    align-items: flex-start;
 `;
 
 const Chart = styled('div')`

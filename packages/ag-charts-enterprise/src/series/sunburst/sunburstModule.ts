@@ -1,6 +1,5 @@
 import { type AgSunburstSeriesOptions, StandaloneChartModule, VERSION } from 'ag-charts-community';
 import {
-    AUTO_SIZED_LABEL_TRUNCATE,
     BASE_FONT_SIZE,
     BRANCH_GLOW_BUCKETS,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
@@ -42,7 +41,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
-        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,
@@ -52,7 +51,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             minimumFontSize: { $rem: [9 / BASE_FONT_SIZE, 'seriesLabelFontSize'] },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
-            truncate: AUTO_SIZED_LABEL_TRUNCATE,
+            truncate: true,
             wrapping: 'never',
             spacing: 2,
         },
@@ -65,7 +64,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             minimumFontSize: { $rem: [7 / BASE_FONT_SIZE, 'seriesLabelFontSize'] },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
-            truncate: AUTO_SIZED_LABEL_TRUNCATE,
+            truncate: true,
             wrapping: 'never',
         },
         innerLabels: {

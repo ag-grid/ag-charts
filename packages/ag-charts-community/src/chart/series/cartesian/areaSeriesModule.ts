@@ -19,7 +19,6 @@ import {
     fillThemeTemplate,
     interpolationThemeTemplate,
     themeLineHeight,
-    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -46,7 +45,7 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
         interpolation: interpolationThemeTemplate(),
         marker: {
             enabled: false,
-            ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+            shadow: SHADOW_THEME_DEFAULTS,
             shape: 'circle',
             size: 7,
             fillOpacity: 1,
@@ -71,7 +70,7 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             padding: 8,
-            collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
+            collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW, collideWith: { seriesArea: true } },
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
             placement: 'top',

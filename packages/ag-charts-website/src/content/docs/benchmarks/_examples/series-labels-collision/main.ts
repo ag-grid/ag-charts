@@ -37,6 +37,7 @@ const chartRef: ChartRef = { current: AgCharts.create(options) };
 const container = document.getElementById('myChart')!;
 
 /** The same chart with the collision cascade taken away, isolating what placement itself costs. */
+/** inScope */
 function scatterOptions(label: object): typeof options {
     return {
         ...options,
@@ -45,6 +46,7 @@ function scatterOptions(label: object): typeof options {
 }
 
 /** The same container and animation settings, re-pointed at the bar dataset. */
+/** inScope */
 function barOptions(label: object): typeof options {
     return {
         ...options,

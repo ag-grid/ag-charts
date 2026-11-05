@@ -157,19 +157,11 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
     height: { $if: [{ $path: './miniChart/enabled' }, 40, 18] },
     spacing: 10,
     cornerRadius: { $ref: 'navigatorTrackBorderRadius' },
-    // Deprecated `mask` seeds `track`, so either name works and an explicit `track` wins. The track params live here
-    // rather than on `track` so that a user `mask` still overrides them.
-    mask: {
+    track: {
         fill: { $ref: 'navigatorTrackBackgroundColor' },
         fillOpacity: 0.1,
         stroke: themeBorderColor('navigatorTrackBorder'),
         strokeWidth: themeBorderWidth('navigatorTrackBorder'),
-    },
-    track: {
-        fill: { $path: '../mask/fill' },
-        fillOpacity: { $path: '../mask/fillOpacity' },
-        stroke: { $path: '../mask/stroke' },
-        strokeWidth: { $path: '../mask/strokeWidth' },
     },
     // Transparent by default so the selected range looks as it did before `thumb` existed.
     thumb: {

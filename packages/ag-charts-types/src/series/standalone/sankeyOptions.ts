@@ -1,18 +1,24 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, PixelSize } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgGlowHighlightOptions,
+    AgHighlightStyleOptions,
+} from '../seriesOptions';
 
 export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'focusIndex'>,
-        AgSankeySeriesOptionsKeys,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
+        AgSankeySeriesOptionsKeys<TDatum>,
         AgSankeySeriesOptionsNames,
         AgSankeySeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Sankey Series. */
@@ -44,14 +50,14 @@ export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = ContextDe
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgSankeySeriesOptionsKeys,
+        AgSankeySeriesOptionsKeys<TDatum>,
         Required<AgSankeySeriesLinkStyle> {}
 
 export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgSankeySeriesOptionsKeys,
+        AgSankeySeriesOptionsKeys<TDatum>,
         Required<AgSankeySeriesNodeStyle> {
     /** Label of the node. */
     label: string | undefined;
@@ -73,6 +79,8 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     link?: AgSankeySeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
@@ -93,6 +101,8 @@ export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesLinkStyle {
+    /** Configuration for the shadow used behind the links. */
+    shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual links, based on the given parameters.*/
     itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<TDatum, TContext>, AgSankeySeriesLinkStyle>;
 }
@@ -100,6 +110,8 @@ export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> ex
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesNodeStyle {
+    /** Configuration for the shadow used behind the nodes. */
+    shadow?: AgDropShadowOptions;
     /**
      * Spacing between the nodes.
      *
@@ -146,13 +158,13 @@ export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> ex
     itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<TDatum, TContext>, AgSankeySeriesNodeStyle>;
 }
 
-export interface AgSankeySeriesOptionsKeys {
+export interface AgSankeySeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key containing the start node of each link. */
-    fromKey?: string;
+    fromKey?: DatumKey<TDatum>;
     /** The key containing the end node of each link. */
-    toKey?: string;
+    toKey?: DatumKey<TDatum>;
     /** The key containing the size of each link. */
-    sizeKey?: string;
+    sizeKey?: DatumKey<TDatum>;
 }
 
 export interface AgSankeySeriesOptionsNames {
@@ -169,9 +181,9 @@ interface SizeParams {
 export interface AgSankeySeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends
         AgSeriesTooltipRendererParams<TDatum, TContext>,
-        AgSankeySeriesOptionsKeys,
+        AgSankeySeriesOptionsKeys<TDatum>,
         AgSankeySeriesOptionsNames,
         SizeParams {}
 
-export interface AgSankeySeriesLabelFormatterParams<_TDatum = DatumDefault>
-    extends AgSankeySeriesOptionsKeys, SizeParams {}
+export interface AgSankeySeriesLabelFormatterParams<TDatum = DatumDefault>
+    extends AgSankeySeriesOptionsKeys<TDatum>, SizeParams {}

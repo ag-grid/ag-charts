@@ -22,10 +22,13 @@ import {
     type AgDropShadowOptions,
     type AgErrorBarOptions,
     type AgErrorBarThemeableOptions,
+    type AgGlowOptions,
     type AgGradientLegendOptions,
     type AgInitialFocus,
     type AgInterpolationType,
     type AgLineSeriesLabelOptions,
+    type AgSeriesLabelCollideWithOptions,
+    type AgSeriesLabelCollisionOptions,
     type AgSeriesMarkerOptions,
     type AgSeriesMarkerStyle,
     type AgSeriesTooltip,
@@ -39,7 +42,6 @@ import {
 } from 'ag-charts-types';
 
 import { isValidNumberFormat } from '../format/numberFormat';
-import type { InternalAgGlowOptions } from './internalShadowOptions';
 import {
     borderOptionsDef,
     colorOrRef,
@@ -50,7 +52,6 @@ import {
     labelBoxOptionsDef,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
-    overflowStrategy,
     padding,
     selectionOptionsDef,
     shapeHighlightOptionsDef,
@@ -676,15 +677,13 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     xOffset: number,
     yOffset: number,
     blur: positiveNumber,
-    color: colorOrRef,
-    ...undocumentedDefs({
-        spread: positiveNumber,
-        fill: colorOrRef,
-        fillOpacity: ratio,
-    }),
+    spread: positiveNumber,
+    fill: colorOrRef,
+    fillOpacity: ratio,
+    color: deprecated(colorOrRef, 'Use `fill` instead.'),
 };
 
-export const glowOptionsDefs: OptionsDefs<InternalAgGlowOptions> = {
+export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
     enabled: boolean,
     blur: positiveNumber,
     spread: positiveNumber,
@@ -694,7 +693,7 @@ export const glowOptionsDefs: OptionsDefs<InternalAgGlowOptions> = {
 
 /** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */
 export function glowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
-    const itemDef = { ...itemHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) };
+    const itemDef = { ...itemHighlightOptionsDef, glow: glowOptionsDefs };
     return highlightOptionsDef(itemDef);
 }
 
@@ -704,8 +703,8 @@ export function multiSeriesGlowHighlightOptionsDef<I extends object, S extends o
     seriesHighlightOptionsDef: S
 ) {
     return multiSeriesHighlightOptionsDef(
-        { ...itemHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) },
-        { ...seriesHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) }
+        { ...itemHighlightOptionsDef, glow: glowOptionsDefs },
+        { ...seriesHighlightOptionsDef, glow: glowOptionsDefs }
     );
 }
 
@@ -719,7 +718,7 @@ export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
 
 export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     itemStyler: callbackDefs<AgSeriesMarkerStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -746,18 +745,24 @@ export const labelCollisionPlacementDef = unionOrArray(
 /** Label orientation accepting a single value or an ordered fallback list. */
 export const labelOrientationDef = unionOrArray('horizontal', 'vertical', 'vertical-reversed');
 
+const collideWithOptionsDef: OptionsDefs<AgSeriesLabelCollideWithOptions> = {
+    markers: boolean,
+    shapes: boolean,
+    labels: boolean,
+    seriesArea: boolean,
+    axisLabels: boolean,
+};
+
 export const collisionOptionsDef: OptionsDefs<AgChartLabelCollisionOptions> = {
     threshold: number,
     alwaysShow: boolean,
-    ...undocumentedDefs({
-        collideWith: {
-            markers: boolean,
-            labels: boolean,
-            seriesItems: boolean,
-            seriesArea: boolean,
-            axisLabels: boolean,
-        },
-    }),
+    ...undocumentedDefs({ collideWith: collideWithOptionsDef }),
+};
+
+const seriesLabelCollisionOptionsDef: OptionsDefs<AgSeriesLabelCollisionOptions> = {
+    threshold: number,
+    alwaysShow: boolean,
+    collideWith: collideWithOptionsDef,
 };
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
@@ -797,7 +802,7 @@ export const labelAutoFontSizeOptionsDefs: OptionsDefs<AgChartLabelAutoFontSizeO
 /** Label-fit defs plus the collision object, for series that place their labels against obstacles. */
 export const labelCollisionFitOptionsDefs: OptionsDefs<AgChartLabelCollisionFitOptions> = {
     ...labelFitOptionsDefs,
-    collision: collisionOptionsDef,
+    collision: seriesLabelCollisionOptionsDef,
 };
 
 /** Style overrides applied to a label for its resolved inside/outside placement. */
@@ -827,8 +832,7 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
     minimumFontSize: and(positiveNumber, lessThanOrEqual('fontSize')),
     wrapping: textWrap,
     truncate: boolean,
-    collision: collisionOptionsDef,
-    overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
+    collision: seriesLabelCollisionOptionsDef,
 };
 
 export const errorBarThemeableOptionsDefs: OptionsDefs<AgErrorBarThemeableOptions> = {

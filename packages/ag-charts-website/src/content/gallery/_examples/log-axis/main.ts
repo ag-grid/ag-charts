@@ -48,38 +48,4 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-const chart = AgCharts.create(options);
-
-function setNumberAxis() {
-    options.subtitle = {
-        text: 'linear scale',
-    };
-    options.axes!.x! = {
-        type: 'number',
-        position: 'left',
-        title: {
-            text: 'Population',
-        },
-        label: {
-            format: ',.0f',
-        },
-    };
-    chart.update(options);
-}
-
-function setLogAxis() {
-    options.subtitle = {
-        text: 'log scale',
-    };
-    options.axes!.x! = {
-        type: 'log',
-        position: 'left',
-        title: {
-            text: 'Population',
-        },
-        label: {
-            format: ',.0f',
-        },
-    };
-    chart.update(options);
-}
+AgCharts.create(options);

@@ -78,7 +78,11 @@
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
-      "inputs": ["allOutputs"],
+      "inputs": [
+        "allOutputs",
+        "{workspaceRoot}/tools/package/sanity-check-package.js",
+        "{workspaceRoot}/tools/package/dist-artefacts.js"
+      ],
       "options": {
         "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-locale/package"]
       }

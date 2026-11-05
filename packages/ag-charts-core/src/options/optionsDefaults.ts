@@ -514,8 +514,6 @@ export const textWrap = union('never', 'always', 'hyphenate', 'on-space');
 export const textAlign = union('left', 'center', 'right', 'start', 'end');
 export const verticalAlign = union('top', 'middle', 'bottom');
 
-export const overflowStrategy = union('ellipsis', 'hide');
-
 export const paddingOptions = optionsDefs<PaddingOptions>(
     { top: positiveNumber, right: positiveNumber, bottom: positiveNumber, left: positiveNumber },
     'padding object'

@@ -993,7 +993,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1049,7 +1049,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1117,7 +1116,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1173,7 +1172,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1241,7 +1239,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1297,7 +1295,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1365,7 +1362,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1421,7 +1418,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1485,6 +1481,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1520,7 +1519,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -1608,6 +1606,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1643,7 +1644,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -1746,7 +1746,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1802,7 +1802,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1870,7 +1869,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1926,7 +1925,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -1994,7 +1992,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2050,7 +2048,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2118,7 +2115,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2174,7 +2171,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2238,6 +2234,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2273,7 +2272,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -2361,6 +2359,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2396,7 +2397,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -2499,7 +2499,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2555,7 +2555,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2623,7 +2622,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2679,7 +2678,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2747,7 +2745,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2803,7 +2801,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2871,7 +2868,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2927,7 +2924,6 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "rgba(0, 0, 0, 0.5)",
                     "enabled": false,
                     "fill": "#000",
                     "fillOpacity": 0.5,
@@ -2991,6 +2987,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -3026,7 +3025,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,
@@ -3114,6 +3112,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -3149,7 +3150,6 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "rgba(0, 0, 0, 0.5)",
                       "enabled": false,
                       "fill": "#000",
                       "fillOpacity": 0.5,

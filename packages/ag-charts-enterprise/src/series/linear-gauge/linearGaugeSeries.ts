@@ -397,7 +397,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     labelDatum(label: NormalisedLinearGaugeLabelOptions, value: AgNumericValue): LinearGaugeLabelDatum {
         const {
             placement,
-            avoidCollisions,
             spacing,
             maxWidth,
             maxHeight,
@@ -421,7 +420,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             datum: undefined,
             datumIndex: 0,
             placements: toArray(placement),
-            avoidCollisions,
             spacing,
             maxWidth,
             maxHeight,

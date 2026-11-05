@@ -69,7 +69,7 @@ import type { ChartTypeHost, ChartTypeInstance, SeriesHost } from './chartTypeEn
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
-import { replaceDataSet } from './data/dataSetUtil';
+import { inheritDataSet, replaceDataSet } from './data/dataSetUtil';
 import { SyncManager } from './interaction/syncManager';
 import { LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
@@ -291,9 +291,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         const dataIdKey: string | undefined = this.ctx.chartState.getValue('options', 'dataIdKey');
         for (const series of this.series) {
             const dataSet = series.createChartDataSet(data, dataIdKey);
-            if (dataSet == null) continue;
-            if (this.data != null) dataSelectionService?.transferDataSet(dataSet, this.data);
-            return dataSet;
+            if (dataSet != null) return inheritDataSet(dataSelectionService, this.data, dataSet);
         }
         return replaceDataSet(dataSelectionService, this.data, data, dataIdKey, logger);
     }
@@ -1455,7 +1453,8 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         const relayout = this.ctx.labelManager.updateLabels(
             this.series.filter((s) => s.visible),
             this.ctx.chartState.getValue('options', 'padding'),
-            this.seriesRect
+            this.seriesRect,
+            this.getSeriesAreaPadding()
         );
         if (relayout) {
             this.update(ChartUpdateType.PERFORM_LAYOUT);

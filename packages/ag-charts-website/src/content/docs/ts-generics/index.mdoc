@@ -7,6 +7,10 @@ AG Charts leverages TypeScript Generics for chart data and context. This
 significantly enhances the developer experience through improved code completion
 and compile-time validation.
 
+Both parameters are optional. The [Options API Reference](/options/) and the API
+references on each page show them as `TDatum` and `TContext` wherever a type
+depends on them.
+
 ## Type \<TDatum>
 
 The `TDatum` (default: `any`) generic parameter is used to specify the interface
@@ -74,10 +78,36 @@ the following:
 
 - Enforces type-safety for the `series[].xKey` and
   `series[].yKey`. These properties must be keys of the `MyDatumType`
-  type.
+  type, or dot-separated paths to properties of nested objects.
 
 - Automatically infers the type of `params.datum.region` in the `itemStyler`
   callback.
+
+### Hierarchical Data
+
+The [Treemap](./treemap-series/) and [Sunburst](./sunburst-series/) series read
+their keys from every node in the tree. When the root and leaf nodes have
+different types, set `TDatum` to the union of the node types, so that keys which
+only exist on some nodes are accepted:
+
+```ts
+type Leaf = { name: string; value: number };
+type Root = { name: string; children: Leaf[] };
+
+const options: AgChartOptions<Root | Leaf> = {
+    data: [/* ... */],
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'name',
+            childrenKey: 'children',
+            sizeKey: 'value',
+        },
+    ],
+};
+```
+
+These keys must be top-level properties of the node type.
 
 ## Type \<TContext>
 

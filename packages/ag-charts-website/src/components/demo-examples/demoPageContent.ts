@@ -40,7 +40,7 @@ export const DEMO_PAGE_CONTENT = {
     },
     procurement: {
         metaTitle: 'Procurement Manager Demo | AG Charts',
-        metaDescription: 'AG Charts: spend, supplier and delivery charts for a procurement manager workspace.',
+        metaDescription: 'AG Charts: sunburst, heatmap, map and range-bar charts with synced selection.',
     },
     'real-time': {
         metaTitle: 'Real-Time Monitoring Demo | AG Charts',

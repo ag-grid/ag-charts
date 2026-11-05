@@ -75,10 +75,16 @@ function placementSignature(sources: LabelSource[], bounds: BoxBounds, avoidsAxi
     return `${ids}|${bounds.x},${bounds.y},${bounds.width},${bounds.height}`;
 }
 
+// A source replaced under the same id can restart at the same node-data version, so the signature alone misses it.
+function sameSources(sources: LabelSource[], previous: LabelSource[] | undefined): boolean {
+    return previous?.length === sources.length && sources.every((source, index) => source === previous[index]);
+}
+
 export class LabelManager {
     private labelData: Map<string, SeriesLabels> = new Map();
     private lastPlacementSignature?: string;
     private lastPlacedLabels?: Map<string, PlacedLabel[]>;
+    private lastSources?: LabelSource[];
     private readonly sources = new Map<string, LabelSource>();
     private holdingPlacements = false;
     private avoidsAxisLabels = false;
@@ -97,13 +103,17 @@ export class LabelManager {
     updateLabels(
         visibleSources: PlacedLabelSource[],
         padding: NormalisedPaddingOptions,
-        seriesRect = BBox.zero
+        seriesRect = BBox.zero,
+        seriesAreaPadding: NormalisedPaddingOptions = padding
     ): boolean {
+        // A label allowed outside the series area must get at least the room one kept inside it does.
+        const left = Math.max(padding.left, seriesAreaPadding.left);
+        const top = Math.max(padding.top, seriesAreaPadding.top);
         const bounds = {
-            x: -padding.left,
-            y: -padding.top,
-            width: seriesRect.width + padding.left + padding.right,
-            height: seriesRect.height + padding.top + padding.bottom,
+            x: -left,
+            y: -top,
+            width: seriesRect.width + left + Math.max(padding.right, seriesAreaPadding.right),
+            height: seriesRect.height + top + Math.max(padding.bottom, seriesAreaPadding.bottom),
         };
         const allSources: LabelSource[] = [...this.sources.values(), ...visibleSources];
         const placedLabelSources = allSources.filter(placesLabels);
@@ -113,6 +123,7 @@ export class LabelManager {
             this.labelData.clear();
             this.lastPlacementSignature = undefined;
             this.lastPlacedLabels = undefined;
+            this.lastSources = undefined;
             this.holdingPlacements = false;
             this.avoidsAxisLabels = false;
             return false;
@@ -123,7 +134,9 @@ export class LabelManager {
         const { avoidsAxisLabels } = this;
         let signature = placementSignature(allSources, bounds, avoidsAxisLabels);
         let placedLabels = this.lastPlacedLabels;
-        if (placedLabels == null || signature !== this.lastPlacementSignature) {
+        const sourcesReplaced = !sameSources(allSources, this.lastSources);
+        this.lastSources = allSources;
+        if (placedLabels == null || sourcesReplaced || signature !== this.lastPlacementSignature) {
             placedLabels = this.computePlacement(placedLabelSources, allSources, bounds, seriesRect);
             if (this.avoidsAxisLabels !== avoidsAxisLabels) {
                 signature = placementSignature(allSources, bounds, this.avoidsAxisLabels);

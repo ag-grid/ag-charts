@@ -283,6 +283,7 @@ function recordCpuUsage(elapsedMs: number) {
     }
 }
 
+/** inScope */
 async function dispatchUpdate({ append = [], remove = [] }: { append?: OhlcDatum[]; remove?: OhlcDatum[] }) {
     const start = performance.now();
 
@@ -321,6 +322,7 @@ function toggleUpdates() {
     }
 }
 
+/** inScope */
 function startUpdates() {
     if (isRunning) return;
     isRunning = true;

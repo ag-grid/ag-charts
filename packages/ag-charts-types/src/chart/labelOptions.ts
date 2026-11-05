@@ -16,14 +16,14 @@ import type {
 } from './callbackOptions';
 import type {
     AgBarSeriesLabelPlacement,
-    AgChartLabelCollisionOptions,
     AgChartLabelCollisionPlacement,
     AgChartLabelOrientation,
     AgChartLabelRegionPlacement,
     AgConeFunnelSeriesLabelPlacement,
     AgFunnelSeriesLabelPlacement,
+    AgSeriesLabelCollisionOptions,
 } from './collisionAvoidanceOptions';
-import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
+import type { ContextDefault, FontSize, PixelSize, TextWrap } from './types';
 
 export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, LabelBoxOptions {}
 
@@ -112,7 +112,7 @@ export interface AgChartLabelCollisionFitOptions extends AgChartLabelFitOptions 
      * Configuration controlling the spacing kept from obstacles and whether a label that cannot be
      * placed clear of every obstacle is kept at its least-overflowing placement or hidden.
      */
-    collision?: AgChartLabelCollisionOptions;
+    collision?: AgSeriesLabelCollisionOptions;
 }
 
 export interface AgChartLabelFormatterParams<TDatum, TContext = ContextDefault> extends AgChartCallbackParams<
@@ -156,16 +156,7 @@ export interface AgChartAutoSizedBaseLabelOptions<
     /**
      * Configuration controlling whether a label that still does not fit its bounds is kept or hidden.
      */
-    collision?: AgChartLabelCollisionOptions;
-
-    /**
-     * Adjusts the behaviour of labels when they overflow
-     * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
-     * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
-     *
-     * @deprecated v14.3.0 Use `truncate` instead.
-     */
-    overflowStrategy?: OverflowStrategy;
+    collision?: AgSeriesLabelCollisionOptions;
 }
 
 export interface AgChartAutoSizedLabelOptions<

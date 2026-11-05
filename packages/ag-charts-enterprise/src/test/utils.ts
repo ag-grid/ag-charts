@@ -15,6 +15,7 @@ import {
 import { Group, Rect, Shape } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
+import { DEFAULT_CONTEXT_MENU_CLASS } from '../features/context-menu/contextMenuStyles';
 import { HeatmapCellBatch } from '../series/heatmap/heatmapCellBatch';
 import { setupEnterpriseModules } from '../setup';
 
@@ -61,6 +62,18 @@ export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any> 
 ) {
     options.animation ??= { enabled: false };
     return prepareTestOptions(options as any, container);
+}
+
+/** The open context menu's item whose text contains `label`; throws when there is none. */
+export function findContextMenuItem(label: string): HTMLElement {
+    const items = Array.from(
+        document.body.getElementsByClassName(`${DEFAULT_CONTEXT_MENU_CLASS}__item`) as HTMLCollectionOf<HTMLElement>
+    );
+    const item = items.find(({ textContent }) => textContent?.includes(label));
+    if (item == null) {
+        throw new Error(`no context menu item labelled "${label}"`);
+    }
+    return item;
 }
 
 /**
@@ -119,13 +132,16 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
     });
 
     const view = container.ownerDocument.defaultView!;
-    const originalGetComputedStyle = view.getComputedStyle;
-    view.getComputedStyle = () =>
-        ({ getPropertyValue: (key: string) => vars[key] ?? '' }) as unknown as CSSStyleDeclaration;
+    const getComputedStyleDescriptor = Object.getOwnPropertyDescriptor(view, 'getComputedStyle')!;
+    Object.defineProperty(view, 'getComputedStyle', {
+        configurable: true,
+        writable: true,
+        value: () => ({ getPropertyValue: (key: string) => vars[key] ?? '' }) as unknown as CSSStyleDeclaration,
+    });
 
     return () => {
         Object.defineProperty(CSSStyleDeclaration.prototype, 'color', descriptor);
-        view.getComputedStyle = originalGetComputedStyle;
+        Object.defineProperty(view, 'getComputedStyle', getComputedStyleDescriptor);
     };
 }
 
@@ -164,7 +180,6 @@ export const DEFAULT_DISABLED_SHADOW = {
     blur: 5,
     fill: '#000',
     fillOpacity: 0.5,
-    color: 'rgba(0, 0, 0, 0.5)',
 };
 
 /** The shadow the series tests turn on. */

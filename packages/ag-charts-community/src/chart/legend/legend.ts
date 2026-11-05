@@ -48,7 +48,7 @@ import { Pagination } from '../pagination/pagination';
 import { getShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta } from '../tooltip/tooltip';
 import type { TooltipContent } from '../tooltip/tooltipContent';
-import { LegendDOMProxy } from './legendDOMProxy';
+import { LegendDOMProxy, type LegendHoverEvent, type LegendLeaveEvent } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
@@ -959,7 +959,6 @@ export class Legend {
 
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
-        const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.unsafeNonNullDatum;
 
         this.clearHighlight();
@@ -979,8 +978,7 @@ export class Legend {
         const action = toggleOtherSeriesVisible ? 'show' : 'hide';
         this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
 
-        const { offsetX, offsetY } = sourceEvent;
-        const { canvasX, canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
+        const { canvasX, canvasY } = widgetEvent;
         this.ctx.contextMenuRegistry?.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
     }
 
@@ -1140,13 +1138,13 @@ export class Legend {
         return true;
     }
 
-    private toTooltipMeta(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): TooltipMeta {
+    private toTooltipMeta(event: LegendHoverEvent, node: LegendMarkerLabel): TooltipMeta {
         let canvasX: number, canvasY: number;
-        if (event instanceof FocusEvent) {
+        if (event.type === 'focus') {
             ({ x: canvasX, y: canvasY } = Transformable.toCanvas(node).computeCenter());
         } else {
-            event.preventDefault();
-            ({ canvasX, canvasY } = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY));
+            event.sourceEvent.preventDefault();
+            ({ canvasX, canvasY } = event);
         }
 
         return { canvasX, canvasY, showArrow: false };
@@ -1184,7 +1182,7 @@ export class Legend {
         return [{ type: 'structured', title: this.getItemLabel(datum) }];
     }
 
-    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel, fromKeyboardFocus = false) {
+    onHover(event: LegendHoverEvent, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
         if (!this.opts.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
@@ -1201,14 +1199,14 @@ export class Legend {
             this.ctx.tooltipManager.removeTooltip(this.id, undefined, true);
         }
 
-        this.updateHighlight(datum?.enabled, datum, series, undefined, fromKeyboardFocus);
+        this.updateHighlight(datum?.enabled, datum, series, undefined, event.type === 'focus');
         this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
-    onLeave(fromKeyboardFocus = false) {
+    onLeave(event: LegendLeaveEvent) {
         if (this.checkInteractionState()) return;
         this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
-        this.clearHighlight(fromKeyboardFocus);
+        this.clearHighlight(event.type !== 'mouseleave');
     }
 
     private clearHighlight(fromKeyboardFocus = false): void {

@@ -13,18 +13,8 @@ import {
 const NODE_TEXT_BOX_DEFAULTS = { cornerRadius: 0, fillOpacity: 1, strokeOpacity: 1, strokeWidth: 0 } as const;
 
 // The node always bounds its text, so the shared opt-in fit triggers do not apply: text wraps and truncates by
-// default. The deprecated `overflowStrategy` still decides `truncate` when it is set.
-const NODE_TEXT_FIT_DEFAULTS = {
-    truncate: {
-        $isUserOption: ['./overflowStrategy', { $eq: [{ $path: './overflowStrategy' }, 'ellipsis'] }, true],
-    },
-    ...undocumentedThemeOptions({
-        collision: {
-            threshold: 0,
-            alwaysShow: false,
-        },
-    }),
-} as const;
+// default.
+const NODE_TEXT_FIT_DEFAULTS = { truncate: true } as const;
 
 export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
     zoom: {
@@ -49,7 +39,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
         ...undocumentedThemeOptions({ idKey: 'id', parentIdKey: 'parentId' }),
         direction: 'vertical',
         reverse: false,
-        depthSpacing: { $path: ['./verticalSpacing', 52] },
+        depthSpacing: 52,
         innerSpacing: 20,
         outerSpacing: 40,
         expander: {

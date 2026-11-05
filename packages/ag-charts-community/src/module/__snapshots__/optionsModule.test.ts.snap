@@ -60,7 +60,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "stroke": "#3f7cbf",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "parentLevel": {
@@ -144,7 +143,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "stroke": "#326baf",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "nice": false,
@@ -331,6 +329,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -366,7 +367,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -456,6 +456,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -491,7 +494,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -581,6 +583,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -616,7 +621,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -777,7 +781,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "right",
@@ -842,7 +845,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -902,7 +904,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -1090,7 +1091,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -1146,7 +1147,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -1216,7 +1216,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -1272,7 +1272,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -1338,6 +1337,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -1373,7 +1375,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -1540,7 +1541,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -1600,7 +1600,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -1783,6 +1782,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -1818,7 +1820,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -1909,6 +1910,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -1944,7 +1948,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -2035,6 +2038,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -2070,7 +2076,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -2161,6 +2166,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -2196,7 +2204,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -2287,6 +2294,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -2322,7 +2332,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -2413,6 +2422,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -2448,7 +2460,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -2539,6 +2550,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -2574,7 +2588,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -2740,7 +2753,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -2800,7 +2812,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -2986,7 +2997,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -3042,7 +3053,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -3113,7 +3123,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -3169,7 +3179,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -3240,7 +3249,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -3296,7 +3305,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -3367,7 +3375,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -3423,7 +3431,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -3494,7 +3501,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -3550,7 +3557,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -3621,7 +3627,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -3677,7 +3683,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -3748,7 +3753,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -3804,7 +3809,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -3875,7 +3879,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -3931,7 +3935,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -4068,7 +4071,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -4127,7 +4129,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -4312,7 +4313,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "collision": {
           "alwaysShow": false,
           "collideWith": {
-            "seriesArea": false,
+            "seriesArea": true,
           },
         },
         "cornerRadius": 4,
@@ -4358,7 +4359,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -4500,7 +4500,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "parentLevel": {
@@ -4584,7 +4583,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -4766,6 +4764,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -4801,7 +4802,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -4891,6 +4891,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -4926,7 +4929,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -5016,6 +5018,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -5051,7 +5056,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -5141,6 +5145,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -5176,7 +5183,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -5342,7 +5348,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -5401,7 +5406,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -5586,6 +5590,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -5621,7 +5628,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -5654,7 +5660,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -5723,6 +5728,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -5758,7 +5766,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -5791,7 +5798,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -5860,6 +5866,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -5895,7 +5904,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -5928,7 +5936,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -5997,6 +6004,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -6032,7 +6042,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -6065,7 +6074,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -6134,6 +6142,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -6169,7 +6180,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -6202,7 +6212,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -6338,7 +6347,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -6403,7 +6411,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -6589,7 +6596,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -6645,7 +6652,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -6781,7 +6787,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -6846,7 +6851,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -7035,7 +7039,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -7093,7 +7097,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -7239,7 +7242,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "stroke": "transparent",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "paddingInner": 0.2,
@@ -7299,7 +7301,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "stroke": "transparent",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "paddingInner": 0.2,
@@ -7485,7 +7486,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "collision": {
           "alwaysShow": false,
           "collideWith": {
-            "seriesArea": false,
+            "seriesArea": true,
           },
         },
         "cornerRadius": 4,
@@ -7531,7 +7532,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -7673,7 +7673,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "max": 180,
       "maxThicknessRatio": 0.3,
@@ -7735,7 +7734,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "max": 90,
       "maxThicknessRatio": 0.3,
@@ -7922,7 +7920,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "collision": {
           "alwaysShow": false,
           "collideWith": {
-            "seriesArea": false,
+            "seriesArea": true,
           },
         },
         "cornerRadius": 4,
@@ -7970,7 +7968,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -8118,7 +8115,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -8177,7 +8173,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -8363,7 +8358,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -8419,7 +8414,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -8487,7 +8481,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -8543,7 +8537,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -8677,7 +8670,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -8742,7 +8734,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -8929,7 +8920,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -8985,7 +8976,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -9056,7 +9046,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -9112,7 +9102,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -9254,7 +9243,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -9314,7 +9302,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -9504,7 +9491,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -9560,7 +9547,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -9633,7 +9619,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -9689,7 +9675,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -9762,7 +9747,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -9818,7 +9803,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -9891,7 +9875,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -9947,7 +9931,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -10020,7 +10003,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -10076,7 +10059,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -10149,7 +10131,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -10205,7 +10187,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -10278,7 +10259,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -10334,7 +10315,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -10476,7 +10456,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -10535,7 +10514,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "max": 1,
       "maxThicknessRatio": 0.3,
@@ -10721,6 +10699,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -10756,7 +10737,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -10847,6 +10827,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -10882,7 +10865,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -10973,6 +10955,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11008,7 +10993,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -11099,6 +11083,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11134,7 +11121,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -11225,6 +11211,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11260,7 +11249,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -11351,6 +11339,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11386,7 +11377,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -11477,6 +11467,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11512,7 +11505,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -11603,6 +11595,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11638,7 +11633,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -11729,6 +11723,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11764,7 +11761,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -11855,6 +11851,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11890,7 +11889,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -11981,6 +11979,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -12016,7 +12017,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -12107,6 +12107,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -12142,7 +12145,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -12233,6 +12235,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -12268,7 +12273,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -12359,6 +12363,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -12394,7 +12401,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -12485,6 +12491,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -12520,7 +12529,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -12611,6 +12619,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -12646,7 +12657,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -12806,7 +12816,6 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -12867,7 +12876,6 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -13049,6 +13057,9 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -13084,7 +13095,6 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -13249,7 +13259,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -13309,7 +13318,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -13494,6 +13502,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -13529,7 +13540,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -13570,7 +13580,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -13639,6 +13648,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -13674,7 +13686,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -13715,7 +13726,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -13784,6 +13794,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -13819,7 +13832,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -13860,7 +13872,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -13929,6 +13940,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -13964,7 +13978,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -14005,7 +14018,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -14074,6 +14086,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -14109,7 +14124,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -14150,7 +14164,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -14219,6 +14232,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -14254,7 +14270,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -14295,7 +14310,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -14364,6 +14378,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -14399,7 +14416,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -14440,7 +14456,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -14577,7 +14592,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -14643,7 +14657,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -14830,7 +14843,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -14887,7 +14900,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -14958,7 +14970,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -15015,7 +15027,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -15086,7 +15097,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -15143,7 +15154,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -15285,7 +15295,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -15345,7 +15354,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -15531,7 +15539,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -15588,7 +15596,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -15658,7 +15665,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -15715,7 +15722,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -15785,7 +15791,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -15842,7 +15848,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -15912,7 +15917,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -15969,7 +15974,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -16039,7 +16043,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -16096,7 +16100,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -16166,7 +16169,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -16223,7 +16226,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -16368,7 +16370,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "parentLevel": {
@@ -16453,7 +16454,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -16637,6 +16637,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -16672,7 +16675,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -16705,7 +16707,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -16773,6 +16774,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -16808,7 +16812,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -16841,7 +16844,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -16909,6 +16911,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -16944,7 +16949,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -16977,7 +16981,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -17045,6 +17048,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -17080,7 +17086,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -17113,7 +17118,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -17255,7 +17259,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -17315,7 +17318,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -17501,7 +17503,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -17559,7 +17561,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": true,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -17997,7 +17998,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -18158,7 +18158,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "parentLevel": {
@@ -18243,7 +18242,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -18426,6 +18424,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -18461,7 +18462,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -18551,6 +18551,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -18586,7 +18589,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -19014,7 +19016,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -19165,7 +19166,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -19224,7 +19224,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -19408,7 +19407,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "collision": {
           "alwaysShow": false,
           "collideWith": {
-            "seriesArea": false,
+            "seriesArea": true,
           },
         },
         "cornerRadius": 4,
@@ -19452,7 +19451,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -19596,7 +19594,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "parentLevel": {
@@ -19681,7 +19678,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -19865,6 +19861,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -19900,7 +19899,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -19940,7 +19938,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -20008,6 +20005,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -20043,7 +20043,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -20083,7 +20082,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -20151,6 +20149,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -20186,7 +20187,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -20226,7 +20226,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -20294,6 +20293,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -20329,7 +20331,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -20369,7 +20370,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -20437,6 +20437,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -20472,7 +20475,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -20512,7 +20514,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -20580,6 +20581,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -20615,7 +20619,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -20655,7 +20658,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -20791,7 +20793,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "nice": false,
@@ -20857,7 +20858,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -21044,7 +21044,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -21100,7 +21100,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -21171,7 +21170,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -21227,7 +21226,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -21298,7 +21296,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -21354,7 +21352,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -21425,7 +21422,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -21481,7 +21478,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -21624,7 +21620,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -21684,7 +21679,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -21873,7 +21867,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -21929,7 +21923,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -22002,7 +21995,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -22058,7 +22051,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -22131,7 +22123,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -22187,7 +22179,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -22260,7 +22251,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -22316,7 +22307,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -22389,7 +22379,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -22445,7 +22435,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -22587,7 +22576,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -22651,7 +22639,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "nice": false,
@@ -22860,7 +22847,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -22918,7 +22905,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -23074,7 +23060,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -23138,7 +23123,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "nice": false,
@@ -23347,7 +23331,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -23403,7 +23387,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -23558,7 +23541,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "max": 6,
       "maxThicknessRatio": 0.3,
@@ -23626,7 +23608,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "left",
@@ -23834,7 +23815,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "collision": {
           "alwaysShow": true,
           "collideWith": {
-            "seriesItems": true,
+            "shapes": false,
           },
           "threshold": 4,
         },
@@ -23890,7 +23871,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
@@ -24046,7 +24026,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -24110,7 +24089,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "nice": false,
@@ -24314,6 +24292,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -24350,7 +24331,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -24529,7 +24509,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -24593,7 +24572,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "nice": false,
@@ -24797,6 +24775,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -24832,7 +24813,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -25011,7 +24991,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -25075,7 +25054,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "nice": false,
@@ -25279,6 +25257,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -25314,7 +25295,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -25493,7 +25473,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "position": "bottom",
@@ -25557,7 +25536,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "stroke": "#dcdddd",
         "strokeOpacity": 1,
         "strokeWidth": 1,
-        "width": 1,
       },
       "maxThicknessRatio": 0.3,
       "nice": false,
@@ -25763,6 +25741,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         },
         "collision": {
           "alwaysShow": true,
+          "collideWith": {
+            "seriesArea": true,
+          },
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -25799,7 +25780,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "rgba(0, 0, 0, 0.5)",
           "enabled": false,
           "fill": "#000",
           "fillOpacity": 0.5,
@@ -25832,7 +25812,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
       },
       "shadow": {
         "blur": 5,
-        "color": "rgba(0, 0, 0, 0.5)",
         "enabled": false,
         "fill": "#000",
         "fillOpacity": 0.5,
