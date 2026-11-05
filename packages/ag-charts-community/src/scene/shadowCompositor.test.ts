@@ -2806,4 +2806,86 @@ describe('Group shadow compositor', () => {
             expect(joinsShadowKey(key, upper, BLUE, undefined, 'layer')).toBe(false);
         });
     });
+
+    describe('glow in the batches of a group', () => {
+        const BLUE_LEFT = { ...BLUE, xOffset: -100 };
+
+        // The group batches a run of children that cast alike, or by layer; a glow is a cast in its own slot.
+        describe.each([true, 'by-layer'] as const)('with batchShadows %s', (batchShadows) => {
+            // A glow draws the pixels that the same options draw as a shadow, for any run of boxes.
+            const LAYOUTS: Array<[string, (slot: 'fillShadow' | 'fillGlow') => Shape[]]> = [
+                ['a single box', (slot) => [box(40, 90, 40, 40, { [slot]: RED_HALF })]],
+                [
+                    'overlapping boxes of one glow',
+                    (slot) => [box(40, 90, 40, 40, { [slot]: RED_HALF }), box(60, 90, 40, 40, { [slot]: RED_HALF })],
+                ],
+                [
+                    'boxes that a box with no cast separates',
+                    (slot) => [
+                        box(40, 90, 30, 40, { [slot]: RED_HALF }),
+                        box(100, 90, 30, 40),
+                        box(130, 90, 30, 40, { [slot]: RED_HALF }),
+                    ],
+                ],
+                [
+                    'boxes of different glows',
+                    (slot) => [
+                        box(40, 90, 30, 40, { [slot]: RED_HALF }),
+                        box(100, 90, 30, 40, { [slot]: { ...RED_HALF, xOffset: -30 } }),
+                    ],
+                ],
+            ];
+
+            it.each(LAYOUTS)('should cast %s as it casts the same shadow', (_name, nodes) => {
+                renderNodes(nodes('fillShadow'), batchShadows);
+                const asShadow = pixels();
+                expect(maxAlphaOf(asShadow)).toBeGreaterThan(0);
+
+                renderNodes(nodes('fillGlow'), batchShadows);
+
+                expect(pixels()).toEqual(asShadow);
+            });
+
+            it('should cast the glow of a box, away from the box that it surrounds', () => {
+                renderNodes([box(40, 90, 40, 40, { fillGlow: BLUE })], batchShadows);
+
+                expect(at(160, 110)).toEqual(BLUE_PIXEL);
+                expect(at(260, 110)).toEqual(CLEAR);
+            });
+
+            it('should cast a shadow and a glow of one box, each in its own slot', () => {
+                renderNodes([box(140, 90, 40, 40, { fillShadow: RED_HALF, fillGlow: BLUE_LEFT })], batchShadows);
+
+                expect(at(260, 110)).toEqual([255, 0, 0, 128]);
+                expect(at(60, 110)).toEqual(BLUE_PIXEL);
+            });
+
+            it('should cast the shadow before the glow, so that a shadow never darkens a glow', () => {
+                renderNodes([box(40, 90, 40, 40, { fillShadow: RED_HALF, fillGlow: BLUE })], batchShadows);
+
+                // Both land at the same place: the glow, cast last, covers the shadow.
+                expect(at(160, 110)).toEqual(BLUE_PIXEL);
+            });
+
+            it('should end a run in the glow slot alone where the glow changes and the shadow does not', () => {
+                const DOWN = { ...RED_HALF, xOffset: 0, yOffset: 50 };
+                renderNodes(
+                    [
+                        box(120, 40, 20, 40, { fillShadow: DOWN, fillGlow: BLUE }),
+                        box(160, 40, 20, 40, { fillShadow: DOWN, fillGlow: BLUE_LEFT }),
+                    ],
+                    batchShadows
+                );
+
+                // Each box casts its own glow, and not that of the other.
+                expect(at(230, 60)).toEqual(BLUE_PIXEL);
+                expect(at(70, 60)).toEqual(BLUE_PIXEL);
+                expect(at(30, 60)).toEqual(CLEAR);
+                expect(at(270, 60)).toEqual(CLEAR);
+                // The shadow is cast beneath both.
+                expect(at(130, 110)).toEqual([255, 0, 0, 128]);
+                expect(at(170, 110)).toEqual([255, 0, 0, 128]);
+            });
+        });
+    });
 });
