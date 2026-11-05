@@ -192,7 +192,7 @@ describe('buildPrPreviewPlan', () => {
             const esmEntries = [packageJson.module, packageJson.exports?.['.']?.import].filter(Boolean) as string[];
             // A package whose ESM ships one file per module also builds a single-file bundle beside its entry.
             const bundles = PER_MODULE_ESM_PACKAGES.has(packageName)
-                ? esmEntries.map((entry) => entry.replace(/main\.esm\.mjs$/, 'main.bundle.mjs'))
+                ? esmEntries.map((entry) => entry.replace(/main\.esm\.mjs$/, 'main.esm.min.mjs'))
                 : [];
             const declared = [...esmEntries, ...bundles];
 

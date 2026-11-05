@@ -239,14 +239,14 @@ const unbundledEsmPlugin = {
         initialOptions.outdir = outdir;
         delete initialOptions.outfile;
 
-        // Browsers loading the package through an import map would otherwise fetch every module separately.
+        // The minified entry stays a single file, so a browser loading it through an import map makes one request.
         build.onEnd(async (result) => {
             if (result.errors.length > 0) return;
             await esbuild.build({
                 ...bundleOptions,
                 entryPoints: [path.join(srcDir, 'main.ts')],
-                // Not `*.esm.mjs`, which a package's wildcard export (e.g. locale's `./*.js`) would expose.
-                outfile: path.join(outdir, 'main.bundle.mjs'),
+                outfile: path.join(outdir, 'main.esm.min.mjs'),
+                minify: true,
                 sourcemap: initialOptions.sourcemap,
                 plugins: [cssPlugin, htmlPlugin],
                 logLevel: 'error',

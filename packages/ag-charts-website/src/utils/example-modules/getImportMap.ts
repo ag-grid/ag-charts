@@ -106,7 +106,7 @@ const esmEntryPoint = (packageName: string, entryPoint = 'dist/package/main.esm.
     `${getPackageRoot(packageName)}/${entryPoint}`;
 
 const libraryEntryPoint = (packageName: string) =>
-    esmEntryPoint(packageName, PER_MODULE_ESM_PACKAGES.has(packageName) ? 'dist/package/main.bundle.mjs' : undefined);
+    esmEntryPoint(packageName, PER_MODULE_ESM_PACKAGES.has(packageName) ? 'dist/package/main.esm.min.mjs' : undefined);
 
 /**
  * The library packages every example resolves, whichever framework it runs as. Enterprise is
