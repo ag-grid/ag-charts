@@ -11,6 +11,9 @@ import { chromium } from 'playwright';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
+/** An env var counts as set only when it is present and non-empty. */
+const isCI = process.env.CI != null && process.env.CI !== '';
+
 async function main() {
     const argv = await yargs(hideBin(process.argv))
         .option('base-url', {
@@ -51,7 +54,9 @@ async function main() {
     const testCasesQuery = argv['test-cases'] ? `&testCases=${encodeURIComponent(argv['test-cases'])}` : '';
     const url = `${argv['base-url']}/vanilla/benchmarks/examples/${argv.example}?benchmark=true${testCasesQuery}`;
 
-    const browser = await chromium.launch();
+    // Locally, run the installed Chrome with its sandbox on: Playwright's bundled Chromium lags behind
+    // Chrome's security fixes and launches without the sandbox by default. CI keeps the bundled browser.
+    const browser = await chromium.launch(isCI ? {} : { channel: 'chrome', chromiumSandbox: true });
     let profile;
     let benchmarkError;
     let results;

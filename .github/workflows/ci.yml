@@ -876,9 +876,9 @@ jobs:
         permissions:
             packages: write
         env:
-            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
-            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
-            PLAYWRIGHT_CACHE_KEY: playwright-image-v1.60.0-jammy-v1
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.64.1-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.64.1-jammy
+            PLAYWRIGHT_CACHE_KEY: playwright-image-v1.64.1-jammy-v1
         outputs:
             # 'true' when shards can `docker pull` the GHCR mirror instead of restoring
             # the tarball cache. Falls back to the tarball path for fork PRs, whose
@@ -955,8 +955,8 @@ jobs:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.e2e_matrix )}}
         env:
-            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
-            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.64.1-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.64.1-jammy
             NX_BASE: ${{ needs.init.outputs.nx_base }}
             AG_FORCE_ALL_TESTS: 1
             # Must hold the same value as the init job: init's `playwright test --list` count is what
@@ -1057,7 +1057,7 @@ jobs:
               uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/playwright-docker-image.tar
-                  key: playwright-image-v1.60.0-jammy-v1
+                  key: playwright-image-v1.64.1-jammy-v1
 
             - name: Load Playwright Image
               if: steps.await_image.outputs.pulled != 'true'
@@ -1143,8 +1143,8 @@ jobs:
         # config's test list and so no longer counts this job's workload at all.
         if: needs.detect-changes.outputs.run_full_ci == 'true'
         env:
-            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
-            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.64.1-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.64.1-jammy
             NX_BASE: ${{ needs.init.outputs.nx_base }}
             AG_FORCE_ALL_TESTS: 1
             # AG_E2E_FRAMEWORKS is deliberately absent: the framework pin for these browsers lives in
@@ -1226,7 +1226,7 @@ jobs:
               uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/playwright-docker-image.tar
-                  key: playwright-image-v1.60.0-jammy-v1
+                  key: playwright-image-v1.64.1-jammy-v1
 
             - name: Load Playwright Image
               if: steps.await_image.outputs.pulled != 'true'
@@ -1306,8 +1306,8 @@ jobs:
         needs: [detect-changes, init, playwright_image]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
         env:
-            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
-            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.64.1-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.64.1-jammy
             NX_BASE: ${{ needs.init.outputs.nx_base }}
             AG_FORCE_ALL_TESTS: 1
             AG_E2E_REPORT_JSON: ./reports/ag-charts-website-e2e-a11y.json
@@ -1385,7 +1385,7 @@ jobs:
               uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/playwright-docker-image.tar
-                  key: playwright-image-v1.60.0-jammy-v1
+                  key: playwright-image-v1.64.1-jammy-v1
 
             - name: Load Playwright Image
               if: steps.await_image.outputs.pulled != 'true'
@@ -1436,8 +1436,8 @@ jobs:
             contents: read
             packages: read
         env:
-            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
-            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.64.1-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.64.1-jammy
         steps:
             # First and backgrounded, so the pull overlaps checkout, the artifact download
             # and setup. See the e2e job for the detail.
@@ -1518,7 +1518,7 @@ jobs:
               uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/playwright-docker-image.tar
-                  key: playwright-image-v1.60.0-jammy-v1
+                  key: playwright-image-v1.64.1-jammy-v1
 
             - name: Load Playwright Image
               if: steps.await_image.outputs.pulled != 'true'

@@ -20,6 +20,11 @@ const localE2eEnv = loadEnvFile(join(__dirname, '.env.test:e2e'));
 /** An env var counts as set only when it is present and non-empty. */
 const isCI = process.env.CI != null && process.env.CI !== '';
 
+/** playwright.sh runs the tests inside the Playwright container, which has no installed Chrome. */
+const isDocker = process.env.HOSTNAME === 'docker-desktop';
+
+const useBundledChromium = isCI || isDocker;
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -78,8 +83,12 @@ export default defineConfig({
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
+                // Locally, run the installed Chrome with its sandbox on: Playwright's bundled Chromium lags behind
+                // Chrome's security fixes and launches without the sandbox by default. CI and Docker keep the bundled browser.
+                ...(useBundledChromium ? {} : { channel: 'chrome' }),
                 launchOptions: {
                     args: ['--ignore-certificate-errors'],
+                    chromiumSandbox: !useBundledChromium,
                 },
                 viewport: {
                     width: 800,
@@ -115,7 +124,7 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer:
-        process.env.HOSTNAME === 'docker-desktop' || isCI
+        isDocker || isCI
             ? undefined
             : {
                   env: {

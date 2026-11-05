@@ -21,6 +21,9 @@ import { parseExamplesArg, resolveExamples } from './benchmark-examples';
 import { type Contention, type HostInfo, diffContention, readCpuSample, readHostInfo } from './contention';
 import { type TimeoutProgress, formatTimeoutProgress, readTimeoutProgress } from './timeout-progress';
 
+/** An env var counts as set only when it is present and non-empty. */
+const isCI = process.env.CI != null && process.env.CI !== '';
+
 const WORKSPACE_ROOT = path.resolve(__dirname, '../..');
 
 interface BenchmarkExampleResult {
@@ -185,6 +188,9 @@ async function main() {
         // --disable-gpu/--use-gl pin software rasterisation so rendering timings don't vary with
         // the (absent or virtualised) GPU on CI runner hardware.
         args: ['--enable-precise-memory-info', '--js-flags=--expose-gc', '--disable-gpu', '--use-gl=swiftshader'],
+        // Locally, run the installed Chrome with its sandbox on: Playwright's bundled Chromium lags behind
+        // Chrome's security fixes and launches without the sandbox by default. CI keeps the bundled browser.
+        ...(isCI ? {} : { channel: 'chrome', chromiumSandbox: true }),
     });
     const context = await browser.newContext({
         viewport: { width: vpWidth, height: vpHeight },
