@@ -1176,8 +1176,11 @@ export class Annotations extends AbstractModuleInstance {
                 }
                 return;
             case 'Enter':
-                this.createPendingAnnotation(sourceEvent);
-                return;
+                if (this.toolbar.getPendingAnnotation() != null) {
+                    this.createPendingAnnotation(sourceEvent);
+                    return;
+                }
+                break;
             case 'Backspace':
             case 'Delete':
                 this.onDelete();
