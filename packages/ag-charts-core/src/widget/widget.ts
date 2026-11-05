@@ -34,6 +34,11 @@ abstract class WidgetBounds<TElement extends HTMLElement> {
         return getElementBBox(this.elemContainer ?? this.elem);
     }
 
+    /** Removes the inline width that `setBounds()` wrote, so `getBounds()` reports the rendered width. */
+    clearWidth(): void {
+        setElementStyle(this.elemContainer ?? this.elem, 'width', undefined);
+    }
+
     protected static setElementContainer(widget: WidgetBounds<HTMLElement>, elemContainer: HTMLDivElement) {
         const currentBounds = widget.getBounds();
         setElementBBox(elemContainer, currentBounds);

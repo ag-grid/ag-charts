@@ -209,6 +209,26 @@ describe('Ranges', () => {
         });
     });
 
+    describe('container', () => {
+        it('places both toolbars in a presentation container', async () => {
+            chart = await createEnterpriseChart({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] },
+            });
+            const { body } = deproxy(chart).ctx.agDocument;
+
+            const toolbars = Array.from(body.querySelectorAll('.ag-charts-range-buttons'));
+            expect(toolbars).toHaveLength(2);
+            expect(toolbars[0].parentElement).toBe(toolbars[1].parentElement);
+            expect(toolbars[0].parentElement?.getAttribute('role')).toBe('presentation');
+        });
+    });
+
     describe('AG-16886 button value function source parameter', () => {
         it('should pass source parameter to AgRangesButtonValueFunction', async () => {
             const receivedSources: AgRangesButtonValueSource[] = [];
