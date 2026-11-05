@@ -196,7 +196,7 @@ describe('NumberAxis fixed interval too small to honour', () => {
         expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['0', '5000', '10000']);
     });
 
-    it('keeps the 14.2.0 time domain and labels for evenly spaced dates', async () => {
+    it('skips the value spacing fit for dates spaced a week apart', async () => {
         const day = (n: number) => new Date(2024, 0, 1 + n);
         const values = Array.from({ length: 5 }, (_, i) => day(i * 7 + 2));
         chart = await createChart({
@@ -213,6 +213,28 @@ describe('NumberAxis fixed interval too small to honour', () => {
             [new Date(2024, 0, 1), new Date(2024, 4, 1)].map(Number)
         );
         expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Jan  3', 'Jan 10', 'Jan 17', 'Jan 24', 'Jan 31']);
+    });
+
+    // Weekly points from 6 Jan 2024; the values are two instants a minute apart, so the gap is a spacing no one chose.
+    it.each([
+        { name: 'Date', toValue: (date: Date): Date | number => date },
+        { name: 'epoch number', toValue: (date: Date): Date | number => date.getTime() },
+    ])('fits a time axis to $name values the same way, without an interval warning', async ({ toValue }) => {
+        const jan20 = new Date(2024, 0, 20);
+        const values = [jan20, new Date(jan20.getTime() + 60_000)].map(toValue);
+        chart = await createChart({
+            data: Array.from({ length: 11 }, (_, i) => ({ t: new Date(2024, 0, 6 + i * 7), v: i })),
+            series: [{ type: 'line', xKey: 't', yKey: 'v' }],
+            axes: {
+                x: { type: 'time', position: 'bottom', interval: { values } },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        // The setupMockConsole afterEach fails the test on any warning.
+        expect(getAxisDomain(chart, 'bottom').map(Number)).toEqual(
+            [new Date(2023, 11, 24), new Date(2024, 2, 17)].map(Number)
+        );
     });
 
     it('leaves the y domain on the data when two sparse values imply a wide step', async () => {
