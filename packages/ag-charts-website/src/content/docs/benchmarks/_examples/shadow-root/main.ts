@@ -33,6 +33,7 @@ ModuleRegistry.registerModules([
 const SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000', fillOpacity: 0.5, xOffset: 4, yOffset: 4, blur: 8 };
 const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 14 };
 const GLOW: AgGlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35, blur: 6, spread: 14 };
+const SERIES_GLOW: AgGlowOptions = { fillOpacity: 0.35, blur: 6, spread: 4 };
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -50,11 +51,12 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
-type Scenario = 'bars' | 'areas' | 'highlight' | 'many-markers';
+type Scenario = 'bars' | 'areas' | 'highlight' | 'many-markers' | 'series-glow';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
-// `many-markers` is 1,400px wide, as a line series draws no markers when its points are under 1px apart.
+// `many-markers` and `series-glow` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
+// `series-glow` sets the series-level `marker.glow`, which every highlight state inherits, so a hover recasts every series.
 /** inScope */
 function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOptions {
     const shadow = <T extends AgDropShadowOptions>(value: T) => (shadowOn ? value : undefined);
@@ -68,6 +70,21 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
                 xKey: 'x',
                 yKey: `y${i}`,
                 shadow: shadow(SPREAD_SHADOW),
+            })),
+        };
+    }
+
+    if (scenario === 'series-glow') {
+        return {
+            width: 1400,
+            height: 600,
+            data: getRows(1000, 20, false),
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 20 }, (_, i) => ({
+                type: 'line' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                marker: { enabled: true, size: 6, glow: shadowOn ? SERIES_GLOW : undefined },
             })),
         };
     }
@@ -146,12 +163,16 @@ async function performRedrawFirstSeries(chartOptions: AgCartesianChartOptions): 
 }
 
 /** inScope */
-function variantsOf(scenario: Scenario, operations: Record<string, (o: AgCartesianChartOptions) => Promise<number>>) {
+function variantsOf(
+    scenario: Scenario,
+    operations: Record<string, (o: AgCartesianChartOptions) => Promise<number>>,
+    optionName = 'Shadow'
+) {
     const variants: Variants = [];
     for (const shadowOn of [false, true]) {
         for (const [operation, run] of Object.entries(operations)) {
             variants.push({
-                params: { Operation: operation, Shadow: shadowOn ? 'On' : 'Off' },
+                params: { Operation: operation, [optionName]: shadowOn ? 'On' : 'Off' },
                 run: async () => run(await prepare(scenario, shadowOn)),
             });
         }
@@ -192,6 +213,19 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'one-series',
                 label: 'One of 20 series updated, marker shadows',
                 variants: variantsOf('many-markers', { 'Chart Redraw': performRedrawFirstSeries }),
+            },
+            {
+                id: 'series-glow',
+                label: '20 series x 1,000 points, series marker glow',
+                variants: variantsOf(
+                    'series-glow',
+                    {
+                        'Chart Create': create,
+                        'Chart Redraw': performRedraw,
+                        'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10),
+                    },
+                    'Glow'
+                ),
             },
         ],
         config: {
