@@ -29,7 +29,6 @@ import type {
 
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
-import type { ChartTypeHost } from '../chart/chartTypeEnv';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { detectChartType } from '../chart/mapping/types';
 import { resolveInstanceModuleScope } from '../module/instanceModuleScope';
@@ -600,13 +599,9 @@ class AgChartsInternal {
 
     private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
-        const chartTypeName = detectChartType(options.processedOptions, options.moduleRegistry);
-        const chartDef = options.moduleRegistry.getChartModule(chartTypeName);
-        const chartType = {
-            name: chartDef.name,
-            create: (host: ChartTypeHost) => chartDef.create(host),
-        };
-        return new Chart(options, chartType, transferableResource);
+        const chartType = detectChartType(options.processedOptions, options.moduleRegistry);
+        const chartDef = options.moduleRegistry.getChartModule(chartType);
+        return new Chart(options, chartDef, transferableResource);
     }
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();

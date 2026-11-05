@@ -44,9 +44,7 @@ export interface ChartTypeHost<E extends ChartTypeEnv = ChartTypeEnv> extends Se
     readonly seriesRoot: TranslatableGroup;
     readonly annotationRoot: TranslatableGroup;
     readonly seriesArea: EnvType<E, 'seriesArea'>;
-    readonly seriesRect?: BBox;
     readonly chartOptions: EnvType<E, 'chartOptions'>;
-    readonly chartAnimationPhase: ChartAnimationPhase;
     syncStatus: SyncStatus;
     getOptions(): AgChartOptions;
     getSeriesAreaPadding(): { top: number; right: number; bottom: number; left: number };

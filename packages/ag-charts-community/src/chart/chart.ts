@@ -110,8 +110,6 @@ const SIZE_OPTIONS = [
 /** Options that change only the layout, which a chart with axes carries to its series through the axes' ranges. */
 const LAYOUT_ONLY_DELTA_KEYS = new Set(['title', 'subtitle', 'footnote', 'padding', 'background']);
 
-const NO_AXES = new ChartAxes();
-
 export type ChartTypeFactory = { readonly name: string; create(host: ChartTypeHost): ChartTypeInstance };
 
 export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
@@ -315,6 +313,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     }
 
     readonly chartType: ChartTypeInstance;
+    private readonly noAxes = new ChartAxes();
 
     constructor(options: ChartOptions, chartTypeFactory: ChartTypeFactory, resources?: TransferableResources) {
         this.chartOptions = options;
@@ -491,7 +490,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
     /** Compatibility for Integrated Charts and the axis-reading features; a chart without axes has none. */
     get axes(): ChartAxes {
-        return this.chartType.axes ?? NO_AXES;
+        return this.chartType.axes ?? this.noAxes;
     }
 
     setLayoutRects(seriesRect: BBox, animationRect: BBox) {
