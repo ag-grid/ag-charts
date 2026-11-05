@@ -89,6 +89,8 @@ interface EventMap {
 export class AnnotationSettingsDialog extends Dialog {
     readonly events = new EventEmitter<EventMap>();
 
+    private refreshCoordinateInputs?: () => void;
+
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
         this.hideFns.push(() => {
@@ -96,8 +98,6 @@ export class AnnotationSettingsDialog extends Dialog {
             this.events.emit('hidden', null);
         });
     }
-
-    private refreshCoordinateInputs?: () => void;
 
     /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
     public refreshCoordinates() {
@@ -357,10 +357,6 @@ export class AnnotationSettingsDialog extends Dialog {
             step: field.step,
             list: suggestions?.id,
             onChange: (text) => {
-                if (text === committed) {
-                    return;
-                }
-
                 const context = options.getContext();
                 const parsed = parseCoordinate(text, field.kind);
                 const resolved = parsed == null || !context ? undefined : resolveCoordinate(field, parsed, context);
@@ -370,9 +366,13 @@ export class AnnotationSettingsDialog extends Dialog {
                     return;
                 }
 
-                committed = formatCoordinate(resolved, field.kind);
-                input.value = committed;
-                options.onChangeCoordinates(props);
+                // A value that resolves to the one already set, such as a date snapped to the same bar, is not a change.
+                const formatted = formatCoordinate(resolved, field.kind);
+                input.value = formatted;
+                if (formatted !== committed) {
+                    committed = formatted;
+                    options.onChangeCoordinates(props);
+                }
             },
         });
 
@@ -380,6 +380,9 @@ export class AnnotationSettingsDialog extends Dialog {
         const refresh = (next: CoordinateField) => {
             field = next;
             committed = next.value;
+            if (next.step != null) {
+                input.step = String(next.step);
+            }
             if (!input.matches(':focus')) {
                 input.value = committed;
             }

@@ -69,6 +69,10 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledWith({ start: { y: 20 } });
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
 
+        commit(startY, '20.0');
+        expect(startY.value).toBe('20');
+        expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
+
         commit(startY, '51');
         expect(startY.value).toBe('20');
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);

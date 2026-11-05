@@ -37,7 +37,11 @@ enum States {
 }
 
 // `JSON.stringify` throws on a bigint, which a coordinate beyond Number precision is.
-const stringifyBigint = (_key: string, value: unknown) => (typeof value === 'bigint' ? String(value) : value);
+function describeValue(value: unknown) {
+    return typeof value === 'object'
+        ? JSON.stringify(value, (_key, nested) => (typeof nested === 'bigint' ? String(nested) : nested))
+        : String(value);
+}
 
 /**
  * - AnnotationsStateMachine (runs children in parallel, distributes properties across children)
@@ -250,7 +254,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             ctx.update();
             ctx.recordAction(
                 `Change ${datum?.type} ${Object.entries(props)
-                    .map(([key, value]) => `${key} to ${JSON.stringify(value, stringifyBigint)}`)
+                    .map(([key, value]) => `${key} to ${describeValue(value)}`)
                     .join(', ')}`
             );
         };
