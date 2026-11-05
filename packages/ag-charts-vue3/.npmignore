@@ -15,3 +15,5 @@ vue.config.js
 eslint.*
 vitest.*
 .snyk
+tsconfig.*
+project.json

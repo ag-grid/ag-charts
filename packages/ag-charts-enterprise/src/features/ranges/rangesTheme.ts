@@ -20,7 +20,7 @@ const YEAR = DAY * 365;
 
 // Resolved colour and width of `buttonBorder`, which may be a boolean or a `{ color, width }` object.
 const buttonBorderColor = themeBorderColor('buttonBorder');
-const buttonBorderWidth = themeBorderWidth('buttonBorder', { on: 1 });
+const buttonBorderWidth = themeBorderWidth('buttonBorder');
 
 type ButtonStateBorderParam = 'buttonHoverBorder' | 'buttonActiveBorder' | 'buttonDisabledBorder';
 

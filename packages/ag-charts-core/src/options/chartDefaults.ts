@@ -22,6 +22,7 @@ import {
     type AgDropShadowOptions,
     type AgErrorBarOptions,
     type AgErrorBarThemeableOptions,
+    type AgGlowOptions,
     type AgGradientLegendOptions,
     type AgInitialFocus,
     type AgInterpolationType,
@@ -41,7 +42,6 @@ import {
 } from 'ag-charts-types';
 
 import { isValidNumberFormat } from '../format/numberFormat';
-import type { InternalAgGlowOptions } from './internalShadowOptions';
 import {
     borderOptionsDef,
     colorOrRef,
@@ -52,7 +52,6 @@ import {
     labelBoxOptionsDef,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
-    overflowStrategy,
     padding,
     selectionOptionsDef,
     shapeHighlightOptionsDef,
@@ -678,15 +677,13 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     xOffset: number,
     yOffset: number,
     blur: positiveNumber,
-    color: colorOrRef,
-    ...undocumentedDefs({
-        spread: positiveNumber,
-        fill: colorOrRef,
-        fillOpacity: ratio,
-    }),
+    spread: positiveNumber,
+    fill: colorOrRef,
+    fillOpacity: ratio,
+    color: deprecated(colorOrRef, 'Use `fill` instead.'),
 };
 
-export const glowOptionsDefs: OptionsDefs<InternalAgGlowOptions> = {
+export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
     enabled: boolean,
     blur: positiveNumber,
     spread: positiveNumber,
@@ -696,7 +693,7 @@ export const glowOptionsDefs: OptionsDefs<InternalAgGlowOptions> = {
 
 /** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */
 export function glowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
-    const itemDef = { ...itemHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) };
+    const itemDef = { ...itemHighlightOptionsDef, glow: glowOptionsDefs };
     return highlightOptionsDef(itemDef);
 }
 
@@ -706,8 +703,8 @@ export function multiSeriesGlowHighlightOptionsDef<I extends object, S extends o
     seriesHighlightOptionsDef: S
 ) {
     return multiSeriesHighlightOptionsDef(
-        { ...itemHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) },
-        { ...seriesHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) }
+        { ...itemHighlightOptionsDef, glow: glowOptionsDefs },
+        { ...seriesHighlightOptionsDef, glow: glowOptionsDefs }
     );
 }
 
@@ -721,7 +718,7 @@ export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
 
 export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     itemStyler: callbackDefs<AgSeriesMarkerStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -836,7 +833,6 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
     wrapping: textWrap,
     truncate: boolean,
     collision: seriesLabelCollisionOptionsDef,
-    overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
 };
 
 export const errorBarThemeableOptionsDefs: OptionsDefs<AgErrorBarThemeableOptions> = {

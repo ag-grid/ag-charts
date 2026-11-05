@@ -1,6 +1,4 @@
-import type { ModuleType, OptionsContribution } from 'ag-charts-core';
-
-import type { ChartType } from '../chartType';
+import type { ChartType, ModuleType, OptionsContribution } from 'ag-charts-core';
 
 /** What community knows about a module it may not have registered: enough to report and strip its options. */
 export interface ModulePlaceholder {

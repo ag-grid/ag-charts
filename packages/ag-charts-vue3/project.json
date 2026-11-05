@@ -47,7 +47,11 @@
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
-      "inputs": ["allOutputs"],
+      "inputs": [
+        "allOutputs",
+        "{workspaceRoot}/tools/package/sanity-check-package.js",
+        "{workspaceRoot}/tools/package/dist-artefacts.js"
+      ],
       "options": {
         "commands": [
           "node tools/package/sanity-check-package.js --allowed-ext map -- dist/packages/contents/ag-charts-vue3/package"

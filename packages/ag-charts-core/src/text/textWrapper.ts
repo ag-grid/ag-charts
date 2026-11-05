@@ -1,4 +1,4 @@
-import type { ImageSegment, OverflowStrategy, TextWrap } from 'ag-charts-types';
+import type { ImageSegment, TextWrap } from 'ag-charts-types';
 
 import { findMaxValue } from '../data/binarySearch';
 import { isArray, isFiniteNumber } from '../data/typeGuards';
@@ -44,6 +44,9 @@ import {
     trimBreakSpacesStart,
     unguardTextEdges,
 } from './textUtil';
+
+/** Whether a label that does not fit is truncated with an ellipsis or hidden. */
+export type OverflowStrategy = 'ellipsis' | 'hide';
 
 /**
  * How a label's text adapts to the region produced by its placement. `maxWidth`/`maxHeight` bound the

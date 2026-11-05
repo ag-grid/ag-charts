@@ -1,0 +1,15 @@
+{
+  "name": "tools-package",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "tools/package",
+  "targets": {
+    "test": {
+      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/tools/release/validateDistArtefacts.js"],
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node --test tools/package/*.test.js"
+      }
+    }
+  },
+  "tags": ["no-sharding"]
+}

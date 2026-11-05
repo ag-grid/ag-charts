@@ -471,8 +471,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onContextMenu(event: MouseWidgetEvent<'contextmenu'>, current: Widget): void {
-        const { sourceEvent } = event;
-        if (sourceEvent.currentTarget != current.getElement()) return;
+        if (!current.isEventCurrentTarget(event)) return;
 
         if (current !== this.chart.ctx.widgets.seriesWidget) {
             this.onContainerContextMenu(event);
@@ -530,8 +529,7 @@ export class SeriesAreaManager extends BaseManager {
     // A region drawn outside the series area, such as a cross-line label, is on the container, so it is hit-tested here.
     private onContainerContextMenu(event: MouseWidgetEvent<'contextmenu'>): void {
         // The series widget is nested inside the container, so its right-clicks bubble here after being dispatched.
-        const seriesElement = this.chart.ctx.widgets.seriesWidget.getElement();
-        if (seriesElement.contains(event.sourceEvent.target as Node | null)) return;
+        if (this.chart.ctx.widgets.seriesWidget.containsTarget(event)) return;
         if (!this.isState(InteractionState.ContextMenuable)) return;
 
         const { canvasX, canvasY } = event;
@@ -645,10 +643,10 @@ export class SeriesAreaManager extends BaseManager {
         // `seriesWidget` hits land on a swapchain descendant, so test containment; `containerWidget`
         // needs an exact match to exclude the `seriesWidget` nested inside it.
         if (current === this.chart.ctx.widgets.seriesWidget) {
-            if (!current.getElement().contains(event.sourceEvent.target as Node | null)) {
+            if (!current.containsTarget(event)) {
                 return;
             }
-        } else if (event.sourceEvent.target != current.getElement()) {
+        } else if (!current.isEventTarget(event)) {
             return;
         }
 

@@ -9,7 +9,6 @@ import type {
     VerticalAlign,
 } from 'ag-charts-types';
 
-import type { WithInternalShadow } from '../internalShadowOptions';
 import type { Normalised } from './normalise';
 import type { FillStrokeMorph, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedAutoSizedSecondaryLabelOptions } from './normalisedLabelOptions';
@@ -17,7 +16,7 @@ import type { NormalisedColorScaleOptions } from './normalisedScatterSeries';
 
 export type NormalisedHeatmapSeriesStyle = Normalised<AgHeatmapSeriesStyle, never, FillStrokeMorph>;
 
-/** Cell label; the deprecated top-level `textAlign`/`verticalAlign` forward into it via the theme. */
+/** Cell label. */
 export type NormalisedHeatmapSeriesLabelOptions =
     NormalisedAutoSizedSecondaryLabelOptions<AgHeatmapSeriesLabelFormatterParams> & {
         textAlign: TextAlign;
@@ -38,7 +37,7 @@ type HeatmapRequiredKeys =
 
 /** Heatmap options the series owns, before the common series keys are layered on. */
 export type NormalisedHeatmapSeriesOwnOptions = Normalised<
-    AgHeatmapSeriesOptions & WithInternalShadow,
+    AgHeatmapSeriesOptions,
     HeatmapRequiredKeys,
     {
         stroke: CssColor;

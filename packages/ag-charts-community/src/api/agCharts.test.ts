@@ -398,6 +398,32 @@ describe('AgCharts', () => {
             }
         });
 
+        it('adds light-dark() advice when an itemStyler returns a light-dark() fill', async () => {
+            const options: AgChartOptions = {
+                data: [{ x: 'a', y: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        itemStyler: () => ({ fill: 'light-dark(red, blue)' }),
+                    },
+                ],
+            };
+            prepareTestOptions(options, container);
+
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+
+            expectWarningsCalls().toEqual([
+                [
+                    expect.stringMatching(
+                        /Callback `series\[0]\.itemStyler` returned an invalid property `series\[0]\.itemStyler\.fill`: `"light-dark\(red, blue\)"`; expecting .*\. light-dark\(\) is not supported .*use CSS variables or separate light and dark themes instead, ignoring\.$/
+                    ),
+                ],
+            ]);
+        });
+
         it('still warns and drops the color when the chart has no container', async () => {
             const options: AgChartOptions = {
                 data: [{ x: 'a', y: 1 }],

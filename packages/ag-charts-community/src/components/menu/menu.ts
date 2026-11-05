@@ -1,5 +1,5 @@
 import type { ClickWidgetEvent, ExpansionControllerWidget, LabelIcon } from 'ag-charts-core';
-import { MenuItemRadioWidget, MenuItemWidget, MenuWidget, createElement, getIconClassNames } from 'ag-charts-core';
+import { IconWidget, MenuItemRadioWidget, MenuItemWidget, MenuWidget, TextSpanWidget } from 'ag-charts-core';
 
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 
@@ -54,12 +54,11 @@ export class Menu extends AnchoredPopover {
         row.toggleClass(`ag-charts-menu__row--active`, active);
 
         if (typeof item.value === 'string') {
-            row.getElement().dataset.popoverId = item.value;
+            row.setData('popoverId', item.value);
         }
 
         if (item.icon != null) {
-            const icon = createElement('span', `ag-charts-menu__icon ${getIconClassNames(item.icon)}`);
-            row.getElement().appendChild(icon);
+            row.addChild(IconWidget.fromName(item.icon, 'ag-charts-menu__icon'));
         }
 
         const strokeWidthVisible = item.strokeWidth != null;
@@ -69,9 +68,7 @@ export class Menu extends AnchoredPopover {
         }
 
         if (item.label != null) {
-            const label = createElement('span', 'ag-charts-menu__label');
-            label.textContent = this.ctx.localeManager.t(item.label);
-            row.getElement().appendChild(label);
+            row.addChild(new TextSpanWidget(this.ctx.localeManager.t(item.label), 'ag-charts-menu__label'));
         }
 
         if ('altText' in item) {

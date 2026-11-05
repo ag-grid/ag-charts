@@ -30,7 +30,6 @@ import {
     getSeriesOptions,
     hoverAction,
     hoverLegendItem,
-    internalOptions,
     isTooltipVisible,
     pressKey,
     setupMockCanvas,
@@ -41,7 +40,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { CallbackResultMemo, Group, Rect, Transformable, type WithInternalShadow } from 'ag-charts-core';
+import { CallbackResultMemo, Group, Rect, Transformable } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import {
@@ -1349,28 +1348,25 @@ describe('HeatmapSeries', () => {
     });
 
     describe('shadow', () => {
-        const buildOptions = (seriesShadow?: typeof SHADOW): AgChartOptions =>
-            internalOptions<AgChartOptions>({
-                data: EXAMPLE_OPTIONS.data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
-                        shadow: seriesShadow,
-                    },
-                ],
-                legend: { enabled: false },
-            });
+        const buildOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
+            data: EXAMPLE_OPTIONS.data,
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'year',
+                    yKey: 'person',
+                    colorKey: 'spending',
+                    colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                    shadow: seriesShadow,
+                },
+            ],
+            legend: { enabled: false },
+        });
 
         it('defaults to a disabled shadow', async () => {
             chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(getSeriesOptions<AgHeatmapSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
-                DEFAULT_DISABLED_SHADOW
-            );
+            expect(getSeriesOptions<AgHeatmapSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
@@ -1390,8 +1386,7 @@ describe('HeatmapSeries', () => {
             }
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('renders with the shadow enabled', async () => {
+        it('renders with the shadow enabled', async () => {
             chart = await createEnterpriseChart(buildOptions(SHADOW));
             await compare();
         });
@@ -1559,55 +1554,6 @@ describe('HeatmapSeries', () => {
                 });
 
                 expect(anchor.dx).toBeCloseTo(expectedFactor * anchor.xSpan);
-            });
-        });
-
-        // setupMockConsole() fails on any unasserted warning, so every case here must consume its deprecation notice.
-        describe('deprecated top-level options', () => {
-            it('warns and still applies the deprecated top-level values', async () => {
-                const anchor = await readAnchor(
-                    buildOptions({ label: { enabled: true }, textAlign: 'left', verticalAlign: 'bottom' })
-                );
-
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
-                    ],
-                    [
-                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
-                    ],
-                  ]
-                `);
-
-                expect(anchor.dx).toBeCloseTo(-0.5 * anchor.xSpan);
-                expect(anchor.dy).toBeCloseTo(0.5 * anchor.ySpan);
-                expect(anchor.textAlign).toBe('left');
-                expect(anchor.textBaseline).toBe('bottom');
-            });
-
-            it('lets label.textAlign win over the deprecated top-level value', async () => {
-                const anchor = await readAnchor(
-                    buildOptions({
-                        label: { enabled: true, textAlign: 'right', verticalAlign: 'top' },
-                        textAlign: 'left',
-                        verticalAlign: 'bottom',
-                    })
-                );
-
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
-                    ],
-                    [
-                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
-                    ],
-                  ]
-                `);
-
-                expect(anchor.dx).toBeCloseTo(0.5 * anchor.xSpan);
-                expect(anchor.dy).toBeCloseTo(-0.5 * anchor.ySpan);
             });
         });
 

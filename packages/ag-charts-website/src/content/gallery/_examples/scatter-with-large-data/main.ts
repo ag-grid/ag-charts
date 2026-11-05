@@ -89,7 +89,7 @@ const options: AgChartOptions = {
                         text: 'Long Arm',
                         placement: 'left',
                         rotation: -90,
-                        padding: 75,
+                        spacing: 75,
                     },
                 },
                 {
@@ -101,7 +101,7 @@ const options: AgChartOptions = {
                         text: 'Short Arm',
                         placement: 'left',
                         rotation: -90,
-                        padding: 75,
+                        spacing: 75,
                     },
                 },
             ],

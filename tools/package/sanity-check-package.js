@@ -7,6 +7,8 @@ const glob = require('glob');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
+const { checkPackage } = require('./dist-artefacts');
+
 const args = yargs(hideBin(process.argv)).option('allowed-ext', { array: true, type: 'string' }).parse();
 
 tsNode.register();
@@ -147,6 +149,16 @@ function checkAllowedExtension(filename) {
     }
 }
 
+const rootFiles = new Set(['package.json', 'README.md', 'LICENSE.txt', 'LICENSE.html']);
+// Angular's packager lays its output out at the package root instead.
+const publishesFromDist = packageJson.main?.startsWith('./dist/') ?? false;
+function checkInsideDist(filename) {
+    if (!publishesFromDist || rootFiles.has(filename) || filename.startsWith('dist/')) return;
+
+    console.log(`[${packageJson.name}]: Unexpected file outside dist/: ${filename}`);
+    exitStatus = 1;
+}
+
 async function run() {
     if (packageJson.version !== expectedVersion) {
         console.log(
@@ -172,11 +184,18 @@ async function run() {
         await checkExports(packageJson.exports);
     }
 
+    // Missing export targets are already reported by `checkExports()`.
+    for (const error of checkPackage(dir).filter((e) => e.kind !== 'missing-target')) {
+        console.log(`[${packageJson.name}]: ${error.message}`);
+        exitStatus = 1;
+    }
+
     checkOneExists('README.md');
     checkOneExists('LICENSE.txt', 'LICENSE.html');
 
     for (const file of packageContents) {
         checkAllowedExtension(file);
+        checkInsideDist(file);
     }
 
     if (exitStatus === 0) {

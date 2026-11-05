@@ -187,9 +187,7 @@ export class ScrollbarDOMProxy {
             parent: this.container,
             classList: ['ag-charts-proxy-scrollbar-slider'],
         });
-        const element = this.slider.getElement();
-        element.ariaValueMin = '0';
-        element.ariaValueMax = '100';
+        this.slider.setAriaValueBounds(0, 100);
 
         this.slider.step = SliderWidget.STEP_HUNDRETH;
         this.slider.keyboardStep = SliderWidget.STEP_ONE;
@@ -242,8 +240,7 @@ export class ScrollbarDOMProxy {
             max: Math.round(max * 100) / 100,
         });
 
-        const element = this.slider.getElement();
-        element.ariaValueText = aria;
+        this.slider.setAriaValueText(aria);
 
         const shouldUpdateSlider = !options?.skipSliderUpdate || Math.abs(this.slider.getValueRatio() - min) > 1e-9;
         if (shouldUpdateSlider) {
@@ -253,7 +250,7 @@ export class ScrollbarDOMProxy {
 
     updateThumbBounds(thumb: BoxBounds, track: BoxBounds, cornerRadius?: number) {
         const radius = Math.max(0, cornerRadius ?? 0);
-        this.thumbFocus.getElement().style.borderRadius = `${radius}px`;
+        this.thumbFocus.setBorderRadius(radius);
         this.thumbFocus.setBounds({
             x: thumb.x - track.x,
             y: thumb.y - track.y,
@@ -282,12 +279,10 @@ export class ScrollbarDOMProxy {
 
         event.sourceEvent.preventDefault();
 
-        const element = this.slider.getElement();
-        element.step = this.slider.keyboardStep?.attributeValue ?? '1';
         if (decrement) {
-            element.stepDown();
-        } else if (increment) {
-            element.stepUp();
+            this.slider.stepDown();
+        } else {
+            this.slider.stepUp();
         }
 
         this.onSliderChange();

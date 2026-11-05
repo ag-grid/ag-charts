@@ -12,13 +12,7 @@ import { PREVIEW_PANES } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
 import { useSetEditedGroup } from './editedGroup';
 import { withSansFallback } from './fonts';
-import {
-    completePalette,
-    setStoredPalette,
-    usePreviewStrokes,
-    useStoredPalette,
-    useStrokeDirection,
-} from './paletteModel';
+import { completePalette, setStoredPalette, useStoredPalette, useStrokeDirection } from './paletteModel';
 import {
     getSelectedPresetId,
     setInitialBaseTheme,
@@ -34,7 +28,6 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const { overriddenParams } = useRenderedThemeInfo();
     const storedPalette = useStoredPalette();
     const strokeDirection = useStrokeDirection();
-    const [previewStrokes] = usePreviewStrokes();
 
     const selectedPresetId = useSelectedPresetId();
     const preset = findPreset(selectedPresetId) ?? initialPreset;
@@ -99,7 +92,7 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
                 <PresetSelector selectedId={selectedPresetId} />
                 <PreviewRow>
                     {PREVIEW_PANES.map((pane) => (
-                        <PreviewPane key={pane} pane={pane} theme={previewTheme} strokesEnabled={previewStrokes} />
+                        <PreviewPane key={pane} pane={pane} theme={previewTheme} />
                     ))}
                 </PreviewRow>
             </Main>

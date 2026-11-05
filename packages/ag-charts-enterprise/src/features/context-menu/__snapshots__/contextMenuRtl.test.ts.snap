@@ -19,14 +19,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -41,14 +44,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Sales in שקלים for 2024
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -62,17 +68,21 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           מכירות Sales מוצרים
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           <span
+            aria-hidden="true"
             class="ag-charts-icon ag-charts-icon-chevron-right"
           />
         </div>
@@ -101,14 +111,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -123,14 +136,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Sales in שקלים for 2024
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -144,17 +160,21 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           מכירות Sales מוצרים
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           <span
+            aria-hidden="true"
             class="ag-charts-icon ag-charts-icon-chevron-right"
           />
         </div>
@@ -183,14 +203,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -205,14 +228,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Sales in שקלים for 2024
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -226,17 +252,21 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           מכירות Sales מוצרים
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           <span
+            aria-hidden="true"
             class="ag-charts-icon ag-charts-icon-chevron-right"
           />
         </div>
@@ -265,14 +295,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -287,14 +320,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Sales in שקלים for 2024
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -309,17 +345,21 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           מכירות Sales מוצרים
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           <span
+            aria-hidden="true"
             class="ag-charts-icon ag-charts-icon-chevron-right"
           />
         </div>
@@ -338,14 +378,17 @@ HTMLCollection [
           tabindex="0"
         >
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__icon"
           />
           <div
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            role="presentation"
           >
             תרשים עמודות
           </div>
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__cell"
           />
         </div>
@@ -359,17 +402,21 @@ HTMLCollection [
           tabindex="-1"
         >
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__icon"
           />
           <div
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            role="presentation"
           >
             מכירות Q1 2024
           </div>
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
           >
             <span
+              aria-hidden="true"
               class="ag-charts-icon ag-charts-icon-chevron-right"
             />
           </div>
@@ -399,14 +446,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -421,14 +471,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Sales in שקלים for 2024
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -443,17 +496,21 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           מכירות Sales מוצרים
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           <span
+            aria-hidden="true"
             class="ag-charts-icon ag-charts-icon-chevron-right"
           />
         </div>
@@ -472,14 +529,17 @@ HTMLCollection [
           tabindex="0"
         >
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__icon"
           />
           <div
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            role="presentation"
           >
             תרשים עמודות
           </div>
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__cell"
           />
         </div>
@@ -493,17 +553,21 @@ HTMLCollection [
           tabindex="-1"
         >
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__icon"
           />
           <div
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            role="presentation"
           >
             מכירות Q1 2024
           </div>
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
           >
             <span
+              aria-hidden="true"
               class="ag-charts-icon ag-charts-icon-chevron-right"
             />
           </div>
@@ -533,14 +597,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -555,14 +622,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Sales in שקלים for 2024
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -576,17 +646,21 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           מכירות Sales מוצרים
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           <span
+            aria-hidden="true"
             class="ag-charts-icon ag-charts-icon-chevron-right"
           />
         </div>
@@ -615,14 +689,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -637,14 +714,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Sales in שקלים for 2024
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -659,17 +739,21 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           מכירות Sales מוצרים
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           <span
+            aria-hidden="true"
             class="ag-charts-icon ag-charts-icon-chevron-right"
           />
         </div>
@@ -688,14 +772,17 @@ HTMLCollection [
           tabindex="0"
         >
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__icon"
           />
           <div
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            role="presentation"
           >
             תרשים עמודות
           </div>
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__cell"
           />
         </div>
@@ -709,17 +796,21 @@ HTMLCollection [
           tabindex="-1"
         >
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__icon"
           />
           <div
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            role="presentation"
           >
             מכירות Q1 2024
           </div>
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
           >
             <span
+              aria-hidden="true"
               class="ag-charts-icon ag-charts-icon-chevron-right"
             />
           </div>
@@ -749,14 +840,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -771,14 +865,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Sales in שקלים for 2024
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -793,17 +890,21 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           מכירות Sales מוצרים
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           <span
+            aria-hidden="true"
             class="ag-charts-icon ag-charts-icon-chevron-right"
           />
         </div>
@@ -822,14 +923,17 @@ HTMLCollection [
           tabindex="0"
         >
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__icon"
           />
           <div
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            role="presentation"
           >
             תרשים עמודות
           </div>
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__cell"
           />
         </div>
@@ -844,17 +948,21 @@ HTMLCollection [
           tabindex="-1"
         >
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__icon"
           />
           <div
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            role="presentation"
           >
             מכירות Q1 2024
           </div>
           <div
+            aria-hidden="true"
             class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
           >
             <span
+              aria-hidden="true"
               class="ag-charts-icon ag-charts-icon-chevron-right"
             />
           </div>
@@ -873,14 +981,17 @@ HTMLCollection [
             tabindex="0"
           >
             <div
+              aria-hidden="true"
               class="ag-charts-context-menu__icon"
             />
             <div
               class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+              role="presentation"
             >
               Revenue מכירות
             </div>
             <div
+              aria-hidden="true"
               class="ag-charts-context-menu__cell"
             />
           </div>
@@ -891,14 +1002,17 @@ HTMLCollection [
             tabindex="-1"
           >
             <div
+              aria-hidden="true"
               class="ag-charts-context-menu__icon"
             />
             <div
               class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+              role="presentation"
             >
               מכירות Sales מוצרים
             </div>
             <div
+              aria-hidden="true"
               class="ag-charts-context-menu__cell"
             />
           </div>

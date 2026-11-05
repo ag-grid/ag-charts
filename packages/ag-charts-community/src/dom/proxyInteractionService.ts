@@ -1,5 +1,6 @@
 import {
     AxisWidget,
+    type BaseAttributeTypeMap,
     type BaseStyleTypeMap,
     BoundedTextWidget,
     ButtonWidget,
@@ -13,7 +14,6 @@ import {
     SwitchWidget,
     ToolbarWidget,
     createElement,
-    setElementStyle,
 } from 'ag-charts-core';
 import type { Widget } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
@@ -30,7 +30,7 @@ type ElemParams<T extends ProxyElementType> = {
 };
 
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
-    readonly tabIndex?: number;
+    readonly tabIndex?: BaseAttributeTypeMap['tabindex'];
     readonly domIndex?: number;
 };
 
@@ -41,7 +41,7 @@ type ContainerParams<T extends ProxyContainerType> = {
     readonly domManagerId: string;
     readonly classList: string[];
     readonly ariaLabel: TranslationKey | undefined;
-    readonly role?: string;
+    readonly role?: BaseAttributeTypeMap['role'];
 };
 
 type ProxyMeta = {
@@ -72,7 +72,7 @@ type ProxyMeta = {
         result: SwitchWidget;
     };
     region: {
-        params: ParentProperties<GroupWidget> & ElemParams<'region'> & { readonly role?: string };
+        params: ParentProperties<GroupWidget> & ElemParams<'region'> & { readonly role?: BaseAttributeTypeMap['role'] };
         result: NativeWidget<HTMLDivElement>;
     };
     axis: {
@@ -154,11 +154,10 @@ export class ProxyInteractionService {
     ): ProxyMeta[T]['result'] {
         const meta: ProxyMeta[T] = allocateMeta(this.ctx, args);
         const { params, result } = meta;
-        const div = result.getElement();
 
-        this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, div);
-        div.classList.add(...params.classList, 'ag-charts-proxy-container');
-        div.role = params.role ?? params.type;
+        this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, result.getElement());
+        result.addClass(...params.classList, 'ag-charts-proxy-container');
+        result.setAriaRole(params.role ?? params.type);
 
         if (checkType('toolbar', meta)) {
             meta.result.orientation = meta.params.orientation;
@@ -167,7 +166,7 @@ export class ProxyInteractionService {
         const { ariaLabel } = params;
         if (ariaLabel) {
             this.addLocalisation(() => {
-                div.ariaLabel = this.ctx.localeManager.t(ariaLabel.id, ariaLabel.params);
+                result.setAriaLabel(this.ctx.localeManager.t(ariaLabel.id, ariaLabel.params));
             });
         }
 
@@ -179,15 +178,14 @@ export class ProxyInteractionService {
 
         if (checkType('button', meta)) {
             const { params, result } = meta;
-            const button = result.getElement();
             this.initInteract(params, result);
 
             if (typeof params.textContent === 'string') {
-                button.textContent = params.textContent;
+                result.setTextContent(params.textContent);
             } else {
                 const { textContent } = params;
                 this.addLocalisation(() => {
-                    button.textContent = this.ctx.localeManager.t(textContent.id, textContent.params);
+                    result.setTextContent(this.ctx.localeManager.t(textContent.id, textContent.params));
                 });
             }
             this.setParent(meta.params, meta.result);
@@ -195,12 +193,9 @@ export class ProxyInteractionService {
 
         if (checkType('slider', meta)) {
             const { params, result } = meta;
-            const slider = result.getElement();
             this.initInteract(params, result);
-            slider.type = 'range';
-            slider.style.margin = '0px';
             this.addLocalisation(() => {
-                slider.ariaLabel = this.ctx.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
+                result.setAriaLabel(this.ctx.localeManager.t(params.ariaLabel.id, params.ariaLabel.params));
             });
             this.setParent(meta.params, meta.result);
         }
@@ -222,9 +217,8 @@ export class ProxyInteractionService {
 
         if (checkType('region', meta)) {
             const { params, result } = meta;
-            const region = result.getElement();
             this.initInteract(params, result);
-            region.role = params.role ?? 'region';
+            result.setAriaRole(params.role ?? 'region');
             this.setParent(meta.params, meta.result);
         }
 
@@ -239,21 +233,19 @@ export class ProxyInteractionService {
     }
 
     private initElement<T extends ProxyElementType>(params: ElemParams<T>, widget: Widget) {
-        const element = widget.getElement();
-        setElementStyle(element, 'cursor', params.cursor);
-        element.classList.toggle('ag-charts-proxy-elem', true);
+        widget.setCursor(params.cursor);
+        widget.addClass('ag-charts-proxy-elem');
         if (params.classList != null && params.classList.length > 0) {
-            element.classList.add(...params.classList);
+            widget.addClass(...params.classList);
         }
-        return element;
     }
 
     private initInteract<T extends ProxyElementType>(params: InteractParams<T>, widget: Widget) {
         const { tabIndex, domIndex } = params;
-        const element = this.initElement(params, widget);
+        this.initElement(params, widget);
 
         if (tabIndex !== undefined) {
-            element.tabIndex = tabIndex;
+            widget.setTabIndex(tabIndex);
         }
         if (domIndex !== undefined) {
             widget.domIndex = domIndex;
