@@ -26,7 +26,6 @@ if (!packageJsonFile) {
 }
 
 const packageContents = glob.sync('**/*', { cwd: dir, nodir: true, dot: true });
-const packagedFiles = new Set(packageContents);
 
 const expectedVersion = JSON.parse(fs.readFileSync('./package.json').toString()).version;
 const packageJson = JSON.parse(packageJsonFile.toString());
@@ -160,21 +159,6 @@ function checkInsideDist(filename) {
     exitStatus = 1;
 }
 
-// Static imports and re-exports, minified or not, side-effect imports and dynamic `import()`.
-const RELATIVE_SPECIFIER = /(?:^|[^\w$.])(?:import|export)\s*(?:[^'";()]*?from\s*|\(\s*)?["'](\.{1,2}\/[^"']+)["']/g;
-function checkRelativeImports(filename) {
-    if (!filename.endsWith('.mjs')) return;
-
-    const source = fs.readFileSync(path.join(dir, filename), 'utf8');
-    for (const [, specifier] of source.matchAll(RELATIVE_SPECIFIER)) {
-        const target = path.posix.join(path.posix.dirname(filename), specifier);
-        if (!packagedFiles.has(target)) {
-            console.log(`[${packageJson.name}]: ${filename} imports '${specifier}', which is not in the package`);
-            exitStatus = 1;
-        }
-    }
-}
-
 async function run() {
     if (packageJson.version !== expectedVersion) {
         console.log(
@@ -212,7 +196,6 @@ async function run() {
     for (const file of packageContents) {
         checkAllowedExtension(file);
         checkInsideDist(file);
-        checkRelativeImports(file);
     }
 
     if (exitStatus === 0) {

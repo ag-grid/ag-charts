@@ -115,6 +115,47 @@ describe('checkPackage', () => {
         ]);
     });
 
+    describe('per-module ESM', () => {
+        const files = [
+            'dist/package/main.cjs.js',
+            'dist/package/main.cjs.min.js',
+            'dist/package/main.esm.mjs',
+            'dist/package/main.bundle.mjs',
+            'dist/package/chart/chart.esm.mjs',
+            'dist/package/util.esm.mjs',
+            'dist/types/src/main.d.ts',
+        ];
+        const contents = {
+            'dist/package/main.esm.mjs': 'export * from "./chart/chart.esm.mjs";',
+            'dist/package/chart/chart.esm.mjs': 'export{util as chartUtil}from"../util.esm.mjs";',
+        };
+
+        it('accepts the modules the entry imports, without minified twins, beside the bundle', () => {
+            assert.deepEqual(checkPackage(createPackage(STANDARD_EXPORTS, files, contents)), []);
+        });
+
+        it('reports an imported module that is not shipped', () => {
+            const shipped = files.filter((f) => f !== 'dist/package/util.esm.mjs');
+            assert.deepEqual(summarise(checkPackage(createPackage(STANDARD_EXPORTS, shipped, contents))), [
+                'missing-import dist/package/util.esm.mjs',
+            ]);
+        });
+
+        it('reports a missing bundle', () => {
+            const shipped = files.filter((f) => f !== 'dist/package/main.bundle.mjs');
+            assert.deepEqual(summarise(checkPackage(createPackage(STANDARD_EXPORTS, shipped, contents))), [
+                'missing-bundle dist/package/main.bundle.mjs',
+            ]);
+        });
+
+        it('reports a module nothing imports', () => {
+            const shipped = [...files, 'dist/package/orphan.esm.mjs'];
+            assert.deepEqual(summarise(checkPackage(createPackage(STANDARD_EXPORTS, shipped, contents))), [
+                'unexported dist/package/orphan.esm.mjs',
+            ]);
+        });
+    });
+
     it('accepts flat export conditions', () => {
         const packageJson = {
             main: './dist/package/index.cjs.js',

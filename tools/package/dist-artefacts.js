@@ -36,6 +36,16 @@ function minifiedTwin(file) {
     return `${file.slice(0, -ext.length)}.min${ext}`;
 }
 
+// Static imports and re-exports, minified or not, side-effect imports and dynamic `import()`.
+const RELATIVE_IMPORT = /(?:^|[^\w$.])(?:import|export)\s*(?:[^'";()]*?from\s*|\(\s*)?["'](\.{1,2}\/[^"']+)["']/g;
+
+function relativeImports(pkgDir, file) {
+    const source = fs.readFileSync(path.join(pkgDir, file), 'utf8');
+    return [...source.matchAll(RELATIVE_IMPORT)].map(([, specifier]) =>
+        path.posix.join(path.posix.dirname(file), specifier)
+    );
+}
+
 function escapeRegExp(text) {
     return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -148,6 +158,10 @@ function checkPackage(pkgDir, { release = false } = {}) {
     for (const { file, types, wildcard = false } of expanded) {
         if (!types) runtimeFiles.set(file, (runtimeFiles.get(file) ?? true) && wildcard);
     }
+    // An ESM entry that imports sibling modules ships one unminified file per module, plus a single-file bundle.
+    const esmEntry = typeof packageJson.module === 'string' ? stripDotSlash(packageJson.module) : undefined;
+    const perModuleEsm =
+        esmEntry != null && fs.existsSync(path.join(pkgDir, esmEntry)) && relativeImports(pkgDir, esmEntry).length > 0;
     for (const [file, wildcard] of runtimeFiles) {
         expected.add(file);
         if (!fs.existsSync(path.join(pkgDir, file))) {
@@ -155,11 +169,42 @@ function checkPackage(pkgDir, { release = false } = {}) {
             errors.push({ kind, file, message: `exported file is missing: ${file}` });
         }
 
-        const twin = minifiedTwin(file);
+        const twin = perModuleEsm && file.endsWith('.mjs') ? undefined : minifiedTwin(file);
         if (twin == null) continue;
         expected.add(twin);
         if (!fs.existsSync(path.join(pkgDir, twin))) {
             errors.push({ kind: 'missing-twin', file: twin, message: `minified file is missing: ${twin}` });
+        }
+    }
+
+    if (perModuleEsm) {
+        const bundle = esmEntry.replace(/\.esm\.mjs$/, '.bundle.mjs');
+        expected.add(bundle);
+        if (!fs.existsSync(path.join(pkgDir, bundle))) {
+            errors.push({
+                kind: 'missing-bundle',
+                file: bundle,
+                message: `single-file ESM bundle is missing: ${bundle}`,
+            });
+        }
+    }
+
+    // A module imported by a shipped file ships too.
+    const pending = [...expected].filter((file) => file.endsWith('.mjs') && fs.existsSync(path.join(pkgDir, file)));
+    while (pending.length > 0) {
+        const file = pending.pop();
+        for (const imported of relativeImports(pkgDir, file)) {
+            if (expected.has(imported)) continue;
+            expected.add(imported);
+            if (fs.existsSync(path.join(pkgDir, imported))) {
+                pending.push(imported);
+            } else {
+                errors.push({
+                    kind: 'missing-import',
+                    file: imported,
+                    message: `${file} imports ${imported}, which is not shipped`,
+                });
+            }
         }
     }
 
