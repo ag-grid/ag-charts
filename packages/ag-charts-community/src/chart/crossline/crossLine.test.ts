@@ -1573,6 +1573,7 @@ describe('CrossLine', () => {
                 fontFamily: 'sans-serif',
                 fontWeight: 'normal',
                 padding: 5,
+                spacing: 5,
                 color: 'black',
                 cornerRadius: 0,
                 ...label,
@@ -1770,9 +1771,9 @@ describe('CrossLine', () => {
 
         it('clip-text shortens monotonically as the room runs out, ending at an ellipsis', async () => {
             // A rotated label extends along the axis's short side, which is the only direction whose room
-            // a label padding can exhaust; upright text is bounded by the far wider horizontal extent.
+            // a label spacing can exhaust; upright text is bounded by the far wider horizontal extent.
             const { x, y } = examples.LINE_CROSSLINES_AXES;
-            const build = (padding: number): AgCartesianChartOptions => ({
+            const build = (spacing: number): AgCartesianChartOptions => ({
                 ...examples.LINE_CROSSLINES,
                 axes: {
                     y,
@@ -1787,7 +1788,7 @@ describe('CrossLine', () => {
                                     placement: 'top',
                                     overflow: 'clip-text',
                                     rotation: 90,
-                                    padding,
+                                    spacing,
                                 }),
                             },
                         ],
@@ -1797,8 +1798,8 @@ describe('CrossLine', () => {
 
             chart = deproxy(await createChart(build(0)));
             const rendered = [crossLineLabelText(chart, 'x')];
-            for (const padding of [20, 40, 60, 200]) {
-                await chart.publicApi!.update(build(padding));
+            for (const spacing of [20, 40, 60, 200]) {
+                await chart.publicApi!.update(build(spacing));
                 rendered.push(crossLineLabelText(chart, 'x'));
             }
 
@@ -3153,7 +3154,7 @@ describe('CrossLine label fitting', () => {
     });
 
     it('bounds the label before rotating it', async () => {
-        chart = deproxy(await createChart(fitChart(lineWith({ maxWidth: 80, rotation: 90, padding: 0 }), 'x')));
+        chart = deproxy(await createChart(fitChart(lineWith({ maxWidth: 80, rotation: 90, spacing: 0 }), 'x')));
 
         const rendered = renderedLabel('x');
         expect(rendered.text.includes('\n')).toBe(true);

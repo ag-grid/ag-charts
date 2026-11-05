@@ -121,7 +121,7 @@ const options: AgChartOptions = {
                     lineDash: [10, 2],
                     label: {
                         text: 'Peak Male Release',
-                        padding: 10,
+                        spacing: 10,
                         placement: 'bottom-right',
                     },
                 },
@@ -135,7 +135,7 @@ const options: AgChartOptions = {
                     strokeWidth: 0,
                     label: {
                         text: 'Female Range',
-                        padding: 10,
+                        spacing: 10,
                         placement: 'inside-top-right',
                     },
                 },

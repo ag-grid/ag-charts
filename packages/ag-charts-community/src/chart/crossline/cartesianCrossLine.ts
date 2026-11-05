@@ -587,17 +587,21 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return this.anchorAt(this.chosen);
     }
 
+    /** Matches `Text.setBoxing`, but readable before the label has been laid out. */
+    private get boxed() {
+        const { fill, border } = this.label;
+        return fill != null || (border?.enabled === true && border.stroke != null);
+    }
+
     /** Offsets `positionLabel` applies to the anchor point, shared so both agree on where the box sits. */
     private labelAnchorOffsets() {
-        const {
-            crossLineLabel,
-            label: { padding },
-        } = this;
-        const numeric = typeof padding === 'number';
+        const { padding, spacing } = this.label;
+        // Asymmetric box insets shift the text within its box, so the anchor is corrected to keep the box in place.
+        const insets = typeof padding === 'number' || !this.boxed ? undefined : padding;
         return {
-            pad: numeric && !crossLineLabel.hasBoxing() ? padding : 0,
-            xPaddingDiff: numeric ? 0 : (padding.right ?? 0) - (padding.left ?? 0),
-            yPaddingDiff: numeric ? 0 : (padding.bottom ?? 0) - (padding.top ?? 0),
+            pad: spacing,
+            xPaddingDiff: insets == null ? 0 : (insets.right ?? 0) - (insets.left ?? 0),
+            yPaddingDiff: insets == null ? 0 : (insets.bottom ?? 0) - (insets.top ?? 0),
         };
     }
 
@@ -731,9 +735,14 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const size = this.computeLabelSize();
         if (!size) return;
 
+        const { spacing } = this.label;
+        const horizontalSide = side === 'left' || side === 'right';
+        const labelSize = horizontalSide ? size.width : size.height;
+        // An unboxed label keeps its spacing clear on both sides; a boxed one adds its insets to the text.
+        if (!this.boxed) return Math.max(0, 2 * spacing + labelSize);
+
         const padding = resolvePadding(this.label.padding);
-        return side === 'left' || side === 'right'
-            ? padding.left + padding.right + size.width
-            : padding.top + padding.bottom + size.height;
+        const insets = horizontalSide ? padding.left + padding.right : padding.top + padding.bottom;
+        return Math.max(0, spacing + insets + labelSize);
     }
 }

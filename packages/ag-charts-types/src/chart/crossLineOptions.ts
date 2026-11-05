@@ -93,4 +93,6 @@ export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptio
     text?: string;
     /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
+    /** Distance in pixels between the cross line and the label. Negative values move the label towards, or past, the line. */
+    spacing?: PixelSize;
 }

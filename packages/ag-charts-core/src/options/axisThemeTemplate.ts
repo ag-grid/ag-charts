@@ -153,6 +153,8 @@ export const crossLinesThemeTemplate = {
                 padding: {
                     $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
                 },
+                // Boxed labels sit flush against the line; unboxed text keeps a small gap.
+                spacing: { $if: [{ $or: [{ $path: './fill' }, { $path: './border/enabled' }] }, 0, 5] },
                 color: { $ref: 'textColor' },
                 cornerRadius: 4,
                 border: {
