@@ -1082,9 +1082,8 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('dragEnd');
     }
 
-    private onCancel(widgetEvent?: ClickWidgetEvent) {
-        const { sourceEvent } = widgetEvent ?? {};
-        if (sourceEvent?.currentTarget !== sourceEvent?.target) return;
+    private onCancel({ sourceEvent }: ClickWidgetEvent) {
+        if (sourceEvent.currentTarget !== sourceEvent.target) return;
         this.cancel();
         this.reset();
     }
@@ -1169,11 +1168,7 @@ export class Annotations extends AbstractModuleInstance {
                 translation.x = xStep;
                 break;
             case 'Escape':
-                if (this.toolbar.getPendingAnnotation() == null) {
-                    this.onCancel();
-                } else {
-                    this.cancelCreate();
-                }
+                this.cancelCreate();
                 return;
             case 'Enter':
                 if (this.toolbar.getPendingAnnotation() != null) {
