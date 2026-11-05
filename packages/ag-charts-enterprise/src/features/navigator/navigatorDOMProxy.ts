@@ -156,8 +156,7 @@ export class NavigatorDOMProxy {
     }
 
     private onContextMenu(widgetEvent: MouseWidgetEvent<'contextmenu'>) {
-        const { canvasX, canvasY } = widgetEvent;
-        this.ctx.contextMenuRegistry?.dispatchContext('always', { widgetEvent, canvasX, canvasY }, undefined);
+        this.ctx.contextMenuRegistry?.dispatchContext('always', widgetEvent, undefined);
     }
 
     private onPanSliderChange() {

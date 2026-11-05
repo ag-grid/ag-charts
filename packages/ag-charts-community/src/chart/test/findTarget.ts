@@ -222,10 +222,10 @@ function findSeriesAreaTarget(chart: unknown, widgets: WidgetSet, clientX: numbe
         .cast(SeriesAreaManager)
         .findProperty('seriesRect')
         .castProperty('seriesRect', BBox).value.seriesRect;
-    const { seriesWidget, seriesBoundsWidget, containerWidget } = widgets;
+    const { seriesWidget, seriesBoundsWidget, chartWidget } = widgets;
 
     const inSeriesRect = seriesRect?.containsPoint(clientX, clientY);
-    const target: HTMLElement = inSeriesRect ? seriesWidget.getElement() : containerWidget.getElement();
+    const target: HTMLElement = inSeriesRect ? seriesWidget.getElement() : chartWidget.getElement();
     const [offsetX, offsetY] = inSeriesRect
         ? [clientX - seriesBoundsWidget.cssLeft(), clientY - seriesBoundsWidget.cssTop()]
         : [clientX, clientY];

@@ -182,7 +182,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
-        const picks = this.pickCrosslines(event);
+        const picks = this.pickCrosslines(event.widgetEvent);
         if (picks.length === 0) return;
         event.regions['cross-line'] ??= [];
         this.toParamsArray(picks, event.regions['cross-line'], 'crossLineContextMenuAction');
@@ -190,9 +190,10 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     private onSeriesAreaCanvasClick(event: SeriesAreaCanvasClickEvent): void {
-        const picks = this.pickCrosslines(event);
+        const { widgetEvent } = event;
+        const picks = this.pickCrosslines(widgetEvent);
         if (picks.length > 0) {
-            this.collectClickCallbacks(picks, event.type, event.sourceEvent, this.claimFor(event));
+            this.collectClickCallbacks(picks, widgetEvent.type, widgetEvent.sourceEvent, this.claimFor(event));
         }
     }
 
@@ -200,7 +201,8 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         let claim = claimsByClick.get(event);
         if (claim == null) {
             const { listeners } = this.ctx.chartService;
-            const chartListener = event.type === 'click' ? listeners.crossLineClick : listeners.crossLineDoubleClick;
+            const { type } = event.widgetEvent;
+            const chartListener = type === 'click' ? listeners.crossLineClick : listeners.crossLineDoubleClick;
             claim = new PendingCrossLineCallbacks(chartListener != null);
             claimsByClick.set(event, claim);
             event.claims.push(claim);
@@ -227,7 +229,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
     private collectClickCallbacks(
         picks: CrossLine[],
-        type: SeriesAreaCanvasClickEvent['type'],
+        type: SeriesAreaCanvasClickEvent['widgetEvent']['type'],
         sourceEvent: Event,
         callbacks: PendingCrossLineCallbacks
     ): void {
