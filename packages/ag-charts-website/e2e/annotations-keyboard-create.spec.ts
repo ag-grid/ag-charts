@@ -242,31 +242,60 @@ test.describe('annotations keyboard create', () => {
     const REOPEN_CASES = [
         {
             name: 'once the annotation is placed',
+            tool: TREND_LINE,
             start: (page: Page) => page.keyboard.press('Enter'),
             annotations: 1,
         },
         {
             name: 'once a click has started the drawing',
+            tool: TREND_LINE,
             start: async (page: Page) => {
                 const { x, y } = (await canvasToPageTransformer(page))(300, 200);
                 await page.mouse.click(x, y);
             },
             annotations: 0,
         },
+        {
+            name: 'once a double click has started the drawing',
+            tool: TREND_LINE,
+            start: async (page: Page) => {
+                const { x, y } = (await canvasToPageTransformer(page))(300, 200);
+                await page.mouse.dblclick(x, y);
+            },
+            annotations: undefined,
+        },
+        {
+            name: 'while a placed text annotation is being edited',
+            tool: TEXT,
+            start: (page: Page) => page.keyboard.press('Enter'),
+            annotations: undefined,
+        },
     ];
 
-    for (const { name, start, annotations } of REOPEN_CASES) {
+    for (const { name, tool, start, annotations } of REOPEN_CASES) {
         test(`Enter on a tool button opens its menu again ${name}`, async ({ page }) => {
-            await chooseTool(page, TREND_LINE);
+            await chooseTool(page, tool);
             await start(page);
 
-            await menuButton(page, TREND_LINE).focus();
+            await menuButton(page, tool).focus();
             await page.keyboard.press('Enter');
 
             await expect(page.locator(MENU_ROW).first()).toBeVisible();
-            expect(await getAnnotations(page)).toHaveLength(annotations);
+            if (annotations != null) {
+                expect(await getAnnotations(page)).toHaveLength(annotations);
+            }
         });
     }
+
+    test('Enter on a tool button still places the annotation after the chart is resized', async ({ page }) => {
+        await chooseTool(page, TREND_LINE);
+        await page.setViewportSize({ width: 900, height: 600 });
+        await menuButton(page, TREND_LINE).focus();
+        await page.keyboard.press('Enter');
+
+        const annotations = await getAnnotations(page);
+        expect(annotations.map((a) => a.type)).toEqual(['line']);
+    });
 
     test('Space on a chosen tool button opens its menu rather than placing the annotation', async ({ page }) => {
         await chooseTool(page, TREND_LINE);

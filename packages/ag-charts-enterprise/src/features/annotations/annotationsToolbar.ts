@@ -49,7 +49,7 @@ export class AnnotationsToolbar {
     private enabled: boolean = true;
     private padding: number = 20;
     private buttons: AnnotationsToolbarButtonOptions[] = [];
-    private activeToolButton?: AnnotationsToolbarButtonValue;
+    private pendingTool?: { button: AnnotationsToolbarButtonValue; annotation: AnnotationType };
 
     readonly events = new EventEmitter<EventMap>();
 
@@ -127,18 +127,23 @@ export class AnnotationsToolbar {
     }
 
     public clearActiveButton() {
-        this.releaseActiveTool();
+        this.releasePendingTool();
         this.toolbar.clearActiveButton();
     }
 
-    /** Stops the chosen tool's button placing on Enter, while it stays highlighted for the drawing in progress. */
-    public releaseActiveTool() {
-        this.activeToolButton = undefined;
+    /** The annotation of the tool that has been chosen but not yet started, which Enter can place without a pointer. */
+    public getPendingAnnotation() {
+        return this.pendingTool?.annotation;
     }
 
-    /** Focus the button the current tool was chosen from, which a menu's item leaves to its menu button. */
-    public focusActiveToolButton() {
-        const index = this.buttons.findIndex((button) => button.value === this.activeToolButton);
+    /** Stops the chosen tool's button placing on Enter, while it stays highlighted for the drawing in progress. */
+    public releasePendingTool() {
+        this.pendingTool = undefined;
+    }
+
+    /** Focus the button the pending tool was chosen from, which a menu's item leaves to its menu button. */
+    public focusPendingToolButton() {
+        const index = this.buttons.findIndex((button) => button.value === this.pendingTool?.button);
         this.toolbar.focusButton(index);
     }
 
@@ -165,7 +170,7 @@ export class AnnotationsToolbar {
         if (
             event.device === 'keyboard' &&
             event.sourceEvent.key === 'Enter' &&
-            button.value === this.activeToolButton
+            button.value === this.pendingTool?.button
         ) {
             this.events.emit('pressed-place-annotation', { sourceEvent: event.sourceEvent });
             return;
@@ -326,17 +331,17 @@ export class AnnotationsToolbar {
         this.updateButtonByIndex(index, { icon: item.icon });
         this.menuItemPicked = true;
         this.events.emit('pressed-create-annotation', { annotation: item.value });
-        this.activeToolButton = menu;
+        this.pendingTool = { button: menu, annotation: item.value };
         this.annotationMenu.hide();
         // Hiding destroys the menu before its row can restore focus to the menu's button, which would drop it to the body.
-        this.focusActiveToolButton();
+        this.focusPendingToolButton();
     }
 
     private onButtonPressCreateAnnotation(item: AnnotationsToolbarButtonValue, annotation: AnnotationType) {
         const index = this.buttons.findIndex((button) => button.value === item);
         this.toolbar.toggleActiveButtonByIndex(index);
         this.events.emit('pressed-create-annotation', { annotation });
-        this.activeToolButton = item;
+        this.pendingTool = { button: item, annotation };
     }
 
     private onKeyDown({ sourceEvent }: KeyboardWidgetEvent) {

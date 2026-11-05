@@ -117,9 +117,6 @@ export class Annotations extends AbstractModuleInstance {
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
 
-    // The tool chosen from the toolbar while nothing has been placed yet, which Enter places at a default position.
-    private pendingCreateType?: AnnotationType;
-
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         this.state = this.setupStateMachine();
@@ -292,6 +289,7 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             create: (type: AnnotationType, datum: AnnotationDatum) => {
+                this.toolbar.releasePendingTool();
                 this.createAnnotation(type, datum);
             },
 
@@ -515,7 +513,6 @@ export class Annotations extends AbstractModuleInstance {
                 this.reset();
                 this.pushAnnotationState(InteractionState.Annotations);
                 this.state.transition(annotation);
-                this.pendingCreateType = annotation;
                 this.update();
             }),
             toolbar.events.on('pressed-place-annotation', ({ sourceEvent }) => {
@@ -976,8 +973,6 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context || event.device === 'keyboard') return;
 
-        this.clearPendingCreate();
-
         const shiftKey = event.sourceEvent.shiftKey;
         const point = invertCoords(Vec2.from(event), context);
         const textInputValue = this.textInput.getValue();
@@ -991,8 +986,6 @@ export class Annotations extends AbstractModuleInstance {
 
         const context = this.getAnnotationContext();
         if (!context) return;
-
-        this.clearPendingCreate();
 
         const offset = Vec2.from(event);
 
@@ -1035,8 +1028,8 @@ export class Annotations extends AbstractModuleInstance {
 
     /** Abandon the chosen tool and put focus back on its button, where the user chose it. */
     private cancelCreate() {
-        // Focus the button first: cancelling clears the toolbar's active tool
-        if (this.pendingCreateType != null) this.toolbar.focusActiveToolButton();
+        // Focus the button first: cancelling clears the toolbar's pending tool
+        if (this.toolbar.getPendingAnnotation() != null) this.toolbar.focusPendingToolButton();
         this.cancel();
         this.reset();
         this.update();
@@ -1060,8 +1053,6 @@ export class Annotations extends AbstractModuleInstance {
 
         const context = this.getAnnotationContext();
         if (!context) return;
-
-        this.clearPendingCreate();
 
         const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
@@ -1100,12 +1091,11 @@ export class Annotations extends AbstractModuleInstance {
 
     /** Place the annotation of the chosen tool at once, without a pointer. */
     private createPendingAnnotation(sourceEvent: KeyboardEvent) {
-        const type = this.pendingCreateType;
+        const type = this.toolbar.getPendingAnnotation();
         const context = this.getAnnotationContext();
         if (type == null || !context) return;
 
         sourceEvent.preventDefault();
-        this.clearPendingCreate();
 
         const { width, height } = context.seriesRect;
         const points = getKeyboardCreateOffsets(type, { width, height }).map((offset) => invertCoords(offset, context));
@@ -1174,7 +1164,7 @@ export class Annotations extends AbstractModuleInstance {
                 translation.x = xStep;
                 break;
             case 'Escape':
-                if (this.pendingCreateType == null) {
+                if (this.toolbar.getPendingAnnotation() == null) {
                     this.onCancel();
                 } else {
                     this.cancelCreate();
@@ -1230,18 +1220,11 @@ export class Annotations extends AbstractModuleInstance {
         this.reset();
     }
 
-    private clearPendingCreate() {
-        this.pendingCreateType = undefined;
-        this.toolbar.releaseActiveTool();
-    }
-
     private reset() {
-        this.clearPendingCreate();
         this.state.transition('reset');
     }
 
     private cancel() {
-        this.clearPendingCreate();
         this.state.transition('cancel');
     }
 
