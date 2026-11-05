@@ -28,6 +28,24 @@ describe('Widget', () => {
         });
     });
 
+    describe('setOpacity', () => {
+        it('sets and removes the inline opacity', () => {
+            const widget = makeWidget();
+            widget.setOpacity(0.25);
+            expect(widget.getElement().style.opacity).toBe('0.25');
+            widget.setOpacity(undefined);
+            expect(widget.getElement().style.opacity).toBe('');
+        });
+    });
+
+    describe('setInnerText', () => {
+        it('writes the text through innerText', () => {
+            const widget = makeWidget();
+            widget.setInnerText('No data\nto display');
+            expect(widget.getElement().innerText).toBe('No data\nto display');
+        });
+    });
+
     describe('setData', () => {
         it('sets and removes a data attribute by its dataset key', () => {
             const widget = makeWidget();

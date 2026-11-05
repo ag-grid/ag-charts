@@ -148,6 +148,23 @@ export abstract class Widget<
         this.elem.textContent = textContent ?? null;
     }
 
+    /**
+     * Sets the text through `innerText`, which renders each line break in `text` as a `<br>`. `setTextContent` keeps
+     * line breaks as plain characters, which collapse to spaces under normal white-space rules.
+     */
+    setInnerText(text: string) {
+        this.elem.innerText = text;
+    }
+
+    /** Sets the inline `opacity`, from 0 (transparent) to 1 (opaque), or removes it when `undefined`. */
+    setOpacity(opacity: number | undefined) {
+        if (opacity == null) {
+            this.elem.style.removeProperty('opacity');
+        } else {
+            this.elem.style.setProperty('opacity', String(opacity));
+        }
+    }
+
     setAriaRole(role: BaseAttributeTypeMap['role'] | undefined) {
         setAttribute(this.elem, 'role', role);
     }
