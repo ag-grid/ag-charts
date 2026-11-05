@@ -1035,10 +1035,9 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         }
 
         if (!this.destroyed) {
-            ctx.eventsHub.emit('update:complete', {
-                apiUpdate: this.apiUpdate,
-                wasShortcut: this.updateShortcutCount > 0,
-            });
+            const updateEvent = { apiUpdate: this.apiUpdate, wasShortcut: this.updateShortcutCount > 0 };
+            ctx.eventsHub.emit('update:complete', updateEvent);
+            ctx.eventsHub.emit('update:settled', updateEvent);
             this.apiUpdate = false;
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
