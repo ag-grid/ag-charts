@@ -245,7 +245,8 @@ const unbundledEsmPlugin = {
             await esbuild.build({
                 ...bundleOptions,
                 entryPoints: [path.join(srcDir, 'main.ts')],
-                outfile: path.join(outdir, `main.bundle${outExtension}`),
+                // Not `*.esm.mjs`, which a package's wildcard export (e.g. locale's `./*.js`) would expose.
+                outfile: path.join(outdir, 'main.bundle.mjs'),
                 sourcemap: initialOptions.sourcemap,
                 plugins: [cssPlugin, htmlPlugin],
                 logLevel: 'error',
