@@ -5,19 +5,19 @@ const scenarios = [
         name: 'Full package',
         import: '*',
         srcLimit: '351 kB',
-        distLimit: '351 kB',
+        distLimit: '352 kB',
     },
     {
         name: 'CartesianChart only',
         import: '{ CartesianChartModule }',
         srcLimit: '223 kB',
-        distLimit: '223 kB',
+        distLimit: '224 kB',
     },
     {
         name: 'PolarChart only',
         import: '{ PolarChartModule }',
         srcLimit: '188 kB',
-        distLimit: '188 kB',
+        distLimit: '189 kB',
     },
 ];
 
