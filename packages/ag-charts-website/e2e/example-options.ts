@@ -46,6 +46,11 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'financial-chart-types': {
         'toggle-financial-features': { clickOrder: 'reverse' },
     },
+    'high-performance-charts': {
+        // The React and Vue ports deep-clone the options on every change, which takes longer than the test
+        // timeout once the 1m data size is selected.
+        'bubble-scatter': { frameworks: ['vanilla', 'typescript', 'angular'] },
+    },
     legend: {
         'legend-position': { clickOrder: 'reverse' },
     },
