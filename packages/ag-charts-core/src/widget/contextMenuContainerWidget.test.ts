@@ -10,6 +10,7 @@ function makeContainer() {
     return new ContextMenuContainerWidget(elem);
 }
 
+// The community test actions are out of reach from core, and none fire `focusout` with a chosen `relatedTarget`.
 function dispatchFocusOut(target: HTMLElement, relatedTarget: EventTarget | null) {
     target.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget }));
 }
