@@ -86,7 +86,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     dialogInputCoordinatesOffset: 'جابه‌جایی',
     dialogInputCoordinatesStartOffset: 'جابه‌جایی شروع',
     dialogInputCoordinatesEndOffset: 'جابه‌جایی پایان',
-    dialogInputCoordinatesEndRetracement: 'پایان اصلاح',
+    dialogInputCoordinatesEndRetracement: 'پایان بازگشت',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

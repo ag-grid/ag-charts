@@ -181,7 +181,7 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     dialogInputCoordinatesOffset: 'ออฟเซ็ต',
     dialogInputCoordinatesStartOffset: 'ออฟเซ็ตเริ่มต้น',
     dialogInputCoordinatesEndOffset: 'ออฟเซ็ตสิ้นสุด',
-    dialogInputCoordinatesEndRetracement: 'จุดสิ้นสุดการย้อนกลับ',
+    dialogInputCoordinatesEndRetracement: 'จุดสิ้นสุดรีเทรซเมนท์',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

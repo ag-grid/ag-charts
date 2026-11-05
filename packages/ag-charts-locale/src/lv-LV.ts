@@ -181,7 +181,7 @@ export const AG_CHARTS_LOCALE_LV_LV: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Nobīde',
     dialogInputCoordinatesStartOffset: 'Sākuma nobīde',
     dialogInputCoordinatesEndOffset: 'Beigu nobīde',
-    dialogInputCoordinatesEndRetracement: 'Atkāpšanās beigas',
+    dialogInputCoordinatesEndRetracement: 'Atgriešanās beigas',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

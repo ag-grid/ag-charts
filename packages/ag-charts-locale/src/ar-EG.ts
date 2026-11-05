@@ -86,7 +86,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     dialogInputCoordinatesOffset: 'الإزاحة',
     dialogInputCoordinatesStartOffset: 'إزاحة البداية',
     dialogInputCoordinatesEndOffset: 'إزاحة النهاية',
-    dialogInputCoordinatesEndRetracement: 'نهاية التصحيح',
+    dialogInputCoordinatesEndRetracement: 'نهاية الارتداد',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',
