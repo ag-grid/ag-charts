@@ -9,6 +9,7 @@ export type StrictHTMLElement = HTMLElement & { id: ElementID };
 
 type AriaRole =
     | 'button'
+    | 'dialog'
     | 'figure'
     | 'group'
     | 'img'
