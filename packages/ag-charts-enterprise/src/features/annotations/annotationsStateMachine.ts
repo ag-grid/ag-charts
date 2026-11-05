@@ -36,6 +36,9 @@ enum States {
     TextInput = 'text-input',
 }
 
+// `JSON.stringify` throws on a bigint, which a coordinate beyond Number precision is.
+const stringifyBigint = (_key: string, value: unknown) => (typeof value === 'bigint' ? String(value) : value);
+
 /**
  * - AnnotationsStateMachine (runs children in parallel, distributes properties across children)
  *     - SnappingStateMachine (changes `snapping` property with shift key)
@@ -247,7 +250,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             ctx.update();
             ctx.recordAction(
                 `Change ${datum?.type} ${Object.entries(props)
-                    .map(([key, value]) => `${key} to ${JSON.stringify(value)}`)
+                    .map(([key, value]) => `${key} to ${JSON.stringify(value, stringifyBigint)}`)
                     .join(', ')}`
             );
         };
