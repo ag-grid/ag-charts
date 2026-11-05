@@ -59,12 +59,24 @@ export interface CoordinateField {
 
 /** Grouped category axes are not editable yet. */
 export function getCoordinateKind(axis: Pick<AnnotationAxisContext, 'scale'>): CoordinateKind | undefined {
-    if (OrdinalTimeScale.is(axis.scale)) return 'ordinal-time';
-    if (UnitTimeScale.is(axis.scale)) return 'unit-time';
-    if (GroupedCategoryScale.is(axis.scale)) return;
-    if (CategoryScale.is(axis.scale)) return 'category';
-    if (TimeScale.is(axis.scale)) return 'time';
-    if (ContinuousScale.is(axis.scale)) return 'number';
+    if (OrdinalTimeScale.is(axis.scale)) {
+        return 'ordinal-time';
+    }
+    if (UnitTimeScale.is(axis.scale)) {
+        return 'unit-time';
+    }
+    if (GroupedCategoryScale.is(axis.scale)) {
+        return;
+    }
+    if (CategoryScale.is(axis.scale)) {
+        return 'category';
+    }
+    if (TimeScale.is(axis.scale)) {
+        return 'time';
+    }
+    if (ContinuousScale.is(axis.scale)) {
+        return 'number';
+    }
 }
 
 function pad(value: number, length = 2) {
@@ -79,12 +91,20 @@ function withoutLineBreaks(category: unknown) {
 /** Formats a value for the matching input: a number as-is, a date as the local `datetime-local` value. Milliseconds are shown only when present. */
 export function formatCoordinate(point: PointType | undefined, kind: CoordinateKind): string {
     const value = getGroupingValue(point);
-    if (value == null) return '';
-    if (kind === 'number') return String(value);
-    if (kind === 'category') return withoutLineBreaks(value);
+    if (value == null) {
+        return '';
+    }
+    if (kind === 'number') {
+        return String(value);
+    }
+    if (kind === 'category') {
+        return withoutLineBreaks(value);
+    }
 
     const date = new Date(value as Date | number);
-    if (Number.isNaN(date.getTime())) return '';
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
     const day = `${pad(date.getFullYear(), 4)}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
     const time = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     const milliseconds = date.getMilliseconds() === 0 ? '' : `.${pad(date.getMilliseconds(), 3)}`;
@@ -92,7 +112,9 @@ export function formatCoordinate(point: PointType | undefined, kind: CoordinateK
 }
 
 function toPointType(parsed: ParsedCoordinate, kind: CoordinateKind, current: PointType | undefined): PointType {
-    if (kind === 'number' || kind === 'time') return parsed;
+    if (kind === 'number' || kind === 'time') {
+        return parsed;
+    }
     return { value: parsed, groupPercentage: getGrouping(current).groupPercentage };
 }
 
@@ -110,10 +132,16 @@ function parseNumeric(text: string): AgNumericValue | undefined {
 
 /** The inverse of `formatCoordinate`; `undefined` when the text is not a valid value. */
 export function parseCoordinate(text: string, kind: CoordinateKind): ParsedCoordinate | undefined {
-    if (text.trim() === '') return;
-    if (kind === 'category') return text;
+    if (text.trim() === '') {
+        return;
+    }
+    if (kind === 'category') {
+        return text;
+    }
 
-    if (kind === 'number') return parseNumeric(text);
+    if (kind === 'number') {
+        return parseNumeric(text);
+    }
 
     const date = new Date(text);
     return Number.isNaN(date.getTime()) ? undefined : date;
@@ -142,7 +170,9 @@ export function snapToBar(date: Date, bars: readonly Date[]): Date | undefined {
 /** The start of the band holding a date, or `undefined` when the date is before the first band or after the last. */
 export function floorToBand(date: Date, scale: UnitTimeScale): Date | undefined {
     const { interval, domain } = scale;
-    if (interval == null || domain.length < 2) return;
+    if (interval == null || domain.length < 2) {
+        return;
+    }
 
     const first = intervalFloor(interval, Math.min(domain[0].getTime(), domain[1].getTime()));
     const last = intervalFloor(interval, Math.max(domain[0].getTime(), domain[1].getTime()));
@@ -158,7 +188,9 @@ export function resolveCoordinate(
     parsed: ParsedCoordinate,
     context: AnnotationContext
 ): ParsedCoordinate | undefined {
-    if (field.row === 'offset' || field.row === 'startOffset' || field.row === 'endOffset') return parsed;
+    if (field.row === 'offset' || field.row === 'startOffset' || field.row === 'endOffset') {
+        return parsed;
+    }
 
     const axis = field.axis === 'x' ? context.xAxis : context.yAxis;
     if (field.kind === 'category') {
@@ -185,7 +217,9 @@ function getCoordinateAxis(axis: 'x' | 'y', context: AnnotationAxisContext): Coo
 }
 
 function getTimeStep(kind: CoordinateKind, formatted: string) {
-    if (kind === 'number' || kind === 'category') return;
+    if (kind === 'number' || kind === 'category') {
+        return;
+    }
     return formatted.includes('.') ? 0.001 : 1;
 }
 
@@ -239,7 +273,9 @@ function getPointRows(datum: Exclude<LinearDialogDatumType, CrossLineDatum>): [P
         ['start', datum.start],
         ['end', datum.end],
     ];
-    if (fibonacciRetracementTrendBasedDatum.is(datum)) rows.push(['endRetracement', datum.endRetracement]);
+    if (fibonacciRetracementTrendBasedDatum.is(datum)) {
+        rows.push(['endRetracement', datum.endRetracement]);
+    }
     return rows;
 }
 
@@ -255,12 +291,18 @@ export function getCoordinateFields(datum: LinearDialogDatumType, context: Annot
 
     const fields: CoordinateField[] = [];
     for (const [row, point] of getPointRows(datum)) {
-        if (x) fields.push(createPointField(row, x, point.x, (value) => ({ [row]: { x: value } })));
-        if (y) fields.push(createPointField(row, y, point.y, (value) => ({ [row]: { y: value } })));
+        if (x) {
+            fields.push(createPointField(row, x, point.x, (value) => ({ [row]: { x: value } })));
+        }
+        if (y) {
+            fields.push(createPointField(row, y, point.y, (value) => ({ [row]: { y: value } })));
+        }
     }
 
     // A channel's offset is a distance along the y axis, which only a numeric axis can measure.
-    if (y?.kind === 'number') fields.push(...getOffsetFields(datum));
+    if (y?.kind === 'number') {
+        fields.push(...getOffsetFields(datum));
+    }
 
     return fields;
 }

@@ -292,10 +292,14 @@ export class AnnotationSettingsDialog extends Dialog {
 
     private createCoordinatesTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
         const context = options.getContext();
-        if (!context) return;
+        if (!context) {
+            return;
+        }
 
         const fields = getCoordinateFields(datum, context);
-        if (fields.length === 0) return;
+        if (fields.length === 0) {
+            return;
+        }
 
         const rows = new Map<CoordinateRow, HTMLElement[]>();
         for (const field of fields) {
@@ -332,7 +336,9 @@ export class AnnotationSettingsDialog extends Dialog {
             step: field.step,
             list: suggestions?.id,
             onChange: (text) => {
-                if (text === committed) return;
+                if (text === committed) {
+                    return;
+                }
 
                 const context = options.getContext();
                 const parsed = parseCoordinate(text, field.kind);

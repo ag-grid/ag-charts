@@ -241,7 +241,9 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
         const actionApplyProps = (props: object) => {
             const { datum } = this;
-            if (datum) applyAnnotationOptions(datum, props);
+            if (datum) {
+                applyAnnotationOptions(datum, props);
+            }
             ctx.update();
             ctx.recordAction(
                 `Change ${datum?.type} ${Object.entries(props)

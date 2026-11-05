@@ -164,8 +164,11 @@ export interface InputOptions {
 export function createInput(options: InputOptions, attrs?: InputAttributeSet) {
     const input = createElement('input', getClassName('ag-charts-input', attrs));
     input.type = options.type;
-    if (options.type === 'number') input.step = 'any';
-    else if (options.step != null) input.step = String(options.step);
+    if (options.type === 'number') {
+        input.step = 'any';
+    } else if (options.step != null) {
+        input.step = String(options.step);
+    }
     input.value = options.value;
     input.addEventListener('change', (event) => options.onChange(input.value, event));
     setAttributes(input, attrs);
