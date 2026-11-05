@@ -518,16 +518,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * Whether the slot is cast by the off-canvas pre-pass rather than inline with the fill or stroke. That is the
      * `silhouette` mode, a `spread`, which has to dilate a copy of the shape, and a stroke-coloured glow. Without a Path2D
      * (e.g. Line) the pre-pass can't be moved by the transform, so the stroke casts the shadow inline instead. The fill and
-     * stroke have one canvas shadow to cast inline, which is the shadow's, so a glow beside it is cast by the pre-pass.
+     * stroke have one canvas shadow to cast inline, which is cast after anything cast by the pre-pass, so a shadow beside a
+     * glow is cast by the pre-pass too, to come before it as the batches order them. The glow then takes the inline one.
      */
     private castsShadowFromPrePass(slot: ShadowSlot): boolean {
         const shadow = this.getSlot(slot);
         if (shadow == null || !this.castsOwnShadow(slot)) return false;
-        if (this.needsShadowPrePass(slot, shadow)) return true;
 
-        return (
-            slot === 'glow' && this.castsOwnShadow('shadow') && !this.needsShadowPrePass('shadow', this.__fillShadow!)
-        );
+        return this.needsShadowPrePass(slot, shadow) || (slot === 'shadow' && this.castsOwnShadow('glow'));
     }
 
     private needsShadowPrePass(slot: ShadowSlot, shadow: NormalisedDropShadowOptions): boolean {

@@ -160,7 +160,7 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
             { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
             SERIES_GLOW_BUCKETS,
             {
-                glow: '/series/$index/marker/glow',
+                glow: ['high', 'low', 'close'].map((item) => `/series/$index/item/${item}/marker/glow`),
             }
         ),
         selection: SERIES_SELECTION_THEME,
