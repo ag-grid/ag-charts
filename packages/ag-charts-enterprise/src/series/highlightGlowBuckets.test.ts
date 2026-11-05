@@ -225,15 +225,15 @@ describe('highlight glow on every hierarchy bucket', () => {
         });
 
         it(`${name} resolves the branch glow under a highlightedItem glow field by field`, async () => {
-            const options: any = series('highlightedBranch', { ...HIGHLIGHT_GLOW, color: '#aa0000' });
+            const options: any = series('highlightedBranch', { ...HIGHLIGHT_GLOW, fill: '#aa0000' });
             const target = options.type === 'sunburst' ? options.highlight : options.tile.highlight;
-            target.highlightedItem = { glow: { color: '#0000aa' } };
+            target.highlightedItem = { glow: { fill: '#0000aa' } };
 
             const { highlighted } = await hover(options);
 
             // The item bucket overrides the colour alone; blur and spread come from the branch bucket.
             expect(highlighted.find(({ shape }) => shape.fillShadow?.enabled)?.shape.fillShadow).toMatchObject({
-                color: '#0000aa',
+                fill: '#0000aa',
                 blur: HIGHLIGHT_GLOW.blur,
                 xOffset: 0,
                 yOffset: 0,

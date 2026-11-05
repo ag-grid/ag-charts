@@ -197,6 +197,7 @@ export class FinancialStatusBarView {
         {
             labelKey: 'statusBarVolumeProfileUp' as const,
             style: 'positive' as const,
+            colorKey: 'upColor' as const,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             formatter: createVolumeFormatter(),
@@ -205,6 +206,7 @@ export class FinancialStatusBarView {
         {
             labelKey: 'statusBarVolumeProfileDown' as const,
             style: 'negative' as const,
+            colorKey: 'downColor' as const,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             formatter: createVolumeFormatter(),
@@ -553,13 +555,13 @@ export class FinancialStatusBarView {
         this.backgroundNode.width = band == null ? this.candleWidth : this.bandWidth;
         this.backgroundNode.height = band == null ? this.candleHeight : this.bandHeight;
 
-        for (const { style, title, value, formatter, text } of bandLabels) {
+        for (const { style, colorKey, title, value, formatter, text } of bandLabels) {
             title.visible = band != null;
             value.visible = band != null;
             if (band == null) continue;
 
             value.setFont(opts[style]);
-            value.fill = opts[style].color;
+            value.fill = (colorKey == null ? undefined : opts.volumeProfile?.[colorKey]) ?? opts[style].color;
             value.text = text(band, (n) => formatter.format(n));
         }
     }

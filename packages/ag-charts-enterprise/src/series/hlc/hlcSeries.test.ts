@@ -179,7 +179,7 @@ describe('HlcSeries', () => {
                     marker: {
                         enabled: true,
                         size: 14,
-                        shadow: { enabled: true, color: '#000000', xOffset: 6, yOffset: 6, blur: 0 },
+                        shadow: { enabled: true, fill: '#000000', xOffset: 6, yOffset: 6, blur: 0 },
                     },
                 })
             );

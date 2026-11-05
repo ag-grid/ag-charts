@@ -489,7 +489,7 @@ describe('Quadrant Preset', () => {
         ['scatter', NUMERIC],
         ['bubble', BUBBLE_SIZED_NUMERIC],
     ] as const)('forwards shadow to the %s series', (type, base) => {
-        const shadow = { enabled: true, color: '#000000', xOffset: 2, yOffset: 3, blur: 4 };
+        const shadow = { enabled: true, fill: '#000000', xOffset: 2, yOffset: 3, blur: 4 };
 
         const cartesianOptions = createQuadrant(
             { ...base, shadow },
@@ -745,24 +745,6 @@ describe('Quadrant Preset theme isolation', () => {
     it('does not lose the preset template to a plain chart created beforehand', () => {
         expectPlainStyling(resolveAxes(plainOptions()));
         expectQuadrantStyling(resolveAxes(quadrantOptions(), 'quadrant'));
-    });
-
-    // The preset omits an axis-line strokeWidth so the common template's width alias survives the merge.
-    it('still resolves a deprecated line.width theme override to strokeWidth on a quadrant chart', () => {
-        const axes = resolveAxes(
-            {
-                ...quadrantOptions(),
-                theme: { overrides: { scatter: { axes: { number: { line: { width: 3 } } } } } },
-            },
-            'quadrant'
-        );
-
-        expect(axes.x.line.strokeWidth).toBe(3);
-        expectWarningsCalls().toEqual([
-            [
-                'AG Charts - Option `theme.overrides.scatter.axes.number.line.width` is deprecated. Use `strokeWidth` instead.',
-            ],
-        ]);
     });
 });
 

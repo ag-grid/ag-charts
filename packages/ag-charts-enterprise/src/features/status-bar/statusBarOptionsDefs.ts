@@ -49,7 +49,7 @@ export const statusBarOptionsDefs: OptionsDefs<AgStatusBarOptions> = {
         lowKey: string,
         closeKey: string,
         volumeKey: string,
-        volumeProfile: { priceAxisKey: string, levels: array },
+        volumeProfile: { priceAxisKey: string, upColor: string, downColor: string, levels: array },
         positive: fontOptionsDef,
         negative: fontOptionsDef,
         neutral: fontOptionsDef,

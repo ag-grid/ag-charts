@@ -1,10 +1,10 @@
 {
     "demo": "procurement",
     "framework": "angular",
-    "sourceHash": "sha256-69480d22d2e4e7b44972b0f06812da9f9395ff72edb5b7506e8142de1d6d1195",
-    "sourceCommit": "c4a5aefa8c0235c5988454555a9c7834451ffb27",
-    "pinnedVersion": "latest",
-    "pinSource": "dist-tag",
+    "sourceHash": "sha256-2467be29e812b1467a547ccd81e274dea6a68be6081a574bdbf5d1037b9aac35",
+    "sourceCommit": "bd22a8dcfe4379f181bba7367911d47d0e33ec36",
+    "pinnedVersion": "14.3.0",
+    "pinSource": "release",
     "dist": "dist",
     "vendored": ["web-analytics/topology.ts"]
 }

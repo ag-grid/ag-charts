@@ -30,6 +30,7 @@ import type {
     CommodityManager,
     DateRange,
     Material,
+    MaterialQualityCost,
     MonthBucket,
     OnTimePoint,
     Plant,
@@ -693,21 +694,21 @@ function bucketIndexOf(buckets: TimeBucket[], time: number): number {
 }
 
 /**
- * Committed spend per bucket, split by subcategory.
+ * Committed spend per bucket, with one column per key.
  *
  * Bucketed by order date: this is what she committed in each bucket, which is the figure a run
- * rate is read off. Every subcategory gets a series in every bucket, zero included — a month she
- * bought no galvanized steel really is a zero, unlike a delivery rate, which would be `null`.
+ * rate is read off. Every key gets a column in every bucket, zero included — a month she bought no
+ * galvanized steel really is a zero, unlike a delivery rate, which would be `null`.
  */
-export function spendByBucketAndSubcategory(
-    commodity: Commodity,
+function spendByBucket(
     orders: PurchaseOrder[],
+    keys: readonly string[],
+    keyOf: (order: PurchaseOrder) => string,
     buckets: TimeBucket[]
 ): SpendTrendRow[] {
-    const subcategories = SUBCATEGORIES[commodity];
     const rows = buckets.map<SpendTrendRow>((bucket) => {
         const row: SpendTrendRow = { start: bucket.start, label: bucket.label };
-        for (const subcategory of subcategories) row[subcategory] = 0;
+        for (const key of keys) row[key] = 0;
         return row;
     });
 
@@ -715,11 +716,30 @@ export function spendByBucketAndSubcategory(
         const index = bucketIndexOf(buckets, order.orderDate);
         if (index === -1) continue;
         const row = rows[index];
-        // An order from another commodity has no column here, and must not create one.
-        if (typeof row[order.subcategory] !== 'number') continue;
-        row[order.subcategory] = (row[order.subcategory] as number) + order.totalCost;
+        const key = keyOf(order);
+        // A key outside `keys` has no column here, and must not create one.
+        if (typeof row[key] !== 'number') continue;
+        row[key] += order.totalCost;
     }
     return rows;
+}
+
+/** Committed spend per bucket, split by subcategory. */
+export function spendByBucketAndSubcategory(
+    commodity: Commodity,
+    orders: PurchaseOrder[],
+    buckets: TimeBucket[]
+): SpendTrendRow[] {
+    return spendByBucket(orders, SUBCATEGORIES[commodity], (order) => order.subcategory, buckets);
+}
+
+/** The same totals as `spendByBucketAndSubcategory`, split by supplier id instead. */
+export function spendByBucketAndSupplier(
+    orders: PurchaseOrder[],
+    supplierIds: string[],
+    buckets: TimeBucket[]
+): SpendTrendRow[] {
+    return spendByBucket(orders, supplierIds, (order) => order.supplierId, buckets);
 }
 
 /**
@@ -794,32 +814,73 @@ export function slipDistributions(orders: PurchaseOrder[], supplierIds: string[]
  * Suppliers with no delivery record in scope are dropped rather than shown as a costless zero.
  */
 export function qualityCost(orders: PurchaseOrder[], supplierIds: string[]): QualityCost[] {
-    const totals = new Map(
-        supplierIds.map((id) => [id, { rejectedValue: 0, delivered: 0, accepted: 0, deliveredCount: 0 }])
+    const owned = new Set(supplierIds);
+    const totals = rejectionTotals(
+        orders.filter((order) => owned.has(order.supplierId)),
+        (order) => order.supplierId
     );
+
+    return supplierIds
+        .filter((id) => totals.has(id))
+        .map((supplierId) => ({
+            supplierId,
+            supplier: SUPPLIER_BY_ID.get(supplierId)!.name,
+            ...totals.get(supplierId)!,
+        }));
+}
+
+/**
+ * What one supplier's rejected material cost, per material, over the delivered orders in scope —
+ * the drill-down beneath that supplier's `qualityCost` row. Materials are in catalogue order, and
+ * those with no delivery record from the supplier are dropped as above.
+ */
+export function materialQualityCost(orders: PurchaseOrder[], supplierId: string): MaterialQualityCost[] {
+    const totals = rejectionTotals(
+        orders.filter((order) => order.supplierId === supplierId),
+        (order) => order.material
+    );
+
+    return MATERIALS.filter((material) => totals.has(material.name)).map((material) => ({
+        material: material.name,
+        subcategory: material.subcategory,
+        ...totals.get(material.name)!,
+    }));
+}
+
+/** Rejected value and accepted rate per key, over the delivered orders only. */
+function rejectionTotals(
+    orders: PurchaseOrder[],
+    keyOf: (order: PurchaseOrder) => string
+): Map<string, Pick<QualityCost, 'rejectedValue' | 'acceptedRate' | 'deliveredCount'>> {
+    const totals = new Map<
+        string,
+        { rejectedValue: number; delivered: number; accepted: number; deliveredCount: number }
+    >();
 
     for (const order of orders) {
         if (order.acceptedQuantity == null) continue;
-        const acc = totals.get(order.supplierId);
-        if (!acc) continue;
+        const key = keyOf(order);
+        let acc = totals.get(key);
+        if (!acc) {
+            acc = { rejectedValue: 0, delivered: 0, accepted: 0, deliveredCount: 0 };
+            totals.set(key, acc);
+        }
         acc.rejectedValue += (order.quantity - order.acceptedQuantity) * order.unitCost;
         acc.delivered += order.quantity;
         acc.accepted += order.acceptedQuantity;
         acc.deliveredCount += 1;
     }
 
-    return supplierIds
-        .filter((id) => totals.get(id)!.deliveredCount > 0)
-        .map((supplierId) => {
-            const acc = totals.get(supplierId)!;
-            return {
-                supplierId,
-                supplier: SUPPLIER_BY_ID.get(supplierId)!.name,
+    return new Map(
+        [...totals].map(([key, acc]) => [
+            key,
+            {
                 rejectedValue: acc.rejectedValue,
                 acceptedRate: acc.delivered > 0 ? acc.accepted / acc.delivered : 1,
                 deliveredCount: acc.deliveredCount,
-            };
-        });
+            },
+        ])
+    );
 }
 
 /**
@@ -955,9 +1016,9 @@ export function supplierTrendByMonth(
 }
 
 /**
- * Spend per supplier within each subcategory, for a normalised stacked bar.
+ * Spend per supplier within each subcategory, for the supplier × subcategory share heatmap.
  *
- * Answers the single-sourcing question directly: a subcategory that is one full-width band is a
+ * Answers the single-sourcing question directly: a subcategory with one filled cell is a
  * subcategory with no second source. The sunburst carries the same data but as angles inside
  * separate parents, which is much harder to compare across subcategories.
  */
@@ -998,6 +1059,5 @@ export function trackShipment(shipment: Shipment, now: number): TrackedShipment 
         progress,
         position: interpolateRoute(shipment.origin, shipment.destination, progress),
         daysToRequired: daysBetween(now, shipment.requiredDate),
-        slackDays: daysBetween(shipment.projectedDate, shipment.requiredDate),
     };
 }

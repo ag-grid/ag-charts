@@ -8,6 +8,7 @@ import {
     type AllHTMLAttributes,
     type CSSProperties,
     type Dispatch,
+    type MouseEvent,
     type MouseEventHandler,
     type ReactNode,
     type SetStateAction,
@@ -38,7 +39,7 @@ import {
     normalizeType,
     processMembers,
 } from '../apiReferenceHelpers';
-import { navigateToSelection, useApiReferenceLocation } from '../apiReferenceRouting';
+import { hrefFor, navigateToSelection, useApiReferenceLocation } from '../apiReferenceRouting';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
@@ -49,6 +50,9 @@ export const SelectionContext = createContext<{
     rootInterface: string;
     basePath: string;
 } | null>(null);
+
+/** Type names expanded by the ancestors of a nav entry. */
+type AncestorTypes = ReadonlySet<string>;
 
 export function OptionsNavigation({
     basePath,
@@ -164,12 +168,14 @@ function NavProperty({
     depth = 0,
     genericsMap,
     path,
+    ancestorTypes,
     onClick,
 }: {
     member: MemberNode;
     depth?: number;
     genericsMap?: Record<string, string>;
     path: { name: string; type: string }[];
+    ancestorTypes?: AncestorTypes;
     onClick?: (navData: NavigationData) => void;
 }) {
     const selection = useContext(SelectionContext);
@@ -191,7 +197,11 @@ function NavProperty({
             : undefined;
     const isTypedUnion = Boolean(unionVariants);
     const noExpand = config.noExpand?.includes(cleanupName(member.name));
-    const expandable = !noExpand && (isInterface || isInterfaceArray || isInterfaceRecord || isTypedUnion);
+    // A type that recurses (e.g. a context-menu item's submenu `items`) would expand without end, so a repeat
+    // of an ancestor's type is marked recursive instead of expanding.
+    const isRecursive = ancestorTypes?.has(memberType) === true;
+    const expandable =
+        !noExpand && !isRecursive && (isInterface || isInterfaceArray || isInterfaceRecord || isTypedUnion);
     const isObjectArray =
         !isInterfaceArray &&
         !isInterfaceRecord &&
@@ -208,6 +218,7 @@ function NavProperty({
         (isObjectArray === true && !isUnionArray) || (isTypedUnion && unionVariants?.isArray === true);
 
     const navData = getNavigationDataFromPath(path, config.specialTypes);
+    const childAncestorTypes = expandable ? new Set(ancestorTypes).add(memberType) : undefined;
 
     const [isExpanded, toggleExpanded] = useAutoExpand(() => {
         if (config.keepExpanded?.includes(member.name)) {
@@ -281,7 +292,15 @@ function NavProperty({
                     )}
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
-                    <span onClick={() => onClick?.(navData)}>
+                    <NavLink
+                        navData={navData}
+                        onClick={onClick}
+                        ariaLabel={
+                            isRecursive
+                                ? `${cleanupName(member.name)}${isInterfaceRecord ? '.key' : ''} (recursive)`
+                                : undefined
+                        }
+                    >
                         {isStringLiteralType(memberType) ? (
                             <>
                                 {member.name} <span className={styles.punctuation}>= '</span>
@@ -297,7 +316,8 @@ function NavProperty({
                         ) : (
                             ''
                         )}
-                    </span>
+                        {isRecursive && <span className={styles.comment}>{' // recursive'}</span>}
+                    </NavLink>
                     {expandable && (
                         <OpeningBrackets
                             isOpen={isExpanded}
@@ -333,6 +353,7 @@ function NavProperty({
                                               name: cleanupName(childMember.name),
                                               type: getMemberType(childMember),
                                           })}
+                                          ancestorTypes={childAncestorTypes}
                                           onClick={onClick}
                                       />
                                   ))
@@ -344,6 +365,7 @@ function NavProperty({
                                           path={path.concat({ name, type })}
                                           isRecordUnion={isInterfaceRecord}
                                           genericsMap={unionVariants?.genericsMap}
+                                          ancestorTypes={childAncestorTypes}
                                           onClick={onClick}
                                       />
                                   )
@@ -365,12 +387,14 @@ function NavTypedUnionProperty({
     path,
     isRecordUnion,
     genericsMap,
+    ancestorTypes,
     onClick,
 }: {
     depth?: number;
     path: NavigationPath[];
     isRecordUnion: boolean;
     genericsMap?: Record<string, TypeNode>;
+    ancestorTypes?: AncestorTypes;
     onClick?: (navData: NavigationData) => void;
 }) {
     const selection = useContext(SelectionContext);
@@ -425,13 +449,13 @@ function NavTypedUnionProperty({
                             <span className={styles.punctuation}>{'{'}</span>
                         ) : (
                             <>
-                                <span onClick={() => onClick?.(navData)}>
+                                <NavLink navData={navData} onClick={onClick}>
                                     <span className={styles.punctuation}>{'{ '}</span>
                                     {discriminatorKey}
                                     <span className={styles.punctuation}> = '</span>
                                     <span className={styles.unionDiscriminator}>{path[path.length - 1].name}</span>
                                     <span className={styles.punctuation}>'</span>
-                                </span>
+                                </NavLink>
                                 <span className={styles.punctuation} onClick={toggleExpanded}>
                                     {' ... }'}
                                 </span>
@@ -450,6 +474,7 @@ function NavTypedUnionProperty({
                                 depth={depth + 1}
                                 genericsMap={interfaceRef.genericsMap}
                                 path={path.concat({ name: member.name, type: getMemberType(member) })}
+                                ancestorTypes={new Set(ancestorTypes).add(variantType)}
                                 onClick={onClick}
                             />
                         ))}
@@ -481,11 +506,11 @@ function NavUnionPrimitive({
     return (
         <div className={classnames(styles.navItem, isSelected && 'highlight')}>
             <span className={classnames(styles.propertyName, depth > 1 && styles.propertyWhisker)}>
-                <span onClick={() => onClick?.(navData)}>
+                <NavLink navData={navData} onClick={onClick}>
                     {name}
                     <span className={styles.punctuation}>: </span>
                     <span className={styles.primitiveType}>{typeName}</span>
-                </span>
+                </NavLink>
             </span>
         </div>
     );
@@ -506,13 +531,13 @@ function NavBreadcrumb({
     const selectedHash = selection?.selection.hash;
     const isSelected =
         selection?.selection.pageInterface === rootInterface && (selectedHash == null || selectedHash === '');
+    const navData: NavigationData = {
+        pathname: basePath,
+        hash: '',
+        pageInterface: rootInterface,
+        pageTitle: { name: rootInterface },
+    };
     const handleClick = () => {
-        const navData = {
-            pathname: basePath,
-            hash: '',
-            pageInterface: rootInterface,
-            pageTitle: { name: rootInterface },
-        };
         selection?.setSelection(navData);
         window.scrollTo({ behavior: 'smooth', top: 0 });
         navigateToSelection(navData);
@@ -529,9 +554,11 @@ function NavBreadcrumb({
                             isSelected && index + 1 === breadcrumbs.length && 'highlight'
                         )}
                     >
-                        <span className={classnames(styles.propertyName)} onClick={handleClick}>
-                            {index > 0 && <PropertyExpander isExpanded />}
-                            {breadcrumb}
+                        <span className={styles.propertyName}>
+                            <NavLink navData={navData} onClick={handleClick}>
+                                {index > 0 && <PropertyExpander isExpanded />}
+                                {breadcrumb}
+                            </NavLink>
                         </span>
                         {': {'}
                     </div>
@@ -544,6 +571,37 @@ function NavBreadcrumb({
                 </NavGroup>
             ))}
         </>
+    );
+}
+
+/**
+ * A link to an entry's page or anchor, so the tree's entries are real links that can be opened in a new
+ * tab and followed by crawlers. A plain click navigates within the reference instead of reloading it.
+ */
+function NavLink({
+    navData,
+    onClick,
+    ariaLabel,
+    children,
+}: {
+    navData: NavigationData;
+    onClick?: (navData: NavigationData) => void;
+    ariaLabel?: string;
+    children: ReactNode;
+}) {
+    const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+        // Leave clicks that open a new tab or window to the browser.
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+        event.preventDefault();
+        onClick?.(navData);
+    };
+
+    return (
+        <a className={styles.navLink} href={hrefFor(navData)} aria-label={ariaLabel} onClick={handleClick}>
+            {children}
+        </a>
     );
 }
 

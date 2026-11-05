@@ -4,10 +4,19 @@ import type {
     HierarchyHighlightState,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
+import type {
+    ContextDefault,
+    CssColor,
+    DatumDefault,
+    Opacity,
+    PixelSize,
+    Ratio,
+    ResolvedDatumKey,
+} from '../../chart/types';
 import type {
     AgColorScale,
     AgColorType,
@@ -23,7 +32,7 @@ export type AgSunburstHighlightState = HierarchyHighlightState;
 export interface AgSunburstSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends
         AgSeriesTooltipRendererParams<TDatum, TContext>,
-        AgSunburstSeriesOptionsKeys,
+        AgSunburstSeriesOptionsKeys<TDatum>,
         AgSunburstSeriesOptionsNames,
         AgSunburstSeriesStyle {
     /** The depth of the datum in the hierarchy. */
@@ -68,18 +77,30 @@ export interface AgSunburstInnerCircle {
     fillOpacity?: Opacity;
 }
 
+export interface AgSunburstSeriesLabelOptions<TDatum, TContext = ContextDefault> extends Omit<
+    AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>,
+    'collision'
+> {
+    /** Configuration controlling whether a label that still does not fit its bounds is kept or hidden. */
+    collision?: AgChartLabelCollisionOptions;
+}
+
+export interface AgSunburstSeriesSecondaryLabelOptions<TDatum, TContext = ContextDefault> extends Omit<
+    AgChartAutoSizedSecondaryLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>,
+    'collision'
+> {
+    /** Configuration controlling whether a label that still does not fit its bounds is kept or hidden. */
+    collision?: AgChartLabelCollisionOptions;
+}
+
 export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
     AgBaseSeriesThemeableOptions<TDatum, TContext>,
     'highlight' | 'showInLegend'
 > {
     /** Options for the label in a sector. */
-    label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgSunburstSeriesLabelOptions<TDatum, TContext>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
-    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<
-        TDatum,
-        AgSunburstSeriesLabelFormatterParams<TDatum>,
-        TContext
-    >;
+    secondaryLabel?: AgSunburstSeriesSecondaryLabelOptions<TDatum, TContext>;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
     /** Configuration for the shadow used behind the sectors. */
@@ -122,7 +143,7 @@ export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = Conte
             AgBaseSeriesOptions<TDatum, TContext>,
             'highlight' | 'highlightStyle' | 'showInLegend' | 'selection' | 'focusIndex'
         >,
-        AgSunburstSeriesOptionsKeys,
+        AgSunburstSeriesOptionsKeys<TDatum>,
         AgSunburstSeriesOptionsNames,
         Omit<AgSunburstSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'> {
     /** Configuration for the Sunburst Series. */
@@ -131,17 +152,17 @@ export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = Conte
     innerLabels?: AgSunburstInnerLabel[];
 }
 
-export interface AgSunburstSeriesOptionsKeys {
+export interface AgSunburstSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the label. */
-    labelKey?: string;
+    labelKey?: ResolvedDatumKey<TDatum>;
     /** The name of the node key containing a secondary label. */
-    secondaryLabelKey?: string;
+    secondaryLabelKey?: ResolvedDatumKey<TDatum>;
     /** The name of the node key containing the children. Defaults to `children`. */
-    childrenKey?: string;
+    childrenKey?: ResolvedDatumKey<TDatum>;
     /** The name of the node key containing the size value. */
-    sizeKey?: string;
+    sizeKey?: ResolvedDatumKey<TDatum>;
     /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the segment colour. */
-    colorKey?: string;
+    colorKey?: ResolvedDatumKey<TDatum>;
 }
 
 export interface AgSunburstSeriesOptionsNames {
@@ -156,14 +177,14 @@ export interface AgSunburstSeriesItemStylerParams<TDatum, TContext = ContextDefa
     extends
         DatumCallbackParams<TDatum, AgSunburstHighlightState>,
         ContextCallbackParams<TContext>,
-        AgSunburstSeriesOptionsKeys,
+        AgSunburstSeriesOptionsKeys<TDatum>,
         Required<AgSunburstSeriesStyle> {
     /** The depth of the datum in the hierarchy. */
     depth: number;
 }
 
-export interface AgSunburstSeriesLabelFormatterParams<_TDatum = DatumDefault>
-    extends AgSunburstSeriesOptionsKeys, AgSunburstSeriesOptionsNames {
+export interface AgSunburstSeriesLabelFormatterParams<TDatum = DatumDefault>
+    extends AgSunburstSeriesOptionsKeys<TDatum>, AgSunburstSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
 }

@@ -57,7 +57,7 @@ export interface AgChartOverlayOptions<TContext = ContextDefault> {
     enabled?: boolean;
     /** Text to render in the overlay. Plain text, or an array of segments for rich content. */
     text?: TextOrSegments;
-    /** A function for generating HTML element or string for overlay content. */
+    /** A function for generating HTML element or string for overlay content. A returned string is inserted as HTML, so escape any values derived from chart data. */
     renderer?: Renderer<AgChartOverlayRendererParams<TContext>, HTMLElement>;
 }
 
@@ -93,7 +93,7 @@ export interface AgCaptionTooltipOptions<TContext = ContextDefault> {
     /** Static text to display in the tooltip. Overrides the default caption text. */
     text?: string;
     /**
-     * Function to produce tooltip content. Return a plain string or an HTML string. Takes precedence over `text`.
+     * Function to produce tooltip content. Return a plain string or an HTML string; escape any values derived from chart data. Takes precedence over `text`.
      *
      * Returning `undefined` falls back to `text` (or the caption's own text). Returning an empty string suppresses the tooltip.
      */
@@ -135,7 +135,7 @@ export interface AgChartCaptionOptions<TContext = ContextDefault> extends LabelB
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), never a non-breaking space (`\u00A0`). If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), but not on a non-breaking space (`\u00A0`).
      * - `'never'` disables text wrapping.
      *
      * Default: `'on-space'`

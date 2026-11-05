@@ -1,9 +1,6 @@
 import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState } from '../../chart/callbackOptions';
-import type {
-    AgConeFunnelSeriesLabelPlacement,
-    AgConeFunnelSeriesLabelPlacementAlias,
-} from '../../chart/collisionAvoidanceOptions';
+import type { AgConeFunnelSeriesLabelPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
@@ -31,10 +28,7 @@ export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = Cont
      * Where to render series labels relative to the divider between drop-offs. Either a single
      * placement or an ordered fallback list tried in turn until one fits.
      */
-    placement?:
-        | AgConeFunnelSeriesLabelPlacement
-        | AgConeFunnelSeriesLabelPlacementAlias
-        | (AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias)[];
+    placement?: AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacement[];
 }
 
 export interface AgConeFunnelSeriesStageLabelOptions<

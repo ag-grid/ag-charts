@@ -5,6 +5,7 @@ import {
     CROSS_LINE_TYPES,
     ChartUpdateType,
     type CrossLineLabelOverflow,
+    type CrossLineLabelPosition,
     type CrossLineType,
     type DynamicContext,
     type NormalisedAxisCrossLineLabelOptions,
@@ -20,10 +21,10 @@ import type {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgCartesianCrossLineLabelOptions,
+    AgCartesianCrossLineLabelPlacement,
     AgCartesianCrossLineOptions,
     AgCrossLineClickEvent,
     AgCrossLineClickParams,
-    AgCrossLineLabelPosition,
     AgCrossLineListeners,
     AgNumberAxisOptions,
 } from 'ag-charts-types';
@@ -63,7 +64,7 @@ const undocumentedLabel = (
     label: AgCartesianCrossLineLabelOptions & { overflow?: CrossLineLabelOverflow; reserveSpace?: boolean }
 ) => label as AgCartesianCrossLineLabelOptions;
 
-const labelPositions: AgCrossLineLabelPosition[] = [
+const labelPositions: CrossLineLabelPosition[] = [
     'top',
     'left',
     'right',
@@ -83,34 +84,41 @@ const labelPositions: AgCrossLineLabelPosition[] = [
     'inside-bottom-right',
 ];
 
+const X_AXIS_RANGE_CORNER_PLACEMENTS: Partial<Record<CrossLineLabelPosition, AgCartesianCrossLineLabelPlacement>> = {
+    'top-left': 'left-top',
+    'top-right': 'right-top',
+    'bottom-left': 'left-bottom',
+    'bottom-right': 'right-bottom',
+};
+
 const flipCrossLinesRange = (crossLineOptions: AgCartesianCrossLineOptions): AgCartesianCrossLineOptions => {
     if (crossLineOptions.type !== 'range') return crossLineOptions;
     const [from, to] = crossLineOptions.range ?? [];
     return { ...crossLineOptions, range: [to, from] };
 };
 
-const applyCrossLinesLabelPosition = (
+const applyCrossLinesLabelPlacement = (
     crossLineOptions: AgCartesianCrossLineOptions,
-    position: AgCrossLineLabelPosition
+    placement: AgCartesianCrossLineLabelPlacement
 ): AgCartesianCrossLineOptions => {
     return {
         ...crossLineOptions,
         label: {
             ...crossLineOptions.label,
-            position,
+            placement,
         },
     };
 };
 
-const applyCrossLinesLabelPositionFilled = (
+const applyCrossLinesLabelPlacementFilled = (
     crossLineOptions: AgCartesianCrossLineOptions,
-    position: AgCrossLineLabelPosition
+    placement: AgCartesianCrossLineLabelPlacement
 ): AgCartesianCrossLineOptions => {
     return {
         ...crossLineOptions,
         label: {
             ...crossLineOptions.label,
-            position,
+            placement,
             fill: 'red',
             padding: { top: 10, right: 10, bottom: 30, left: 30 },
         },
@@ -149,12 +157,15 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
             ...example,
             options: {
                 ...example.options,
-                axes: mapValues(example.options.axes ?? {}, (axis: any) =>
+                axes: mapValues(example.options.axes ?? {}, (axis: any, key) =>
                     axis.crossLines
                         ? {
                               ...axis,
                               crossLines: axis.crossLines.map((c: AgCartesianCrossLineOptions) =>
-                                  applyCrossLinesLabelPosition(c, position)
+                                  applyCrossLinesLabelPlacement(
+                                      c,
+                                      (key === 'x' ? X_AXIS_RANGE_CORNER_PLACEMENTS[position] : undefined) ?? position
+                                  )
                               ),
                           }
                         : axis
@@ -163,8 +174,8 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
         };
     }
 
-    for (const position of ['top', 'right', 'bottom', 'left'] as const) {
-        result[`${position}_filled_LABEL_POSITION_CROSSLINES`] = {
+    for (const placement of ['top', 'right', 'bottom', 'left'] as const) {
+        result[`${placement}_filled_LABEL_POSITION_CROSSLINES`] = {
             ...example,
             options: {
                 ...example.options,
@@ -173,7 +184,7 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
                         ? {
                               ...axis,
                               crossLines: axis.crossLines.map((c: AgCartesianCrossLineOptions) =>
-                                  applyCrossLinesLabelPositionFilled(c, position)
+                                  applyCrossLinesLabelPlacementFilled(c, placement)
                               ),
                           }
                         : axis
@@ -185,7 +196,6 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
     return result;
 };
 
-// Every case but the default sets the deprecated `position`, pinning the rendering it keeps.
 const LABEL_POSITION_EXAMPLES = mixinLabelPositionCases({
     options: examples.DEFAULT_LABEL_POSITION_CROSSLINES,
     assertions: cartesianChartAssertions({
@@ -193,18 +203,6 @@ const LABEL_POSITION_EXAMPLES = mixinLabelPositionCases({
         seriesTypes: repeat('line', 2),
     }),
 });
-
-function positionDeprecations(options: AgCartesianChartOptions): string[] {
-    return Object.entries(options.axes ?? {}).flatMap(([key, axis]) =>
-        (axis?.crossLines ?? []).flatMap((crossLine, index) =>
-            crossLine.label?.position == null
-                ? []
-                : [
-                      `AG Charts - Option \`axes.${key}.crossLines[${index}].label.position\` is deprecated. Use \`placement\` instead.`,
-                  ]
-        )
-    );
-}
 
 const CROSSLINES_RANGE_EXAMPLES: Record<string, CartesianTestCase> = mixinFlippedRangeCases({
     VALID_RANGE_CROSSLINES: {
@@ -487,7 +485,6 @@ describe('CrossLine', () => {
             async (_exampleName, example) => {
                 chart = deproxy(await createChart({ ...example.options }));
                 await example.assertions(chart);
-                expectWarningMessages(positionDeprecations(example.options));
             }
         );
 
@@ -496,7 +493,6 @@ describe('CrossLine', () => {
             async (_exampleName, example) => {
                 chart = deproxy(await createChart({ ...example.options }));
                 await compare();
-                expectWarningMessages(positionDeprecations(example.options));
             }
         );
     });
@@ -1535,7 +1531,35 @@ describe('CrossLine', () => {
     });
 
     describe('AG-7486: label overflow', () => {
-        const outsidePositions: AgCrossLineLabelPosition[] = labelPositions.filter((p) => !p.startsWith('inside'));
+        const xAxisLinePlacements: AgCartesianCrossLineLabelPlacement[] = [
+            'top',
+            'bottom',
+            'left',
+            'right',
+            'left-top',
+            'left-bottom',
+            'right-top',
+            'right-bottom',
+            'inside',
+            'inside-top',
+            'inside-bottom',
+        ];
+        const xAxisPlacements: Record<CrossLineType, AgCartesianCrossLineLabelPlacement[]> = {
+            line: xAxisLinePlacements,
+            range: [
+                ...xAxisLinePlacements,
+                'top-left',
+                'top-right',
+                'bottom-left',
+                'bottom-right',
+                'inside-left',
+                'inside-right',
+                'inside-top-left',
+                'inside-top-right',
+                'inside-bottom-left',
+                'inside-bottom-right',
+            ],
+        };
 
         function crossLineOptions(
             type: CrossLineType,
@@ -1561,7 +1585,7 @@ describe('CrossLine', () => {
         function unitCrossLine() {
             const axisCtx = {
                 domManager: { isRtl: false },
-                logger: { warnOnce() {}, deprecationOnce() {} },
+                logger: { warnOnce() {} },
                 parent: { position: 'bottom' },
             };
             // A stub of the context members the unit under test reads, not a full axis context.
@@ -1570,25 +1594,29 @@ describe('CrossLine', () => {
 
         function crossLineWith(
             overflow: CrossLineLabelOverflow,
-            position: AgCrossLineLabelPosition,
+            placement: AgCartesianCrossLineLabelPlacement,
             type: CrossLineType
         ) {
             const crossLine = unitCrossLine();
-            crossLine.applyOptions(crossLineOptions(type, { overflow, position }));
+            crossLine.applyOptions(crossLineOptions(type, { overflow, placement }));
             return crossLine;
         }
 
-        function paddingFor(overflow: CrossLineLabelOverflow, position: AgCrossLineLabelPosition, type: CrossLineType) {
-            const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
-            crossLineWith(overflow, position, type).calculatePadding(into);
+        function paddingFor(
+            overflow: CrossLineLabelOverflow,
+            placement: AgCartesianCrossLineLabelPlacement,
+            type: CrossLineType
+        ) {
+            const into: Partial<Record<CrossLineLabelPosition, number>> = {};
+            crossLineWith(overflow, placement, type).calculatePadding(into);
             return into;
         }
 
         it.each(['line', 'range'] as const)(
             'pad-chart reserves space for an outside label on a %s cross line',
             (type) => {
-                const reserved = outsidePositions.filter((position) => {
-                    const into = paddingFor('pad-chart', position, type);
+                const reserved = xAxisPlacements[type].filter((placement) => {
+                    const into = paddingFor('pad-chart', placement, type);
                     return Object.values(into).some((v) => (v ?? 0) > 0);
                 });
 
@@ -1599,22 +1627,22 @@ describe('CrossLine', () => {
 
         it('an unset overflow pads as pad-chart does', () => {
             const crossLine = unitCrossLine();
-            crossLine.applyOptions(crossLineOptions('line', { position: 'top' }));
+            crossLine.applyOptions(crossLineOptions('line', { placement: 'top' }));
 
-            const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+            const into: Partial<Record<CrossLineLabelPosition, number>> = {};
             crossLine.calculatePadding(into);
 
             expect(into).toEqual(paddingFor('pad-chart', 'top', 'line'));
             expect(Object.values(into).some((v) => (v ?? 0) > 0)).toBe(true);
         });
 
-        it.each(['realign-text', 'clip-text'] as const)('%s reserves no space at any label position', (overflow) => {
+        it.each(['realign-text', 'clip-text'] as const)('%s reserves no space at any label placement', (overflow) => {
             for (const type of ['line', 'range'] as const) {
-                for (const position of labelPositions) {
-                    expect({ overflow, type, position, padding: paddingFor(overflow, position, type) }).toEqual({
+                for (const placement of xAxisPlacements[type]) {
+                    expect({ overflow, type, placement, padding: paddingFor(overflow, placement, type) }).toEqual({
                         overflow,
                         type,
-                        position,
+                        placement,
                         padding: {},
                     });
                 }
@@ -2325,31 +2353,6 @@ describe('CrossLine', () => {
             }
         });
 
-        it('renders a deprecated x-axis range corner where its replacement renders', async () => {
-            const rangeChart = (label: AgCartesianCrossLineLabelOptions): AgCartesianChartOptions => ({
-                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: {
-                        type: 'number',
-                        position: 'bottom',
-                        crossLines: [{ type: 'range', range: [3, 6], label: { text: 'RANGE', ...label } }],
-                    },
-                    y: { type: 'number', position: 'left' },
-                },
-            });
-
-            await expectPixelIdenticalAcrossUpdate(
-                ctx,
-                createChart,
-                rangeChart({ placement: 'left-top' }),
-                rangeChart({ position: 'top-left' })
-            );
-            expectWarningMessages([
-                'AG Charts - Option `axes.x.crossLines[0].label.position` is deprecated. Use `placement` instead.',
-            ]);
-        });
-
         it('ignores a placement that does not apply to the axis, with a warning', async () => {
             chart = deproxy(await createChart(placementChart({ text: 'PLACED', placement: ['left-top', 'right'] })));
 
@@ -2361,14 +2364,6 @@ describe('CrossLine', () => {
                         /^AG Charts - Placement `left-top` does not apply to a line cross line on a y axis and is ignored; expecting one of `top`/
                     ),
                 ],
-            ]);
-        });
-
-        it('aliases a deprecated line placement to its replacement, with a warning', async () => {
-            chart = deproxy(await createChart(placementChart({ text: 'PLACED', placement: 'inside-top' })));
-
-            expectWarningMessages([
-                'AG Charts - Placement `inside-top` is deprecated on a line cross line on a y axis. Use `top` instead.',
             ]);
         });
 
@@ -3126,6 +3121,17 @@ describe('CrossLine label fitting', () => {
         expect(rendered.width).toBeGreaterThan(80);
     });
 
+    it.each<[string, AgCartesianCrossLineLabelOptions]>([
+        ['maxWidth', { maxWidth: 80, wrapping: 'never' }],
+        ['maxHeight', { maxWidth: 80, maxHeight: 20 }],
+    ])('hides a label overflowing %s when truncate is disabled and alwaysShow is false', async (_, label) => {
+        chart = deproxy(
+            await createChart(fitChart(lineWith({ ...label, truncate: false, collision: { alwaysShow: false } })))
+        );
+
+        expect(renderedLabel().text).toBe('');
+    });
+
     it('shrinks a label towards minimumFontSize before truncating it', async () => {
         const text = 'Target value';
         const label = { text, fontSize: 20, wrapping: 'never', minimumFontSize: 8 } as const;
@@ -3163,7 +3169,7 @@ describe('CrossLine label fitting', () => {
 
         chart = deproxy(await createChart(options({ maxWidth: 80 })));
 
-        const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+        const into: Partial<Record<CrossLineLabelPosition, number>> = {};
         renderedLabel().crossLine.calculatePadding!(into);
         expect(chart.seriesRect!.width).toBeGreaterThan(unfittedWidth);
         expect(into.left).toBeLessThanOrEqual(80 + 10);
@@ -3173,7 +3179,7 @@ describe('CrossLine label fitting', () => {
         chart = deproxy(await createChart(fitChart(lineWith({ placement: 'left', maxHeight: 4 }))));
 
         const rendered = renderedLabel();
-        const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+        const into: Partial<Record<CrossLineLabelPosition, number>> = {};
         rendered.crossLine.calculatePadding!(into);
         expect(rendered.text).toBe('');
         expect(into.left).toBeUndefined();

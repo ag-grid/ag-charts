@@ -23,18 +23,12 @@ export function axisLabelsOverlap(boxes: readonly BoxBounds[], spacing: number =
     return false;
 }
 
-export interface TickLabelCandidate<T> {
-    readonly candidate: T;
-    /** The ticks are fixed by configuration, so a sparser candidate would not thin their labels. */
-    readonly pinned: boolean;
-}
-
 /**
  * Thins tick labels by walking ever sparser, evenly spaced candidates until one has no overlapping labels,
  * auto-rotating any candidate whose labels overlap unrotated. `next` returns `undefined` once exhausted.
  */
 export function thinTickLabels<T>(
-    next: () => TickLabelCandidate<T> | undefined,
+    next: () => T | undefined,
     overlaps: (candidate: T, autoRotation: number) => boolean,
     avoidCollisions: boolean,
     autoRotateAngle: number | undefined
@@ -46,11 +40,9 @@ export function thinTickLabels<T>(
     while (overlap) {
         const step = next();
         if (step == null) break;
-        candidate = step.candidate;
+        candidate = step;
 
         autoRotation = autoRotateAngle != null && overlaps(candidate, 0) ? autoRotateAngle : 0;
-
-        if (step.pinned) break;
 
         overlap = avoidCollisions && overlaps(candidate, autoRotation);
     }

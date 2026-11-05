@@ -71,7 +71,6 @@ import {
     constant,
     date,
     defined,
-    deprecated,
     greaterThan,
     lessThan,
     lessThanOrEqual,
@@ -278,7 +277,6 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     label: commonAxisLabelOptionsDefs,
     line: {
         enabled: boolean,
-        width: deprecated(positiveNumber, 'Use `strokeWidth` instead.'),
         stroke: colorOrRef,
         strokeWidth: positiveNumber,
         strokeOpacity: ratio,

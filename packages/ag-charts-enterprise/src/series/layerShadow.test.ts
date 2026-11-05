@@ -16,7 +16,7 @@ const WHITE: Pixel = [255, 255, 255, 255];
 const BLACK: Pixel = [0, 0, 0, 255];
 
 // A shadow with no blur and a solid colour, so that a pixel is either lit by the shadow or it is not.
-const SOLID_SHADOW = { enabled: true, color: '#000000', xOffset: 8, yOffset: 0, blur: 0 };
+const SOLID_SHADOW = { enabled: true, fill: '#000000', xOffset: 8, yOffset: 0, blur: 0 };
 
 describe('layer shadow batching of enterprise series', () => {
     setupMockConsole();
@@ -147,7 +147,7 @@ describe('layer shadow batching of enterprise series', () => {
     });
 
     describe('wicks and whiskers with a spread', () => {
-        const SPREAD_SHADOW = { enabled: true, color: '#ff0000', xOffset: 0, yOffset: 0, blur: 0, spread: 6 };
+        const SPREAD_SHADOW = { enabled: true, fill: '#ff0000', xOffset: 0, yOffset: 0, blur: 0, spread: 6 };
         const OHLC = [
             { x: 'Q1', open: 6, high: 8, low: 3, close: 4 },
             { x: 'Q2', open: 5, high: 8, low: 4, close: 7 },
@@ -258,7 +258,7 @@ describe('layer shadow batching of enterprise series', () => {
         // low to reach. The stroke is centred on the edge of the item, so that it overlaps the fill on the inside.
         const XOFFSET = 200;
         const STROKE_WIDTH = 8;
-        const HALF_BLACK_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: XOFFSET, yOffset: 0, blur: 0 };
+        const HALF_BLACK_SHADOW = { enabled: true, fill: 'rgba(0, 0, 0, 0.5)', xOffset: XOFFSET, yOffset: 0, blur: 0 };
         const paint = { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: STROKE_WIDTH };
 
         const candlestick: AgCartesianChartOptions = {

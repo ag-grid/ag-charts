@@ -172,8 +172,8 @@ describe('marker shadow', () => {
     });
 
     describe('range-area item markers', () => {
-        const LOW_SHADOW: AgDropShadowOptions = { enabled: true, color: '#ff0000', xOffset: 2, yOffset: 2, blur: 3 };
-        const HIGH_SHADOW: AgDropShadowOptions = { enabled: true, color: '#0000ff', xOffset: 6, yOffset: 7, blur: 9 };
+        const LOW_SHADOW: AgDropShadowOptions = { enabled: true, fill: '#ff0000', xOffset: 2, yOffset: 2, blur: 3 };
+        const HIGH_SHADOW: AgDropShadowOptions = { enabled: true, fill: '#0000ff', xOffset: 6, yOffset: 7, blur: 9 };
 
         const rangeAreaCase = CASES.find((c) => c.name === 'range-area')!;
 

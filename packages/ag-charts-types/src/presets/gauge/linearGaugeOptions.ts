@@ -35,9 +35,9 @@ export interface AgLinearGaugeScaleLabel<TContext = ContextDefault> extends AgGa
 }
 
 export interface AgLinearGaugeScale<TContext = ContextDefault> extends AgLinearGaugeSeriesStyle, FillsOptions {
-    /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
+    /** Minimum value of the scale. Any values below this number will be clipped to this minimum. */
     min?: AgNumericValue;
-    /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
+    /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     max?: AgNumericValue;
     /** Configuration for the scale labels. */
     label?: AgLinearGaugeScaleLabel<TContext>;
@@ -112,12 +112,6 @@ export interface AgLinearGaugeLabelOptions
     text?: string;
     /** Distance between the shape edges and the text. */
     spacing?: PixelSize;
-    /**
-     * Avoid label collisions with the bar and/or scale.
-     *
-     * @deprecated v14.3.0 Use `collision.alwaysShow` instead.
-     */
-    avoidCollisions?: boolean;
     /**
      * Placement of the label. Either a single placement or an ordered fallback list tried in turn until one fits.
      *

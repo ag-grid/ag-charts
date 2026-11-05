@@ -2,6 +2,9 @@ import {
     AgDocument,
     BBox,
     BaseManager,
+    type CanvasOrigin,
+    type CanvasPoint,
+    type ClientPoint,
     type ElementSize,
     GuardedElement,
     type PerWindowEntry,
@@ -150,7 +153,7 @@ const globalListenerRegistry = createPerWindowRegistry<GlobalListenerSubscriber,
     'DOMManager.globalListeners'
 );
 
-export class DOMManager extends BaseManager {
+export class DOMManager extends BaseManager implements CanvasOrigin {
     static readonly className = 'DOMManager';
     private static readonly batchedUpdateContainer: DOMManager[] = [];
     // Head styles are shared per document: a chart in an iframe must not stop a chart in the main document
@@ -165,14 +168,14 @@ export class DOMManager extends BaseManager {
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     private shadowDocumentRoot?: HTMLElement = undefined;
-    // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers`
-    // skips an O(children) DOM scan. Shadow-path watchers suit only the root they were made for, so
-    // each maps to its removal, run when that root changes.
-    private readonly cssVariableWatchers = new Set<string>();
+    // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers` skips a DOM scan.
+    // Each maps to its remover, run when the shadow root changes, as a watcher suits only the root it was made for.
+    private readonly cssVariableWatchers = new Map<string, () => void>();
     private readonly shadowCssVariableWatchers = new Map<string, () => void>();
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
+    private hasDeferredCSSVariables = false;
     containerSize?: ElementSize = undefined;
     private readonly tabGuards?: GuardedElement;
 
@@ -331,7 +334,7 @@ export class DOMManager extends BaseManager {
             this.sizeMonitor.unobserve(this.container);
         }
         this.pendingContainer = undefined;
-        this.removeShadowCSSVariableWatchers();
+        this.removeCSSVariableWatchers();
 
         for (const el of Object.values(this.rootElements)) {
             for (const c of el.children.values()) {
@@ -444,6 +447,16 @@ export class DOMManager extends BaseManager {
         // A container observed while detached had no laid-out size, so re-measure on attachment.
         if (this.container != null) {
             this.sizeMonitor.refresh(this.container);
+
+            // A detached container has no computed style, and a watcher only reports changes made after it
+            // is in place, so everything resolved while detached is re-resolved once here.
+            if (
+                this.hasDeferredCSSVariables ||
+                this.cssVariableWatchers.size > 0 ||
+                this.shadowCssVariableWatchers.size > 0
+            ) {
+                this.eventsHub.emit('chart:request-refresh', null);
+            }
         }
     }
 
@@ -670,6 +683,13 @@ export class DOMManager extends BaseManager {
         return this._cachedCanvasScale;
     }
 
+    /** Maps client (viewport) coordinates onto the canvas, using the cached rect and scale. */
+    toCanvasPoint({ clientX, clientY }: ClientPoint): CanvasPoint {
+        const rect = this.getBoundingClientRect();
+        const { scaleX, scaleY } = this.getCanvasScale();
+        return { canvasX: (clientX - rect.x) / scaleX, canvasY: (clientY - rect.y) / scaleY };
+    }
+
     /**
      * Get the client bounding rect for overlay elements that might float outside the bounds of the
      * main chart area.
@@ -779,12 +799,15 @@ export class DOMManager extends BaseManager {
 
     /** Points `shadowDocumentRoot` at the container's shadow root, moving the CSS-variable watchers to a new root. */
     private updateShadowDocumentRoot(container: HTMLElement) {
-        // A move within the same root keeps its shadow-path watchers.
+        // A move within the same root keeps its watchers.
         const previousShadowRoot = this.getShadowRoot();
-        const watchedProperties = new Set([...this.cssVariableWatchers, ...this.shadowCssVariableWatchers.keys()]);
+        const watchedProperties = new Set([
+            ...this.cssVariableWatchers.keys(),
+            ...this.shadowCssVariableWatchers.keys(),
+        ]);
         this.shadowDocumentRoot = this.getShadowDocumentRoot(container);
         if (this.getShadowRoot() !== previousShadowRoot) {
-            this.removeShadowCSSVariableWatchers();
+            this.removeCSSVariableWatchers();
             if (watchedProperties.size > 0) {
                 this.watchCSSVariables(watchedProperties);
             }
@@ -1112,6 +1135,18 @@ export class DOMManager extends BaseManager {
         this.watchCSSVariables(strictObjectKeys(cssVariables).map((key) => key.slice(4, -1)));
     }
 
+    /**
+     * Records that variables could not be resolved on a detached container. They are not watched, as watching an
+     * undefined variable in the light DOM registers it with `initial-value: transparent`, which makes it resolve to
+     * transparent instead of staying undefined. The attach re-resolves them. A pass that did not process CSS variables
+     * passes none, and leaves what an earlier pass deferred pending.
+     */
+    setDeferredCSSVariables(deferred?: readonly string[]) {
+        if (deferred == null) return;
+
+        this.hasDeferredCSSVariables = deferred.length > 0;
+    }
+
     private watchCSSVariables(properties: Iterable<string>) {
         if (this.shadowDocumentRoot) {
             this.updateCSSVariableWatchersShadowDOM(properties);
@@ -1120,7 +1155,6 @@ export class DOMManager extends BaseManager {
 
         for (const property of properties) {
             if (this.cssVariableWatchers.has(property)) continue;
-            this.cssVariableWatchers.add(property);
 
             const styleElement = createStyleElement(this.styleNonce);
             styleElement.dataset.variableName = property;
@@ -1135,7 +1169,7 @@ export class DOMManager extends BaseManager {
                 this.eventsHub.emit('chart:request-refresh', null);
             };
             sensorElement.addEventListener('transitionend', handleTransitionEnd);
-            this.cleanup.register(() => {
+            this.cssVariableWatchers.set(property, () => {
                 sensorElement.removeEventListener('transitionend', handleTransitionEnd);
                 sensorElement.remove();
                 styleElement.remove();
@@ -1171,11 +1205,13 @@ export class DOMManager extends BaseManager {
         }
     }
 
-    private removeShadowCSSVariableWatchers() {
-        for (const removeWatcher of this.shadowCssVariableWatchers.values()) {
-            removeWatcher();
+    private removeCSSVariableWatchers() {
+        for (const watchers of [this.cssVariableWatchers, this.shadowCssVariableWatchers]) {
+            for (const removeWatcher of watchers.values()) {
+                removeWatcher();
+            }
+            watchers.clear();
         }
-        this.shadowCssVariableWatchers.clear();
     }
 
     private updateContainerClassName() {

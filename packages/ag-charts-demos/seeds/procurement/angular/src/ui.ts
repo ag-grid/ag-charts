@@ -221,7 +221,17 @@ export class SelectItem {
             (keydown)="onTriggerKeydown($event)"
         >
             <span style="pointer-events: none;">{{ selectedLabel() }}</span>
-            <span aria-hidden="true">▾</span>
+            <span aria-hidden="true" class="pc-select-icon"
+                ><svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    focusable="false"
+                >
+                    <path d="M1 2.5h8L5 7.5z" /></svg
+            ></span>
         </button>
         <ng-template
             cdkConnectedOverlay
@@ -525,9 +535,22 @@ export class ToggleItem {
     protected readonly group = inject(ToggleGroup);
 }
 
+export interface ToggleOption extends SelectOption {
+    /**
+     * Shown in place of the text; the label is kept as the item's accessible name and tooltip. The
+     * React `ToggleIcon`'s children, as the `d` of each path: a 16px filled glyph on Carbon's 32-unit
+     * grid, inked in the item's text colour.
+     */
+    icon?: string[];
+}
+
 /**
  * Radix `ToggleGroup.Root type="single"`: a radiogroup of buttons where exactly one is on, with
  * roving focus along both axes (the React demo gives the group no orientation).
+ *
+ * The React `ToggleGroup` wraps the group in `<div class="pc-labeled-select"><span aria-hidden="true">`
+ * when given a `label`; this component's host is the group itself, so a caller with a label writes
+ * that wrapper around it.
  */
 @Component({
     selector: 'div[pcToggleGroup]',
@@ -546,23 +569,51 @@ export class ToggleItem {
     },
     template: `
         @for (option of options(); track option.value) {
-            <button
-                pcToggleItem
-                type="button"
-                [value]="option.value"
-                [attr.data-state]="option.value === value() ? 'on' : 'off'"
-                role="radio"
-                [attr.aria-checked]="option.value === value()"
-                class="pc-toggle-item"
-                (click)="valueChange.emit(option.value)"
-                >{{ option.label }}</button
-            >
+            @if (option.icon; as icon) {
+                <button
+                    pcToggleItem
+                    type="button"
+                    [value]="option.value"
+                    [attr.data-state]="option.value === value() ? 'on' : 'off'"
+                    role="radio"
+                    [attr.aria-checked]="option.value === value()"
+                    class="pc-toggle-item pc-toggle-item--icon"
+                    [attr.aria-label]="option.label"
+                    [title]="option.label"
+                    (click)="valueChange.emit(option.value)"
+                >
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 32 32"
+                        fill="currentColor"
+                        aria-hidden="true"
+                        focusable="false"
+                    >
+                        @for (path of icon; track $index) {
+                            <path [attr.d]="path" />
+                        }
+                    </svg>
+                </button>
+            } @else {
+                <button
+                    pcToggleItem
+                    type="button"
+                    [value]="option.value"
+                    [attr.data-state]="option.value === value() ? 'on' : 'off'"
+                    role="radio"
+                    [attr.aria-checked]="option.value === value()"
+                    class="pc-toggle-item"
+                    (click)="valueChange.emit(option.value)"
+                    >{{ option.label }}</button
+                >
+            }
         }
     `,
 })
 export class ToggleGroup {
     readonly value = input.required<string>();
-    readonly options = input.required<SelectOption[]>();
+    readonly options = input.required<ToggleOption[]>();
     readonly ariaLabel = input.required<string>();
     readonly valueChange = output<string>();
 

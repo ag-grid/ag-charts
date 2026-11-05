@@ -7,7 +7,7 @@ export type Pixel = number[];
 /** A shadow of half-opaque red with no blur, so that the alpha of a pixel is the strength of the shadow cast on it. */
 export const redHalfShadow = (xOffset: number, yOffset = 0) => ({
     enabled: true,
-    color: 'rgba(255, 0, 0, 0.5)',
+    fill: 'rgba(255, 0, 0, 0.5)',
     xOffset,
     yOffset,
     blur: 0,

@@ -2,7 +2,7 @@
 root: false
 targets: ['*']
 description: 'Default entry-point hygiene — keep internals out of the documented public API surface'
-globs: ['packages/ag-charts-*/src/main.ts']
+globs: ['packages/ag-charts-community/src/main.ts', 'packages/ag-charts-enterprise/src/main.ts']
 ---
 
 # Default entry-point hygiene

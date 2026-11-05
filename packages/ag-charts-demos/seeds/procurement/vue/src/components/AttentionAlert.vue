@@ -1,15 +1,5 @@
 <script lang="ts">
 const PANEL_ID = 'pc-attention-panel';
-
-/**
- * What Tab can reach inside the panel.
- *
- * Queried live on each Tab rather than captured on open, because the list is the panel's content
- * and it changes underneath: resolving an item removes its buttons, and the last item's action is
- * exactly where the trap wraps.
- */
-const FOCUSABLE =
-    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 </script>
 
 <script setup lang="ts">
@@ -18,6 +8,7 @@ import { type ComponentPublicInstance, computed, ref, watch } from 'vue';
 import type { AttentionAction, AttentionItem } from '../types';
 import Button from '../ui/Button.vue';
 import AttentionList from './AttentionList.vue';
+import { FOCUSABLE } from './focusable';
 
 /**
  * The worklist, behind the alert in her landing view's page head.
@@ -67,6 +58,7 @@ watch(
             }
             if (event.key !== 'Tab') return;
 
+            // Queried on each Tab, not on open: resolving an item removes its buttons from under the trap.
             const focusable = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
                 (element) => element.getClientRects().length > 0
             );
@@ -119,7 +111,7 @@ function select(shipmentId: string) {
 </script>
 
 <template>
-    <div class="pc-alert">
+    <div class="pc-alert" data-keeps-selection="true">
         <Button
             ref="triggerRef"
             class="pc-icon-btn pc-alert-trigger"

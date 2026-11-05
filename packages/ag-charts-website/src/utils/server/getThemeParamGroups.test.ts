@@ -147,14 +147,17 @@ describe('themeParamGroups', () => {
         ).toEqual([]);
     });
 
-    it('documents a default for every param except those that are unset by default', () => {
-        const documented = [...readThemeParamsSource().matchAll(/\/\*\*([^]*?)\*\/\s*(\w+)\??:/g)].filter(([, docs]) =>
-            docs.includes('@group')
-        );
-        const withoutDefault = documented.filter(([, docs]) => !docs.includes('Default:')).map(([, , name]) => name);
+    it('documents only defaults made of other theme params, without percentages', () => {
+        const source = readThemeParamsSource();
+        const paramNames = new Set([...source.matchAll(/^ {4}(\w+)\??:/gm)].map(([, name]) => name));
+        const defaults = [...source.matchAll(/^ *\* Default: `(.*)`$/gm)].map(([, value]) => value);
+        const notParams = (value: string) =>
+            (value.match(/[A-Za-z_]\w*/g) ?? []).filter(
+                (word) => !paramNames.has(word) && !['color', 'width'].includes(word)
+            );
 
-        expect(documented.length).toBeGreaterThan(100);
-        expect(withoutDefault).toEqual(['lineHeight']);
+        expect(defaults.length).toBeGreaterThan(20);
+        expect(defaults.filter((value) => value.includes('%') || notParams(value).length > 0)).toEqual([]);
     });
 });
 

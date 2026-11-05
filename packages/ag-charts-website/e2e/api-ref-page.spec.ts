@@ -24,7 +24,7 @@ function getNavigationProperty(page: Page, matcher: string | RegExp): Locator {
 }
 
 function getNavigationClickable(page: Page, matcher: string | RegExp): Locator {
-    return getNavigationProperty(page, matcher).locator('span').first();
+    return getNavigationProperty(page, matcher).locator('a').first();
 }
 
 function getNavigationHighlight(page: Page, matcher: string | RegExp): Locator {
@@ -360,6 +360,52 @@ test.describe('api-ref-page', () => {
         await expect(page.locator('#reference-AgChartOptions-contextMenu-items-series-node')).toBeVisible();
     });
 
+    // A submenu's `items` repeats its ancestor's `AgContextMenuItem[]` type, so it must not expand again.
+    const NESTED_ITEMS_ID = 'reference-AgChartOptions-contextMenu-items-axis-items';
+
+    test('stops a nested contextMenu items row expanding its type again', async ({ page }) => {
+        // A deep link below the row expands it whenever it can expand.
+        await gotoUrl(page, toPageUrl(`options/#${NESTED_ITEMS_ID}-axis`));
+
+        const nestedItems = page.locator(`#${NESTED_ITEMS_ID}`);
+        await expect(nestedItems).toBeVisible();
+        await expect(nestedItems.getByRole('button', { name: /child properties|available interfaces/ })).toHaveCount(0);
+        await expect(page.locator(`[id^="${NESTED_ITEMS_ID}-"]`)).toHaveCount(0);
+
+        await nestedItems.getByRole('button', { name: 'See more details about items' }).click();
+        await expect(page.locator(`#${NESTED_ITEMS_ID}-details`)).toBeVisible();
+    });
+
+    test('links a nested contextMenu items row back to its ancestor', async ({ page }) => {
+        await gotoUrl(page, toPageUrl(`options/#${NESTED_ITEMS_ID}`));
+
+        await page
+            .locator(`#${NESTED_ITEMS_ID}`)
+            .getByRole('link', { name: 'Recursive, see contextMenu.items' })
+            .click();
+
+        await expect(page).toHaveURL(/#reference-AgChartOptions-contextMenu-items$/);
+        await expect(page.locator('#reference-AgChartOptions-contextMenu-items')).toBeInViewport();
+    });
+
+    test('marks a nested contextMenu items nav entry recursive instead of expanding it', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await expandNavNode(page, /^contextMenu/);
+        await expandNavNode(page, /^items/);
+        await expandNavNode(page, /showOn\s*= 'series-node'/);
+
+        const nestedItems = getNavigationProperty(page, /^items.*recursive/);
+        await expect(nestedItems).toBeVisible();
+        await expect(nestedItems.locator(PROPERTY_EXPANDER_SELECTOR)).toHaveCount(0);
+
+        await getNavigationTree(page).getByRole('link', { name: 'items (recursive)', exact: true }).click();
+
+        await expect(page).toHaveURL(/#reference-AgChartOptions-contextMenu-items-series-node-items$/);
+        await expect(page.locator('#reference-AgChartOptions-contextMenu-items-series-node-items')).toBeInViewport();
+    });
+
     // `crossLines` sits under the `{ type = 'number' ... }` nav node, collapsed by default.
     // Deep-linking to a sibling axis property auto-expands that node without expanding `crossLines`.
     const NUMBER_AXIS_URL = 'options/axes/number/#reference-AgNumberAxisOptions-nice';
@@ -541,6 +587,34 @@ test.describe('api-ref-page', () => {
 
         await seriesLink.click();
         await expect(getNavigationHighlight(page, /^series\b/)).toHaveCount(1);
+    });
+
+    test('nav entries link to the page or anchor they select', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await expect(getNavigationClickable(page, /^series\b/)).toHaveAttribute(
+            'href',
+            /\/options\/#reference-AgChartOptions-series$/
+        );
+
+        await expandNavNode(page, /^series\b/);
+        const barLink = getNavigationTree(page).getByRole('link', { name: "{ type = 'bar'" });
+        await expect(barLink).toHaveAttribute('href', /\/options\/series\/bar\/#reference-AgBarSeriesOptions-type$/);
+
+        await barLink.click();
+        await expect(page).toHaveURL(/\/options\/series\/bar\/#reference-AgBarSeriesOptions-type$/);
+        await expect(page.locator('header h1')).toContainText("type = 'bar'");
+    });
+
+    test('keeps links to the reference pages in collapsed branches', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        const barPageLink = page.locator('a[href$="/options/series/bar/"]');
+        await expect(barPageLink).toHaveCount(1);
+        await expect(barPageLink).toBeHidden();
+        await expect(page.locator('a[href$="/options/axes/number/"]')).toHaveCount(1);
     });
 });
 

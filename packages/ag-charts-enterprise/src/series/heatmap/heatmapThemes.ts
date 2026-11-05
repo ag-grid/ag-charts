@@ -1,5 +1,4 @@
 import {
-    AUTO_SIZED_LABEL_TRUNCATE,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
@@ -41,9 +40,9 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             wrapping: 'on-space',
-            truncate: AUTO_SIZED_LABEL_TRUNCATE,
-            textAlign: { $path: ['../textAlign', 'center'] },
-            verticalAlign: { $path: ['../verticalAlign', 'middle'] },
+            truncate: true,
+            textAlign: 'center',
+            verticalAlign: 'middle',
         },
         itemPadding: 3,
         tooltip: SERIES_TOOLTIP_THEME,

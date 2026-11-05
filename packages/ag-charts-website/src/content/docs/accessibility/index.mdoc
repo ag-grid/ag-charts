@@ -24,13 +24,19 @@ AG Charts fully supports keyboard navigation as an element of accessibility, all
 
 The following keys are available:
 
-- {% kbd "⇥ Tab" /%} moves focus between chart components. These include:
+- {% kbd "⇥ Tab" /%} moves focus between chart components, in this order:
+    - Title, Subtitle
     - Series
+    - Footnote
+    - Cross lines
     - Legend
     - Legend pagination control
     - Toolbars and Buttons
     - Navigator
-- {% kbd "←" /%}{% kbd "→" /%} moves focus between items in a series, or between legend items.
+
+    Captions and cross lines are only included when they have a `click` listener, set on the item itself or at a higher level. See [Events](./events/).
+
+- {% kbd "←" /%}{% kbd "→" /%} moves focus between items in a series, between legend items, or between cross lines.
 - {% kbd "↑" /%}{% kbd "↓" /%} moves focus between series in a chart.
   Please note that datapoints are traversed in declared order which may not match the visual display. Series are traversed in declared order unless a [Series Focus Order](#series-focus-order) is set.
 - {% kbd "PgUp" /%}{% kbd "PgDown" /%} jumps focus backward or forward by a page of data items, scrolling to keep the focused item in view.
@@ -54,7 +60,7 @@ In this example:
 
 ### Series Focus Order
 
-Use `focusIndex` to change the order in which {% kbd "↑" /%}{% kbd "↓" /%} move focus between series, without reordering the `series` array, which also controls drawing order and legend order.
+Focus moves between series in the order they are declared. Use the `focusIndex` series property to change this order.
 
 ```js format="snippet"
 {
@@ -71,11 +77,20 @@ In this snippet, the line series is focused first, even though the bar series is
 - Series without a `focusIndex` are focused after those with one, in the order they are declared.
 - Series with the same `focusIndex` are focused in the order they are declared.
 
-`focusIndex` orders series within the series area only. It does not change where the series area sits in the {% kbd "⇥ Tab" /%} order relative to the other chart components, such as the legend, toolbars and navigator.
+### Initial Focus
 
-`focusIndex` is not available on series types that are the only series in a chart, such as Treemap, Sunburst, Waterfall, Funnel and Sankey.
+Use `keyboard.initialFocus` to choose which data item receives focus when keyboard navigation first enters the chart. The default is `'data-start'`.
 
-{% apiReference id="AgBaseSeriesOptions" include=["focusIndex"] /%}
+```js format="snippet"
+{
+    keyboard: {
+        initialFocus: 'viewport-start',
+    },
+}
+```
+
+- `'data-start'` and `'data-end'` focus the first or last item in the full dataset.
+- `'viewport-start'` and `'viewport-end'` focus the first or last item in the initial visible zoom range.
 
 ## Screen Readers (ARIA)
 
@@ -102,6 +117,10 @@ To create a high contrast theme, please check out the [Themes](./themes/) docume
 
 {% tabItem id="KeyboardNavigationOptions" label="Keyboard Navigation" %}
 {% apiReference id="AgKeyboardOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="SeriesFocusOrderOptions" label="Series Focus Order" %}
+{% apiReference id="AgBaseSeriesOptions" include=["focusIndex"] /%}
 {% /tabItem %}
 
 {% /tabs %}

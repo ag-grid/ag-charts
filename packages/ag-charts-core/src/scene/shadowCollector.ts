@@ -19,6 +19,8 @@ export interface CollectedFrame extends ShadowFrame {
     readonly source: object;
     /** The version of the group when it was gathered, which changes whenever it or anything below it is marked dirty. */
     readonly version: number;
+    /** Whether the group draws into a layer of its own below the root, where a cutout can't erase what the root cast. */
+    readonly layered: boolean;
 }
 
 /** What the collector reads of the context that the shadow root draws into. */
@@ -41,6 +43,8 @@ export class ShadowCollector {
     alpha: number;
     readonly clips: ShadowRegion[] = [];
     readonly frames: CollectedFrame[] = [];
+    /** How many of the groups being gathered draw into a layer of their own. */
+    layers = 0;
 
     constructor(
         readonly ctx: CollectorContext,
@@ -51,7 +55,14 @@ export class ShadowCollector {
 
     addFrame(source: object, version: number) {
         const { a, b, c, d, e, f } = this.ctx.getTransform();
-        this.frames.push({ source, version, matrix: [a, b, c, d, e, f], alpha: this.alpha, clips: [...this.clips] });
+        this.frames.push({
+            source,
+            version,
+            matrix: [a, b, c, d, e, f],
+            alpha: this.alpha,
+            clips: [...this.clips],
+            layered: this.layers > 0,
+        });
     }
 
     pushRect(x: number, y: number, width: number, height: number) {

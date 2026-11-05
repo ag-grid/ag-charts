@@ -252,7 +252,41 @@ function markerEnabled(
 export type MarkerDrawMode = {
     needsNodeData: boolean;
     hideWithSize0: boolean;
+    /**
+     * Markers are disabled but cross-filtering needs the selected datums' markers, so the datums it has not unselected
+     * (`crossFilterSelected !== false`) are drawn and the rest are not, rather than drawn faded.
+     */
+    selectedOnly?: boolean;
 };
+
+/**
+ * The datums to draw markers for. With `selectedOnly` and no `hideWithSize0` (which keeps every datum's node to
+ * show its interactive selection), those cross-filtering has not unselected.
+ */
+export function filterMarkerNodeData<T extends { crossFilterSelected: boolean | undefined }>(
+    nodeData: T[],
+    markerDrawMode: MarkerDrawMode
+): T[] {
+    if (!markerDrawMode.needsNodeData) return [];
+    return markerDrawMode.selectedOnly && !markerDrawMode.hideWithSize0
+        ? nodeData.filter((datum) => datum.crossFilterSelected !== false)
+        : nodeData;
+}
+
+/** Whether the datum's marker is shown at size 0 until it is selected: not when cross-filtering keeps it drawn. */
+export function hideMarkerWithSize0(
+    hideWithSize0: boolean,
+    selectedOnly: boolean,
+    datum: { crossFilterSelected: boolean | undefined }
+) {
+    return hideWithSize0 && !(selectedOnly && datum.crossFilterSelected !== false);
+}
+
+/** The marker-style cache key for `hideMarkerWithSize0`, as the hidden and shown datums' styles differ. */
+export function crossFilterHiddenKey(datum: { crossFilterSelected: boolean | undefined }) {
+    return datum.crossFilterSelected === false ? 'hidden' : 'shown';
+}
+
 export function cartesianMarkerDrawMode(
     properties: { selection?: { enabled: boolean } },
     contextNodeData: { crossFiltering?: boolean } | undefined,
@@ -262,15 +296,20 @@ export function cartesianMarkerDrawMode(
     markerStyle: { enabled?: boolean } = marker,
     isMiniChart: boolean = false
 ): MarkerDrawMode {
+    const crossFiltering = contextNodeData?.crossFiltering === true;
+    const configuredEnabled = markerStyle.enabled ?? marker.enabled;
+    // Cross-filtering draws every enabled marker, however dense; when markers are disabled it draws only the selected ones.
     const markersEnabled =
-        contextNodeData?.crossFiltering === true ||
-        markerEnabled(processedData.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
+        configuredEnabled &&
+        (crossFiltering ||
+            markerEnabled(processedData.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle));
+    const selectedOnly = crossFiltering && !configuredEnabled;
 
     if (properties.selection?.enabled && !isMiniChart) {
         // selection.enabled needs NodeData for the selected-style overrides; mini-charts never render selection.
-        return { needsNodeData: true, hideWithSize0: !markersEnabled };
+        return { needsNodeData: true, hideWithSize0: !markersEnabled, selectedOnly };
     } else {
-        return { needsNodeData: markersEnabled, hideWithSize0: false };
+        return { needsNodeData: markersEnabled || selectedOnly, hideWithSize0: false, selectedOnly };
     }
 }
 

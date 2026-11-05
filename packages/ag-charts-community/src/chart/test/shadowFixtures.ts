@@ -2,19 +2,19 @@ import type { Group, Shape } from 'ag-charts-core';
 import type { AgDropShadowOptions, AgGlowOptions, AgMarkerShapeFn } from 'ag-charts-types';
 
 /** The shadow the marker shadow tests turn on. */
-export const MARKER_SHADOW: AgDropShadowOptions = { enabled: true, color: '#000000', xOffset: 4, yOffset: 4, blur: 6 };
+export const MARKER_SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000000', xOffset: 4, yOffset: 4, blur: 6 };
 
 /** The series-level shadow the highlight tests turn on. */
 export const SERIES_SHADOW: AgDropShadowOptions = {
     enabled: true,
-    color: '#112233',
+    fill: '#112233',
     xOffset: 4,
     yOffset: 4,
     blur: 6,
 };
 
 /** The glow the highlight tests turn on, distinct from `SERIES_SHADOW` in every field. */
-export const HIGHLIGHT_GLOW: AgGlowOptions = { enabled: true, color: '#00aa00', blur: 3, spread: 2 };
+export const HIGHLIGHT_GLOW: AgGlowOptions = { enabled: true, fill: '#00aa00', fillOpacity: 1, blur: 3, spread: 2 };
 
 /** The shadow a glow casts: the same blurred silhouette as a shadow, centred on the item. */
 export const glowShadow = (glow: AgGlowOptions) => ({ ...glow, xOffset: 0, yOffset: 0 });

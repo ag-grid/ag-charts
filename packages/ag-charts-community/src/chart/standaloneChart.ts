@@ -7,7 +7,6 @@ import { Axis } from './axis/axis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { LayoutContext } from './layout/layoutManager';
-import type { SeriesAreaLayout, UnknownSeries } from './series/series';
 
 export class StandaloneChart extends Chart {
     static override readonly className = 'StandaloneChart';
@@ -88,19 +87,13 @@ export class StandaloneChart extends Chart {
     }
 
     private async layoutSeriesGroups(seriesRect: BBox) {
-        const groups = new Map<SeriesAreaLayout, UnknownSeries[]>();
-        for (const series of this.series) {
-            const { seriesAreaLayout } = series;
-            if (seriesAreaLayout == null) continue;
-            let group = groups.get(seriesAreaLayout);
-            if (group == null) {
-                group = [];
-                groups.set(seriesAreaLayout, group);
-            }
-            group.push(series);
-        }
-        for (const [layout, series] of groups) {
-            await layout(series, seriesRect);
+        const layouts = new Set(this.series.map((series) => series.seriesAreaLayout));
+        for (const layout of layouts) {
+            if (layout == null) continue;
+            await layout.layoutSeries(
+                this.series.filter((series) => series.seriesAreaLayout === layout),
+                seriesRect
+            );
         }
     }
 

@@ -1,6 +1,6 @@
 /* Canvas text never triggers a font download, so the charts rely on the document
    FontFaceSet to load these and re-measure. */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Inter:wght@400;500;600&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap');
 /* Dashboard chrome, scoped under .pc-app so it never leaks into other demos. Chart
    visuals come from the AG Charts theme, not from here. */
 
@@ -12,7 +12,7 @@
        On the app root, not `:root`: the harness loads every demo's stylesheet into one
        document. Mirrored as literals in chartTheme.ts for canvas — change both. */
     --font-heading: 'Manrope', sans-serif;
-    --font-body: 'Red Hat Text', 'Inter', sans-serif;
+    --font-body: 'Red Hat Text', sans-serif;
 
     /* Surface */
     --color-bg: #f6f6f4;
@@ -22,7 +22,7 @@
 
     /* Text */
     --color-text-primary: #17181a;
-    --color-text-secondary: #6b6e72;
+    --color-text-secondary: #4f5256;
 
     /* Accent / CTA */
     --color-accent: #b23a2e;
@@ -33,6 +33,9 @@
     --color-success: #4ca96c;
     --color-success-bg: #e7f4ea;
     --color-success-text: #2e7a48;
+    /* On-time status marks (schedule, map, at-risk bar, status keys): green so they never read as
+       disabled, muted so at-risk and late stand out. Threshold tones keep the full --color-success. */
+    --color-success-muted: #87b094;
     --color-warning: #dfb240;
     --color-warning-bg: #fbf1d9;
     --color-warning-text: #8a6a0a;
@@ -42,12 +45,12 @@
 
     /* Dataviz — categorical series only. The order is the colour-vision-deficiency mechanism
        and is validated as a sequence, so slots must not be reordered or cycled. */
-    --chart-1: #b96b30; /* clay */
-    --chart-2: #0e8fa6; /* lagoon */
-    --chart-3: #8a4a9e; /* plum */
-    --chart-4: #d1798c; /* rose */
-    --chart-5: #3c63a6; /* indigo */
-    --chart-6: #8a7a15; /* bronze */
+    --chart-1: #ad6543; /* clay */
+    --chart-2: #119d9d; /* teal */
+    --chart-3: #4b55a0; /* indigo */
+    --chart-4: #a87a2a; /* ochre */
+    --chart-5: #3c7ebe; /* steel blue */
+    --chart-6: #6a7220; /* olive */
     --chart-7: #8c8680; /* warm neutral — baseline series only */
 
     /* Mixed rather than picked: the theme defines no accent tint, and a selection must read
@@ -80,8 +83,8 @@
     --pc-bad: var(--color-danger-text);
     --pc-bad-fill: var(--color-danger);
     --pc-bad-soft: var(--color-danger-bg);
-    --pc-radius: 8px;
-    --pc-radius-sm: 6px;
+    --pc-radius: 3px;
+    --pc-radius-sm: 3px;
     /* The single elevation in the app: a popover genuinely floats above content. */
     --pc-shadow-popover: 0 4px 16px rgba(23, 24, 26, 0.12);
     color: var(--pc-text);
@@ -99,6 +102,7 @@
 .pc-app :is(h1, h2, h3, h4, h5, h6),
 .pc-page-title,
 .pc-card-title,
+.pc-kpi-label,
 .pc-brand {
     font-family: var(--font-heading), system-ui, sans-serif;
 }
@@ -117,7 +121,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 232px;
+    width: 180px;
     flex: 0 0 auto;
     padding: 18px 16px;
     background: var(--pc-panel);
@@ -127,14 +131,146 @@
 .pc-sidebar-spacer {
     flex: 1 1 auto;
 }
-/* The dataset's as-of stamp, per the data-freshness requirement. */
-.pc-stamp {
+/* Where to get help. Dismissable; see HelpCard. */
+.pc-help {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 10px 12px 12px;
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius-sm);
+    background: var(--pc-panel-2);
+}
+.pc-help-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+.pc-help-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+}
+.pc-help-close {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: var(--pc-radius-sm);
+    background: transparent;
     color: var(--pc-muted);
-    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
+.pc-help-close:hover {
+    background: var(--pc-accent-soft);
+    color: var(--pc-accent-strong);
+}
+.pc-help-close:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 1px;
+}
+.pc-help-body {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--pc-muted);
+    overflow-wrap: anywhere;
+}
+/* Account actions; placeholders, see SidebarActions. */
+.pc-side-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.pc-side-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 12px;
+    border: none;
+    border-radius: var(--pc-radius-sm);
+    background: transparent;
+    color: var(--pc-muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+.pc-side-action:not([aria-disabled='true']):hover {
+    color: var(--pc-text);
+    background: var(--pc-panel-2);
+}
+.pc-side-action[aria-disabled='true'] {
+    cursor: default;
+}
+.pc-side-action:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 1px;
+}
+.pc-side-action-icon {
+    flex: none;
+}
+.pc-brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+/* About this demo; see DemoNotice. */
+.pc-notice {
+    display: inline-flex;
+    align-items: center;
+}
+.pc-notice-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: var(--pc-radius-sm);
+    background: transparent;
+    color: var(--pc-muted);
+    cursor: pointer;
+}
+.pc-notice-trigger:hover {
+    background: var(--pc-accent-soft);
+    color: var(--pc-accent-strong);
+}
+.pc-notice-trigger:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 1px;
+}
+/* Placed and capped in width by DemoNotice; see there for why it is fixed rather than absolute. */
+.pc-notice-tip {
+    position: fixed;
+    z-index: 60;
+    width: max-content;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius-sm);
+    background: var(--pc-panel);
+    box-shadow: var(--pc-shadow-popover);
+    color: var(--pc-muted);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+    font-variant-numeric: normal;
+    pointer-events: none;
 }
 /* The application name — whose workspace this is belongs in the body. */
 .pc-brand {
@@ -199,8 +335,9 @@
     height: 34px;
     flex: 0 0 auto;
     border-radius: 50%;
-    background: var(--pc-accent);
-    color: var(--color-on-accent);
+    background: var(--pc-panel-2);
+    box-shadow: inset 0 0 0 1px var(--pc-border);
+    color: var(--pc-text);
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -211,12 +348,12 @@
     min-width: 0;
     min-height: 0;
     overflow-y: auto;
-    padding: 20px 24px 40px;
+    padding: 20px 24px 24px;
 }
 .pc-view {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     max-width: 1660px;
     margin: 0 auto;
     /* Fills the scroll region, so a view that asks to fill the page has a height to fill.
@@ -226,7 +363,7 @@
 .pc-view-content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
 }
 /* A view whose last row takes whatever height is left, rather than the page ending under it. */
 .pc-view-content--fill {
@@ -260,19 +397,20 @@
     color: var(--pc-text);
     background: var(--pc-panel-2);
 }
+/* Tint and an edge bar rather than a solid fill, so a solid red block only ever means danger. The
+   bar is an inset shadow so the label does not shift when the tab becomes active. */
 .pc-tab-trigger[data-state='active'] {
-    background: var(--pc-accent);
-    color: var(--color-on-accent);
+    background: var(--pc-accent-soft);
+    box-shadow: inset 3px 0 0 var(--pc-accent);
+    color: var(--pc-text);
+    /* The inset shadow follows the corners, so the bar's edge is squared to keep it straight. */
+    border-radius: 0 var(--pc-radius-sm) var(--pc-radius-sm) 0;
 }
 /* `all: unset` drops the UA focus ring, and Radix moves focus between triggers with the arrow
    keys, so the ring has to be restored explicitly. */
 .pc-tab-trigger:focus-visible {
     outline: 2px solid var(--pc-accent);
     outline-offset: 1px;
-}
-.pc-tab-trigger[data-state='active']:focus-visible {
-    outline-color: var(--pc-accent-strong);
-    outline-offset: 2px;
 }
 /* Only the active tab is mounted, so this shapes one view at a time: a column the view can
    grow inside. */
@@ -346,9 +484,14 @@
     gap: 12px;
     margin-bottom: 14px;
 }
+/* A head whose small button comes and goes keeps its height either way; 27px is `.pc-btn-sm`'s. */
+.pc-card-head--action {
+    min-height: 27px;
+    align-items: center;
+}
 .pc-card-title {
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: 0.01em;
     margin: 0;
 }
@@ -357,6 +500,16 @@
     font-size: 13px;
     color: var(--pc-muted);
     margin-top: 2px;
+}
+/* A title with its subtitle beside it rather than beneath; the subtitle wraps under when the card is narrow. */
+.pc-card-title-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 8px;
+}
+.pc-card-title-inline .pc-card-sub {
+    margin-top: 0;
 }
 .pc-chart-box {
     height: clamp(280px, 30vh, 380px);
@@ -367,13 +520,6 @@
 .pc-chart-box--grow {
     flex: 1 1 auto;
     min-height: clamp(280px, 30vh, 380px);
-    min-width: 0;
-}
-/* For a chart whose row is sized by the card beside it — a grid that hugs its rows, say. The
-   minimum is a legibility floor, low enough that the neighbour is what sets the height. */
-.pc-chart-box--match {
-    flex: 1 1 auto;
-    min-height: 200px;
     min-width: 0;
 }
 /* The sunburst is radial, so its legible size is bounded by the shorter side of its
@@ -388,81 +534,72 @@
     display: grid;
     /* Column count comes from the tile count the view passes — see `KpiStrip`. */
     grid-template-columns: repeat(var(--pc-kpi-columns, 3), minmax(0, 1fr));
-    gap: 14px;
-}
-.pc-kpi {
-    position: relative;
     background: var(--pc-panel);
     border: 1px solid var(--pc-border);
     border-radius: var(--pc-radius);
-    padding: 14px 16px;
+    overflow: hidden;
+}
+/* The card inset, so a tile's content lines up with the cards beneath it. */
+.pc-kpi {
+    padding: 18px 20px;
     display: flex;
     flex-direction: column;
     gap: 4px;
     overflow: hidden;
 }
-/* Deliberately not on every tile: the rule marks a metric that wants acting on, and giving a
-   healthy figure one too would reduce the motif to decoration. */
-.pc-kpi.is-warn::before,
-.pc-kpi.is-bad::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto;
-    height: 3px;
-}
-.pc-kpi.is-warn::before {
-    background: var(--pc-warn-fill);
-}
-.pc-kpi.is-bad::before {
-    background: var(--pc-bad-fill);
-}
-/* Threshold state, restated by the tile's glyph so it does not rest on colour. */
-.pc-kpi.is-good {
-    color: var(--pc-ok);
-}
-.pc-kpi.is-warn {
-    color: var(--pc-warn);
-}
-.pc-kpi.is-bad {
-    color: var(--pc-bad);
-}
 .pc-kpi-label {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--pc-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-.pc-kpi-icon {
-    font-size: 11px;
-}
-.pc-kpi.is-good .pc-kpi-icon,
-.pc-kpi.is-warn .pc-kpi-icon,
-.pc-kpi.is-bad .pc-kpi-icon {
-    color: currentcolor;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
 }
 .pc-kpi-value {
     font-size: 26px;
     font-weight: 700;
     letter-spacing: -0.02em;
-    /* Text ink, not the threshold colour — the top rule and glyph already carry that. */
     color: var(--pc-text);
     font-variant-numeric: tabular-nums;
 }
-/* Progress against target, between the figure and the line that explains it. */
+/* The figure on the left, its chart ranged right at a capped width. */
+.pc-kpi-figure {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.pc-kpi-value {
+    flex: none;
+}
+/* Progress against target, beside the figure. */
 .pc-kpi-gauge {
     display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 420px;
     height: 18px;
-    margin: 2px 0;
 }
 /* What the figure is drawn from, as one segmented bar plus its bands in text. */
 .pc-kpi-segments {
     display: block;
-    height: 12px;
-    margin: 4px 0 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 420px;
+    height: 18px;
+}
+/* Chart under the figure, for tiles too narrow to hold both on one row. */
+.pc-kpis--stacked .pc-kpi-figure {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+}
+.pc-kpis--stacked .pc-kpi-gauge {
+    margin: 2px 0;
+}
+.pc-kpis--stacked .pc-kpi-gauge,
+.pc-kpis--stacked .pc-kpi-segments {
+    max-width: none;
 }
 /* The explanatory line and the bands, on one row: the sentence takes the slack and the counts
    range right against it, wrapping under only when the tile is too narrow to hold both. */
@@ -473,7 +610,7 @@
     flex-wrap: wrap;
     gap: 2px 12px;
 }
-.pc-kpi-segment-keys {
+.pc-status-keys {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
@@ -482,7 +619,7 @@
     color: var(--pc-muted);
     font-variant-numeric: tabular-nums;
 }
-.pc-kpi-segment-key {
+.pc-status-key {
     white-space: nowrap;
 }
 .pc-kpi-detail {
@@ -497,8 +634,15 @@
 .pc-grid-2 {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
+    gap: 12px;
     align-items: stretch;
+}
+/* Cards stacked within one column of a grid, so a single card can span them from the next column. */
+.pc-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
 }
 /* Takes the height its view has left over, and passes it to both cards. */
 .pc-grid-2--fill {
@@ -559,7 +703,7 @@
     background: var(--pc-panel);
     border: 1px solid var(--pc-border-strong);
     border-radius: var(--pc-radius);
-    box-shadow: 0 18px 40px rgb(15 23 42 / 18%);
+    box-shadow: var(--pc-shadow-popover);
 }
 .pc-alert-panel:focus-visible {
     outline: 2px solid var(--pc-accent);
@@ -615,7 +759,7 @@
 .pc-attention-body:focus-visible {
     outline: 2px solid var(--pc-accent);
     outline-offset: 2px;
-    border-radius: 3px;
+    border-radius: var(--pc-radius-sm);
 }
 .pc-attention-title {
     font-weight: 600;
@@ -678,11 +822,17 @@
 .pc-supplier-swatch {
     width: 10px;
     height: 10px;
-    border-radius: 3px;
+    border-radius: var(--pc-radius-sm);
     flex: 0 0 auto;
 }
 .pc-supplier-name {
     font-weight: 700;
+}
+/* A supplier leaf in the spend breakdown grid: swatch then name, as on the roster. */
+.pc-spend-supplier {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 /* A figure the wrong side of its target, or of contract price. */
 .pc-down {
@@ -701,33 +851,6 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-}
-
-/* ---- shared status legend (board + map) ---- */
-.pc-legend {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    font-size: 12px;
-    color: var(--pc-muted);
-}
-.pc-legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-.pc-legend-glyph {
-    font-size: 11px;
-}
-.pc-legend-item.is-ok .pc-legend-glyph {
-    color: var(--pc-ok);
-}
-.pc-legend-item.is-warn .pc-legend-glyph {
-    color: var(--pc-warn);
-}
-.pc-legend-item.is-bad .pc-legend-glyph {
-    color: var(--pc-bad);
 }
 
 /* ---- active-filter chips ---- */
@@ -837,7 +960,7 @@
 .pc-link-btn:focus-visible {
     outline: 2px solid var(--pc-accent);
     outline-offset: 2px;
-    border-radius: 3px;
+    border-radius: var(--pc-radius-sm);
 }
 .pc-po-actions {
     display: inline-flex;
@@ -866,6 +989,9 @@
     min-width: 150px;
     font-weight: 500;
 }
+.pc-select-icon {
+    display: flex;
+}
 .pc-select-content {
     z-index: 60;
     background: var(--pc-panel);
@@ -880,45 +1006,55 @@
     align-items: center;
     height: 30px;
     padding: 0 26px 0 12px;
-    border-radius: 7px;
+    border-radius: var(--pc-radius);
     cursor: pointer;
     color: var(--pc-text);
 }
 .pc-select-item[data-highlighted] {
     background: var(--pc-accent-soft);
     color: var(--pc-accent-strong);
-    font-weight: 500;
 }
 
 /* ---- Radix ToggleGroup ---- */
+/* Padded so the selected segment's ring does not double the group's border. */
 .pc-toggle-group {
     display: inline-flex;
+    gap: 2px;
+    padding: 2px;
     border: 1px solid var(--pc-border);
     border-radius: var(--pc-radius-sm);
-    overflow: hidden;
 }
 .pc-toggle-item {
     all: unset;
-    padding: 6px 12px;
+    padding: 4px 12px;
+    border-radius: var(--pc-radius-sm);
     font-size: 13px;
     font-weight: 600;
     color: var(--pc-muted);
     cursor: pointer;
     transition:
         background 0.12s ease,
+        box-shadow 0.12s ease,
         color 0.12s ease;
+}
+.pc-toggle-item--icon {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
 }
 .pc-toggle-item:hover {
     background: var(--pc-panel-2);
     color: var(--pc-text);
 }
+/* Ring and tint: the ring tells a selected segment from the active sidebar tab's edge bar. */
 .pc-toggle-item[data-state='on'] {
-    background: var(--pc-accent);
-    color: var(--color-on-accent);
+    background: color-mix(in srgb, var(--pc-accent) 8%, var(--pc-panel));
+    box-shadow: inset 0 0 0 1px var(--pc-accent);
+    color: var(--pc-accent-strong);
 }
 .pc-toggle-item:focus-visible {
     outline: 2px solid var(--pc-accent);
-    outline-offset: -2px;
+    outline-offset: 1px;
 }
 
 /* ---- small-multiple facets ---- */
@@ -982,6 +1118,7 @@
     flex: 0 0 auto;
     margin-top: var(--pc-facet-band-top, 0);
     margin-bottom: var(--pc-facet-band-bottom, 0);
+    padding-top: 14px;
 }
 /* Fixed, so every pie is the same size: the facets grow with the card, and a pie that grew with them
    would vary in size for a reason that has nothing to do with its data. */
@@ -1028,6 +1165,10 @@
        of scrolling. */
     width: 100%;
 }
+/* A grid standing in for a chart fills the chart's box and scrolls within it. */
+.pc-grid-host--fill {
+    height: 100%;
+}
 /* AG Grid 36 hides the last row's bottom border once the rows fill the grid, by toggling
    ag-body-vertical-content-no-gap on the grid body. ag-grid-react 36.2.0 never applies that class,
    so without this the React demo alone draws a line under the supplier roster's last row. Remove
@@ -1039,6 +1180,11 @@
     > :is(.ag-grid-pinned-left-cells, .ag-grid-pinned-right-cells, .ag-grid-scrolling-cells) {
     border-bottom-color: transparent;
 }
+/* A cell is one line of text, which seats a pill or button on the baseline, above the row's centre. */
+.pc-grid-host .ag-cell.pc-cell-centred {
+    display: flex;
+    align-items: center;
+}
 /* The indicator stays a status glyph rather than a plain dot: it is the non-colour channel this
    grid's accessibility rests on. */
 .pc-status-cell {
@@ -1046,7 +1192,7 @@
     align-items: center;
     gap: 5px;
     padding: 2px 8px;
-    border-radius: 4px;
+    border-radius: var(--pc-radius-sm);
     background: var(--pc-panel-2);
     color: var(--pc-muted);
     font-size: 11px;
@@ -1116,11 +1262,28 @@
         flex-direction: row;
         gap: 4px;
     }
+    .pc-tab-trigger[data-state='active'] {
+        box-shadow: inset 0 -2px 0 var(--pc-accent);
+        border-radius: var(--pc-radius-sm) var(--pc-radius-sm) 0 0;
+    }
     .pc-account {
         padding-top: 0;
         border-top: none;
     }
     .pc-account-text {
+        display: none;
+    }
+    .pc-side-actions {
+        flex-direction: row;
+    }
+    .pc-side-action {
+        padding: 7px;
+    }
+    .pc-side-action-label {
+        display: none;
+    }
+    /* A card has no place in a one-line bar. */
+    .pc-help {
         display: none;
     }
 }
@@ -1148,13 +1311,20 @@
     .pc-kpi-value {
         font-size: 23px;
     }
-    .pc-card {
+    .pc-card,
+    .pc-kpi {
         padding: 14px 14px;
     }
     .pc-card-head {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
+    }
+    /* Stacked, the button takes a row of its own, kept open while it is absent. */
+    .pc-card-head--action {
+        display: grid;
+        grid-template-rows: auto 27px;
+        justify-items: start;
     }
     .pc-select-trigger {
         min-width: 128px;

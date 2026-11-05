@@ -292,6 +292,14 @@ describe('priceVolumePreset', () => {
                 data: getStockData(),
                 volumeProfile: { ...volumeProfile, data: getIrregularVolumeProfile() },
             },
+            'custom up and down bars': {
+                data: getStockData(),
+                volumeProfile: {
+                    ...volumeProfile,
+                    up: { fill: '#1565c0', fillOpacity: 0.7, stroke: '#0d47a1', strokeWidth: 2 },
+                    down: { stroke: '#e65100' },
+                },
+            },
         };
 
         it.each(Object.entries(VOLUME_PROFILE_EXAMPLES))(
@@ -488,6 +496,15 @@ describe('priceVolumePreset', () => {
             await hoverCandleAtLevel(50, LEVEL_200);
 
             expectProfileNotHovered();
+            await compare();
+        });
+
+        it('should colour the hovered level by the up and down fills', async () => {
+            await create({
+                volumeProfile: { ...volumeProfile, up: { fill: '#7b1fa2' }, down: { fill: '#ef6c00' } },
+            });
+            await hoverCandleAtLevel(50, LEVEL_200);
+
             await compare();
         });
 

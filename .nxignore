@@ -5,6 +5,11 @@ packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkHarness.ts
 packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkUtils.ts
 packages/ag-charts-website/src/content/docs/*/_examples/*/seededRandom.ts
 packages/ag-charts-website/src/content/docs/*/_examples/*/randomHelpers.ts
+packages/ag-charts-website/src/content/docs/map-shapes/_examples/backgrounds/topology.ts
+packages/ag-charts-website/src/content/docs/map-shapes/_examples/heatmap/topology.ts
+packages/ag-charts-website/src/content/docs/map-shapes/_examples/labels/topology.ts
+packages/ag-charts-website/src/content/docs/map-shapes/_examples/multiple-series/topology.ts
+packages/ag-charts-website/src/content/docs/zoom-e2e/_examples/map-keyboard-pan/topology.ts
 .rulesync/**
 !.rulesync/README.md
 .patches/

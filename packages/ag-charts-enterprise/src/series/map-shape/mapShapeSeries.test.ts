@@ -181,12 +181,29 @@ describe('MapShapeSeries', () => {
             });
 
             it('draws the highlighted shape with its glow after the cutout', async () => {
-                const glow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', blur: 6 };
+                const glow = { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', fillOpacity: 1, blur: 6, spread: 1 };
                 await highlightFirstShape(cutoutOptions(SMALL_SHADOW, glow));
 
                 const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
                 expect(highlighted.drawingMode).toBe('cutout');
                 expect(highlighted.fillShadow).toMatchObject({ enabled: true, xOffset: 0, yOffset: 0, blur: 6 });
+                await compare();
+            });
+
+            it('draws the highlighted shape with the default glow, in the colour of its fill, after the cutout', async () => {
+                await highlightFirstShape(cutoutOptions(SMALL_SHADOW, { enabled: true }));
+
+                const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
+                expect(highlighted.drawingMode).toBe('cutout');
+                expect(highlighted.fillShadow).toMatchObject({
+                    enabled: true,
+                    xOffset: 0,
+                    yOffset: 0,
+                    blur: 2,
+                    spread: 4,
+                    fillOpacity: 0.4,
+                });
+                expect(highlighted.getCastShadow()?.fill).toBe('blue');
                 await compare();
             });
         });
@@ -370,62 +387,6 @@ describe('MapShapeSeries', () => {
                 const sizes = await renderSizes({ minimumFontSize: 8, itemStyler: () => ({ fontSize: 20 }) });
                 expect(sizes).toContain(20);
                 expect(sizes.some((size: number) => size > 10 && size < 20)).toBe(true);
-            });
-        });
-
-        // setupMockConsole() fails on any unasserted warning, so each case here must consume its deprecation notice.
-        describe('deprecated overflowStrategy', () => {
-            const render = async (label: object) => {
-                const options: AgChartOptions = {
-                    data: usData.map((d) => ({ ...d, label: `${d.name} ${d.name}` })),
-                    topology: usTopology,
-                    series: [
-                        { type: 'map-shape', idKey: 'name', labelKey: 'label', label: { fontSize: 10, ...label } },
-                    ],
-                } as AgChartOptions;
-                chart = deproxy(await createEnterpriseChart(options));
-                return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: string }) => d.text);
-            };
-
-            const resolvedTruncate = () => chart.series[0].options.label.truncate;
-
-            it('warns and maps `ellipsis` onto `truncate`', async () => {
-                const texts = await render({ overflowStrategy: 'ellipsis' });
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                    ],
-                  ]
-                `);
-                expect(resolvedTruncate()).toBe(true);
-                expect(texts.some((text: string) => text.includes('…'))).toBe(true);
-            });
-
-            it('keeps `hide` when another fit option would otherwise default `truncate` on', async () => {
-                const texts = await render({ overflowStrategy: 'hide', minimumFontSize: 8 });
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                    ],
-                  ]
-                `);
-                expect(resolvedTruncate()).toBe(false);
-                expect(texts.some((text: string) => text.includes('…'))).toBe(false);
-            });
-
-            it('lets an explicit `truncate` win over the deprecated value', async () => {
-                const texts = await render({ wrapping: 'never', overflowStrategy: 'ellipsis', truncate: false });
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                    ],
-                  ]
-                `);
-                expect(resolvedTruncate()).toBe(false);
-                expect(texts.some((text: string) => text.includes('…'))).toBe(false);
             });
         });
     });

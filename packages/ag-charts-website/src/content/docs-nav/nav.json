@@ -442,14 +442,14 @@
                         },
                         {
                             "type": "item",
-                            "title": "Volume Profile",
-                            "path": "financial-charts-volume-profile",
+                            "title": "Range Buttons",
+                            "path": "range-buttons",
                             "isEnterprise": true
                         },
                         {
                             "type": "item",
-                            "title": "Range Buttons",
-                            "path": "range-buttons",
+                            "title": "Volume Profile",
+                            "path": "financial-charts-volume-profile",
                             "isEnterprise": true
                         }
                     ]

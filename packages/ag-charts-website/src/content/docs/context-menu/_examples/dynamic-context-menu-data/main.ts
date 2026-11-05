@@ -63,11 +63,6 @@ function pointKey(seriesId: string, year: string) {
     return `${seriesId}::${year}`;
 }
 
-function colorSwatch(color: string) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="${color}"/></svg>`;
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
-
 type LabelOptions = NonNullable<AgLineSeriesOptions<DatumType>['label']>;
 
 function labelColors(color: string): Pick<LabelOptions, 'color' | 'fill' | 'border'> {
@@ -162,7 +157,6 @@ function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenu
                     type: 'action',
                     showOn: 'legend-item',
                     label: color.label,
-                    iconUrl: colorSwatch(color.value),
                     action: () => colorSeries(seriesId, color.value),
                 })),
             },

@@ -39,6 +39,7 @@ const options: AgChartOptions<DataType> = {
             colorName: 'Temperature',
             label: {
                 enabled: true,
+                lineHeight: 15,
                 formatter: ({ datum: { temperature } }) => `${temperature.toFixed(0)}°C`,
             },
         },

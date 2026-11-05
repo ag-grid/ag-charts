@@ -113,11 +113,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
      */
     sizeDomain?: [AgNumericValue, AgNumericValue];
     /**
-     * Determines how `sizeKey` values map onto marker sizes.
-     *
-     * - `'diameter'`: the marker diameter grows linearly with the value.
-     * - `'area'`: the marker area grows linearly with the value, so equal steps in value give equal steps in area.
-     *
+     * Determines if the marker diameter or area grows with the `sizeKey` values.
      * In `'area'` mode the area is only strictly proportional to the value when `minSize` is `0` and `sizeDomain` starts at `0`.
      *
      * Default: `'diameter'`

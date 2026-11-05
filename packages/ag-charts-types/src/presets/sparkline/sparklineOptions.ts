@@ -1,7 +1,7 @@
 import type { Renderer } from '../../chart/callbackOptions';
 import type { AgCrosshairOptions } from '../../chart/crosshairOptions';
 import type { AgSeriesTooltipInteraction, AgTooltipPositionOptions } from '../../chart/tooltipOptions';
-import type { DatumDefault, InteractionRange } from '../../chart/types';
+import type { DatumDefault, DatumKey, InteractionRange } from '../../chart/types';
 import type { AgAreaSeriesOptions } from '../../series/cartesian/areaOptions';
 import type { AgBarSeriesOptions } from '../../series/cartesian/barOptions';
 import type { AgLineSeriesOptions } from '../../series/cartesian/lineOptions';
@@ -38,7 +38,7 @@ export interface AgSparklineTooltip<TDatum = DatumDefault> {
     position?: AgTooltipPositionOptions;
     /** Configuration for tooltip interaction. */
     interaction?: AgSeriesTooltipInteraction;
-    /** Function used to create the content for tooltips. */
+    /** Function used to create the content for tooltips. A returned string is inserted as HTML, so escape any values derived from chart data. */
     renderer?: Renderer<AgSparklineTooltipRendererParams<TDatum>, AgSparklineTooltipRendererResult>;
 }
 
@@ -65,11 +65,11 @@ export interface AgSparklineBaseThemeableOptions<TDatum = DatumDefault> {
     styleNonce?: string;
 }
 
-export interface AgSparklineDataKeysOptions {
+export interface AgSparklineDataKeysOptions<TDatum = DatumDefault> {
     /** The key used to retrieve x-values from the data. */
-    xKey?: string;
+    xKey?: DatumKey<TDatum>;
     /** The key used to retrieve y-values from the data. */
-    yKey?: string;
+    yKey?: DatumKey<TDatum>;
 }
 
 type AgSparklineSeriesOmit =
@@ -89,7 +89,7 @@ type AgSparklineSeriesOmit =
 export interface AgAreaSparklinePreset<TDatum = DatumDefault>
     extends
         AgSparklineBaseThemeableOptions<TDatum>,
-        AgSparklineDataKeysOptions,
+        AgSparklineDataKeysOptions<TDatum>,
         Omit<AgAreaSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series, and is how `setSelection()` addresses the series.
@@ -102,7 +102,7 @@ export interface AgAreaSparklinePreset<TDatum = DatumDefault>
 export interface AgBarSparklinePreset<TDatum = DatumDefault>
     extends
         AgSparklineBaseThemeableOptions<TDatum>,
-        AgSparklineDataKeysOptions,
+        AgSparklineDataKeysOptions<TDatum>,
         Omit<AgBarSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series, and is how `setSelection()` addresses the series.
@@ -115,7 +115,7 @@ export interface AgBarSparklinePreset<TDatum = DatumDefault>
 export interface AgLineSparklinePreset<TDatum = DatumDefault>
     extends
         AgSparklineBaseThemeableOptions<TDatum>,
-        AgSparklineDataKeysOptions,
+        AgSparklineDataKeysOptions<TDatum>,
         Omit<AgLineSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
     /** The type of sparkline series. */
     type: 'line';

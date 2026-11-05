@@ -7,6 +7,7 @@ import {
     type LabelFit,
     type NormalisedTextOrSegments,
     OrdinalTimeScale,
+    type OverflowStrategy,
     type ResolvedTextAlign,
     type Scale,
     ScaleAlignment,
@@ -46,14 +47,7 @@ import {
     toTimeInterval,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-import type {
-    AgTimeInterval,
-    AgTimeIntervalUnit,
-    DateFormatterStyle,
-    OverflowStrategy,
-    TextWrap,
-    VerticalAlign,
-} from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextWrap, VerticalAlign } from 'ag-charts-types';
 
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';

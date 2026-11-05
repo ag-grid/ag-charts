@@ -172,7 +172,7 @@ describe('marker shadow', () => {
         it('follows the shadow values when they change with chart.update()', async () => {
             await create(options(MARKER_SHADOW));
 
-            const changed = { ...MARKER_SHADOW, blur: 12, color: '#ff0000' };
+            const changed = { ...MARKER_SHADOW, blur: 12, fill: '#ff0000' };
             await update(options(changed));
 
             for (const marker of visibleMarkers()) {
@@ -251,7 +251,7 @@ describe('marker shadow', () => {
     describe('area', () => {
         const AREA_FILL_SHADOW: AgDropShadowOptions = {
             enabled: true,
-            color: '#ff0000',
+            fill: '#ff0000',
             xOffset: 10,
             yOffset: 12,
             blur: 14,
@@ -348,7 +348,7 @@ describe('marker shadow', () => {
                         yKey: 'y',
                         shape: 'circle',
                         size: 24,
-                        shadow: { enabled: true, color: '#000000aa', xOffset: 5, yOffset: 5, blur: 6 },
+                        shadow: { enabled: true, fill: '#000000aa', xOffset: 5, yOffset: 5, blur: 6 },
                     },
                 ],
             });
@@ -368,7 +368,7 @@ describe('marker shadow', () => {
                             enabled: true,
                             shape: 'square',
                             size: 20,
-                            shadow: { enabled: true, color: '#000000aa', xOffset: 5, yOffset: 5, blur: 6 },
+                            shadow: { enabled: true, fill: '#000000aa', xOffset: 5, yOffset: 5, blur: 6 },
                         },
                     },
                 ],

@@ -31,7 +31,15 @@ export function replaceDataSet<T = unknown>(
     dataIdKey: string | undefined,
     logger: Logger
 ): DataSet<T> {
-    const dst = new DataSet<T>(data, logger, dataIdKey);
+    return inheritDataSet(service, src, new DataSet<T>(data, logger, dataIdKey));
+}
+
+/** Transfers persistent state from `src`, if any, to `dst`. */
+export function inheritDataSet<T, D extends DataSet<T>>(
+    service: IDataSelectionService | undefined,
+    src: DataSet<T> | undefined,
+    dst: D
+): D {
     if (src) service?.transferDataSet(dst, src);
     return dst;
 }

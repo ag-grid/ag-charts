@@ -347,17 +347,21 @@ describe('Annotation datum lifecycle', () => {
     });
 
     describe('toolbar drawing', () => {
-        it('serialises a horizontal line drawn from the toolbar', async () => {
-            await prepareChart([], { ...ANNOTATIONS_EXAMPLE_OPTIONS, annotations: { enabled: true } });
+        async function chooseTool(group: string, tool: string) {
             const body = deproxy(chart).ctx.agDocument.body;
-            body.querySelector<HTMLElement>('button[title="Trend Lines"]')!.click();
+            body.querySelector<HTMLElement>(`button[title="${group}"]`)!.click();
             await waitForChartStability(chart);
             const item = Array.from(body.querySelectorAll<HTMLElement>('.ag-charts-menu__row')).find(
-                (row) => row.textContent === 'Horizontal Line'
+                (row) => row.textContent === tool
             );
             expect(item).toBeDefined();
             item!.click();
             await waitForChartStability(chart);
+        }
+
+        it('serialises a horizontal line drawn from the toolbar', async () => {
+            await prepareChart([], { ...ANNOTATIONS_EXAMPLE_OPTIONS, annotations: { enabled: true } });
+            await chooseTool('Trend Lines', 'Horizontal Line');
 
             const point = toCanvas(new Date(X_MID.value), 40);
             await hoverAction(point.x, point.y)(chart);
@@ -369,6 +373,128 @@ describe('Annotation datum lifecycle', () => {
             expect(annotations[0].type).toBe('horizontal-line');
             expect(annotations[0].value).toBeCloseTo(40, 0);
             expect(annotations).toMatchSnapshot();
+        });
+
+        const TOOLBAR_BUTTONS = [
+            { icon: 'trend-line-drawing', tooltip: 'toolbarAnnotationsLineAnnotations', value: 'line-menu' },
+            {
+                icon: 'fibonacci-retracement-drawing',
+                tooltip: 'toolbarAnnotationsFibonacciAnnotations',
+                value: 'fibonacci-menu',
+            },
+            { icon: 'text-annotation', tooltip: 'toolbarAnnotationsTextAnnotations', value: 'text-menu' },
+            { icon: 'arrow-drawing', tooltip: 'toolbarAnnotationsShapeAnnotations', value: 'shape-menu' },
+            { icon: 'measurer-drawing', tooltip: 'toolbarAnnotationsMeasurerAnnotations', value: 'measurer-menu' },
+        ] as const;
+        const CLICKS = [
+            { x: new Date('2024-01-05'), y: 20 },
+            { x: new Date('2024-06-15'), y: 80 },
+            { x: new Date('2024-12-25'), y: 50 },
+        ];
+
+        type SerialiseX = (date: Date) => unknown;
+        const point = (index: number, xOf: SerialiseX) => ({
+            x: xOf(CLICKS[index].x),
+            y: expect.closeTo(CLICKS[index].y, 0),
+        });
+        const startEnd = (xOf: SerialiseX) => ({ start: point(0, xOf), end: point(1, xOf) });
+        // The third channel click sets only the height, so its handle sits at `end.y - height`.
+        const channelHeight = expect.closeTo(CLICKS[1].y - CLICKS[2].y, 0);
+
+        const TOOLS: Array<[string, string, string, number, boolean, (xOf: SerialiseX) => object]> = [
+            ['Trend Lines', 'Trend Line', 'line', 2, false, startEnd],
+            [
+                'Trend Lines',
+                'Horizontal Line',
+                'horizontal-line',
+                1,
+                false,
+                () => ({ value: expect.closeTo(CLICKS[0].y, 0) }),
+            ],
+            ['Trend Lines', 'Vertical Line', 'vertical-line', 1, false, (xOf) => ({ value: xOf(CLICKS[0].x) })],
+            [
+                'Trend Lines',
+                'Parallel Channel',
+                'parallel-channel',
+                3,
+                false,
+                (xOf) => ({ ...startEnd(xOf), height: channelHeight }),
+            ],
+            [
+                'Trend Lines',
+                'Disjoint Channel',
+                'disjoint-channel',
+                3,
+                false,
+                (xOf) => ({ ...startEnd(xOf), endHeight: channelHeight }),
+            ],
+            ['Fibonacci', 'Fib Retracement', 'fibonacci-retracement', 2, false, startEnd],
+            [
+                'Fibonacci',
+                'Fib Trend Based',
+                'fibonacci-retracement-trend-based',
+                3,
+                false,
+                (xOf) => ({ ...startEnd(xOf), endRetracement: point(2, xOf) }),
+            ],
+            ['Text Annotations', 'Text', 'text', 1, true, (xOf) => point(0, xOf)],
+            ['Text Annotations', 'Comment', 'comment', 1, true, (xOf) => point(0, xOf)],
+            ['Text Annotations', 'Callout', 'callout', 2, true, startEnd],
+            ['Text Annotations', 'Note', 'note', 1, true, (xOf) => point(0, xOf)],
+            ['Arrows', 'Arrow', 'arrow', 2, false, startEnd],
+            ['Arrows', 'Arrow Up', 'arrow-up', 1, false, (xOf) => point(0, xOf)],
+            ['Arrows', 'Arrow Down', 'arrow-down', 1, false, (xOf) => point(0, xOf)],
+            ['Measurers', 'Measure', 'quick-date-price-range', 2, false, startEnd],
+            ['Measurers', 'Date Range', 'date-range', 2, false, startEnd],
+            ['Measurers', 'Price Range', 'price-range', 2, false, startEnd],
+            ['Measurers', 'Date and Price', 'date-price-range', 2, false, startEnd],
+        ];
+
+        const AXES: Array<[string, AgCartesianChartOptions, SerialiseX]> = [
+            [
+                'band',
+                {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: { y: { type: 'number' }, x: { type: 'ordinal-time' } },
+                },
+                (date) => ({ groupPercentage: 0, value: { __type: 'date', value: date.toISOString() } }),
+            ],
+            ['continuous', {}, (date) => ({ __type: 'date', value: date.toISOString() })],
+        ];
+
+        // Textual annotations are discarded unless their text input is committed.
+        async function commitText() {
+            const input = deproxy(chart).ctx.agDocument.body.querySelector('.ag-charts-text-input')!
+                .firstElementChild as HTMLElement;
+            input.innerText = 'Text';
+            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+            await waitForChartStability(chart);
+        }
+
+        describe.each(AXES)('on a %s x axis', (_axis, axisOptions, xOf) => {
+            it.each(TOOLS)(
+                'keeps each handle of a %s > %s where it was clicked',
+                async (group, tool, type, clickCount, hasText, expected) => {
+                    await prepareChart([], {
+                        ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                        ...axisOptions,
+                        annotations: { enabled: true, toolbar: { buttons: [...TOOLBAR_BUTTONS] } },
+                    });
+                    await chooseTool(group, tool);
+
+                    for (const { x, y } of CLICKS.slice(0, clickCount)) {
+                        const canvasPoint = toCanvas(x, y);
+                        await hoverAction(canvasPoint.x, canvasPoint.y)(chart);
+                        await clickAction(canvasPoint.x, canvasPoint.y)(chart);
+                        await waitForChartStability(chart);
+                    }
+                    if (hasText) await commitText();
+
+                    const annotations = chart.getState().annotations;
+                    expect(annotations).toHaveLength(1);
+                    expect(annotations[0]).toMatchObject({ type, ...expected(xOf) });
+                }
+            );
         });
     });
 

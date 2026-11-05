@@ -6,6 +6,7 @@ import {
     AgCharts,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
+    AgStandaloneChartOptions,
     AgTopologyChartOptions,
     ContextMenuModule,
 } from 'ag-charts-enterprise';
@@ -228,7 +229,7 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
     },
 };
 
-const pieDonutOptions: AgPolarChartOptions = {
+const pieDonutOptions: AgStandaloneChartOptions = {
     series: [
         {
             type: 'pie',
@@ -806,6 +807,7 @@ const mapOptions: AgTopologyChartOptions = {
 
 let chart: any;
 
+// eslint-disable-next-line aglint/require-inscope-helper -- multi-chart createChart; this example is pinned to vanilla
 function createChart(newOptions: AgChartOptions, chartType: string) {
     if (chart) {
         chart.destroy();
@@ -836,7 +838,7 @@ function showScatterBubble() {
 }
 
 function showPieDonut() {
-    const options: AgPolarChartOptions = {
+    const options: AgStandaloneChartOptions = {
         container: document.getElementById('myChart'),
         data: pieData,
         animation: { enabled: false },

@@ -5,6 +5,7 @@ import type {
     AgHierarchyChartOptions,
     AgPatternName,
     AgPolarChartOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-types';
 
 import {
@@ -87,9 +88,9 @@ export const ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE: AgCartesianChartOption
     DOCS_EXAMPLES['100--stacked-column'];
 export const COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['column-with-negative-values'];
-export const SIMPLE_PIE_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-pie'];
-export const SIMPLE_DONUT_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-donut'];
-export const PIE_IN_A_DONUT: AgPolarChartOptions = DOCS_EXAMPLES['pie-in-a-donut'];
+export const SIMPLE_PIE_CHART_EXAMPLE: AgStandaloneChartOptions = DOCS_EXAMPLES['simple-pie'];
+export const SIMPLE_DONUT_CHART_EXAMPLE: AgStandaloneChartOptions = DOCS_EXAMPLES['simple-donut'];
+export const PIE_IN_A_DONUT: AgStandaloneChartOptions = DOCS_EXAMPLES['pie-in-a-donut'];
 export const SIMPLE_LINE_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-line'];
 export const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['line-with-gaps'];
 export const SIMPLE_SCATTER_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-scatter'];
@@ -4319,7 +4320,7 @@ export const SCATTER_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions 
     series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
 };
 
-export const PIE_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
+export const PIE_NULL_ANGLE_KEY_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { label: 'A', value: 10 },
         { label: null, value: 20 },
@@ -4328,7 +4329,7 @@ export const PIE_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
     series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
 };
 
-export const DONUT_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
+export const DONUT_NULL_ANGLE_KEY_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { label: 'A', value: 10 },
         { label: null, value: 20 },
@@ -4337,7 +4338,7 @@ export const DONUT_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
     series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],
 };
 
-export const PIE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+export const PIE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { asset: null, amount: 60000 },
         { asset: 'Bonds', amount: 40000 },
@@ -4353,7 +4354,7 @@ export const PIE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
     ],
 };
 
-export const DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+export const DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { asset: null, amount: 60000 },
         { asset: 'Bonds', amount: 40000 },
@@ -4371,7 +4372,7 @@ export const DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
 
 // PIE/DONUT UNDEFINED CATEGORY KEY EXAMPLES ======================================================
 
-export const PIE_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgPolarChartOptions = {
+export const PIE_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { label: 'A', value: 10 },
         { label: undefined, value: 20 },
@@ -4380,7 +4381,7 @@ export const PIE_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgPolarChartOptions = {
     series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
 };
 
-export const DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgPolarChartOptions = {
+export const DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { label: 'A', value: 10 },
         { label: undefined, value: 20 },
@@ -4389,7 +4390,7 @@ export const DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgPolarChartOptions = {
     series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],
 };
 
-export const PIE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+export const PIE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { asset: undefined, amount: 60000 },
         { asset: 'Bonds', amount: 40000 },
@@ -4405,7 +4406,7 @@ export const PIE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
     ],
 };
 
-export const DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+export const DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { asset: undefined, amount: 60000 },
         { asset: 'Bonds', amount: 40000 },
@@ -4423,7 +4424,7 @@ export const DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions =
 
 // PIE/DONUT MIXED NULL AND UNDEFINED KEY EXAMPLES ================================================
 
-export const PIE_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgPolarChartOptions = {
+export const PIE_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { asset: null, amount: 60000 },
         { asset: undefined, amount: 30000 },
@@ -4440,7 +4441,7 @@ export const PIE_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgPolarChartOptions = {
     ],
 };
 
-export const DONUT_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgPolarChartOptions = {
+export const DONUT_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgStandaloneChartOptions = {
     data: [
         { asset: null, amount: 60000 },
         { asset: undefined, amount: 30000 },

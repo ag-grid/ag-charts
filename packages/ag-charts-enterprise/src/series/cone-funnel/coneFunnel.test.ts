@@ -321,10 +321,10 @@ describe('ConeFunnelSeries', () => {
             expect(getSeriesOptions<AgConeFunnelSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
-        it('batches the shadows of its dividers itself, and not through the shadow root', async () => {
+        it('casts the shadows of its dividers through the shadow root', async () => {
             await create(SHADOW);
 
-            expect(getSeriesDataNodeGroup(chart).batchShadows).toBe(true);
+            expect(getSeriesDataNodeGroup(chart).batchShadows).toBe('shared');
         });
 
         it('shadows nothing when no shadow is set', async () => {

@@ -55,7 +55,16 @@ import {
     toArray,
     toNumber,
 } from 'ag-charts-core';
-import type { DrawnItemStyle, Path, Segment, SegmentedPath, Selection, SeriesDatumValue, Text } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    DrawnItemStyle,
+    Path,
+    Segment,
+    SegmentedPath,
+    Selection,
+    SeriesDatumValue,
+    Text,
+} from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
@@ -181,6 +190,7 @@ interface RangeAreaSeriesNodeDatumContext
     readonly labelPlacements: Record<AgRangeAreaSeriesItemType, readonly LabelPlacement[]>;
     readonly labelMarkerSize: Record<AgRangeAreaSeriesItemType, number>;
     readonly labelAnchor: Record<AgRangeAreaSeriesItemType, Point | undefined>;
+    readonly labelRegion: BoxBounds | undefined;
 
     // Property caches
     readonly yLowKey: string;
@@ -344,8 +354,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         });
         // The fill is the only caster among the paths, so the group casts it through the chart-wide shadow root.
         this.contentGroup.batchShadows = 'shared';
-        // The marker shadows stay above the fill, which the root draws beneath everything.
-        this.dataNodeGroup.batchShadows = true;
     }
 
     override renderToOffscreenCanvas(): boolean {
@@ -509,6 +517,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             },
             labelMarkerSize: { low: markerSizeOf('low'), high: markerSizeOf('high') },
             labelAnchor: { low: Marker.anchor(item.low.marker.shape), high: Marker.anchor(item.high.marker.shape) },
+            labelRegion: label.enabled ? this.resolveLabelPlotRegion(label.collision) : undefined,
             animationEnabled,
             canIncrementallyUpdate,
             xKey: this.options.xKey,
@@ -1003,6 +1012,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             fit: placedLabelFit(labelText, label, ctx),
             text: measuredLabel.text,
             anchor: ctx.labelAnchor[itemType],
+            region: ctx.labelRegion,
             placements: ctx.labelPlacements[valueSide],
             placement: undefined,
             // Markerless vertices still nudge their label clear of the stroke with a small fixed gap.

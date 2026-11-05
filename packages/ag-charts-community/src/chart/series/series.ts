@@ -50,7 +50,7 @@ import {
     isSupportedMarkerShape,
     jsonDiff,
     nearestSquared,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     without,
 } from 'ag-charts-core';
 import type {
@@ -237,7 +237,9 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 
 export type UnknownSeries = Series<SeriesNodeDatum, object>;
 
-export type SeriesAreaLayout = (series: UnknownSeries[], seriesRect: BBox) => Promise<void>;
+export interface SeriesAreaLayout<T = UnknownSeries> {
+    layoutSeries(series: T[], seriesRect: BBox): Promise<void>;
+}
 
 export abstract class Series<
     TDatum extends SeriesNodeDatum,
@@ -261,8 +263,8 @@ export abstract class Series<
     readonly supportsDataTransactions: boolean = true;
     /** Lets the standalone chart round the series area origin down to whole pixels. */
     readonly snapsSeriesAreaOrigin: boolean = true;
-    /** Lays out every series sharing this function, before the chart updates them. */
-    readonly seriesAreaLayout?: SeriesAreaLayout;
+    /** Lays out every series sharing this layout, before the chart updates them. */
+    readonly seriesAreaLayout?: SeriesAreaLayout<this>;
 
     protected hasChangesOnHighlight: boolean = false;
     protected hasChangesOnSelection: boolean = false;
@@ -539,11 +541,11 @@ export abstract class Series<
         );
     }
 
-    attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined) {
+    attachSeries(seriesContentNode: Group, seriesNode: Group, _annotationNode: Group | undefined) {
         seriesContentNode.appendChild(this.contentGroup);
         seriesNode.appendChild(this.highlightGroup);
         seriesNode.appendChild(this.labelGroup);
-        annotationNode?.appendChild(this.annotationGroup);
+        seriesNode.appendChild(this.annotationGroup);
     }
 
     detachSeries(_seriesContentNode: Group | undefined, _seriesNode: Group, _annotationNode: Group | undefined) {
@@ -572,7 +574,7 @@ export abstract class Series<
         this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND];
         this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.HIGHLIGHT];
         this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.LABEL];
-        this.annotationGroup.zIndex = zIndex;
+        this.annotationGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.ANNOTATION];
     }
 
     renderToOffscreenCanvas() {
@@ -1046,6 +1048,8 @@ export abstract class Series<
      * every series. Every in-place copy casts the item's own `shadow` in the base pass that keeps it behind every
      * series, except where its highlight state sets a `glow`: that glow replaces the shadow, as an item has one shadow
      * slot. The exception is the item this series' highlight layer redraws, whose in-place copy keeps its `shadow`.
+     * While no highlight state sets a `glow`, the highlight layer's copy casts nothing and every in-place copy casts its
+     * `shadow`.
      */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
@@ -1472,8 +1476,13 @@ export abstract class Series<
         const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
+        if (series.id === this.id || matchedLegendItemName) {
             this.toggleSeriesItem(enabled, legendType, itemId, legendItemName, event);
+        } else if (legendItemKey != undefined) {
+            const linkedItemId = this.findLinkedLegendItemId(event);
+            if (linkedItemId != undefined) {
+                this.toggleSeriesItem(enabled, legendType, linkedItemId, legendItemName, event);
+            }
         }
     }
 
@@ -1482,9 +1491,14 @@ export abstract class Series<
         const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
+        if (series.id === this.id || matchedLegendItemName) {
             // Double-clicked item should always become visible.
             this.toggleSeriesItem(true, legendType, itemId, legendItemName, event);
+        } else if (legendItemKey != undefined) {
+            const linkedItemId = this.findLinkedLegendItemId(event);
+            if (linkedItemId != undefined) {
+                this.toggleSeriesItem(true, legendType, linkedItemId, legendItemName, event);
+            }
         } else if (enabled && numVisibleItems === 1) {
             // Other items should become visible if there is only one existing visible item.
             this.toggleSeriesItem(true, legendType, undefined, legendItemName);
@@ -1492,6 +1506,13 @@ export abstract class Series<
             // Disable other items if not exactly one enabled.
             this.toggleSeriesItem(false, legendType, undefined, legendItemName);
         }
+    }
+
+    /** Series linked by `legendItemKey` can order their rows differently, so the clicked row is matched by name. */
+    private findLinkedLegendItemId({ itemId, legendItemName }: LegendItemClickEvent | LegendItemDoubleClickEvent) {
+        if (legendItemName == undefined) return;
+        const items = this.ctx.legendManager?.getData(this.id).filter((d) => d.legendItemName === legendItemName);
+        return (items?.find((d) => d.itemId === itemId) ?? items?.[0])?.itemId;
     }
 
     abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
@@ -1913,9 +1934,9 @@ export abstract class Series<
         };
     }
 
-    /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
+    /** The series-area containment rect unless the label may overflow it (`collideWith.seriesArea: true`). */
     protected resolveLabelPlotRegion(collision: NormalisedChartLabelCollisionOptions): BoxBounds | undefined {
-        return resolveCollideWith(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
+        return resolveLabelAvoidance(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;

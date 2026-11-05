@@ -128,6 +128,7 @@ test.describe('axes', () => {
                 page,
             }) => {
                 await page.selectOption('select[onchange^="setAxisPositions"]', 'top-right');
+                await page.selectOption('select[onchange^="setTitlePlacement"]', 'crossing');
                 await page.selectOption('select[onchange^="setCrosshairLabelPlacement"]', crosshairLabelPlacement);
                 await hoverQuadrant(page);
 

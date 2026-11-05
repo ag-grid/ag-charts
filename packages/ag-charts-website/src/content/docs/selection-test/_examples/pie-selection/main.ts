@@ -1,7 +1,7 @@
 import {
     AgCharts,
     AgPieSeriesOptions,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     AnimationModule,
     ModuleRegistry,
     PieSeriesModule,
@@ -13,7 +13,7 @@ import { getData } from './data';
 type UndocumentedPieSeriesOptions = AgPieSeriesOptions & {
     selection: { selectedOffset: number };
 };
-type UndocumentedPolarChartOptions = Omit<AgPolarChartOptions, 'series'> & {
+type UndocumentedStandaloneChartOptions = Omit<AgStandaloneChartOptions, 'series'> & {
     series: UndocumentedPieSeriesOptions[];
 };
 
@@ -26,7 +26,7 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 
 const totalRevenue = getData().reduce((sum, d) => sum + d.revenue, 0);
 
-const options: UndocumentedPolarChartOptions = {
+const options: UndocumentedStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Technology Revenue by Segment',

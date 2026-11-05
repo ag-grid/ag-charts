@@ -435,11 +435,6 @@ function measureLinearGaugeLabel(
     return { text: labelText, fontSize: labelDatum.fontSize, lineHeight, width, height };
 }
 
-/** The deprecated `avoidCollisions: false` keeps the label at its natural size wherever it lands. */
-function isLegacyKeep(labelDatum: LinearGaugeLabelDatum) {
-    return labelDatum.avoidCollisions === false && labelDatum.collision == null;
-}
-
 function layoutLinearGaugeLabel(
     labelText: NormalisedTextOrSegments,
     labelDatum: LinearGaugeLabelDatum,
@@ -450,11 +445,9 @@ function layoutLinearGaugeLabel(
 ): LinearGaugeLabelLayout | undefined {
     const { visibleGaugeRect: gaugeRect } = bboxes;
     const { padding, horizontal } = opts;
-    const legacyKeep = isLegacyKeep(labelDatum);
     const bounds = labelBounds(placement, horizontal, bboxes);
-    const fitToGauge = bounds.inner && !legacyKeep;
-    const boundingWidth = bounds.width ?? (fitToGauge ? gaugeRect.width : Infinity);
-    const boundingHeight = bounds.height ?? (fitToGauge ? gaugeRect.height : Infinity);
+    const boundingWidth = bounds.width ?? (bounds.inner ? gaugeRect.width : Infinity);
+    const boundingHeight = bounds.height ?? (bounds.inner ? gaugeRect.height : Infinity);
     const { boxExtent } = labelDatum;
     const boxWidth = boxExtent.left + boxExtent.right;
     const boxHeight = boxExtent.top + boxExtent.bottom;
@@ -492,7 +485,7 @@ function layoutLinearGaugeLabel(
 
     let region: BoxBounds | undefined;
     const { bounds0, bounds1 } = bounds;
-    if (!legacyKeep && Number.isFinite(bounds0) && Number.isFinite(bounds1)) {
+    if (Number.isFinite(bounds0) && Number.isFinite(bounds1)) {
         const min = Math.min(bounds0, bounds1);
         const extent = Math.abs(bounds1 - bounds0);
         region = horizontal
@@ -534,7 +527,7 @@ export function reservedLinearGaugeLabelPlacement(
 ): AgLinearGaugeLabelPlacement | undefined {
     const { placements, collision } = labelDatum;
     const [first] = placements;
-    if (isLegacyKeep(labelDatum) || !placements.some(isOutsidePlacement)) {
+    if (!placements.some(isOutsidePlacement)) {
         return first;
     }
 
@@ -566,11 +559,9 @@ export function linearGaugeLabelDatum(
     bboxes: LinearGaugeLabelBBoxes
 ): GaugePointLabelDatum | undefined {
     const { placements, collision } = labelDatum;
-    const legacyKeep = isLegacyKeep(labelDatum);
     const candidates: GaugeLabelCandidate[] = [];
     const overflowing: GaugeLabelCandidate[] = [];
-    const placementCount = legacyKeep ? 1 : placements.length;
-    for (let index = 0; index < placementCount; index++) {
+    for (let index = 0; index < placements.length; index++) {
         const fitted = layoutLinearGaugeLabel(labelText, labelDatum, placements[index], false, opts, bboxes);
         if (fitted != null) {
             candidates.push({ id: index, box: fitted.box, region: fitted.region });
@@ -591,7 +582,7 @@ export function linearGaugeLabelDatum(
         labelText,
         candidates.concat(overflowing),
         collision,
-        legacyKeep,
+        false,
         seriesArea
     );
 }

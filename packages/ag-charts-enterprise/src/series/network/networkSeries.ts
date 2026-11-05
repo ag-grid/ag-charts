@@ -1,5 +1,6 @@
 import { type AgCollapsedChangeEventSource, _ModuleSupport } from 'ag-charts-community';
 import {
+    BBox,
     type ChartAnimationPhase,
     ChartAxisDirection,
     ChartUpdateType,
@@ -18,7 +19,7 @@ import {
     definedZoomState,
     strictObjectKeys,
 } from 'ag-charts-core';
-import type { BBox, ExtendedPath2D } from 'ag-charts-core';
+import type { ExtendedPath2D } from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout, NetworkLayoutUpdateOptions } from './networkLayout';
@@ -435,11 +436,23 @@ export abstract class AbstractNetworkSeries<
         this.viewportGroup.translationX = translation.x;
         this.viewportGroup.translationY = translation.y;
 
-        this.onViewportScaleChange(scaling);
+        const { seriesRect } = this;
+        const viewport = seriesRect
+            ? new BBox(
+                  -translation.x / scaling,
+                  -translation.y / scaling,
+                  seriesRect.width / scaling,
+                  seriesRect.height / scaling
+              )
+            : undefined;
+        this.onViewportChange(scaling, viewport);
     }
 
-    /** Called with the scale the viewport is drawn at, whenever the viewport transform is applied. */
-    protected onViewportScaleChange(_scaling: number) {}
+    /**
+     * Called whenever the viewport transform is applied, with the scale the content is drawn at and the
+     * part of the content space that is in view, which is unknown until the series has a rect.
+     */
+    protected onViewportChange(_scaling: number, _viewport: BBox | undefined) {}
 
     private centreItem(itemId: NetworkSeriesVertexID | undefined) {
         if (itemId == null) return;

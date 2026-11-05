@@ -85,13 +85,6 @@ export type TextAlign = 'left' | 'center' | 'right' | 'start' | 'end';
 export type TextWrap = 'never' | 'always' | 'hyphenate' | 'on-space';
 
 /**
- * Adjusts the behaviour of labels when they overflow
- * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
- * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
- */
-export type OverflowStrategy = 'ellipsis' | 'hide';
-
-/**
  * Define a range within which an interaction can trigger on a point with one of:
  * A distance in pixels from a point within which the event can be triggered.
  * - `'exact'` triggers when the event occurs directly over a point.
@@ -109,6 +102,10 @@ export type GeoJSON = any;
 export type DatumDefault = any;
 
 export type ContextDefault = unknown;
+
+export type SeriesFormatterSource = 'tooltip' | 'series-label' | 'status-bar';
+export type ChartFormatterSource = 'axis-label' | 'gradient-legend' | 'legend-label' | 'crosshair' | 'annotation-label';
+export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 
 // Depth counter: index N yields N-1; index 0 yields `never`, terminating recursion.
 type DatumKeyDepth = [never, 0, 1, 2, 3];

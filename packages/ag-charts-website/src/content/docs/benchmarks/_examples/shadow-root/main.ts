@@ -30,9 +30,9 @@ ModuleRegistry.registerModules([
 
 (window as any).agChartsDebug = 'scene:stats';
 
-const SHADOW: AgDropShadowOptions = { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 4, yOffset: 4, blur: 8 };
+const SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000', fillOpacity: 0.5, xOffset: 4, yOffset: 4, blur: 8 };
 const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 14 };
-const GLOW: AgGlowOptions = { enabled: true, color: 'rgba(0, 0, 0, 0.35)', blur: 6, spread: 14 };
+const GLOW: AgGlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35, blur: 6, spread: 14 };
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

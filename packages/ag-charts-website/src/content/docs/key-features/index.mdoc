@@ -24,7 +24,7 @@ These include a `type` as well as `_Key` properties to connect to the visualisat
 {
     data: [
         { year: '2001', women: 25 },
-        { country: '2003', value: 26 },
+        { year: '2003', women: 26 },
     ],
     series: [
         {
@@ -47,11 +47,11 @@ Use `axes.position` to control the position of the axis, and `axes.type` to defi
 {
     axes: {
         x: {
-            type: 'category', // category | grouped-category | number | log | time | ordinal-time
+            type: 'category', // category | grouped-category | number | log | time | ordinal-time | unit-time
             position: 'bottom', // top | right | bottom | left
         },
         y: {
-            type: 'number', // category | grouped-category | number | log | time | ordinal-time
+            type: 'number', // category | grouped-category | number | log | time | ordinal-time | unit-time
             position: 'left', // top | right | bottom | left
         },
     },
@@ -171,15 +171,19 @@ Use the `crossLines` array in the axis options to add `line` or `range` [Cross L
 ```js format="snippet"
 {
     axes: {
+        x: {
+            crossLines: [
+                {
+                    type: 'range',
+                    range: ['Jun', 'Sep'],
+                },
+            ],
+        },
         y: {
             crossLines: [
                 {
                     type: 'line',
                     value: 11,
-                },
-                {
-                    type: 'range',
-                    range: ['Jun', 'Sep'],
                 },
             ],
         },
@@ -198,9 +202,14 @@ Use the `itemStyler` callback function to customise the appearance of a specific
     series: [
         {
             marker: {
-                itemStyler: ({ datum, xKey, fill, highlighted }) => {
+                itemStyler: ({ datum, xKey, fill, highlightState }) => {
                     return {
-                        fill: datum[xKey] === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
+                        fill:
+                            datum[xKey] === 'Jul'
+                                ? highlightState === 'highlighted-item'
+                                    ? 'lime'
+                                    : 'red'
+                                : fill,
                     };
                 },
             },
@@ -467,7 +476,7 @@ In the above example you can [Zoom](./zoom/) by scrolling over the chart, or by 
 
 ### Zoom {% enterpriseIcon /%}
 
-To enable [Zooming](./zoom/), set the `zoom` property to `true`.
+To enable [Zooming](./zoom/), set `zoom.enabled` to `true`.
 
 ```js format="snippet"
 {
@@ -532,7 +541,7 @@ The [Context Menu](./context-menu/) provides [Zoom](./zoom/) and [Download](./ap
             {
                 showOn: 'always',
                 label: 'Say hello',
-                action: () => log('Hello world!'),
+                action: () => console.log('Hello world!'),
             },
             'separator',
             {
@@ -619,7 +628,7 @@ export class AppComponent {
 {% if isFramework("vue") %}
 
 ```js format="snippet"
-template: `<ag-financial-charts:options="options"/>`,
+template: `<ag-financial-charts :options="options"/>`,
 components: {
     'ag-financial-charts': AgFinancialCharts,
 },

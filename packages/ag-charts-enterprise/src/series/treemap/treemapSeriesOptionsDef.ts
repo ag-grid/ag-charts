@@ -9,6 +9,7 @@ import {
     autoSizedLabelOptionsDefs,
     boolean,
     callbackDefs,
+    collisionOptionsDef,
     color,
     colorOrRef,
     colorScaleOptionsDef,
@@ -16,7 +17,6 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
-    deprecated,
     fillOptionsDef,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
@@ -59,7 +59,6 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         cornerRadius: positiveNumber,
         shadow: shadowOptionsDefs,
         fills: arrayOf(colorUnion),
-        textAlign: deprecated(textAlign, 'Use `label.textAlign` instead.'),
         interactive: boolean,
         highlight: {
             enabled: boolean,
@@ -70,6 +69,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
             ...seriesLabelOptionsDefs,
             ...labelCollisionFitOptionsDefs,
             ...labelAutoFontSizeOptionsDefs,
+            collision: collisionOptionsDef,
             spacing: positiveNumber,
             textAlign,
             verticalAlign,
@@ -82,19 +82,16 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         padding: positiveNumber,
         cornerRadius: positiveNumber,
         shadow: shadowOptionsDefs,
-        textAlign: deprecated(textAlign, 'Use `label.textAlign` and `secondaryLabel.textAlign` instead.'),
-        verticalAlign: deprecated(
-            verticalAlign,
-            'Use `label.verticalAlign` and `secondaryLabel.verticalAlign` instead.'
-        ),
         label: {
             ...autoSizedLabelOptionsDefs,
+            collision: collisionOptionsDef,
             spacing: positiveNumber,
             textAlign,
             verticalAlign,
         },
         secondaryLabel: {
             ...autoSizedLabelOptionsDefs,
+            collision: collisionOptionsDef,
             textAlign,
             verticalAlign,
         },

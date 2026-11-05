@@ -1,9 +1,9 @@
 {
     "demo": "web-analytics",
     "framework": "vue",
-    "sourceHash": "sha256-b1c3333d1b5ced297a334ff3687ecff37fae9ce45c88ed8a01560308b8792b5c",
-    "sourceCommit": "0a4b240e3acb399ea583c574710884d5b9e5e874",
-    "pinnedVersion": "latest",
-    "pinSource": "dist-tag",
+    "sourceHash": "sha256-50f2d78a11a3a9a99a73196ac95f0ad938960281061cf8c1027fcbd730720c3b",
+    "sourceCommit": "ccd440fb9c17fd859bb1ea0a0516a68946923195",
+    "pinnedVersion": "14.3.0",
+    "pinSource": "release",
     "dist": "dist"
 }

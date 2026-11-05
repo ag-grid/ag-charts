@@ -15,6 +15,7 @@ import {
 import { Group, Rect, Shape } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
+import { DEFAULT_CONTEXT_MENU_CLASS } from '../features/context-menu/contextMenuStyles';
 import { HeatmapCellBatch } from '../series/heatmap/heatmapCellBatch';
 import { setupEnterpriseModules } from '../setup';
 
@@ -61,6 +62,18 @@ export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any> 
 ) {
     options.animation ??= { enabled: false };
     return prepareTestOptions(options as any, container);
+}
+
+/** The open context menu's item whose text contains `label`; throws when there is none. */
+export function findContextMenuItem(label: string): HTMLElement {
+    const items = Array.from(
+        document.body.getElementsByClassName(`${DEFAULT_CONTEXT_MENU_CLASS}__item`) as HTMLCollectionOf<HTMLElement>
+    );
+    const item = items.find(({ textContent }) => textContent?.includes(label));
+    if (item == null) {
+        throw new Error(`no context menu item labelled "${label}"`);
+    }
+    return item;
 }
 
 /**
@@ -119,13 +132,16 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
     });
 
     const view = container.ownerDocument.defaultView!;
-    const originalGetComputedStyle = view.getComputedStyle;
-    view.getComputedStyle = () =>
-        ({ getPropertyValue: (key: string) => vars[key] ?? '' }) as unknown as CSSStyleDeclaration;
+    const getComputedStyleDescriptor = Object.getOwnPropertyDescriptor(view, 'getComputedStyle')!;
+    Object.defineProperty(view, 'getComputedStyle', {
+        configurable: true,
+        writable: true,
+        value: () => ({ getPropertyValue: (key: string) => vars[key] ?? '' }) as unknown as CSSStyleDeclaration,
+    });
 
     return () => {
         Object.defineProperty(CSSStyleDeclaration.prototype, 'color', descriptor);
-        view.getComputedStyle = originalGetComputedStyle;
+        Object.defineProperty(view, 'getComputedStyle', getComputedStyleDescriptor);
     };
 }
 
@@ -157,16 +173,23 @@ export function collectShapes(root: Group): Shape[] {
 }
 
 /** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
-export const DEFAULT_DISABLED_SHADOW = { enabled: false, xOffset: 3, yOffset: 3, blur: 5, color: '#00000080' };
+export const DEFAULT_DISABLED_SHADOW = {
+    enabled: false,
+    xOffset: 3,
+    yOffset: 3,
+    blur: 5,
+    fill: '#000',
+    fillOpacity: 0.5,
+};
 
 /** The shadow the series tests turn on. */
-export const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
+export const SHADOW = { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
 
 /** A smaller shadow than `SHADOW`, for the tests that turn on a second, distinct shadow (flow-proportion, map-shape, waterfall). */
-export const SMALL_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+export const SMALL_SHADOW = { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
 
 /** A red shadow with no offset or blur, so a node test sees the shadow as exactly the node's own pixels. */
-export const RED_SHADOW = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+export const RED_SHADOW = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
 export const shadowedShapes = (group: Group) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
 
@@ -274,8 +297,11 @@ export function allWhite(canvasCtx: MockCanvas) {
     return leftEdgeIsWhite(canvasCtx, canvasCtx.nodeCanvas.width);
 }
 
-/** The RGBA of the device pixel at (`x`, `y`). */
-export function pixelAt(canvasCtx: MockCanvas, x: number, y: number) {
+/**
+ * The RGBA of the device pixel at (`x`, `y`). The mock canvas is the render target of the first chart a test creates,
+ * so a test that recreates its chart passes the canvas of the live chart instead.
+ */
+export function pixelAt(canvasCtx: Pick<MockCanvas, 'getRenderContext2D'>, x: number, y: number) {
     return [...canvasCtx.getRenderContext2D().getImageData(x, y, 1, 1).data];
 }
 

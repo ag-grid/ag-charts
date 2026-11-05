@@ -14,7 +14,7 @@ describe('Sector', () => {
 
         const shadowFn = (offset: number) => ({
             enabled: true,
-            color: 'rgba(0, 0, 0, 0.5)',
+            fill: 'rgba(0, 0, 0, 0.5)',
             xOffset: offset,
             yOffset: offset,
             blur: 5,

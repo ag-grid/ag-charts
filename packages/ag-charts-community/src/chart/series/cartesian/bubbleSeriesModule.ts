@@ -16,7 +16,6 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     themeLineHeight,
-    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type {
@@ -91,7 +90,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
             padding: 8,
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
-            collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesArea: false } }) },
+            collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             placement: 'top',
         },
         tooltip: NEAREST_NODE_TOOLTIP_THEME,

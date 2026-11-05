@@ -94,22 +94,3 @@ export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptio
     /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
 }
-
-export type AgCrossLineLabelPosition =
-    | 'top'
-    | 'left'
-    | 'right'
-    | 'bottom'
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-left'
-    | 'bottom-right'
-    | 'inside'
-    | 'inside-left'
-    | 'inside-right'
-    | 'inside-top'
-    | 'inside-bottom'
-    | 'inside-top-left'
-    | 'inside-bottom-left'
-    | 'inside-top-right'
-    | 'inside-bottom-right';

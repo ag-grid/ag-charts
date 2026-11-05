@@ -25,7 +25,6 @@ import {
     constant,
     date,
     deprecated,
-    deprecatedValue,
     enterprise,
     greaterThan,
     instanceOf,
@@ -254,41 +253,27 @@ describe('Validation utils', () => {
     describe('deprecated wrapper', () => {
         afterEach(() => validationLogger.setEnabledLevels(['error', 'warning', 'deprecation']));
 
-        test('emits a deprecationOnce notice at the default console level', () => {
+        test('reports the notice and path once at the default console level', () => {
             const { cleared, invalid } = validate<{ colorScale: string }>(
                 { colorScale: 'red' },
                 { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') }
             );
             expect(cleared).toEqual({ colorScale: 'red' });
             expect(invalid).toEqual([]);
-            expect(console.warn).toHaveBeenCalledTimes(1);
-            expect((console.warn as Mock).mock.calls[0][0]).toContain('is deprecated');
-            expect((console.warn as Mock).mock.calls[0][0]).toContain('Use `colorScale.fills` instead.');
-        });
-
-        test('silences the notice once "deprecation" is deselected from the console levels', () => {
-            validationLogger.setEnabledLevels(['error', 'warning']);
-            // A message distinct from the preceding test's, so the shared logger's do-once cache
-            // cannot be what keeps this quiet.
-            const { cleared, invalid } = validate<{ colorScale: string }>(
-                { colorScale: 'red' },
-                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') }
-            );
-            // The value still passes through to the inner validator during the deprecation window.
-            expect(cleared).toEqual({ colorScale: 'red' });
-            expect(invalid).toEqual([]);
-            expect(console.warn).not.toHaveBeenCalled();
-        });
-
-        test('reports the deprecation to the console with the notice and path', () => {
-            validate<{ colorScale: string }>(
-                { colorScale: 'red' },
-                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') }
-            );
             expect(console.warn).toHaveBeenCalledTimes(1);
             expect((console.warn as Mock).mock.calls[0][0]).toContain(
                 'Option `colorScale` is deprecated. Use `colorScale.fills` instead.'
             );
+        });
+
+        test('silences the notice once "deprecation" is deselected from the console levels', () => {
+            validationLogger.setEnabledLevels(['error', 'warning']);
+            const { cleared } = validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') }
+            );
+            expect(cleared).toEqual({ colorScale: 'red' });
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         test('stays silent under silentAdvisories', () => {
@@ -299,56 +284,6 @@ describe('Validation utils', () => {
                 { silentAdvisories: true }
             );
             expect(console.warn).not.toHaveBeenCalled();
-        });
-
-        describe('deprecatedValue in a union', () => {
-            const placement = unionOrArray(
-                'before-center',
-                'after-center',
-                deprecatedValue('before', 'Use `before-center` instead.'),
-                deprecatedValue('after', 'Use `after-center` instead.')
-            );
-
-            test('passes the deprecated value through and warns once', () => {
-                const { cleared, invalid } = validate<{ placement: string }>({ placement: 'before' }, { placement });
-                expect(cleared).toEqual({ placement: 'before' });
-                expect(invalid).toEqual([]);
-                expect(console.warn).toHaveBeenCalledTimes(1);
-                expect((console.warn as Mock).mock.calls[0][0]).toContain(
-                    'Value `"before"` of option `placement` is deprecated. Use `before-center` instead.'
-                );
-            });
-
-            test('warns for a deprecated value inside a fallback array', () => {
-                const { cleared, invalid } = validate<{ placement: string[] }>(
-                    { placement: ['before-center', 'after'] },
-                    { placement }
-                );
-                expect(cleared).toEqual({ placement: ['before-center', 'after'] });
-                expect(invalid).toEqual([]);
-                expect(console.warn).toHaveBeenCalledTimes(1);
-                expect((console.warn as Mock).mock.calls[0][0]).toContain('Use `after-center` instead.');
-            });
-
-            test('stays silent for a supported value', () => {
-                validate<{ placement: string }>({ placement: 'before-center' }, { placement });
-                expect(console.warn).not.toHaveBeenCalled();
-            });
-
-            test('stays silent for a theme-injected value under silentAdvisories', () => {
-                const { cleared } = validate<{ placement: string }>({ placement: 'before' }, { placement }, '', {
-                    silentAdvisories: true,
-                });
-                expect(cleared).toEqual({ placement: 'before' });
-                expect(console.warn).not.toHaveBeenCalled();
-            });
-
-            test('omits deprecated values from the expected-keyword message', () => {
-                const { invalid } = validate({ placement: 'middle' }, { placement });
-                expect(invalid.map(String)).toEqual([
-                    "Option `placement` cannot be set to `\"middle\"`; expecting a keyword such as 'before-center' or 'after-center' or a non-empty array containing these keywords, ignoring.",
-                ]);
-            });
         });
     });
 

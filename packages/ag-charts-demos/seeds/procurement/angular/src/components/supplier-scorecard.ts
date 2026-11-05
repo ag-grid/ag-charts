@@ -8,6 +8,9 @@ import { baseColDef, compactGridTheme } from '../grid';
 import type { SupplierScorecard as Row } from '../types';
 import { PcButton } from '../ui';
 
+/** A theme param, not the `rowHeight` prop, which leaves cell content above the row's centre. */
+const rosterGridTheme = compactGridTheme.withParams({ rowHeight: 46 });
+
 /** Below-target figures carry the same down-tone the cards gave them. */
 const belowTarget = (target: number): CellClassRules<Row> => ({ 'pc-down': ({ value }) => value < target });
 
@@ -135,18 +138,17 @@ const onTimeRenderer = ({ data, value }: ICellRendererParams<Row, number>): stri
 @Component({
     selector: 'div[pcSupplierScorecard]',
     imports: [AgGridAngular],
-    host: { class: 'pc-grid-host' },
+    host: { class: 'pc-grid-host', 'data-keeps-selection': '' },
     template: `
         <ag-grid-angular
             style="display: block; height: 100%;"
-            [theme]="compactGridTheme"
+            [theme]="rosterGridTheme"
             [rowData]="rows()"
             [columnDefs]="columnDefs()"
             [defaultColDef]="defaultColDef"
             [getRowId]="getRowId"
             rowClass="pc-supplier"
             [rowClassRules]="rowClassRules()"
-            [rowHeight]="46"
             domLayout="autoHeight"
         />
     `,
@@ -159,7 +161,7 @@ export class SupplierScorecard {
     /** Selecting a row again clears it. */
     readonly select = output<string>();
 
-    protected readonly compactGridTheme = compactGridTheme;
+    protected readonly rosterGridTheme = rosterGridTheme;
     protected readonly getRowId = ({ data }: GetRowIdParams<Row>) => data.supplierId;
 
     // Wrapped headers let the figure columns be as narrow as their figures; "vs contract" sets the floor otherwise.
@@ -259,6 +261,7 @@ export class SupplierScorecard {
                 sortable: false,
                 filter: false,
                 resizable: false,
+                cellClass: 'pc-cell-centred',
                 cellRenderer: ContactActions,
             },
         ];

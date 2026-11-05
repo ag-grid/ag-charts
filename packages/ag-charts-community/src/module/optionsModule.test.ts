@@ -1,5 +1,5 @@
 import type { Mock } from 'vitest';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import {
     type DeepPartial,
@@ -587,7 +587,7 @@ describe('ChartOptions', () => {
             expect(message).toContain("'line'");
         });
 
-        it('defaults to a registered series type when no series are provided', () => {
+        it('gives a series-less chart the cartesian default axes', () => {
             const options = prepareOptionsWithOnly([BarSeriesModule, CategoryAxisModule, NumberAxisModule], {
                 series: [],
             } as AgChartOptions);
@@ -600,15 +600,18 @@ describe('ChartOptions', () => {
             });
         });
 
-        it('reports the missing module for the default series type when no series type is registered', () => {
-            prepareOptionsWithOnly([CategoryAxisModule, NumberAxisModule], {} as AgChartOptions);
+        it('reports no series module for a series-less chart when none is registered', () => {
+            const options = prepareOptionsWithOnly([CategoryAxisModule, NumberAxisModule], {} as AgChartOptions);
 
-            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(optionAt(options, 'axes')).toMatchObject({
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            });
         });
 
-        it('stays silent when the default series type has a registered module', () => {
+        it('stays silent for a series-less chart with every module registered', () => {
             prepareOptions({} as AgChartOptions);
 
             expect(console.error).not.toHaveBeenCalled();
@@ -962,10 +965,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -973,10 +976,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -990,7 +993,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1046,8 +1049,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -1084,10 +1088,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -1095,10 +1099,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -1112,7 +1116,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1168,8 +1172,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -1206,10 +1211,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -1217,10 +1222,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -1234,7 +1239,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1290,8 +1295,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -1328,10 +1334,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -1339,10 +1345,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -1356,7 +1362,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1412,8 +1418,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -1447,18 +1454,18 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -1474,6 +1481,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1509,8 +1519,9 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "#00000080",
                       "enabled": false,
+                      "fill": "#000",
+                      "fillOpacity": 0.5,
                       "xOffset": 3,
                       "yOffset": 3,
                     },
@@ -1568,18 +1579,18 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -1595,6 +1606,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1630,8 +1644,9 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "#00000080",
                       "enabled": false,
+                      "fill": "#000",
+                      "fillOpacity": 0.5,
                       "xOffset": 3,
                       "yOffset": 3,
                     },
@@ -1703,10 +1718,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -1714,10 +1729,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -1731,7 +1746,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1787,8 +1802,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -1825,10 +1841,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -1836,10 +1852,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -1853,7 +1869,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1909,8 +1925,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -1947,10 +1964,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -1958,10 +1975,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -1975,7 +1992,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2031,8 +2048,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -2069,10 +2087,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -2080,10 +2098,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -2097,7 +2115,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2153,8 +2171,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -2188,18 +2207,18 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -2215,6 +2234,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2250,8 +2272,9 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "#00000080",
                       "enabled": false,
+                      "fill": "#000",
+                      "fillOpacity": 0.5,
                       "xOffset": 3,
                       "yOffset": 3,
                     },
@@ -2309,18 +2332,18 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -2336,6 +2359,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2371,8 +2397,9 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "#00000080",
                       "enabled": false,
+                      "fill": "#000",
+                      "fillOpacity": 0.5,
                       "xOffset": 3,
                       "yOffset": 3,
                     },
@@ -2444,10 +2471,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -2455,10 +2482,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -2472,7 +2499,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2528,8 +2555,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -2566,10 +2594,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -2577,10 +2605,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -2594,7 +2622,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2650,8 +2678,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -2688,10 +2717,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -2699,10 +2728,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -2716,7 +2745,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2772,8 +2801,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -2810,10 +2840,10 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedItem": {
@@ -2821,10 +2851,10 @@ describe('ChartOptions', () => {
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -2838,7 +2868,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2894,8 +2924,9 @@ describe('ChartOptions', () => {
                   },
                   "shadow": {
                     "blur": 5,
-                    "color": "#00000080",
                     "enabled": false,
+                    "fill": "#000",
+                    "fillOpacity": 0.5,
                     "xOffset": 3,
                     "yOffset": 3,
                   },
@@ -2929,18 +2960,18 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -2956,6 +2987,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2991,8 +3025,9 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "#00000080",
                       "enabled": false,
+                      "fill": "#000",
+                      "fillOpacity": 0.5,
                       "xOffset": 3,
                       "yOffset": 3,
                     },
@@ -3050,18 +3085,18 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                     },
                     "unhighlightedSeries": {
                       "glow": {
-                        "blur": 6,
-                        "color": "rgba(0, 0, 0, 0.35)",
+                        "blur": 2,
                         "enabled": false,
-                        "spread": 1,
+                        "fillOpacity": 0.4,
+                        "spread": 4,
                       },
                       "opacity": 0.2,
                     },
@@ -3077,6 +3112,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -3112,8 +3150,9 @@ describe('ChartOptions', () => {
                     "lineDashOffset": 0,
                     "shadow": {
                       "blur": 5,
-                      "color": "#00000080",
                       "enabled": false,
+                      "fill": "#000",
+                      "fillOpacity": 0.5,
                       "xOffset": 3,
                       "yOffset": 3,
                     },
@@ -5065,13 +5104,11 @@ describe('ChartOptions', () => {
         });
     });
 
-    describe('invalid `ontoColor` var fallback (AG-17816 AC4)', () => {
-        const mockComputedStyle = (container: HTMLElement, values: Record<string, string>) => {
-            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(
-                fakeComputedStyle(values)
-            );
-        };
+    const mockComputedStyle = (container: HTMLElement, values: Record<string, string>) => {
+        vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(fakeComputedStyle(values));
+    };
 
+    describe('invalid `ontoColor` var fallback (AG-17816 AC4)', () => {
         it('drops the invalid ontoColor, leaving ref + mix (transparency)', () => {
             const container = document.createElement('div');
             mockComputedStyle(container, { '--bad': 'not-a-color' });
@@ -5117,6 +5154,9 @@ describe('ChartOptions', () => {
 
         it('resolves an invalid ontoColor var on a theme param to the ref + mix blend, not undefined', () => {
             const container = document.createElement('div');
+            // Attached: a detached container defers an unset variable rather than reporting it.
+            document.body.append(container);
+            onTestFinished(() => container.remove());
             mockComputedStyle(container, {});
 
             const chartOptions = new ChartOptions<AgChartOptions>(
@@ -5142,6 +5182,164 @@ describe('ChartOptions', () => {
             expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
                 true
             );
+        });
+    });
+
+    describe('var() on a detached container', () => {
+        // jsdom's style declaration rejects a `var()` as a colour, so these go through `ontoColor`, whose own
+        // validator admits one.
+        const createTheme = () => ({
+            params: {
+                accentColor: '#ff0000',
+                foregroundColor: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--onto)' },
+            },
+        });
+        const createOptions = (container: HTMLElement, theme: object, optionMetadata: object = {}) =>
+            new ChartOptions<AgChartOptions>(
+                {
+                    container,
+                    theme,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category' }, y: { type: 'number' } },
+                },
+                {} as AgChartOptions,
+                {},
+                {},
+                optionMetadata
+            );
+        const warnedInvalidColour = () =>
+            (console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'));
+
+        it('defers a theme param var() with no value instead of warning, and leaves the caller theme intact', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const theme = createTheme();
+
+            const chartOptions = createOptions(container, theme);
+
+            expect(warnedInvalidColour()).toBe(false);
+            expect(chartOptions.deferredCSSVariables).toEqual(['var(--onto)']);
+            expect(chartOptions.processedCSSVariables).toEqual({});
+            expect(theme).toEqual(createTheme());
+            expect(chartOptions.themeParameters.foregroundColor).toBe('rgba(255, 0, 0, 0.5)');
+        });
+
+        it('resolves the deferred theme param from the same theme once the container is attached', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const theme = createTheme();
+            createOptions(container, theme);
+
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+            mockComputedStyle(container, { '--onto': '#00ff00' });
+            const attached = createOptions(container, theme);
+
+            expect(warnedInvalidColour()).toBe(false);
+            expect(attached.deferredCSSVariables).toEqual([]);
+            expect(attached.processedCSSVariables).toEqual({ 'var(--onto)': '#00ff00' });
+            expect(attached.themeParameters.foregroundColor).not.toBe('rgba(255, 0, 0, 0.5)');
+        });
+
+        it('still warns about a theme param var() that has no value once the container is attached', () => {
+            const container = document.createElement('div');
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+            mockComputedStyle(container, {});
+
+            const chartOptions = createOptions(container, createTheme());
+
+            expect(warnedInvalidColour()).toBe(true);
+            expect(chartOptions.deferredCSSVariables).toEqual([]);
+            expect(chartOptions.themeParameters.foregroundColor).toBe('rgba(255, 0, 0, 0.5)');
+        });
+
+        it('warns about a value that is set but is not a colour even while detached', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--onto': 'not-a-color' });
+
+            const chartOptions = createOptions(container, createTheme());
+
+            expect(warnedInvalidColour()).toBe(true);
+            expect(chartOptions.deferredCSSVariables).toEqual([]);
+        });
+
+        it('reports no deferred variables on a fast-path pass, which does not process CSS variables', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const base = createOptions(container, createTheme());
+            expect(base.deferredCSSVariables).toEqual(['var(--onto)']);
+
+            const updated = new ChartOptions<AgChartOptions>(
+                base,
+                {} as AgChartOptions,
+                {},
+                {},
+                {},
+                {
+                    data: [{ x: 'b', y: 2 }],
+                }
+            );
+
+            expect(updated.revalidated).toBe(false);
+            expect(updated.deferredCSSVariables).toBeUndefined();
+        });
+
+        it('leaves a series option var() out without warning while detached', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { fill: 'var(--my-color)' };
+            chartOptions.processCSSVariablesPartial(node, container);
+
+            expect(node).toEqual({});
+            expect(warnedInvalidColour()).toBe(false);
+        });
+
+        it('records a series option var() that a styler result leaves out while detached, once', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            expect(chartOptions.takePartialDeferredCSSVariables()).toBeUndefined();
+
+            chartOptions.processCSSVariablesPartial({ fill: 'var(--my-color)' }, container);
+            chartOptions.processCSSVariablesPartial({ fill: 'var(--my-color)', stroke: 'var(--my-stroke)' }, container);
+
+            expect(chartOptions.takePartialDeferredCSSVariables()).toEqual(['var(--my-color)', 'var(--my-stroke)']);
+            expect(chartOptions.takePartialDeferredCSSVariables()).toBeUndefined();
+        });
+
+        it('records nothing from a styler result once the container is attached, and warns as before', () => {
+            const container = document.createElement('div');
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+            mockComputedStyle(container, {});
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { fill: 'var(--my-color)' };
+            chartOptions.processCSSVariablesPartial(node, container);
+
+            expect(node).toEqual({});
+            expect(warnedInvalidColour()).toBe(true);
+            expect(chartOptions.takePartialDeferredCSSVariables()).toBeUndefined();
+        });
+
+        it('does not report a deferred theme param var() as resolved when served from the structural cache', () => {
+            __clearStructuralCacheForTests();
+            onTestFinished(__clearStructuralCacheForTests);
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const create = () => createOptions(container, createTheme(), { domMode: 'minimal' });
+
+            expect(create().deferredCSSVariables).toEqual(['var(--onto)']);
+
+            // The cached pass does not walk the theme params, so it must leave the pending state as it was.
+            const cached = create();
+            expect(cached.deferredCSSVariables).toBeUndefined();
+            expect(warnedInvalidColour()).toBe(false);
         });
     });
 

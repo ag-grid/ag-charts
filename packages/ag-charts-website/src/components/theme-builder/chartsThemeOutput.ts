@@ -1,4 +1,9 @@
-import { type Palette, paletteIsEmpty, toThemePalette } from '@ag-website-shared/components/theme-builder/palette';
+import {
+    type Palette,
+    type StrokeDirection,
+    paletteIsEmpty,
+    toThemePalette,
+} from '@ag-website-shared/components/theme-builder/palette';
 
 import type { AgChartTheme, AgChartThemeName, AgChartThemePalette, AgChartThemeParams } from 'ag-charts-community';
 
@@ -64,15 +69,19 @@ export type ChartsThemeSelection = {
     baseTheme: AgChartThemeName;
     params: Record<string, unknown>;
     palette: Palette;
+    /** Which way linked strokes move from their fill; see `useStrokeDirection`. */
+    strokeDirection?: StrokeDirection;
 };
 
-export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelection): AgChartTheme => {
+export const toChartTheme = ({ baseTheme, params, palette, strokeDirection }: ChartsThemeSelection): AgChartTheme => {
     const themeParams = toChartThemeParams(params);
     return {
         baseTheme,
         ...(Object.keys(themeParams).length > 0 ? { params: themeParams } : {}),
         // Through `toThemePalette`, which drops the editor's own bookkeeping.
-        ...(paletteIsEmpty(palette) ? {} : { palette: toThemePalette(palette) satisfies AgChartThemePalette }),
+        ...(paletteIsEmpty(palette)
+            ? {}
+            : { palette: toThemePalette(palette, strokeDirection) satisfies AgChartThemePalette }),
     };
 };
 

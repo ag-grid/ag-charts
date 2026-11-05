@@ -122,7 +122,7 @@ export interface ModuleDefinition<
     readonly contributes?: readonly OptionsContribution[];
     /**
      * Services this module provides on the chart context of every chart type it applies to. Several
-     * modules may provide the same name; the first one registered wins, so they must be interchangeable.
+     * modules may provide the same name; the first by module name wins, so they must be interchangeable.
      */
     readonly services?: ModuleServices<any>;
 
@@ -147,6 +147,8 @@ export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<Module
     options: OptionsDefs<TOptions>;
     /** The chart-level theme overrides for series of this chart type. */
     themeOptions: OptionsDefs<any>;
+    /** The default axes of a chart of this type, unless its lead series module declares its own. */
+    defaultAxes?: SeriesDefaultAxes<SeriesType>;
 }
 
 export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
@@ -159,8 +161,6 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     themeTemplate?: ExtensibleTheme;
     /** The public entry point the preset is reached through, named in the missing-module warning. */
     readonly apiName?: string;
-    /** The preset's option defs embed its series defs, so the series it creates need not repeat their advisories. */
-    readonly reportsSeriesAdvisories?: boolean;
 
     // Remove these keys from the compiled theme to treat them as `undefined` with priority over the series theme.
     removeThemeSeriesKeys?: string[];

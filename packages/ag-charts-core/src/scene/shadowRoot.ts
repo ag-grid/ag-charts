@@ -9,6 +9,7 @@ import {
     castShadows,
     endShadowCasts,
     getBatchedShadow,
+    getRootShadow,
     getShadowClip,
     joinsShadowKey,
     releaseShadowScratch,
@@ -23,7 +24,7 @@ interface ShadowSource extends Node {
 interface RootMemo {
     readonly frames: readonly CollectedFrame[];
     readonly keys: readonly ShadowKey[];
-    readonly cover: ReadonlySet<object>;
+    readonly cover: ReadonlyMap<object, boolean>;
 }
 
 const memos = new WeakMap<object, RootMemo>();
@@ -34,7 +35,8 @@ function matchesMemo(memo: RootMemo, frames: readonly CollectedFrame[]): boolean
     for (let i = 0; i < frames.length; i++) {
         const a = memo.frames[i];
         const b = frames[i];
-        if (a.source !== b.source || a.version !== b.version || a.alpha !== b.alpha) return false;
+        if (a.source !== b.source || a.version !== b.version || a.alpha !== b.alpha || a.layered !== b.layered)
+            return false;
         if (!arraysEqual(a.matrix, b.matrix) || !arraysEqual(a.clips, b.clips)) return false;
     }
     return true;
@@ -75,7 +77,8 @@ function buildKeys(frames: readonly CollectedFrame[]) {
         for (const child of (frame.source as ShadowSource).children()) {
             if (!child.visible) continue;
 
-            const shadow = getBatchedShadow(child);
+            // A cutout erases only its own layer, so in one it leaves the shadow of the root whole.
+            const shadow = frame.layered ? getRootShadow(child) : getBatchedShadow(child);
             if (shadow != null) keys.add(child as ShadowCaster, shadow, frame, getShadowClip(child));
         }
     }
@@ -83,7 +86,7 @@ function buildKeys(frames: readonly CollectedFrame[]) {
 }
 
 /** The cover of a cast of nothing, which is shared, as no frame has a group to put in one. */
-const NO_COVER: ReadonlySet<object> = new Set();
+const NO_COVER: ReadonlyMap<object, boolean> = new Map();
 
 /** Frees what the root of `user` holds: the scratch canvas and cached shadows of its casts, and the keys of the last. */
 export function releaseShadowRoot(scene: object | undefined, user: object) {
@@ -93,15 +96,16 @@ export function releaseShadowRoot(scene: object | undefined, user: object) {
 
 /**
  * Casts the shadows of the frames onto `renderCtx.ctx`, beneath what the root draws next. Returns the groups whose casters
- * now draw without a shadow, or undefined if the cast failed, having drawn nothing, which leaves every group to cast its own.
- * A failure is one of planning, as the cast of a root is not undone if a caster fails to draw.
+ * now draw without a shadow, each with whether that includes its cutouts, or undefined if the cast failed, having drawn
+ * nothing, which leaves every group to cast its own. A failure is one of planning, as the cast of a root is not undone
+ * if a caster fails to draw.
  */
 export function castRootShadows(
     frames: readonly CollectedFrame[],
     scene: object | undefined,
     user: object,
     renderCtx: RenderContext
-): ReadonlySet<object> | undefined {
+): ReadonlyMap<object, boolean> | undefined {
     const memo = memos.get(user);
     const unchanged = memo != null && matchesMemo(memo, frames);
     const keys = unchanged ? memo.keys : buildKeys(frames);
@@ -119,7 +123,7 @@ export function castRootShadows(
     endShadowCasts(user, 1);
     if (unchanged) return memo.cover;
 
-    const cover = new Set(frames.map((frame) => frame.source));
+    const cover = new Map(frames.map((frame) => [frame.source, frame.layered]));
     memos.set(user, { frames, keys, cover });
     return cover;
 }

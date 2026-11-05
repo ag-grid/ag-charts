@@ -98,7 +98,10 @@ import {
 import {
     cartesianMarkerDrawMode,
     computeLineAreaFocusBounds,
+    crossFilterHiddenKey,
+    filterMarkerNodeData,
     getMarkerStyles,
+    hideMarkerWithSize0,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     maxMarkerStrokePickInflation,
@@ -128,15 +131,21 @@ interface LineSeriesTypes extends PlacedLabelSeriesTypes {
 
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 
-/** Per-pass context for the no-itemStyler marker-style pass. */
-interface LineNoStylerPassCtx {
+/** Per-pass context shared by both marker-style passes. */
+interface LineMarkerPassCtx {
     marker: NormalisedLineSeriesOptions['marker'];
     hideWithSize0: boolean;
     isHighlight: boolean;
 }
 
+/** Per-pass context for the no-itemStyler marker-style pass. */
+interface LineNoStylerPassCtx extends LineMarkerPassCtx {
+    // An `itemStyler` is not kept while markers are disabled, so only this pass can run with `selectedOnly`.
+    selectedOnly: boolean;
+}
+
 /** Per-pass context for the itemStyler marker-style pass. */
-interface LineStylerPassCtx extends LineNoStylerPassCtx {
+interface LineStylerPassCtx extends LineMarkerPassCtx {
     xColumn: any[];
     yColumn: any[];
     xDomain: any[];
@@ -194,6 +203,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     private readonly spanPointPool: LineSpanPointDatum[] = [];
     private spanPointCount = 0;
     private hideWithSize0 = false;
+    private selectedOnly = false;
     private markerNodesPickable = true;
 
     protected override hasPickableNodeShapes(): boolean {
@@ -539,6 +549,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelInsideOffset: labelContext.labelInsideOffset,
             labelInsideSize: labelContext.labelInsideSize,
             labelAnchor: labelContext.labelAnchor,
+            labelRegion: labelContext.labelRegion,
             emptyLabel: { text: '', width: 0, height: 0 },
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
@@ -628,6 +639,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 existingNode.label = label;
                 existingNode.fit = fit;
                 existingNode.gap = gap;
+                existingNode.region = ctx.labelRegion;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
@@ -649,6 +661,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     anchor: ctx.labelAnchor,
                     insideOffset: ctx.labelInsideOffset,
                     insideSize: ctx.labelInsideSize,
+                    region: ctx.labelRegion,
                     placement: 'top',
                     gap,
                     crossFilterSelected: scratch.crossFilterSelected,
@@ -739,6 +752,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             anchor: ctx.labelAnchor,
             insideOffset: ctx.labelInsideOffset,
             insideSize: ctx.labelInsideSize,
+            region: ctx.labelRegion,
             placement: 'top',
             crossFilterSelected: undefined,
         };
@@ -883,8 +897,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
-        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
-        nodeData = markerDrawMode.needsNodeData ? nodeData : [];
+        this.selectedOnly = markerDrawMode.selectedOnly === true;
+        // Under `selectedOnly` only the cross-filter-selected datums have a full-size marker, so the rest fall back to markerless picking.
+        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0 && !this.selectedOnly;
+        nodeData = filterMarkerNodeData(nodeData, markerDrawMode);
 
         if (this.markerDirty) {
             datumSelection.clear();
@@ -910,7 +926,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             ctx.marker,
             datum,
             undefined,
-            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            {
+                isHighlight: ctx.isHighlight,
+                highlightState,
+                selectionState,
+                hideWithSize0: hideMarkerWithSize0(ctx.hideWithSize0, ctx.selectedOnly, datum),
+            },
             stylerStyle.marker,
             {
                 stroke: stylerStyle.stroke,
@@ -958,7 +979,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
     }) {
-        const { hideWithSize0 } = this;
+        const { hideWithSize0, selectedOnly } = this;
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.options;
 
@@ -967,8 +988,13 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             this.runMarkerStylePass<LineNoStylerPassCtx, LineNodeDatum, NormalisedSeriesMarkerStyle, LineSeries>(
                 datumSelection,
                 isHighlight,
-                { marker, hideWithSize0, isHighlight },
-                { compute: LineSeries.computeNoStylerMarkerStyle, apply: Series.assignCachedStyle }
+                { marker, hideWithSize0, selectedOnly, isHighlight },
+                {
+                    compute: LineSeries.computeNoStylerMarkerStyle,
+                    apply: Series.assignCachedStyle,
+                    // The style differs between the datums cross-filtering hides and shows only for this combination.
+                    keyExtra: hideWithSize0 && selectedOnly ? crossFilterHiddenKey : undefined,
+                }
             );
             return;
         }
@@ -1001,7 +1027,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
-        const { contextNodeData, hideWithSize0 } = this;
+        const { contextNodeData, hideWithSize0, selectedOnly } = this;
         if (!contextNodeData) {
             return;
         }
@@ -1031,7 +1057,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyPosition,
                 crossFilterSelected: datum.crossFilterSelected,
-                hideWithSize0,
+                hideWithSize0: hideMarkerWithSize0(hideWithSize0, selectedOnly, datum),
                 pickInflation,
                 shadow,
                 isHighlight,

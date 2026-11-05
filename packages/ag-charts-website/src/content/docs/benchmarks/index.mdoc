@@ -110,7 +110,7 @@ Exercise:
 
 ### Bigint Values
 
-1,000,000 points where `y` is a `bigint` beyond `Number.MAX_SAFE_INTEGER`, plotted on number axes.
+1,000,000 points where `y` is a `bigint` beyond `Number.MAX_SAFE_INTEGER`, drawn on number axes.
 
 {% chartExampleRunner title="Bigint Values" name="high-volume-bigint" type="generated" initialLoadDeferred=true /%}
 
@@ -149,6 +149,8 @@ Exercise:
 
 ## Shadow Layering Test
 
+Shadow `spread` and highlight `glow` are undocumented options accepted at runtime only; they are not part of the public API.
+
 Exercise:
 
 - Initial load and redraw time of series whose shadows overlap: grouped bars with a shadow `spread`, overlapping areas with marker shadows, and 20 lines of 1,000 markers with shadows.
@@ -156,6 +158,17 @@ Exercise:
 - Each is timed with the shadows (and, for the hover case, the glow) off and on.
 
 {% chartExampleRunner title="Shadow Layering" name="shadow-root" type="generated" initialLoadDeferred=true /%}
+
+## Heatmap Glow Test
+
+The highlight `glow` is an undocumented option accepted at runtime only; it is not part of the public API.
+
+Exercise:
+
+- Initial load and hover redraw time of a heatmap of many-coloured cells whose unhighlighted cells cast a `glow` with no `fill`, so that each cell's glow takes the colour of the cell.
+- Each is timed with a colour scale and with a single colour, and with the glow off and on.
+
+{% chartExampleRunner title="Heatmap Glow" name="shadow-glow-heatmap" type="generated" initialLoadDeferred=true /%}
 
 ## Data Selection at Scale
 

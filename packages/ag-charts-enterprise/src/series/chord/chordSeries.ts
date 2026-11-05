@@ -2,8 +2,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     BBox,
     type CallbackParamRules,
-    type CollideWith,
     type DynamicContext,
+    type LabelAvoidance,
     type NormalisedChordSeriesLinkStyle,
     type NormalisedChordSeriesNodeStyle,
     type NormalisedChordSeriesOwnOptions,
@@ -80,10 +80,10 @@ function placedLabelTarget(placed: PlacedLabel<unknown>): ChordNodeLabelDatum {
 }
 
 // Node labels give way only to each other.
-const NODE_LABEL_COLLISIONS: CollideWith = {
+const NODE_LABEL_COLLISIONS: LabelAvoidance = {
     marker: false,
     label: true,
-    seriesItem: false,
+    shape: false,
     seriesArea: false,
     axisLabel: false,
 };
@@ -414,7 +414,7 @@ export class ChordSeries extends FlowProportionSeries<
                 anchor: undefined,
                 placement: undefined,
                 alwaysShow: false,
-                collideWith: NODE_LABEL_COLLISIONS,
+                avoid: NODE_LABEL_COLLISIONS,
                 positionedCandidates: [{ box, unbounded: true, rotation: rotationDeg, orientedCollision: true }],
                 target,
             });

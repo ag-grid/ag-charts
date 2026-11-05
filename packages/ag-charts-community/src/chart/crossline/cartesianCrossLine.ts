@@ -15,7 +15,7 @@ import {
     fitLabelText,
     fitLabelTextAutoSize,
     fontWithSize,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     resolveLabelFit,
     resolvePadding,
     toRadians,
@@ -25,6 +25,7 @@ import type {
     BoxBounds,
     CanvasPoint,
     CrossLine,
+    CrossLineLabelPosition,
     CrossLineType,
     DynamicContext,
     NormalisedAxisCrossLineLabelOptions,
@@ -33,7 +34,7 @@ import type {
     PositionedLabelCandidate,
     Scale,
 } from 'ag-charts-core';
-import type { AgCartesianAxisPosition, AgCrossLineLabelPosition, AgCrossLineListeners } from 'ag-charts-types';
+import type { AgCartesianAxisPosition, AgCrossLineListeners } from 'ag-charts-types';
 
 import { rangeAlignment } from '../rangeAlignment';
 import { type Anchor, type AnchorDirection, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
@@ -316,8 +317,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const { collision, reserveSpace } = this.label;
         const keep = this.keepsLabel;
         // Not themed, as the cross-line theme also reaches polar axes; outer labels sit outside the series area.
-        const seriesArea = collision?.collideWith?.seriesArea ?? false;
-        const collideWith = { ...resolveCollideWith(collision ?? { alwaysShow: true }), seriesArea };
+        const seriesArea = collision?.collideWith?.seriesArea === false;
+        const avoid = { ...resolveLabelAvoidance(collision ?? { alwaysShow: true }), seriesArea };
         const { width, height } = box;
 
         // A re-layout settles the placement already chosen rather than choosing again.
@@ -352,7 +353,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             alwaysShow: keep ? undefined : false,
             neverDrop: keep,
             obstacle: keep ? reserveSpace : true,
-            collideWith,
+            avoid,
             threshold: collision?.threshold,
             positionedCandidates,
         };
@@ -536,7 +537,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const measurer = cachedTextMeasurer(label);
         if (this.fitted?.measurer !== measurer) {
             const text = label.text ?? '';
-            const fitted = fitLabelTextAutoSize(text, resolveLabelFit(label), label);
+            const fitted = fitLabelTextAutoSize(text, resolveLabelFit(label, !this.keepsLabel), label);
             this.fitted = {
                 text: typeof fitted.text === 'string' ? fitted.text : text,
                 fontSize: fitted.fontSize ?? label.fontSize,
@@ -564,12 +565,11 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const rtl = domManager.isRtl;
         const key = `${horizontal}:${rtl}`;
         if (this.anchors == null || this.anchorsResolvedFor !== key) {
-            this.anchors = resolveCrossLinePlacements(label.placement, label.position, {
+            this.anchors = resolveCrossLinePlacements(label.placement, {
                 type,
                 horizontal,
                 rtl,
                 warn: (message) => logger.warnOnce(message),
-                deprecate: (message) => logger.deprecationOnce(message),
             });
             this.anchorsResolvedFor = key;
         }
@@ -713,7 +713,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return undefined;
     }
 
-    calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
+    calculatePadding(into: Partial<Record<CrossLineLabelPosition, number>>) {
         this.paddedSide = undefined;
         if (!this.padsForLabel) return;
 

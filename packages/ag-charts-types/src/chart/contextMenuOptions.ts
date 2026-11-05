@@ -163,7 +163,8 @@ interface ShowOnParamsMixin {
     event: Event;
 }
 
-// Note: The unused `_TDatumReserved = never` are reserved for future-proofing.
+// Note: `_TDatum = never` is reserved for future-proofing. The `ShowOnParams` scopes do not use it in their own
+// members; the `GetItemsParams` scopes only forward it to `defaultItems`.
 //
 // Using <TContext> instead of <_TDatum, TContext> would make the API very susceptible to breaking changes and/or inconsistency.
 //
@@ -175,31 +176,31 @@ interface ShowOnParamsMixin {
 // `TParams` is appended last for the same reason. Only the two series-area scopes intersect it, since they alone
 // correspond to a point in the series area.
 
-export interface AgContextMenuShowOnParamsAlways<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuShowOnParamsAlways<_TDatum = never, TContext = ContextDefault>
     extends Omit<AgChartContextMenuEvent<TContext>, GetItemsParamsOmissions>, ShowOnParamsMixin {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'always';
 }
 
-export interface AgContextMenuShowOnParamsAxis<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuShowOnParamsAxis<_TDatum = never, TContext = ContextDefault>
     extends Omit<AgAxisContextMenuActionEvent<TContext>, GetItemsParamsOmissions>, ShowOnParamsMixin {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'axis';
 }
 
-export interface AgContextMenuShowOnParamsCrossLine<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuShowOnParamsCrossLine<_TDatum = never, TContext = ContextDefault>
     extends Omit<AgCrossLineContextMenuActionEvent<TContext>, GetItemsParamsOmissions>, ShowOnParamsMixin {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'cross-line';
 }
 
-export interface AgContextMenuShowOnParamsCaption<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuShowOnParamsCaption<_TDatum = never, TContext = ContextDefault>
     extends Omit<AgCaptionContextMenuActionEvent<TContext>, GetItemsParamsOmissions>, ShowOnParamsMixin {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'caption';
 }
 
-export interface AgContextMenuShowOnParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuShowOnParamsSeriesArea<_TDatum = never, TContext = ContextDefault>
     extends Omit<AgSeriesAreaContextMenuActionEvent<TContext>, GetItemsParamsOmissions>, ShowOnParamsMixin {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'series-area';
@@ -217,7 +218,7 @@ export interface AgContextMenuShowOnParamsSeriesNode<TDatum = DatumDefault, TCon
     isCollapsed?: boolean;
 }
 
-export interface AgContextMenuShowOnParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault>
+export interface AgContextMenuShowOnParamsLegendItem<_TDatum = never, TContext = ContextDefault>
     extends Omit<AgChartLegendContextMenuEvent<TContext>, GetItemsParamsOmissions>, ShowOnParamsMixin {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'legend-item';
@@ -256,46 +257,20 @@ interface GetItemsParamsMixin<TDatum, TContext, TParams> {
     allShowOnParams: AgContextMenuShowOnParams<TDatum, TContext, TParams>[];
 }
 
-export interface AgContextMenuGetItemsParamsAlways<
-    _TDatumReserved = never,
-    TContext = ContextDefault,
-    TParams = unknown,
->
-    extends
-        AgContextMenuShowOnParamsAlways<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
+export interface AgContextMenuGetItemsParamsAlways<_TDatum = never, TContext = ContextDefault, TParams = unknown>
+    extends AgContextMenuShowOnParamsAlways<_TDatum, TContext>, GetItemsParamsMixin<_TDatum, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsAxis<_TDatumReserved = never, TContext = ContextDefault, TParams = unknown>
-    extends
-        AgContextMenuShowOnParamsAxis<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
+export interface AgContextMenuGetItemsParamsAxis<_TDatum = never, TContext = ContextDefault, TParams = unknown>
+    extends AgContextMenuShowOnParamsAxis<_TDatum, TContext>, GetItemsParamsMixin<_TDatum, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsCrossLine<
-    _TDatumReserved = never,
-    TContext = ContextDefault,
-    TParams = unknown,
->
-    extends
-        AgContextMenuShowOnParamsCrossLine<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
+export interface AgContextMenuGetItemsParamsCrossLine<_TDatum = never, TContext = ContextDefault, TParams = unknown>
+    extends AgContextMenuShowOnParamsCrossLine<_TDatum, TContext>, GetItemsParamsMixin<_TDatum, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsCaption<
-    _TDatumReserved = never,
-    TContext = ContextDefault,
-    TParams = unknown,
->
-    extends
-        AgContextMenuShowOnParamsCaption<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
+export interface AgContextMenuGetItemsParamsCaption<_TDatum = never, TContext = ContextDefault, TParams = unknown>
+    extends AgContextMenuShowOnParamsCaption<_TDatum, TContext>, GetItemsParamsMixin<_TDatum, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsSeriesArea<
-    _TDatumReserved = never,
-    TContext = ContextDefault,
-    TParams = unknown,
->
-    extends
-        AgContextMenuShowOnParamsSeriesArea<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
+export interface AgContextMenuGetItemsParamsSeriesArea<_TDatum = never, TContext = ContextDefault, TParams = unknown>
+    extends AgContextMenuShowOnParamsSeriesArea<_TDatum, TContext>, GetItemsParamsMixin<_TDatum, TContext, TParams> {}
 
 export interface AgContextMenuGetItemsParamsSeriesNode<
     TDatum = DatumDefault,
@@ -304,14 +279,8 @@ export interface AgContextMenuGetItemsParamsSeriesNode<
 >
     extends AgContextMenuShowOnParamsSeriesNode<TDatum, TContext>, GetItemsParamsMixin<TDatum, TContext, TParams> {}
 
-export interface AgContextMenuGetItemsParamsLegendItem<
-    _TDatumReserved = never,
-    TContext = ContextDefault,
-    TParams = unknown,
->
-    extends
-        AgContextMenuShowOnParamsLegendItem<_TDatumReserved, TContext>,
-        GetItemsParamsMixin<_TDatumReserved, TContext, TParams> {}
+export interface AgContextMenuGetItemsParamsLegendItem<_TDatum = never, TContext = ContextDefault, TParams = unknown>
+    extends AgContextMenuShowOnParamsLegendItem<_TDatum, TContext>, GetItemsParamsMixin<_TDatum, TContext, TParams> {}
 
 export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = ContextDefault, TParams = unknown> =
     | AgContextMenuGetItemsParamsAlways<TDatum, TContext, TParams>
@@ -336,9 +305,9 @@ export interface AgContextMenuOptions<TDatum = DatumDefault, TContext = ContextD
     /**
      * Whether a right-click with the Ctrl or Cmd key held opens the browser context menu instead of the chart context menu.
      *
-     * This is mainly useful for reaching the browser developer tools, for example to inspect the chart.
+     * This is mainly useful for reaching the browser developer tools, for example to inspect the chart. Set to `false` to always show the chart context menu.
      *
-     * Default: `false`
+     * Default: `true`
      */
     allowBrowserMenuWithModifierKey?: boolean;
     /**

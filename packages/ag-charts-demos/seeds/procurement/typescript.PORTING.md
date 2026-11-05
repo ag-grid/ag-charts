@@ -20,17 +20,19 @@ rules, the invariants the port must keep, and how to prove parity afterwards.
 
 ## File mapping
 
-| React source (`src/demos/procurement/`)                                                                                                                        | This seed (`src/`)                   | Rule                                                                                                                                                                                                                                                                                                  |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `data.ts`, `types.ts`, `chartTheme.ts`, `format.ts`, `geo.ts`, `grid.ts`, `workspace.ts`, `procurement.css`, `data/*.json`, `data/source.ts`, `data/README.md` | same names                           | Copied byte for byte. A diff here means the React source moved; re-copy. The `data/*.test.ts` files are not part of the seed.                                                                                                                                                                         |
-| `routes.ts`                                                                                                                                                    | `routes.ts`                          | Copied from the React seed (`seeds/procurement/react/src/routes.ts`), whose one difference from the demo source is the import of the vendored topology below.                                                                                                                                         |
-| `../web-analytics/topology.ts`                                                                                                                                 | `vendored/web-analytics/topology.ts` | Copied byte for byte, at the same path the React seed vendors it to. The demo source imports it from the sibling demo; a seed has no sibling.                                                                                                                                                         |
-| `ui.tsx` (Radix wrappers) and the `RTabs.*` elements of `WorkspaceApp.tsx`                                                                                     | `ui.ts`                              | Hand-rolled `button`, `createSelect`, `createToggleGroup`, `createTabs` reproducing the Radix DOM (see below).                                                                                                                                                                                        |
-| `WorkspaceApp.tsx`                                                                                                                                             | `WorkspaceApp.ts`                    | Builds the sidebar and page head once; `render()` runs after every state change, swaps the active tab's view, and applies state to it via `update()`.                                                                                                                                                 |
-| `components/*.tsx`                                                                                                                                             | `components/*.ts`                    | One `create*()` factory per component, returning `{ el, mount, update, destroy }` (the `View` interface in `dom.ts`). `EmptyState`, `StatusLegend` and `AttentionList` are stateless and return a plain element.                                                                                      |
-| `index.tsx`                                                                                                                                                    | `index.ts`                           | Registers `AllEnterpriseModule`, imports the CSS, exports `createProcurement(): View`.                                                                                                                                                                                                                |
-| `main.tsx` (React seed)                                                                                                                                        | `main.ts`                            | Registers `AllCommunityModule`, appends `<main data-demo-id="procurement" style="position: fixed; inset: 0;">` to `#root`, then calls `mount()`. The inline style is a seed-level invariant every port carries (the React generator emits it in `main.tsx`); `index.html` carries no `<style>` block. |
-| no equivalent                                                                                                                                                  | `dom.ts`, `memo.ts`, `chart.ts`      | `h()`, `svg()`, `append()` element helpers and the `View` interface; `memo()`, the `useMemo` stand-in; `chartHost()` / `gaugeHost()`, the `ag-charts-react` wrapper stand-in.                                                                                                                         |
+| React source (`src/demos/procurement/`)                                                                                                                        | This seed (`src/`)                   | Rule                                                                                                                                                                                                                                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data.ts`, `types.ts`, `chartTheme.ts`, `format.ts`, `geo.ts`, `grid.ts`, `workspace.ts`, `procurement.css`, `data/*.json`, `data/source.ts`, `data/README.md` | same names                           | Copied byte for byte. A diff here means the React source moved; re-copy. The `data/*.test.ts` files are not part of the seed.                                                                                                                                                                                                |
+| `routes.ts`                                                                                                                                                    | `routes.ts`                          | Copied from the React seed (`seeds/procurement/react/src/routes.ts`), whose one difference from the demo source is the import of the vendored topology below.                                                                                                                                                                |
+| `../web-analytics/topology.ts`                                                                                                                                 | `vendored/web-analytics/topology.ts` | Copied byte for byte, at the same path the React seed vendors it to. The demo source imports it from the sibling demo; a seed has no sibling.                                                                                                                                                                                |
+| `ui.tsx` (Radix wrappers) and the `RTabs.*` elements of `WorkspaceApp.tsx`                                                                                     | `ui.ts`                              | Hand-rolled `button`, `createSelect`, `createToggleGroup`, `createTabs` reproducing the Radix DOM (see below).                                                                                                                                                                                                               |
+| `WorkspaceApp.tsx`                                                                                                                                             | `WorkspaceApp.ts`                    | Builds the sidebar and page head once; `render()` runs after every state change, swaps the active tab's view, and applies state to it via `update()`.                                                                                                                                                                        |
+| `components/chartSelection.ts`, `components/focusable.ts`                                                                                                      | same names                           | Copied byte for byte: neither imports React.                                                                                                                                                                                                                                                                                 |
+| `components/useClickAway.ts`, `components/useShipmentSelection.ts`, `components/useSupplierSelection.ts`                                                       | same names                           | The hooks as `createClickAway`, `createShipmentSelection`, `createSupplierSelection` (see "Hooks" below).                                                                                                                                                                                                                    |
+| `components/*.tsx`                                                                                                                                             | `components/*.ts`                    | One `create*()` factory per component, returning `{ el, mount, update, destroy }` (the `View` interface in `dom.ts`). `EmptyState`, `AttentionList`, `StatusKeys`, `DemoNotice`, `HelpCard` and `SidebarActions` take no changing props and return a plain element; `SpendBreakdownGrid` mounts into its parent (see below). |
+| `index.tsx`                                                                                                                                                    | `index.ts`                           | Registers `AllEnterpriseModule`, imports the CSS, exports `createProcurement(): View`.                                                                                                                                                                                                                                       |
+| `main.tsx` (React seed)                                                                                                                                        | `main.ts`                            | Registers `AllCommunityModule`, appends `<main data-demo-id="procurement" style="position: fixed; inset: 0;">` to `#root`, then calls `mount()`. The inline style is a seed-level invariant every port carries (the React generator emits it in `main.tsx`); `index.html` carries no `<style>` block.                        |
+| no equivalent                                                                                                                                                  | `dom.ts`, `memo.ts`, `chart.ts`      | `h()`, `svg()`, `append()` element helpers and the `View` interface; `memo()`, the `useMemo` stand-in; `chartHost()` / `gaugeHost()` / `quadrantHost()`, the `AgCharts` / `AgGauge` / `AgQuadrantChart` wrapper stand-ins.                                                                                                   |
 
 ## Mapping rules
 
@@ -50,12 +52,34 @@ rules, the invariants the port must keep, and how to prove parity afterwards.
 - A conditional render (`{rows.length > 0 ? <Chart /> : <EmptyState />}`) becomes a slot: the
   box element stays, and `update()` creates or destroys the chart view and swaps the empty state
   in or out as the condition changes, mounting the new view if the parent is mounted.
-- A list keyed by id (the KPI tiles, the histogram facets) keeps one view per key and reuses it
-  across updates while the keys match, rebuilding the list when they do not.
+- A list keyed by id keeps one view per key and reuses it across updates: the histogram facets
+  update a kept supplier's facet in place and create or destroy the others; the KPI tiles, whose
+  keys never change within a tab, rebuild the strip when they do.
 - `Tabs.Content` unmounts its children when another tab is selected. The port destroys the
   outgoing tab's view (charts and grids included) and its page-head controls, and creates the new
   tab's fresh, so a tab's own state (the trend metric toggle) starts over as React's does.
   Selections and recorded actions live in `WorkspaceApp` and persist across tabs.
+- A boolean JSX attribute React stringifies (`data-keeps-selection`) is written as the string it
+  renders, `'data-keeps-selection': 'true'`; `h()` would render `true` as an empty value.
+- Where React keeps one element across two branches of a conditional (the quality-cost card's
+  "See X's materials →" and "← Back to all suppliers" buttons share a slot), the port keeps one
+  element too and swaps its text and handler, so focus stays on it as the drill flips.
+- An effect that resets local state when a prop changes (the drill leaving when another supplier
+  is selected) runs in `update()` before the render, when that prop has changed.
+- Where the React source types an options `useMemo` with a type argument rather than a return
+  annotation, pass it to `memo<Args, Result>()` the same way, so the options are type-checked as
+  React's are (`DeliveryMap`).
+
+### Hooks
+
+- `useClickAway(active, onClear)` becomes `createClickAway(onClear)`; the view calls
+  `setActive(active)` on every render and `destroy()` on unmount.
+- `useShipmentSelection` / `useSupplierSelection` become `create*Selection({ chart, ... })`, where
+  `chart` is the host's `instance()` (the hook's `chartRef`). The returned listeners go in the
+  chart options as React's `useCallback`s do. The mirroring effect is `sync(selected, itemsFor)`,
+  called after `mount()` and after every `update()`; it re-runs only when one of its two arguments
+  changes identity, so `itemsFor` is memoised on exactly the React `useCallback` dependencies.
+- A chart's `ref` is `ChartHost.instance()`: undefined until `mount()`, the chart after.
 
 ### `ag-charts-react` to `AgCharts.create` and `chart.update`
 
@@ -79,8 +103,15 @@ rules, the invariants the port must keep, and how to prove parity afterwards.
   `defaultColDef`, `getRowId`, `rowClass`, `rowClassRules`, `rowHeight`, `headerHeight`,
   `domLayout` and the pagination options.
 - Prop changes become one `api.updateGridOptions({ … })` call carrying only the props whose value
-  changed identity (`rowData`, `columnDefs`, `rowClassRules`), which is what `ag-grid-react` does
-  after a render. New `columnDefs` make the grid refresh every cell, so a renderer that closes over
+  changed identity (`rowData`, `columnDefs`, `rowClassRules`, `autoGroupColumnDef`), which is what
+  `ag-grid-react` does after a render. Event handlers that close over props (`onSelectionChanged` on
+  the schedule table) read the latest props instead of being replaced.
+- An `<AgGridReact>` with no `.pc-grid-host` wrapper (`SpendBreakdownGrid`, whose `containerStyle`
+  is the wrapper's default) renders its full-size div straight into its parent: the port's
+  `mount(parent)` calls `createGrid(parent, …)` on the card's chart box, and `destroy()` removes the
+  div again.
+- A cell renderer React returns a bare value from (the breakdown's group cells) returns the value
+  HTML-escaped, since a string result is read as markup. New `columnDefs` make the grid refresh every cell, so a renderer that closes over
   state (the selected supplier, the recorded PO actions) re-renders without `redrawRows`, which
   would drop the focused row's classes.
 - Function cell renderers return an element built with `h()`, or an HTML string where the React
@@ -93,6 +124,8 @@ Each factory renders exactly what the Radix primitive renders, minus Radix's pri
 `data-radix-*` bookkeeping attributes and CSS custom properties.
 
 - `Button` -> `button(attrs, ...children)`: `<button type="button" class="pc-btn ...">`.
+- `ToggleIcon` -> `toggleIcon(...paths)`: the 16px `viewBox="0 0 32 32"` glyph. An element has one
+  parent, so a view builds its icon options per group rather than sharing a module constant.
 - `Tabs.Root` (vertical) -> `createTabs`: `<div dir="ltr" data-orientation="vertical" class="pc-app">`
   which the owner fills. `Tabs.List` is
   `<div role="tablist" aria-orientation="vertical" class="pc-tabs-list" aria-label tabindex="0" data-orientation="vertical" style="outline: none;">`
@@ -110,12 +143,16 @@ Each factory renders exactly what the Radix primitive renders, minus Radix's pri
   item takes `tabindex="0"` and the others `-1`; keyboard focus landing on the group moves to the
   item that is on; arrow keys on both axes (the React demo gives the group no orientation) move
   focus and loop; Home/End and PageUp/PageDown jump; Shift+Tab leaves the group without stopping
-  on it. A click or Enter/Space selects; the selected item cannot be deselected.
+  on it. A click or Enter/Space selects; the selected item cannot be deselected. An option with an
+  `icon` renders `class="pc-toggle-item pc-toggle-item--icon"` with `aria-label` and `title` set to
+  its label and the icon as its only child. With a `label`, the group is wrapped in
+  `<div class="pc-labeled-select"><span aria-hidden="true">View as</span>…</div>`.
 - `Select` (Root/Trigger/Value/Icon/Portal/Content/Viewport/Item/ItemText) -> `createSelect`:
   the trigger is `<button type="button" role="combobox" aria-controls aria-expanded aria-autocomplete="none" dir="ltr" data-state="closed|open" class="pc-btn pc-select-trigger" aria-label>`
-  holding `<span style="pointer-events: none;">label</span><span aria-hidden="true">▾</span>`,
+  holding `<span style="pointer-events: none;">label</span><span aria-hidden="true" class="pc-select-icon"><svg …><path d="M1 2.5h8L5 7.5z"/></svg></span>`,
   wrapped in `<label class="pc-labeled-select"><span>Period</span>…</label>` (no `for`: the
-  React source renders none). Opening appends to `document.body` a wrapper
+  React source renders none), or bare when no `label` is given. `setOptions()` reflects options
+  that change with the owner's state (the orders filters, each narrowed by the other). Opening appends to `document.body` a wrapper
   `<div dir="ltr" style="position: fixed; left: 0px; top: 0px; min-width: max-content; z-index: 60; transform: translate(x, y);">`
   containing `<div role="listbox" id data-state="open" data-side="bottom|top" data-align="start" dir="ltr" class="pc-portal pc-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none; pointer-events: auto;">`
   then `<div role="presentation" style="position: relative; flex: 1 1 0%; overflow: auto;">` and
@@ -129,6 +166,8 @@ Each factory renders exactly what the Radix primitive renders, minus Radix's pri
   resets after a second). While open, the rest of the page carries `aria-hidden="true"` (with
   Radix's `data-aria-hidden` marker) and `document.body` takes no pointer events. `destroy()`, the
   unmount, closes an open listbox without moving focus, cancels pending timers and removes the select.
+  Opening cancels a focus return still pending from the last close, which would otherwise pull
+  focus off a listbox reopened within the same tick.
 - The attention worklist (`AttentionAlert`) uses no Radix primitive in the React source; its
   trigger, scrim, dialog panel and document-level focus trap are ported element for element.
 
@@ -140,10 +179,13 @@ The functional specs and the parity harness depend on these. Do not rename, wrap
   wrapper carries exactly `data-demo-id` and that inline style: the demo's own container is
   fixed-position, which would leave the wrapper with no box, so every port sizes it to the
   viewport as the React generator does in `main.tsx`.
-- `.pc-app` > `.pc-sidebar` (`.pc-brand`, `.pc-tabs-list` of `.pc-tab-trigger`,
-  `.pc-sidebar-spacer`, `.pc-stamp`, `.pc-account`) and `.pc-body` > `.pc-view` >
-  `.pc-page-head` (`.pc-page-title`, `.pc-page-actions` holding the active tab's
-  `.pc-page-controls` or `.pc-alert-trigger`) then three `.pc-tab-content` panels in tab order.
+- `.pc-app` > `.pc-sidebar` (`.pc-brand-row` holding `.pc-brand` and the `.pc-notice` demo
+  notice, `.pc-tabs-list` of `.pc-tab-trigger`, `.pc-sidebar-spacer`, the dismissible
+  `section.pc-help` named "Need a hand?", `ul.pc-side-actions` of `aria-disabled` buttons, then
+  `.pc-account`) and `.pc-body` > `.pc-view` > `.pc-page-head` (`.pc-page-title`,
+  `.pc-page-actions` holding the active tab's `.pc-page-controls`, on the orders tab the Supplier
+  and Subcategory selects followed by `.pc-alert`) then three `.pc-tab-content` panels in tab
+  order. Dismissing the help card moves focus to the next focusable control (Settings).
 - Each view is `.pc-view-content` of `.pc-card` sections with `.pc-card-head` > `div` >
   `.pc-card-title` (+ `.pc-card-sub`), the chart in a `.pc-chart-box*` div, or a `.pc-grid-host`
   for a grid.
@@ -155,9 +197,13 @@ The functional specs and the parity harness depend on these. Do not rename, wrap
 - Grid rows are `.ag-row`; supplier rows also carry `pc-supplier` and the selected one
   `is-selected`. The supplier cell is `button.pc-supplier-main[aria-pressed]`; the PO action
   column is pinned right and renders `.pc-po-actions` buttons or `.pc-po-action-done`.
-- The `Clear selection` button is disabled until a shipment is selected; a selected shipment's id
-  shows in `.pc-chip`.
-- `.pc-stamp` reads `Data as of <date>` from `DEMO_NOW`; nothing repaints on a timer.
+- The `Clear selection` button is disabled until a shipment is selected; each selected shipment's
+  id shows in its own `.pc-chip`, in selection order, before the button. With nothing selected
+  the purchase-order grid stays mounted and empty, showing its `noRows` overlay prompt.
+- Chart boxes, grid hosts and the alert that handle their own clicks carry
+  `data-keeps-selection="true"`, which the click-away handlers skip. Nothing repaints on a timer.
+- The schedule card's `View as` group swaps the range-bar chart for the `.pc-grid-host--fill`
+  table; the spend breakdown's swaps the sunburst for the grouped grid.
 - Every chart container is the direct parent of `.ag-charts-wrapper` and has
   `style="height: 100%; width: 100%;"`.
 

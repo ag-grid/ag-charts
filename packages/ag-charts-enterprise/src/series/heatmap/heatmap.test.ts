@@ -26,11 +26,10 @@ import {
     expectNonBlank,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
-    getLegendItemNodes,
-    getLegendModule,
     getSeriesAt,
     getSeriesOptions,
     hoverAction,
+    hoverLegendItem,
     isTooltipVisible,
     pressKey,
     setupMockCanvas,
@@ -47,7 +46,6 @@ import { testLogger } from 'ag-charts-test';
 import {
     destroyChart,
     getHeatmapCellMethods,
-    getLegendItemSuppressHighlight,
     getSeriesInstance,
     getSeriesLabelTexts,
 } from '../../test/enterpriseSeriesAccessors';
@@ -576,6 +574,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('AG-16043: moving from a normal legend item onto a suppressed bin clears the legend-scoped highlight', async () => {
+            const activeChange = vi.fn();
             chart = deproxy(
                 await createEnterpriseChart({
                     data: [
@@ -587,6 +586,7 @@ describe('HeatmapSeries', () => {
                     ],
                     series: [
                         {
+                            id: 'series-a',
                             type: 'bubble',
                             xKey: 'x',
                             yKey: 'y',
@@ -606,31 +606,24 @@ describe('HeatmapSeries', () => {
                             title: 'Series B',
                         },
                     ],
+                    listeners: { activeChange },
                 })
             );
 
-            // Drive Legend.onHover directly: its markerLabel nodes already carry the datum
-            // association, and the MouseEvent is only used for tooltip positioning.
-            const legendModule = getLegendModule(deproxy(chart));
-            const items = getLegendItemNodes(chart);
-            // 1 toggleable Series A + 3 bin items from Series B.
-            expect(items).toHaveLength(4);
-            expect(getLegendItemSuppressHighlight(items[0])).toBeUndefined();
-            expect(getLegendItemSuppressHighlight(items[1])).toBe(true);
+            activeChange.mockClear();
 
-            const { highlightManager } = deproxy(chart).ctx;
-            const mockEvent = new MouseEvent('mousemove');
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-
-            // Hover the toggleable Series A item — the legend sets a highlight under its caller id.
-            legendModule.onHover(mockEvent, items[0]);
+            // Legend item 0 is the toggleable Series A item; items 1-3 are Series B's discrete-colour bins.
+            await hoverLegendItem(chart, 0);
             await waitForChartStability(chart);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
+            expect(activeChange).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    activeItem: expect.objectContaining({ type: 'legend', seriesId: 'series-a' }),
+                })
+            );
 
-            // Move onto a suppressed bin item — the prior legend-scoped highlight must be cleared.
-            legendModule.onHover(mockEvent, items[1]);
+            await hoverLegendItem(chart, 1);
             await waitForChartStability(chart);
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+            expect(activeChange).toHaveBeenLastCalledWith(expect.objectContaining({ activeItem: undefined }));
         });
 
         it('AG-16043: hovering a discrete-bin legend item must not register a highlight', async () => {
@@ -1561,55 +1554,6 @@ describe('HeatmapSeries', () => {
                 });
 
                 expect(anchor.dx).toBeCloseTo(expectedFactor * anchor.xSpan);
-            });
-        });
-
-        // setupMockConsole() fails on any unasserted warning, so every case here must consume its deprecation notice.
-        describe('deprecated top-level options', () => {
-            it('warns and still applies the deprecated top-level values', async () => {
-                const anchor = await readAnchor(
-                    buildOptions({ label: { enabled: true }, textAlign: 'left', verticalAlign: 'bottom' })
-                );
-
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
-                    ],
-                    [
-                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
-                    ],
-                  ]
-                `);
-
-                expect(anchor.dx).toBeCloseTo(-0.5 * anchor.xSpan);
-                expect(anchor.dy).toBeCloseTo(0.5 * anchor.ySpan);
-                expect(anchor.textAlign).toBe('left');
-                expect(anchor.textBaseline).toBe('bottom');
-            });
-
-            it('lets label.textAlign win over the deprecated top-level value', async () => {
-                const anchor = await readAnchor(
-                    buildOptions({
-                        label: { enabled: true, textAlign: 'right', verticalAlign: 'top' },
-                        textAlign: 'left',
-                        verticalAlign: 'bottom',
-                    })
-                );
-
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
-                    ],
-                    [
-                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
-                    ],
-                  ]
-                `);
-
-                expect(anchor.dx).toBeCloseTo(0.5 * anchor.xSpan);
-                expect(anchor.dy).toBeCloseTo(-0.5 * anchor.ySpan);
             });
         });
 
@@ -3249,7 +3193,7 @@ describe('HeatmapSeries', () => {
         const GRID = gridCells(6, 4);
         const COLOR_SCALE = { fills: [{ color: 'blue' }, { color: 'red' }] };
         // An enabled shadow that casts nothing paints nothing, but keeps the cells out of the batch.
-        const AS_RECTS = { shadow: { enabled: true, color: 'transparent', blur: 0, xOffset: 0, yOffset: 0 } };
+        const AS_RECTS = { shadow: { enabled: true, fill: 'transparent', blur: 0, xOffset: 0, yOffset: 0 } };
         const SELECTION = { enabled: true, selectedItem: { fill: 'lime' }, unselectedItem: { opacity: 0.3 } };
 
         const options = (series: Record<string, unknown> = {}, data: GridCell[] = GRID, asRects = false) =>

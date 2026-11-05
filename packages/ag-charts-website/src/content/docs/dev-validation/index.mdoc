@@ -11,7 +11,7 @@ Each validation issue is reported as one of three severities: `error`, `warning`
 
 `consoleOn`, `showOverlayOn` and `throwOn` each take an array of one or more of these severities, and apply only to the ones listed. An empty array disables that option entirely.
 
-The `issueRaised` event reports every issue and includes a `severity` property in the parameters.
+The `issueRaised` event reports each distinct issue once and includes a `severity` property in the parameters.
 
 ## Validation Overlay
 
@@ -89,7 +89,7 @@ Subscribe to the `validations.issueRaised` event to programmatically handle vali
 In this example:
 
 - The `issueRaised` event is logged to the console when invalid options are applied.
-- Unlike `consoleOn`, `showOverlayOn`, and `throwOn`, `issueRaised` is not filtered by severity.
+- Unlike `consoleOn`, `showOverlayOn` and `throwOn`, `issueRaised` is not filtered by severity.
 
 ## API Reference
 

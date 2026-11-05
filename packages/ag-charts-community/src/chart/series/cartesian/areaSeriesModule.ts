@@ -1,7 +1,5 @@
 import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
-    CARTESIAN_AXIS_TYPE,
-    CARTESIAN_POSITION,
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_LINEAR_DEFAULTS,
@@ -72,7 +70,7 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             padding: 8,
-            collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
+            collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW, collideWith: { seriesArea: true } },
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
             placement: 'top',
@@ -102,16 +100,6 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = /* 
 
     themeOptions: areaSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
-    defaultAxes: {
-        y: {
-            type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: CARTESIAN_POSITION.LEFT,
-        },
-        x: {
-            type: CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: CARTESIAN_POSITION.BOTTOM,
-        },
-    },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate,
 

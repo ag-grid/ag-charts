@@ -115,6 +115,18 @@ describe('LabelManager', () => {
             expect(first.getLabelData).toHaveBeenCalledTimes(2);
             expect(second.getLabelData).toHaveBeenCalledTimes(1);
         });
+
+        it('re-solves when a series is replaced under the same id and node-data version', () => {
+            const manager = new LabelManager();
+            const original = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+            const replacement = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'two')] });
+
+            manager.updateLabels([original], NO_PADDING, RECT);
+            manager.updateLabels([replacement], NO_PADDING, RECT);
+
+            expect(replacement.getLabelData).toHaveBeenCalledTimes(1);
+            expect(placedTexts(replacement)).toEqual(['two']);
+        });
     });
 
     describe('no placed-label series', () => {
@@ -170,7 +182,7 @@ describe('LabelManager', () => {
             const blocker = fakeSeries({
                 id: 'b',
                 usesPlacedLabels: false,
-                obstacles: [{ kind: 'rect', category: 'seriesItem', box: new BBox(0, 0, 200, 200) }],
+                obstacles: [{ kind: 'rect', category: 'shape', box: new BBox(0, 0, 200, 200) }],
             });
 
             manager.updateLabels([series, blocker], NO_PADDING, RECT);
@@ -313,7 +325,7 @@ describe('LabelManager', () => {
             const manager = new LabelManager();
             const line = fakeSeries({
                 id: 'line',
-                datums: [labelDatum(50, 50, 'series', { collideWith: { label: true } })],
+                datums: [labelDatum(50, 50, 'series', { avoid: { label: true } })],
             });
             manager.updateLabels([line], NO_PADDING, RECT);
 
@@ -363,7 +375,7 @@ describe('LabelManager', () => {
     });
 
     describe('axis label sources', () => {
-        const OPTED_IN = { marker: true, label: true, seriesItem: true, seriesArea: false, axisLabel: true };
+        const OPTED_IN = { marker: true, label: true, shape: true, seriesArea: false, axisLabel: true };
 
         function axisSource() {
             const boxes = vi.fn(() => [new BBox(30, 40, 40, 20)]);
@@ -388,7 +400,7 @@ describe('LabelManager', () => {
         it('gathers axis labels, and re-solves on their invalidation, once a label avoids them', () => {
             const manager = new LabelManager();
             const { source, boxes } = axisSource();
-            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one', { collideWith: OPTED_IN })] });
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one', { avoid: OPTED_IN })] });
             manager.registerSource(source);
 
             manager.updateLabels([series], NO_PADDING, RECT);

@@ -1,5 +1,5 @@
 import { fail } from 'assert';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { cycledValue } from 'ag-charts-core';
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
@@ -8,7 +8,7 @@ import type {
     AgCartesianChartOptions,
     AgChartTheme,
     AgLineSeriesOptions,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -259,7 +259,7 @@ describe('ChartTheme', () => {
                 },
             },
         };
-        const polarChartOptions: AgPolarChartOptions = {
+        const pieChartOptions: AgStandaloneChartOptions = {
             theme,
             title: {
                 enabled: true,
@@ -279,15 +279,15 @@ describe('ChartTheme', () => {
             ],
         };
 
-        const serializedOptions = JSON.stringify(polarChartOptions);
+        const serializedOptions = JSON.stringify(pieChartOptions);
 
         // The chart is also inspected synchronously, before it has settled.
         beforeEach(() => {
-            chart = deproxy(AgCharts.create(polarChartOptions));
+            chart = deproxy(AgCharts.create(pieChartOptions));
         });
 
         it('Options are not mutated after AgCharts.create', () => {
-            expect(JSON.stringify(polarChartOptions)).toBe(serializedOptions);
+            expect(JSON.stringify(pieChartOptions)).toBe(serializedOptions);
         });
 
         it('Pie chart instance properties', () => {
@@ -417,7 +417,7 @@ describe('ChartTheme', () => {
             ],
         };
 
-        const polarChartOptions: AgPolarChartOptions = {
+        const pieChartOptions: AgStandaloneChartOptions = {
             theme,
             title: {
                 enabled: true,
@@ -465,7 +465,7 @@ describe('ChartTheme', () => {
         });
 
         it('Pie chart instance properties', async () => {
-            chart = deproxy(AgCharts.create(polarChartOptions));
+            chart = deproxy(AgCharts.create(pieChartOptions));
             if (!(chart instanceof StandaloneChart)) fail();
 
             await waitForChartStability(chart);
@@ -559,29 +559,44 @@ describe('ChartTheme', () => {
         };
 
         it.each([
-            ['ag-default', '#00000080'],
-            ['ag-default-dark', '#000'],
-            ['ag-polychroma-dark', '#000'],
-            ['ag-financial', '#00000080'],
-            ['ag-financial-dark', '#000'],
-        ])('resolves the series and marker shadow colour for %s', async (theme, expected) => {
+            ['ag-default', 0.5],
+            ['ag-default-dark', 1],
+            ['ag-polychroma-dark', 1],
+            ['ag-financial', 0.5],
+            ['ag-financial-dark', 1],
+        ])('resolves the series and marker shadow fill for %s', async (theme, expected) => {
             const { bar, line } = await create(theme);
 
-            expect(bar.shadow?.color).toBe(expected);
-            expect(line.marker?.shadow?.color).toBe(expected);
+            expect(bar.shadow).toMatchObject({ fill: '#000', fillOpacity: expected });
+            expect(line.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity: expected });
         });
 
-        it('keeps a shadow colour set on the series or by a theme override on a dark theme', async () => {
+        it('keeps a shadow fill set on the series or by a theme override on a dark theme', async () => {
             const { bar, line } = await create(
                 {
                     baseTheme: 'ag-default-dark',
-                    overrides: { line: { series: { marker: { shadow: { color: 'red' } } } } },
+                    overrides: { line: { series: { marker: { shadow: { fill: 'red' } } } } },
                 },
-                { shadow: { enabled: true, color: 'blue' } }
+                { shadow: { enabled: true, fill: 'blue' } }
             );
 
-            expect(bar.shadow?.color).toBe('blue');
-            expect(line.marker?.shadow?.color).toBe('red');
+            expect(bar.shadow).toMatchObject({ fill: 'blue', fillOpacity: 1 });
+            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
+        });
+
+        it('treats the deprecated shadow colour as the fill, cast as it is written', async () => {
+            const { bar, line } = await create(
+                { overrides: { line: { series: { marker: { shadow: { color: 'red' } } } } } },
+                { shadow: { enabled: true, color: '#0000ff80' } }
+            );
+
+            expect(bar.shadow).toMatchObject({ fill: '#0000ff80', fillOpacity: 1 });
+            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
+            expect(vi.mocked(console.warn).mock.calls.map(([message]) => String(message))).toEqual([
+                expect.stringContaining('`theme.overrides.line.series.marker.shadow.color` is deprecated'),
+                expect.stringContaining('`series[0].shadow.color` is deprecated'),
+            ]);
+            vi.mocked(console.warn).mockClear();
         });
     });
 
@@ -924,7 +939,7 @@ describe('ChartTheme', () => {
                             type: 'category',
                             position: 'bottom',
                             line: {
-                                width: 5,
+                                strokeWidth: 5,
                             },
                             label: {
                                 fontWeight: 'bold',
@@ -983,13 +998,6 @@ describe('ChartTheme', () => {
             expect(axisX.position).toBe('bottom');
             expect(axisX.options.line.stroke).toBe('blue');
             expect(axisX.options.line.strokeWidth).toBe(5);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
             expect(axisX.options?.label?.fontSize).toBe(18);
             expect(axisX.options?.label?.fontStyle).toBe(undefined);
             expect(axisX.options?.label?.fontFamily).toBe(
@@ -1005,14 +1013,10 @@ describe('ChartTheme', () => {
         });
     });
 
-    describe('line width alias precedence', () => {
-        async function createChart(
-            axisLine: Record<string, unknown> | undefined,
-            theme?: AgChartTheme
-        ): Promise<ChartOrProxy> {
+    describe('axis line strokeWidth', () => {
+        async function createChart(axisLine: Record<string, unknown> | undefined): Promise<ChartOrProxy> {
             const created = deproxy(
                 AgCharts.create({
-                    theme,
                     data,
                     axes: {
                         x: {
@@ -1038,22 +1042,7 @@ describe('ChartTheme', () => {
             return created;
         }
 
-        it('`width` only resolves `strokeWidth` and warns', async () => {
-            chart = await createChart({ width: 5 });
-            if (!(chart instanceof CartesianChart)) fail();
-
-            const axisX = chart.axes.x;
-            expect(axisX.options.line.strokeWidth).toBe(5);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
-        });
-
-        it('`strokeWidth` only resolves without a notice', async () => {
+        it('resolves a user `strokeWidth` without a notice', async () => {
             chart = await createChart({ strokeWidth: 5 });
             if (!(chart instanceof CartesianChart)) fail();
 
@@ -1062,114 +1051,13 @@ describe('ChartTheme', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
-        it('both set: `strokeWidth` wins over `width`, and `width` still warns', async () => {
-            chart = await createChart({ width: 5, strokeWidth: 3 });
-            if (!(chart instanceof CartesianChart)) fail();
-
-            const axisX = chart.axes.x;
-            expect(axisX.options.line.strokeWidth).toBe(3);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
-        });
-
-        it('neither set: `strokeWidth` defaults to 1', async () => {
+        it('defaults `strokeWidth` to 1 when unset', async () => {
             chart = await createChart(undefined);
             if (!(chart instanceof CartesianChart)) fail();
 
             const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(1);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
-        });
-
-        it('`width` set via a theme override resolves `strokeWidth` and warns', async () => {
-            const theme: AgChartTheme = {
-                baseTheme: 'ag-default',
-                overrides: {
-                    common: {
-                        axes: {
-                            category: {
-                                line: {
-                                    width: 7,
-                                },
-                            },
-                        },
-                    },
-                },
-            };
-            chart = await createChart(undefined, theme);
-            if (!(chart instanceof CartesianChart)) fail();
-
-            const axisX = chart.axes.x;
-            expect(axisX.options.line.strokeWidth).toBe(7);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`theme.overrides.common.axes.category.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
-        });
-
-        it('`width` set via a positional theme override resolves `strokeWidth` and warns', async () => {
-            const theme: AgChartTheme = {
-                baseTheme: 'ag-default',
-                overrides: {
-                    common: {
-                        axes: {
-                            number: {
-                                bottom: {
-                                    line: {
-                                        width: 9,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            };
-            chart = deproxy(
-                AgCharts.create({
-                    theme,
-                    data,
-                    axes: {
-                        x: {
-                            type: 'number',
-                            position: 'bottom',
-                        },
-                        y: {
-                            type: 'number',
-                            position: 'left',
-                        },
-                    },
-                    series: [
-                        {
-                            type: 'line',
-                            xKey: 'v1',
-                            yKey: 'v2',
-                        },
-                    ],
-                } as AgCartesianChartOptions)
-            );
-            await waitForChartStability(chart);
-            if (!(chart instanceof CartesianChart)) fail();
-
-            const axisX = chart.axes.x;
-            // Pins the merge-order the plan flagged as the row most likely to diverge:
-            // a positional (`number.bottom`) theme override satisfies `$isUserOption` the
-            // same way a type-level override does.
-            expect(axisX.options.line.strokeWidth).toBe(9);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`theme.overrides.common.axes.number.bottom.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
         });
     });
 

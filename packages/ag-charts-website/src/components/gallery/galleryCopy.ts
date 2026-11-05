@@ -375,7 +375,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Org Chart With Categories Example',
         description:
             'An org chart built with AG Charts, laid out horizontally with nodes, connectors and expanders all coloured by category, and dashed styling marking a subset. Explore the live example.',
-        intro: 'This example shows an [org chart](/r/org-chart/) built with AG Charts, laid out [horizontally](/r/org-chart/#direction) so a wide hierarchy reads left to right. [Item stylers](/r/stylers/#item-stylers) colour the [node fills](/r/org-chart/#node-styling), [connectors](/r/org-chart/#connectors) and [expanders](/r/org-chart/#customisation) by category, fade the fill by depth, and switch to a dashed line for a marked subset, while click-to-expand and highlighting are both turned off.',
+        intro: 'This example shows an [org chart](/r/org-chart/) built with AG Charts, laid out [horizontally](/r/org-chart/#direction) so a wide hierarchy reads left to right. [Item stylers](/r/stylers/#item-stylers) colour the [node fills](/r/org-chart/#node-styling), [links](/r/org-chart/#links) and [expanders](/r/org-chart/#customisation) by category, fade the fill by depth, and switch to a dashed line for a marked subset, while click-to-expand and highlighting are both turned off.',
     },
     'org-chart-with-many-nodes': {
         title: 'Org Chart With Many Nodes Example - JavaScript | AG Charts',

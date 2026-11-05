@@ -97,7 +97,7 @@ function crossLinesFor(annotations: Annotation[], selectedId: string | null): Ag
             strokeWidth: selected ? 2 : 1,
             label: {
                 text: annotation.label,
-                position: 'top',
+                placement: 'top',
                 fontSize: 12,
                 padding: 4,
                 fontWeight: selected ? 'bold' : 'normal',

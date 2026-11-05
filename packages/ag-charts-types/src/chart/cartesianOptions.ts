@@ -24,7 +24,6 @@ import type { AgBaseThemeableChartOptions, AgSeriesAreaOptions } from './chartOp
 import type { AgChartLabelCollisionOptions } from './collisionAvoidanceOptions';
 import type {
     AgBaseCrossLineLabelOptions,
-    AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
     AgLineCrossLineOptions,
     AgRangeCrossLineOptions,
@@ -87,7 +86,7 @@ export interface AgCartesianAxisCrossAt {
     /**
      * Whether the axis title is placed at the crossing point, or at the axis' `position` edge.
      *
-     * Default: `'crossing'`
+     * Default: `'edge'`
      */
     titlePlacement?: AgCartesianAxisCrossAtPlacement;
     /**
@@ -136,10 +135,10 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), never a non-breaking space (`\u00A0`). If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), but not on a non-breaking space (`\u00A0`).
      * - `'never'` disables text wrapping.
      *
-     * Default: `'on-space'`
+     * Default: `'on-space'` for category axes, `'never'` for all other axes
      */
     wrapping?: TextWrap;
     /**
@@ -176,7 +175,7 @@ export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> ex
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), never a non-breaking space (`\u00A0`). If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), but not on a non-breaking space (`\u00A0`).
      * - `'never'` disables text wrapping.
      *
      * Default: `'on-space'`
@@ -260,7 +259,7 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> e
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), never a non-breaking space (`\u00A0`). If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), but not on a non-breaking space (`\u00A0`).
      * - `'never'` disables text wrapping.
      *
      * Default: `'on-space'`
@@ -707,12 +706,6 @@ export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDe
 
 export interface AgCartesianCrossLineLabelOptions
     extends AgBaseCrossLineLabelOptions, AgChartLabelFitOptions, AgChartLabelAutoFontSizeOptions {
-    /**
-     * The position of the Cross Line label.
-     *
-     * @deprecated v14.3.0 Use `placement` instead.
-     */
-    position?: AgCrossLineLabelPosition;
     /**
      * Where to place the label. An array is tried in order, and the first placement that fits is used.
      *
