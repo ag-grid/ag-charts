@@ -595,6 +595,7 @@ function updateUpdateCountDisplay() {
     }
 }
 
+/** inScope */
 async function dispatchUpdate(itemsToUpdate: Datum[]) {
     const start = performance.now();
 
@@ -612,6 +613,7 @@ async function dispatchUpdate(itemsToUpdate: Datum[]) {
     recordCpuUsage(elapsed);
 }
 
+/** inScope */
 async function updateRandomSubset() {
     // Select random indices to update
     const indicesToUpdate = new Set<number>();
@@ -639,6 +641,7 @@ async function updateRandomSubset() {
     await dispatchUpdate(itemsToUpdate);
 }
 
+/** inScope */
 async function runAutoUpdate() {
     if (updateInFlight) {
         return;
@@ -659,6 +662,7 @@ async function runAutoUpdate() {
     }
 }
 
+/** inScope */
 function startUpdates() {
     if (isRunning) {
         return;
@@ -701,6 +705,7 @@ function stopUpdates() {
     }
 }
 
+/** inScope */
 function handleToggleUpdates() {
     if (isRunning) {
         stopUpdates();
@@ -722,6 +727,7 @@ function setUpdateMethod(method: string) {
     resetCpuIndicator();
 }
 
+/** inScope */
 function setUpdateFrequency(frequency: string) {
     const wasRunning = isRunning;
 
@@ -754,6 +760,7 @@ function setUpdateCount(count: number) {
     updateUpdateCountDisplay();
 }
 
+/** inScope */
 async function setSeriesType(newSeriesType: SeriesType) {
     if (newSeriesType === currentSeriesType || seriesTypeUpdateInProgress) {
         return;
@@ -824,6 +831,7 @@ function setMatchingMode(mode: string) {
 
 let axisTypeUpdateInProgress = false;
 
+/** inScope */
 async function setAxisType(newAxisType: AxisType) {
     if (newAxisType === currentAxisType || axisTypeUpdateInProgress) {
         return;

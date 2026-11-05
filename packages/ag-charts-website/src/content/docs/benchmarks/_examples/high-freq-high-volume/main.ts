@@ -124,6 +124,7 @@ function recordCpuUsage(elapsedMs: number) {
     }
 }
 
+/** inScope */
 async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; remove?: Datum[] }) {
     const start = performance.now();
 
@@ -142,6 +143,7 @@ async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; 
     recordCpuUsage(elapsed);
 }
 
+/** inScope */
 async function addPoints(count: number) {
     const append = createBatch(count);
     data = data.concat(append);
@@ -149,6 +151,7 @@ async function addPoints(count: number) {
     updateDataCountDisplay();
 }
 
+/** inScope */
 async function removePoints(count: number) {
     if (data.length <= count) {
         return;
@@ -170,6 +173,7 @@ async function rollBatch() {
     updateDataCountDisplay();
 }
 
+/** inScope */
 async function runAutoUpdate() {
     if (updateInFlight) {
         return;
@@ -188,6 +192,7 @@ async function runAutoUpdate() {
     }
 }
 
+/** inScope */
 function startUpdates() {
     if (isRunning) {
         return;
@@ -215,6 +220,7 @@ function stopUpdates() {
     }
 }
 
+/** inScope */
 function handleToggleUpdates() {
     if (isRunning) {
         stopUpdates();

@@ -176,6 +176,7 @@ function updateRate(value: string) {
     }
 }
 
+/** inScope */
 async function updateChartData() {
     const startTime = performance.now();
 
@@ -228,6 +229,7 @@ async function updateChartData() {
     }
 }
 
+/** inScope */
 function startUpdates() {
     if (!isRunning) {
         intervalId = setInterval(updateChartData, refreshRateInMilliseconds);
