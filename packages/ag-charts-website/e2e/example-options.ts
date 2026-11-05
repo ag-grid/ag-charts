@@ -47,8 +47,7 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'toggle-financial-features': { clickOrder: 'reverse' },
     },
     'high-performance-charts': {
-        // The React and Vue ports deep-clone the options on every change, which takes longer than the test
-        // timeout once the 1m data size is selected.
+        // React and Vue clone the options per change, which outlasts the test timeout at 1m points.
         'bubble-scatter': { frameworks: ['vanilla', 'typescript', 'angular'] },
     },
     legend: {
