@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { LtrEmbedding, PopDirectionalFormatting } from 'ag-charts-core';
+import { Logger, LtrEmbedding, PopDirectionalFormatting } from 'ag-charts-core';
 
-import { type TooltipContent, isTooltipValueMissing, tooltipHtml } from './tooltipContent';
+import { type TooltipContent, isTooltipValueMissing, tooltipContentAriaLabel, tooltipHtml } from './tooltipContent';
 
 describe('tooltipContent', () => {
     describe('isTooltipValueMissing', () => {
@@ -122,6 +122,34 @@ describe('tooltipContent', () => {
             expect(html).toContain(
                 '<div class="ag-charts-tooltip-row"><span class="ag-charts-tooltip-label">Low</span>'
             );
+        });
+    });
+
+    describe('tooltipHtml partial rows', () => {
+        it('renders a label-only row without a value span and skips a row with neither', () => {
+            const content: TooltipContent = {
+                type: 'structured',
+                title: 'Title',
+                data: [{ label: 'Note' }],
+            };
+            const empty: TooltipContent = {
+                type: 'structured',
+                symbol: { marker: { shape: 'circle', fill: 'red' } },
+                data: [{}],
+            };
+            const html = tooltipHtml({ isRtl: false }, [content, empty], 'shared', undefined);
+            expect(html).toBe(
+                '<div class="ag-charts-tooltip-content"><span class="ag-charts-tooltip-title">Title</span> ' +
+                    '<div class="ag-charts-tooltip-row"><span class="ag-charts-tooltip-label">Note</span></div></div>'
+            );
+        });
+
+        it('omits the missing label or value from the aria label', () => {
+            const content: TooltipContent = {
+                type: 'structured',
+                data: [{ value: 'only value' }, { label: 'only label' }],
+            };
+            expect(tooltipContentAriaLabel([content], new Logger())).toBe('only value; only label');
         });
     });
 });
