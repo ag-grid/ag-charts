@@ -36,6 +36,16 @@ function minifiedTwin(file) {
     return `${file.slice(0, -ext.length)}.min${ext}`;
 }
 
+// Static imports and re-exports, minified or not, side-effect imports and dynamic `import()`.
+const RELATIVE_IMPORT = /(?:^|[^\w$.])(?:import|export)\s*(?:[^'";()]*?from\s*|\(\s*)?["'](\.{1,2}\/[^"']+)["']/g;
+
+function relativeImports(pkgDir, file) {
+    const source = fs.readFileSync(path.join(pkgDir, file), 'utf8');
+    return [...source.matchAll(RELATIVE_IMPORT)].map(([, specifier]) =>
+        path.posix.join(path.posix.dirname(file), specifier)
+    );
+}
+
 function escapeRegExp(text) {
     return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -148,6 +158,29 @@ function checkPackage(pkgDir, { release = false } = {}) {
     for (const { file, types, wildcard = false } of expanded) {
         if (!types) runtimeFiles.set(file, (runtimeFiles.get(file) ?? true) && wildcard);
     }
+    // A module imported by a shipped ESM file ships too, unminified: only an entry has a minified single-file twin.
+    const imported = new Set();
+    const pending = [...runtimeFiles.keys()].filter(
+        (file) => file.endsWith('.mjs') && fs.existsSync(path.join(pkgDir, file))
+    );
+    while (pending.length > 0) {
+        const file = pending.pop();
+        for (const target of relativeImports(pkgDir, file)) {
+            if (imported.has(target)) continue;
+            imported.add(target);
+            expected.add(target);
+            if (fs.existsSync(path.join(pkgDir, target))) {
+                pending.push(target);
+            } else {
+                errors.push({
+                    kind: 'missing-import',
+                    file: target,
+                    message: `${file} imports ${target}, which is not shipped`,
+                });
+            }
+        }
+    }
+
     for (const [file, wildcard] of runtimeFiles) {
         expected.add(file);
         if (!fs.existsSync(path.join(pkgDir, file))) {
@@ -155,7 +188,7 @@ function checkPackage(pkgDir, { release = false } = {}) {
             errors.push({ kind, file, message: `exported file is missing: ${file}` });
         }
 
-        const twin = minifiedTwin(file);
+        const twin = imported.has(file) ? undefined : minifiedTwin(file);
         if (twin == null) continue;
         expected.add(twin);
         if (!fs.existsSync(path.join(pkgDir, twin))) {
