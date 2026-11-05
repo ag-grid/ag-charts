@@ -88,9 +88,6 @@ export type AgConeFunnelSeriesLabelPlacement =
     | 'end-center'
     | 'end-after';
 
-/** @deprecated Use the `*-center` values of {@link AgConeFunnelSeriesLabelPlacement} instead. */
-export type AgConeFunnelSeriesLabelPlacementAlias = 'before' | 'middle' | 'after';
-
 /** Configuration controlling how a label behaves when it cannot be placed clear of every obstacle. */
 export interface AgChartLabelCollisionOptions {
     /**

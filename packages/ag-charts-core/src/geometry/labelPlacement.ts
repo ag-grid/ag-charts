@@ -1,4 +1,4 @@
-import type { AgChartLabelOrientation, OverflowStrategy, PaddingOptions, TextWrap } from 'ag-charts-types';
+import type { AgChartLabelOrientation, PaddingOptions, TextWrap } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
@@ -14,6 +14,7 @@ import {
 } from '../text/textUtil';
 import {
     type LabelFit,
+    type OverflowStrategy,
     type RegionAlign,
     drawnLineHeight,
     findLargestFontSizeDescending,
