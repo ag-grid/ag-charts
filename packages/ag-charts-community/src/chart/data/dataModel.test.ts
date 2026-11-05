@@ -30,7 +30,7 @@ import {
     verifyReprocessMatchesBaseline,
 } from './data-model/test/testUtils';
 import type { GroupByFn } from './dataModel';
-import { DataModel, KEY_SORT_ORDERS, getPathComponents } from './dataModel';
+import { DataModel, KEY_SORT_ORDERS } from './dataModel';
 import { DataSet } from './dataSet';
 import {
     SMALLEST_KEY_INTERVAL,
@@ -1332,28 +1332,6 @@ describe('DataModel', () => {
                 version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
-        });
-    });
-
-    describe('getPathComponents', () => {
-        it('parses valid paths', () => {
-            expect(getPathComponents(`a . b [ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['a', 'b', 'c', 'd', '0', '99']);
-            expect(getPathComponents(`. b [ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['b', 'c', 'd', '0', '99']);
-            expect(getPathComponents(`[ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['c', 'd', '0', '99']);
-        });
-
-        it('handles string escapes paths', () => {
-            expect(getPathComponents(`[ 'a\\'b' ] [ "a\\"b" ]`)).toEqual([`a'b`, `a"b`]);
-        });
-
-        it('handles string escapes paths', () => {
-            expect(getPathComponents(`[ 'a\\\\'b' ]`)).toBe(undefined);
-            expect(getPathComponents(`[ "a\\\\"b" ]`)).toBe(undefined);
-        });
-
-        it('rejects invalid paths', () => {
-            expect(getPathComponents(`["test"]other`)).toBe(undefined);
-            expect(getPathComponents(`[test]`)).toBe(undefined);
         });
     });
 

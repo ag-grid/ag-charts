@@ -1,5 +1,19 @@
 [
     {
+        "version": "15.0.0",
+        "date": "December 9th, 2026",
+        "landingPageHighlight": "New accessibility theme, annotations, and more...",
+        "highlights": [
+            {
+                "text": "Accessibility Theme"
+            },
+            {
+                "text": "Annotations"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-15"
+    },
+    {
         "version": "14.3.0",
         "date": "November 4th, 2026",
         "highlights": [

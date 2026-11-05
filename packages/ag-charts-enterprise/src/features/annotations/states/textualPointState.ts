@@ -27,6 +27,7 @@ export abstract class TextualPointStateMachine<
     Pick<
         AnnotationStateEvents,
         | 'click'
+        | 'create'
         | 'dragStart'
         | 'resize'
         | 'cancel'
@@ -145,6 +146,10 @@ export abstract class TextualPointStateMachine<
                 dragStart: {
                     target: 'waiting-first-render',
                     action: actionCreate,
+                },
+                create: {
+                    target: 'waiting-first-render',
+                    action: ({ points: [point] }) => actionCreate({ point }),
                 },
                 cancel: StateMachine.parent,
                 reset: StateMachine.parent,

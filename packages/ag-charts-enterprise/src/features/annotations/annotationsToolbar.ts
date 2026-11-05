@@ -16,6 +16,7 @@ const { LayoutElement, Menu } = _ModuleSupport;
 interface EventMap {
     'cancel-create-annotation': null;
     'pressed-create-annotation': { annotation: AnnotationType };
+    'pressed-place-annotation': { sourceEvent: KeyboardEvent };
     'pressed-clear': null;
     'pressed-show-menu': null;
     'pressed-unrelated': null;
@@ -48,6 +49,7 @@ export class AnnotationsToolbar {
     private enabled: boolean = true;
     private padding: number = 20;
     private buttons: AnnotationsToolbarButtonOptions[] = [];
+    private pendingTool?: { button: AnnotationsToolbarButtonValue; annotation: AnnotationType };
 
     readonly events = new EventEmitter<EventMap>();
 
@@ -125,7 +127,24 @@ export class AnnotationsToolbar {
     }
 
     public clearActiveButton() {
+        this.releasePendingTool();
         this.toolbar.clearActiveButton();
+    }
+
+    /** The annotation of the tool chosen with the keyboard but not yet started, which Enter can place. */
+    public getPendingAnnotation() {
+        return this.pendingTool?.annotation;
+    }
+
+    /** Stops the chosen tool's button placing on Enter, while it stays highlighted for the drawing in progress. */
+    public releasePendingTool() {
+        this.pendingTool = undefined;
+    }
+
+    /** Focus the button the pending tool was chosen from, which a menu's item leaves to its menu button. */
+    public focusPendingToolButton() {
+        const index = this.buttons.findIndex((button) => button.value === this.pendingTool?.button);
+        if (index >= 0) this.toolbar.focusButton(index);
     }
 
     private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
@@ -147,6 +166,16 @@ export class AnnotationsToolbar {
         buttonBounds,
         buttonWidget,
     }: _ModuleSupport.ToolbarEventMap<AnnotationsToolbarButtonOptions>['button-pressed']) {
+        // The button of a chosen tool places its annotation when pressed with the keyboard, rather than choosing the tool again.
+        if (
+            event.device === 'keyboard' &&
+            event.sourceEvent.key === 'Enter' &&
+            button.value === this.pendingTool?.button
+        ) {
+            this.events.emit('pressed-place-annotation', { sourceEvent: event.sourceEvent });
+            return;
+        }
+
         const axisScale = this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y)[0].scale;
 
         switch (button.value) {
@@ -206,47 +235,47 @@ export class AnnotationsToolbar {
                 break;
 
             case 'line':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Line);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Line);
                 break;
 
             case 'horizontal-line':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.HorizontalLine);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.HorizontalLine);
                 break;
 
             case 'vertical-line':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.VerticalLine);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.VerticalLine);
                 break;
 
             case 'parallel-channel':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.ParallelChannel);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.ParallelChannel);
                 break;
 
             case 'disjoint-channel':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.DisjointChannel);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.DisjointChannel);
                 break;
 
             case 'fibonacci-retracement':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.FibonacciRetracement);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.FibonacciRetracement);
                 break;
 
             case 'fibonacci-retracement-trend-based':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.FibonacciRetracementTrendBased);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.FibonacciRetracementTrendBased);
                 break;
 
             case 'text':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Text);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Text);
                 break;
 
             case 'comment':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Comment);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Comment);
                 break;
 
             case 'callout':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Callout);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Callout);
                 break;
 
             case 'note':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Note);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Note);
                 break;
 
             case 'clear':
@@ -275,7 +304,7 @@ export class AnnotationsToolbar {
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             class: 'ag-charts-annotations__toolbar-menu',
             sourceEvent: event.sourceEvent,
-            onPress: this.onButtonPressMenuCreateAnnotation.bind(this, menu),
+            onPress: (item, pressEvent) => this.onButtonPressMenuCreateAnnotation(menu, item, pressEvent),
             // `Popover` keeps every `onHide` for its lifetime, so register ours once.
             onHide: this.menuHideRegistered ? undefined : this.onMenuHide,
         });
@@ -296,19 +325,39 @@ export class AnnotationsToolbar {
 
     private onButtonPressMenuCreateAnnotation(
         menu: AnnotationsToolbarButtonValue,
-        item: _ModuleSupport.MenuItem<AnnotationType>
+        item: _ModuleSupport.MenuItem<AnnotationType>,
+        event: ClickWidgetEvent
     ) {
         const index = this.buttons.findIndex((button) => button.value === menu);
-        this.updateButtonByIndex(index, { icon: item.icon });
         this.menuItemPicked = true;
         this.events.emit('pressed-create-annotation', { annotation: item.value });
+        // Must run after the reset, which clears the active button and icons.
+        this.updateButtonByIndex(index, { icon: item.icon });
+        this.toolbar.toggleActiveButtonByIndex(index);
+        this.holdPendingTool(event, menu, item.value);
         this.annotationMenu.hide();
+        // Hiding destroys the menu before its row can restore focus, which would drop it to the body.
+        this.focusPendingToolButton();
     }
 
-    private onButtonPressCreateAnnotation(item: AnnotationsToolbarButtonValue, annotation: AnnotationType) {
+    private onButtonPressCreateAnnotation(
+        event: ClickWidgetEvent,
+        item: AnnotationsToolbarButtonValue,
+        annotation: AnnotationType
+    ) {
         const index = this.buttons.findIndex((button) => button.value === item);
-        this.toolbar.toggleActiveButtonByIndex(index);
         this.events.emit('pressed-create-annotation', { annotation });
+        this.toolbar.toggleActiveButtonByIndex(index);
+        this.holdPendingTool(event, item, annotation);
+    }
+
+    /** Only a tool chosen with the keyboard can be placed with it, and choosing any tool replaces the previous one. */
+    private holdPendingTool(
+        event: ClickWidgetEvent,
+        button: AnnotationsToolbarButtonValue,
+        annotation: AnnotationType
+    ) {
+        this.pendingTool = event.device === 'keyboard' ? { button, annotation } : undefined;
     }
 
     private onKeyDown({ sourceEvent }: KeyboardWidgetEvent) {

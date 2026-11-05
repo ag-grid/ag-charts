@@ -12,6 +12,7 @@ mcp.json
 !/skills/hot-paths/
 !/skills/module-definitions/
 !/skills/port-showcases/
+!/skills/charts-team-sync/
 
 # Plugin-delivered agents — all agents live in plugins
 /subagents/*.md

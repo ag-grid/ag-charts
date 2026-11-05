@@ -228,7 +228,8 @@ export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<
     predictAxis?: (
         direction: any,
         datum: DatumDefault,
-        seriesOptions: any
+        seriesOptions: any,
+        suppressFieldDotNotation: boolean
     ) => SeriesPredictAxis<SeriesType> | undefined;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     axisKeys?: Partial<Record<string /* ChartAxisDirection */, string>>;

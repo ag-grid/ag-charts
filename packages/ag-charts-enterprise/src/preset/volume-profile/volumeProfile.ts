@@ -41,13 +41,15 @@ export function groupVolumeProfile(
     data: DatumDefault[],
     { priceKey = 'price', upKey, downKey }: Pick<AgVolumeProfileOptions, 'priceKey' | 'upKey' | 'downKey'>,
     tickSize: number | undefined,
+    suppressFieldDotNotation: boolean,
     logger: Logger
 ) {
     const keys = { priceKey, upKey, downKey };
-    warnMissingVolumeProfileKeys(data, keys, logger);
-    if (lacksVolumeProfileVolumes(data, keys)) return [];
+    warnMissingVolumeProfileKeys(data, keys, suppressFieldDotNotation, logger);
+    if (lacksVolumeProfileVolumes(data, keys, suppressFieldDotNotation)) return [];
 
-    return normaliseVolumeProfile(data, keys, tickSize ?? inferVolumeProfileTickSize(data, priceKey) ?? 1);
+    const levelSize = tickSize ?? inferVolumeProfileTickSize(data, priceKey, suppressFieldDotNotation) ?? 1;
+    return normaliseVolumeProfile(data, keys, levelSize, suppressFieldDotNotation);
 }
 
 /** Fixed series ids of the two profile series, in both the Volume Profile Chart and the Financial Chart. */

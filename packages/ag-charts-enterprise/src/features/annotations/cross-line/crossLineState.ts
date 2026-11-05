@@ -15,7 +15,7 @@ interface CrossLineStateMachineContext extends Omit<AnnotationsCreateStateMachin
 
 export class CrossLineStateMachine extends StateMachine<
     'start' | 'waiting-first-render',
-    Pick<AnnotationStateEvents, 'click' | 'drag' | 'cancel' | 'render' | 'reset'>
+    Pick<AnnotationStateEvents, 'click' | 'create' | 'drag' | 'cancel' | 'render' | 'reset'>
 > {
     override debug = Debug.create(true, 'annotations');
 
@@ -53,6 +53,10 @@ export class CrossLineStateMachine extends StateMachine<
                 drag: {
                     target: 'waiting-first-render',
                     action: onClick,
+                },
+                create: {
+                    target: 'waiting-first-render',
+                    action: ({ points: [point] }) => onClick({ point }),
                 },
                 reset: StateMachine.parent,
                 cancel: StateMachine.parent,

@@ -14,6 +14,7 @@ import {
     callWithContext,
     clamp,
     createId,
+    datumKeyReader,
     isFiniteNumber,
 } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
@@ -60,7 +61,15 @@ export class AxisInsetValue extends AbstractModuleInstance {
     private readonly axisCtx: AxisContext;
     private seriesRect: BBox | undefined;
     private rowCache:
-        { data: any[]; categoryKey: string; valueKey: string; rows: InsetRow[]; step: number | undefined } | undefined;
+        | {
+              data: any[];
+              categoryKey: string;
+              valueKey: string;
+              suppressFieldDotNotation: boolean;
+              rows: InsetRow[];
+              step: number | undefined;
+          }
+        | undefined;
     private profile: BoundSeries | undefined = undefined;
     private textCache:
         | { rows: readonly InsetRow[]; formatter: AxisInsetValueLabelOptions['formatter']; texts: readonly string[] }
@@ -301,23 +310,34 @@ export class AxisInsetValue extends AbstractModuleInstance {
         const bound = this.ctx.chartService.series.filter((s) => boundIds.includes(s.id));
         this.profile = bound.find((s) => s.isProfile?.());
         const series = this.profile ?? bound[0];
-        const data = (series as { data?: { data?: any[] } } | undefined)?.data?.data;
-        if (data == null) return NO_ROWS;
+        const dataSet = (series as { data?: { data?: any[]; suppressFieldDotNotation: boolean } } | undefined)?.data;
+        const data = dataSet?.data;
+        if (dataSet == null || data == null) return NO_ROWS;
+        const { suppressFieldDotNotation } = dataSet;
 
         // Reuse the rows while the series keeps the same data array and keys.
         const cache = this.rowCache;
-        if (cache?.data === data && cache.categoryKey === categoryKey && cache.valueKey === valueKey) return cache.rows;
+        if (
+            cache?.data === data &&
+            cache.categoryKey === categoryKey &&
+            cache.valueKey === valueKey &&
+            cache.suppressFieldDotNotation === suppressFieldDotNotation
+        ) {
+            return cache.rows;
+        }
 
+        const readCategory = datumKeyReader(categoryKey, suppressFieldDotNotation);
+        const readValue = datumKeyReader(valueKey, suppressFieldDotNotation);
         const rows: InsetRow[] = [];
         const levels: number[] = [];
         for (const datum of data) {
-            const category: unknown = datum?.[categoryKey];
+            const category: unknown = readCategory(datum);
             if (isFiniteNumber(category)) levels.push(category);
-            const value: unknown = datum?.[valueKey];
+            const value: unknown = readValue(datum);
             // A category with nothing to show gets neither a block nor a label.
             if (isFiniteNumber(value) && value !== 0) rows.push({ category, value, datum });
         }
-        this.rowCache = { data, categoryKey, valueKey, rows, step: smallestStep(levels) };
+        this.rowCache = { data, categoryKey, valueKey, suppressFieldDotNotation, rows, step: smallestStep(levels) };
         return rows;
     }
 

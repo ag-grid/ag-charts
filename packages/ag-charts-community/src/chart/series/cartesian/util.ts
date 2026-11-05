@@ -6,6 +6,7 @@ import {
     type NormalisedSeriesSegmentation,
     type NormalisedSeriesShapeSegmentOptions,
     type Size,
+    datumKeyName,
     isArray,
     isDate,
     isEmptyObject,
@@ -14,6 +15,7 @@ import {
     isObject,
     isString,
     objectsEqual,
+    readDatumKey,
 } from 'ag-charts-core';
 import type { AgCartesianSeriesOptions, DatumDefault, SeriesPredictAxis } from 'ag-charts-types';
 
@@ -123,15 +125,18 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
     direction: ChartAxisDirection,
     datum: DatumDefault,
     seriesOptions: SeriesOptions,
+    suppressFieldDotNotation = false,
     { allowPrimitiveTypes = true }: { allowPrimitiveTypes?: boolean } = {}
 ): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
     if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
     if (!isObject(datum)) return;
 
     const key = getSeriesOptionsKey(direction, seriesOptions);
-    if (key == null || !(key in datum)) return;
+    if (key == null) return;
 
-    const value = datum[key];
+    const value = readDatumKey(datum, key, suppressFieldDotNotation);
+    if (value === undefined && !(key in datum)) return;
+
     const position = getAxisPosition(direction, seriesOptions);
 
     const groupedCategory = predictGroupedCategoryAxisType(value);
@@ -139,7 +144,7 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
         return { type: groupedCategory, position };
     }
 
-    const timeAxis = predictTimeAxisType(key, value);
+    const timeAxis = predictTimeAxisType(datumKeyName(key, suppressFieldDotNotation), value);
     if (timeAxis != null) {
         return { type: timeAxis, position };
     }
@@ -162,27 +167,33 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
 export function predictCartesianNonPrimitiveAxis<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
     datum: DatumDefault,
-    seriesOptions: SeriesOptions
+    seriesOptions: SeriesOptions,
+    suppressFieldDotNotation = false
 ): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
-    return predictCartesianAxis(direction, datum, seriesOptions, { allowPrimitiveTypes: false });
+    return predictCartesianAxis(direction, datum, seriesOptions, suppressFieldDotNotation, {
+        allowPrimitiveTypes: false,
+    });
 }
 
 export function predictCartesianFinancialAxis<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
     datum: DatumDefault,
-    seriesOptions: SeriesOptions
+    seriesOptions: SeriesOptions,
+    suppressFieldDotNotation = false
 ): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
     // Only predict the x-axis.
     if (direction !== ChartAxisDirection.X) return;
     if (!isObject(datum)) return;
 
     const key = getSeriesOptionsKey(direction, seriesOptions);
-    if (key == null || !(key in datum)) return;
+    if (key == null) return;
 
-    const value = datum[key];
+    const value = readDatumKey(datum, key, suppressFieldDotNotation);
+    if (value === undefined && !(key in datum)) return;
+
     const position = getAxisPosition(direction, seriesOptions);
 
-    const ordinalTimeAxis = predictOrdinalTimeAxisType(key, value);
+    const ordinalTimeAxis = predictOrdinalTimeAxisType(datumKeyName(key, suppressFieldDotNotation), value);
     if (ordinalTimeAxis != null) {
         return { type: ordinalTimeAxis, position };
     }

@@ -111,6 +111,7 @@ export * from './data/arrays';
 export * from './data/binarySearch';
 export * from './data/diff';
 export * from './data/epochColumns';
+export * from './data/datumKeyPath';
 export * from './data/extent';
 export * from './data/iterators';
 export * from './data/json';

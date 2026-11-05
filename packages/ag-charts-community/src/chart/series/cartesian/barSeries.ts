@@ -2029,10 +2029,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { xKey, xName, yKey, yName, legendItemName } = this.options;
         return {
             xKey,
-            xName: xName ?? xKey,
+            xName: xName ?? this.keyName(xKey),
             yKey,
-            yName: yName ?? yKey,
-            legendItemName: legendItemName ?? xName ?? xKey,
+            yName: yName ?? this.keyName(yKey),
+            legendItemName: legendItemName ?? xName ?? this.keyName(xKey),
         };
     }
 
@@ -2091,7 +2091,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: yKey,
+                        fallbackLabel: this.keyName(yKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                         missing: isTooltipValueMissing(yValue),
                     },
@@ -2155,7 +2155,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 itemId,
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
-                label: { text: legendItemName ?? yName ?? itemId },
+                label: { text: legendItemName ?? yName ?? this.keyName(itemId) },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: showInLegend === false,

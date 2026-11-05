@@ -386,6 +386,23 @@ describe('OhlcSeries', () => {
         });
     });
 
+    describe('series id and legend label', () => {
+        it('has an id of OhlcSeries-<n>', async () => {
+            const chart = await createEnterpriseChart(OHLC_OPTIONS);
+
+            expect(getSeriesInstance(chart, OhlcSeries).id).toBe('OhlcSeries-1');
+            chart.destroy();
+        });
+
+        it('uses its id as the legend label when yName and legendItemName are unset', async () => {
+            const chart = await createEnterpriseChart(OHLC_OPTIONS);
+
+            const [legendDatum] = getSeriesInstance(chart, OhlcSeries).getLegendData('category');
+            expect(legendDatum.label.text).toBe('OhlcSeries-1');
+            chart.destroy();
+        });
+    });
+
     describe('null category key', () => {
         const OHLC_NULL_CATEGORY_KEY_DATA = [
             { year: '2020', low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
@@ -419,7 +436,7 @@ describe('OhlcSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [object] for [ohlc-1 / xValue] ignored:",
+    "AG Charts - invalid value of type [object] for [OhlcSeries-1 / xValue] ignored:",
     "[null]",
   ],
 ]
@@ -498,7 +515,7 @@ describe('OhlcSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [undefined] for [ohlc-1 / xValue] ignored:",
+    "AG Charts - invalid value of type [undefined] for [OhlcSeries-1 / xValue] ignored:",
     "[undefined]",
   ],
 ]

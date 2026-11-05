@@ -280,7 +280,7 @@ export class ContextMenu extends AbstractModuleInstance {
     ): SeriesNodeParams[] {
         return pickedNodes.map((node: PickedNode): SeriesNodeParams => {
             // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
-            const itemId = getItemId(node, node.series.data?.dataIdKey);
+            const itemId = getItemId(node, node.series.data);
             const region: SeriesNodeParams = {
                 showOn: 'series-node',
                 event,
