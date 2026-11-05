@@ -1338,7 +1338,7 @@ describe('ScatterSeries', () => {
                 expect(
                     getVisibleLabelNodes(chart)
                         .map((n) => n.text)
-                        .sort()
+                        .sort((a, b) => a.localeCompare(b))
                 ).toEqual(expected);
             });
         });
