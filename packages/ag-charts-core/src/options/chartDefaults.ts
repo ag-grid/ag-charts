@@ -543,6 +543,10 @@ export const commonChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBas
     subtitle: chartCaptionOptionsDefs,
     footnote: chartCaptionOptionsDefs,
     padding: or(themeOperator, padding),
+    border: {
+        ...borderOptionsDef,
+        cornerRadius: positiveNumber,
+    },
     seriesArea: {
         border: borderOptionsDef,
         clip: boolean,

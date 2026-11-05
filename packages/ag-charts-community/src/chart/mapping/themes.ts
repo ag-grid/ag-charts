@@ -260,6 +260,8 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         borderWidth: number,
         cardShadow: string,
         chartBackgroundColor: colorOrRefNoOperator,
+        chartBorder: or(boolean, themeParamBorder),
+        chartBorderRadius: positiveNumber,
         chartPadding: positiveNumber,
         focusShadow: string,
         foregroundColor: colorOrRefNoOperator,

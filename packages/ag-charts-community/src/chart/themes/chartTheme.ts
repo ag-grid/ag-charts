@@ -128,6 +128,8 @@ export class ChartTheme {
             borderWidth: 1,
             cardShadow: { $ref: 'popupShadow' },
             chartBackgroundColor: { $ref: 'backgroundColor' },
+            chartBorder: false,
+            chartBorderRadius: { $ref: 'borderRadius' },
             chartPadding: 20,
             focusShadow: '0 0 0 3px color-mix(in srgb, var(--ag-charts-accent-color) 50%, transparent)',
             foregroundColor: '#181d1f',

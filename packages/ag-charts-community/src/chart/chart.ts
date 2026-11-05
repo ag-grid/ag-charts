@@ -59,6 +59,7 @@ import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesGrouping } from '../module/seriesGrouping';
 import { Background } from './background/background';
+import { ChartBorder } from './background/chartBorder';
 import { ChartAxes } from './chartAxes';
 import type { ChartCaption } from './chartCaption';
 import { ChartCaptions } from './chartCaptions';
@@ -108,7 +109,7 @@ const SIZE_OPTIONS = [
 ] as const;
 
 /** Options that change only the layout, which a chart with axes carries to its series through the axes' ranges. */
-const LAYOUT_ONLY_DELTA_KEYS = new Set(['title', 'subtitle', 'footnote', 'padding', 'background']);
+const LAYOUT_ONLY_DELTA_KEYS = new Set(['title', 'subtitle', 'footnote', 'padding', 'background', 'border']);
 
 export type ChartTypeFactory = { readonly name: string; create(host: ChartTypeHost): ChartTypeInstance };
 
@@ -151,6 +152,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     readonly overlays: ChartOverlays;
     private readonly sharedCategoryGroup = new SharedCategoryGroup();
     readonly background: Background;
+    private readonly chartBorder: ChartBorder;
     get seriesArea(): SeriesArea {
         return this.ctx.seriesArea;
     }
@@ -427,6 +429,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         const moduleContext = this.getModuleContext();
         this.background = enterpriseRegistry.createBackground?.(moduleContext) ?? new Background(moduleContext);
         this.foreground = enterpriseRegistry.createForeground?.(moduleContext);
+        this.chartBorder = new ChartBorder(moduleContext);
 
         // The 'data-animating' is used by e2e tests to wait for the animation to end before starting kbm interactions
         ctx.domManager.setDataBoolean('animating', false);
@@ -447,6 +450,10 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
                 }
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
+                const border = ctx.chartState.getValue('options', 'border');
+                if (border.enabled) {
+                    e.layoutBox.shrink(border.strokeWidth);
+                }
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
                 this.chartCaptions.positionCaptions(e);
             }),
@@ -725,6 +732,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         this.modulesManager.destroy();
         this.background.destroy();
         this.foreground?.destroy();
+        this.chartBorder.destroy();
 
         if (!keepTransferableResources) {
             this.ctx.scene.destroy();

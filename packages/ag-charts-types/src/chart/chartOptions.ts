@@ -158,6 +158,11 @@ export interface AgChartBackground {
     image?: AgChartBackgroundImage;
 }
 
+export interface AgChartBorderOptions extends BorderOptions {
+    /** The corner radius of the border. Also rounds the chart background while the border is enabled. */
+    cornerRadius?: PixelSize;
+}
+
 export type AgChartHighlightRange = 'tooltip' | 'node';
 
 export type AgChartHighlightMode = 'single' | 'shared';
@@ -275,6 +280,8 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     seriesArea?: AgSeriesAreaOptions;
     /** Configuration for the background shown behind the chart. */
     background?: AgChartBackground;
+    /** Configuration for the border drawn around the outside of the chart, outside any `padding`. */
+    border?: AgChartBorderOptions;
     /** Configuration for the title shown at the top of the chart. */
     title?: AgChartCaptionOptions<TContext>;
     /** Configuration for the subtitle shown beneath the chart title. */
