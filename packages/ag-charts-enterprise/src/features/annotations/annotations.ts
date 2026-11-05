@@ -1100,14 +1100,19 @@ export class Annotations extends AbstractModuleInstance {
         const { width, height } = context.seriesRect;
         const points = getKeyboardCreateOffsets(type, { width, height }).map((offset) => invertCoords(offset, context));
 
-        // The tool's button can be a menu item that is gone by now, so make sure focus lands somewhere that takes the
-        // arrow keys once the annotation is selected; a text annotation moves it to its text input when that opens.
+        this.state.transition('create', { points });
+        // The machine releases the pending tool when it takes the event; if it did not, leave focus on the button.
+        if (this.toolbar.getPendingAnnotation() != null) {
+            this.toolbar.releasePendingTool();
+            return;
+        }
+
+        // The tool's button can be a menu item that is gone, so focus must land where the arrow keys work.
         const { seriesWidget } = this.ctx.widgets;
         seriesWidget.focus({ preventScroll: true });
         const label = getAnnotationLabel(type);
         if (label != null) seriesWidget.swapChain.update(this.ctx.localeManager.t(label));
 
-        this.state.transition('create', { points });
         this.update();
     }
 
