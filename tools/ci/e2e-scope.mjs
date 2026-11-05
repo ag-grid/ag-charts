@@ -7,7 +7,7 @@
  * than a missed test. `latest` and release branches never call this and always run everything.
  *
  * A website-only PR keeps:
- *  - the specs that exercise the website itself, plus any whose page cannot be read statically;
+ *  - every spec whose pages cannot be read statically, which covers those testing the website itself;
  *  - specs it edits, including through their committed snapshots;
  *  - for a change under `src/content/docs/<page>/`, the specs that load that page and the generated
  *    example sweep for it;
@@ -25,22 +25,6 @@ const WEBSITE = 'packages/ag-charts-website/';
 const WEBSITE_SHARED_SRC = 'external/ag-website-shared/src/';
 const CONTENT = `${WEBSITE}src/content/`;
 const E2E = `${WEBSITE}e2e/`;
-
-/** Specs a website change can break wherever it is made, so every website PR keeps them. */
-const WEBSITE_SPECS = new Set([
-    'api-ref-page-no-js.spec.ts',
-    'api-ref-page.spec.ts',
-    'cross-lines-api-reference.spec.ts',
-    'demo-page-open-in.spec.ts',
-    'docs-page-client-navigation.spec.ts',
-    'docs-page-nav.spec.ts',
-    'example-runner-lazy-hydration.spec.ts',
-    'example-runner-loading.spec.ts',
-    'example-source-code.spec.ts',
-    'examples-snapshots.spec.ts',
-    'gallery-examples.spec.ts',
-    'gallery-page-nav.spec.ts',
-]);
 
 /** Docs areas `generate-test-files.ts` leaves out of the generated example sweeps. */
 const PAGES_WITHOUT_SWEEP = new Set(['gallery', 'benchmarks']);
@@ -80,6 +64,7 @@ export function classifyPath(path) {
  * caller keeps such a spec on every website PR.
  */
 export function pagesLoadedBySpec(source) {
+    if (/\btoPageUrl\(/.test(source)) return undefined;
     const calls = [...source.matchAll(/\btoExamplePageUrls?\(\s*(?:(['"])([^'"]+)\1)?/g)];
     if (calls.length === 0 || calls.some((call) => call[2] === undefined)) return undefined;
     return new Set(calls.map((call) => call[2]));
@@ -120,7 +105,7 @@ export function computeScope(changedFiles, specs, crossBrowserSpecs) {
             continue;
         }
         const pages = pagesLoadedBySpec(source);
-        if (WEBSITE_SPECS.has(spec) || pages === undefined || [...pages].some((page) => changedPages.has(page))) {
+        if (pages === undefined || [...pages].some((page) => changedPages.has(page))) {
             keep.add(spec);
         }
     }
