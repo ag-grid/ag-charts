@@ -45,8 +45,8 @@ type Dirtiness = 'clean' | 'partial' | 'full';
 const NO_GROUPS: readonly Group[] = [];
 
 /** Whether the node casts through its root in either slot of its shape, a shadow or a glow. */
-function castsThroughRoot(node: Node, shadowOf: typeof getRootShadow): boolean {
-    return shadowOf(node) != null || shadowOf(node, 'glow') != null;
+function castsThroughRoot(node: Node): boolean {
+    return getRootShadow(node) != null || getRootShadow(node, 'glow') != null;
 }
 
 export class Group<TDatum = unknown> extends Node<TDatum> {
@@ -780,13 +780,12 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * Whether the child casts a shadow that the group batches, or, if `shared`, that its root casts, which a cutout may.
-     * Only a root casts a glow, the second slot of a shape, so a group that batches its own shadows counts only shadows.
+     * Whether the child casts a shadow that the group batches, or, if `shared`, a shadow or glow that its root casts.
      * A cutout is counted whether or not the group is in a layer, as that is known only when the root gathers its frames.
      * Outside a layer the root casts nothing for the cutout, so a group of only cutouts is gathered as a frame without keys.
      */
     private castsShadow(child: Node, shared: boolean): boolean {
-        return shared ? castsThroughRoot(child, getRootShadow) : getBatchedShadow(child) != null;
+        return shared ? castsThroughRoot(child) : getBatchedShadow(child) != null;
     }
 
     /** Renders the children in order, with each run that shares a shadow batched if {@link batchShadows} is on. */
@@ -798,9 +797,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             // The root casts for the group, so what its own casts kept would only hold canvases that nothing blits.
             releaseShadowScratch(this.scene, this);
             const shadowOf = covered ? getRootShadow : getBatchedShadow;
-            renderChildrenWithSuppressedShadows(this.children(), childRenderCtx, (node) =>
-                castsThroughRoot(node, shadowOf)
-            );
+            renderChildrenWithSuppressedShadows(this.children(), childRenderCtx, (node) => shadowOf(node) != null);
             return;
         }
 

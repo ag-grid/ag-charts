@@ -800,7 +800,7 @@ export interface ShadowCast {
     readonly scene: object | undefined;
     /** The group that casts, which holds the scratch canvas and its kept shadows until it releases them. */
     readonly user: object;
-    /** The keys whose shadows to cast, in the order of their first caster. */
+    /** The keys whose shadows to cast, in the order to draw them. */
     readonly keys: readonly ShadowKey[];
     /** Which of the user's casts of this frame this is, to match it with the same cast of the last frame. */
     readonly index: number;
