@@ -59,6 +59,11 @@ This release includes the following breaking changes:
 ### Radius Axis Interval
 
 - A radius axis with `interval.step` can have a different domain when the step is very small or `interval.minSpacing` is large. For example, `interval: { step: 30, minSpacing: 400 }` on data up to `92` now spans `0` to `120`, where it spanned `0` to `100`, and `interval: { step: 1 }` now spans `0` to `92`, where it spanned `0` to `100`. To keep the previous domain, set `max`, for example `max: 100`, which gives `0` to `100` with ticks at `0`, `30`, `60` and `90` for the first example, and `0` to `100` with a tick at every integer for the second.
+- A value in `interval.values` that falls outside the radius axis domain is not shown, as on the number axis. For example, `interval: { values: [50, 88, 100] }` on a radar chart with data up to `88.07` now shows `50` and `88` on an axis from `0` to `90`, where it showed all three on an axis from `0` to `100`, and a `values` array that only contains `100` shows no labels. To show the value, extend the domain, for example `max: 100`, which brings back `50`, `88` and `100`.
+
+### Time Axis Interval
+
+- With `interval.values` on a time axis, the domain is fitted to the values and the data differently, so it can differ from version 14, wider, narrower or shifted depending on the data, and the labels can differ with it. Numbers (milliseconds since the epoch) and `Date` objects give the same domain. For example, a line chart with a daily series from 1 January to 1 March 2024 and `interval: { values: [new Date(2024, 0, 8), new Date(2024, 0, 22), new Date(2024, 1, 5)] }` now spans 1 January to 1 March, where it spanned 24 December to 3 March, and the labels lose the year (`Jan  8`, where they were `Jan  8 2024`). A line chart with a weekly series of 11 points from 6 January 2024 and two values one day apart now spans 24 December to 17 March, where it spanned 1 January to 30 April, and the labels gain the year (`Jan 20 2024`, where they were `Jan 20`). To keep the previous domain, set `min` and `max`, for example `min: new Date(2023, 11, 24), max: new Date(2024, 2, 3)` for the first example, which also brings back the year in the labels.
 
 ### Gradient Legend Interval
 

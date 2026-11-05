@@ -307,6 +307,8 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
 }
 
 // Explicit values leave no meaningful tick count to nice against: take the tightest enclosing candidate.
+// Time scales are excluded from the even spacing fit: it would hand a gap the user never configured to
+// `TimeScale.niceDomain` as an interval.
 function calculateNiceDomain<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     scale: TScale,
     domainParams: ScaleTickParams<any>,
@@ -318,7 +320,8 @@ function calculateNiceDomain<TScale extends Scale<TDatum, number, TickInterval<T
     let niceDomain = scale.niceDomain(domainParams, domain);
     if (tickGenerationType !== TickGenerationType.VALUES) return niceDomain;
 
-    const spacing = domainParams.interval == null && values != null ? evenValueSpacing(values) : undefined;
+    const spacing =
+        domainParams.interval == null && values != null && !TimeScale.is(scale) ? evenValueSpacing(values) : undefined;
     const candidates: ScaleTickParams<any>[] = [];
     if (minTickCount < tickCount) {
         candidates.push({ ...domainParams, tickCount: minTickCount });
