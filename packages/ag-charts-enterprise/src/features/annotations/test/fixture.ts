@@ -1,5 +1,6 @@
 import { type AgAnnotation, type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
 import { compareImageSnapshot, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
+import { ContinuousScale, DiscreteTimeScale } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../../test/utils';
 import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
@@ -22,10 +23,11 @@ export function createAxesContext(
     xScale: AnnotationAxisContext['scale'],
     yScale: AnnotationAxisContext['scale']
 ): AnnotationContext {
-    return {
-        xAxis: { scale: xScale, continuous: true },
-        yAxis: { scale: yScale, continuous: true },
-    } as unknown as AnnotationContext;
+    const axis = (scale: AnnotationAxisContext['scale']) => ({
+        scale,
+        continuous: ContinuousScale.is(scale) || DiscreteTimeScale.is(scale),
+    });
+    return { xAxis: axis(xScale), yAxis: axis(yScale) } as unknown as AnnotationContext;
 }
 
 export async function createAnnotationsChart(options: AgCartesianChartOptions) {
