@@ -160,6 +160,7 @@ const MARKER_REBUILD_KEYS = [
     'strokeOpacity',
     'itemStyler',
     'shadow',
+    'glow',
     'size',
     'minSize',
     'maxSize',
@@ -402,6 +403,7 @@ export abstract class BubbleScatterSeries<
             lineDashOffset: options.lineDashOffset,
             itemStyler: options.itemStyler,
             shadow: options.shadow,
+            glow: options.glow,
         };
         if (optionsDiff == null || markerStyleChanged(optionsDiff)) {
             this.markerDirty = true;
@@ -1312,6 +1314,10 @@ export abstract class BubbleScatterSeries<
         );
     }
 
+    protected override getSeriesGlows() {
+        return [this.marker.glow];
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
         isHighlight: boolean;
@@ -1333,7 +1339,7 @@ export abstract class BubbleScatterSeries<
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
-        const { shadow } = this.marker;
+        const { shadow, glow } = this.marker;
 
         datumSelection.each((node, datum, index) => {
             const {
@@ -1363,6 +1369,7 @@ export abstract class BubbleScatterSeries<
                 hideWithSize0: false,
                 pickInflation,
                 shadow,
+                glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
                 highlightState: state,

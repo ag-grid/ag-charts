@@ -7,7 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -92,6 +92,8 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     label?: AgRangeBarSeriesLabelOptions<TDatum, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the bars. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgRangeBarSeriesStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters.*/

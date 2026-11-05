@@ -5,7 +5,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
@@ -105,6 +105,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     cornerRadius?: PixelSize;
     /** Configuration for the shadow used behind the sectors. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the sectors. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** The ratio of the inner radius of the series. Carves a hole at the centre of the series. */
     innerRadiusRatio?: Ratio;
     /** The size in pixels of the hole carved at the centre of the series, measured outwards from the centre. Must be greater than zero, and is added to any hole `innerRadiusRatio` carves. It is not capped: a value that reaches the series radius leaves the sectors no room, so nothing is rendered. */

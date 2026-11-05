@@ -458,7 +458,7 @@ export abstract class RadialColumnSeriesBase<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
 
         const fillBBox = this.getShapeFillBBox();
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
         const hasItemStylers = this.hasItemStylers();
         // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
         const styleCache =
@@ -518,7 +518,8 @@ export abstract class RadialColumnSeriesBase<
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
-                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+                node.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+                node.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
                 node.cornerRadius = style.cornerRadius ?? 0;
                 node.lineJoin = 'round';
             });

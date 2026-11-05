@@ -86,10 +86,15 @@ function buildKeys(frames: readonly CollectedFrame[]) {
             if (!child.visible) continue;
 
             // A cutout erases only its own layer, so in one it leaves the shadow of the root whole.
-            const shadow = frame.layered ? getRootShadow(child) : getBatchedShadow(child);
-            if (shadow != null) shadows.add(child as ShadowCaster, shadow, frame, getShadowClip(child));
-            const glow = frame.layered ? getRootShadow(child, 'glow') : getBatchedShadow(child, 'glow');
-            if (glow != null) glows.add(child as ShadowCaster, glow, frame, getShadowClip(child));
+            const shadowOf = frame.layered ? getRootShadow : getBatchedShadow;
+            const shadow = shadowOf(child);
+            const glow = shadowOf(child, 'glow');
+            if (shadow == null && glow == null) continue;
+
+            // Asked once, as it allocates for a clipped caster.
+            const clip = getShadowClip(child);
+            if (shadow != null) shadows.add(child as ShadowCaster, shadow, frame, clip);
+            if (glow != null) glows.add(child as ShadowCaster, glow, frame, clip);
         }
     }
     return glows.keys.length === 0 ? shadows.keys : [...shadows.keys, ...glows.keys];

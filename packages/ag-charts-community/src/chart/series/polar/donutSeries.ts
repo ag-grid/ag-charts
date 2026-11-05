@@ -1314,8 +1314,9 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.resolveItemShadow(
-                this.options.shadow,
+            sector.fillShadow = this.resolveItemShadow(this.options.shadow, isDatumHighlighted);
+            sector.fillGlow = this.resolveItemGlow(
+                this.options.glow,
                 isDatumHighlighted,
                 datum.datumIndex,
                 undefined,
@@ -1343,6 +1344,7 @@ export class DonutSeries extends PolarSeries<
             sector.stroke = undefined;
             sector.strokeWidth = 0;
             sector.fillShadow = undefined;
+            sector.fillGlow = undefined;
             sector.drawingMode = 'cutout';
             sector.cornerRadius = format.cornerRadius;
 

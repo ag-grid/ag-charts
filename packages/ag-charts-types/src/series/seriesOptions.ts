@@ -22,25 +22,25 @@ export interface AgMultiSeriesHighlightOptions<
 /** Highlight style options for an item that can cast a `glow`. */
 export interface AgGlowHighlightStyleOptions {
     /**
-     * Configuration for the glow around the item while this highlight state applies.
+     * Configuration for the glow around the item while this highlight state applies. It is merged, field by field, over
+     * the `glow` of the series (`marker.glow` for the series that glow on their markers), so a state only needs to set
+     * what differs. A state with no `glow` has the glow of the series, on or off, and a state's `glow` with no `enabled`
+     * turns it on.
      *
-     * The hovered item's glow (`highlightedItem`) is drawn centred on the item, with the item drawn over its own glow.
-     * It sits above every series when `bringToFront` is on, and keeps its series' stacking order otherwise. The glow of
-     * every other state (`unhighlightedItem`, `unhighlightedSeries`, and the other items under `highlightedSeries`; on
-     * treemap and sunburst, `highlightedBranch` and `unhighlightedBranch`) is cast in the same pass as the item's
-     * `shadow`, so it stays behind every series.
+     * Where a state has more than one `glow` to fall back to, the first applies: `highlightedItem` falls back to
+     * `highlightedSeries`, then to the `glow` of the series. `unhighlightedItem` also falls back to `highlightedSeries`,
+     * as its items are in the highlighted series, and `unhighlightedSeries` to the `glow` of the series. On treemap and
+     * sunburst, `highlightedBranch` and `unhighlightedBranch` take the place of the series states, and treemap groups have
+     * only the item states.
      *
-     * While a glow is enabled for an item's state it replaces that item's `shadow`; the two are never merged. The
-     * hovered item's own `shadow` stays beneath its glow. Series with a series-level bucket (`highlightedSeries`,
-     * `unhighlightedSeries`) fall back to it: both `highlightedItem` and `unhighlightedItem` fall back to
-     * `highlightedSeries`, so its glow also lights the other items of the hovered series, and `highlightedItem.glow` is
-     * merged over it field by field. On treemap and sunburst the branch buckets take the place of the series buckets,
-     * except for treemap groups, which have only the item buckets.
+     * The glow of the hovered item (`highlightedItem`) is drawn centred on the item, with the item drawn over its own
+     * glow. It sits above every series when `bringToFront` is on, and keeps its series' stacking order otherwise. The glow
+     * of every other item stays behind every series, and is drawn together with its `shadow`: an item can cast both.
      *
-     * Line series glow only on their markers, and area, radar area and range area fills are not redrawn when
-     * highlighted, so only their markers glow. Cone funnel series do not have this option.
+     * Line, radar line and HLC series glow only on their markers (`marker.glow`), and area, radar area and range area
+     * fills are not redrawn when highlighted, so only their markers glow. Cone funnel series do not have this option.
      *
-     * Default: no glow
+     * Default: the `glow` of the series
      */
     glow?: AgGlowOptions;
 }

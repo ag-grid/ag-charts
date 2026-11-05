@@ -528,6 +528,10 @@ export abstract class RadarSeries<
         );
     }
 
+    protected override getSeriesGlows() {
+        return [this.options.marker.glow];
+    }
+
     protected updateMarkers(
         selection: Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean,
@@ -545,7 +549,7 @@ export abstract class RadarSeries<
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
-        const { shadow } = this.options.marker;
+        const { shadow, glow } = this.options.marker;
 
         selection.each((node, datum) => {
             // datum.style is populated from resolved (ref-free) marker styles by the style passes.
@@ -556,6 +560,7 @@ export abstract class RadarSeries<
                 hideWithSize0,
                 pickInflation,
                 shadow,
+                glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
             });

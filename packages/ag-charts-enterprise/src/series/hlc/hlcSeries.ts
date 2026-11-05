@@ -219,6 +219,11 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         }
     }
 
+    protected override getSeriesGlows() {
+        const { high, low, close } = this.itemMarkers;
+        return [high.glow, low.glow, close.glow];
+    }
+
     override createNodeParams(datum: HlcMarkerDatum) {
         const { xKey, highKey, lowKey, closeKey } = this.options;
         return { ...super.createNodeParams(datum), xKey, highKey, lowKey, closeKey };
@@ -1055,6 +1060,9 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
                 hideWithSize0,
                 pickInflation,
                 shadow: itemMarkers[datum.itemType].shadow,
+                glow: itemMarkers[datum.itemType].glow,
+                isHighlight,
+                datumIndex: datum.datumIndex,
             });
             node.drawingMode = drawingMode;
         });

@@ -50,21 +50,23 @@ const priceVolumePresetIgnoredMiniChartProperties = [
     'fillImageDefaults',
     'fillOpacity',
     'shadow',
+    'glow',
     'highlight',
     'lineDash',
     'lineDashOffset',
     'strokeWidth',
 ];
 
-// Not in the shared ignore lists: those drive the options defs, so `series[]` would reject `shadow`.
+// Not in the shared ignore lists: those drive the options defs, so `series[]` would reject `shadow` and `glow`.
 function omitInheritedShadow(ignoredProperties: readonly string[]) {
-    return [...ignoredProperties, 'shadow'];
+    return [...ignoredProperties, 'shadow', 'glow'];
 }
 
 const miniChartMarkerTheme = {
-    // `$omit` only drops top-level keys and the first grafted value for a key wins, so the nested marker shadow is
-    // switched off here rather than alongside the omit.
+    // `$omit` only drops top-level keys and the first grafted value for a key wins, so the nested marker shadow and
+    // glow are switched off here rather than alongside the omit.
     shadow: { enabled: false },
+    glow: { enabled: false },
     enabled: {
         $isUserOption: ['/series/$index/marker/enabled', { $path: ['/series/$index/marker/enabled', false] }, false],
     },
@@ -78,14 +80,14 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                     typePath,
                     {},
                     [['area', 'line'], { marker: miniChartMarkerTheme }],
-                    // Waterfall keeps its shadows under `item.*`, which `$omit` does not reach.
+                    // Waterfall keeps its shadows and glows under `item.*`, which `$omit` does not reach.
                     [
                         'waterfall',
                         {
                             item: {
-                                positive: { shadow: { enabled: false } },
-                                negative: { shadow: { enabled: false } },
-                                total: { shadow: { enabled: false } },
+                                positive: { shadow: { enabled: false }, glow: { enabled: false } },
+                                negative: { shadow: { enabled: false }, glow: { enabled: false } },
+                                total: { shadow: { enabled: false }, glow: { enabled: false } },
                             },
                         },
                     ],
@@ -93,10 +95,10 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                         'range-area',
                         {
                             marker: miniChartMarkerTheme,
-                            // The item markers take their shadow from the main series via `$path`, not by copying it.
+                            // The item markers take their shadow and glow from the main series via `$path`, not by copying it.
                             item: {
-                                low: { marker: { shadow: { enabled: false } } },
-                                high: { marker: { shadow: { enabled: false } } },
+                                low: { marker: { shadow: { enabled: false }, glow: { enabled: false } } },
+                                high: { marker: { shadow: { enabled: false }, glow: { enabled: false } } },
                             },
                         },
                     ],
@@ -105,9 +107,9 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                         {
                             marker: miniChartMarkerTheme,
                             item: {
-                                high: { marker: { shadow: { enabled: false } } },
-                                low: { marker: { shadow: { enabled: false } } },
-                                close: { marker: { shadow: { enabled: false } } },
+                                high: { marker: { shadow: { enabled: false }, glow: { enabled: false } } },
+                                low: { marker: { shadow: { enabled: false }, glow: { enabled: false } } },
+                                close: { marker: { shadow: { enabled: false }, glow: { enabled: false } } },
                             },
                         },
                     ],
@@ -125,7 +127,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                             ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],
                             ['histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)],
                             ['hlc', omitInheritedShadow(hlcIgnoredMiniChartProperties)],
-                            // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow`.
+                            // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow` and `glow`.
                             [
                                 'line',
                                 [...lineIgnoredMiniChartProperties, ...priceVolumePresetIgnoredMiniChartProperties],

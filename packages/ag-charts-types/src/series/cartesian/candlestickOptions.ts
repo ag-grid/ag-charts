@@ -1,5 +1,5 @@
 import type { Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
@@ -50,6 +50,8 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = DatumDefault, TCon
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>, AgCandlestickSeriesStyles {
     /** Configuration for the shadow used behind the series items, including the wicks. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the candles. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters.*/

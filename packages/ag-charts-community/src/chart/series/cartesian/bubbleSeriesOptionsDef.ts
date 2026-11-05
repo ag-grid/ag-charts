@@ -40,7 +40,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     label: placedSeriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     styler: callbackDefs<AgBubbleSeriesStylerResult>({
-        ...without(markerOptionsDefs, ['size', 'shadow']),
+        ...without(markerOptionsDefs, ['size', 'shadow', 'glow']),
         minSize: positiveNumber,
         maxSize: positiveNumber,
     }),

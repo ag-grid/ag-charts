@@ -3,6 +3,7 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -41,6 +42,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         marker: {
             enabled: true,
             shadow: SHADOW_THEME_DEFAULTS,
+            glow: GLOW_THEME_DEFAULTS,
             shape: 'circle',
             size: 7,
             fillOpacity: 1,
@@ -64,7 +66,13 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
             placement: 'top',
         },
         tooltip: NEAREST_NODE_TOOLTIP_THEME,
-        highlight: withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
+        highlight: withGlowThemeDefaults(
+            { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+            SERIES_GLOW_BUCKETS,
+            {
+                glow: '/series/$index/marker/glow',
+            }
+        ),
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },

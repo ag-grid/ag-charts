@@ -5,6 +5,7 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
@@ -78,6 +79,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
         strokeWidth: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         shadow: SHADOW_THEME_DEFAULTS,
+        glow: GLOW_THEME_DEFAULTS,
         maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,

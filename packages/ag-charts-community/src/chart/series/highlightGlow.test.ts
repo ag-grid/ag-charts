@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Rect, Sector, Shape, Transformable, overrideTintableShadows } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
@@ -30,7 +30,8 @@ const STATES = {
     unhighlightedSeries: HighlightState.OtherSeries,
 } as const;
 
-const casts = (shape: Shape) => shape.fillShadow?.enabled === true;
+/** Whether a shape casts anything: its glow, or a shadow, which a highlight copy never casts. */
+const casts = (shape: Shape) => shape.fillShadow?.enabled === true || shape.fillGlow?.enabled === true;
 
 interface SeriesCase {
     name: string;
@@ -191,7 +192,7 @@ describe('highlight glow', () => {
                 );
 
                 expect(highlighted).toHaveLength(1);
-                expect(highlighted[0].fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                expect(highlighted[0].fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
             }
         );
 
@@ -226,10 +227,10 @@ describe('highlight glow', () => {
 
                 // ... and the highlight copy casts the glow alone, never merged with the base shadow.
                 expect(highlighted).toHaveLength(1);
-                expect(highlighted[0].fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
-                expect(highlighted[0].fillShadow?.fill).not.toBe(SERIES_SHADOW.fill);
-                expect(highlighted[0].fillShadow?.xOffset).toBe(0);
-                expect(highlighted[0].fillShadow?.yOffset).toBe(0);
+                expect(highlighted[0].fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                expect(highlighted[0].fillGlow?.fill).not.toBe(SERIES_SHADOW.fill);
+                expect(highlighted[0].fillGlow?.xOffset).toBe(0);
+                expect(highlighted[0].fillGlow?.yOffset).toBe(0);
             }
         );
 
@@ -259,7 +260,7 @@ describe('highlight glow', () => {
             });
 
             // The item bucket sets the colour and spread alone; `enabled` and `blur` fall through to the series bucket.
-            expect(highlighted[0].fillShadow).toMatchObject({
+            expect(highlighted[0].fillGlow).toMatchObject({
                 enabled: true,
                 fill: '#ff0000',
                 blur: 9,
@@ -287,7 +288,7 @@ describe('highlight glow', () => {
             await waitForChartStability(chart);
             const moved = shapesOf(series.highlightNodeGroup, testCase.kind).filter((shape) => shape.visible);
             expect(moved).toHaveLength(1);
-            expect(moved[0].fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+            expect(moved[0].fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
 
             chart.ctx.highlightManager.updateHighlight(chart.id);
             await waitForChartStability(chart);
@@ -480,13 +481,15 @@ describe('highlight glow', () => {
     });
 
     describe('theme defaults', () => {
-        const createBar = async (theme: 'ag-default' | 'ag-default-dark') => {
+        const THEME_GLOW = { enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 };
+
+        const createBar = async (theme: 'ag-default' | 'ag-default-dark', glow?: AgGlowOptions) => {
             chart = deproxy(
                 await createChart({
                     theme,
                     data: CATEGORY_DATA,
                     animation: { enabled: false },
-                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value', glow }],
                 } as AgChartOptions)
             );
         };
@@ -494,29 +497,45 @@ describe('highlight glow', () => {
         /** The glow the series resolves for an item in the bucket's highlight state, through its real cascade. */
         const resolvedGlow = (bucket: (typeof BUCKETS)[number]) => getSeriesAt(chart).getHighlightGlow(STATES[bucket]);
 
-        it('puts the glow theme defaults on the series buckets only, so a series glow reaches the items', async () => {
-            await createBar('ag-default');
-            const { highlight } = getSeriesOptions<AgBarSeriesOptions>(chart);
+        it.each(['ag-default', 'ag-default-dark'] as const)(
+            'puts the glow values on the series glow, off, with the %s theme',
+            async (theme) => {
+                await createBar(theme);
 
-            expect(highlight?.highlightedSeries?.glow).toBeDefined();
-            expect(highlight?.unhighlightedSeries?.glow).toBeDefined();
-            expect(highlight?.highlightedItem?.glow).toBeUndefined();
-            expect(highlight?.unhighlightedItem?.glow).toBeUndefined();
-        });
-
-        it.each(BUCKETS)(
-            'has the %s glow off, with the light values ready for when it is turned on',
-            async (bucket) => {
-                await createBar('ag-default');
-
-                expect(resolvedGlow(bucket)).toEqual({ enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 });
+                expect(getSeriesOptions<AgBarSeriesOptions>(chart).glow).toEqual(THEME_GLOW);
             }
         );
 
-        it.each(BUCKETS)('has the %s glow off, with the dark values ready for when it is turned on', async (bucket) => {
-            await createBar('ag-default-dark');
+        it.each(BUCKETS)('has the %s glow follow the series glow, and none of its other fields', async (bucket) => {
+            await createBar('ag-default');
 
-            expect(resolvedGlow(bucket)).toEqual({ enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 });
+            expect(resolvedGlow(bucket)).toEqual({ enabled: false });
+        });
+
+        it.each(BUCKETS)('turns the %s glow on with the series glow', async (bucket) => {
+            await createBar('ag-default', { enabled: true });
+
+            expect(resolvedGlow(bucket)).toEqual({ enabled: true });
+        });
+
+        it.each(BUCKETS)('keeps the %s glow off where it sets enabled false itself', async (bucket) => {
+            chart = deproxy(
+                await createChart({
+                    data: CATEGORY_DATA,
+                    animation: { enabled: false },
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'category',
+                            yKey: 'value',
+                            glow: { enabled: true },
+                            highlight: { [bucket]: { glow: { enabled: false } } },
+                        },
+                    ],
+                } as AgChartOptions)
+            );
+
+            expect(resolvedGlow(bucket)).toEqual({ enabled: false });
         });
 
         it('leaves the glow fill to the item, whatever the theme', async () => {
@@ -530,7 +549,7 @@ describe('highlight glow', () => {
                 highlightedItem: { glow: { enabled: true } },
             });
 
-            expect(highlighted[0].fillShadow).toMatchObject({
+            expect(highlighted[0].fillGlow).toMatchObject({
                 enabled: true,
                 fillOpacity: 0.4,
                 blur: 2,
@@ -538,7 +557,7 @@ describe('highlight glow', () => {
                 xOffset: 0,
                 yOffset: 0,
             });
-            expect(highlighted[0].getCastShadow()?.fill).toBe(highlighted[0].fill);
+            expect(highlighted[0].getCastShadow('glow')?.fill).toBe(highlighted[0].fill);
         });
     });
 
@@ -639,7 +658,11 @@ describe('highlight glow', () => {
                 expect(highlighted).toHaveLength(1);
                 const [shape] = highlighted;
                 expect(typeof shape.fill).toBe('string');
-                expect(shape.getCastShadow()).toMatchObject({ enabled: true, fill: shape.fill, fillOpacity: 0.4 });
+                expect(shape.getCastShadow('glow')).toMatchObject({
+                    enabled: true,
+                    fill: shape.fill,
+                    fillOpacity: 0.4,
+                });
             });
 
             it('takes the fill of the highlight style, where the item is highlighted with another', async () => {
@@ -647,7 +670,7 @@ describe('highlight glow', () => {
                     highlightedItem: { fill: 'orange', glow: GLOW },
                 });
 
-                expect(highlighted[0].getCastShadow()?.fill).toBe('orange');
+                expect(highlighted[0].getCastShadow('glow')?.fill).toBe('orange');
             });
 
             it('casts its own fill, and not that of the item, when it sets one', async () => {
@@ -655,18 +678,18 @@ describe('highlight glow', () => {
                     highlightedItem: { fill: 'orange', glow: { ...GLOW, fill: '#123456' } },
                 });
 
-                expect(highlighted[0].getCastShadow()).toMatchObject({ fill: '#123456', fillOpacity: 0.4 });
+                expect(highlighted[0].getCastShadow('glow')).toMatchObject({ fill: '#123456', fillOpacity: 0.4 });
             });
 
             it('casts at the fillOpacity that it sets, and at that of the theme where it sets none', async () => {
                 const set = await hoverFirstItem(testCase, undefined, {
                     highlightedItem: { glow: { ...GLOW, fillOpacity: 0.7 } },
                 });
-                expect(set.highlighted[0].getCastShadow()?.fillOpacity).toBe(0.7);
+                expect(set.highlighted[0].getCastShadow('glow')?.fillOpacity).toBe(0.7);
                 chart.destroy();
 
                 const unset = await hoverFirstItem(testCase, undefined, { highlightedItem: { glow: GLOW } });
-                expect(unset.highlighted[0].getCastShadow()?.fillOpacity).toBe(0.4);
+                expect(unset.highlighted[0].getCastShadow('glow')?.fillOpacity).toBe(0.4);
             });
 
             it.each(BUCKETS)('takes fill and fillOpacity in the %s bucket', async (bucket) => {
@@ -685,8 +708,8 @@ describe('highlight glow', () => {
                 const messages = warnings().filter((message) => message.includes('glow.color'));
                 expect(messages).toHaveLength(1);
                 expect(messages[0]).toMatch(/unknown|not supported|invalid/i);
-                expect(highlighted[0].fillShadow).not.toHaveProperty('color');
-                expect(highlighted[0].getCastShadow()?.fill).toBe(highlighted[0].fill);
+                expect(highlighted[0].fillGlow).not.toHaveProperty('color');
+                expect(highlighted[0].getCastShadow('glow')?.fill).toBe(highlighted[0].fill);
                 vi.mocked(console.warn).mockClear();
             });
         });
@@ -713,7 +736,7 @@ describe('highlight glow', () => {
                     }
                 );
 
-                expect(highlighted[0].getCastShadow()?.fill).toBe('blue');
+                expect(highlighted[0].getCastShadow('glow')?.fill).toBe('blue');
             });
 
             it('takes the stroke of a marker whose fill is fully transparent', async () => {
@@ -723,7 +746,7 @@ describe('highlight glow', () => {
                     { highlightedItem: { glow: GLOW } }
                 );
 
-                expect(highlighted[0].getCastShadow()?.fill).toBe('blue');
+                expect(highlighted[0].getCastShadow('glow')?.fill).toBe('blue');
             });
 
             it('takes the stroke of a marker whose fill is transparent in its own colour', async () => {
@@ -733,7 +756,7 @@ describe('highlight glow', () => {
                     { highlightedItem: { glow: GLOW } }
                 );
 
-                expect(highlighted[0].getCastShadow()?.fill).toBe('blue');
+                expect(highlighted[0].getCastShadow('glow')?.fill).toBe('blue');
             });
 
             it('prefers the fill to the stroke', async () => {
@@ -743,7 +766,7 @@ describe('highlight glow', () => {
                     { highlightedItem: { glow: GLOW } }
                 );
 
-                expect(highlighted[0].getCastShadow()?.fill).toBe('red');
+                expect(highlighted[0].getCastShadow('glow')?.fill).toBe('red');
             });
 
             it('casts no glow, and not a black one, from a marker with neither a fill nor a stroke', async () => {
@@ -754,7 +777,7 @@ describe('highlight glow', () => {
                 );
 
                 expect(highlighted).toHaveLength(1);
-                expect(highlighted[0].getCastShadow()).toBeUndefined();
+                expect(highlighted[0].getCastShadow('glow')).toBeUndefined();
             });
 
             it('still casts a glow with a fill of its own from a marker with neither', async () => {
@@ -764,7 +787,7 @@ describe('highlight glow', () => {
                     { highlightedItem: { glow: { ...GLOW, fill: 'green' } } }
                 );
 
-                expect(highlighted[0].getCastShadow()?.fill).toBe('green');
+                expect(highlighted[0].getCastShadow('glow')?.fill).toBe('green');
             });
 
             it('casts a solid colour, and not the gradient, from an item with a gradient fill', async () => {
@@ -784,7 +807,7 @@ describe('highlight glow', () => {
                     { highlightedItem: { glow: GLOW } }
                 );
 
-                const fill = highlighted[0].getCastShadow()?.fill;
+                const fill = highlighted[0].getCastShadow('glow')?.fill;
                 expect(typeof fill).toBe('string');
                 expect(stops.map((stop) => stop.color)).toContain(fill);
             });
@@ -1204,8 +1227,8 @@ describe('highlight glow', () => {
                 chart.ctx.highlightManager.updateHighlight(chart.id, datum);
                 await waitForChartStability(chart);
                 const [shape] = shapesOf(series.highlightNodeGroup, Rect).filter((node) => node.visible);
-                expect(shape.getCastShadow()?.fill).toBe(shape.fill);
-                expect(shape.getCastShadow()?.fill).toBe(colours[datum.datumIndex]);
+                expect(shape.getCastShadow('glow')?.fill).toBe(shape.fill);
+                expect(shape.getCastShadow('glow')?.fill).toBe(colours[datum.datumIndex]);
             }
         });
     });

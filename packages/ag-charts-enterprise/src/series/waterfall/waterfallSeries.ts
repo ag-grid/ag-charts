@@ -967,6 +967,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return datumType ?? (isPositive ? 'positive' : 'negative');
     }
 
+    protected override getSeriesGlows() {
+        const { positive, negative, total } = this.options.item;
+        return [positive.glow, negative.glow, total.glow];
+    }
+
     private getItemConfig(seriesItemType: AgWaterfallSeriesItemType): NormalisedWaterfallSeriesItemOptions {
         switch (seriesItemType) {
             case 'positive': {
@@ -1163,11 +1168,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             rect.setStyleProperties(style as Required<NormalisedWaterfallSeriesStyle>, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
-            rect.fillShadow = this.resolveItemShadow(
-                this.getItemConfig(datum.itemType).shadow,
-                isHighlight,
-                datum.datumIndex
-            );
+            const { shadow, glow } = this.getItemConfig(datum.itemType);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex);
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;

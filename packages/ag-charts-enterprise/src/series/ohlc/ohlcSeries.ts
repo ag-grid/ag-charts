@@ -57,7 +57,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = options.item;
-        const { shadow } = options;
+        const { shadow, glow } = options;
 
         const series = this;
         datumSelection.each(function updateOhlcNode(node, datum) {
@@ -72,7 +72,8 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
                 yOpen,
                 yClose,
                 crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex)
+                series.resolveItemShadow(shadow, isHighlight),
+                series.resolveItemGlow(glow, isHighlight, datum.datumIndex)
             );
 
             const style = (datum.style ??
