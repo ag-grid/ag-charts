@@ -1759,6 +1759,7 @@ jobs:
             pull-requests: write
             statuses: write
             deployments: write
+            actions: read # the manual run status looks up this SHA's pull_request run
         needs:
             [
                 detect-changes,
@@ -2233,6 +2234,29 @@ jobs:
                   WORKFLOW_STATUS: ${{ steps.lastJobStatus.outputs.workflowStatus }}
                   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
               run: |
+                  post_status() {
+                    gh api --method POST \
+                        -H "Accept: application/vnd.github+json" \
+                        "/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+                        -f state="$1" \
+                        -f context="CI (manual)" \
+                        -f description="$2" \
+                        -f target_url="${RUN_URL}" > /dev/null
+                  }
+
+                  # Whether a full pull_request run on this SHA has already got past its supersede step (the
+                  # steps below this one, in its report job). A draft's run skips Detect Changes, so it doesn't
+                  # count. A run that hasn't got there yet will clear a red status itself.
+                  pr_run_supersedes() {
+                    local run_id
+                    for run_id in $(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?event=pull_request&head_sha=${GITHUB_SHA}&per_page=20" --jq '.workflow_runs[].id') ; do
+                      gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?filter=latest&per_page=100" \
+                          --jq '.jobs[] | select((.name == "Detect Changes" and .conclusion == "success") or (.name == "report" and any(.steps[]; .name == "Supersede a red manual run status" and .conclusion == "success"))) | .name' \
+                        | sort -u | wc -l | grep -qx ' *2' && return 0
+                    done
+                    return 1
+                  }
+
                   case "${WORKFLOW_STATUS}" in
                     success) state="success"; description="Manual CI run passed" ;;
                     partial) state="success"; description="Manual CI run passed (Sonar failed)" ;;
@@ -2242,14 +2266,19 @@ jobs:
                       exit 0
                       ;;
                   esac
-                  if ! gh api --method POST \
-                      -H "Accept: application/vnd.github+json" \
-                      "/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-                      -f state="${state}" \
-                      -f context="CI (manual)" \
-                      -f description="${description}" \
-                      -f target_url="${RUN_URL}" > /dev/null ; then
+
+                  # A manual run can finish after the pull_request run that is meant to supersede its failure
+                  # (the two use separate concurrency groups), so reconcile against that run before and after
+                  # posting rather than relying on completion order.
+                  if [[ "${state}" == "failure" ]] && pr_run_supersedes ; then
+                    state="success"; description="Superseded by the pull request CI run"
+                  fi
+                  if ! post_status "${state}" "${description}" ; then
                     echo "::warning::Could not post the manual run status."
+                    exit 0
+                  fi
+                  if [[ "${state}" == "failure" ]] && pr_run_supersedes ; then
+                    post_status success "Superseded by the pull request CI run" || echo "::warning::Could not clear the failed manual run status."
                   fi
 
             - name: Supersede a red manual run status
