@@ -7,6 +7,8 @@ import {
     UnitTimeScale,
     intervalFloor,
     intervalNext,
+    isFiniteNumericValue,
+    isNumericValue,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -24,7 +26,7 @@ import { validateDatumPointDirection } from './validation';
 /** How an axis's values are typed into the settings dialog. */
 export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 'category';
 
-export type ParsedCoordinate = number | Date | string;
+export type ParsedCoordinate = AgNumericValue | Date | string;
 
 type PointRow = 'start' | 'end' | 'endRetracement';
 
@@ -36,9 +38,9 @@ export interface CoordinateChangeProps {
     end?: DataPoint;
     endRetracement?: DataPoint;
     value?: PointType;
-    height?: number;
-    startHeight?: number;
-    endHeight?: number;
+    height?: AgNumericValue;
+    startHeight?: AgNumericValue;
+    endHeight?: AgNumericValue;
 }
 
 export interface CoordinateField {
@@ -94,15 +96,24 @@ function toPointType(parsed: ParsedCoordinate, kind: CoordinateKind, current: Po
     return { value: parsed, groupPercentage: getGrouping(current).groupPercentage };
 }
 
+const INTEGER_TEXT = /^[+-]?\d+$/;
+const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
+
+/** A number, or a bigint for an integer beyond the range a number holds exactly. */
+function parseNumeric(text: string): AgNumericValue | undefined {
+    const trimmed = text.trim();
+    const integer = INTEGER_TEXT.test(trimmed) ? BigInt(trimmed) : undefined;
+    const beyondSafe = integer != null && (integer < -MAX_SAFE_INTEGER || integer > MAX_SAFE_INTEGER);
+    const value = beyondSafe ? integer : Number(trimmed);
+    return isFiniteNumericValue(value) ? value : undefined;
+}
+
 /** The inverse of `formatCoordinate`; `undefined` when the text is not a valid value. */
 export function parseCoordinate(text: string, kind: CoordinateKind): ParsedCoordinate | undefined {
     if (text.trim() === '') return;
     if (kind === 'category') return text;
 
-    if (kind === 'number') {
-        const value = Number(text);
-        return Number.isFinite(value) ? value : undefined;
-    }
+    if (kind === 'number') return parseNumeric(text);
 
     const date = new Date(text);
     return Number.isNaN(date.getTime()) ? undefined : date;
@@ -206,7 +217,7 @@ function createOffsetField(
         axis: 'y',
         kind: 'number',
         value: String(current),
-        toProps: (parsed) => (typeof parsed === 'number' ? { [key]: parsed } : {}),
+        toProps: (parsed) => (isNumericValue(parsed) ? { [key]: parsed } : {}),
     };
 }
 

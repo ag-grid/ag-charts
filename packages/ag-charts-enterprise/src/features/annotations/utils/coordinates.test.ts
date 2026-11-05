@@ -64,6 +64,15 @@ describe('annotation coordinates', () => {
             expect(parseCoordinate('12.5', 'number')).toBe(12.5);
         });
 
+        it('keeps an integer beyond the safe range exact as a bigint', () => {
+            expect(parseCoordinate('9007199254740991', 'number')).toBe(9007199254740991);
+            expect(parseCoordinate('9007199254740993', 'number')).toBe(9007199254740993n);
+            expect(parseCoordinate('-9007199254740993', 'number')).toBe(-9007199254740993n);
+            expect(parseCoordinate(' 1e3 ', 'number')).toBe(1000);
+            expect(parseCoordinate('abc', 'number')).toBeUndefined();
+            expect(formatCoordinate(9007199254740993n, 'number')).toBe('9007199254740993');
+        });
+
         it('round-trips a date as a local date-time', () => {
             expect(formatCoordinate(DAY, 'time')).toBe('2024-01-05T09:30:00');
             expect(parseCoordinate('2024-01-05T09:30:00', 'time')).toEqual(DAY);
@@ -200,6 +209,7 @@ describe('annotation coordinates', () => {
 
             expect(offset.map((f) => f.value)).toEqual(['12']);
             expect(offset[0].toProps(8)).toEqual({ height: 8 });
+            expect(offset[0].toProps(9007199254740993n)).toEqual({ height: 9007199254740993n });
         });
 
         it('adds both heights of a disjoint channel as its offsets', () => {
@@ -238,6 +248,11 @@ describe('annotation coordinates', () => {
             expect(resolveCoordinate(startX, 101, context)).toBeUndefined();
             expect(resolveCoordinate(startY, 51, context)).toBeUndefined();
             expect(resolveCoordinate(startY, -1, context)).toBeUndefined();
+        });
+
+        it('checks a bigint against the domain like a number', () => {
+            expect(resolveCoordinate(startX, 100n, context)).toBe(100n);
+            expect(resolveCoordinate(startX, 101n, context)).toBeUndefined();
         });
 
         it('does not bind an offset to the domain', () => {
