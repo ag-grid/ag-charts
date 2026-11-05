@@ -120,7 +120,10 @@ const TOOLS: ToolCase[] = [
     },
 ];
 
-const [TREND_LINE, HORIZONTAL_LINE, , , TEXT] = TOOLS;
+const toolOf = (type: string) => TOOLS.find((tool) => tool.type === type)!;
+const TREND_LINE = toolOf('line');
+const HORIZONTAL_LINE = toolOf('horizontal-line');
+const TEXT = toolOf('text');
 
 type AnnotationState = Record<string, unknown>;
 
@@ -193,7 +196,7 @@ test.describe('annotations keyboard create', () => {
     test('Enter places a callout about 20px across, unlike the third of the chart of other drawings', async ({
         page,
     }) => {
-        const callout = TOOLS.find((tool) => tool.type === 'callout')!;
+        const callout = toolOf('callout');
         await chooseTool(page, callout);
         await page.keyboard.press('Enter');
 
@@ -236,30 +239,34 @@ test.describe('annotations keyboard create', () => {
         });
     }
 
-    test('Enter on a tool button opens its menu again once the annotation is placed', async ({ page }) => {
-        await chooseTool(page, TREND_LINE);
-        await page.keyboard.press('Enter');
-        expect(await getAnnotations(page)).toHaveLength(1);
+    const REOPEN_CASES = [
+        {
+            name: 'once the annotation is placed',
+            start: (page: Page) => page.keyboard.press('Enter'),
+            annotations: 1,
+        },
+        {
+            name: 'once a click has started the drawing',
+            start: async (page: Page) => {
+                const { x, y } = (await canvasToPageTransformer(page))(300, 200);
+                await page.mouse.click(x, y);
+            },
+            annotations: 0,
+        },
+    ];
 
-        await menuButton(page, TREND_LINE).focus();
-        await page.keyboard.press('Enter');
+    for (const { name, start, annotations } of REOPEN_CASES) {
+        test(`Enter on a tool button opens its menu again ${name}`, async ({ page }) => {
+            await chooseTool(page, TREND_LINE);
+            await start(page);
 
-        await expect(page.locator(MENU_ROW).first()).toBeVisible();
-        expect(await getAnnotations(page)).toHaveLength(1);
-    });
+            await menuButton(page, TREND_LINE).focus();
+            await page.keyboard.press('Enter');
 
-    test('Enter on a tool button opens its menu once a click has started the drawing', async ({ page }) => {
-        await chooseTool(page, TREND_LINE);
-
-        const toPage = await canvasToPageTransformer(page);
-        const { x, y } = toPage(300, 200);
-        await page.mouse.click(x, y);
-
-        await menuButton(page, TREND_LINE).focus();
-        await page.keyboard.press('Enter');
-
-        await expect(page.locator(MENU_ROW).first()).toBeVisible();
-    });
+            await expect(page.locator(MENU_ROW).first()).toBeVisible();
+            expect(await getAnnotations(page)).toHaveLength(annotations);
+        });
+    }
 
     test('Space on a chosen tool button opens its menu rather than placing the annotation', async ({ page }) => {
         await chooseTool(page, TREND_LINE);
