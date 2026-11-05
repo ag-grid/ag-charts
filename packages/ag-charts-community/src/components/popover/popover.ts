@@ -64,11 +64,15 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         popover.element.append(this.element);
     }
 
+    public isVisible() {
+        return this.element.children.length > 0;
+    }
+
     public hide(opts?: { lastFocus?: null }) {
         const { lastFocus = this.lastFocus } = opts ?? {};
         // Ensure no side-effects in `onHide()` listeners are caused by modules eagerly hiding the popover when it is
         // already hidden.
-        if (this.element.children.length === 0) return;
+        if (!this.isVisible()) return;
         for (const fn of this.hideFns) {
             fn();
         }
