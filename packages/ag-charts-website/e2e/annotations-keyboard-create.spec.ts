@@ -263,6 +263,30 @@ test.describe('annotations keyboard create', () => {
         await expect(page.locator(MENU_ROW).first()).toBeVisible();
     });
 
+    test('Escape on the chart cancels a chosen tool and returns focus to its button', async ({ page }) => {
+        await chooseTool(page, TREND_LINE);
+        await page.locator(SWAPCHAIN).focus();
+        await page.keyboard.press('Escape');
+
+        await expect(menuButton(page, TREND_LINE)).toBeFocused();
+        expect(await getAnnotations(page)).toHaveLength(0);
+    });
+
+    test('Escape after dragging out a drawing does not move focus to Clear All', async ({ page }) => {
+        await chooseTool(page, TREND_LINE);
+
+        const toPage = await canvasToPageTransformer(page);
+        const from = toPage(200, 300);
+        const to = toPage(400, 150);
+        await page.mouse.move(from.x, from.y);
+        await page.mouse.down();
+        await page.mouse.move(to.x, to.y, { steps: 5 });
+        await page.mouse.up();
+        await page.keyboard.press('Escape');
+
+        await expect(page.getByTitle('Clear All')).not.toBeFocused();
+    });
+
     test('Ctrl+Z and Ctrl+Y undo and redo each placed annotation in turn', async ({ page }) => {
         await chooseTool(page, HORIZONTAL_LINE);
         await page.keyboard.press('Enter');

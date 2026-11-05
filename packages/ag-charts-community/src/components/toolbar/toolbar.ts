@@ -167,6 +167,7 @@ export abstract class BaseToolbar<
     }
 
     public focusButton(index: number) {
+        if (index === -1) return;
         this.buttonWidgets.at(index)?.focus({ preventScroll: true });
     }
 

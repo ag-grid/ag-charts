@@ -1059,6 +1059,8 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context) return;
 
+        this.clearPendingCreate();
+
         const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
 
