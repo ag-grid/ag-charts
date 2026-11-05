@@ -438,7 +438,6 @@ function createAxesConfig(axisType: AxisType) {
             type: axisType,
             position: 'bottom' as const,
             ...(axisType === 'time' || axisType === 'unit-time' ? { nice: false } : {}),
-            nice: false,
             label: {
                 format: '%H:%M:%S',
             },
@@ -965,8 +964,4 @@ window.addEventListener('hashchange', () => {
 (window as any).tickUpdate = () => {
     void updateRandomSubset();
 };
-(window as any).setMatchingMode = (mode: string) => {
-    setMatchingMode(mode);
-};
-
 export {};

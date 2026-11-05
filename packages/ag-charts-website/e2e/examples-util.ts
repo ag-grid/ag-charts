@@ -333,7 +333,9 @@ function firstWrapperRedrawn(page: Page, rendersBefore: number) {
             const wrapper = document.querySelector('.ag-charts-wrapper');
             if (wrapper == null) return false;
             const renders = Number(wrapper.getAttribute('data-scene-renders'));
-            return wrapper.hasAttribute(markAttr) ? renders > rendersBefore : renders >= 1;
+            // A mark left by an earlier action is stale when no chart was found before this one.
+            const sameWrapper = wrapper.hasAttribute(markAttr) && !Number.isNaN(rendersBefore);
+            return sameWrapper ? renders > rendersBefore : renders >= 1;
         },
         { markAttr: WRAPPER_MARK_ATTR, rendersBefore }
     );
