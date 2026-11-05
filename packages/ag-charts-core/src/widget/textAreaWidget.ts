@@ -1,6 +1,5 @@
 import { setAttribute } from '../dom/attributeUtil';
 import { createElement } from '../dom/domElements';
-import { focusCursorAtEnd } from '../dom/domUtil';
 import { Widget } from './widget';
 
 /** A form-styled `<textarea>`. It opts out of `data-preventdefault`, so the arrow keys still move the caret. */
@@ -27,7 +26,10 @@ export class TextAreaWidget extends Widget<HTMLTextAreaElement> {
 
     /** Focuses the text area without scrolling and puts the caret after the last character. */
     focusCursorAtEnd() {
-        focusCursorAtEnd(this.elem);
+        // The DOM-Range `focusCursorAtEnd()` helper is for contenteditable; a textarea's caret is its selection range.
+        this.elem.focus({ preventScroll: true });
+        const end = this.elem.value.length;
+        this.elem.setSelectionRange(end, end);
     }
 
     protected override destructor() {

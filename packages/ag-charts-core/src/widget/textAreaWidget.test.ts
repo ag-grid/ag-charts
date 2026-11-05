@@ -34,4 +34,16 @@ describe('TextAreaWidget', () => {
 
         expect(textArea.isFocused()).toBe(true);
     });
+
+    it('focusCursorAtEnd moves the caret after the last character', () => {
+        const textArea = new TextAreaWidget();
+        document.body.append(textArea.getElement());
+        textArea.value = 'Line 1';
+        textArea.getElement().setSelectionRange(0, 0);
+
+        textArea.focusCursorAtEnd();
+
+        expect(textArea.getElement().selectionStart).toBe(6);
+        expect(textArea.getElement().selectionEnd).toBe(6);
+    });
 });
