@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -52,7 +52,7 @@ test('keeps everything when there is nothing to classify', () => {
     assert.equal(scope('README.md').scope, 'all');
 });
 
-test('a docs example change keeps its page, its sweep and the always-on specs', () => {
+test('a docs example change keeps its page, its sweep and the specs not tied to a page', () => {
     const decision = scope(`${DOCS}/legend/_examples/two/main.ts`);
     assert.equal(decision.scope, 'scoped');
     assert.equal(decision.crossBrowser, false);
@@ -101,6 +101,7 @@ test('a deleted spec is not passed to Playwright', () => {
 test('a spec that builds its page at runtime runs on every website PR', () => {
     assert.equal(pagesLoadedBySpec(SPECS['dynamic.spec.ts']), undefined);
     assert.equal(pagesLoadedBySpec("toPageUrl('options/')"), undefined);
+    assert.equal(pagesLoadedBySpec("toExamplePageUrl('legend', 'a', 'vanilla'); toPageUrl('options/')"), undefined);
     assert.equal(
         pagesLoadedBySpec("toExamplePageUrl('legend', 'a', 'vanilla'); toExamplePageUrl(page, 'b', 'vanilla')"),
         undefined
@@ -115,13 +116,6 @@ test('classifies documentation outside the website as irrelevant', () => {
 
 // The checks below read the repo, so a renamed spec or changed generator fails here rather than
 // silently narrowing or widening what a PR runs.
-
-test('every always-on website spec exists', () => {
-    const source = readFileSync(fileURLToPath(new URL('./e2e-scope.mjs', import.meta.url)), 'utf8');
-    const listed = [...source.matchAll(/^ {4}'([\w-]+\.spec\.ts)',$/gm)].map((match) => match[1]);
-    assert.ok(listed.length > 0);
-    for (const spec of listed) assert.ok(existsSync(join(websiteDir, 'e2e', spec)), spec);
-});
 
 test('every page a spec names exists, so a typo cannot hide a dependency', () => {
     const pages = new Set(readdirSync(join(websiteDir, 'src/content/docs')));
