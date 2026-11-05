@@ -195,6 +195,7 @@ export function convertPageUrls(
 // Native selectors only: the control is picked inside `page.evaluate`, not by a Playwright locator.
 const SWEPT_CONTROLS = [
     'button:not([type=submit])',
+    // A button group's radio is hidden, so its label is the clickable part.
     '.button-group > label',
     'input[type=radio]:not(.button-group input)',
     'select',

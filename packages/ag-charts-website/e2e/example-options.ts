@@ -114,7 +114,6 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'active-e2e': {
         // popEvents() and getState() only log; the other entries only store state read by a later action.
         '*': { skipCanvasUpdateCheck: ['popEvents()', 'getState() (1s delay)', '#myPreventDefault'] },
-        'bubble-example': { skipCanvasUpdateCheck: ['popEvents()', 'getState() (1s delay)', '#myPreventDefault'] },
         'line-example': {
             skipCanvasUpdateCheck: ['popEvents()', 'getState() (1s delay)', '#myCountry', '#myYear', '#myFreeze'],
         },
@@ -122,11 +121,10 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'frozen-legendtoggle': { ignoreConsoleWarnings: true },
     },
     selection: {
-        // Nothing is selected during the sweep, so Save, Restore and Clear change nothing.
-        'selection-api': { skipCanvasUpdateCheck: ['Log Selection', 'Save', 'Restore', 'Clear'] },
+        'selection-api': { skipCanvasUpdateCheck: ['Log Selection', 'Save'] },
     },
     'selection-test': {
-        // Nothing is selected during the sweep, so Save, Set and Clear change nothing.
+        // Nothing is selected during the sweep, so Set and Clear change nothing.
         'multiple-series': { skipCanvasUpdateCheck: ['Save', 'Get', 'Set', 'Clear'] },
         'org-chart-selection': { skipCanvasUpdateCheck: ['Get Selection'] },
     },
