@@ -53,16 +53,21 @@ describe('Shadow root', () => {
 
     const scenes: Scene[] = [];
     let masked: number[] = [];
+    let maskedSlots: string[] = [];
 
     class TestRect extends Rect {
         override isolatedRender(renderCtx: RenderContext) {
-            if (shadowPass.state === 'mask') masked.push(this.x);
+            if (shadowPass.state === 'mask') {
+                masked.push(this.x);
+                maskedSlots.push(`${this.x}:${shadowPass.slot}`);
+            }
             return super.isolatedRender(renderCtx);
         }
     }
 
     beforeEach(() => {
         masked = [];
+        maskedSlots = [];
         vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
@@ -148,6 +153,114 @@ describe('Shadow root', () => {
                 group('shared', [square(120, 40, { fillShadow: RED_HALF })]),
                 group(true, [square(40, 140, { fillShadow: { ...RED_HALF, xOffset: 10 } })]),
             ]);
+        });
+    });
+
+    describe('glow slot', () => {
+        const BLUE = { enabled: true, fill: 'rgb(0, 0, 255)', xOffset: 0, yOffset: 0, blur: 0 };
+        const HALF_BLUE = { ...BLUE, fill: 'rgba(0, 0, 255, 0.5)', yOffset: 60 };
+        const isHalfBlue = (pixel: Pixel) =>
+            pixel[0] === 0 && pixel[1] === 0 && pixel[2] === 255 && Math.abs(pixel[3] - 128) <= 1;
+
+        const testRect = (x: number, mixin: Partial<Rect> = {}) => {
+            const rect = new TestRect();
+            Object.assign(rect, { x, y: 40, width: 60, height: 60, fill: 'black', ...mixin });
+            return rect;
+        };
+
+        it('should cast the glow of a shape beside its shadow', () => {
+            const scene = draw(true, () => [
+                group('shared', [square(120, 40, { fillShadow: RED_HALF, fillGlow: HALF_BLUE })]),
+            ]);
+
+            // The shadow lands to the right of the square, and the glow below it.
+            expect(isHalfRed(at(scene, 210, 70))).toBe(true);
+            expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
+            expect(at(scene, 150, 70)).toEqual(BLACK);
+        });
+
+        it('should cast the glow of a shape that has no shadow', () => {
+            const scene = draw(true, () => [group('shared', [square(120, 40, { fillGlow: HALF_BLUE })])]);
+
+            expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
+            expect(at(scene, 210, 70)).toEqual([0, 0, 0, 0]);
+        });
+
+        it('should stop casting a glow that is removed', () => {
+            const caster = square(120, 40, { fillGlow: HALF_BLUE });
+            const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+            root.appendChild(group('shared', [caster]));
+            const scene = newScene(root);
+            scene.render();
+            expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
+
+            caster.fillGlow = undefined;
+            scene.render();
+            expect(at(scene, 150, 130)).toEqual([0, 0, 0, 0]);
+        });
+
+        // The shadow of the second square lands at 90 to 150, which is where the glow of the first is.
+        it.each([
+            ['before', true],
+            ['after', false],
+        ])('should draw a glow over the shadow of a neighbour that casts %s it', (_, glowFirst) => {
+            const glowing = () => square(150, 40, { fillGlow: { ...BLUE, xOffset: -60 } });
+            const shadowing = () => square(30, 40, { fillShadow: redHalfShadow(60) });
+            const scene = draw(true, () => [
+                group('shared', glowFirst ? [glowing(), shadowing()] : [shadowing(), glowing()]),
+            ]);
+
+            expect(at(scene, 120, 70)).toEqual([0, 0, 255, 255]);
+        });
+
+        it('should draw every glow over the shadows of groups drawn after it', () => {
+            const scene = draw(true, () => [
+                group('shared', [square(150, 40, { fillGlow: { ...BLUE, xOffset: -60 } })], { zIndex: 1 }),
+                group('shared', [square(30, 40, { fillShadow: redHalfShadow(60) })], { zIndex: 2 }),
+            ]);
+
+            expect(at(scene, 120, 70)).toEqual([0, 0, 255, 255]);
+        });
+
+        it('should draw all the masks of the shadows, then all those of the glows', () => {
+            const casters = [20, 120, 220].map((x) => testRect(x, { fillShadow: RED_HALF, fillGlow: RED_HALF }));
+            draw(true, () => [group('shared', casters.slice(0, 2)), group('shared', casters.slice(2))]);
+
+            // The shadow and glow of one shape have the same options, but are not one key.
+            expect(maskedSlots).toEqual(['20:shadow', '120:shadow', '220:shadow', '20:glow', '120:glow', '220:glow']);
+        });
+
+        it('should cast a glow once for the casters that share it, however they are grouped', () => {
+            const casters = [20, 120, 220].map((x) => testRect(x, { fillGlow: HALF_BLUE }));
+            draw(true, () => [group('shared', casters.slice(0, 1)), group('shared', casters.slice(1))]);
+
+            expect(maskedSlots).toEqual(['20:glow', '120:glow', '220:glow']);
+        });
+
+        it('should cast again when only the glow of a caster changes', () => {
+            const casters = [20, 120].map((x) => testRect(x, { fillShadow: RED_HALF }));
+            const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+            root.appendChild(group('shared', casters));
+            const scene = newScene(root);
+            scene.render();
+
+            // The second cast is the first to be kept, and the next ones blit it.
+            for (let i = 0; i < 3; i++) {
+                root.markDirty();
+                scene.render();
+            }
+            maskedSlots = [];
+            root.markDirty();
+            scene.render();
+            expect(maskedSlots).toEqual([]);
+
+            casters[1].fillGlow = HALF_BLUE;
+            scene.render();
+            expect(maskedSlots).toEqual(['20:shadow', '120:shadow', '120:glow']);
+        });
+
+        it('should leave a shadow cast by a group on its own as it was', () => {
+            expectSameAsLocal(() => [group('shared', [square(120, 40, { fillShadow: RED_HALF })])]);
         });
     });
 

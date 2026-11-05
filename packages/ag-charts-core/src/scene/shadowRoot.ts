@@ -14,6 +14,7 @@ import {
     joinsShadowKey,
     releaseShadowScratch,
 } from './shadowEngine';
+import type { ShadowSlot } from './shadowPass';
 
 /** What a shadow root needs of the groups that cast through it. {@link Group} implements it. */
 interface ShadowSource extends Node {
@@ -42,11 +43,13 @@ function matchesMemo(memo: RootMemo, frames: readonly CollectedFrame[]): boolean
     return true;
 }
 
-/** Groups the casters of frames into keys by their shadow options and clips, in the order of their first caster. */
-class RootKeys {
+/** Groups the casters of one slot into keys by their shadow options and clips, in the order of their first caster. */
+class SlotKeys {
     readonly keys: ShadowKey[] = [];
     private last: ShadowKey | undefined;
     private lastFrame: ShadowFrame | undefined;
+
+    constructor(private readonly slot: ShadowSlot) {}
 
     add(
         caster: ShadowCaster,
@@ -60,7 +63,7 @@ class RootKeys {
         if (key == null || frame !== this.lastFrame || pathClip != null || key.shadow !== shadow) {
             key = this.keys.find((k) => joinsShadowKey(k, caster, shadow, undefined, 'root', clips));
             if (key == null) {
-                key = { shadow, clip: undefined, casters: [], frames: [], clips };
+                key = { slot: this.slot, shadow, clip: undefined, casters: [], frames: [], clips };
                 this.keys.push(key);
             }
         }
@@ -71,18 +74,25 @@ class RootKeys {
     }
 }
 
+/**
+ * The keys of the frames' casters: every shadow key, then every glow key, so that a shadow never darkens a glow, whichever
+ * item casts it. A caster that casts both is in a key of each.
+ */
 function buildKeys(frames: readonly CollectedFrame[]) {
-    const keys = new RootKeys();
+    const shadows = new SlotKeys('shadow');
+    const glows = new SlotKeys('glow');
     for (const frame of frames) {
         for (const child of (frame.source as ShadowSource).children()) {
             if (!child.visible) continue;
 
             // A cutout erases only its own layer, so in one it leaves the shadow of the root whole.
             const shadow = frame.layered ? getRootShadow(child) : getBatchedShadow(child);
-            if (shadow != null) keys.add(child as ShadowCaster, shadow, frame, getShadowClip(child));
+            if (shadow != null) shadows.add(child as ShadowCaster, shadow, frame, getShadowClip(child));
+            const glow = frame.layered ? getRootShadow(child, 'glow') : getBatchedShadow(child, 'glow');
+            if (glow != null) glows.add(child as ShadowCaster, glow, frame, getShadowClip(child));
         }
     }
-    return keys.keys;
+    return glows.keys.length === 0 ? shadows.keys : [...shadows.keys, ...glows.keys];
 }
 
 /** The cover of a cast of nothing, which is shared, as no frame has a group to put in one. */

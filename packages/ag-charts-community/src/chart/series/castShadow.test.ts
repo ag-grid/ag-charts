@@ -70,6 +70,58 @@ describe('Shape.getCastShadow', () => {
         expect(parse.mock.calls.length).toBeLessThanOrEqual(1);
     });
 
+    describe('with a glow beside the shadow', () => {
+        const SHADOW: NormalisedDropShadowOptions = { enabled: true, xOffset: 3, yOffset: 3, blur: 6 };
+
+        it('resolves each slot on its own', () => {
+            const rect = glowingRect('#ff0000');
+            rect.fillShadow = SHADOW;
+            rect.fillGlow = GLOW;
+
+            expect(rect.getCastShadow()).toMatchObject({ ...SHADOW, fill: '#ff0000' });
+            expect(rect.getCastShadow('shadow')).toMatchObject({ ...SHADOW, fill: '#ff0000' });
+            expect(rect.getCastShadow('glow')).toMatchObject({ ...GLOW, fill: '#ff0000' });
+        });
+
+        it('casts nothing from a slot that is empty or disabled', () => {
+            const rect = glowingRect('#ff0000');
+            expect(rect.getCastShadow('glow')).toBeUndefined();
+
+            rect.fillGlow = { ...GLOW, enabled: false };
+            expect(rect.getCastShadow('glow')).toBeUndefined();
+            expect(rect.getCastShadow()).toMatchObject({ fill: '#ff0000' });
+        });
+
+        it('keeps the shadow of each slot until its own options or the paint change', () => {
+            const rect = glowingRect('#ff0000');
+            rect.fillGlow = { ...GLOW, blur: 8 };
+            const shadow = rect.getCastShadow();
+            const glow = rect.getCastShadow('glow');
+            expect(glow).not.toBe(shadow);
+            // Asking for one slot does not replace what the other kept.
+            expect(rect.getCastShadow()).toBe(shadow);
+            expect(rect.getCastShadow('glow')).toBe(glow);
+
+            rect.fillGlow = { ...GLOW, blur: 9 };
+            expect(rect.getCastShadow('glow')).toMatchObject({ blur: 9 });
+            expect(rect.getCastShadow()).toBe(shadow);
+
+            rect.fill = '#00ff00';
+            expect(rect.getCastShadow()?.fill).toBe('#00ff00');
+            expect(rect.getCastShadow('glow')?.fill).toBe('#00ff00');
+        });
+
+        it('batches a slot by its own options', () => {
+            const rect = glowingRect('#ff0000');
+            rect.fillShadow = { ...SHADOW, fill: '#123456' };
+            rect.fillGlow = GLOW;
+
+            expect(rect.getBatchShadow()).toBe(rect.fillShadow);
+            expect(rect.getBatchShadow('glow')).toMatchObject({ blur: GLOW.blur });
+            expect(new Rect().getBatchShadow('glow')).toBeUndefined();
+        });
+    });
+
     it('returns a shadow of its own with a fill as it is', () => {
         const rect = glowingRect('#ff0000');
         const shadow = { ...GLOW, fill: '#123456' };

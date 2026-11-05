@@ -1,6 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { BBox, BarShape, Group, Line, type Logger, Path, Rect, shadowPass } from 'ag-charts-core';
+import {
+    BBox,
+    BarShape,
+    Group,
+    Line,
+    type Logger,
+    type NormalisedDropShadowOptions,
+    Path,
+    Rect,
+    shadowPass,
+} from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
@@ -500,6 +510,7 @@ describe('Rect', () => {
             ['a clip', { clip: true, clipX: 15, clipY: 10 }],
             ['a cutout', { drawingMode: 'cutout' as const }],
             ['a shadow', { fillShadow: { enabled: true, fill: 'black', xOffset: 2, yOffset: 2, blur: 3 } }],
+            ['a glow', { fillGlow: { enabled: true, fill: 'black', xOffset: 2, yOffset: 2, blur: 3 } }],
             [
                 'a gradient fill',
                 {
@@ -814,6 +825,7 @@ describe('Rect', () => {
                     true,
                     false,
                     undefined,
+                    undefined,
                     direction,
                     featherRatio,
                     crispCentreDirection
@@ -837,6 +849,25 @@ describe('Rect', () => {
                 bar.preRender(renderCtx);
                 expect(updatePath).toHaveBeenCalledTimes(rebuilds);
             }
+        });
+
+        it('repaints a bar shape when only its glow changes', () => {
+            const bar = Object.assign(new BarShape(), { x: 10, y: 10, width: 30, height: 40, fill: 'red' });
+            const set = (fillGlow: NormalisedDropShadowOptions | undefined) =>
+                bar.setStaticProperties('overlay', 0, 0, 0, 0, true, false, undefined, fillGlow);
+            const glow = { enabled: true, fill: 'blue', xOffset: 0, yOffset: 0, blur: 4 };
+            const revision = bar.revision;
+
+            expect(set(undefined)).toBe(false);
+            expect(bar.revision).toBe(revision);
+
+            expect(set(glow)).toBe(true);
+            expect(bar.fillGlow).toBe(glow);
+            expect(bar.revision).toBeGreaterThan(revision);
+            expect(set(glow)).toBe(false);
+
+            expect(set(undefined)).toBe(true);
+            expect(bar.fillGlow).toBeUndefined();
         });
 
         it('rebuilds the path when the clip it was given is edited in place', () => {
