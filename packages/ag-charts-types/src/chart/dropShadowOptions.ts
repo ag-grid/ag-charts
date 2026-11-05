@@ -18,7 +18,7 @@ export interface AgDropShadowOptions {
     /**
      * The colour of the shadow.
      *
-     * @deprecated Use `fill` instead.
+     * @deprecated v15.0.0 Use `fill` instead.
      */
     color?: CssColor;
     /** The horizontal offset in pixels for the shadow. */
