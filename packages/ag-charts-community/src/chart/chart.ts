@@ -362,6 +362,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
         // Published immediately so option-derived reads work for the rest of construction.
         ctx.chartState.setValue('options', options.processedOptions as unknown as ChartState['options']);
+        this.chartType = chartTypeFactory.create(this);
 
         this.chartCaptions = new ChartCaptions(ctx);
         this.titleGroup.append(this.title.node);
@@ -484,8 +485,6 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             }),
             ctx.eventsHub.on('zoom:change-complete', () => this.onZoomChangeComplete())
         );
-
-        this.chartType = chartTypeFactory.create(this);
 
         this.parentResize(ctx.domManager.containerSize);
     }
@@ -1170,7 +1169,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
             series.chart = undefined;
         }
-        this.chartType?.onSeriesDestroyed?.();
+        this.chartType.onSeriesDestroyed?.();
     }
 
     private parentResize(size: { width: number; height: number; pixelRatio: number } | undefined) {
