@@ -105,7 +105,7 @@ export class AnnotationSettingsDialog extends Dialog {
         options.initialFocus = initialFocus;
 
         const popover = this.showWithChildren([tabs], options);
-        popover.classList.add('ag-charts-dialog--annotation-settings');
+        popover.addClass('ag-charts-dialog--annotation-settings');
     }
 
     private createLinearLineTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {

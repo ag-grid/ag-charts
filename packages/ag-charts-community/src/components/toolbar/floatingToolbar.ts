@@ -4,6 +4,7 @@ import {
     type DynamicContext,
     NativeWidget,
     type Point,
+    type Widget,
     clamp,
     createElement,
     getIconClassNames,
@@ -39,7 +40,7 @@ class FloatingToolbarPopover extends DraggablePopover {
         super(ctx, id);
     }
 
-    public show(children: HTMLElement[], options: PopoverOptions = {}) {
+    public show(children: Widget[], options: PopoverOptions = {}) {
         this.showWithChildren(children, {
             ...options,
             class: 'ag-charts-floating-toolbar',
@@ -52,13 +53,11 @@ class FloatingToolbarPopover extends DraggablePopover {
     }
 
     public getBounds() {
-        const element = this.getPopoverElement();
-        return new BBox(
-            element?.offsetLeft ?? 0,
-            element?.offsetTop ?? 0,
-            element?.offsetWidth ?? 0,
-            element?.offsetHeight ?? 0
-        );
+        const popover = this.getPopoverWidget();
+        if (!popover) return new BBox(0, 0, 0, 0);
+
+        const { x, y } = popover.getBounds();
+        return new BBox(x, y, popover.offsetWidth, popover.offsetHeight);
     }
 
     public hasBeenDragged() {
@@ -66,11 +65,11 @@ class FloatingToolbarPopover extends DraggablePopover {
     }
 
     public setAnchor(anchor: FloatingToolbarAnchor, horizontalSpacing: number, verticalSpacing: number) {
-        const element = this.getPopoverElement();
-        if (!element) return;
+        const popover = this.getPopoverWidget();
+        if (!popover) return;
 
         const position = anchor.position ?? 'above';
-        const { offsetWidth: width, offsetHeight: height } = element;
+        const { offsetWidth: width, offsetHeight: height } = popover;
 
         let top = anchor.y - height - verticalSpacing;
         let left = anchor.x - width / 2;
@@ -127,7 +126,7 @@ export abstract class FloatingToolbar<
     }
 
     public show(options: PopoverOptions = {}) {
-        this.popover.show([this.dragHandle.getElement(), this.getElement()], options);
+        this.popover.show([this.dragHandle, this], options);
     }
 
     public hide() {
