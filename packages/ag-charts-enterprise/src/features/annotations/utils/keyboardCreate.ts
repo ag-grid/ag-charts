@@ -73,8 +73,7 @@ export function getKeyboardCreateOffsets(type: AnnotationType, seriesSize: { wid
                 { x: right, y: centre.y },
             ];
         case 'disjoint-channel':
-            // The last point sets the bottom edge's end, and the start's height is then twice the first point's offset
-            // from the top edge plus that end height. A quarter down puts it at half the end height, centred on it.
+            // A quarter down puts the start at half the end height, centring the channel on it.
             return [
                 { x: left, y: centre.y - boxHeight / 4 },
                 { x: right, y: top },

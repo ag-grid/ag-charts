@@ -1028,7 +1028,7 @@ export class Annotations extends AbstractModuleInstance {
 
     /** Abandon the chosen tool and put focus back on its button, where the user chose it. */
     private cancelCreate() {
-        // Focus the button first: cancelling clears the toolbar's pending tool
+        // Must run first: cancelling releases the pending tool.
         if (this.toolbar.getPendingAnnotation() != null) this.toolbar.focusPendingToolButton();
         this.cancel();
         this.reset();
