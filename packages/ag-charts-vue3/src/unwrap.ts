@@ -80,22 +80,24 @@ export function unwrapOptions<O>(options: O): O {
 export function unwrapTransaction(transaction: AgDataTransaction): AgDataTransaction {
     if (typeof transaction !== 'object' || transaction === null) return transaction;
 
-    const raw = toRaw(transaction);
-    if (!isPlainObject(raw)) return transaction;
+    if (!isPlainObject(toRaw(transaction))) return transaction;
 
+    // Fields are read through the object as passed, so a reactive transaction yields the same values (refs
+    // unwrapped) as before and only its items become raw.
+    const fields = transaction as Record<string, unknown>;
     let result: Record<string, unknown> | undefined;
     for (const key of ['add', 'remove', 'update']) {
-        const operation = (raw as Record<string, unknown>)[key];
+        const operation = fields[key];
         const items = typeof operation === 'object' && operation !== null ? toRaw(operation) : operation;
         if (!Array.isArray(items)) continue;
 
         const unwrapped = unwrapItems(items);
         if (unwrapped !== operation) {
-            result ??= { ...raw };
+            result ??= { ...fields };
             result[key] = unwrapped;
         }
     }
-    return (result ?? raw) as AgDataTransaction;
+    return (result ?? transaction) as AgDataTransaction;
 }
 
 /**

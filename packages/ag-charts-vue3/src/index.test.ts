@@ -1,6 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { type App, createApp, defineComponent, h, isReactive, nextTick, reactive, ref, toRaw } from 'vue';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type App, createApp, defineComponent, h, isReactive, isRef, nextTick, reactive, ref, toRaw } from 'vue';
 
+import { AgCharts as AgChartsAPI } from 'ag-charts-community';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import {
     getSeriesNodeData,
@@ -12,7 +13,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgCharts } from './index';
+import { AgCharts, AgFinancialCharts, AgGauge, AgQuadrantChart, AgVolumeProfileChart } from './index';
 import { unwrapOptions, unwrapTransaction } from './unwrap';
 
 describe('AgCharts', () => {
@@ -457,9 +458,81 @@ describe('unwrapTransaction', () => {
         expect(unwrapTransaction(value as any)).toBe(value);
     });
 
+    it('should read the operations of a reactive transaction as the chart would, refs included', () => {
+        const [a, b, c] = [{ id: 1 }, { id: 2 }, { id: 3 }];
+        const transaction = reactive({ add: ref([a]), remove: ref([b]), update: [c], addIndex: ref(1) });
+
+        const result = unwrapTransaction(transaction as any);
+
+        expect(result).toEqual({ add: [a], remove: [b], update: [c], addIndex: 1 });
+        expect(result.add![0]).toBe(a);
+        expect(result.remove![0]).toBe(b);
+        expect(result.update![0]).toBe(c);
+        expect(isRef(result.add)).toBe(false);
+        expect(isRef(toRaw(transaction).remove)).toBe(true);
+    });
+
     it('should pass non-array operations through for the chart to reject', () => {
         const transaction = { add: 'x', remove: { length: 1 } };
 
         expect(unwrapTransaction(transaction as any)).toBe(transaction);
+    });
+});
+
+// The enterprise-only components cannot be created here, so each factory is stubbed. What matters is what the wrapper
+// hands to it and to the instance it returns.
+describe.each([
+    ['AgCharts', AgCharts, 'create'],
+    ['AgFinancialCharts', AgFinancialCharts, 'createFinancialChart'],
+    ['AgGauge', AgGauge, 'createGauge'],
+    ['AgQuadrantChart', AgQuadrantChart, 'createQuadrantChart'],
+    ['AgVolumeProfileChart', AgVolumeProfileChart, 'createVolumeProfileChart'],
+] as const)('%s', (_name, Component, factory) => {
+    let host: HTMLElement;
+    let app: App | undefined;
+    // The wrapper replaces `chart.applyTransaction`, so the stub's own function is kept to read the calls back.
+    let applyTransaction: ReturnType<typeof vi.fn>;
+    let chart: { applyTransaction: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; destroy: () => void };
+
+    beforeEach(() => {
+        host = document.body.appendChild(document.createElement('div'));
+        applyTransaction = vi.fn(() => Promise.resolve());
+        chart = { applyTransaction, update: vi.fn(), destroy: vi.fn() };
+        vi.spyOn(AgChartsAPI, factory).mockReturnValue(chart as any);
+    });
+
+    afterEach(() => {
+        app?.unmount();
+        app = undefined;
+        host.remove();
+        vi.restoreAllMocks();
+    });
+
+    it('should give the chart raw options and raw transaction items under reactive options', async () => {
+        const datum = { x: 1 };
+        const next = { x: 2 };
+        const options = ref<any>({ data: [datum] });
+        let component: any;
+        app = createApp({
+            render: () => h(Component as any, { options: options.value, ref: (c: unknown) => (component = c) }),
+        });
+        app.mount(host);
+
+        const created = vi.mocked(AgChartsAPI[factory]).mock.calls[0][0] as any;
+        expect(created.data[0]).toBe(datum);
+
+        options.value = { data: [next] };
+        await nextTick();
+        const updated = chart.update.mock.calls[0][0];
+        expect(updated.data[0]).toBe(next);
+
+        const proxied = options.value.data[0];
+        expect(proxied).not.toBe(next);
+        await component.chart.applyTransaction({ remove: [proxied] });
+        await component.chart.applyTransaction({ update: [reactive(next)], add: [reactive(datum)] });
+        const [removal, change] = applyTransaction.mock.calls.map(([tx]) => tx);
+        expect(removal.remove[0]).toBe(next);
+        expect(change.update[0]).toBe(next);
+        expect(change.add[0]).toBe(datum);
     });
 });
