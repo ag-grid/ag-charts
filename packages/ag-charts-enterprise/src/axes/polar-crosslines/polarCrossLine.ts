@@ -22,6 +22,7 @@ import {
     isNumberEqual,
     normalizeAngle360,
     normalizeAngle360FromDegrees,
+    resolvePadding,
     validateCrossLineValue,
 } from 'ag-charts-core';
 import type { BBox, ExtendedPath2D, Node, Point } from 'ag-charts-core';
@@ -725,6 +726,17 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
     ) {
         const { label } = this;
 
+        node.setFont(label);
+        node.setBoxing(label);
+
+        // `spacing` is measured to the box edge facing the line, so push the text out by that edge's inset.
+        if (node.hasBoxing()) {
+            const { top, bottom } = resolvePadding(label.padding);
+            const inset = baseline === 'top' ? top : -bottom;
+            x -= inset * Math.sin(rotation);
+            y += inset * Math.cos(rotation);
+        }
+
         node.x = x;
         node.y = y;
         node.text = label.text;
@@ -736,9 +748,6 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
         node.rotationCenterY = y;
 
         node.fill = label.color;
-
-        node.setFont(label);
-        node.setBoxing(label);
 
         node.visible = true;
     }
