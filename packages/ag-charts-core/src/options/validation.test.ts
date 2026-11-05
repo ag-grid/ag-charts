@@ -377,6 +377,17 @@ describe('Validation utils', () => {
             expect(msgs[1]).toContain('expecting text segments');
         });
 
+        test('adds light-dark() advice when a callback returns a light-dark() colour', () => {
+            wrapFormatter(color, 'light-dark(red, blue)', 'series[0].fill');
+
+            const msgs = warnings();
+            expect(msgs).toHaveLength(1);
+            expect(msgs[0]).toContain('Callback `series[0].fill` returned an invalid value `"light-dark(red, blue)"`');
+            expect(msgs[0]).toContain(
+                'light-dark() is not supported because charts are drawn on a canvas; use CSS variables or separate light and dark themes instead, ignoring.'
+            );
+        });
+
         test('reports the offending sub-property for an invalid segment value', () => {
             const result = wrapFormatter(
                 textOrSegments,
