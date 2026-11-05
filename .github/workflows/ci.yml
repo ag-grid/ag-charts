@@ -152,6 +152,7 @@ jobs:
             test_pkg_matrix: ${{ steps.matrix.outputs.pkg_matrix }}
             e2e_matrix: ${{ steps.matrix.outputs.e2e_matrix }}
             e2e_count: ${{ steps.matrix.outputs.e2e_count }}
+            e2e_cross_browser: ${{ steps.matrix.outputs.e2e_cross_browser }}
             demos_suites: ${{ steps.matrix.outputs.demos_suites }}
             build_type: ${{ steps.setup.outputs.type }}
             snapshot_branch: ${{ steps.snapshot-prepare.outputs.branch }}
@@ -235,13 +236,30 @@ jobs:
                   echo "pkg_matrix=${pkg_matrix}" >> $GITHUB_OUTPUT
                   echo "Package test matrix determined to be: ${pkg_matrix}"
 
+                  # A PR that changes only the website runs the specs it can break. Pushes and manual
+                  # runs always run everything, and so does any PR the script cannot classify.
+                  e2e_specs_file="${RUNNER_TEMP}/e2e-specs.txt"
+                  e2e_cross_browser=true
+                  e2e_list_args=()
+                  e2e_assign_args=()
+                  if [[ "${{ github.event_name }}" == "pull_request" ]] ; then
+                    e2e_scope=$(node tools/ci/e2e-scope.mjs --base ${{ steps.setup.outputs.base }} --out "${e2e_specs_file}")
+                    echo "E2E scope: ${e2e_scope}"
+                    if [[ $(jq -r .scope <<< "${e2e_scope}") == "scoped" ]] ; then
+                      e2e_cross_browser=$(jq -r .crossBrowser <<< "${e2e_scope}")
+                      mapfile -t e2e_list_args < <(sed 's#^#e2e/#' "${e2e_specs_file}")
+                      e2e_assign_args=(--specs "${e2e_specs_file}")
+                    fi
+                  fi
+                  echo "e2e_cross_browser=${e2e_cross_browser}" >> $GITHUB_OUTPUT
+
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     e2e_nx_count=1
                   else
                     e2e_nx_count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
                   fi
                   if [[ ${e2e_nx_count} -gt 0 ]] ; then
-                    e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
+                    e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list "${e2e_list_args[@]}" | grep -v '!!!SKIPPED!!!' | wc -l)
                   else
                     e2e_count=0
                   fi
@@ -285,7 +303,8 @@ jobs:
                     --max ${e2e_shards} \
                     --count ${e2e_count} \
                     --timings packages/ag-charts-website/e2e/${e2e_timings} \
-                    --test-dir packages/ag-charts-website/e2e)
+                    --test-dir packages/ag-charts-website/e2e \
+                    "${e2e_assign_args[@]}")
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
@@ -403,6 +422,10 @@ jobs:
               id: check-seeds
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx run ag-charts-demos:check-seeds
+
+            - name: E2E scope tests
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: node --test tools/ci/e2e-scope.test.mjs
 
             # The Angular, Vue and TypeScript seeds are ports of the React demos, aligned after the
             # fact: a demo change is expected to leave them stale, and they stay stale on latest
@@ -1147,9 +1170,9 @@ jobs:
             contents: write
             packages: read
         needs: [detect-changes, init, playwright_image]
-        # Gated on run_full_ci only — NOT on init's e2e_count, which is derived from the *main*
-        # config's test list and so no longer counts this job's workload at all.
-        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        # NOT gated on init's e2e_count, which is derived from the *main* config's test list and so
+        # no longer counts this job's workload at all.
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_cross_browser != 'false'
         env:
             PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
             GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
