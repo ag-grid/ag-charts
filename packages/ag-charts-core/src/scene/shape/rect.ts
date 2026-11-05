@@ -253,6 +253,7 @@ const PAINT_ONLY_PROPERTIES: ReadonlySet<string> = new Set([
     '__strokeOpacity',
     '__opacity',
     '__fillShadow',
+    '__fillGlow',
     '__shadowMode',
     '__fillBBox',
     '__fillParams',
@@ -572,7 +573,8 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         bottomLeftCornerRadius: number,
         visible: boolean,
         crisp: boolean,
-        fillShadow: NormalisedDropShadowOptions | undefined
+        fillShadow: NormalisedDropShadowOptions | undefined,
+        fillGlow: NormalisedDropShadowOptions | undefined
     ): boolean {
         // Only what shapes the path needs it rebuilt, and nothing needs the scene redrawn when nothing changed.
         const pathChanged =
@@ -585,7 +587,8 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             pathChanged ||
             this.__drawingMode !== drawingMode ||
             this.__visible !== visible ||
-            this.__fillShadow !== fillShadow;
+            this.__fillShadow !== fillShadow ||
+            this.__fillGlow !== fillGlow;
         if (!changed) return false;
 
         // Direct backing field writes bypass SceneChangeDetection decorators
@@ -597,6 +600,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         this.__visible = visible;
         this.__crisp = crisp;
         this.__fillShadow = fillShadow;
+        this.__fillGlow = fillGlow;
 
         if (pathChanged) {
             this.dirtyPath = true;
@@ -715,6 +719,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             this.plainRect &&
             shadowPass.state === 'none' &&
             this.__fillShadow?.enabled !== true &&
+            this.__fillGlow?.enabled !== true &&
             this.__drawingMode !== 'cutout' &&
             !this.clip &&
             this.fillImage == null &&

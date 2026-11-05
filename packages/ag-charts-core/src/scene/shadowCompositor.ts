@@ -57,7 +57,7 @@ export function renderChildrenWithShadowBatches(
             continue;
         }
 
-        run ??= { shadow, clip, casters: [] };
+        run ??= { slot: 'shadow', shadow, clip, casters: [] };
         run.casters.push(child as ShadowCaster);
     }
     flush();
