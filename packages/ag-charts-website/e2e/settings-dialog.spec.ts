@@ -108,6 +108,22 @@ test.describe('settings dialog', () => {
         await expect(extendStart).not.toBeChecked();
     });
 
+    test('showing the Text tab puts the caret after the last character', async ({ page }) => {
+        await openTrendLineSettings(page, url);
+        const textArea = page.getByPlaceholder('Add Text');
+
+        await page.getByRole('tab', { name: 'Text' }).click();
+        await page.keyboard.type('Line 1');
+        await page.keyboard.press('Home');
+        await expect(textArea).toHaveJSProperty('selectionStart', 0);
+
+        await page.getByRole('tab', { name: 'Line' }).click();
+        await page.getByRole('tab', { name: 'Text' }).click();
+        await expect(textArea).toBeFocused();
+        await expect(textArea).toHaveJSProperty('selectionStart', 6);
+        await expect(textArea).toHaveJSProperty('selectionEnd', 6);
+    });
+
     test('Escape closes the dialog and returns focus to the Settings button', async ({ page }) => {
         await openTrendLineSettings(page, url);
         await expect(page.getByRole('tab', { name: 'Line' })).toBeFocused();

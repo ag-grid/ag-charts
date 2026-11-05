@@ -12,6 +12,11 @@ export class RadioGroupWidget extends RovingTabContainerWidget<ButtonWidget> {
         if (label) this.appendOrInsert(label.getElement(), undefined);
     }
 
+    override clear() {
+        super.clear();
+        if (this.label) this.appendOrInsert(this.label.getElement(), undefined);
+    }
+
     protected override destructor() {
         this.label?.destroy();
     }

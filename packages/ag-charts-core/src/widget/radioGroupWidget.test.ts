@@ -52,6 +52,19 @@ describe('RadioGroupWidget', () => {
         expect(solid.isFocused()).toBe(true);
     });
 
+    it('keeps its label first when cleared and refilled', () => {
+        const label = new LabelWidget('Dash');
+        const group = new RadioGroupWidget(label);
+        group.addChild(new InputButtonWidget({ icon: 'line-style-solid', altText: 'Solid' }));
+
+        group.clear();
+        const dotted = new InputButtonWidget({ icon: 'line-style-dotted', altText: 'Dotted' });
+        group.addChild(dotted);
+
+        expect(Array.from(group.getElement().children)).toEqual([label.getElement(), dotted.getElement()]);
+        expect(dotted.getElement().tabIndex).toBe(0);
+    });
+
     it('destroys its label', () => {
         const label = new LabelWidget('Dash');
         const group = new RadioGroupWidget(label);
