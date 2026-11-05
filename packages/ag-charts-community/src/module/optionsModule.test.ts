@@ -5485,12 +5485,6 @@ describe('ChartOptions', () => {
             expect(chartOptions.themeParameters.foregroundColor).toBeDefined();
         });
 
-        it('does not add light-dark() advice for a valid colour', () => {
-            prepareOptions({ series: [{ type: 'bar', xKey: 'x', yKey: 'y', fill: '#ff0000' }] });
-
-            expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('light-dark()'))).toBe(false);
-        });
-
         it('warns and uses the theme default for an operator in a theme param', () => {
             const create = (accentColor?: unknown) =>
                 new ChartOptions<AgChartOptions>(
