@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { type App, createApp, defineComponent, h, isReactive, isRef, nextTick, reactive, ref, toRaw } from 'vue';
+import { type App, createApp, defineComponent, h, isReactive, isRef, nextTick, reactive, ref, toRaw, watch } from 'vue';
 
 import { AgCharts as AgChartsAPI } from 'ag-charts-community';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-community';
@@ -16,6 +16,39 @@ import {
 import { AgCharts, AgFinancialCharts, AgGauge, AgQuadrantChart, AgVolumeProfileChart } from './index';
 import { unwrapOptions, unwrapTransaction } from './unwrap';
 
+// Every suite that mounts a component gets a fresh host element, and the app is unmounted afterwards.
+function useApp() {
+    const state: { host: HTMLElement; app?: App } = { host: undefined! };
+
+    beforeEach(() => {
+        state.host = document.body.appendChild(document.createElement('div'));
+    });
+
+    afterEach(() => {
+        state.app?.unmount();
+        state.app = undefined;
+        state.host.remove();
+    });
+
+    return state;
+}
+
+// The chart is created in the component's `mounted` hook, after its template ref is set.
+function mountComponent(state: ReturnType<typeof useApp>, Component: unknown, getProps: () => Record<string, unknown>) {
+    let component: any = null;
+    state.app = createApp({
+        render: () =>
+            h(Component as any, {
+                ...getProps(),
+                ref: (c: unknown) => {
+                    component = c;
+                },
+            }),
+    });
+    state.app.mount(state.host);
+    return component as { chart: AgChartInstance };
+}
+
 describe('AgCharts', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -23,21 +56,13 @@ describe('AgCharts', () => {
     describe('synchronised charts', () => {
         let groupCount = 0;
         let groupId: string;
-        let host: HTMLElement;
-        let app: App | undefined;
         let components: (InstanceType<typeof AgCharts> | null)[];
         const peaks = ref<number[]>([]);
+        const state = useApp();
 
         beforeEach(() => {
             groupId = `vue-${groupCount++}`;
-            host = document.body.appendChild(document.createElement('div'));
             components = [];
-        });
-
-        afterEach(() => {
-            app?.unmount();
-            app = undefined;
-            host.remove();
         });
 
         // Like a typical app, every render passes each chart a freshly built options object.
@@ -70,8 +95,8 @@ describe('AgCharts', () => {
 
         const render = async (initialPeaks: number[]) => {
             peaks.value = initialPeaks;
-            app = createApp(SyncedCharts);
-            app.mount(host);
+            state.app = createApp(SyncedCharts);
+            state.app.mount(state.host);
             await waitForAllChartStability();
         };
 
@@ -120,18 +145,7 @@ describe('AgCharts', () => {
             value: number;
         }
 
-        let host: HTMLElement;
-        let app: App | undefined;
-
-        beforeEach(() => {
-            host = document.body.appendChild(document.createElement('div'));
-        });
-
-        afterEach(() => {
-            app?.unmount();
-            app = undefined;
-            host.remove();
-        });
+        const state = useApp();
 
         const createData = (count: number, first = 0): Datum[] =>
             Array.from({ length: count }, (_, i) => ({ category: `c${first + i}`, value: first + i }));
@@ -145,22 +159,12 @@ describe('AgCharts', () => {
             ...extra,
         });
 
-        const mount = async (getOptions: () => AgChartOptions) => {
-            let component: InstanceType<typeof AgCharts> | null = null;
-            app = createApp({
-                render: () =>
-                    h(AgCharts, {
-                        options: getOptions(),
-                        ref: (c) => {
-                            component = c as InstanceType<typeof AgCharts> | null;
-                        },
-                    }),
-            });
-            app.mount(host);
-            const chart = component!.chart!;
-            await waitForChartStability(chart);
-            return chart;
+        const mountWithComponent = async (getOptions: () => AgChartOptions) => {
+            const component = mountComponent(state, AgCharts, () => ({ options: getOptions() }));
+            await waitForChartStability(component.chart);
+            return { component, chart: component.chart };
         };
+        const mount = async (getOptions: () => AgChartOptions) => (await mountWithComponent(getOptions)).chart;
 
         const values = (chart: AgChartInstance) => getSeriesNodeData<{ yValue: number }>(chart).map((d) => d.yValue);
 
@@ -274,25 +278,13 @@ describe('AgCharts', () => {
 
         it('should keep the same chart when the options change', async () => {
             const options = ref(barOptions(createData(2)));
-            let component: InstanceType<typeof AgCharts> | null = null;
-            app = createApp({
-                render: () =>
-                    h(AgCharts, {
-                        options: options.value,
-                        ref: (c) => {
-                            component = c as InstanceType<typeof AgCharts> | null;
-                        },
-                    }),
-            });
-            app.mount(host);
-            const chart = component!.chart!;
-            await waitForChartStability(chart);
+            const { component, chart } = await mountWithComponent(() => options.value);
 
             options.value = barOptions(createData(3));
             await nextTick();
             await waitForChartStability(chart);
 
-            expect(component!.chart).toBe(chart);
+            expect(component.chart).toBe(chart);
             expect(values(chart)).toEqual([0, 1, 2]);
         });
 
@@ -320,6 +312,71 @@ describe('AgCharts', () => {
             expect(seen.length).toBeGreaterThan(0);
             expect(seen.every((datum) => !isReactive(datum))).toBe(true);
             expect(new Set(seen)).toEqual(new Set(data));
+        });
+
+        describe('context', () => {
+            // The chart hands every callback the `context` option it was given; the last one seen is returned.
+            const mountSeeing = async (context: object, reactiveHolder: boolean) => {
+                const seen: any[] = [];
+                const options = barOptions(createData(2), {
+                    context,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'category',
+                            yKey: 'value',
+                            itemStyler: (params) => {
+                                seen.push(params.context);
+                                return {};
+                            },
+                        },
+                    ],
+                });
+                const held = reactiveHolder ? reactive(options) : options;
+                await mount(() => held);
+                return { held, seen: () => seen.at(-1) };
+            };
+
+            it('should leave a ref in the context of plain options as a ref', async () => {
+                const context = { count: ref(0) };
+
+                const { seen } = await mountSeeing(context, false);
+
+                expect(seen()).toBe(context);
+                expect(isRef(seen().count)).toBe(true);
+            });
+
+            it('should keep the context of reactive options live', async () => {
+                const count = ref(0);
+
+                const { seen } = await mountSeeing({ count }, true);
+                count.value = 7;
+
+                expect(isReactive(seen())).toBe(true);
+                expect(seen().count).toBe(7);
+            });
+
+            it('should leave reactive state in the context of plain options as it is', async () => {
+                const state = reactive({ n: 0 });
+
+                const { seen } = await mountSeeing({ state }, false);
+                const changed = vi.fn();
+                watch(() => state.n, changed, { flush: 'sync' });
+                seen().state.n++;
+
+                expect(seen().state).toBe(state);
+                expect(changed).toHaveBeenCalledTimes(1);
+            });
+
+            it('should let a callback write to the context of reactive options reactively', async () => {
+                const { held, seen } = await mountSeeing({ n: 0 }, true);
+                const changed = vi.fn();
+                watch(() => (held.context as any).n, changed, { flush: 'sync' });
+                seen().n++;
+
+                expect(seen()).toBe(held.context);
+                expect(changed).toHaveBeenCalledTimes(1);
+            });
         });
 
         it('should leave the caller options untouched', async () => {
@@ -429,6 +486,88 @@ describe('unwrapOptions', () => {
         expect(unwrapOptions(options)).toBe(options);
     });
 
+    it('should leave a ref in a plain holder as it is, and unwrap one in a reactive holder', () => {
+        const count = ref(1);
+        const plain = { a: { count } };
+        const wrapped = reactive({ a: { count } });
+
+        expect(unwrapOptions(plain)).toBe(plain);
+        expect((unwrapOptions(wrapped) as any).a.count).toBe(1);
+    });
+
+    describe('context', () => {
+        const state = reactive({ n: 0 });
+        const count = ref(0);
+
+        it('should not walk or unwrap context at the root, in a series or on an axis', () => {
+            const context = { state, count, datum: reactive({ a: 1 }) };
+            const options: any = {
+                context,
+                series: [{ type: 'bar', context, data: [reactive({ b: 1 })] }],
+                axes: [{ type: 'number', context }],
+            };
+
+            const result = unwrapOptions(options);
+
+            expect(result.context).toBe(context);
+            expect(result.series[0].context).toBe(context);
+            expect(result.axes[0].context).toBe(context);
+            expect(isReactive(result.series[0].data[0])).toBe(false);
+            expect(isRef(result.context.count)).toBe(true);
+        });
+
+        it('should hand over the context as read through reactive options, at every level', () => {
+            const options: any = reactive({
+                context: { count },
+                series: [{ type: 'bar', context: { count } }],
+                axes: [{ type: 'number', context: { count } }],
+            });
+
+            const result = unwrapOptions(options);
+
+            for (const [holder, from] of [
+                [result, options],
+                [result.series[0], options.series[0]],
+                [result.axes[0], options.axes[0]],
+            ]) {
+                expect(holder.context).toBe(from.context);
+                expect(isReactive(holder.context)).toBe(true);
+            }
+            count.value = 3;
+            expect(result.series[0].context.count).toBe(3);
+        });
+    });
+
+    it('should visit each object once, so densely linked graphs do not blow up', () => {
+        const nodes: any[] = Array.from({ length: 30 }, (_, id) => ({ id, links: [] as unknown[] }));
+        for (const node of nodes) {
+            node.links = nodes.filter((other) => other !== node);
+        }
+        nodes[5].proxied = reactive({ a: 1 });
+
+        const result: any = unwrapOptions({ custom: nodes[0] });
+
+        expect(result.custom.id).toBe(0);
+        expect(isReactive(result.custom.links[4].proxied)).toBe(false);
+    });
+
+    it('should keep the items before the first proxied one, in order', () => {
+        const [a, b, c] = [{ id: 1 }, { id: 2 }, { id: 3 }];
+        const options = {
+            data: [a, reactive(b), c],
+            series: [{ type: 'line' }, { type: 'bar', data: [c, reactive(a)] }, reactive({ type: 'area' })],
+        };
+
+        const result: any = unwrapOptions(options);
+
+        expect(result.data).toEqual([a, b, c]);
+        expect(result.data.map(isReactive)).toEqual([false, false, false]);
+        expect(result.series.map((series: any) => series.type)).toEqual(['line', 'bar', 'area']);
+        expect(result.series[0]).toBe(options.series[0]);
+        expect(result.series[1].data).toEqual([c, a]);
+        expect(result.series.map(isReactive)).toEqual([false, false, false]);
+    });
+
     it('should not mutate the options it is given', () => {
         const data = reactive([{ a: 1 }]);
         const options = { data, series: [{ type: 'bar', data }] };
@@ -452,6 +591,17 @@ describe('unwrapTransaction', () => {
         expect(result.add![0]).toBe(a);
         expect(result.remove).toBe(transaction.remove);
         expect(transaction.add[0]).not.toBe(a);
+    });
+
+    it('should keep the items before the first proxied one, in order', () => {
+        const [a, b, c] = [{ id: 1 }, { id: 2 }, { id: 3 }];
+
+        const result = unwrapTransaction({ remove: [a, reactive(b), c], update: [c, a, reactive(b)] } as any);
+
+        expect(result.remove).toEqual([a, b, c]);
+        expect(result.remove![0]).toBe(a);
+        expect(result.update).toEqual([c, a, b]);
+        expect(result.update![2]).toBe(b);
     });
 
     it.each([[null], [undefined], ['x'], [5]])('should pass %s through', (value) => {
@@ -488,23 +638,18 @@ describe.each([
     ['AgQuadrantChart', AgQuadrantChart, 'createQuadrantChart'],
     ['AgVolumeProfileChart', AgVolumeProfileChart, 'createVolumeProfileChart'],
 ] as const)('%s', (_name, Component, factory) => {
-    let host: HTMLElement;
-    let app: App | undefined;
+    const state = useApp();
     // The wrapper replaces `chart.applyTransaction`, so the stub's own function is kept to read the calls back.
     let applyTransaction: ReturnType<typeof vi.fn>;
     let chart: { applyTransaction: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; destroy: () => void };
 
     beforeEach(() => {
-        host = document.body.appendChild(document.createElement('div'));
         applyTransaction = vi.fn(() => Promise.resolve());
         chart = { applyTransaction, update: vi.fn(), destroy: vi.fn() };
         vi.spyOn(AgChartsAPI, factory).mockReturnValue(chart as any);
     });
 
     afterEach(() => {
-        app?.unmount();
-        app = undefined;
-        host.remove();
         vi.restoreAllMocks();
     });
 
@@ -512,11 +657,7 @@ describe.each([
         const datum = { x: 1 };
         const next = { x: 2 };
         const options = ref<any>({ data: [datum] });
-        let component: any;
-        app = createApp({
-            render: () => h(Component as any, { options: options.value, ref: (c: unknown) => (component = c) }),
-        });
-        app.mount(host);
+        const component = mountComponent(state, Component, () => ({ options: options.value }));
 
         const created = vi.mocked(AgChartsAPI[factory]).mock.calls[0][0] as any;
         expect(created.data[0]).toBe(datum);

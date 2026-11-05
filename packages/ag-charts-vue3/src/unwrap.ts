@@ -23,45 +23,45 @@ function unwrapItems(items: unknown[]): unknown[] {
     return result ?? items;
 }
 
-// Returns the input itself wherever nothing beneath it needed unwrapping, so callers' objects are never mutated.
-function unwrap(value: unknown, key: string | undefined, active: Set<object>): unknown {
+// Children are read through the holder as passed, so refs unwrap where Vue would unwrap them, then become raw.
+// `context` is the app's own state and passes untouched. Each object is visited once, so linked graphs stay linear.
+function unwrap(value: unknown, key: string | undefined, active: Set<object>, done: Map<object, unknown>): unknown {
     if (typeof value !== 'object' || value === null) return value;
 
     const raw: object = toRaw(value);
     if (active.has(raw)) return raw;
 
-    if (Array.isArray(raw)) {
-        // Datums are not walked: only the datums themselves need to be raw for the chart to match them by reference.
-        if (key === 'data') return unwrapItems(raw);
+    // Datums are not walked: only the datums themselves need to be raw for the chart to match them by reference.
+    if (Array.isArray(raw) && key === 'data') return unwrapItems(raw);
 
-        active.add(raw);
-        let result: unknown[] | undefined;
+    if (done.has(raw)) return done.get(raw);
+    if (!Array.isArray(raw) && !isPlainObject(raw)) return raw;
+
+    const holder = value as Record<string, unknown>;
+    let result: any;
+    active.add(raw);
+    if (Array.isArray(raw)) {
         for (let i = 0; i < raw.length; i++) {
-            const item = raw[i];
-            const next = unwrap(item, undefined, active);
-            if (next !== item && result === undefined) {
-                result = raw.slice(0, i);
+            const next = unwrap(holder[i], undefined, active, done);
+            if (next !== raw[i]) {
+                result ??= raw.slice(0, i);
             }
             result?.push(next);
         }
-        active.delete(raw);
-        return result ?? raw;
-    }
-
-    if (!isPlainObject(raw)) return raw;
-
-    active.add(raw);
-    let result: Record<string, unknown> | undefined;
-    for (const k of Object.keys(raw)) {
-        // A reactive object unwraps refs on read, but its raw target still holds them.
-        const item = raw[k];
-        const next = unwrap(isRef(item) ? item.value : item, k, active);
-        if (next !== item) {
-            result ??= { ...raw };
-            result[k] = next;
+    } else {
+        for (const k of Object.keys(raw)) {
+            const item = (raw as Record<string, unknown>)[k];
+            const read = holder === raw ? item : holder[k];
+            const next = k === 'context' ? read : unwrap(read, k, active, done);
+            if (next !== item) {
+                result ??= { ...raw };
+                result[k] = next;
+            }
         }
     }
     active.delete(raw);
+
+    done.set(raw, result ?? raw);
     return result ?? raw;
 }
 
@@ -70,7 +70,7 @@ function unwrap(value: unknown, key: string | undefined, active: Set<object>): u
  * walked; anything else is passed through by identity. Nothing is mutated, and unchanged branches are not copied.
  */
 export function unwrapOptions<O>(options: O): O {
-    return unwrap(options, undefined, new Set()) as O;
+    return unwrap(options, undefined, new Set(), new Map()) as O;
 }
 
 /**

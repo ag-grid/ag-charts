@@ -13,9 +13,8 @@ import {
 
 import { unwrapOptions, unwrapTransactions } from './unwrap';
 
-// Spreading `options` into the container merge turns anything spreadable into a valid `{ container }`
-// object, so `AgCharts.create()`'s own guard can never see what the caller passed. Validate the raw prop.
-// Reactive options are unwrapped, so the chart holds the caller's own data and not proxies of it.
+// Spreading `options` makes any spreadable value a valid `{ container }`, hiding it from `create()`'s own guard,
+// so validate what the caller passed first. Unwrapping gives the chart the caller's data, not Vue proxies of it.
 function mergeOptions<O>(options: O, container: HTMLElement, componentName: string): O {
     const validated = AgChartsAPI.__validateOptionsArgument(options, `${componentName} \`options\` prop`);
     return { ...unwrapOptions(validated), container };
