@@ -126,6 +126,28 @@ describe('Widget', () => {
         });
     });
 
+    describe('offsetWidth and offsetHeight', () => {
+        it('return the element layout size', () => {
+            const widget = makeWidget();
+            const elem = widget.getElement();
+            vi.spyOn(elem, 'offsetWidth', 'get').mockReturnValue(120);
+            vi.spyOn(elem, 'offsetHeight', 'get').mockReturnValue(45);
+
+            expect(widget.offsetWidth).toBe(120);
+            expect(widget.offsetHeight).toBe(45);
+        });
+    });
+
+    describe('setCSSPosition', () => {
+        it('sets and removes the position style', () => {
+            const widget = makeWidget();
+            widget.setCSSPosition('absolute');
+            expect(widget.getElement().style.position).toBe('absolute');
+            widget.setCSSPosition(undefined);
+            expect(widget.getElement().style.position).toBe('');
+        });
+    });
+
     describe('insertSiblingAfter', () => {
         it('moves the sibling element directly after this element without changing the widget tree', () => {
             const list = makeWidget();

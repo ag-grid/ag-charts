@@ -277,6 +277,65 @@ describe('Context Menu', () => {
         });
     });
 
+    describe('menu container', () => {
+        function menuContainer() {
+            const container = document.body.getElementsByClassName(DEFAULT_CONTEXT_MENU_CLASS).item(0);
+            return new Caster(container).cast(HTMLElement).value;
+        }
+
+        function menuItems() {
+            return Array.from(document.body.getElementsByClassName(`${DEFAULT_CONTEXT_MENU_CLASS}__item`));
+        }
+
+        it('closes when focus moves outside the menu', async () => {
+            chart = await createEnterpriseChart(chartOptions());
+            const outside = document.createElement('button');
+            document.body.append(outside);
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            expect(menuContainer().style.display).toBe('block');
+
+            outside.focus();
+            await waitForChartStability(chart);
+
+            expect(menuContainer().style.display).toBe('none');
+            expect(menuItems()).toHaveLength(0);
+            outside.remove();
+        });
+
+        it('stays open when focus moves between its items', async () => {
+            chart = await createEnterpriseChart(
+                chartOptions({
+                    items: [
+                        { label: 'One', action() {} },
+                        { label: 'Two', action() {} },
+                    ],
+                })
+            );
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            const [, second] = menuItems();
+
+            new Caster(second).cast(HTMLElement).value.focus();
+            await waitForChartStability(chart);
+
+            expect(menuContainer().style.display).toBe('block');
+            expect(menuItems()).toHaveLength(2);
+        });
+
+        it('suppresses the browser context menu over the open menu', async () => {
+            chart = await createEnterpriseChart(chartOptions());
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            const [item] = menuItems();
+
+            const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+            item.dispatchEvent(event);
+
+            expect(event.defaultPrevented).toBe(true);
+        });
+    });
+
     describe('series-node getItems datums (AG-17546)', () => {
         const nodeCanvasPoint = (datumIndex: number) => {
             const node = getSeriesNodeData<BarNodeDatum>(chart)[datumIndex];

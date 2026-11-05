@@ -102,6 +102,14 @@ export abstract class Widget<
         return this.elem.clientHeight;
     }
 
+    get offsetWidth(): number {
+        return this.elem.offsetWidth;
+    }
+
+    get offsetHeight(): number {
+        return this.elem.offsetHeight;
+    }
+
     destroy(): void {
         this.destroyListener?.();
         this.destroyListener = undefined;
@@ -191,6 +199,11 @@ export abstract class Widget<
 
     setInnerHTML(html: string) {
         this.elem.innerHTML = html;
+    }
+
+    /** Sets the CSS `position` property, or removes it when `undefined`. */
+    setCSSPosition(position: BaseStyleTypeMap['position'] | undefined) {
+        setElementStyle(this.elem, 'position', position);
     }
 
     setPointerEvents(pointerEvents: BaseStyleTypeMap['pointer-events'] | undefined) {
