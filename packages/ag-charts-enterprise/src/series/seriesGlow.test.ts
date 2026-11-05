@@ -4,7 +4,9 @@ import type { AgChartInstance, AgChartOptions, AgGlowOptions, _ModuleSupport } f
 import {
     deproxy,
     getSeriesAt,
+    getSeriesHasChangesOnHighlight,
     getSeriesNodeData,
+    getSeriesSelectionNodes,
     glowShadow,
     setupMockCanvas,
     setupMockConsole,
@@ -12,7 +14,8 @@ import {
 } from 'ag-charts-community-test';
 import type { Shape } from 'ag-charts-core';
 
-import { getFlowNodeData } from '../test/enterpriseSeriesAccessors';
+import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
+import { getHierarchyRootNode } from '../test/seriesAccessors';
 import { HIERARCHY_SHADOW_DATA, SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
 import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
 import { ukData } from './map-test/ukData';
@@ -169,6 +172,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'funnel',
+        hoverable: true,
         data: STAGES,
         series: (glow, shadow) => ({ type: 'funnel', stageKey: 'stage', valueKey: 'value', glow, shadow }),
     },
@@ -181,6 +185,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'heatmap',
+        hoverable: true,
         data: GRID,
         series: (glow, shadow) => ({
             type: 'heatmap',
@@ -193,11 +198,13 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'pyramid',
+        hoverable: true,
         data: STAGES,
         series: (glow, shadow) => ({ type: 'pyramid', stageKey: 'stage', valueKey: 'value', glow, shadow }),
     },
     {
         name: 'radial-column',
+        hoverable: true,
         data: POLAR,
         series: (glow, shadow) => ({
             type: 'radial-column',
@@ -209,16 +216,19 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'radial-bar',
+        hoverable: true,
         data: POLAR,
         series: (glow, shadow) => ({ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter', glow, shadow }),
     },
     {
         name: 'nightingale',
+        hoverable: true,
         data: POLAR,
         series: (glow, shadow) => ({ type: 'nightingale', angleKey: 'quarter', radiusKey: 'value', glow, shadow }),
     },
     {
         name: 'radar-line markers',
+        hoverable: true,
         data: POLAR,
         series: (glow, shadow) => ({
             type: 'radar-line',
@@ -229,6 +239,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'radar-area markers',
+        hoverable: true,
         data: POLAR,
         series: (glow, shadow) => ({
             type: 'radar-area',
@@ -238,8 +249,11 @@ const SERIES: SeriesCase[] = [
         }),
     },
     {
-        // The area fill has no glow, so the markers are all that glow: one for each end of each range.
+        // The area fill has no glow, so the markers are all that glow: one for each end of each range, and a hovered
+        // range moves both of its markers to the highlight layer.
         name: 'range-area markers',
+        hoverable: true,
+        copies: 2,
         data: RANGE,
         count: RANGE.length * 2,
         series: (glow, shadow) => ({
@@ -252,6 +266,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'area markers',
+        hoverable: true,
         data: XY,
         count: XY.length,
         series: (glow, shadow) => ({
@@ -263,11 +278,13 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'pie',
+        hoverable: true,
         data: SLICES,
         series: (glow, shadow) => ({ type: 'pie', angleKey: 'value', glow, shadow }),
     },
     {
         name: 'donut',
+        hoverable: true,
         data: SLICES,
         series: (glow, shadow) => ({ type: 'donut', angleKey: 'value', glow, shadow }),
     },
@@ -383,12 +400,14 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'map-shape',
+        hoverable: true,
         data: ukData,
         chartOptions: { topology: ukTopology },
         series: (glow, shadow) => ({ type: 'map-shape', idKey: 'name', glow, shadow }),
     },
     {
         name: 'map-marker',
+        hoverable: true,
         data: ukData,
         chartOptions: { topology: ukTopology },
         series: (glow, shadow) => ({ type: 'map-marker', idKey: 'name', glow, shadow }),
@@ -652,6 +671,284 @@ describe('series-level glow (enterprise series)', () => {
             const expected = new Set(testCase.parts.filter((part) => part !== second));
             expect(atRest).toEqual(expected);
             expect(hovered).toEqual(expected);
+        });
+    });
+    /** A hovered item of a series that has parts, and what each part casts: the highlight copy and the items left. */
+    interface HoverCase {
+        name: string;
+        data: object[];
+        /** The series options, with `glow` on every part and the shared `highlight` buckets. */
+        series: (glow: object, highlight: object) => AnySeriesOptions;
+        /** The datum to hover. */
+        hovered: (chart: AgChartInstance) => HighlightNodeDatum;
+        /** The part that a shape casts for, and the one that the hovered datum belongs to. */
+        partOf: (shape: Shape) => string | undefined;
+        part: string;
+    }
+
+    const flowSeries = (type: 'sankey' | 'chord') => (glow: object, highlight: object) =>
+        ({
+            type,
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            node: { glow },
+            link: { glow },
+            highlight,
+        }) as AnySeriesOptions;
+
+    const waterfallSeries = (glow: object, highlight: object) =>
+        ({
+            type: 'waterfall',
+            xKey: 'x',
+            yKey: 'y',
+            item: { positive: { glow }, negative: { glow }, total: { glow } },
+            totals: [{ totalType: 'subtotal', index: 3, axisLabel: 'Total' }],
+            highlight,
+        }) as AnySeriesOptions;
+
+    const waterfallDatum = (itemType: string) => (c: AgChartInstance) =>
+        getSeriesNodeData<HighlightNodeDatum & { itemType: string }>(c).find(
+            (datum) => datum.itemType === itemType
+        ) as HighlightNodeDatum;
+
+    const HOVERS: HoverCase[] = [
+        ...(['sankey', 'chord'] as const).flatMap((type): HoverCase[] => [
+            {
+                name: `${type} node`,
+                data: FLOW,
+                series: flowSeries(type),
+                hovered: (c) => getFlowNodeData(c)[0] as HighlightNodeDatum,
+                partOf: FLOW_PART,
+                part: 'node',
+            },
+            {
+                name: `${type} link`,
+                data: FLOW,
+                series: flowSeries(type),
+                hovered: (c) => getFlowLinkData(c)[0] as HighlightNodeDatum,
+                partOf: FLOW_PART,
+                part: 'link',
+            },
+        ]),
+        // The `item.total` options style the subtotals as well as the totals.
+        ...['positive', 'negative', 'subtotal'].map((itemType): HoverCase => ({
+            name: `waterfall ${itemType}`,
+            data: [...WATERFALL, { x: 'Total', y: 12 }],
+            series: waterfallSeries,
+            hovered: waterfallDatum(itemType),
+            partOf: ITEM_PART,
+            part: itemType,
+        })),
+    ];
+
+    describe.each(HOVERS)('$name, hovered', (testCase) => {
+        const glowShapes = (group: 'contentGroup' | 'highlightGroup') =>
+            collectShapes(getSeriesAt(chart)[group]).filter(
+                (shape) => shape.visible && shape.fillGlow?.enabled === true
+            );
+
+        it('casts the highlight copy from highlightedItem and the other items from unhighlightedItem, over the series glow', async () => {
+            chart = await createEnterpriseChart({
+                data: testCase.data,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [
+                    testCase.series(GLOW, {
+                        highlightedItem: { glow: { blur: 9 } },
+                        unhighlightedItem: { glow: { blur: 6 } },
+                    }),
+                ],
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+            const before = glowShapes('contentGroup').length;
+            expect(before).toBeGreaterThan(1);
+
+            const { ctx, id } = deproxy(chart);
+            ctx.highlightManager.updateHighlight(id, testCase.hovered(chart));
+            await waitForChartStability(chart);
+
+            // A flow also redraws the nodes and links that the hovered part connects to, as unhighlighted items.
+            const drawn = glowShapes('highlightGroup');
+            const copies = drawn.filter((shape) => shape.fillGlow?.blur === 9);
+            expect(copies).toHaveLength(1);
+            expect(testCase.partOf(copies[0])).toBe(testCase.part);
+            expect(copies[0].fillGlow).toMatchObject(glowShadow({ ...GLOW, blur: 9 }));
+            for (const shape of drawn.filter((candidate) => candidate !== copies[0])) {
+                expect(shape.fillGlow).toMatchObject(glowShadow({ ...GLOW, blur: 6 }));
+            }
+
+            // The hovered item gave its glow up to the copy, and every other item takes the unhighlighted one.
+            const inPlace = glowShapes('contentGroup');
+            expect(inPlace).toHaveLength(before - 1);
+            for (const shape of inPlace) expect(shape.fillGlow).toMatchObject(glowShadow({ ...GLOW, blur: 6 }));
+        });
+    });
+
+    describe('hierarchy series, hovered', () => {
+        const TREE = [
+            {
+                name: 'A',
+                children: [
+                    { name: 'A1', size: 10 },
+                    { name: 'A2', size: 6 },
+                ],
+            },
+            {
+                name: 'B',
+                children: [
+                    { name: 'B1', size: 8 },
+                    { name: 'B2', size: 4 },
+                ],
+            },
+        ];
+        /** Each bucket sets a field of its own, so that the field by field merge shows through. */
+        const BUCKETS = {
+            highlightedItem: { glow: { blur: 9 } },
+            highlightedBranch: { glow: { spread: 7 } },
+            unhighlightedItem: { glow: { blur: 6 } },
+            unhighlightedBranch: { glow: { blur: 4 } },
+        };
+
+        const nameOf = (shape: Shape) => (shape.datum as { datum?: { name?: string } } | undefined)?.datum?.name;
+
+        const findNode = (name: string): HighlightNodeDatum => {
+            const visit = (node: any): any =>
+                node.datum?.name === name ? node : node.children.map(visit).find((found: unknown) => found != null);
+            return visit(getHierarchyRootNode(chart)) as HighlightNodeDatum;
+        };
+
+        /** What the nodes of the selection cast in the glow slot, by node name; nodes that cast none are left out. */
+        const glowByName = (selection: 'datumSelection' | 'highlightSelection', keep: (shape: Shape) => boolean) => {
+            const byName = new Map<string, unknown>();
+            for (const shape of getSeriesSelectionNodes<Shape>(chart, selection)) {
+                if (shape.visible && shape.fillGlow?.enabled === true && keep(shape)) {
+                    byName.set(nameOf(shape)!, shape.fillGlow);
+                }
+            }
+            return byName;
+        };
+
+        const hoverNode = async (series: AnySeriesOptions, name: string) => {
+            chart = await createEnterpriseChart({
+                data: TREE,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [series],
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+            const { ctx, id } = deproxy(chart);
+            ctx.highlightManager.updateHighlight(id, findNode(name));
+            await waitForChartStability(chart);
+        };
+
+        /**
+         * The hovered node casts highlightedItem over highlightedBranch from the highlight layer, and gives up its glow
+         * in place. Its branch takes unhighlightedItem over highlightedBranch, and the other branch unhighlightedBranch.
+         */
+        const expectBranchCascade = (
+            keep: (shape: Shape) => boolean,
+            hovered: string,
+            branch: string[],
+            otherBranch: string[]
+        ) => {
+            expect(glowByName('highlightSelection', keep)).toEqual(
+                new Map([[hovered, expect.objectContaining(glowShadow({ ...GLOW, blur: 9, spread: 7 }))]])
+            );
+            const inPlace = glowByName('datumSelection', keep);
+            expect([...inPlace.keys()].sort((a, b) => a.localeCompare(b))).toEqual(
+                [...branch, ...otherBranch].sort((a, b) => a.localeCompare(b))
+            );
+            for (const name of branch)
+                expect(inPlace.get(name)).toMatchObject(glowShadow({ ...GLOW, blur: 6, spread: 7 }));
+            for (const name of otherBranch) expect(inPlace.get(name)).toMatchObject(glowShadow({ ...GLOW, blur: 4 }));
+        };
+
+        it('treemap tiles read the branch buckets', async () => {
+            await hoverNode(
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    tile: { glow: GLOW, highlight: BUCKETS },
+                } as AnySeriesOptions,
+                'A1'
+            );
+
+            expectBranchCascade(isTile, 'A1', ['A2'], ['B1', 'B2']);
+        });
+
+        it('treemap groups cast the hovered group from highlightedItem and the others from unhighlightedItem', async () => {
+            await hoverNode(
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    group: {
+                        glow: GLOW,
+                        highlight: { highlightedItem: { glow: { blur: 9 } }, unhighlightedItem: { glow: { blur: 6 } } },
+                    },
+                } as AnySeriesOptions,
+                'A'
+            );
+
+            expect(glowByName('highlightSelection', isGroup)).toEqual(
+                new Map([['A', expect.objectContaining(glowShadow({ ...GLOW, blur: 9 }))]])
+            );
+            const inPlace = glowByName('datumSelection', isGroup);
+            expect([...inPlace.keys()]).toEqual(['B']);
+            expect(inPlace.get('B')).toMatchObject(glowShadow({ ...GLOW, blur: 6 }));
+        });
+
+        it('sunburst sectors read the branch buckets', async () => {
+            await hoverNode(
+                {
+                    type: 'sunburst',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    glow: GLOW,
+                    highlight: BUCKETS,
+                } as AnySeriesOptions,
+                'A1'
+            );
+
+            expectBranchCascade(() => true, 'A1', ['A', 'A2'], ['B', 'B1', 'B2']);
+        });
+    });
+    describe('redraw on hover', () => {
+        // A cone funnel has no highlight options, so no state style makes it redraw. Highlighting the whole series, as
+        // a legend item of the series does, redraws no one item, so the glow on its connectors is all that can.
+        const highlightSeries = async (glow: object | undefined) => {
+            chart = await createEnterpriseChart({
+                data: STAGES,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [{ type: 'cone-funnel', stageKey: 'stage', valueKey: 'value', glow }],
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+            const { ctx, id } = deproxy(chart);
+            ctx.highlightManager.updateHighlight(id, {
+                series: getSeriesAt(chart),
+                itemId: 'series',
+                datum: undefined,
+                datumIndex: Number.NaN,
+            });
+            await waitForChartStability(chart);
+        };
+
+        it('redraws a series with a glow when it is highlighted', async () => {
+            await highlightSeries({});
+
+            expect(getSeriesHasChangesOnHighlight(chart)).toBe(true);
+        });
+
+        it.each([
+            ['is disabled', { enabled: false }],
+            ['is not set', undefined],
+        ])('leaves a series with no state style cached where its glow %s', async (_name, glow) => {
+            await highlightSeries(glow);
+
+            expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
         });
     });
 });
