@@ -86,7 +86,7 @@ export interface AgCartesianAxisCrossAt {
     /**
      * Whether the axis title is placed at the crossing point, or at the axis' `position` edge.
      *
-     * Default: `'crossing'`
+     * Default: `'edge'`
      */
     titlePlacement?: AgCartesianAxisCrossAtPlacement;
     /**

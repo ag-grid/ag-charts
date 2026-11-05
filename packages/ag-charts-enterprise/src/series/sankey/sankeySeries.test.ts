@@ -534,8 +534,7 @@ describe('SankeySeries', () => {
 
     describe('shadow highlight', () => {
         // The highlighted node is redrawn above the dimmed layer; its in-place copy keeps casting the node's shadow.
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should render a highlighted node with shadows enabled', async () => {
+        it('should render a highlighted node with shadows enabled', async () => {
             const options = flowProportionShadowOptions('sankey', {
                 link: SMALL_SHADOW,
                 node: SMALL_SHADOW,

@@ -40,7 +40,6 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import type { WithInternalShadow } from 'ag-charts-core';
 
 import {
     DEFAULT_DISABLED_SHADOW,
@@ -408,9 +407,7 @@ describe('BoxPlotSeries', () => {
         it('defaults to a disabled shadow', async () => {
             const chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(getSeriesOptions<AgBoxPlotSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
-                DEFAULT_DISABLED_SHADOW
-            );
+            expect(getSeriesOptions<AgBoxPlotSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 
@@ -479,18 +476,15 @@ describe('BoxPlotSeries', () => {
             );
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should render a box-plot chart with a shadow and shared whisker styling', async () => {
+        it('should render a box-plot chart with a shadow and shared whisker styling', async () => {
             await compareSnapshot(await createEnterpriseChart(buildOptions(SHADOW)));
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should render a box-plot chart with a shadow and separately styled whiskers', async () => {
+        it('should render a box-plot chart with a shadow and separately styled whiskers', async () => {
             await compareSnapshot(await createEnterpriseChart(buildOptions(SHADOW, { whisker: STYLED_WHISKERS })));
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should render a horizontal box-plot chart with a shadow and separately styled whiskers', async () => {
+        it('should render a horizontal box-plot chart with a shadow and separately styled whiskers', async () => {
             await compareSnapshot(
                 await createEnterpriseChart(buildOptions(SHADOW, { whisker: STYLED_WHISKERS }, 'horizontal'))
             );

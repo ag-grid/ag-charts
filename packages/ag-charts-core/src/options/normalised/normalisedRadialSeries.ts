@@ -11,7 +11,6 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import type { WithInternalShadow } from '../internalShadowOptions';
 import type { Normalised } from './normalise';
 import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions } from './normalisedLabelOptions';
@@ -47,7 +46,7 @@ interface RadialOverrides {
 }
 
 export type NormalisedRadialBarSeriesOwnOptions = Normalised<
-    AgRadialBarSeriesOptions & WithInternalShadow,
+    AgRadialBarSeriesOptions,
     RadialRequiredKeys | 'shadow',
     RadialOverrides & { shadow: NormalisedDropShadowOptions }
 > &
@@ -62,14 +61,14 @@ export type NormalisedRadialColumnSeriesBaseOwnOptions = Normalised<
     RadialAxisKeys & { shadow: NormalisedDropShadowOptions };
 
 export type NormalisedRadialColumnSeriesOwnOptions = Normalised<
-    AgRadialColumnSeriesOptions & WithInternalShadow,
+    AgRadialColumnSeriesOptions,
     RadialRequiredKeys | 'columnWidthRatio' | 'maxColumnWidthRatio' | 'shadow',
     RadialOverrides & { shadow: NormalisedDropShadowOptions }
 > &
     RadialAxisKeys;
 
 export type NormalisedNightingaleSeriesOwnOptions = Normalised<
-    AgNightingaleSeriesOptions & WithInternalShadow,
+    AgNightingaleSeriesOptions,
     RadialRequiredKeys | 'shadow',
     RadialOverrides & { shadow: NormalisedDropShadowOptions }
 > &
