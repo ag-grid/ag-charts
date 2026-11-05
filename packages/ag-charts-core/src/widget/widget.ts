@@ -176,6 +176,18 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
     }
 
+    setAriaChecked(ariaChecked: BaseAttributeTypeMap['aria-checked'] | undefined) {
+        setAttribute(this.elem, 'aria-checked', ariaChecked);
+    }
+
+    setAriaSelected(ariaSelected: BaseAttributeTypeMap['aria-selected'] | undefined) {
+        setAttribute(this.elem, 'aria-selected', ariaSelected);
+    }
+
+    setAriaLabelledBy(ariaLabelledBy: BaseAttributeTypeMap['aria-labelledby'] | undefined) {
+        setAttribute(this.elem, 'aria-labelledby', ariaLabelledBy);
+    }
+
     /** Sets the `title` attribute (the native tooltip), or removes it when `undefined` or empty. */
     setTitle(title: BaseAttributeTypeMap['title'] | undefined) {
         setAttribute(this.elem, 'title', title);

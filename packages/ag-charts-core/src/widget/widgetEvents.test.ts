@@ -169,3 +169,28 @@ describe('DragWidgetEvent canvasX / canvasY', () => {
         ]);
     });
 });
+
+describe('mousedown and input widget events', () => {
+    it('delivers a mousedown from a descendant element with its target', () => {
+        const parent = new NativeWidget(document.createElement('div'));
+        const child = new NativeWidget(document.createElement('button'));
+        parent.addChild(child);
+        let received: MouseWidgetEvent<'mousedown'> | undefined;
+        parent.addListener('mousedown', (event) => (received = event));
+
+        child.getElement().dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 30, clientY: 40 }));
+
+        expect(received).toMatchObject({ type: 'mousedown', device: 'mouse', clientX: 30, clientY: 40 });
+        expect(received != null && child.isEventTarget(received)).toBe(true);
+    });
+
+    it('delivers an input event', () => {
+        const widget = new NativeWidget(document.createElement('textarea'));
+        const types: string[] = [];
+        widget.addListener('input', (event) => types.push(event.type));
+
+        widget.getElement().dispatchEvent(new Event('input', { bubbles: true }));
+
+        expect(types).toEqual(['input']);
+    });
+});

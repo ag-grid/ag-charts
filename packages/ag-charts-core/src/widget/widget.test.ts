@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createElement } from '../dom/domElements';
+import type { ElementID } from '../identity/idBranding';
 import { NativeWidget } from './nativeWidget';
 import type { WidgetEvent } from './widgetEvents';
 
@@ -40,6 +41,25 @@ describe('Widget', () => {
             const widget = makeWidget();
             widget.setData('agCharts', '');
             expect(widget.getElement().getAttribute('data-ag-charts')).toBe('');
+        });
+    });
+
+    describe('setAriaChecked, setAriaSelected and setAriaLabelledBy', () => {
+        it('writes false as the string "false" and removes the attribute when undefined', () => {
+            const widget = makeWidget();
+            widget.setAriaChecked(false);
+            widget.setAriaSelected(true);
+            widget.setAriaLabelledBy('ag-charts-label' as ElementID);
+            expect(widget.getElement().getAttribute('aria-checked')).toBe('false');
+            expect(widget.getElement().getAttribute('aria-selected')).toBe('true');
+            expect(widget.getElement().getAttribute('aria-labelledby')).toBe('ag-charts-label');
+
+            widget.setAriaChecked(undefined);
+            widget.setAriaSelected(undefined);
+            widget.setAriaLabelledBy(undefined);
+            expect(widget.getElement().hasAttribute('aria-checked')).toBe(false);
+            expect(widget.getElement().hasAttribute('aria-selected')).toBe(false);
+            expect(widget.getElement().hasAttribute('aria-labelledby')).toBe(false);
         });
     });
 
