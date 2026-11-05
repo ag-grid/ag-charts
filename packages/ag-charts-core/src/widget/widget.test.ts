@@ -182,4 +182,16 @@ describe('Widget', () => {
             expect(list.getElement().lastElementChild).toBe(floating.getElement());
         });
     });
+
+    describe('clearWidth', () => {
+        it('drops only the width set by setBounds, so getBounds falls back to the rendered width', () => {
+            const widget = makeWidget();
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+
+            widget.clearWidth();
+
+            // jsdom does no layout, so the rendered width is 0.
+            expect(widget.getBounds()).toEqual({ x: 4, y: 5, width: 0, height: 20 });
+        });
+    });
 });
