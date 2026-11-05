@@ -8,6 +8,7 @@ import type {
     SeriesType,
 } from 'ag-charts-types';
 
+import type { ChartTypeEnv, ChartTypeHost, ChartTypeInstance } from '../chart/chartTypeContract';
 import type { AxisID } from '../identity/idBranding';
 import type { Logger } from '../logging/logger';
 import type { Normalised } from '../options/normalised/normalise';
@@ -143,12 +144,19 @@ export interface ModuleDefinition<
     ): ValidationResult<TOptions>;
 }
 
-export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Chart, TOptions> {
+/** `E` is the chart-side env the module's chart type is written against; the registry, which doesn't know it, leaves it `any`. */
+export interface ChartModuleDefinition<TOptions, E extends ChartTypeEnv = any> extends ModuleDefinition<
+    ModuleType.Chart,
+    TOptions,
+    ChartTypeInstance<E>
+> {
     options: OptionsDefs<TOptions>;
     /** The chart-level theme overrides for series of this chart type. */
     themeOptions: OptionsDefs<any>;
     /** The default axes of a chart of this type, unless its lead series module declares its own. */
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
+
+    create(this: void, host: ChartTypeHost<E>): ChartTypeInstance<E>;
 }
 
 export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<

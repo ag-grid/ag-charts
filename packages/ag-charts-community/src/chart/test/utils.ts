@@ -914,7 +914,7 @@ export function cartesianChartAssertions(params?: {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('CartesianChart');
+        expect(chart.getChartType()).toBe('cartesian');
         expect(chart.axes).toHaveLength(Object.keys(axisTypes).length);
         expect(fromPairs(chart.axes.map((a) => [a.id, a.type]))).toEqual(axisTypes);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
@@ -926,7 +926,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -937,7 +937,7 @@ export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('TopologyChart');
+        expect(chart.getChartType()).toBe('topology');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -948,7 +948,7 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -959,7 +959,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -968,7 +968,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 export function gaugeAssertions() {
     return (chartOrProxy: ChartOrProxy<AgGaugeOptions>) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
     };
 }
 

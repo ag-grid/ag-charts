@@ -189,6 +189,8 @@ export interface EventsHubMap {
     /** Emitted when resolved theme parameters change, i.e. the theme CSS variables have been rewritten. */
     'theme:params-change': null;
     'update:complete': UpdateCompleteEvent;
+    /** Follows `update:complete`, once every listener has settled its state; deferred public events fire here. */
+    'update:settled': UpdateCompleteEvent;
     'update:pre-dom': null;
     'update:pre-series': PreSeriesUpdateEvent;
     'update:pre-scene-render': PreSceneRenderEvent;
