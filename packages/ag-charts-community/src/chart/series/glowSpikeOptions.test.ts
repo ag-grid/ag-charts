@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { Rect } from 'ag-charts-core';
+import { Rect, Sector } from 'ag-charts-core';
+import type { Shape } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
-import { CATEGORY_DATA, shapesOf } from '../test/shadowFixtures';
+import { CATEGORY_DATA, SERIES_SHADOW, glowShadow, shapesOf } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 describe('series glow and highlighted item shadow', () => {
@@ -70,6 +71,92 @@ describe('series glow and highlighted item shadow', () => {
                 10,
                 'shadow' in base && 3,
             ]);
+        });
+    });
+    describe('what the nodes cast when an item is hovered', () => {
+        const SERIES_GLOW = { fill: '#cc0000', fillOpacity: 1, blur: 5, spread: 3 };
+
+        const hover = async (series: object, kind: abstract new (...args: any[]) => Shape = Rect, type = 'bar') => {
+            const chart = deproxy(
+                await createChart({
+                    data: CATEGORY_DATA,
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    series: [
+                        type === 'bar'
+                            ? { type, xKey: 'category', yKey: 'value', ...series }
+                            : { type, angleKey: 'value', calloutLabelKey: 'category', ...series },
+                    ],
+                } as AgChartOptions)
+            );
+            chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<any>(chart)[1]);
+            await waitForChartStability(chart);
+            const inPlace = shapesOf(getSeriesAt(chart).contentGroup, kind);
+            const highlighted = shapesOf(getSeriesAt(chart).highlightNodeGroup, kind).filter((node) => node.visible);
+            return { chart, inPlace, highlighted };
+        };
+
+        describe.each([
+            ['bar', Rect, 'bar'],
+            ['donut', Sector, 'donut'],
+        ] as const)('%s', (_name, kind, type) => {
+            it('casts the series glow from every item but the hovered one while the highlight bucket has none', async () => {
+                const { inPlace, highlighted } = await hover({ glow: SERIES_GLOW }, kind, type);
+                expect(inPlace.map((node) => node.fillGlow?.fill)).toEqual([
+                    SERIES_GLOW.fill,
+                    undefined,
+                    SERIES_GLOW.fill,
+                ]);
+                expect(highlighted[0].fillShadow).toMatchObject(glowShadow(SERIES_GLOW as any));
+            });
+
+            it('lets highlightedItem.glow turn the glow off for the hovered item', async () => {
+                const { inPlace, highlighted } = await hover(
+                    { glow: SERIES_GLOW, highlight: { highlightedItem: { glow: { enabled: false } } } },
+                    kind,
+                    type
+                );
+                expect(inPlace.map((node) => node.fillGlow?.enabled === true)).toEqual([true, false, true]);
+                expect(highlighted[0].fillShadow?.enabled).not.toBe(true);
+            });
+
+            it('replaces, not adds to, the series glow with highlightedItem.glow on the hovered item', async () => {
+                const { inPlace, highlighted } = await hover(
+                    { glow: SERIES_GLOW, highlight: { highlightedItem: { glow: { gap: 5 } } } },
+                    kind,
+                    type
+                );
+                expect(inPlace.map((node) => node.fillGlow?.gap)).toEqual([undefined, undefined, undefined]);
+                expect(inPlace[1].fillGlow).toBeUndefined();
+                expect(highlighted[0].fillShadow).toMatchObject({ ...glowShadow(SERIES_GLOW as any), gap: 5 });
+            });
+        });
+
+        describe('highlightedItem.shadow with no other fields', () => {
+            it('turns the series shadow off for the hovered item with { enabled: false }', async () => {
+                const { inPlace } = await hover({
+                    shadow: SERIES_SHADOW,
+                    highlight: { highlightedItem: { shadow: { enabled: false } } },
+                });
+                expect(inPlace.map((node) => node.fillShadow?.enabled === true)).toEqual([true, false, true]);
+            });
+
+            it('turns the shadow on for the hovered item with {} while the series shadow is off', async () => {
+                const { inPlace } = await hover({ highlight: { highlightedItem: { shadow: {} } } });
+                expect(inPlace.map((node) => node.fillShadow?.enabled === true)).toEqual([false, true, false]);
+            });
+
+            it('follows the series shadow for the hovered item with {} while it is on', async () => {
+                const { inPlace } = await hover({
+                    shadow: SERIES_SHADOW,
+                    highlight: { highlightedItem: { shadow: {} } },
+                });
+                expect(inPlace.map((node) => node.fillShadow?.fill)).toEqual([
+                    SERIES_SHADOW.fill,
+                    SERIES_SHADOW.fill,
+                    SERIES_SHADOW.fill,
+                ]);
+            });
         });
     });
 });

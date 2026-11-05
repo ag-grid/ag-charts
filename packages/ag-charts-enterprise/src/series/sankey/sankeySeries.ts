@@ -1141,7 +1141,7 @@ export class SankeySeries extends FlowProportionSeries<
         isHighlight: boolean;
         focusedDatum?: SankeyNodeDatum | SankeyLinkDatum;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
         const { shadow, glow } = this.options.node;
@@ -1157,7 +1157,8 @@ export class SankeySeries extends FlowProportionSeries<
             rect.cornerRadius = this.options.node.cornerRadius;
 
             rect.setStyleProperties(style, fillBBox);
-            rect.fillShadow = this.resolveShadowSlot(shadow, glow, isHighlight, datumIndex);
+            rect.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveShadowSlot(shadow, glow, isHighlight, datumIndex);
             rect.fillGlow = this.resolveGlowSlot(glow, isHighlight, datumIndex);
         });
     }
@@ -1247,7 +1248,7 @@ export class SankeySeries extends FlowProportionSeries<
         isHighlight: boolean;
         focusedDatum?: SankeyNodeDatum | SankeyLinkDatum;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
         const { cornerRadius } = this.options.node;
@@ -1266,7 +1267,10 @@ export class SankeySeries extends FlowProportionSeries<
             link.endEdge = nodeEdge(datum.toNode, cornerRadius, 1);
 
             link.setStyleProperties(style, fillBBox);
-            link.fillShadow = this.resolveShadowSlot(shadow, glow, isHighlight, datum.datumIndex);
+            link.fillShadow =
+                datum === focusedDatum
+                    ? undefined
+                    : this.resolveShadowSlot(shadow, glow, isHighlight, datum.datumIndex);
             link.fillGlow = this.resolveGlowSlot(glow, isHighlight, datum.datumIndex);
 
             link.inset = link.strokeWidth / 2;
@@ -1284,6 +1288,11 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected override getSeriesGlows() {
         return [this.options.node.glow, this.options.link.glow];
+    }
+
+    // The one `highlightedItem.shadow` follows, which links and nodes share.
+    protected override getSeriesShadows() {
+        return [this.options.node.shadow];
     }
 
     protected override hasItemStylers(): boolean {

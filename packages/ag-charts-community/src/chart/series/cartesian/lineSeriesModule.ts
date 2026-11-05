@@ -70,7 +70,8 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         highlight: withSeriesGlowThemeDefaults(
             { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
             { item: ITEM_GLOW_BUCKETS, series: SERIES_GLOW_BUCKETS },
-            '/series/$index/marker/glow'
+            '/series/$index/marker/glow',
+            '/series/$index/marker/shadow'
         ),
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,

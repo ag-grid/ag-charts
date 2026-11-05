@@ -246,6 +246,45 @@ Object.assign(window.CASES, {
         }),
         hover: [60, 90],
     },
+    'bar-hshadow-disable': {
+        title: 'Bar: shadow {} + highlightedItem.shadow {enabled: false}',
+        options: bar({}, { shadow: {}, highlight: { highlightedItem: { shadow: { enabled: false } } } }),
+        hover: HOVER,
+    },
+    'bar-hshadow-empty': {
+        title: 'Bar: highlightedItem.shadow {} only (auto-enable)',
+        options: bar({}, { highlight: { highlightedItem: { shadow: {} } } }),
+        hover: HOVER,
+    },
+    'donut-bucket-disable': {
+        title: 'Donut: glow {} + highlightedItem.glow {enabled: false}',
+        options: donut({ glow: {}, highlight: { highlightedItem: { glow: { enabled: false } } } }),
+        hover: [330, 60],
+    },
+    'sankey-bucket-disable': {
+        title: 'Sankey: node.glow {} + link.glow {} + highlightedItem.glow {enabled: false}',
+        options: sankey({
+            node: { glow: {} },
+            link: { glow: {} },
+            highlight: { highlightedItem: { glow: { enabled: false } } },
+        }),
+        hover: [45, 60],
+    },
+    'sankey-link-glow-only-node': {
+        title: 'Sankey: link.glow {fill} only, hover a node',
+        options: sankey({ link: { glow: { fill: '#ffb000' } } }),
+        hover: [45, 60],
+    },
+    'sankey-link-glow-only-link': {
+        title: 'Sankey: link.glow {fill} only, hover a link',
+        options: sankey({ link: { glow: { fill: '#ffb000' } } }),
+        hover: [300, 105],
+    },
+    'sankey-node-glow-only': {
+        title: 'Sankey: node.glow {} only, hover a node',
+        options: sankey({ node: { glow: {} } }),
+        hover: [45, 60],
+    },
     'bar-overlap-glow': {
         title: 'Bar: wide glow {} at neutral, neighbours overlap',
         options: bar({}, { glow: { blur: 10, spread: 8, fillOpacity: 0.6 } }),

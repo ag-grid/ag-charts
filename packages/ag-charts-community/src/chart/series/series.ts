@@ -1123,15 +1123,27 @@ export abstract class Series<
         return entry.merged;
     }
 
+    /** The series-level `shadow` that the `enabled` of `highlightedItem.shadow` follows by default. */
+    protected getSeriesShadows(): ReadonlyArray<{ enabled?: boolean } | undefined> {
+        return [];
+    }
+
     private highlightedShadowOption?: boolean;
 
-    /** Whether `highlightedItem.shadow` sets anything beyond following the series' `shadow`. */
+    /**
+     * Whether `highlightedItem.shadow` sets anything beyond following the series' `shadow`: a field of its own, or an
+     * `enabled` that differs from the series' (the theme default is the series' own).
+     */
     private hasHighlightedItemShadowOption(): boolean {
         this.highlightedShadowOption ??= (() => {
             const bucket = (
                 this.options.highlight as { highlightedItem?: { shadow?: { enabled?: boolean } } } | undefined
             )?.highlightedItem?.shadow;
-            return bucket?.enabled === true && Object.keys(bucket).length > 1;
+            if (bucket == null) return false;
+            return (
+                Object.keys(bucket).some((key) => key !== 'enabled') ||
+                this.getSeriesShadows().some((shadow) => (shadow?.enabled === true) !== (bucket.enabled === true))
+            );
         })();
         return this.highlightedShadowOption;
     }
@@ -1197,12 +1209,8 @@ export abstract class Series<
             highlightState ??= this.getHighlightState(highlightedDatum, false, datumIndex);
         }
 
-        if (
-            highlightState === HighlightState.Item &&
-            datumIndex != null &&
-            highlightedDatum != null &&
-            this.getRedrawnIndex(highlightedDatum) === datumIndex
-        ) {
+        // The highlight layer draws the hovered item as `Item`, so its in-place copy reads as `OtherItem`.
+        if (datumIndex != null && highlightedDatum != null && this.getRedrawnIndex(highlightedDatum) === datumIndex) {
             return undefined;
         }
 

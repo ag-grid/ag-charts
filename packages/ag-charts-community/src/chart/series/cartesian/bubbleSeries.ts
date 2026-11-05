@@ -395,6 +395,10 @@ export abstract class BubbleScatterSeries<
     protected override getSeriesGlows() {
         return [this.markerGlow];
     }
+
+    protected override getSeriesShadows() {
+        return [this.marker.shadow];
+    }
     private markerDirty = true;
 
     protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedSeriesOptions<TOptions>> | undefined) {

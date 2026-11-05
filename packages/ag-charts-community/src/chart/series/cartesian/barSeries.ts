@@ -1498,6 +1498,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return [this.options.glow];
     }
 
+    protected override getSeriesShadows() {
+        return [this.options.shadow];
+    }
+
     protected override resolveUsesPlacedLabels(): boolean {
         return barLabelPropsRouteThroughEngine(this.options.label);
     }

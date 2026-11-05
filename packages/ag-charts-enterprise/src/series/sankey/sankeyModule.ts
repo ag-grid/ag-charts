@@ -53,7 +53,8 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                         unhighlightedItem: { opacity: 0.5 },
                     },
                     { item: ITEM_GLOW_BUCKETS },
-                    '/series/$index/node/glow'
+                    '/series/$index/node/glow',
+                    '/series/$index/node/shadow'
                 ),
             },
             tooltip: SERIES_TOOLTIP_THEME,

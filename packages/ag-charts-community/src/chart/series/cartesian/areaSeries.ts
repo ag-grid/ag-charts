@@ -1598,6 +1598,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         return [this.options.marker.glow, this.options.glow];
     }
 
+    protected override getSeriesShadows() {
+        return [this.options.marker.shadow];
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
         isHighlight: boolean;

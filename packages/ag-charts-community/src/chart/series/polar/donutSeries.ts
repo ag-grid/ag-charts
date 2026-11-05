@@ -333,6 +333,10 @@ export class DonutSeries extends PolarSeries<
         return [this.options.glow];
     }
 
+    protected override getSeriesShadows() {
+        return [this.options.shadow];
+    }
+
     override readonly supportsDataTransactions = false;
     override readonly snapsSeriesAreaOrigin = false;
     override readonly seriesAreaLayout = donutSeriesAreaLayout;

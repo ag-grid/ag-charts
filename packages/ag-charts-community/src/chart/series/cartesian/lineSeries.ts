@@ -1023,6 +1023,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         return [this.options.marker.glow];
     }
 
+    protected override getSeriesShadows() {
+        return [this.options.marker.shadow];
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
