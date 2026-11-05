@@ -183,11 +183,6 @@ export interface AgAxisContinuousIntervalOptions<
 export interface AgAxisLineOptions {
     /** Set to `false` to hide the axis line. */
     enabled?: boolean;
-    /**
-     * The width in pixels of the axis line.
-     * @deprecated v14.3.0 Use `strokeWidth` instead.
-     */
-    width?: PixelSize;
     /** The colour of the axis line. */
     stroke?: AgCssColorOrRef;
     /** The width in pixels of the axis line. */

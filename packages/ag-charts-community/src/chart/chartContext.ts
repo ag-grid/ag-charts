@@ -26,7 +26,6 @@ import type { ChartRegistry } from '../module/moduleContext';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import type { ChartState } from './chartState';
-import type { ChartType } from './chartType';
 import { DataService } from './data/dataService';
 import { FontManager } from './fonts/fontManager';
 import { FormatManager } from './formatter/formatManager';
@@ -48,7 +47,7 @@ import type { Tooltip } from './tooltip/tooltip';
 import { ChartValidations } from './validation/chartValidations';
 
 export interface ChartContextVars {
-    chartType: ChartType;
+    chartType: string;
     scene?: Scene;
     root: Group;
     syncManager: SyncManager;

@@ -16,7 +16,7 @@ import type { NormalisedColorScaleOptions } from './normalisedScatterSeries';
 
 export type NormalisedHeatmapSeriesStyle = Normalised<AgHeatmapSeriesStyle, never, FillStrokeMorph>;
 
-/** Cell label; the deprecated top-level `textAlign`/`verticalAlign` forward into it via the theme. */
+/** Cell label. */
 export type NormalisedHeatmapSeriesLabelOptions =
     NormalisedAutoSizedSecondaryLabelOptions<AgHeatmapSeriesLabelFormatterParams> & {
         textAlign: TextAlign;

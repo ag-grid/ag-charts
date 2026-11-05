@@ -281,18 +281,6 @@ export interface AgNavigatorThumbOptions {
     fillOpacity?: Opacity;
 }
 
-/** @deprecated v14.3.0 Use {@link AgNavigatorTrackOptions} instead. */
-export interface AgNavigatorMaskOptions {
-    /** The fill colour used by the mask. */
-    fill?: CssColor;
-    /** The opacity of the mask's fill in the `[0, 1]` interval, where `0` is effectively no masking. */
-    fillOpacity?: Opacity;
-    /** The stroke colour used by the mask. */
-    stroke?: CssColor;
-    /** The stroke width used by the mask. */
-    strokeWidth?: PixelSize;
-}
-
 export interface AgNavigatorHandleOptions {
     /** The fill colour used by the handle. */
     fill?: CssColor;
@@ -319,11 +307,6 @@ export interface AgNavigatorOptions<TDatum = DatumDefault, TContext = ContextDef
     cornerRadius?: number;
     /** The distance between the Navigator and the bottom axis of the chart. */
     spacing?: PixelSize;
-    /**
-     * Configuration for the Navigator's visible range mask.
-     * @deprecated v14.3.0 Use `track` instead.
-     */
-    mask?: AgNavigatorMaskOptions;
     /** Configuration for the Navigator's track, the area outside the selected range. */
     track?: AgNavigatorTrackOptions;
     /** Configuration for the Navigator's thumb, the selected range between the handles. */

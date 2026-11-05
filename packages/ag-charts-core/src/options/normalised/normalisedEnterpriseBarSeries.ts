@@ -12,7 +12,6 @@ import type {
     AgCandlestickWickOptions,
     AgConeFunnelSeriesLabelFormatterParams,
     AgConeFunnelSeriesLabelPlacement,
-    AgConeFunnelSeriesLabelPlacementAlias,
     AgConeFunnelSeriesOptions,
     AgConeFunnelSeriesTooltipRendererParams,
     AgFunnelSeriesDropOff,
@@ -266,8 +265,6 @@ export type NormalisedFunnelSeriesOwnOptions = Normalised<
 export type NormalisedFunnelSeriesOptions = NormalisedSeriesOptions<NormalisedFunnelSeriesOwnOptions> &
     NormalisedCartesianSeriesOptionsCommon;
 
-type ConeFunnelLabelPlacement = AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias;
-
 /** Cone funnel options the series owns, before the common series keys are layered on. */
 export type NormalisedConeFunnelSeriesOwnOptions = Normalised<
     AgConeFunnelSeriesOptions,
@@ -277,7 +274,7 @@ export type NormalisedConeFunnelSeriesOwnOptions = Normalised<
         strokes: CssColor[];
         shadow: NormalisedDropShadowOptions;
         label: NormalisedSeriesLabelOptions<AgConeFunnelSeriesLabelFormatterParams> & {
-            placement?: ConeFunnelLabelPlacement | ConeFunnelLabelPlacement[];
+            placement?: AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacement[];
             spacing: number;
         };
     }

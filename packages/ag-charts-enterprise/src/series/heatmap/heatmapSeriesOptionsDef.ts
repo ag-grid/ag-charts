@@ -13,7 +13,6 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
-    deprecated,
     fillOptionsDef,
     fontOptionsDef,
     glowHighlightOptionsDef,
@@ -32,8 +31,6 @@ import {
 
 export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemeableOptions> = {
     title: string,
-    textAlign: deprecated(textAlign, 'Use `label.textAlign` instead.'),
-    verticalAlign: deprecated(union('top', 'middle', 'bottom'), 'Use `label.verticalAlign` instead.'),
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
     shadow: shadowOptionsDefs,
@@ -48,8 +45,6 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     showInMiniChart: boolean,
     label: {
         ...autoSizedLabelOptionsDefs,
-        // The full `textAlign` union: the deprecated top-level option forwards into here, so it must
-        // still accept the `start`/`end` values that option supports.
         textAlign,
         verticalAlign: union('top', 'middle', 'bottom'),
         itemStyler: callbackDefs<AgHeatmapSeriesLabelStyle>({

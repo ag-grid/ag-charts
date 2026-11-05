@@ -1,8 +1,6 @@
 import type { AxisID, AxisWidget, BoundedTextWidget, BoxBounds, DynamicContext, Widget } from 'ag-charts-core';
-import { NativeWidget } from 'ag-charts-core';
+import { FocusIndicator, FocusSwapChain, NativeWidget } from 'ag-charts-core';
 
-import { FocusIndicator } from '../../dom/focusIndicator';
-import { FocusSwapChain } from '../../dom/focusSwapChain';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { DragInterpreter, LongTapInterpreter } from './dragInterpreter';
 
@@ -192,6 +190,11 @@ export class AxisWidgets {
     }
 }
 
+// TODO: Phase 3 "Common Widget Ancestor" - extend a real Widget base instead of the DOMManagerWidget fallback.
+/**
+ * Owns the series area's focus machinery: the FocusSwapChain that carries keyboard focus and screen-reader
+ * announcements, and the FocusIndicator drawn over the focused item. Callers reach both through this widget.
+ */
 class SeriesAreaWidget extends DOMManagerWidget {
     public readonly swapChain: FocusSwapChain;
     public readonly focusIndicator?: FocusIndicator;

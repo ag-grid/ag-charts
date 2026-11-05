@@ -1,5 +1,5 @@
 import type { CrossLineType } from 'ag-charts-core';
-import type { AgCartesianCrossLineLabelPlacement, AgCrossLineLabelPosition } from 'ag-charts-types';
+import type { AgCartesianCrossLineLabelPlacement } from 'ag-charts-types';
 
 export type AnchorDirection = 1 | 0 | -1;
 
@@ -74,34 +74,6 @@ const VERTICAL_LINE_PLACEMENTS = new Set<string>([
     'inside-bottom',
 ]);
 
-// Line placements that render where another already does, keyed by the line's orientation.
-const HORIZONTAL_LINE_ALIASES: Record<string, PhysicalPlacement> = {
-    'inside-top': 'top',
-    'inside-bottom': 'bottom',
-    'inside-top-left': 'top-left',
-    'inside-top-right': 'top-right',
-    'inside-bottom-left': 'bottom-left',
-    'inside-bottom-right': 'bottom-right',
-};
-
-// On a vertical cross line, these corners render beside it rather than on the named edge.
-const VERTICAL_CORNERS: Record<string, PhysicalPlacement> = {
-    'top-left': 'left-top',
-    'top-right': 'right-top',
-    'bottom-left': 'left-bottom',
-    'bottom-right': 'right-bottom',
-};
-
-const VERTICAL_LINE_ALIASES: Record<string, PhysicalPlacement> = {
-    ...VERTICAL_CORNERS,
-    'inside-left': 'left',
-    'inside-right': 'right',
-    'inside-top-left': 'left-top',
-    'inside-top-right': 'right-top',
-    'inside-bottom-left': 'left-bottom',
-    'inside-bottom-right': 'right-bottom',
-};
-
 // Along a vertical line, these follow the line itself rather than the text direction.
 const VERTICAL_LINE_INSIDE_TWINS: Record<string, string> = {
     'inside-start': 'inside-top',
@@ -125,7 +97,6 @@ export interface CrossLinePlacementContext {
     horizontal: boolean;
     rtl: boolean;
     warn(message: string): void;
-    deprecate(message: string): void;
 }
 
 function describeCrossLine({ type, horizontal }: CrossLinePlacementContext) {
@@ -135,11 +106,6 @@ function describeCrossLine({ type, horizontal }: CrossLinePlacementContext) {
 function validPlacements(context: CrossLinePlacementContext): Set<string> {
     if (context.type === 'range') return RANGE_PLACEMENTS;
     return context.horizontal ? HORIZONTAL_LINE_PLACEMENTS : VERTICAL_LINE_PLACEMENTS;
-}
-
-function lineAliases(context: CrossLinePlacementContext): Record<string, PhysicalPlacement> {
-    if (context.type === 'range') return {};
-    return context.horizontal ? HORIZONTAL_LINE_ALIASES : VERTICAL_LINE_ALIASES;
 }
 
 function validPlacementNames(context: CrossLinePlacementContext) {
@@ -160,14 +126,6 @@ function resolvePlacement(placement: string, context: CrossLinePlacementContext)
 
     let physical = mapTokens(placement, TWIN_TOKENS);
     const twinned = physical !== placement;
-    const alias = lineAliases(context)[physical];
-    if (alias != null) {
-        const replacement = twinned ? mapTokens(alias, PHYSICAL_TOKENS) : alias;
-        context.deprecate(
-            `Placement \`${placement}\` is deprecated on ${describeCrossLine(context)}. Use \`${replacement}\` instead.`
-        );
-        physical = alias;
-    }
 
     if (!validPlacements(context).has(physical)) {
         context.warn(
@@ -180,16 +138,9 @@ function resolvePlacement(placement: string, context: CrossLinePlacementContext)
     return ANCHORS[physical as PhysicalPlacement];
 }
 
-/** Where the deprecated `position` rendered, which it keeps doing until it is replaced. */
-function resolvePosition(position: AgCrossLineLabelPosition, context: CrossLinePlacementContext) {
-    const aliases = context.type === 'range' && !context.horizontal ? VERTICAL_CORNERS : lineAliases(context);
-    return ANCHORS[aliases[position] ?? position];
-}
-
-/** The anchors to try in order; `placement` wins over the deprecated `position`, and `top` is the default. */
+/** The anchors to try in order; `top` is the default. */
 export function resolveCrossLinePlacements(
     placement: string | readonly string[] | undefined,
-    position: AgCrossLineLabelPosition | undefined,
     context: CrossLinePlacementContext
 ): Anchor[] {
     const anchors: Anchor[] = [];
@@ -198,8 +149,6 @@ export function resolveCrossLinePlacements(
             const anchor = resolvePlacement(entry, context);
             if (anchor != null) anchors.push(anchor);
         }
-    } else if (position != null) {
-        anchors.push(resolvePosition(position, context));
     }
     if (anchors.length === 0) anchors.push(ANCHORS.top);
     return anchors;

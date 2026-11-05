@@ -1,14 +1,20 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, BoxBounds, CanvasPoint, FeatureCollection, Position } from 'ag-charts-core';
+import type {
+    AxisID,
+    BoxBounds,
+    ChartTypeHost,
+    ChartTypeInstance,
+    DynamicContext,
+    FeatureCollection,
+    Position,
+} from 'ag-charts-core';
 import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
-import type { AgCoordinates, AgTopologyChartOptions } from 'ag-charts-types';
 
 import type { LonLatBBox } from '../series/map-util/lonLatBbox';
 import { MercatorScale } from '../series/map-util/mercatorScale';
 import type { ITopology } from '../series/map-util/topologyTypes';
 
-const { Chart } = _ModuleSupport;
-function isTopologySeries(series: _ModuleSupport.Series<any, any, any>): series is ITopology {
+function isTopologySeries(series: _ModuleSupport.UnknownSeries): series is _ModuleSupport.UnknownSeries & ITopology {
     return (
         series.type === 'map-shape' ||
         series.type === 'map-line' ||
@@ -18,57 +24,52 @@ function isTopologySeries(series: _ModuleSupport.Series<any, any, any>): series 
     );
 }
 
-export class TopologyChart extends Chart {
-    static override readonly className = 'TopologyChart';
+export interface TopologyChartEnv {
+    ctx: DynamicContext<_ModuleSupport.ChartRegistry>;
+    series: _ModuleSupport.UnknownSeries;
+    layoutContext: _ModuleSupport.LayoutContext;
+}
+
+export class TopologyChartType implements ChartTypeInstance<TopologyChartEnv> {
     static readonly type = 'topology' as const;
+    readonly type = TopologyChartType.type;
+    readonly pageNavigation = false;
+
     private readonly xAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.X } as const;
     private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
 
     topology?: FeatureCollection;
 
-    constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
-        super(options, resources);
-
-        if (this.ctx.zoomManager) {
-            this.ctx.zoomManager.setAxes([this.xAxis, this.yAxis]);
-            this.ctx.zoomManager.panToBBoxScalingMode =
+    constructor(private readonly host: ChartTypeHost<TopologyChartEnv>) {
+        if (host.ctx.zoomManager) {
+            host.ctx.zoomManager.setAxes([this.xAxis, this.yAxis]);
+            host.ctx.zoomManager.panToBBoxScalingMode =
                 PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
         }
     }
 
-    override toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined {
-        return undefined; // TODO: stub
-    }
-
-    override getChartType() {
-        return 'topology' as const;
-    }
-
-    override updateData() {
-        super.updateData();
-
-        const options = this.getOptions() as AgTopologyChartOptions;
-        if (this.topology !== options.topology) {
-            this.topology = options.topology;
+    updateData() {
+        const options = this.host.getOptions();
+        const topology = 'topology' in options ? options.topology : undefined;
+        if (this.topology !== topology) {
+            this.topology = topology;
         }
 
-        const { topology } = this;
-        for (const series of this.series) {
+        for (const series of this.host.series) {
             if (isTopologySeries(series)) {
                 series.setChartTopology(topology);
             }
         }
     }
 
-    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
-        const { seriesRoot, annotationRoot } = this;
+    layout(ctx: _ModuleSupport.LayoutContext) {
+        const { host } = this;
 
-        const seriesRect = ctx.layoutBox.clone().shrink(this.getSeriesAreaPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(host.getSeriesAreaPadding());
 
-        this.seriesRect = seriesRect;
-        this.animationRect = seriesRect;
+        host.setLayoutRects(seriesRect, seriesRect);
 
-        const mapSeries = this.series as ITopology[];
+        const mapSeries = host.series.filter(isTopologySeries);
         const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;
@@ -100,7 +101,7 @@ export class TopologyChart extends Chart {
             const x1 = viewBoxOriginX + viewBoxWidth;
             const y1 = viewBoxOriginY + viewBoxHeight;
 
-            const zoom = this.ctx.chartState.getValue('zoom');
+            const zoom = host.ctx.chartState.getValue('zoom');
             const xZoom = zoom?.x ?? { min: 0, max: 1 };
             const yZoom = zoom?.y ?? { min: 0, max: 1 };
             const xSpan = (x1 - x0) / (xZoom.max - xZoom.min);
@@ -117,29 +118,21 @@ export class TopologyChart extends Chart {
             zoomRect = { x: seriesRect.x + x0, y: seriesRect.y + y0, width: x1 - x0, height: y1 - y0 };
         }
 
-        if (this.ctx.zoomManager) {
-            this.ctx.zoomManager.panToBBoxZoomRect = zoomRect;
+        if (host.ctx.zoomManager) {
+            host.ctx.zoomManager.panToBBoxZoomRect = zoomRect;
         }
 
         for (const series of mapSeries) {
             series.scale = scale;
         }
 
-        const seriesVisible = this.series.some((s) => s.visible);
-        seriesRoot.visible = seriesVisible;
-        for (const group of [seriesRoot, annotationRoot]) {
-            group.translationX = Math.floor(seriesRect.x);
-            group.translationY = Math.floor(seriesRect.y);
-            group.setClipRect(seriesRect.clone());
-        }
+        const seriesVisible = host.series.some((s) => s.visible);
+        host.seriesRoot.visible = seriesVisible;
+        host.placeSeriesRoots(seriesRect, { snap: true, clipRect: seriesRect.clone() });
 
-        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+        host.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: seriesVisible, rect: seriesRect, paddedRect: ctx.layoutBox },
             layoutBox: ctx.layoutBox,
         });
-    }
-
-    override hasPgUpPgDownSupport(): boolean {
-        return false;
     }
 }

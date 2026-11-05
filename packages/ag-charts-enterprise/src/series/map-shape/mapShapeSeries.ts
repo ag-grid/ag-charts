@@ -167,7 +167,7 @@ interface LabelFitting {
 }
 
 // The shape always bounds the label, so overflow control is always on: a label that does not fit is hidden
-// unless `truncate` asks for an ellipsis instead. The theme maps the deprecated `overflowStrategy` onto it.
+// unless `truncate` asks for an ellipsis instead.
 function resolveLabelFitting(
     label: NormalisedMapShapeSeriesLabelOptions,
     layoutFont: FontOptions,

@@ -247,6 +247,26 @@ exports[`aglint/require-explicit-generic 1`] = `
 }
 `;
 
+exports[`aglint/require-inscope-helper 1`] = `
+{
+  "stderr": "",
+  "stdout": "
+<dirname>/lint-require-inscope-helper.data.ts
+   9:10  error  'test_IncorrectReadsOptions' stays at module scope in React/Angular/Vue examples but reads 'options', defined only inside the generated component. Mark it \`/** inScope */\` (function declarations only) or move it into component scope. If the example is pinned to vanilla, disable this rule for the line with a reason                 aglint/require-inscope-helper
+  13:10  error  'test_IncorrectReadsChart' stays at module scope in React/Angular/Vue examples but reads 'chart', defined only inside the generated component. Mark it \`/** inScope */\` (function declarations only) or move it into component scope. If the example is pinned to vanilla, disable this rule for the line with a reason                     aglint/require-inscope-helper
+  32:10  error  'test_IncorrectCalledOnlyFromHandler' stays at module scope in React/Angular/Vue examples but reads 'chart', defined only inside the generated component. Mark it \`/** inScope */\` (function declarations only) or move it into component scope. If the example is pinned to vanilla, disable this rule for the line with a reason          aglint/require-inscope-helper
+  36:10  error  'test_IncorrectCallsInScope' stays at module scope in React/Angular/Vue examples but reads 'test_CorrectInScope', defined only inside the generated component. Mark it \`/** inScope */\` (function declarations only) or move it into component scope. If the example is pinned to vanilla, disable this rule for the line with a reason     aglint/require-inscope-helper
+  40:7   error  'test_IncorrectInitialiser' is initialised at module scope in React/Angular/Vue examples but its initialiser uses 'test_CorrectInScope', defined only inside the generated component. Create it lazily from an \`/** inScope */\` function instead. If the example is pinned to vanilla, disable this rule for the line with a reason         aglint/require-inscope-helper
+  42:7   error  'test_IncorrectClosureInitialiser' is initialised at module scope in React/Angular/Vue examples but its initialiser uses 'test_CorrectHandler', defined only inside the generated component. Create it lazily from an \`/** inScope */\` function instead. If the example is pinned to vanilla, disable this rule for the line with a reason  aglint/require-inscope-helper
+  44:7   error  'test_IncorrectArrowHelper' stays at module scope in React/Angular/Vue examples but reads 'chart', 'options', defined only inside the generated component. Mark it \`/** inScope */\` (function declarations only) or move it into component scope. If the example is pinned to vanilla, disable this rule for the line with a reason         aglint/require-inscope-helper
+  47:7   error  'test_IncorrectInScopeArrow' stays at module scope in React/Angular/Vue examples but reads 'chart', defined only inside the generated component. Mark it \`/** inScope */\` (function declarations only) or move it into component scope. If the example is pinned to vanilla, disable this rule for the line with a reason                   aglint/require-inscope-helper
+
+✖ 8 problems (8 errors, 0 warnings)
+
+",
+}
+`;
+
 exports[`aglint/require-shared-renderer 1`] = `
 {
   "stderr": "",

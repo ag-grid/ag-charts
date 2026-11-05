@@ -30,6 +30,7 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 /** Rewrites every cell of one column, so a transaction touches a few cells and leaves the rest. */
+/** inScope */
 function updateColumn(column: number, level: number) {
     const update: HeatmapDatum[] = [];
     for (let y = 0; y < ROWS; y++) {
@@ -39,6 +40,7 @@ function updateColumn(column: number, level: number) {
 }
 
 /** Resizes the chart by a pixel and back, which makes every layer repaint whole and lays the cells out as before. */
+/** inScope */
 async function forceFullRedraw() {
     await chart.updateDelta({ width: WIDTH + 1 });
     await chart.updateDelta({ width: WIDTH });

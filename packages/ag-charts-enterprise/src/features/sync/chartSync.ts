@@ -117,7 +117,9 @@ export class ChartSync extends AbstractModuleInstance {
         let prevNodeInteraction: boolean | undefined;
         let prevZoom: boolean | undefined;
 
+        moduleContext.syncManager.setDomainProvider(this);
         this.cleanup.register(
+            () => moduleContext.syncManager.setDomainProvider(undefined),
             moduleContext.chartState.observe((get) => {
                 const sync = get('options', 'sync');
                 const enabled = sync?.enabled ?? false;

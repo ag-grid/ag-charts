@@ -49,11 +49,6 @@ export const setStoredPalette = (store: Store, palette: Palette | undefined) => 
 
 export const getStoredPalette = (store: Store) => store.get(paletteAtom);
 
-/** Whether the previews outline their series. Not part of the palette: a theme cannot switch strokes on. */
-const previewStrokesAtom = atomWithJSONStorage<boolean>('charts-preview-strokes', false);
-
-export const usePreviewStrokes = () => useAtom(previewStrokesAtom);
-
 const resolveParamColor = (param: string) => RGBAColor.reinterpretCss(`var(${paramToVariableName(param)})`);
 
 /**

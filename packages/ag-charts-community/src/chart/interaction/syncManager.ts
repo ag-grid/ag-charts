@@ -1,4 +1,4 @@
-import type { BBox, ChartAxisDirection, EventEmitter, ReactiveState } from 'ag-charts-core';
+import type { BBox, ChartAxisDirection, EventEmitter, ReactiveState, SyncStatus } from 'ag-charts-core';
 
 import type { EventsHubMap } from '../../core/eventsHub';
 import type { ModuleMap } from '../../module/moduleMap';
@@ -20,8 +20,6 @@ export type SyncAxisLike = {
     nice: boolean;
     options: { min?: unknown; max?: unknown; reverse?: boolean };
 };
-
-export type SyncStatus = 'init' | 'domains-calculated' | 'ready';
 
 /** Breaks circular dependencies which occur when importing Chart. */
 export type SyncChartLike = {
@@ -65,11 +63,38 @@ export type SyncGroupState = {
     domainsByPosition?: { [key: string]: SyncDerivedDomain };
 };
 
+/** What the sync module lends this chart's axis-domain pipeline. */
+export interface SyncDomainProvider {
+    readonly enabled: boolean;
+    getSyncedDomain(axis: unknown): Promise<unknown[] | undefined>;
+    removeAxis(axis: unknown): void;
+}
+
 export class SyncManager {
     private static readonly chartsGroups = new Map<GroupId, SyncGroupState>();
     private static readonly DEFAULT_GROUP = Symbol('sync-group-default');
 
+    private domainProvider?: SyncDomainProvider;
+
     constructor(protected chart: SyncChartLike) {}
+
+    setDomainProvider(provider: SyncDomainProvider | undefined) {
+        this.domainProvider = provider;
+    }
+
+    async getSyncedDomain(axis: unknown) {
+        const provider = this.domainProvider;
+        if (!provider?.enabled) return;
+        return await provider.getSyncedDomain(axis);
+    }
+
+    removeAxes(axes: Iterable<unknown>) {
+        const provider = this.domainProvider;
+        if (!provider?.enabled) return;
+        for (const axis of axes) {
+            provider.removeAxis(axis);
+        }
+    }
 
     subscribe(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         let syncGroup = this.get(groupId);

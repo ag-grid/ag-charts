@@ -24,6 +24,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgChartTheme,
+    AgColorType,
     AgGaugeOptions,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
@@ -5432,6 +5433,59 @@ describe('ChartOptions', () => {
             expect(chartOptions.themeParameters.accentColor).toBeDefined();
         });
 
+        const lightDark = 'light-dark(red, blue)';
+        const lightDarkWarning = (path: string) =>
+            (console.warn as Mock).mock.calls.map(([m]) => String(m)).find((m) => m.includes(`Option \`${path}\``));
+        const expectLightDarkAdvice = (message: string | undefined) => {
+            expect(message).toContain(lightDark);
+            expect(message).toContain('light-dark() is not supported');
+            expect(message).toContain('use CSS variables or separate light and dark themes instead');
+        };
+
+        it.each([
+            ['series fill', 'series[0].fill', lightDark],
+            [
+                'gradient colour stop',
+                'series[0].fill[type=gradient].colorStops[0].color',
+                { type: 'gradient', colorStops: [{ color: lightDark }, { color: 'white' }] },
+            ],
+        ])('warns with light-dark() advice and ignores a light-dark() %s', (_name, path, fill) => {
+            const options = prepareOptions({
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', fill: fill as AgColorType }],
+            });
+
+            expectLightDarkAdvice(lightDarkWarning(path));
+            expect(JSON.stringify(strictOptionAt(options, 'series[0].fill') ?? null)).not.toContain(lightDark);
+        });
+
+        it.each([
+            ['theme param', 'theme.params.foregroundColor', { params: { foregroundColor: lightDark } }],
+            [
+                'colour ref ontoColor',
+                'theme.params.accentColor.ontoColor',
+                { params: { accentColor: { ref: 'foregroundColor', mix: 0.5, ontoColor: lightDark } } },
+            ],
+            ['palette fill', 'theme.palette.fills', { palette: { fills: ['red', lightDark] } }],
+            ['palette stroke', 'theme.palette.strokes', { palette: { strokes: ['red', lightDark] } }],
+        ])('warns with light-dark() advice and uses the theme default for a light-dark() %s', (_name, path, theme) => {
+            const chartOptions = new ChartOptions<AgChartOptions>(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category' }, y: { type: 'number' } },
+                    theme: theme as AgChartTheme,
+                },
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expectLightDarkAdvice(lightDarkWarning(path));
+            expect(JSON.stringify(chartOptions.themeParameters)).not.toContain(lightDark);
+            expect(chartOptions.themeParameters.foregroundColor).toBeDefined();
+        });
+
         it('warns and uses the theme default for an operator in a theme param', () => {
             const create = (accentColor?: unknown) =>
                 new ChartOptions<AgChartOptions>(
@@ -5565,22 +5619,45 @@ describe('ChartOptions', () => {
             expect(optionAt(options, 'legend.item.padding')).toEqual({ top: 4, right: 8, bottom: 4, left: 8 });
         });
 
-        it('does not warn and preserves a negative padding on a cross-line label (deliberate exemption)', () => {
-            const options = prepareOptions<AgCartesianChartOptions>({
+        const crossLineChart = (label: object, theme?: object) =>
+            prepareOptions<AgCartesianChartOptions>({
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
                     x: { type: 'category', position: 'bottom' },
                     y: {
                         type: 'number',
                         position: 'left',
-                        crossLines: [{ type: 'line', value: 5, label: { text: 'threshold', padding: -30 } }],
+                        crossLines: [{ type: 'line', value: 5, label: { text: 'threshold', ...label } }],
                     },
                 },
-            });
+                theme,
+            } as AgCartesianChartOptions);
 
-            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('padding'))).toBe(false);
-            expect(optionAt(options, 'axes.y.crossLines[0].label.padding')).toBe(-30);
+        it.each([
+            ['the chart options', { padding: -30 }, undefined],
+            [
+                'a theme override',
+                {},
+                { overrides: { common: { axes: { number: { crossLines: { label: { padding: -30 } } } } } } },
+            ],
+        ])(
+            'rejects negative padding on a cross-line label set through %s and keeps the theme default',
+            (_, label, theme) => {
+                const options = crossLineChart(label, theme);
+
+                const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages).toHaveLength(1);
+                expect(messages[0]).toContain('cannot be set to `-30`');
+                expect(messages[0]).toContain('expecting a number greater than or equal to 0');
+                expect(optionAt(options, 'axes.y.crossLines[0].label.padding')).toBe(5);
+            }
+        );
+
+        it('accepts a negative spacing on a cross-line label', () => {
+            const options = crossLineChart({ spacing: -30 });
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(optionAt(options, 'axes.y.crossLines[0].label.spacing')).toBe(-30);
         });
     });
 

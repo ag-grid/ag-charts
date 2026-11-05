@@ -79,16 +79,6 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     shadow?: AgDropShadowOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
-    /** Horizontal position of the label.
-     *
-     * @deprecated v14.2.0 Use `label.textAlign` instead.
-     */
-    textAlign?: TextAlign;
-    /** Vertical position of the label.
-     *
-     * @deprecated v14.2.0 Use `label.verticalAlign` instead.
-     */
-    verticalAlign?: VerticalAlign;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Function used to return formatting for individual heatmap cells, based on the given parameters.*/
