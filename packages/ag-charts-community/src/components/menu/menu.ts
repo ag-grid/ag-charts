@@ -6,7 +6,7 @@ import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchore
 export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
     items: Array<MenuItem<Value>>;
     value?: Value;
-    onPress?: (item: MenuItem<Value>) => void;
+    onPress?: (item: MenuItem<Value>, event: ClickWidgetEvent) => void;
     menuItemRole?: 'menuitem' | 'menuitemradio';
 }
 
@@ -78,8 +78,9 @@ export class Menu extends AnchoredPopover {
             row.setAriaLabel(this.ctx.localeManager.t(item.altText));
         }
 
-        row.addListener('click', ({ sourceEvent }: ClickWidgetEvent) => {
-            options.onPress?.(item);
+        row.addListener('click', (event: ClickWidgetEvent) => {
+            const { sourceEvent } = event;
+            options.onPress?.(item, event);
             sourceEvent.preventDefault();
             menu.collapse();
         });

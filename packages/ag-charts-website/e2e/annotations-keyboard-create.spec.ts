@@ -161,6 +161,12 @@ async function chooseTool(page: Page, tool: ToolCase) {
     await page.keyboard.press('Enter');
 }
 
+/** Opens a toolbar menu and picks one of its items with the mouse. */
+async function chooseToolWithMouse(page: Page, tool: ToolCase) {
+    await menuButton(page, tool).click();
+    await page.locator(MENU_ROW).filter({ hasText: tool.item }).click();
+}
+
 test.describe('annotations keyboard create', () => {
     setupIntrinsicAssertions(test);
 
@@ -321,6 +327,22 @@ test.describe('annotations keyboard create', () => {
 
         await expect(menuButton(page, TREND_LINE)).toBeFocused();
         expect(await getAnnotations(page)).toHaveLength(0);
+    });
+
+    test('Enter on the chart does not place a tool chosen with the mouse', async ({ page }) => {
+        await chooseToolWithMouse(page, TREND_LINE);
+        await page.locator(SWAPCHAIN).focus();
+        await page.keyboard.press('Enter');
+
+        expect(await getAnnotations(page)).toHaveLength(0);
+    });
+
+    test('Escape on the chart does not move focus to the button of a tool chosen with the mouse', async ({ page }) => {
+        await chooseToolWithMouse(page, TREND_LINE);
+        await page.locator(SWAPCHAIN).focus();
+        await page.keyboard.press('Escape');
+
+        await expect(menuButton(page, TREND_LINE)).not.toBeFocused();
     });
 
     test('Escape after dragging out a drawing does not move focus to Clear All', async ({ page }) => {
