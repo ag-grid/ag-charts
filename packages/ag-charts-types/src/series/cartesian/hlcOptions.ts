@@ -15,7 +15,7 @@ import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
     AgMarkerHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -161,7 +161,7 @@ export interface AgHlcSeriesThemeableOptions<
     /** Function used to return formatting for the entire series, based on the given parameters. */
     styler?: Styler<AgHlcSeriesStylerParams<TDatum, TContext>, AgHlcSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
 }
 
 export interface AgHlcSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

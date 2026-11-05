@@ -79,7 +79,10 @@ export function getRootShadow(node: Node, slot: ShadowSlot = 'shadow'): Normalis
 /** The options that a node casts in a slot through the engine, or undefined if it casts none. */
 export function getBatchedShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
     // A cutout erases the layer beneath it, and so also what the engine's shadow put there. It casts for itself.
-    return node instanceof Shape && node.__drawingMode === 'cutout' ? undefined : getRootShadow(node, slot);
+    // Only a shadow can: a glow is cast by the engine alone, and the erase leaves it whole outside the cutout's own area.
+    return slot === 'shadow' && node instanceof Shape && node.__drawingMode === 'cutout'
+        ? undefined
+        : getRootShadow(node, slot);
 }
 
 export function getShadowClip(node: Node): ShadowClip | undefined {

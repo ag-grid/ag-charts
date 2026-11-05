@@ -830,6 +830,79 @@ describe('Navigator', () => {
             expect(shadowedNodes(getSeriesAt(chart).contentGroup).length).toBeGreaterThan(0);
         });
 
+        const GLOW = { enabled: true };
+        const glowCases: [string, object][] = [
+            ['candlestick', { type: 'candlestick', ...candleKeys, data: ohlcData, glow: GLOW }],
+            ['ohlc', { type: 'ohlc', ...candleKeys, data: ohlcData, glow: GLOW }],
+            ['bar', { type: 'bar', xKey: 'x', yKey: 'y', data: barData, glow: GLOW }],
+            ['area', { type: 'area', xKey: 'x', yKey: 'y', data: barData, marker: { enabled: true, glow: GLOW } }],
+            ['line', { type: 'line', xKey: 'x', yKey: 'y', data: barData, marker: { enabled: true, glow: GLOW } }],
+            [
+                'range-area',
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yHighKey: 'yHigh',
+                    yLowKey: 'yLow',
+                    data: barData.map((d) => ({ ...d, yHigh: d.y + 2, yLow: d.y - 2 })),
+                    marker: { enabled: true, glow: GLOW },
+                },
+            ],
+            [
+                'hlc',
+                {
+                    type: 'hlc',
+                    xKey: 'date',
+                    highKey: 'high',
+                    lowKey: 'low',
+                    closeKey: 'close',
+                    data: ohlcData,
+                    marker: { enabled: true, glow: GLOW },
+                },
+            ],
+            ['scatter', { type: 'scatter', xKey: 'y', yKey: 'y', data: barData, glow: GLOW }],
+            [
+                'waterfall',
+                {
+                    type: 'waterfall',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: barData.map((d, i) => ({ ...d, y: i % 2 === 0 ? d.y : -d.y })),
+                    item: { positive: { glow: GLOW }, negative: { glow: GLOW }, total: { glow: GLOW } },
+                },
+            ],
+        ];
+
+        const glowingNodes = (root: any): string[] => {
+            const found: string[] = [];
+            const walk = (node: any) => {
+                if (node.fillGlow?.enabled) found.push(node.constructor.name);
+                if (typeof node.children === 'function') for (const child of node.children()) walk(child);
+            };
+            walk(root);
+            return found;
+        };
+
+        it.each(glowCases)('does not draw the %s series glow in the mini chart', async (_type, series) => {
+            const miniChart = await create({
+                series: [series],
+                navigator: { enabled: true, miniChart: { enabled: true } },
+            } as AgCartesianChartOptions);
+
+            expect(miniChart.series.length).toBe(1);
+            expect(glowingNodes(miniChart.root).join()).toBe('');
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it.each(glowCases)('still draws the %s glow in the main chart', async (_type, series) => {
+            await create({
+                series: [series],
+                navigator: { enabled: true, miniChart: { enabled: true } },
+            } as AgCartesianChartOptions);
+
+            expect(glowingNodes(getSeriesAt(chart).contentGroup).length).toBeGreaterThan(0);
+        });
+
         it('honours an explicit navigator.miniChart.series shadow', async () => {
             const miniChart = await create({
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', data: barData, shadow: SHADOW }],

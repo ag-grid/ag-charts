@@ -19,6 +19,7 @@ import {
     fillOptionsDef,
     fillPatternDefaults,
     glowHighlightOptionsDef,
+    glowOptionsDefs,
     lineDashOptionsDef,
     positiveNumber,
     ratio,
@@ -45,6 +46,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     },
     link: {
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         tension: ratio,
         itemStyler: callbackDefs<AgChordSeriesLinkStyle>({
             ...fillOptionsDef,
@@ -58,6 +60,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     },
     node: {
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         width: positiveNumber,
         spacing: positiveNumber,
         cornerRadius: positiveNumber,

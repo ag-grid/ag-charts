@@ -13,6 +13,7 @@ import {
     constant,
     crosshairSnapToValidator,
     fillOptionsDef,
+    glowOptionsDefs,
     lineDashOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
     positiveNumber,
@@ -62,6 +63,7 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
+    glow: glowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: multiSeriesGlowHighlightOptionsDef(
         candlestickHighlightStyleOptionsDef,

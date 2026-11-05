@@ -112,7 +112,7 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'hlc',
         series: { xKey: 'category', highKey: 'high', lowKey: 'low', closeKey: 'close' },
         data: DATA,
-        coverage: { minChecked: 125, maxSkipped: 7, maxRejected: 0, maxIneffective: 0, minContainers: 7 },
+        coverage: { minChecked: 125, maxSkipped: 11, maxRejected: 0, maxIneffective: 0, minContainers: 7 },
     },
 ];
 

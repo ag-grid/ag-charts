@@ -21,6 +21,7 @@ import {
     fillOptionsDef,
     fillPatternDefaults,
     glowHighlightOptionsDef,
+    glowOptionsDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     lessThanOrEqual,
@@ -51,6 +52,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     },
     link: {
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
@@ -62,6 +64,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     },
     node: {
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         width: positiveNumber,
         spacing: positiveNumber,
         minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),

@@ -4,6 +4,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
@@ -50,7 +51,8 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                     {
                         unhighlightedItem: { opacity: 0.5 },
                     },
-                    ITEM_GLOW_BUCKETS
+                    ITEM_GLOW_BUCKETS,
+                    { glow: ['/series/$index/node/glow', '/series/$index/link/glow'] }
                 ),
             },
             tooltip: SERIES_TOOLTIP_THEME,
@@ -78,12 +80,14 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
                 shadow: SHADOW_THEME_DEFAULTS,
+                glow: GLOW_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
                 shadow: SHADOW_THEME_DEFAULTS,
+                glow: GLOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

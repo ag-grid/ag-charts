@@ -1018,13 +1018,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             return;
         }
 
-        const { cornerRadius, shadow } = this.options;
+        const { cornerRadius, shadow, glow } = this.options;
 
         const updateNode = (rect: Rect<HeatmapNodeDatum>, nodeDatum: HeatmapNodeDatum) => {
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
 
             rect.crisp = crisp;
             rect.cornerRadius = cornerRadius;

@@ -148,7 +148,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             return;
         }
 
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
         const { cornerRadius } = this.options;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
@@ -163,7 +163,8 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex);
             rect.cornerRadius = cornerRadius;
         });
     }

@@ -9,7 +9,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type { AgNodeClickEvent } from '../../chart/eventOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
@@ -122,6 +122,8 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TConte
     itemStyler?: Styler<AgHistogramSeriesItemStylerParams<TDatum, TContext>, AgHistogramSeriesStyle>;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the bars. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Configuration for the labels shown on bars. */
     label?: AgHistogramSeriesLabelOptions<undefined, AgHistogramSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */

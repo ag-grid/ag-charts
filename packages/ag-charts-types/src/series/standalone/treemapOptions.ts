@@ -5,7 +5,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -86,6 +86,8 @@ export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
     cornerRadius?: PixelSize;
     /** Configuration for the shadow used behind the groups. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the groups. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** The colours to cycle through for the fills of the groups, by their depth in the hierarchy. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** Highlight overrides for groups. */
@@ -186,6 +188,8 @@ export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
     cornerRadius?: PixelSize;
     /** Configuration for the shadow used behind the tiles. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the tiles. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Highlight overrides for tiles. */
     highlight?: AgTreemapSeriesTileHighlightOptions;
     /** Selection overrides for tiles. */

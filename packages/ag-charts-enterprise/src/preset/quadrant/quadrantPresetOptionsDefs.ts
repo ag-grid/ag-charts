@@ -110,6 +110,7 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     nodeClickRange: defined,
     styler: defined,
     shadow: defined,
+    glow: defined,
     shape: defined,
     size: defined,
     sizeKey: defined,

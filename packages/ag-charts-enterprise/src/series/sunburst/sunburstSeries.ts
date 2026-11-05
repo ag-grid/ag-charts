@@ -318,14 +318,24 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     private readonly resolveGlow = (highlightState: HierarchyHighlightState) =>
-        this.getHierarchyHighlightGlow(highlightState, this.options.highlight);
+        this.getHierarchyHighlightGlow(highlightState, this.options.highlight, this.options.glow);
 
     /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
     private getNodeGlow(nodeDatum: SunburstNode, isHighlight: boolean, highlightedNode: SunburstNode | undefined) {
-        if (!this.options.highlight.enabled) return;
+        // With its highlight off the series casts its series-level glow alone, and has no highlight copy to redraw it.
+        if (!this.options.highlight.enabled) {
+            return isHighlight
+                ? undefined
+                : this.getHierarchyGlow(SUNBURST_SLOT, HierarchyHighlightState.None, this.resolveGlow);
+        }
 
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
-        return this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow);
+        return this.resolveNodeGlow(
+            this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow),
+            isHighlight,
+            highlightedNode,
+            nodeDatum
+        );
     }
 
     private itemStyle(index: number): ItemStyle {
@@ -545,7 +555,8 @@ export class SunburstSeries extends HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = this.resolveNodeShadow(shadow, glow, highlighted, highlightedNode, nodeDatum);
+            sector.fillShadow = this.resolveNodeShadow(shadow, highlighted);
+            sector.fillGlow = glow;
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;

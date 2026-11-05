@@ -7,6 +7,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     crosshairSnapToValidator,
+    glowOptionsDefs,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
@@ -39,6 +40,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
     },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
+    glow: glowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: multiSeriesGlowHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };

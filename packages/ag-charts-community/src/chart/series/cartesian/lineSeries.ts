@@ -1017,6 +1017,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         );
     }
 
+    protected override getSeriesGlows() {
+        return [this.options.marker.glow];
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
@@ -1041,7 +1045,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
-        const { shadow } = this.options.marker;
+        const { shadow, glow } = this.options.marker;
 
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
@@ -1055,6 +1059,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 hideWithSize0: hideMarkerWithSize0(hideWithSize0, selectedOnly, datum),
                 pickInflation,
                 shadow,
+                glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
             });
