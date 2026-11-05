@@ -6,7 +6,6 @@ import {
     type CanvasPoint,
     type ClientPoint,
     type ElementSize,
-    GuardedElement,
     type PerWindowEntry,
     SizeMonitor,
     StateTracker,
@@ -102,13 +101,6 @@ const NULL_DOMRECT: DOMRect = {
     },
 };
 
-function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 'afterend') {
-    const div = createElement('div');
-    div.className = 'ag-charts-tab-guard';
-    guardedElem.insertAdjacentElement(where, div);
-    return div;
-}
-
 // Singleton global-listener registry for minimal-mode charts — one DOM listener set per
 // Window, fanned out to all subscribers. Torn down when the last subscriber unregisters.
 
@@ -177,7 +169,6 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
     private initiallyConnected?: boolean = undefined;
     private hasDeferredCSSVariables = false;
     containerSize?: ElementSize = undefined;
-    private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
     private attachObserver?: MutationObserver;
@@ -254,14 +245,6 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         this.setupGlobalListeners();
 
         this.updateCSSVariableWatchers(cssVariables);
-
-        if (this.mode === 'normal') {
-            const guardedElement = this.rootElements['canvas-center'].element;
-            if (guardedElement == null) throw new Error('Error initializing tab guards');
-            const topGuard = createTabGuardElement(guardedElement, 'beforebegin');
-            const botGuard = createTabGuardElement(guardedElement, 'afterend');
-            this.tabGuards = new GuardedElement(guardedElement, topGuard, botGuard);
-        }
     }
 
     private initDOM(): HTMLElement {
@@ -490,12 +473,6 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         }
 
         this.updateContainerClassName();
-    }
-
-    setTabGuardIndex(tabIndex: number) {
-        if (!this.tabGuards) return;
-
-        this.tabGuards.tabIndex = tabIndex;
     }
 
     setContainer(newContainer?: HTMLElement) {

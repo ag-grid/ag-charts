@@ -1058,9 +1058,6 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
     private updateDOM() {
         this.ctx.domManager.setDarkTheme(this.chartOptions.activeTheme.isDark);
-
-        const { enabled, tabIndex } = this.ctx.chartState.getValue('options', 'keyboard');
-        this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);
     }
 
     private updateAriaLabels() {

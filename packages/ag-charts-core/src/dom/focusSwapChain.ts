@@ -1,12 +1,12 @@
+import { createElementId } from '../identity/id';
 import {
     type BaseAttributeTypeMap,
     type StrictHTMLElement,
-    createElement,
-    createElementId,
     setAttribute,
     setAttributes,
     setElementStyle,
-} from 'ag-charts-core';
+} from './attributeUtil';
+import { createElement } from './domElements';
 
 type SwapChainEventMap = { focus: FocusEvent; blur: FocusEvent; swap: HTMLElement };
 
