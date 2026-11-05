@@ -529,14 +529,20 @@ describe('Ranges', () => {
             }
         });
 
-        it('state borders set to true follow a boolean buttonBorder', async () => {
+        it('a boolean buttonBorder follows borderWidth in every state', async () => {
             const ranges = await resolvedRanges({
                 borderColor: 'purple',
+                borderWidth: 4,
                 buttonBorder: true,
                 buttonActiveBorder: true,
             });
 
-            expect(ranges?.button?.active).toMatchObject({ stroke: 'purple', strokeWidth: 1 });
+            const border = { stroke: 'purple', strokeWidth: 4 };
+            expect(ranges?.button).toMatchObject(border);
+            expect(ranges?.button?.hover).toMatchObject(border);
+            expect(ranges?.button?.active).toMatchObject(border);
+            expect(ranges?.button?.disabled?.strokeWidth).toBe(4);
+            expect(ranges?.dropdown?.strokeWidth).toBe(4);
         });
 
         it('state border objects apply their width in that state', async () => {
