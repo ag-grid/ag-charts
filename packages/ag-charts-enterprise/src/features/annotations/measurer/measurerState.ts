@@ -26,8 +26,8 @@ interface MeasurerStateMachineContext<Datum extends MeasurerDatumType> extends O
 }
 
 abstract class MeasurerTypeStateMachine<Datum extends MeasurerDatumType> extends StateMachine<
-    'start' | 'end',
-    Pick<AnnotationStateEvents, 'click' | 'hover' | 'drag' | 'dragEnd' | 'reset' | 'cancel'>
+    'start' | 'waiting-create-render' | 'end',
+    Pick<AnnotationStateEvents, 'click' | 'create' | 'hover' | 'drag' | 'dragEnd' | 'reset' | 'cancel' | 'render'>
 > {
     override debug = Debug.create(true, 'annotations');
 
@@ -43,6 +43,12 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerDatumType> extends
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
             applyAnnotationOptions(datum, { start: point, end: point });
+            ctx.create(datum);
+        };
+
+        const actionCreateAll = ({ points: [start, end] }: { points: DataPoint[] }) => {
+            const datum = this.createDatum();
+            applyAnnotationOptions(datum, { start, end });
             ctx.create(datum);
         };
 
@@ -66,6 +72,12 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerDatumType> extends
             ctx.recordAction(`Create ${this.node?.type} annotation`);
         };
 
+        const actionCreatedRender = () => {
+            this.node?.toggleActive(true);
+            onExitEnd();
+            ctx.update();
+        };
+
         super('start', {
             start: {
                 reset: StateMachine.parent,
@@ -76,6 +88,16 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerDatumType> extends
                 drag: {
                     target: 'end',
                     action: actionCreate,
+                },
+                create: {
+                    target: 'waiting-create-render',
+                    action: actionCreateAll,
+                },
+            },
+            'waiting-create-render': {
+                render: {
+                    target: StateMachine.parent,
+                    action: actionCreatedRender,
                 },
             },
             end: {
