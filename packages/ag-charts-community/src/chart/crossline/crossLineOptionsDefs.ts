@@ -3,12 +3,10 @@ import {
     boolean,
     collisionOptionsDef,
     commonCrossLineLabelOptionsDefs,
-    deprecated,
     labelAutoFontSizeOptionsDefs,
     labelFitOptionsDefs,
     number,
     undocumentedDefs,
-    union,
     unionOrArray,
 } from 'ag-charts-core';
 import type { AgCartesianCrossLineLabelOptions, AgCartesianCrossLineLabelPlacement } from 'ag-charts-types';
@@ -55,28 +53,6 @@ const crossLineLabelPlacements: Record<AgCartesianCrossLineLabelPlacement, AgCar
 
 export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLineLabelOptions> = {
     ...commonCrossLineLabelOptionsDefs,
-    position: deprecated(
-        union(
-            'top',
-            'left',
-            'right',
-            'bottom',
-            'top-left',
-            'top-right',
-            'bottom-left',
-            'bottom-right',
-            'inside',
-            'inside-left',
-            'inside-right',
-            'inside-top',
-            'inside-bottom',
-            'inside-top-left',
-            'inside-bottom-left',
-            'inside-top-right',
-            'inside-bottom-right'
-        ),
-        'Use `placement` instead.'
-    ),
     // Which values apply depends on the cross line's type and axis, so they are checked when it is laid out.
     placement: unionOrArray(crossLineLabelPlacements),
     rotation: number,

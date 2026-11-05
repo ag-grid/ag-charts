@@ -67,10 +67,12 @@ const options: AgStandaloneChartOptions = {
 
 const chart = AgCharts.create(options);
 
+/** inScope */
 function downloadPNG() {
     chart.download();
 }
 
+/** inScope */
 function downloadJSON() {
     const dataStr = JSON.stringify(options.data, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
@@ -84,10 +86,12 @@ function downloadJSON() {
     URL.revokeObjectURL(url);
 }
 
+/** inScope */
 function downloadCSV() {
-    const headers = Object.keys(options.data![0]).join(',') + '\n';
-    const rows = options
-        .data!.map((row) =>
+    const data = options.data!;
+    const headers = Object.keys(data[0]).join(',') + '\n';
+    const rows = data
+        .map((row) =>
             Object.values(row)
                 .map((value) => `"${String(value).replace(/"/g, '""')}"`)
                 .join(',')

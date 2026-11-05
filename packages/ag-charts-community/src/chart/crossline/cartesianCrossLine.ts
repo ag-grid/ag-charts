@@ -25,6 +25,7 @@ import type {
     BoxBounds,
     CanvasPoint,
     CrossLine,
+    CrossLineLabelPosition,
     CrossLineType,
     DynamicContext,
     NormalisedAxisCrossLineLabelOptions,
@@ -33,7 +34,7 @@ import type {
     PositionedLabelCandidate,
     Scale,
 } from 'ag-charts-core';
-import type { AgCartesianAxisPosition, AgCrossLineLabelPosition, AgCrossLineListeners } from 'ag-charts-types';
+import type { AgCartesianAxisPosition, AgCrossLineListeners } from 'ag-charts-types';
 
 import { rangeAlignment } from '../rangeAlignment';
 import { type Anchor, type AnchorDirection, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
@@ -564,12 +565,11 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const rtl = domManager.isRtl;
         const key = `${horizontal}:${rtl}`;
         if (this.anchors == null || this.anchorsResolvedFor !== key) {
-            this.anchors = resolveCrossLinePlacements(label.placement, label.position, {
+            this.anchors = resolveCrossLinePlacements(label.placement, {
                 type,
                 horizontal,
                 rtl,
                 warn: (message) => logger.warnOnce(message),
-                deprecate: (message) => logger.deprecationOnce(message),
             });
             this.anchorsResolvedFor = key;
         }
@@ -713,7 +713,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return undefined;
     }
 
-    calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
+    calculatePadding(into: Partial<Record<CrossLineLabelPosition, number>>) {
         this.paddedSide = undefined;
         if (!this.padsForLabel) return;
 

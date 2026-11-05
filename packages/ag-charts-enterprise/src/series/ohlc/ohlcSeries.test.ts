@@ -28,7 +28,6 @@ import {
     focusIndicatorContainsCanvasPoint,
     getSeriesAt,
     getSeriesOptions,
-    internalOptions,
     isoEpochPair,
     magnitudePair,
     pressKey,
@@ -40,7 +39,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Transformable, type WithInternalShadow } from 'ag-charts-core';
+import { Transformable } from 'ag-charts-core';
 
 import { getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -334,18 +333,15 @@ describe('OhlcSeries', () => {
     describe('shadow', () => {
         const SPREAD_SHADOW = { ...SHADOW, spread: 6 };
 
-        const buildOptions = (shadow?: typeof SHADOW & { spread?: number }): AgChartOptions =>
-            internalOptions<AgChartOptions>({
-                ...OHLC_OPTIONS,
-                series: [{ ...OHLC_SERIES, shadow }],
-            });
+        const buildOptions = (shadow?: typeof SHADOW & { spread?: number }): AgChartOptions => ({
+            ...OHLC_OPTIONS,
+            series: [{ ...OHLC_SERIES, shadow }],
+        });
 
         it('defaults to a disabled shadow', async () => {
             const chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(getSeriesOptions<AgOhlcSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
-                DEFAULT_DISABLED_SHADOW
-            );
+            expect(getSeriesOptions<AgOhlcSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 

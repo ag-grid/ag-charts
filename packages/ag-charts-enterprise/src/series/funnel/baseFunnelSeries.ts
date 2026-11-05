@@ -224,7 +224,7 @@ export abstract class BaseFunnelSeries<
         new Group({
             name: `${this.id}-series-connectorNodes`,
             zIndex: SeriesZIndexMap.BACKGROUND,
-            batchShadows: false,
+            batchShadows: 'shared',
         })
     );
     protected connectorSelection = Selection.select<FunnelConnector<FunnelConnectorDatum>>(

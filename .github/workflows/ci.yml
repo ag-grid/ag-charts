@@ -194,7 +194,11 @@ jobs:
                   # build:test IS built here: `build` is a noop aggregator that does not depend on
                   # it, and this is the only job that saves the Nx cache, so without it every ro
                   # test shard recompiles the community and enterprise spec tsconfigs (~36s each).
-                  yarn nx run-many -t build,build:test,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all --parallel=12
+                  #
+                  # The demo seeds are excluded here. They were the last tasks to finish, adding ~100s,
+                  # and only the port suites read their output, so "Build demo seeds" below builds them
+                  # when those suites will run. The Build job still builds them when a change affects them.
+                  yarn nx run-many -t build,build:test,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all,ag-charts-demos-seeds --parallel=12
                   # Populate the (rw-cached) staging example outputs here so the ro website_build
                   # job restores them instead of regenerating all examples. Only latest builds the
                   # website with -c staging, so scope the extra generation to that branch.
@@ -342,6 +346,10 @@ jobs:
                   fi
                   echo "pkg_tests_modified=${pkg_tests_modified}" >> $GITHUB_OUTPUT
                   echo "Package tests modified: ${pkg_tests_modified}"
+
+            - name: Build demo seeds
+              if: contains(steps.matrix.outputs.demos_suites, 'port-')
+              run: yarn nx run ag-charts-demos-seeds:build --parallel=12
 
             - name: Prepare Snapshot Branch
               uses: ./.github/actions/snapshot-prepare

@@ -1072,12 +1072,20 @@ export function clickAction(
     };
 }
 
-export function doubleClickAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
+/**
+ * Double-clicks at the given point. By default the `dblclick` is preceded by two synchronous single clicks; pass
+ * `precedingClicks: false` to dispatch the `dblclick` alone, for a caller that has already clicked twice itself.
+ */
+export function doubleClickAction(
+    canvasX: number,
+    canvasY: number,
+    opts?: { precedingClicks?: boolean }
+): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, canvasX, canvasY);
-        // A double click is always preceded by two single clicks, simulate here to ensure correct handling
-        for (let i = 0; i < 2; i += 1) {
+        const precedingClicks = opts?.precedingClicks === false ? 0 : 2;
+        for (let i = 0; i < precedingClicks; i += 1) {
             dispatchPointerEvent(testTarget, pointerDownEvent(testTarget, canvasX, canvasY));
             dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY));
             dispatchPointerEvent(testTarget, pointerUpEvent(testTarget, canvasX, canvasY));
@@ -2514,6 +2522,45 @@ export async function clickLegendItem(chartOrProxy: ChartOrProxy<any>, index: nu
     const [centreX, centreY] = getLegendItemCentre(chartOrProxy, index);
     await hoverAction(centreX, centreY)(chartOrProxy);
     await clickAction(centreX, centreY)(chartOrProxy);
+}
+
+/**
+ * Double-clicks the legend item at `index` (legend order). The two preceding clicks are spaced by a wait for chart
+ * stability, as a user's are: the legend reads an item's state from the last layout, so unspaced clicks would both
+ * act on the same stale state and compound instead of cancelling out.
+ */
+export async function doubleClickLegendItem(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const [centreX, centreY] = getLegendItemCentre(chartOrProxy, index);
+    await hoverAction(centreX, centreY)(chartOrProxy);
+    for (let i = 0; i < 2; i += 1) {
+        await clickAction(centreX, centreY)(chartOrProxy);
+        await waitForChartStability(chartOrProxy);
+    }
+    await doubleClickAction(centreX, centreY, { precedingClicks: false })(chartOrProxy);
+    await waitForChartStability(chartOrProxy);
+}
+
+/** Opens the context menu on the legend item at `index` (legend order). */
+export async function openLegendItemContextMenu(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const [centreX, centreY] = getLegendItemCentre(chartOrProxy, index);
+    await contextMenuAction(centreX, centreY)(chartOrProxy);
+    await waitForChartStability(chartOrProxy);
+}
+
+/**
+ * The state of every legend item, in legend order: its `seriesId:itemId`, whether the legend has it enabled, and
+ * whether its proxy button reports it checked.
+ */
+export function getLegendItemStates(
+    chartOrProxy: ChartOrProxy<any>
+): { id: string; enabled: boolean; checked: boolean }[] {
+    return getLegendModule(deproxy(chartOrProxy))
+        .itemSelection.nodes()
+        .map(({ datum, proxyButton }) => ({
+            id: `${datum?.seriesId}:${datum?.itemId}`,
+            enabled: datum?.enabled === true,
+            checked: proxyButton?.getElement().getAttribute('aria-checked') === 'true',
+        }));
 }
 
 /** Moves the pointer onto the centre of the legend item at `index` (legend order) the way a pointer does. */

@@ -7,7 +7,6 @@ import type {
     AgChartLabelOrientation,
     AgChartOptions,
     AgConeFunnelSeriesLabelPlacement,
-    AgConeFunnelSeriesLabelPlacementAlias,
     AgConeFunnelSeriesOptions,
     AgFunnelSeriesOptions,
     AgMapLineSeriesOptions,
@@ -1557,29 +1556,6 @@ describe('label collision avoidance', () => {
                     expect(label.y).toBeLessThan(after[index].y);
                     expect(label.x).toBeCloseTo(after[index].x, 5);
                 }
-            });
-
-            it.each<[AgConeFunnelSeriesLabelPlacementAlias, AgConeFunnelSeriesLabelPlacement]>([
-                ['before', 'start-center'],
-                ['middle', 'middle-center'],
-                ['after', 'end-center'],
-            ])('renders the deprecated %s alias exactly as %s', async (alias, canonical) => {
-                const aliased = await anchors(options({ placement: alias }));
-                expectWarningsCalls().toEqual([[expect.stringContaining('deprecated')]]);
-                const expanded = await anchors(options({ placement: canonical }));
-                expect(aliased).toEqual(expanded);
-            });
-
-            it('resolves a fallback list mixing canonical placements with a deprecated alias', async () => {
-                const mixed = await anchors(options({ placement: ['start-center', 'after'] }));
-                expectWarningsCalls().toEqual([[expect.stringContaining('deprecated')]]);
-                const canonical = await anchors(options({ placement: ['start-center', 'end-center'] }));
-                expect(mixed).toEqual(canonical);
-            });
-
-            it('warns once for a deprecated alias and not at all for the default', async () => {
-                await render(options({ placement: 'before' }));
-                expectWarningsCalls().toEqual([[expect.stringContaining('deprecated')]]);
             });
 
             it('does not warn for the theme default placement', async () => {

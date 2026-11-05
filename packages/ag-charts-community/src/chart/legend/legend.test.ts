@@ -29,6 +29,7 @@ import {
     createChart,
     deproxy,
     doubleClickAction,
+    doubleClickLegendItem,
     doubleTapAction,
     getLegendModule,
     getTooltipElement,
@@ -1193,9 +1194,7 @@ describe('Legend', () => {
                 await waitForChartStability(chart);
                 expect(hiddenItems()).toEqual(['inner:1', 'outer:2']);
 
-                const { x, y, width, height } = Transformable.toCanvas(getLegendModule(chart).itemSelection.nodes()[5]);
-                await doubleClickAction(x + width / 2, y + height / 2)(chart);
-                await waitForChartStability(chart);
+                await doubleClickLegendItem(chart, 5);
 
                 expect(hiddenItems()).toEqual([]);
             });
