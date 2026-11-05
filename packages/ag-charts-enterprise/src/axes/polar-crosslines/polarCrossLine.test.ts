@@ -739,9 +739,9 @@ describe('AG-18119: polar cross-line label spacing', () => {
     });
 
     it.each([
-        ['unboxed', {}, 5],
-        ['fill-only', { fill: '#eeeeee' }, 0],
-    ])('defaults the spacing of a %s radius label to %ipx', async (_, style, expected) => {
+        ['unboxed', 5, {}],
+        ['fill-only', 0, { fill: '#eeeeee' }],
+    ])('defaults the spacing of a %s radius label to %ipx', async (_, expected, style) => {
         const byDefault = await labelCentreFor('radius', { text: 'Label', ...style });
         const explicit = await labelCentreFor('radius', { text: 'Label', ...style, spacing: expected });
 

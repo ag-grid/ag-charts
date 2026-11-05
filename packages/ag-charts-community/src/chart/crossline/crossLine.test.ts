@@ -3190,10 +3190,10 @@ describe('CrossLine label fitting', () => {
         );
 
         it.each([
-            ['unboxed', {}, 5],
-            ['fill-only', { fill: '#eeeeee' }, 0],
-            ['bordered', { border: { enabled: true } }, 0],
-        ])('defaults the spacing of a %s label to %ipx', async (_, boxing, expected) => {
+            ['unboxed', 5, {}],
+            ['fill-only', 0, { fill: '#eeeeee' }],
+            ['bordered', 0, { border: { enabled: true } }],
+        ])('defaults the spacing of a %s label to %ipx', async (_, expected, boxing) => {
             chart = deproxy(await createChart(fitChart(lineWith({ text: 'Label', placement: 'top', ...boxing }))));
 
             expect(labelGap()).toBeCloseTo(expected, 0);
