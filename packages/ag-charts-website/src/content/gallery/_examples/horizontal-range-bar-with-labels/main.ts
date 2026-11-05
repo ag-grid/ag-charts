@@ -137,7 +137,7 @@ const options: AgCartesianChartOptions = {
                     lineDash: [8, 4],
                     label: {
                         text: '2022 Average',
-                        padding: 4,
+                        spacing: 4,
                         placement: 'bottom',
                     },
                 },
