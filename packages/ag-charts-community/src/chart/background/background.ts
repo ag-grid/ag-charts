@@ -26,7 +26,9 @@ export class Background extends AbstractModuleInstance {
         this.node.visible = opts.visible;
         this.rectNode.fill = opts.fill;
         const border = this.ctx.chartState.getValue('options', 'border');
-        this.rectNode.cornerRadius = border.enabled ? chartBorderOuterRadius(border.cornerRadius, border.strokeWidth) : 0;
+        this.rectNode.cornerRadius = border.enabled
+            ? chartBorderOuterRadius(border.cornerRadius, border.strokeWidth)
+            : 0;
     }
 
     protected createNode() {
