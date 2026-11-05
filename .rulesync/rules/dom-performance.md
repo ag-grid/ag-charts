@@ -38,7 +38,7 @@ Use `DOMElementProxy` (from `ag-charts-community/src/dom/domElementProxy.ts`) as
 -   **`invalidate(key)`** — force next `changed()` for a key to return true.
 -   Call **`reset()`** on visibility transitions (e.g., tooltip hide) to ensure a clean slate for the next show cycle. Do NOT reset when position caches should survive hide/show (e.g., crosshair labels).
 -   On animation-frame-frequency paths, prefer numeric comparisons via `changed()` over string template literals to avoid GC pressure from short-lived string allocations.
--   **Full wrapping constraint**: When introducing DOMElementProxy for an element, ALL accesses must go through the cache. Mixed access patterns (some through cache, some direct) risk cache/DOM desync and are confusing for maintainers. When full wrapping is impractical (e.g. the element reference is shared with external code like `GuardedElement`), use a simple field-level compare-before-write pattern (e.g. `_lastCursor`, `_lastCenterSize`) instead of DOMElementProxy.
+-   **Full wrapping constraint**: When introducing DOMElementProxy for an element, ALL accesses must go through the cache. Mixed access patterns (some through cache, some direct) risk cache/DOM desync and are confusing for maintainers. When full wrapping is impractical (e.g. the element reference is shared with other code that writes to it directly), use a simple field-level compare-before-write pattern (e.g. `_lastCursor`, `_lastCenterSize`) instead of DOMElementProxy.
 
 ## Create Proxies via DOMManager Factory Methods
 
