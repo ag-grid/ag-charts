@@ -1,6 +1,6 @@
 import { type Locator, Page } from '@playwright/test';
 
-import { expect, test } from './fixture';
+import { expect, test, waitForCharts } from './fixture';
 import {
     SELECTORS,
     gotoExample,
@@ -15,7 +15,23 @@ export type ClickOrder = 'normal' | 'reverse';
 
 type ExampleCommonOptions = {
     status: Status;
+    /**
+     * The order in which the control sweep operates the example's controls. The sweep operates every
+     * button, button-group label, radio, select and range, number and checkbox input inside
+     * `.example-controls`, at any depth: a select moves to its next enabled option, a range or number
+     * input to its step-aligned min (or max if already there; a number input without bounds to value
+     * plus step). Controls are matched by element, not by an `on*` attribute, because framework variants
+     * render none and some examples bind with `addEventListener`.
+     */
     clickOrder: ClickOrder;
+    /**
+     * Controls whose operation is not expected to redraw the chart. After every other control, the first
+     * chart must render again, or be replaced by a new chart that has rendered.
+     *
+     * Each entry matches a control by its `textContent` (buttons and button-group labels), its `#id`, or
+     * for selects and inputs its `name` or its label's own text. `true` skips the check for every control
+     * and needs a stated reason.
+     */
     skipCanvasUpdateCheck: boolean | string[];
     ignoreConsoleWarnings: boolean;
     randomData: boolean;
@@ -176,6 +192,153 @@ export function convertPageUrls(
         }));
 }
 
+// Native selectors only: the control is picked inside `page.evaluate`, not by a Playwright locator.
+const SWEPT_CONTROLS = [
+    'button:not([type=submit])',
+    '.button-group > label',
+    'input[type=radio]:not(.button-group input)',
+    'select',
+    'input[type=range]',
+    'input[type=number]',
+    'input[type=checkbox]',
+]
+    .map((selector) => `.example-controls ${selector}`)
+    .join(', ');
+const SWEPT_ATTR = 'data-e2e-swept';
+const WRAPPER_MARK_ATTR = 'data-e2e-sweep-mark';
+
+type SweptControl = {
+    kind: 'button' | 'label' | 'radio' | 'checkbox' | 'select' | 'range' | 'number';
+    skip: boolean;
+    keys: string[];
+    optionIndex?: number;
+    value?: string;
+};
+
+/**
+ * Tags the next control not yet swept (in DOM order, or reverse DOM order) and describes it. Picking
+ * afresh each time keeps the sweep correct when an action adds, removes or re-renders controls.
+ */
+function nextControl(page: Page, reverse: boolean, tag: number) {
+    return page.evaluate(
+        ({ selector, sweptAttr, reverse, tag }): SweptControl | null => {
+            const candidates = Array.from(document.querySelectorAll(selector)).filter(
+                (el) => !el.hasAttribute(sweptAttr)
+            );
+            const el = reverse ? candidates.at(-1) : candidates[0];
+            if (el == null) return null;
+            el.setAttribute(sweptAttr, String(tag));
+
+            const normalise = (text: string | null | undefined) => text?.replaceAll(/\s+/g, ' ').trim() ?? '';
+            const keys: string[] = [];
+            const addKey = (key: string | null | undefined) => {
+                if (key) keys.push(key);
+            };
+
+            let kind: SweptControl['kind'];
+            let input: HTMLInputElement | null = null;
+            if (el instanceof HTMLButtonElement) {
+                kind = 'button';
+            } else if (el instanceof HTMLLabelElement) {
+                kind = 'label';
+                input = el.control instanceof HTMLInputElement ? el.control : null;
+            } else if (el instanceof HTMLSelectElement) {
+                kind = 'select';
+            } else {
+                input = el as HTMLInputElement;
+                kind = input.type as SweptControl['kind'];
+            }
+
+            if (kind === 'button' || kind === 'label') {
+                addKey(el.textContent);
+                addKey(normalise(el.textContent));
+                addKey(input?.id ? `#${input.id}` : undefined);
+            }
+            addKey(el.id ? `#${el.id}` : undefined);
+            if (el instanceof HTMLSelectElement || el instanceof HTMLInputElement) {
+                addKey(el.getAttribute('name'));
+                const label = el.labels?.[0];
+                if (label != null) {
+                    const ownText = label.cloneNode(true) as HTMLLabelElement;
+                    ownText.querySelectorAll('input, select, textarea, button').forEach((nested) => nested.remove());
+                    addKey(normalise(ownText.textContent));
+                }
+            }
+
+            const checkedRadio = input?.type === 'radio' && input.checked;
+            const skip =
+                !el.checkVisibility() ||
+                el.matches(':disabled') ||
+                input?.matches(':disabled') === true ||
+                checkedRadio;
+            const result: SweptControl = { kind, skip, keys };
+            if (skip) return result;
+
+            if (el instanceof HTMLSelectElement) {
+                const options = Array.from(el.options);
+                const current = options.findIndex((option) => option.value === el.value);
+                for (let offset = 1; offset < options.length; offset++) {
+                    const index = (current + offset) % options.length;
+                    if (!options[index].disabled) {
+                        result.optionIndex = index;
+                        break;
+                    }
+                }
+                result.skip = result.optionIndex == null;
+            } else if (kind === 'range' || kind === 'number') {
+                const step = Number(input!.step) || 1;
+                const value = Number(input!.value) || 0;
+                if (kind === 'number' && input!.min === '' && input!.max === '') {
+                    result.value = String(value + step);
+                } else {
+                    const min = Number(input!.min || 0);
+                    const max = min + Math.floor((Number(input!.max || 100) - min) / step) * step;
+                    result.value = String(value === min ? max : min);
+                }
+            }
+            return result;
+        },
+        { selector: SWEPT_CONTROLS, sweptAttr: SWEPT_ATTR, reverse, tag }
+    );
+}
+
+async function operateControl(page: Page, control: Locator, { kind, optionIndex, value }: SweptControl) {
+    if (kind === 'select') {
+        await control.selectOption({ index: optionIndex! });
+    } else if (value == null) {
+        await control.click();
+    } else {
+        // Assigning `value` directly would update React's value tracker too, so React would not see a change.
+        await control.evaluate((el: HTMLInputElement, newValue) => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(el, newValue);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        }, value);
+        await waitForCharts(page);
+    }
+}
+
+/** Marks the first chart wrapper and returns its render count, so a redraw can be told from a replacement. */
+function markFirstWrapper(page: Page) {
+    return page.evaluate((markAttr) => {
+        const wrapper = document.querySelector('.ag-charts-wrapper');
+        wrapper?.setAttribute(markAttr, '');
+        return Number(wrapper?.getAttribute('data-scene-renders'));
+    }, WRAPPER_MARK_ATTR);
+}
+
+function firstWrapperRedrawn(page: Page, rendersBefore: number) {
+    return page.evaluate(
+        ({ markAttr, rendersBefore }) => {
+            const wrapper = document.querySelector('.ag-charts-wrapper');
+            if (wrapper == null) return false;
+            const renders = Number(wrapper.getAttribute('data-scene-renders'));
+            return wrapper.hasAttribute(markAttr) ? renders > rendersBefore : renders >= 1;
+        },
+        { markAttr: WRAPPER_MARK_ATTR, rendersBefore }
+    );
+}
+
 export function createTestCase(
     testFn: typeof test,
     opts: ExampleOptions,
@@ -196,43 +359,39 @@ export function createTestCase(
 
             await initialCallback?.(page);
 
-            // Multi-canvas examples are out of scope for the control sweep below.
-            const canvases = await page.locator('.ag-charts-wrapper').all();
-            if (canvases.length > 1) return;
-            const canvas = canvases[0];
+            // Multi-chart examples are out of scope for the control sweep below.
+            if ((await page.locator('.ag-charts-wrapper').count()) > 1) return;
 
-            // A button group's radio is hidden, so its label is the clickable part.
-            const controls = await page
-                .locator('.example-controls > button, .example-controls .button-group > label')
-                .all();
-            if (clickOrder === 'reverse') controls.reverse();
+            const controlCount = await page.evaluate(
+                (selector) => document.querySelectorAll(selector).length,
+                SWEPT_CONTROLS
+            );
+            const maxIterations = controlCount * 2 + 10;
+            for (let tag = 0; ; tag++) {
+                expect(tag, `more than ${maxIterations} controls swept; actions keep adding controls`).toBeLessThan(
+                    maxIterations
+                );
 
-            for (const control of controls) {
-                // Neither a disabled control nor an already-checked segment can redraw the chart.
-                const skip = await control.evaluate((el) => {
-                    const input = el instanceof HTMLLabelElement ? el.control : null;
-                    if (input instanceof HTMLInputElement) return input.checked || input.matches(':disabled');
-                    return el.matches(':disabled');
-                });
-                if (skip) continue;
+                const control = await nextControl(page, clickOrder === 'reverse', tag);
+                if (control == null) break;
+                if (control.skip) continue;
 
-                const sceneRenderCount = Number(await canvas.getAttribute('data-scene-renders'));
+                await waitForCharts(page);
+                const rendersBefore = await markFirstWrapper(page);
 
-                await control.click();
+                await operateControl(page, page.locator(`[${SWEPT_ATTR}="${tag}"]`), control);
 
                 const skipUpdateCheck =
                     skipCanvasUpdateCheck === true ||
                     (Array.isArray(skipCanvasUpdateCheck) &&
-                        skipCanvasUpdateCheck.includes((await control.textContent()) ?? 'unknown'));
+                        control.keys.some((key) => skipCanvasUpdateCheck.includes(key)));
                 if (skipUpdateCheck) {
                     await page.waitForLoadState('networkidle');
                 } else {
                     await expect
-                        .configure({
-                            message: `Pressing ${await control.textContent()}`,
-                        })
-                        .poll(async () => Number(await canvas.getAttribute('data-scene-renders')))
-                        .toBeGreaterThan(sceneRenderCount);
+                        .configure({ message: `Operating ${control.kind} ${control.keys[0] ?? '(no key)'}` })
+                        .poll(() => firstWrapperRedrawn(page, rendersBefore))
+                        .toBe(true);
                 }
             }
 
