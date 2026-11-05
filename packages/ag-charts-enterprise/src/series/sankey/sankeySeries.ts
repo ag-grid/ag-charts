@@ -1141,10 +1141,10 @@ export class SankeySeries extends FlowProportionSeries<
         isHighlight: boolean;
         focusedDatum?: SankeyNodeDatum | SankeyLinkDatum;
     }) {
-        const { datumSelection, isHighlight, focusedDatum } = opts;
+        const { datumSelection, isHighlight } = opts;
 
         const fillBBox = this.getShapeFillBBox();
-        const { shadow } = this.options.node;
+        const { shadow, glow } = this.options.node;
 
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
@@ -1157,8 +1157,8 @@ export class SankeySeries extends FlowProportionSeries<
             rect.cornerRadius = this.options.node.cornerRadius;
 
             rect.setStyleProperties(style, fillBBox);
-            rect.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex);
+            rect.fillShadow = this.resolveShadowSlot(shadow, glow, isHighlight, datumIndex);
+            rect.fillGlow = this.resolveGlowSlot(glow, isHighlight, datumIndex);
         });
     }
 
@@ -1247,11 +1247,11 @@ export class SankeySeries extends FlowProportionSeries<
         isHighlight: boolean;
         focusedDatum?: SankeyNodeDatum | SankeyLinkDatum;
     }) {
-        const { datumSelection, isHighlight, focusedDatum } = opts;
+        const { datumSelection, isHighlight } = opts;
 
         const fillBBox = this.getShapeFillBBox();
         const { cornerRadius } = this.options.node;
-        const { shadow } = this.options.link;
+        const { shadow, glow } = this.options.link;
 
         datumSelection.each((link, datum) => {
             const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
@@ -1266,8 +1266,8 @@ export class SankeySeries extends FlowProportionSeries<
             link.endEdge = nodeEdge(datum.toNode, cornerRadius, 1);
 
             link.setStyleProperties(style, fillBBox);
-            link.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
+            link.fillShadow = this.resolveShadowSlot(shadow, glow, isHighlight, datum.datumIndex);
+            link.fillGlow = this.resolveGlowSlot(glow, isHighlight, datum.datumIndex);
 
             link.inset = link.strokeWidth / 2;
         });
@@ -1280,6 +1280,10 @@ export class SankeySeries extends FlowProportionSeries<
             return Transformable.toCanvas(this.contentGroup, bbox);
         }
         return node;
+    }
+
+    protected override getSeriesGlows() {
+        return [this.options.node.glow, this.options.link.glow];
     }
 
     protected override hasItemStylers(): boolean {

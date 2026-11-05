@@ -3,10 +3,12 @@ import type {
     BoxBounds,
     CandidateStyleResolver,
     ChartAxisDirection,
+    DeepPartial,
     DomainWithMetadata,
     Group,
     LabelObstacle,
     Node,
+    NormalisedDropShadowOptions,
     PlacedLabel,
     Point,
     PointLabelDatum,
@@ -17,6 +19,7 @@ import type {
 import type {
     AgActiveItemState,
     AgCoordinates,
+    AgGlowOptions,
     AgMatchedParams,
     AgNodeClickParams,
     AgNodeContextMenuActionEvent,
@@ -280,3 +283,9 @@ export interface ErrorBoundSeriesNodeDatum {
 
 export type NodeDataDependencies = { seriesRectWidth: number; seriesRectHeight: number };
 export type NodeDataDependant = { readonly nodeDataDependencies: NodeDataDependencies };
+
+/** What an item styler may return beyond the style of the item, which a series resolves into the slots of the item. */
+export interface ItemShadowStyle {
+    shadow?: DeepPartial<NormalisedDropShadowOptions>;
+    glow?: DeepPartial<AgGlowOptions>;
+}

@@ -49,6 +49,8 @@ import {
     isPatternFill,
     isSupportedMarkerShape,
     jsonDiff,
+    mergeDefaults,
+    mergeGlow,
     nearestSquared,
     resolveLabelAvoidance,
     without,
@@ -57,6 +59,7 @@ import type {
     AgActiveItemState,
     AgChartLabelFormatterParams,
     AgDrawingMode,
+    AgGlowOptions,
     AgInitialStateLegendOptions,
     AgMatchedParams,
     AgNodeClickEvent,
@@ -121,6 +124,7 @@ import {
     HighlightState,
     type ISeries,
     type ISeriesAriaMeta,
+    type ItemShadowStyle,
     type NodeDataDependencies,
     SelectionState,
     type SeriesNodeDatum,
@@ -421,8 +425,12 @@ export abstract class Series<
     applyOptions(options: NormalisedSeriesOptions<TOpts>, diff?: DeepPartial<NormalisedSeriesOptions<TOpts>>) {
         this.options = options;
         this.glowByState = undefined;
+        this.glowCascades = undefined;
+        this.highlightedShadows = undefined;
         this.highlightStyleByState = undefined;
         this.anyGlow = undefined;
+        this.anyCascadedGlow = undefined;
+        this.highlightedShadowOption = undefined;
         this.redrawnPass = undefined;
         this.legendItemName =
             'legendItemName' in options && typeof options.legendItemName === 'string'
@@ -970,7 +978,9 @@ export abstract class Series<
         // The hovered item's in-place copy keeps its own shadow while the others cast the glow of their state (see
         // `resolveItemShadow`), so this series' in-place nodes redraw when the item its highlight layer redraws changes.
         const glowSwapped =
-            this.getStateGlow(HighlightState.OtherItem) != null &&
+            (this.getStateGlow(HighlightState.OtherItem) != null ||
+                this.hasCascadedGlow() ||
+                this.hasHighlightedItemShadowOption()) &&
             this.getRedrawnDatumIndex(previousHighlightedDatum) !== this.getRedrawnDatumIndex(currentHighlightedDatum);
 
         if (!hasItemStylers && !glowSwapped && currentHighlightState === previousHighlightState) {
@@ -1039,6 +1049,166 @@ export abstract class Series<
             this.getStateGlow(HighlightState.OtherSeries) != null ||
             this.getStateGlow(HighlightState.OtherItem) != null;
         return this.anyGlow;
+    }
+
+    /** The `glow` of each highlight state over a series-level `glow`, as shadows. Keyed by the series-level `glow`. */
+    private glowCascades?: Array<{
+        source: object | undefined;
+        byState: Array<NormalisedDropShadowOptions | null | undefined>;
+    }>;
+
+    /** The series-level `glow` of each part of the series that can have one, for series that have `glow` options. */
+    protected getSeriesGlows(): ReadonlyArray<DeepPartial<AgGlowOptions> | undefined> {
+        return [];
+    }
+
+    /**
+     * The glow of a highlight state: the buckets that apply to it, field by field over the series-level `glow`. A state with
+     * no buckets, such as an item in no highlight, has the series-level `glow` alone.
+     */
+    protected getCascadedGlow(
+        seriesGlow: DeepPartial<AgGlowOptions> | undefined,
+        highlightState: HighlightState
+    ): NormalisedDropShadowOptions | undefined {
+        const cascades = (this.glowCascades ??= []);
+        let cascade = cascades.find((c) => c.source === seriesGlow);
+        if (cascade == null) {
+            cascade = { source: seriesGlow, byState: [] };
+            cascades.push(cascade);
+        }
+        let glow = cascade.byState[highlightState];
+        if (glow === undefined) {
+            const bucket = this.getHighlightGlow(highlightState);
+            glow = glowToShadow(mergeGlow({ glow: bucket }, { glow: seriesGlow })) ?? null;
+            cascade.byState[highlightState] = glow;
+        }
+        return glow ?? undefined;
+    }
+
+    private anyCascadedGlow?: boolean;
+
+    /** Whether the series-level `glow` or any highlight state's casts anywhere, which is when glow is resolved per datum. */
+    protected hasCascadedGlow(): boolean {
+        this.anyCascadedGlow ??= this.getSeriesGlows().some(
+            (seriesGlow) =>
+                this.getCascadedGlow(seriesGlow, HighlightState.None) != null ||
+                this.getCascadedGlow(seriesGlow, HighlightState.Item) != null ||
+                this.getCascadedGlow(seriesGlow, HighlightState.Series) != null ||
+                this.getCascadedGlow(seriesGlow, HighlightState.OtherSeries) != null ||
+                this.getCascadedGlow(seriesGlow, HighlightState.OtherItem) != null
+        );
+        return this.anyCascadedGlow;
+    }
+
+    /** The `shadow` of the highlighted item over a series' shadow, memoised per series shadow. */
+    private highlightedShadows?: Array<{
+        source: NormalisedDropShadowOptions | undefined;
+        merged: NormalisedDropShadowOptions | undefined;
+    }>;
+
+    private getHighlightedItemShadow(shadow: NormalisedDropShadowOptions | undefined) {
+        const cache = (this.highlightedShadows ??= []);
+        let entry = cache.find((e) => e.source === shadow);
+        if (entry == null) {
+            const bucket = (
+                this.options.highlight as { highlightedItem?: { shadow?: DeepPartial<NormalisedDropShadowOptions> } }
+            )?.highlightedItem?.shadow;
+            const merged =
+                bucket == null
+                    ? shadow
+                    : mergeDefaults<NormalisedDropShadowOptions>(bucket as NormalisedDropShadowOptions, shadow);
+            entry = { source: shadow, merged: merged?.enabled === true ? merged : undefined };
+            cache.push(entry);
+        }
+        return entry.merged;
+    }
+
+    private highlightedShadowOption?: boolean;
+
+    /** Whether `highlightedItem.shadow` sets anything beyond following the series' `shadow`. */
+    private hasHighlightedItemShadowOption(): boolean {
+        this.highlightedShadowOption ??= (() => {
+            const bucket = (
+                this.options.highlight as { highlightedItem?: { shadow?: { enabled?: boolean } } } | undefined
+            )?.highlightedItem?.shadow;
+            return bucket?.enabled === true && Object.keys(bucket).length > 1;
+        })();
+        return this.highlightedShadowOption;
+    }
+
+    /**
+     * The shadow to cast, in the shadow slot of one copy of an item, for a series whose items have a separate glow slot.
+     * The highlight layer's copy casts the glow of the hovered item here, centred on it and above every series. Every
+     * in-place copy casts its `shadow` in the root pass, beneath every series: the hovered item's is the highlighted item's
+     * `shadow` over the series' shadow, and an item styler's `shadow` is over all of those.
+     */
+    protected resolveShadowSlot(
+        shadow: NormalisedDropShadowOptions | undefined,
+        seriesGlow: DeepPartial<AgGlowOptions> | undefined,
+        isHighlight: boolean | undefined,
+        datumIndex?: DatumIndex,
+        highlightState?: HighlightState,
+        itemShadow?: DeepPartial<NormalisedDropShadowOptions>
+    ): NormalisedDropShadowOptions | undefined {
+        if (isHighlight)
+            return this.hasCascadedGlow() ? this.getCascadedGlow(seriesGlow, HighlightState.Item) : undefined;
+
+        let resolved = shadow;
+        if (this.hasHighlightedItemShadowOption()) {
+            const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+            if (highlightedDatum != null) {
+                highlightState ??= this.getHighlightState(highlightedDatum, false, datumIndex);
+                // The highlight layer draws the hovered item as `Item`, so its in-place copy reads as `OtherItem`.
+                const isHovered =
+                    highlightState === HighlightState.Item ||
+                    (highlightState === HighlightState.OtherItem &&
+                        datumIndex != null &&
+                        this.getRedrawnIndex(highlightedDatum) === datumIndex);
+                if (isHovered) resolved = this.getHighlightedItemShadow(shadow);
+            }
+        }
+        if (itemShadow == null) return resolved;
+        const merged = mergeDefaults<NormalisedDropShadowOptions>(
+            { enabled: true, ...itemShadow } as NormalisedDropShadowOptions,
+            resolved
+        );
+        return merged.enabled === true ? merged : undefined;
+    }
+
+    /**
+     * The glow to cast, in the glow slot of one copy of an item: the glow of its highlight state over the series-level
+     * `glow`, and an item styler's `glow` over that. The glow slot is cast in the root pass, beneath every series. The
+     * hovered item's own glow is cast by its highlight copy, so its in-place copy casts none.
+     */
+    protected resolveGlowSlot(
+        seriesGlow: DeepPartial<AgGlowOptions> | undefined,
+        isHighlight: boolean | undefined,
+        datumIndex?: DatumIndex,
+        highlightState?: HighlightState,
+        itemGlow?: DeepPartial<AgGlowOptions>
+    ): NormalisedDropShadowOptions | undefined {
+        if (isHighlight) return undefined;
+        if (!this.hasCascadedGlow() && itemGlow == null) return undefined;
+
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        if (highlightedDatum == null) {
+            highlightState = HighlightState.None;
+        } else {
+            highlightState ??= this.getHighlightState(highlightedDatum, false, datumIndex);
+        }
+
+        if (
+            highlightState === HighlightState.Item &&
+            datumIndex != null &&
+            highlightedDatum != null &&
+            this.getRedrawnIndex(highlightedDatum) === datumIndex
+        ) {
+            return undefined;
+        }
+
+        if (itemGlow == null) return this.getCascadedGlow(seriesGlow, highlightState);
+        const state = this.getHighlightGlow(highlightState);
+        return glowToShadow(mergeGlow({ glow: { enabled: true, ...itemGlow } }, { glow: state }, { glow: seriesGlow }));
     }
 
     /**
@@ -1799,6 +1969,8 @@ export abstract class Series<
             pickInflation?: number;
             /** The marker's `shadow` option; not part of the per-datum style, as nothing can vary it per datum. */
             shadow?: NormalisedDropShadowOptions;
+            /** The marker's `glow` option. A series that passes one resolves `shadow` and `glow` into separate slots. */
+            glow?: DeepPartial<AgGlowOptions>;
             /** Whether this is the highlight layer's copy, which casts the hovered item's `glow` instead of the `shadow`. */
             isHighlight?: boolean;
             /** With `isHighlight`, picks the `glow` of the highlight state this marker is drawn in. */
@@ -1809,13 +1981,34 @@ export abstract class Series<
     ) {
         const { shape, size = 0, strokeWidth = 0 } = style;
         const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
-        const shadow = this.resolveItemShadow(opts.shadow, opts.isHighlight, opts.datumIndex, opts.highlightState);
+        const itemStyle = style as ItemShadowStyle;
+        const slotted = opts.glow !== undefined;
+        const shadow = slotted
+            ? this.resolveShadowSlot(
+                  opts.shadow,
+                  opts.glow,
+                  opts.isHighlight,
+                  opts.datumIndex,
+                  opts.highlightState,
+                  itemStyle.shadow
+              )
+            : this.resolveItemShadow(opts.shadow, opts.isHighlight, opts.datumIndex, opts.highlightState);
         const visible =
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
         markerNode.setStyleProperties(style, fillBBox);
         markerNode.fillShadow = shadow?.enabled && isSupportedMarkerShape(shape) ? shadow : undefined;
+        if (slotted) {
+            const glow = this.resolveGlowSlot(
+                opts.glow,
+                opts.isHighlight,
+                opts.datumIndex,
+                opts.highlightState,
+                itemStyle.glow
+            );
+            markerNode.fillGlow = glow?.enabled && isSupportedMarkerShape(shape) ? glow : undefined;
+        }
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
         // The floor covers the highlight states; `style` covers this datum's own stroke, including an
         // `itemStyler`'s. The guard is exact, as `markerStrokePickInflation` never exceeds `sw / 2`.

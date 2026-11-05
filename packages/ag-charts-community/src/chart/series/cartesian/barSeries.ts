@@ -116,6 +116,7 @@ import { type PickFocusInputs, SeriesNodePickMode } from '../pickTypes';
 import type { SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
+import type { ItemShadowStyle } from '../seriesTypes';
 import { type ErrorBoundSeriesNodeDatum, HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
@@ -309,7 +310,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly clipBBox: BBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
-    style?: Required<NormalisedBarSeriesStyle>;
+    style?: Required<NormalisedBarSeriesStyle> & ItemShadowStyle;
 }
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
@@ -1493,6 +1494,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * Populates node data by selecting the appropriate strategy based on data type.
      * Creates scratch objects and delegates to strategy-specific methods.
      */
+    protected override getSeriesGlows() {
+        return [this.options.glow];
+    }
+
     protected override resolveUsesPlacedLabels(): boolean {
         return barLabelPropsRouteThroughEngine(this.options.label);
     }
@@ -1867,7 +1872,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const fillBBox = this.getShapeFillBBox();
 
@@ -1901,10 +1906,24 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 datum.bottomLeftCornerRadius ? cornerRadius : 0,
                 visible,
                 datum.crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState),
+                series.resolveShadowSlot(
+                    shadow,
+                    glow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    datum.style?.shadow
+                ),
                 direction,
                 datum.featherRatio,
                 crispCentreDirection
+            );
+            rect.fillGlow = series.resolveGlowSlot(
+                glow,
+                isHighlight,
+                datum.datumIndex,
+                highlightState,
+                datum.style?.glow
             );
         }
 

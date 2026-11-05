@@ -5,6 +5,8 @@ import {
     DIRECTION_SWAP_AXES,
     type DynamicContext,
     FILL_GRADIENT_LINEAR_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
@@ -18,7 +20,7 @@ import {
     type SeriesModuleDefinition,
     fillThemeTemplate,
     themeLineHeight,
-    withGlowThemeDefaults,
+    withSeriesGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -56,8 +58,12 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
             placement: 'inside-center',
         },
         shadow: SHADOW_THEME_DEFAULTS,
+        glow: GLOW_THEME_DEFAULTS,
         tooltip: SERIES_TOOLTIP_THEME,
-        highlight: withGlowThemeDefaults({ ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
+        highlight: withSeriesGlowThemeDefaults(
+            { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+            { item: ITEM_GLOW_BUCKETS, series: SERIES_GLOW_BUCKETS }
+        ),
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },

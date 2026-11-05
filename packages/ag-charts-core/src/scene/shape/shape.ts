@@ -34,7 +34,7 @@ import { parseSvg } from '../../rendering/svg';
 import { setSvgLineDashAttributes, setSvgStrokeAttributes } from '../../rendering/svgUtil';
 import type { SerializedNodeState, SerializedShapeProps } from '../../types/scene';
 import type { BBox } from '../bbox';
-import { getSpreadCanvas } from '../canvas/spreadCanvas';
+import { allocateCanvas, disposeCanvas, getSpreadCanvas, releaseSpreadCanvas } from '../canvas/spreadCanvas';
 import { ConicGradient } from '../gradient/conicGradient';
 import { Gradient, type GradientParams } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
@@ -52,7 +52,7 @@ import {
     getSolidColour,
     withShadowFill,
 } from '../shadowColour';
-import { shadowPass } from '../shadowPass';
+import { type ShadowSlot, getShadowSpread, shadowPass } from '../shadowPass';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
@@ -420,6 +420,29 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fillShadow: NormalisedDropShadowOptions | undefined;
     declare __fillShadow: NormalisedDropShadowOptions | undefined; // optimised field accessor
 
+    /** A second shadow, cast only through a shadow root, so that an item can cast a shadow and a glow together. */
+    @SceneObjectChangeDetection({ equals: TRIPLE_EQ })
+    fillGlow: NormalisedDropShadowOptions | undefined;
+    declare __fillGlow: NormalisedDropShadowOptions | undefined; // optimised field accessor
+
+    /** The shadow of the slot being cast: a batch casts the casters of one slot at a time, see {@link shadowPass.slot}. */
+    private getSlotShadow(): NormalisedDropShadowOptions | undefined {
+        return shadowPass.slot === 'glow' ? this.__fillGlow : this.__fillShadow;
+    }
+
+    /** The shadow options that a shadow root casts this shape's `slot` with, or undefined if the slot casts none. */
+    getBatchShadowOf(slot: ShadowSlot): NormalisedDropShadowOptions | undefined {
+        if (slot === 'shadow') return this.getBatchShadow();
+
+        const previous = shadowPass.slot;
+        shadowPass.slot = slot;
+        try {
+            return this.getBatchShadow();
+        } finally {
+            shadowPass.slot = previous;
+        }
+    }
+
     @DeclaredSceneChangeDetection({ changeCb: (s: Shape) => s.onShadowModeChange() })
     shadowMode: ShapeShadowMode = 'fill';
     declare __shadowMode: ShapeShadowMode; // optimised field accessor
@@ -486,7 +509,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
 
         if (path != null && this.castsShadowFromPrePass()) {
-            this.renderShadowPrePass(ctx, logger, path, bboxOverride, fillBBoxOverride);
+            if (this.__fillShadow?.gap == null || !hasCanvas(ctx)) {
+                this.renderShadowPrePass(ctx, logger, path, bboxOverride, fillBBoxOverride);
+            } else {
+                this.renderGappedShadow(ctx, logger, path, bboxOverride, fillBBoxOverride);
+            }
         }
 
         this.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
@@ -503,13 +530,62 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (!this.castsOwnShadow() || shadow == null) return false;
         const mode = this.__shadowMode;
         return (
-            mode === 'silhouette' || (shadow.spread ?? 0) > 0 || (mode === 'fill' && this.getShadowMode() === 'stroke')
+            mode === 'silhouette' ||
+            getShadowSpread(shadow) > 0 ||
+            shadow.gap != null ||
+            (mode === 'fill' && this.getShadowMode() === 'stroke')
         );
+    }
+
+    /**
+     * Casts the shadow on a canvas of its own, then cuts the silhouette, dilated by the `gap`, out of it before it is drawn
+     * on the layer, which holds other things that a cut would also remove.
+     */
+    private renderGappedShadow(
+        ctx: CanvasContext & { canvas: { width: number; height: number } },
+        logger: Logger,
+        path: Path2D,
+        bboxOverride?: BBox,
+        fillBBoxOverride?: BBox
+    ) {
+        const own = allocateCanvas(ctx.canvas.width, ctx.canvas.height);
+        if (own == null) {
+            this.renderShadowPrePass(ctx, logger, path, bboxOverride, fillBBoxOverride);
+            return;
+        }
+
+        try {
+            const target = own.context as unknown as CanvasContext;
+            target.setTransform(ctx.getTransform());
+            target.globalAlpha = ctx.globalAlpha;
+            this.renderShadowPrePass(target, logger, path, bboxOverride, fillBBoxOverride);
+
+            target.save();
+            target.globalAlpha = 1;
+            target.globalCompositeOperation = 'destination-out';
+            this.drawSpreadSilhouette(
+                target,
+                path,
+                this.__fillShadow!.gap!,
+                this.castsShadowFromFill(),
+                this.castsShadowFromStroke()
+            );
+            target.restore();
+
+            ctx.save();
+            ctx.resetTransform();
+            ctx.globalAlpha = 1;
+            ctx.drawImage(own.canvas, 0, 0);
+            ctx.restore();
+        } finally {
+            releaseSpreadCanvas(own.context);
+            disposeCanvas(own.canvas);
+        }
     }
 
     /** A glow with no `fill` takes the shape's fill, else its stroke; kept per shadow and paint, as it is asked often. */
     getCastShadow(): ResolvedDropShadowOptions | undefined {
-        const shadow = this.__fillShadow;
+        const shadow = this.getSlotShadow();
         if (shadow?.enabled !== true) return;
         if (shadow.fill != null) return shadow as ResolvedDropShadowOptions;
 
@@ -546,7 +622,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * of every colour share a mask and a blur: each silhouette is drawn in its colour, see {@link getCastTint}.
      */
     getBatchShadow(): NormalisedDropShadowOptions | undefined {
-        return this.isBatchTinted() ? this.__fillShadow : this.getCastShadow();
+        return this.isBatchTinted() ? this.getSlotShadow() : this.getCastShadow();
     }
 
     /**
@@ -555,7 +631,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      */
     private isBatchTinted(): boolean {
         return (
-            this.__fillShadow?.fill == null &&
+            this.getSlotShadow()?.fill == null &&
             this.getCastShadow() != null &&
             canTintShadows() &&
             !this.drawsRealPaintWithoutSpread()
@@ -567,7 +643,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * be dashed) or extras drawn over the fill, or a fill with alpha that varies across the shape (a gradient, pattern or image).
      */
     private drawsRealPaintWithoutSpread(): boolean {
-        if ((this.__fillShadow?.spread ?? 0) > 0) return false;
+        const slotShadow = this.getSlotShadow();
+        if (slotShadow != null && getShadowSpread(slotShadow) > 0) return false;
 
         return (
             this.castsShadowFromStroke() ||
@@ -592,7 +669,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      */
     private getShadowMode(): ShapeShadowMode {
         const mode = this.__shadowMode;
-        const shadow = this.__fillShadow;
+        const shadow = this.getSlotShadow();
         if (mode !== 'fill' || shadow?.enabled !== true || shadow.glow !== true) return mode;
 
         return !this.hasCastableFill() && this.hasCastableStroke() ? 'stroke' : mode;
@@ -632,10 +709,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
-        const shadow = this.__fillShadow;
+        const shadow = this.getSlotShadow();
         if (shadow?.enabled !== true) return;
 
-        const spread = shadow.spread ?? 0;
+        const spread = shadowPass.erase ?? getShadowSpread(shadow);
         const drawsFill = this.castsShadowFromFill();
         const drawsStroke = this.castsShadowFromStroke();
         const hasExtras = this.castsShadowFromExtras();
@@ -720,7 +797,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * gradient, pattern or image varies across the shape, where its strongest alpha is not that of every pixel.
      */
     getSpreadMaskStrength(): number | undefined {
-        const shadow = this.__fillShadow;
+        const shadow = this.getSlotShadow();
         if (shadow?.enabled !== true || !this.hasSpreadMaskPath()) return;
 
         if (this.drawsRealPaintWithoutSpread()) return;
@@ -942,7 +1019,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const reach = shadow.blur * pixelRatio;
         const shadowX = shadow.xOffset * pixelRatio;
         const shadowY = shadow.yOffset * pixelRatio;
-        const spread = shadow.spread ?? 0;
+        const spread = getShadowSpread(shadow);
 
         // `ctx` already has the shape's own transform, so the local bbox is taken to device space through it.
         const matrix = ctx.getTransform();

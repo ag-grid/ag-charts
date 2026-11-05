@@ -26,6 +26,7 @@ import {
     type AgGradientLegendOptions,
     type AgInitialFocus,
     type AgInterpolationType,
+    type AgItemShadowStyle,
     type AgLineSeriesLabelOptions,
     type AgSeriesLabelCollideWithOptions,
     type AgSeriesLabelCollisionOptions,
@@ -687,13 +688,14 @@ export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
     enabled: boolean,
     blur: positiveNumber,
     spread: positiveNumber,
+    gap: positiveNumber,
     fill: colorOrRef,
     fillOpacity: ratio,
 };
 
 /** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */
 export function glowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
-    const itemDef = { ...itemHighlightOptionsDef, glow: glowOptionsDefs };
+    const itemDef = { ...itemHighlightOptionsDef, glow: glowOptionsDefs, shadow: shadowOptionsDefs };
     return highlightOptionsDef(itemDef);
 }
 
@@ -703,8 +705,8 @@ export function multiSeriesGlowHighlightOptionsDef<I extends object, S extends o
     seriesHighlightOptionsDef: S
 ) {
     return multiSeriesHighlightOptionsDef(
-        { ...itemHighlightOptionsDef, glow: glowOptionsDefs },
-        { ...seriesHighlightOptionsDef, glow: glowOptionsDefs }
+        { ...itemHighlightOptionsDef, glow: glowOptionsDefs, shadow: shadowOptionsDefs },
+        { ...seriesHighlightOptionsDef, glow: glowOptionsDefs, shadow: shadowOptionsDefs }
     );
 }
 
@@ -719,7 +721,10 @@ export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
 export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
     shadow: shadowOptionsDefs,
-    itemStyler: callbackDefs<AgSeriesMarkerStyle>({
+    glow: glowOptionsDefs,
+    itemStyler: callbackDefs<AgSeriesMarkerStyle & AgItemShadowStyle>({
+        shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,

@@ -1,4 +1,4 @@
-import type { AgGlowOptions } from '../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
@@ -43,6 +43,11 @@ export interface AgGlowHighlightStyleOptions {
      * Default: no glow
      */
     glow?: AgGlowOptions;
+    /**
+     * A shadow for the highlighted item, merged over the `shadow` of the series and drawn at the same depth.
+     * Only `highlightedItem` reads it.
+     */
+    shadow?: AgDropShadowOptions;
 }
 
 /** Highlight options for a series whose items can cast a `glow`. */

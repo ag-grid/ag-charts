@@ -67,4 +67,20 @@ export interface AgGlowOptions {
      * Default: `4`
      */
     spread?: PixelSize;
+    /**
+     * The gap, in pixels, between the edge of the item and the start of the glow, for halo effects.
+     * Unset, the glow is cast like a shadow and shows through a translucent item.
+     * At `0` the footprint of the item is cut out of the glow. Larger values move the start of the glow outwards.
+     *
+     * Default: unset
+     */
+    gap?: PixelSize;
+}
+
+/** What an `itemStyler` may return in addition to the style of the item: its own `shadow` and `glow`. */
+export interface AgItemShadowStyle {
+    /** The shadow of this item, merged over the `shadow` of the series. */
+    shadow?: AgDropShadowOptions;
+    /** The glow of this item, merged over the `glow` of the series. */
+    glow?: AgGlowOptions;
 }

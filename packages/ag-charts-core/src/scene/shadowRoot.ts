@@ -14,6 +14,7 @@ import {
     joinsShadowKey,
     releaseShadowScratch,
 } from './shadowEngine';
+import type { ShadowSlot } from './shadowPass';
 
 /** What a shadow root needs of the groups that cast through it. {@link Group} implements it. */
 interface ShadowSource extends Node {
@@ -52,15 +53,16 @@ class RootKeys {
         caster: ShadowCaster,
         shadow: NormalisedDropShadowOptions,
         frame: ShadowFrame,
-        pathClip: ShadowClip | undefined
+        pathClip: ShadowClip | undefined,
+        slot: ShadowSlot
     ) {
         const clips = pathClip == null ? frame.clips : [...frame.clips, [transformCorners(frame.matrix, pathClip)]];
         let key = this.last;
         // The casters of a group follow one another, and rarely differ in shadow or clip.
-        if (key == null || frame !== this.lastFrame || pathClip != null || key.shadow !== shadow) {
-            key = this.keys.find((k) => joinsShadowKey(k, caster, shadow, undefined, 'root', clips));
+        if (key == null || frame !== this.lastFrame || pathClip != null || key.shadow !== shadow || key.slot !== slot) {
+            key = this.keys.find((k) => joinsShadowKey(k, caster, shadow, undefined, 'root', clips, slot));
             if (key == null) {
-                key = { shadow, clip: undefined, casters: [], frames: [], clips };
+                key = { shadow, slot, clip: undefined, casters: [], frames: [], clips };
                 this.keys.push(key);
             }
         }
@@ -79,7 +81,10 @@ function buildKeys(frames: readonly CollectedFrame[]) {
 
             // A cutout erases only its own layer, so in one it leaves the shadow of the root whole.
             const shadow = frame.layered ? getRootShadow(child) : getBatchedShadow(child);
-            if (shadow != null) keys.add(child as ShadowCaster, shadow, frame, getShadowClip(child));
+            if (shadow != null) keys.add(child as ShadowCaster, shadow, frame, getShadowClip(child), 'shadow');
+
+            const glow = getRootShadow(child, 'glow');
+            if (glow != null) keys.add(child as ShadowCaster, glow, frame, getShadowClip(child), 'glow');
         }
     }
     return keys.keys;

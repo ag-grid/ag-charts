@@ -4,6 +4,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
@@ -15,7 +16,7 @@ import {
     type SeriesModuleDefinition,
     themeLineHeight,
     undocumentedThemeOptions,
-    withGlowThemeDefaults,
+    withSeriesGlowThemeDefaults,
 } from 'ag-charts-core';
 
 import { SankeySeries } from './sankeySeries';
@@ -44,13 +45,15 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             ...COMMON_SERIES_THEME_DEFAULTS,
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
+            // The one highlight bucket serves nodes and links, so its `glow` follows the nodes' `glow` where it has none.
             highlight: {
                 enabled: { $path: ['/highlight/enabled', true] },
-                ...withGlowThemeDefaults(
+                ...withSeriesGlowThemeDefaults(
                     {
                         unhighlightedItem: { opacity: 0.5 },
                     },
-                    ITEM_GLOW_BUCKETS
+                    { item: ITEM_GLOW_BUCKETS },
+                    '/series/$index/node/glow'
                 ),
             },
             tooltip: SERIES_TOOLTIP_THEME,
@@ -78,12 +81,14 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
                 shadow: SHADOW_THEME_DEFAULTS,
+                glow: GLOW_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
                 shadow: SHADOW_THEME_DEFAULTS,
+                glow: GLOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

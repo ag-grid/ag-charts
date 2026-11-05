@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Glow / shadow spike</title>
+<style>
+    body { font: 13px system-ui, sans-serif; margin: 12px; background: #fff; }
+    .grid { display: flex; flex-wrap: wrap; gap: 16px; }
+    .cell h4 { margin: 0 0 4px; font-weight: 600; max-width: 520px; }
+    .chart { width: 520px; height: 340px; }
+</style>
+</head>
+<body>
+<div id="root" class="grid"></div>
+<script src="../../packages/ag-charts-enterprise/dist/umd/ag-charts-enterprise.js"></script>
+<script src="cases.js"></script>
+<script>
+    // ?case=<name> renders one case; no param renders every case. Hover is done by the capture script, or by hand.
+    const wanted = new URLSearchParams(location.search).get('case');
+    const names = Object.keys(window.CASES).filter((n) => wanted == null || wanted.split(',').includes(n));
+    const root = document.getElementById('root');
+    window.charts = {};
+    for (const name of names) {
+        const { title, options } = window.CASES[name];
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.innerHTML = `<h4>${title}</h4><div class="chart" id="c-${name}" data-case="${name}"></div>`;
+        root.appendChild(cell);
+        window.charts[name] = agCharts.AgCharts.create({ ...options, container: cell.querySelector('.chart'), width: 520, height: 340, animation: { enabled: false } });
+    }
+    window.ready = true;
+</script>
+</body>
+</html>

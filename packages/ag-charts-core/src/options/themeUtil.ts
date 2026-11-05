@@ -689,6 +689,42 @@ export const GLOW_THEME_DEFAULTS = {
     spread: 4,
 } as const;
 
+/**
+ * The theme of a series-level `glow`, and of the `glow` of each highlight bucket, which follows the `enabled` of the
+ * bucket it falls back to: an item state follows the series state if there is one, and the series states follow the
+ * series-level `glow`. A bucket with a `glow` of its own is therefore enabled by that `glow` alone (auto-enable), and a
+ * bucket without one follows the series.
+ *
+ * `seriesGlowPath` and `seriesShadowPath` are where the series-level `glow` and `shadow` are, from the series. The `fillOpacity`, `blur` and `spread` are the
+ * series-level `glow`'s, which every bucket falls back to.
+ */
+export function withSeriesGlowThemeDefaults<T extends object>(
+    highlight: T,
+    buckets: { item: readonly string[]; series?: readonly string[] },
+    seriesGlowPath: string = '/series/$index/glow',
+    seriesShadowPath: string = '/series/$index/shadow'
+): T {
+    const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
+    const seriesEnabled = { $path: `${seriesGlowPath}/enabled` };
+    for (const bucket of buckets.series ?? []) {
+        result[bucket] = { ...(result[bucket] as object | undefined), glow: { enabled: seriesEnabled } };
+    }
+    // An item state falls back to the highlighted series state.
+    const itemEnabled =
+        buckets.series == null
+            ? seriesEnabled
+            : { $path: `/series/$index/highlight/${buckets.series[0]}/glow/enabled` };
+    for (const bucket of buckets.item) {
+        result[bucket] = { ...(result[bucket] as object | undefined), glow: { enabled: itemEnabled } };
+    }
+    // A `shadow` on the highlighted item follows the series' `shadow` in the same way.
+    result.highlightedItem = {
+        ...(result.highlightedItem as object | undefined),
+        shadow: { enabled: { $path: `${seriesShadowPath}/enabled` } },
+    };
+    return result as T;
+}
+
 /** The highlight states of a series with only item states, and of a treemap group. */
 export const ITEM_GLOW_BUCKETS = ['highlightedItem', 'unhighlightedItem'] as const;
 
@@ -714,10 +750,10 @@ export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: r
 export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
     if (glow?.enabled !== true) return;
 
-    const { fill, fillOpacity, blur, spread } = glow;
+    const { fill, fillOpacity, blur, spread, gap } = glow;
     if (blur == null) return;
 
-    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread, glow: true };
+    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread, gap, glow: true };
 }
 
 /**

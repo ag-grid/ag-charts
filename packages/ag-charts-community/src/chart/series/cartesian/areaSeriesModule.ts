@@ -5,6 +5,8 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -19,7 +21,7 @@ import {
     fillThemeTemplate,
     interpolationThemeTemplate,
     themeLineHeight,
-    withGlowThemeDefaults,
+    withSeriesGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -41,11 +43,13 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
         ...STROKE_STYLE_THEME_DEFAULTS,
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         shadow: SHADOW_THEME_DEFAULTS,
+        glow: GLOW_THEME_DEFAULTS,
         connectMissingData: false,
         interpolation: interpolationThemeTemplate(),
         marker: {
             enabled: false,
             shadow: SHADOW_THEME_DEFAULTS,
+            glow: GLOW_THEME_DEFAULTS,
             shape: 'circle',
             size: 7,
             fillOpacity: 1,
@@ -82,7 +86,11 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
         },
-        highlight: withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
+        highlight: withSeriesGlowThemeDefaults(
+            { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+            { item: ITEM_GLOW_BUCKETS, series: SERIES_GLOW_BUCKETS },
+            '/series/$index/glow'
+        ),
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },

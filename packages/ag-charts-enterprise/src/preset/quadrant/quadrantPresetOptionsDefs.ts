@@ -3,6 +3,7 @@ import {
     array,
     boolean,
     defined,
+    glowOptionsDefs,
     number,
     numberAxisOptionsDefs,
     numericValue,
@@ -78,6 +79,7 @@ const axisOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['xAxis']>>
 
 export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     // Quadrant
+    glow: glowOptionsDefs,
     alignAxesToPivot: boolean,
     axisPlacement: axisPlacementOptionsDefs,
     pivot: pivotOptionsDefs,
