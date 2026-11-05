@@ -138,6 +138,26 @@ describe('Chart border', () => {
             await compareImageSnapshot(chart!, ctx, IMAGE_SNAPSHOT_DEFAULTS);
         });
 
+        it.each([
+            [4, 8],
+            [6, 8],
+            [16, 6],
+        ])('rounds the border and background to the same outer radius %d with stroke width %d', async (cornerRadius, strokeWidth) => {
+            await create({
+                background: { fill: '#0000ff' },
+                border: { stroke: '#ff0000', strokeWidth, cornerRadius },
+            });
+            const { context, pixelRatio } = deproxy(chart!).ctx.scene.canvas;
+            const pixel = (css: number) => {
+                const device = Math.floor(css * pixelRatio);
+                return [...context.getImageData(device, device, 1, 1).data];
+            };
+            const justInsideCurve = cornerRadius * (1 - Math.SQRT1_2) + 1;
+
+            expect(pixel(0)[3]).toBe(0);
+            expect(pixel(justInsideCurve)).toEqual([255, 0, 0, 255]);
+        });
+
         it('draws the border while the background is hidden', async () => {
             const edgePixel = () => {
                 const { context, height } = deproxy(chart!).ctx.scene.canvas;

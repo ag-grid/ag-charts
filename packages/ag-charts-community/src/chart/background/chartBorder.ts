@@ -3,6 +3,11 @@ import { AbstractModuleInstance, type DynamicContext, Group, Rect, ZIndexMap } f
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 
+/** Outer corner radius shared by the border and the background; a stroked Rect cannot round its outer edge tighter than half the stroke. */
+export function chartBorderOuterRadius(cornerRadius: number, strokeWidth: number) {
+    return cornerRadius > 0 ? Math.max(cornerRadius, strokeWidth / 2) : 0;
+}
+
 /** Draws `border` at the edge of the chart, above all content including enterprise background and foreground images. */
 export class ChartBorder extends AbstractModuleInstance {
     private readonly node = new Group({ name: 'chart-border', zIndex: [ZIndexMap.FOREGROUND, 1] });
@@ -29,7 +34,10 @@ export class ChartBorder extends AbstractModuleInstance {
         rectNode.stroke = stroke;
         rectNode.strokeWidth = strokeWidth;
         rectNode.strokeOpacity = strokeOpacity;
-        rectNode.cornerRadius = cornerRadius;
+        const outerRadius = chartBorderOuterRadius(cornerRadius, strokeWidth);
+        // Rect reduces a stroked corner radius by the full stroke width; this leaves the stroke centre at `outerRadius - strokeWidth / 2`.
+        rectNode.cornerRadius = outerRadius > 0 ? outerRadius + strokeWidth / 2 : 0;
+        rectNode.lineJoin = outerRadius > 0 ? 'round' : undefined;
         rectNode.width = e.chart.width;
         rectNode.height = e.chart.height;
     }
