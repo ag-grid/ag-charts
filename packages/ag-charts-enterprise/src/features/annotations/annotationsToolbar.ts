@@ -328,9 +328,11 @@ export class AnnotationsToolbar {
         item: _ModuleSupport.MenuItem<AnnotationType>
     ) {
         const index = this.buttons.findIndex((button) => button.value === menu);
-        this.updateButtonByIndex(index, { icon: item.icon });
         this.menuItemPicked = true;
         this.events.emit('pressed-create-annotation', { annotation: item.value });
+        // Choosing a tool resets the annotations, which clears the active button and icons, so set them afterwards.
+        this.updateButtonByIndex(index, { icon: item.icon });
+        this.toolbar.toggleActiveButtonByIndex(index);
         this.pendingTool = { button: menu, annotation: item.value };
         this.annotationMenu.hide();
         // Hiding destroys the menu before its row can restore focus to the menu's button, which would drop it to the body.
@@ -339,8 +341,8 @@ export class AnnotationsToolbar {
 
     private onButtonPressCreateAnnotation(item: AnnotationsToolbarButtonValue, annotation: AnnotationType) {
         const index = this.buttons.findIndex((button) => button.value === item);
-        this.toolbar.toggleActiveButtonByIndex(index);
         this.events.emit('pressed-create-annotation', { annotation });
+        this.toolbar.toggleActiveButtonByIndex(index);
         this.pendingTool = { button: item, annotation };
     }
 

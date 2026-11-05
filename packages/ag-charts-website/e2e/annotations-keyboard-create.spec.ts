@@ -297,6 +297,15 @@ test.describe('annotations keyboard create', () => {
         expect(annotations.map((a) => a.type)).toEqual(['line']);
     });
 
+    test('Choosing a tool keeps its button highlighted and showing the chosen icon', async ({ page }) => {
+        await chooseTool(page, HORIZONTAL_LINE);
+
+        await expect(menuButton(page, HORIZONTAL_LINE)).toHaveClass(/ag-charts-toolbar__button--active/);
+        await expect(menuButton(page, HORIZONTAL_LINE).locator('.ag-charts-toolbar__icon')).toHaveClass(
+            /horizontal-line-drawing/
+        );
+    });
+
     test('Space on a chosen tool button opens its menu rather than placing the annotation', async ({ page }) => {
         await chooseTool(page, TREND_LINE);
         await page.keyboard.press('Space');
