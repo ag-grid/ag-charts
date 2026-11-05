@@ -32,6 +32,7 @@ import {
     pointOnPolarCrossLine,
     polarCanvasPoint,
     polarCrossLineAt,
+    polarRadiusOf,
 } from '../../test/polarCrossLines';
 import {
     createEnterpriseChart,
@@ -700,7 +701,7 @@ describe('AG-18119: polar cross-line label spacing', () => {
         chart = undefined;
     });
 
-    const labelCentreFor = async (axis: 'angle' | 'radius', label: AgAngleCrossLineOptions['label']) => {
+    const renderLabel = async (axis: 'angle' | 'radius', label: AgAngleCrossLineOptions['label']) => {
         const crossLines = {
             angle: axis === 'angle' ? [{ type: 'line' as const, value: 'Q2', label }] : [],
             radius: axis === 'radius' ? [{ type: 'line' as const, value: 5, label }] : [],
@@ -721,7 +722,18 @@ describe('AG-18119: polar cross-line label spacing', () => {
                 },
             })
         );
-        return polarCrossLineAt(chart, axis).getLabelBox()!.computeCenter();
+        return polarCrossLineAt(chart, axis);
+    };
+    const labelCentreFor = async (axis: 'angle' | 'radius', label: AgAngleCrossLineOptions['label']) =>
+        (await renderLabel(axis, label)).getLabelBox()!.computeCenter();
+
+    // Q2 is a horizontal line through the centre with its label below; the radius label sits above the circle's top.
+    const gapToLine = async (axis: 'angle' | 'radius', label: AgAngleCrossLineOptions['label']) => {
+        const crossLine = await renderLabel(axis, label);
+        const box = crossLine.getLabelBox()!;
+        if (axis === 'angle') return box.y - polarCanvasPoint(crossLine, 0, 0).canvasY;
+        const lineY = polarCanvasPoint(crossLine, polarRadiusOf(crossLine, 5), -Math.PI / 2).canvasY;
+        return lineY - (box.y + box.height);
     };
 
     it.each(
@@ -729,13 +741,12 @@ describe('AG-18119: polar cross-line label spacing', () => {
             [
                 ['unboxed', {}],
                 ['fill-only', { fill: '#eeeeee' }],
-            ].flatMap(([boxing, style]) => [-20, 20].map((spacing) => [axis, boxing, spacing, style] as const))
+                ['bordered', { border: { enabled: true, stroke: 'red' } }],
+                ['fill with uneven insets', { fill: '#eeeeee', padding: { top: 3, bottom: 9, left: 1, right: 1 } }],
+            ].flatMap(([boxing, style]) => [-20, 0, 20].map((spacing) => [axis, boxing, spacing, style] as const))
         )
-    )('moves a %s %s label by a spacing of %ipx', async (axis, _, spacing, style) => {
-        const flush = await labelCentreFor(axis, { text: 'Label', ...(style as object), spacing: 0 });
-        const moved = await labelCentreFor(axis, { text: 'Label', ...(style as object), spacing });
-
-        expect(Math.hypot(moved.x - flush.x, moved.y - flush.y)).toBeCloseTo(Math.abs(spacing), 0);
+    )('places a %s %s label box edge %ipx from the line', async (axis, _, spacing, style) => {
+        expect(await gapToLine(axis, { text: 'Label', ...(style as object), spacing })).toBeCloseTo(spacing, 0);
     });
 
     it.each([

@@ -38,10 +38,15 @@ export function pointOnPolarCrossLine(instance: PolarCrossLine) {
                 : (scale!.convert(instance.range![0]) + scale!.convert(instance.range![1])) / 2;
         return polarCanvasPoint(instance, midRadius, angle);
     }
-    const toRadius = (value: unknown) => axisOuterRadius + axisInnerRadius - scale!.convert(value);
     const radius =
         instance.type === 'line'
-            ? toRadius(instance.value)
-            : (toRadius(instance.range![0]) + toRadius(instance.range![1])) / 2;
+            ? polarRadiusOf(instance, instance.value)
+            : (polarRadiusOf(instance, instance.range![0]) + polarRadiusOf(instance, instance.range![1])) / 2;
     return polarCanvasPoint(instance, radius, instance.gridAngles![0]);
+}
+
+/** The drawn radius of `value` on a radius-axis cross line. */
+export function polarRadiusOf(instance: PolarCrossLine, value: unknown) {
+    const { scale, axisInnerRadius, axisOuterRadius } = instance;
+    return axisOuterRadius + axisInnerRadius - scale!.convert(value);
 }
