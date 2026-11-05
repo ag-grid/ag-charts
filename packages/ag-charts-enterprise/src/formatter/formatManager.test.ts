@@ -250,8 +250,7 @@ describe('Format Manager (Enterprise)', () => {
         });
 
         describe('ohlc series', () => {
-            // Note: ohlc series ID is 'ohlc-1', not 'OHLCSeries-1'
-            const seriesIdPattern = 'ohlc-1';
+            const seriesIdPattern = 'OhlcSeries-1';
 
             it.each(NULL_KEY_CASES)('$name', async ({ nullValue, allowNullKeys, expectWarning }) => {
                 const options: AgCartesianChartOptions = {
