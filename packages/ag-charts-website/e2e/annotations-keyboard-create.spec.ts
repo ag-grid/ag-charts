@@ -185,9 +185,7 @@ test.describe('annotations keyboard create', () => {
             }
 
             await expect(page.locator(tool.opensTextInput ? TEXT_INPUT : SWAPCHAIN)).toBeFocused();
-            if (!tool.opensTextInput) {
-                await expect(page.locator(SWAPCHAIN)).toHaveAccessibleName(tool.item);
-            }
+            await expect(page.locator(tool.opensTextInput ? TEXT_INPUT : SWAPCHAIN)).toHaveAccessibleName(tool.item);
             await expectChartScreenshot(page, chartArea(page), `annotations-keyboard-create-${tool.type}.png`);
         });
     }

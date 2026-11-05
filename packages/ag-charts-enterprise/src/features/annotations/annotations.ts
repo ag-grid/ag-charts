@@ -358,6 +358,7 @@ export class Annotations extends AbstractModuleInstance {
                 const seriesRectOffset = Vec2.required(this.seriesRect);
 
                 this.textInput.show({
+                    ariaLabel: this.ctx.localeManager.t(getAnnotationLabel(datum.type) ?? 'inputTextareaPlaceholder'),
                     styles,
                     layout: {
                         ...layout,
