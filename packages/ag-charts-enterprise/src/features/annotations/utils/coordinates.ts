@@ -53,8 +53,8 @@ export interface CoordinateField {
     step?: number;
     /** The axis's categories, for the input to suggest. */
     suggestions?: string[];
-    /** The datum change for a parsed value. */
-    toProps(parsed: ParsedCoordinate): CoordinateChangeProps;
+    /** The datum change for a parsed value, or `undefined` when the field cannot take it. */
+    toProps(parsed: ParsedCoordinate): CoordinateChangeProps | undefined;
 }
 
 /** Grouped category axes are not editable yet. */
@@ -251,7 +251,7 @@ function createOffsetField(
         axis: 'y',
         kind: 'number',
         value: String(current),
-        toProps: (parsed) => (isNumericValue(parsed) ? { [key]: parsed } : {}),
+        toProps: (parsed) => (isNumericValue(parsed) ? { [key]: parsed } : undefined),
     };
 }
 

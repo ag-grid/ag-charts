@@ -340,14 +340,15 @@ export class AnnotationSettingsDialog extends Dialog {
                 const context = options.getContext();
                 const parsed = parseCoordinate(text, field.kind);
                 const resolved = parsed == null || !context ? undefined : resolveCoordinate(field, parsed, context);
-                if (resolved == null) {
+                const props = resolved == null ? undefined : field.toProps(resolved);
+                if (resolved == null || props == null) {
                     input.value = committed;
                     return;
                 }
 
                 committed = formatCoordinate(resolved, field.kind);
                 input.value = committed;
-                options.onChangeCoordinates(field.toProps(resolved));
+                options.onChangeCoordinates(props);
             },
         });
         return suggestions ? [input, suggestions.datalist] : [input];

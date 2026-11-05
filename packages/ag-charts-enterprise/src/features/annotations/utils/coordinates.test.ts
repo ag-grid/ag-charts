@@ -210,6 +210,7 @@ describe('annotation coordinates', () => {
             expect(offset.map((f) => f.value)).toEqual(['12']);
             expect(offset[0].toProps(8)).toEqual({ height: 8 });
             expect(offset[0].toProps(9007199254740993n)).toEqual({ height: 9007199254740993n });
+            expect(offset[0].toProps('text')).toBeUndefined();
         });
 
         it('adds both heights of a disjoint channel as its offsets', () => {
