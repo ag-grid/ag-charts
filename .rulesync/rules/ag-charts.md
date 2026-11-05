@@ -50,7 +50,7 @@ Draft PRs skip CI. To run it without marking the PR ready, comment on the PR:
 
 Without the comment trigger, dispatch it yourself: `gh workflow run ci.yml -R ag-grid/ag-charts --ref <branch> -f nx_command=run-many`.
 
-The result shows on the PR as the `CI (manual)` status, linked to the run, and in `gh pr checks`. When the PR is later marked ready, CI runs again and a failed `CI (manual)` is replaced by a passing one that says the PR run supersedes it.
+The result shows on the PR as the `CI (manual)` status, linked to the run, and in `gh pr checks`. When the PR is later marked ready, CI runs again and a failed `CI (manual)` is replaced by a passing one that says the PR run supersedes it. A manual run that finishes after the PR run stays red until the next push or mark-ready.
 
 Limits:
 

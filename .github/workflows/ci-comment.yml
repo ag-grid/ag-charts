@@ -6,6 +6,9 @@ on:
     issue_comment:
         types: [created]
 
+permissions:
+    contents: read
+
 jobs:
     ci-comment:
         runs-on: ubuntu-24.04

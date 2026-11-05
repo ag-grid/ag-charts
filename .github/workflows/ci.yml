@@ -1759,7 +1759,6 @@ jobs:
             pull-requests: write
             statuses: write
             deployments: write
-            actions: read # the manual run status looks up this SHA's pull_request run
         needs:
             [
                 detect-changes,
@@ -2240,18 +2239,6 @@ jobs:
                         -f target_url="${RUN_URL}" > /dev/null
                   }
 
-                  # True when a pull_request run on this SHA passed its supersede step after this attempt started.
-                  pr_run_supersedes() {
-                    local run_id
-                    [[ -n "${STARTED_AT:-}" ]] || return 1
-                    for run_id in $(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?event=pull_request&head_sha=${GITHUB_SHA}&per_page=20" --jq '.workflow_runs[].id') ; do
-                      gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?filter=latest&per_page=100" \
-                          --jq '.jobs[] | select(.name == "report") | .steps[] | select(.name == "Supersede a red manual run status" and .conclusion == "success" and .completed_at >= env.STARTED_AT) | .name' \
-                        | grep -q . && return 0
-                    done
-                    return 1
-                  }
-
                   case "${WORKFLOW_STATUS}" in
                     success) state="success"; description="Manual CI run passed" ;;
                     partial) state="success"; description="Manual CI run passed (Sonar failed)" ;;
@@ -2262,18 +2249,8 @@ jobs:
                       ;;
                   esac
 
-                  # The pull_request run can finish before or after this one, so check both sides of the post.
-                  STARTED_AT=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}" --jq .run_started_at) || STARTED_AT=""
-                  export STARTED_AT
-                  if [[ "${state}" == "failure" ]] && pr_run_supersedes ; then
-                    state="success"; description="Superseded by the pull request CI run"
-                  fi
                   if ! post_status "${state}" "${description}" ; then
                     echo "::warning::Could not post the manual run status."
-                    exit 0
-                  fi
-                  if [[ "${state}" == "failure" ]] && pr_run_supersedes ; then
-                    post_status success "Superseded by the pull request CI run" || echo "::warning::Could not clear the failed manual run status."
                   fi
 
             - name: Supersede a red manual run status
