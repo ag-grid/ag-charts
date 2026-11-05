@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { DataPoint } from './annotationTypes';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import { lineDatum } from './line/lineDatum';
 
 describe('AnnotationsStateMachine coordinates', () => {
     it('applies a coordinate beyond Number precision and records it', () => {
-        const datum = { ...lineDatum.create(), start: { x: 1, y: 2 }, end: { x: 3, y: 4 } };
+        const start: DataPoint = { x: 1, y: 2 };
+        const datum = { ...lineDatum.create(), start, end: { x: 3, y: 4 } };
         // Only what selecting and applying a change reads; the rest of the context is unused.
         const ctx = {
             datum: () => datum,
