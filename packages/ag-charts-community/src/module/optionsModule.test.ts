@@ -5586,15 +5586,18 @@ describe('ChartOptions', () => {
                 {},
                 { overrides: { common: { axes: { number: { crossLines: { label: { padding: -30 } } } } } } },
             ],
-        ])('rejects negative padding on a cross-line label set through %s and keeps the theme default', (_, label, theme) => {
-            const options = crossLineChart(label, theme);
+        ])(
+            'rejects negative padding on a cross-line label set through %s and keeps the theme default',
+            (_, label, theme) => {
+                const options = crossLineChart(label, theme);
 
-            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages).toHaveLength(1);
-            expect(messages[0]).toContain('cannot be set to `-30`');
-            expect(messages[0]).toContain('expecting a number greater than or equal to 0');
-            expect(optionAt(options, 'axes.y.crossLines[0].label.padding')).toBe(5);
-        });
+                const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages).toHaveLength(1);
+                expect(messages[0]).toContain('cannot be set to `-30`');
+                expect(messages[0]).toContain('expecting a number greater than or equal to 0');
+                expect(optionAt(options, 'axes.y.crossLines[0].label.padding')).toBe(5);
+            }
+        );
 
         it('accepts a negative spacing on a cross-line label', () => {
             const options = crossLineChart({ spacing: -30 });

@@ -3161,6 +3161,64 @@ describe('CrossLine label fitting', () => {
         expect(rendered.footprint.height).toBeLessThanOrEqual(80 + 1);
     });
 
+    describe('AG-18119: label spacing', () => {
+        const BOXING: Record<string, AgCartesianCrossLineLabelOptions> = {
+            unboxed: {},
+            bordered: { border: { enabled: true } },
+            'fill-only': { fill: '#eeeeee' },
+        };
+
+        /** Distance from the horizontal line up to the bottom edge of the drawn label, box included. */
+        function labelGap() {
+            const [crossLine] = crossLineInstancesOf(chart, 'y');
+            const line = Transformable.toCanvas(crossLine.lineGroup);
+            const label = Transformable.toCanvas(crossLineLabelNode(chart, 'y'));
+            return line.y + line.height / 2 - (label.y + label.height);
+        }
+
+        it.each(Object.keys(BOXING).flatMap((boxing) => [-20, 0, 20].map((spacing) => [boxing, spacing] as const)))(
+            'places a %s label `spacing` %spx from the line',
+            async (boxing, spacing) => {
+                chart = deproxy(
+                    await createChart(
+                        fitChart(lineWith({ text: 'Label', placement: 'top', ...BOXING[boxing], spacing }))
+                    )
+                );
+
+                expect(labelGap()).toBeCloseTo(spacing, 0);
+            }
+        );
+
+        it.each([
+            ['unboxed', {}, 5],
+            ['fill-only', { fill: '#eeeeee' }, 0],
+            ['bordered', { border: { enabled: true } }, 0],
+        ])('defaults the spacing of a %s label to %ipx', async (_, boxing, expected) => {
+            chart = deproxy(await createChart(fitChart(lineWith({ text: 'Label', placement: 'top', ...boxing }))));
+
+            expect(labelGap()).toBeCloseTo(expected, 0);
+        });
+
+        it('defaults the spacing to 0 when a theme override boxes the label', async () => {
+            const theme = {
+                overrides: { common: { axes: { number: { crossLines: { label: { fill: '#eeeeee' } } } } } },
+            };
+            chart = deproxy(await createChart(fitChart(lineWith({ text: 'Label', placement: 'top' }), 'y', { theme })));
+
+            expect(labelGap()).toBeCloseTo(0, 0);
+        });
+
+        it('does not move an unboxed label when its padding changes', async () => {
+            const build = (padding: number) => fitChart(lineWith({ text: 'Label', placement: 'top', padding }));
+            chart = deproxy(await createChart(build(0)));
+            const before = labelGap();
+
+            await chart.publicApi!.update(build(40));
+
+            expect(labelGap()).toBeCloseTo(before, 5);
+        });
+    });
+
     it('pads the chart for the fitted label', async () => {
         const options = (label: AgCartesianCrossLineLabelOptions) =>
             fitChart(lineWith({ placement: 'left', ...label }));

@@ -688,3 +688,63 @@ describe('PolarCrossLine listeners', () => {
         );
     });
 });
+
+describe('AG-18119: polar cross-line label spacing', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const labelCentreFor = async (axis: 'angle' | 'radius', label: AgAngleCrossLineOptions['label']) => {
+        const crossLines = {
+            angle: axis === 'angle' ? [{ type: 'line' as const, value: 'Q2', label }] : [],
+            radius: axis === 'radius' ? [{ type: 'line' as const, value: 5, label }] : [],
+        };
+        chart?.destroy();
+        chart = deproxy(
+            await createEnterpriseChart({
+                data: [
+                    { q: 'Q1', v: 2 },
+                    { q: 'Q2', v: 4 },
+                    { q: 'Q3', v: 6 },
+                    { q: 'Q4', v: 8 },
+                ],
+                series: [{ type: 'radar-line', angleKey: 'q', radiusKey: 'v' }],
+                axes: {
+                    angle: { type: 'angle-category', shape: 'circle', crossLines: crossLines.angle },
+                    radius: { type: 'radius-number', shape: 'circle', min: 0, max: 10, crossLines: crossLines.radius },
+                },
+            })
+        );
+        return polarCrossLineAt(chart, axis).getLabelBox()!.computeCenter();
+    };
+
+    it.each(
+        (['angle', 'radius'] as const).flatMap((axis) =>
+            [
+                ['unboxed', {}],
+                ['fill-only', { fill: '#eeeeee' }],
+            ].flatMap(([boxing, style]) => [-20, 20].map((spacing) => [axis, boxing, spacing, style] as const))
+        )
+    )('moves a %s %s label by a spacing of %ipx', async (axis, _, spacing, style) => {
+        const flush = await labelCentreFor(axis, { text: 'Label', ...(style as object), spacing: 0 });
+        const moved = await labelCentreFor(axis, { text: 'Label', ...(style as object), spacing });
+
+        expect(Math.hypot(moved.x - flush.x, moved.y - flush.y)).toBeCloseTo(Math.abs(spacing), 0);
+    });
+
+    it.each([
+        ['unboxed', {}, 5],
+        ['fill-only', { fill: '#eeeeee' }, 0],
+    ])('defaults the spacing of a %s radius label to %ipx', async (_, style, expected) => {
+        const byDefault = await labelCentreFor('radius', { text: 'Label', ...style });
+        const explicit = await labelCentreFor('radius', { text: 'Label', ...style, spacing: expected });
+
+        expect(byDefault).toEqual(explicit);
+    });
+});
