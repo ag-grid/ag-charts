@@ -3,6 +3,7 @@ import type {
     AgWaterfallSeriesItemType,
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesStyle,
+    SeriesFormatterSource,
     WaterfallSeriesTotalMeta,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -40,6 +41,7 @@ import {
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
+    datumValuesTooltipContent,
     easeOut,
     firstCandidate,
     fontWithSize,
@@ -139,6 +141,13 @@ export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDa
     readonly clipBBox?: BBox;
     readonly opacity?: number;
     style?: Required<AgWaterfallSeriesStyle>;
+}
+
+type WaterfallStyleDatum = Pick<WaterfallNodeDatum, 'series' | 'datumIndex' | 'datum' | 'itemId' | 'totalValue'>;
+
+// Synthetic bars have no data row, so their totals `itemId` (or axis label) is their only stable identifier.
+function syntheticItemId(datum: unknown, xDatum: unknown) {
+    return (datum as { itemId?: string } | undefined)?.itemId ?? String(xDatum);
 }
 
 interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
@@ -401,10 +410,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
             const value = this.computeDisplayValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
 
-            // Synthetic bars have no data row, so their totals `itemId` (or axis label) is their only stable identifier.
-            const totalItemId = isTotalOrSubtotal
-                ? ((datum as { itemId?: string } | undefined)?.itemId ?? String(xDatum))
-                : undefined;
+            const totalItemId = isTotalOrSubtotal ? syntheticItemId(datum, xDatum) : undefined;
 
             paramsScratch.datumIndex = datumIndex;
             paramsScratch.itemId = totalItemId;
@@ -1014,7 +1020,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     private getItemStyle(
-        nodeDatum: WaterfallNodeDatum | undefined,
+        nodeDatum: WaterfallStyleDatum | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
         itemType: AgWaterfallSeriesItemType = 'total',
@@ -1392,9 +1398,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         });
     }
 
-    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, options } = this;
-        const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
+        const { dataModel, processedData, options } = this;
+        const { xKey, xName, yKey, yName, legendItemName } = options;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -1416,15 +1422,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const datumType = totalTypeValues[datumIndex];
 
+        const rawDatum = processedData.dataSources.get(this.id)?.data[datumIndex];
+        const isTotalOrSubtotal = this.isTotal(datumType) || this.isSubtotal(datumType);
         // Synthetic total/subtotal bars expose no user datum to the renderer or axis formatters.
-        const datum =
-            this.isTotal(datumType) || this.isSubtotal(datumType)
-                ? undefined
-                : processedData.dataSources.get(this.id)?.data[datumIndex];
+        const datum = isTotalOrSubtotal ? undefined : rawDatum;
 
         const isPositive = (yValue ?? 0) >= 0;
 
-        const seriesItemType = this.getSeriesItemType(isPositive, datumType);
+        const itemType = this.getSeriesItemType(isPositive, datumType);
 
         let total: AgNumericValue;
         if (this.isTotal(datumType)) {
@@ -1432,7 +1437,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else if (this.isSubtotal(datumType)) {
             total = yCurrTotalValues[datumIndex];
             for (let previousIndex = datumIndex - 1; previousIndex >= 0; previousIndex -= 1) {
-                if (this.isSubtotal(totalTypeValues[previousIndex])) {
+                const previousType = totalTypeValues[previousIndex];
+                if (this.isTotal(previousType) || this.isSubtotal(previousType)) {
                     total = subtractValues(total, yCurrTotalValues[previousIndex]);
                     break;
                 }
@@ -1441,39 +1447,64 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             total = yValue;
         }
 
+        const styleDatum: WaterfallStyleDatum = {
+            series: this,
+            datumIndex,
+            datum,
+            itemId: isTotalOrSubtotal ? syntheticItemId(rawDatum, xValue) : undefined,
+            totalValue: this.getTotalValue(itemType, total),
+        };
+
+        return {
+            datum,
+            style: this.getItemStyle(styleDatum, false, undefined, itemType),
+            itemType,
+            values: [
+                {
+                    key: xKey,
+                    name: xName,
+                    value: xValue,
+                    formattedValue: this.getAxisValueText(xAxis, source, xValue, datum, xKey, legendItemName),
+                    category: true,
+                },
+                {
+                    key: yKey,
+                    name: yName,
+                    value: total,
+                    formattedValue: this.getAxisValueText(yAxis, source, total, datum, yKey, legendItemName),
+                    missing: _ModuleSupport.isTooltipValueMissing(total),
+                },
+            ],
+        };
+    }
+
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
+        const { id: seriesId, options } = this;
+        const { xKey, xName, yKey, yName, tooltip } = options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        if (datumValues == null) return;
+        const { datum, style, itemType, values } = datumValues;
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
-        const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
 
         // Override only the renderer; other tooltip fields are read directly off `series.options.tooltip` upstream.
-        const itemTooltipRenderer = this.getItemConfig(seriesItemType).tooltip?.renderer;
+        const itemTooltipRenderer = this.getItemConfig(itemType).tooltip?.renderer;
         const effectiveTooltip = itemTooltipRenderer == null ? tooltip : { ...tooltip, renderer: itemTooltipRenderer };
 
         return this.formatTooltipWithContext(
             effectiveTooltip,
-            {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
-                symbol: this.legendItemSymbol(seriesItemType),
-                data: [
-                    {
-                        label: yName,
-                        fallbackLabel: yKey,
-                        value: this.getAxisValueText(yAxis, 'tooltip', total, datum, yKey, legendItemName),
-                        missing: _ModuleSupport.isTooltipValueMissing(total),
-                    },
-                ],
-            },
+            { ...datumValuesTooltipContent(values), symbol: this.legendItemSymbol(itemType) },
             {
                 seriesId,
                 datum,
                 title: yName,
-                itemType: seriesItemType,
+                itemType,
                 totalValue: nodeDatum?.totalValue,
                 itemId: nodeDatum ? getItemId(nodeDatum, this.data?.dataIdKey) : datumIndex,
                 xKey,
                 xName,
                 yKey,
                 yName,
-                ...format,
+                ...style,
             }
         );
     }

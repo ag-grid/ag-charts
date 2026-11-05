@@ -9,6 +9,7 @@ import {
     type OptionsDefs,
     arrayOfDefs,
     boolean,
+    callback,
     callbackDefs,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -73,6 +74,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
 export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
+    collector: callback,
     item: {
         positive: waterfallSeriesItemOptionsDef,
         negative: waterfallSeriesItemOptionsDef,

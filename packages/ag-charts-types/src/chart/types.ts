@@ -103,7 +103,7 @@ export type DatumDefault = any;
 
 export type ContextDefault = unknown;
 
-export type SeriesFormatterSource = 'tooltip' | 'series-label';
+export type SeriesFormatterSource = 'tooltip' | 'series-label' | 'status-bar';
 export type ChartFormatterSource = 'axis-label' | 'gradient-legend' | 'legend-label' | 'crosshair' | 'annotation-label';
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 

@@ -40,6 +40,7 @@ export interface AgQuadrantPreset<TDatum, TContext>
             | 'label'
             | 'showInLegend'
             | 'showInMiniChart'
+            | 'collector'
             | 'title'
             | 'tooltip'
         > {

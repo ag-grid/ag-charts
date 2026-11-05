@@ -3,6 +3,7 @@ import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
+import type { AgSeriesCollector } from './seriesCollectorOptions';
 
 export interface AgMultiSeriesHighlightOptions<
     ItemHighlightStyleOptions,
@@ -97,6 +98,8 @@ export interface AgBaseCartesianThemeableOptions<
 > extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Whether to include the series in the Mini Chart. */
     showInMiniChart?: boolean;
+    /** Function returning the values this series contributes to the status bar. Return `undefined` to use the default values. */
+    collector?: AgSeriesCollector<TDatum, TContext>;
 }
 
 export interface AgSeriesSegmentation<SegmentOptions = AgSeriesShapeSegmentOptions> {

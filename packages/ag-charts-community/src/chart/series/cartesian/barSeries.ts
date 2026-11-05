@@ -45,6 +45,7 @@ import {
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
+    datumValuesTooltipContent,
     fontWithSize,
     isContinuous,
     isFiniteNumber,
@@ -65,6 +66,7 @@ import type {
     AgErrorBoundSeriesTooltipRendererParams,
     AgNumericValue,
     PaddingOptions,
+    SeriesFormatterSource,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -2053,9 +2055,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         });
     }
 
-    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, options } = this;
-        const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = options;
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
+        const { dataModel, processedData, options } = this;
+        const { xKey, xName, yKey, yName, legendItemName } = options;
         const allowNullKeys = options.allowNullKeys ?? false;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -2068,22 +2070,47 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
-        const format = this.getItemStyle(datumIndex, false, undefined, undefined, undefined);
+
+        return {
+            datum,
+            style: this.getItemStyle(datumIndex, false, undefined, undefined, undefined),
+            values: [
+                {
+                    key: xKey,
+                    name: xName,
+                    value: xValue,
+                    formattedValue: this.getAxisValueText(
+                        xAxis,
+                        source,
+                        xValue,
+                        datum,
+                        xKey,
+                        legendItemName,
+                        allowNullKeys
+                    ),
+                    category: true,
+                },
+                {
+                    key: yKey,
+                    name: yName,
+                    value: yValue,
+                    formattedValue: this.getAxisValueText(yAxis, source, yValue, datum, yKey, legendItemName),
+                    missing: isTooltipValueMissing(yValue),
+                },
+            ],
+        };
+    }
+
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
+        const { id: seriesId, options } = this;
+        const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        if (datumValues == null) return;
+        const { datum, style, values } = datumValues;
 
         return this.formatTooltipWithContext(
             tooltip,
-            {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
-                symbol: this.legendItemSymbol(),
-                data: [
-                    {
-                        label: yName,
-                        fallbackLabel: yKey,
-                        value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
-                        missing: isTooltipValueMissing(yValue),
-                    },
-                ],
-            },
+            { ...datumValuesTooltipContent(values), symbol: this.legendItemSymbol() },
             {
                 seriesId,
                 datum,
@@ -2094,7 +2121,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 yName,
                 legendItemName,
                 stackGroup,
-                ...format,
+                ...style,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

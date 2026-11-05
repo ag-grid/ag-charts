@@ -23,6 +23,7 @@ import type {
     QuadtreeNearest,
     RequireOptional,
     Selection,
+    SeriesDatumValue,
     SizedPoint,
 } from 'ag-charts-core';
 import {
@@ -38,6 +39,7 @@ import {
     clamp,
     configureColorScale,
     dateToNumber,
+    datumValueTooltipRow,
     extent,
     findDiscreteColorBinLabel,
     formatValue,
@@ -71,6 +73,7 @@ import {
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
+    type SeriesFormatterSource,
     type StrokeOptions,
 } from 'ag-charts-types';
 
@@ -104,7 +107,7 @@ import {
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type MarkerLabelRect, markerLabelRect, markerRowSpans } from '../../marker/markerLabelRect';
-import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
+import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
 import type { PickFocusInputs, SeriesNodePickMatch } from '../pickTypes';
 import { SeriesNodePickMode } from '../pickTypes';
@@ -1610,7 +1613,7 @@ export abstract class BubbleScatterSeries<
         } satisfies RequireOptional<AgBubbleSeriesLabelFormatterParams>;
     }
 
-    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
         const { id: seriesId, dataModel, processedData, axes, options, marker, ctx, colorScale } = this;
         const { formatManager } = ctx;
         const {
@@ -1624,8 +1627,6 @@ export abstract class BubbleScatterSeries<
             labelName,
             colorKey,
             colorName,
-            title,
-            tooltip,
             legendItemName,
             colorScale: colorScaleOptions,
         } = options;
@@ -1641,7 +1642,7 @@ export abstract class BubbleScatterSeries<
         const allowNullKeys = options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
 
-        const data: TooltipContentDataRow[] = [];
+        const values: SeriesDatumValue[] = [];
 
         if (this.isLabelEnabled() && labelKey != null) {
             const value = dataModel.resolveColumnById<string | number | Date>(
@@ -1657,34 +1658,53 @@ export abstract class BubbleScatterSeries<
                 seriesId,
                 legendItemName,
                 key: labelKey,
-                source: 'tooltip',
+                source,
                 property: 'label',
                 domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+            values.push({ key: labelKey, name: labelName, value, formattedValue: content ?? formatValue(value) });
         }
 
-        data.push(
+        values.push(
             {
-                label: xName,
-                fallbackLabel: xKey,
-                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
+                key: xKey,
+                name: xName,
+                value: xValue,
+                formattedValue: this.getAxisValueText(
+                    xAxis,
+                    source,
+                    xValue,
+                    datum,
+                    xKey,
+                    legendItemName,
+                    allowNullKeys
+                ),
                 missing: isTooltipValueMissing(xValue, allowNullKeys),
             },
             {
-                label: yName,
-                fallbackLabel: yKey,
-                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName, allowNullKeys),
+                key: yKey,
+                name: yName,
+                value: yValue,
+                formattedValue: this.getAxisValueText(
+                    yAxis,
+                    source,
+                    yValue,
+                    datum,
+                    yKey,
+                    legendItemName,
+                    allowNullKeys
+                ),
                 missing: isTooltipValueMissing(yValue, allowNullKeys),
             }
         );
 
-        const addValueRow = (
+        const addValue = (
             columnId: string,
             key: string,
             name: string | undefined,
-            property: FormatterPropertyType
+            property: FormatterPropertyType,
+            binLabel?: (value: number) => string | undefined
         ): number | undefined => {
             const value = dataModel.resolveColumnById(this, columnId, processedData, 'number')[datumIndex];
             if (value == null) return undefined;
@@ -1696,41 +1716,34 @@ export abstract class BubbleScatterSeries<
                 seriesId,
                 legendItemName,
                 key,
-                source: 'tooltip',
+                source,
                 property,
                 boundSeries: this.getFormatterContext(property),
                 domain,
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: name, fallbackLabel: key, value: content ?? formatValue(value) });
+            values.push({ key, name, value, formattedValue: binLabel?.(value) ?? content ?? formatValue(value) });
             return value;
         };
 
         if (sizeKey != null) {
-            addValueRow('sizeValue', sizeKey, sizeName, 'size');
+            addValue('sizeValue', sizeKey, sizeName, 'size');
         }
 
         let resolvedColorFill: string | undefined;
         if (colorKey != null && colorScaleOptions != null && this.isColorScaleValid()) {
-            const colorValue = addValueRow('colorValue', colorKey, colorName, 'color');
+            const colorValue = addValue('colorValue', colorKey, colorName, 'color', (value) =>
+                findDiscreteColorBinLabel(colorScale, colorScaleOptions.fills, value, formatValue)
+            );
             if (colorValue != null) {
                 resolvedColorFill = colorScale.convert(colorValue);
-                const binLabel = findDiscreteColorBinLabel(
-                    colorScale,
-                    colorScaleOptions.fills,
-                    colorValue,
-                    formatValue
-                );
-                if (binLabel != null) {
-                    data.at(-1)!.value = binLabel;
-                }
             } else if (colorScaleOptions.missingDataFill != null) {
                 resolvedColorFill = colorScaleOptions.missingDataFill;
             }
         }
 
-        const activeStyle = this.getMarkerStyle<BubbleScatterMarkerParams>(
+        const style = this.getMarkerStyle<BubbleScatterMarkerParams>(
             marker,
             { datum, datumIndex },
             { xKey, yKey, sizeKey, labelKey, colorKey },
@@ -1738,15 +1751,39 @@ export abstract class BubbleScatterSeries<
         );
         if (resolvedColorFill != null) {
             // `getMarkerStyle` omits the colour-scale fill, so apply it here to match the on-canvas marker.
-            activeStyle.fill = resolvedColorFill;
+            style.fill = resolvedColorFill;
         }
+
+        return { datum, style, values };
+    }
+
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
+        const { id: seriesId, options } = this;
+        const {
+            xKey,
+            xName,
+            yKey,
+            yName,
+            sizeKey,
+            sizeName,
+            labelKey,
+            labelName,
+            colorKey,
+            colorName,
+            title,
+            tooltip,
+            legendItemName,
+        } = options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        if (datumValues == null) return;
+        const { datum, style, values } = datumValues;
 
         return this.formatTooltipWithContext(
             tooltip,
             {
                 title,
-                symbol: this.legendItemSymbol(activeStyle),
-                data,
+                symbol: this.legendItemSymbol(style),
+                data: values.map(datumValueTooltipRow),
             },
             {
                 seriesId,
@@ -1763,7 +1800,7 @@ export abstract class BubbleScatterSeries<
                 colorKey,
                 colorName,
                 legendItemName,
-                ...(activeStyle as RequireOptional<FillOptions & StrokeOptions & LineDashOptions>),
+                ...(style as RequireOptional<FillOptions & StrokeOptions & LineDashOptions>),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

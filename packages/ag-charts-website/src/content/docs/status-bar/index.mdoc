@@ -1,0 +1,134 @@
+---
+title: 'Status Bar'
+enterprise: true
+---
+
+The Status Bar shows the values of the hovered datum for every series in a cartesian chart, in a single row of label and value pairs.
+
+{% chartExampleRunner title="Status Bar" name="enabling-status-bar" type="generated" /%}
+
+## Enabling the Status Bar
+
+To show the Status Bar, set `statusBar.enabled` to `true`:
+
+```js format="snippet"
+{
+    statusBar: {
+        enabled: true,
+    },
+}
+```
+
+In this example:
+
+- Hovering the chart shows the value of every series at the hovered category.
+- Each value is labelled with the series' `yName` and formatted with the root `formatter`, as the axis formats it.
+- Each value is coloured as the series draws the datum, including any `itemStyler` colour.
+- A missing value is shown as a dash.
+- When nothing is hovered, the Status Bar shows the last datum of each series.
+
+## Position and Inactive State
+
+By default, the Status Bar is shown above the series area, aligned to its start. Use `position` to place it elsewhere, in the same way as the [Legend](./legend/#placement). A floating Status Bar is drawn over the chart rather than taking space from it.
+
+Use `inactive` to choose what the Status Bar shows when nothing is hovered:
+
+- `'last'`: the last datum of each series. This is the default.
+- `'recent'`: the most recently hovered datum, or the last datum before any hover.
+- `'hidden'`: nothing; the Status Bar is hidden until a datum is hovered.
+
+```js format="snippet"
+{
+    statusBar: {
+        enabled: true,
+        position: { placement: 'bottom', floating: false },
+        inactive: 'recent',
+        border: { enabled: true },
+        cornerRadius: 4,
+        padding: 6,
+    },
+}
+```
+
+{% chartExampleRunner title="Status Bar Position" name="status-bar-position" type="generated" /%}
+
+The Status Bar can be styled with `fill`, `fillOpacity`, `border`, `cornerRadius` and `padding`, and its text with the `label` and `value` options.
+
+When the items exceed `maxWidth`, they wrap onto further lines according to `wrapping`. Lines that exceed `maxHeight` are dropped, and with `truncate` enabled the last visible value ends with an ellipsis.
+
+## Renderer
+
+Use a `renderer` to choose the items the Status Bar shows. It receives the `values` collected from every series at the hovered category, and whether they come from a hovered datum (`active`). Values with `category` set, such as each series' `xKey` value, are not shown by default. It returns a list of items, each with an optional `label` and a `value`, or a single text value. To colour a value, return it as text segments, for example `[{ text: formattedValue, color }]`.
+
+```js format="snippet"
+{
+    statusBar: {
+        enabled: true,
+        renderer: ({ values, active }) => [
+            {
+                label: active ? 'Month' : 'Latest',
+                value: values.find(({ category }) => category)?.formattedValue,
+            },
+            ...values
+                .filter(({ category }) => !category)
+                .map(({ label, formattedValue }) => ({ label, value: formattedValue })),
+        ],
+    },
+}
+```
+
+{% chartExampleRunner title="Status Bar Renderer" name="status-bar-renderer" type="generated" /%}
+
+In this example:
+
+- The first item shows the hovered month, or `Latest` when nothing is hovered.
+- The last item shows the average of the collected values.
+
+The `renderer` runs when the hovered datum changes, and when the chart's data or options change.
+
+## Series Collectors
+
+Each series collects the values it contributes to the Status Bar. By default, these are the values its tooltip shows, such as its `xKey` and `yKey` values, labelled with their names, such as `yName`. Histogram bins and waterfall totals have no `datum`, so their values carry the bin or total instead.
+
+Use the series `collector` to change them. It receives the `datum` and the default `values`, and returns the values to use, or `undefined` to keep the defaults.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'revenue',
+            yName: 'Revenue',
+            collector: ({ datum, values }) => [
+                ...values,
+                { key: 'margin', label: 'Margin', value: (datum.revenue - datum.costs) / datum.revenue },
+            ],
+        },
+    ],
+}
+```
+
+{% chartExampleRunner title="Series Collector" name="series-collector" type="generated" /%}
+
+A value bound to an axis is formatted as the axis formats it, with the `formatter` `source` set to `'status-bar'`. Set `formattedValue` on any other value to control its text, and `color` to change its colour.
+
+The `collector` runs only while the Status Bar is enabled, at the same times as the `renderer`.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgStatusBarOptions" label="Status Bar" %}
+{% apiReference id="AgStatusBarOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgStatusBarRendererParams" label="Renderer Params" %}
+{% apiReference id="AgStatusBarRendererParams" /%}
+{% /tabItem %}
+
+{% tabItem id="AgSeriesCollectorParams" label="Collector Params" %}
+{% apiReference id="AgSeriesCollectorParams" /%}
+{% /tabItem %}
+
+{% /tabs %}

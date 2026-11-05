@@ -7,6 +7,7 @@ import type {
 import {
     type OptionsDefs,
     boolean,
+    callback,
     callbackDefs,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -62,6 +63,7 @@ const boxPlotStyler = callbackDefs<AgBoxPlotSeriesStyle>({
 export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
+    collector: callback,
     styler: boxPlotStyler,
     itemStyler: boxPlotStyler,
     tooltip: tooltipOptionsDefs,

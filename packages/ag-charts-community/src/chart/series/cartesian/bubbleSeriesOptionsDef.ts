@@ -4,6 +4,7 @@ import {
     arrayLength,
     arrayOf,
     boolean,
+    callback,
     callbackDefs,
     colorScaleOptionsDef,
     commonSeriesOptionsDefs,
@@ -37,6 +38,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     maxSize: positiveNumber,
     sizeMode: union('diameter', 'area'),
     showInMiniChart: boolean,
+    collector: callback,
     label: placedSeriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     styler: callbackDefs<AgBubbleSeriesStylerResult>({

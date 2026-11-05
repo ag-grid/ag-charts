@@ -45,6 +45,7 @@ const barStyler = callbackDefs<AgBarSeriesStyle>({
 export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
+    collector: callback,
     cornerRadius: positiveNumber,
     styler: barStyler,
     itemStyler: barStyler,

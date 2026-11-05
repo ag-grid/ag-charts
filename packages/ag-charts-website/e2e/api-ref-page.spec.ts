@@ -8,7 +8,7 @@ test.use({ viewport: { width: 1400, height: 900 } });
 const NAV_TREE_SELECTOR = 'pre code';
 const PROPERTY_NAME_SELECTOR = '[class*="propertyName"]';
 const PROPERTY_EXPANDER_SELECTOR = '[class*="propertyExpander"]';
-const SEARCH_OPTION_SELECTOR = '[class*="searchOption"]';
+const SEARCH_OPTION_SELECTOR = '[class*="searchOptions"] > [class*="searchOption"]';
 const SEARCH_DROPDOWN_SELECTOR = '[class*="searchDropdown"]';
 
 function getSearchInput(page: Page) {

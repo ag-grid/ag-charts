@@ -7,6 +7,7 @@ import type {
 import {
     type OptionsDefs,
     boolean,
+    callback,
     callbackDefs,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -56,6 +57,7 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
         },
     }),
     showInMiniChart: boolean,
+    collector: callback,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,

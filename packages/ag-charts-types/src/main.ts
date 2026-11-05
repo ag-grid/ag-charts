@@ -34,6 +34,8 @@ export * from './chart/scrollbarOptions';
 export * from './chart/polarAxisOptions';
 export * from './chart/radiusAxisOptions';
 export * from './chart/rangesOptions';
+export * from './chart/statusBarOptions';
+export * from './series/seriesCollectorOptions';
 export * from './chart/selectionOptions';
 export * from './chart/themeMap';
 export * from './chart/themeOptions';

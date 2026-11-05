@@ -831,3 +831,25 @@ export class Color implements IColor {
         ['yellowgreen', '#9ACD32'],
     ]);
 }
+
+export interface DrawnItemStyle {
+    fill?: unknown;
+    fillOpacity?: number;
+    stroke?: unknown;
+    strokeWidth?: number;
+}
+
+/** The colour an item is drawn with: its fill when visible, otherwise its stroke. */
+export function drawnItemColor(style: DrawnItemStyle): string | undefined {
+    if ((style.fillOpacity ?? 1) > 0 && isVisibleColor(style.fill)) return style.fill;
+    if ((style.strokeWidth ?? 1) > 0 && isVisibleColor(style.stroke)) return style.stroke;
+}
+
+function isVisibleColor(color: unknown): color is string {
+    if (typeof color !== 'string') return false;
+    try {
+        return Color.fromString(color).a > 0;
+    } catch {
+        return false;
+    }
+}

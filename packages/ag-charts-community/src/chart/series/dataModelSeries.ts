@@ -209,7 +209,7 @@ export abstract class DataModelSeries<
         );
     }
 
-    protected clampDatumIndex(datumIndex: number): number {
+    clampDatumIndex(datumIndex: number): number {
         return clamp(0, datumIndex, this.dataCount() - 1);
     }
 

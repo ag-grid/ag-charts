@@ -3,6 +3,7 @@ import {
     type AgHlcSeriesItemType,
     type AgHlcSeriesStylerParams,
     type AgSeriesMarkerStyle,
+    type SeriesFormatterSource,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -28,6 +29,8 @@ import {
     PointerEvents,
     type RequireOptional,
     clamp,
+    datumValueTooltipRow,
+    drawnItemColor,
     extent,
     findMinMax,
     isContinuous,
@@ -37,7 +40,7 @@ import {
     minValue,
     toNumber,
 } from 'ag-charts-core';
-import type { Path, SegmentedPath, Selection, Text } from 'ag-charts-core';
+import type { DrawnItemStyle, Path, SegmentedPath, Selection, SeriesDatumValue, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
@@ -1231,15 +1234,9 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         return { xKey, highKey, lowKey, closeKey, itemType };
     }
 
-    override getTooltipContent(
-        datumIndex: number,
-        removeThisDatum: HlcMarkerDatum | undefined
-    ): _ModuleSupport.TooltipContent | undefined {
-        const itemType: AgHlcSeriesItemType = removeThisDatum?.itemType ?? 'close';
-
-        const { id: seriesId, dataModel, processedData, axes, options } = this;
-        const { xKey, xName, yName, highKey, highName, lowKey, lowName, closeKey, closeName, tooltip, legendItemName } =
-            options;
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource, itemType: AgHlcSeriesItemType = 'close') {
+        const { dataModel, processedData, axes, options } = this;
+        const { xKey, xName, highKey, highName, lowKey, lowName, closeKey, closeName, legendItemName } = options;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -1260,26 +1257,74 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const stylerStyle = this.getStyle(undefined);
-        const format = this.getMarkerStyle(
-            this.itemMarkers[itemType],
-            { datumIndex, datum },
-            this.makeItemStylerParams(itemType),
-            { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
-            stylerStyle.item[itemType].marker
-        ) as RequireOptional<AgSeriesMarkerStyle>;
+        const markerStyle = (type: AgHlcSeriesItemType) =>
+            this.getMarkerStyle(
+                this.itemMarkers[type],
+                { datumIndex, datum },
+                this.makeItemStylerParams(type),
+                { isHighlight: false, resolveMarkerSubPath: ['item', type, 'marker'] },
+                stylerStyle.item[type].marker
+            ) as RequireOptional<AgSeriesMarkerStyle>;
+        const style = markerStyle(itemType);
 
-        const row = (
+        const itemValue = (
             type: AgHlcSeriesItemType,
-            label: string | undefined,
             key: string,
+            name: string | undefined,
             value: AgNumericValue
-        ): _ModuleSupport.TooltipContentDataRow => {
+        ): SeriesDatumValue => {
+            let drawnStyle: DrawnItemStyle = stylerStyle.item[type];
+            if (this.itemMarkers[type].enabled) drawnStyle = type === itemType ? style : markerStyle(type);
+            return {
+                key,
+                name,
+                value,
+                formattedValue: this.getAxisValueText(yAxis, source, value, datum, key, legendItemName),
+                missing: _ModuleSupport.isTooltipValueMissing(value),
+                color: drawnItemColor(drawnStyle),
+            };
+        };
+
+        return {
+            datum,
+            style,
+            values: [
+                {
+                    key: xKey,
+                    name: xName,
+                    value: xValue,
+                    formattedValue: this.getAxisValueText(xAxis, source, xValue, datum, xKey, legendItemName),
+                    category: true,
+                },
+                itemValue('high', highKey, highName, highValue),
+                itemValue('low', lowKey, lowName, lowValue),
+                itemValue('close', closeKey, closeName, closeValue),
+            ],
+        };
+    }
+
+    override getTooltipContent(
+        datumIndex: number,
+        removeThisDatum: HlcMarkerDatum | undefined
+    ): _ModuleSupport.TooltipContent | undefined {
+        const itemType: AgHlcSeriesItemType = removeThisDatum?.itemType ?? 'close';
+
+        const { id: seriesId, options } = this;
+        const { xKey, xName, yName, highKey, highName, lowKey, lowName, closeKey, closeName, tooltip, legendItemName } =
+            options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip', itemType);
+        if (datumValues == null) return;
+        const {
+            datum,
+            style,
+            values: [x, ...items],
+        } = datumValues;
+
+        const stylerStyle = this.getStyle(undefined);
+        const row = (type: AgHlcSeriesItemType, value: SeriesDatumValue): _ModuleSupport.TooltipContentDataRow => {
             const { marker } = stylerStyle.item[type];
             return {
-                label,
-                fallbackLabel: key,
-                value: this.getAxisValueText(yAxis, 'tooltip', value, datum, key, legendItemName),
-                missing: _ModuleSupport.isTooltipValueMissing(value),
+                ...datumValueTooltipRow(value),
                 symbol: {
                     marker: {
                         shape: marker.shape,
@@ -1298,14 +1343,10 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                heading: x.formattedValue,
                 title: legendItemName ?? yName,
                 symbol: this.legendItemSymbol(),
-                data: [
-                    row('high', highName, highKey, highValue),
-                    row('low', lowName, lowKey, lowValue),
-                    row('close', closeName, closeKey, closeValue),
-                ],
+                data: ITEM_TYPES.map((type, i) => row(type, items[i])),
             },
             {
                 seriesId,
@@ -1322,7 +1363,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
                 closeKey,
                 closeName,
                 legendItemName,
-                ...format,
+                ...style,
             }
         );
     }
