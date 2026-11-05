@@ -64,6 +64,8 @@ export class AxisButton extends AbstractModuleInstance {
         button.addClass(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
         button.setTabIndex(-1);
         button.setAriaLabel(this.ctx.localeManager.t('ariaLabelAddHorizontalLine'));
+        // TODO: Phase 3 "Common Widget Ancestor" - seriesBoundsWidget.addChild() cannot be used yet: it is a
+        // DOMManagerWidget, whose addChild() leaves the DOM to DOMManager, so the button would never be attached.
         this.ctx.widgets.seriesBoundsWidget.getElement().appendChild(button.getElement());
         return button;
     }
@@ -173,7 +175,7 @@ export class AxisButton extends AbstractModuleInstance {
     }
 
     private updatePosition({ x, y }: Point) {
-        this.button.getElement().style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+        this.button.setTranslate(Math.round(x), Math.round(y));
     }
 
     private updateButtonElement() {

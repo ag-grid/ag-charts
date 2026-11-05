@@ -59,6 +59,8 @@ export class SliderWidget extends Widget<HTMLInputElement> {
 
     constructor() {
         super(createElement('input'));
+        this.elem.type = 'range';
+        this.elem.style.margin = '0px';
         this.orientation = 'both';
     }
 
