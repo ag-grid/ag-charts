@@ -128,6 +128,9 @@ describe('checkPackage', () => {
         const contents = {
             'dist/package/main.esm.mjs': 'export * from "./chart/chart.esm.mjs";',
             'dist/package/chart/chart.esm.mjs': 'export{util as chartUtil}from"./util.esm.mjs";',
+            'dist/package/chart/util.esm.mjs':
+                'import { logger } from "ag-charts-core";\nimport { AG_CHARTS_LOCALE_EN_US } from "ag-charts-locale";',
+            'dist/package/main.esm.min.mjs': 'import{logger as o}from"ag-charts-core";',
         };
 
         it('accepts the modules the entry imports, without minified twins', () => {
@@ -165,6 +168,21 @@ describe('checkPackage', () => {
                 'dist/package/main.esm.mjs': `${contents['dist/package/main.esm.mjs']}\nexport * from "./de-DE.esm.mjs";`,
             };
             assert.deepEqual(checkPackage(createPackage(packageJson, shipped, withLocale)), []);
+        });
+
+        it('reports a minified bundle that imports a module', () => {
+            const unbundled = { ...contents, 'dist/package/main.esm.min.mjs': 'export*from"./chart/chart.esm.mjs";' };
+            assert.deepEqual(summarise(checkPackage(createPackage(STANDARD_EXPORTS, files, unbundled))), [
+                'bundle-relative-import dist/package/main.esm.min.mjs',
+                'bundle-inlined-package dist/package/main.esm.min.mjs',
+            ]);
+        });
+
+        it('reports a minified bundle that inlines a package the modules import', () => {
+            const inlined = { ...contents, 'dist/package/main.esm.min.mjs': 'const o={};export{o as logger};' };
+            assert.deepEqual(summarise(checkPackage(createPackage(STANDARD_EXPORTS, files, inlined))), [
+                'bundle-inlined-package dist/package/main.esm.min.mjs',
+            ]);
         });
 
         it('reports a module nothing imports', () => {
