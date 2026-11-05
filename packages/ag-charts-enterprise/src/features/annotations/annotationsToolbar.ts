@@ -144,7 +144,7 @@ export class AnnotationsToolbar {
     /** Focus the button the pending tool was chosen from, which a menu's item leaves to its menu button. */
     public focusPendingToolButton() {
         const index = this.buttons.findIndex((button) => button.value === this.pendingTool?.button);
-        this.toolbar.focusButton(index);
+        if (index >= 0) this.toolbar.focusButton(index);
     }
 
     private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {

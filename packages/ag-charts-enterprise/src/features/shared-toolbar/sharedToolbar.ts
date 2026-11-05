@@ -174,6 +174,7 @@ export class SharedToolbar extends AbstractModuleInstance {
                 }
             },
             focusButton: (index: number) => {
+                if (index < 0) return;
                 sharedToolbar.focusButton(this.getIndex(section, index));
             },
             clearActiveButton: sharedToolbar.clearActiveButton.bind(sharedToolbar),
