@@ -16,7 +16,6 @@ import {
     color,
     colorOrRef,
     defined,
-    deprecated,
     fontOptionsDef,
     isObject,
     number,
@@ -34,7 +33,6 @@ import {
 import type {
     AgMiniChartSeriesOptions,
     AgNavigatorHandleOptions,
-    AgNavigatorMaskOptions,
     AgNavigatorMiniChartLabelOptions,
     AgNavigatorOptions,
     AgNavigatorThemeableOptions,
@@ -206,11 +204,6 @@ const navigatorTrackOptionsDef: OptionsDefs<AgNavigatorTrackOptions> = {
     strokeWidth: positiveNumber,
 };
 
-const navigatorMaskOptionsDef: OptionsDefs<AgNavigatorMaskOptions> = deprecated(
-    navigatorTrackOptionsDef,
-    'Use `navigator.track` instead.'
-);
-
 const navigatorThumbOptionsDef: OptionsDefs<AgNavigatorThumbOptions> = {
     fill: color,
     fillOpacity: ratio,
@@ -236,7 +229,6 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
     height: positiveNumber,
     spacing: positiveNumber,
     cornerRadius: positiveNumber,
-    mask: navigatorMaskOptionsDef,
     track: navigatorTrackOptionsDef,
     thumb: navigatorThumbOptionsDef,
     minHandle: navigatorHandleOptionsDef,
@@ -257,10 +249,6 @@ const navigatorHandleThemeOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
 
 export const navigatorThemeOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
     ...navigatorOptionsDef,
-    mask: deprecated(
-        { ...navigatorTrackOptionsDef, fill: colorOrRef, stroke: colorOrRef },
-        'Use `navigator.track` instead.'
-    ),
     track: { ...navigatorTrackOptionsDef, fill: colorOrRef, stroke: colorOrRef },
     thumb: { ...navigatorThumbOptionsDef, fill: colorOrRef },
     minHandle: navigatorHandleThemeOptionsDef,

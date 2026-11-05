@@ -1,17 +1,18 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelFitOptions,
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, OverflowStrategy, PixelSize } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, PixelSize } from '../../chart/types';
 import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 
 export interface AgMapShapeSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
@@ -53,16 +54,7 @@ export interface AgMapShapeSeriesOptionsNames {
 }
 
 export interface AgMapShapeSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgChartLabelAutoFontSizeOptions {
-    /**
-     * Adjusts the behaviour of labels when they overflow.
-     * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
-     * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
-     *
-     * @deprecated v14.3.0 Use `truncate` instead.
-     */
-    overflowStrategy?: OverflowStrategy;
-}
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgChartLabelAutoFontSizeOptions {}
 
 export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
@@ -74,12 +66,14 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
     label?: AgMapShapeSeriesLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Distance between the shape edges and the text. */
     padding?: PixelSize;
+    /** Configuration for the shadow used behind the series items. */
+    shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular Map shape based on the input parameters. */
     itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<TDatum, TContext>, AgMapShapeSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgMapShapeSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

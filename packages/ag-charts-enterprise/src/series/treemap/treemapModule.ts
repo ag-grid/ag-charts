@@ -1,6 +1,5 @@
 import { type AgTreemapSeriesOptions, StandaloneChartModule, VERSION } from 'ag-charts-community';
 import {
-    AUTO_SIZED_LABEL_TRUNCATE,
     BRANCH_GLOW_BUCKETS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FONT_SIZE_RATIO,
@@ -62,7 +61,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     ...LABEL_OVERFLOW_DEFAULTS,
                     collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
                     spacing: 4,
-                    textAlign: { $path: ['../textAlign', 'left'] },
+                    textAlign: 'left',
                     verticalAlign: 'middle',
                 },
                 fill: undefined, // Override default fill
@@ -72,7 +71,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: 1,
                 strokeOpacity: 1,
                 cornerRadius: 0,
-                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+                shadow: SHADOW_THEME_DEFAULTS,
                 padding: 4,
                 gap: 2,
                 interactive: true,
@@ -100,10 +99,10 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'on-space',
-                    truncate: AUTO_SIZED_LABEL_TRUNCATE,
+                    truncate: true,
                     spacing: 2,
-                    textAlign: { $path: ['../textAlign', 'center'] },
-                    verticalAlign: { $path: ['../verticalAlign', 'middle'] },
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
                 },
                 secondaryLabel: {
                     ...LABEL_BOXING_DEFAULTS,
@@ -116,9 +115,9 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'never',
-                    truncate: AUTO_SIZED_LABEL_TRUNCATE,
-                    textAlign: { $path: ['../textAlign', 'center'] },
-                    verticalAlign: { $path: ['../verticalAlign', 'middle'] },
+                    truncate: true,
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
                 },
                 fill: undefined, // Override default fill
                 fillOpacity: 1,
@@ -126,7 +125,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
                 strokeOpacity: 1,
                 cornerRadius: 0,
-                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+                shadow: SHADOW_THEME_DEFAULTS,
                 padding: 3,
                 gap: 1,
                 highlight: withGlowThemeDefaults(

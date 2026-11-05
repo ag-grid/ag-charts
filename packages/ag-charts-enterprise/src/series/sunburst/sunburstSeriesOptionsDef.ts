@@ -42,7 +42,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     colorScale: colorScaleOptionsDef,
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     padding: positiveNumber,
     innerRadiusRatio: ratio,
     innerRadiusSize: positiveNumberNonZero,

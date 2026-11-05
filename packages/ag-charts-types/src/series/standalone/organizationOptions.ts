@@ -13,7 +13,6 @@ import type {
     DatumKey,
     FontWeight,
     Opacity,
-    OverflowStrategy,
     PixelSize,
     TextAlign,
     TextWrap,
@@ -262,14 +261,6 @@ export interface AgOrganizationSeriesOptionsNodeLabel<
 export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssOptions, StrokeOptions, Toggleable {
     /** The colour to use for the node text. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
-    /**
-     * Adjusts the behaviour of the text when it overflows the node.
-     * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
-     * - `'hide'` only displays the text if it completely fits within the node, and removes it if it would overflow
-     *
-     * @deprecated v14.3.0 Use `truncate` instead.
-     */
-    overflowStrategy?: OverflowStrategy;
     /**
      * Whether to truncate the text with an ellipsis when it does not fit within the node after wrapping. When
      * `false`, text that does not fit is hidden instead.

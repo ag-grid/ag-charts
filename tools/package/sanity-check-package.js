@@ -7,6 +7,8 @@ const glob = require('glob');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
+const { checkPackage } = require('./dist-artefacts');
+
 const args = yargs(hideBin(process.argv)).option('allowed-ext', { array: true, type: 'string' }).parse();
 
 tsNode.register();
@@ -196,6 +198,12 @@ async function run() {
 
     if (packageJson.exports != null) {
         await checkExports(packageJson.exports);
+    }
+
+    // Missing export targets are already reported by `checkExports()`.
+    for (const error of checkPackage(dir).filter((e) => e.kind !== 'missing-target')) {
+        console.log(`[${packageJson.name}]: ${error.message}`);
+        exitStatus = 1;
     }
 
     checkOneExists('README.md');
