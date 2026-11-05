@@ -10,7 +10,7 @@ import type {
     RequireOptional,
     Selection,
 } from 'ag-charts-core';
-import { Line } from 'ag-charts-core';
+import { Line, glowToShadow } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -78,6 +78,11 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
 
     protected override connectorShadow(): NormalisedDropShadowOptions {
         return this.options.shadow;
+    }
+
+    // Connectors have no highlight options, so their glow is the series-level one in every highlight state.
+    protected override connectorGlow(): NormalisedDropShadowOptions | undefined {
+        return glowToShadow(this.options.glow);
     }
 
     protected getItemStyle(
