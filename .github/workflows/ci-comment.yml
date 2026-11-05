@@ -1,10 +1,6 @@
 name: CI Comment
 
-# `/ci` on a draft PR starts a full CI run on its branch (`/ci --affected` runs `nx affected` instead).
-# Consumes the ci-comment-trigger action from @ag-grid/dev-prompts, the same way pr-review.yml
-# consumes pr-review-comment-trigger. No checkout: the action passes --repo on every gh call.
-#
-# Channel: canary, like pr-review.yml.
+# `/ci` on a draft PR runs ci.yml on its branch through the shared ci-comment-trigger action.
 
 on:
     issue_comment:
@@ -13,7 +9,6 @@ on:
 jobs:
     ci-comment:
         runs-on: ubuntu-24.04
-        # Keeps the runner from starting for unrelated PR comments.
         if: github.event.issue.pull_request != null && startsWith(github.event.comment.body, '/ci')
         permissions:
             contents: read
