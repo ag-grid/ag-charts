@@ -1,3 +1,5 @@
+import type { Operation } from 'ag-charts-types';
+
 import { themeBorderColor, themeBorderWidth, themeLineHeight } from './themeUtil';
 
 const CAPTION_BOX_THEME_DEFAULTS = {
@@ -66,10 +68,13 @@ export const commonChartThemeTemplate = {
     padding: { $applyPadding: { $ref: 'chartPadding' } },
     border: {
         enabled: { $isType: [{ $ref: 'chartBorder' }, 'boolean', { $ref: 'chartBorder' }, true] },
-        stroke: themeBorderColor('chartBorder', { unset: { $ref: 'borderColor' } }),
+        stroke: themeBorderColor('chartBorder', { unset: { $ref: 'borderColor' } }) satisfies Operation,
         strokeOpacity: 1,
         // `chartBorder: false` still gives a visible border when one is enabled through the chart options.
-        strokeWidth: themeBorderWidth('chartBorder', { off: { $ref: 'borderWidth' }, unset: { $ref: 'borderWidth' } }),
+        strokeWidth: themeBorderWidth('chartBorder', {
+            off: { $ref: 'borderWidth' },
+            unset: { $ref: 'borderWidth' },
+        }) satisfies Operation,
         cornerRadius: { $ref: 'chartBorderRadius' },
     },
     seriesArea: {
