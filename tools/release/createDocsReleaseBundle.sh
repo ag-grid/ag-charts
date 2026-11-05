@@ -17,5 +17,6 @@ VERSION=""${RAW_VERSION//./}""
 echo "Creating Release Archive"
 FILENAME=charts-release_"$ZIP_PREFIX"_v"$VERSION".zip
 cd ./dist/packages/ag-charts-website
+rm -f ../../../$FILENAME
 zip -r ../../../$FILENAME .
 
