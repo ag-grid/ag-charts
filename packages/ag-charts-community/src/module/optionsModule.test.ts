@@ -5466,6 +5466,7 @@ describe('ChartOptions', () => {
                 { params: { accentColor: { ref: 'foregroundColor', mix: 0.5, ontoColor: lightDark } } },
             ],
             ['palette fill', 'theme.palette.fills', { palette: { fills: ['red', lightDark] } }],
+            ['palette stroke', 'theme.palette.strokes', { palette: { strokes: ['red', lightDark] } }],
         ])('warns with light-dark() advice and uses the theme default for a light-dark() %s', (_name, path, theme) => {
             const chartOptions = new ChartOptions<AgChartOptions>(
                 {
