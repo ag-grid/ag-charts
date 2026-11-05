@@ -61,47 +61,46 @@ function setAt(target: Options, path: string, value: unknown) {
     parent[last] = value;
 }
 
-// Copies `field` into a `nested` object on every datum, tree nodes included, leaving the flat value in place.
-function nestField(value: unknown, field: string): unknown {
-    if (Array.isArray(value)) return value.map((item) => nestField(item, field));
+// Calls `copy` on every datum holding `field`, tree nodes included, leaving the flat value in place.
+function copyField(value: unknown, field: string, copy: (datum: Options) => void): unknown {
+    if (Array.isArray(value)) return value.map((item) => copyField(item, field, copy));
     if (value == null || typeof value !== 'object' || value instanceof Date) return value;
     const result: Options = {};
-    for (const [key, item] of Object.entries(value)) result[key] = nestField(item, field);
-    if (field in result) result[NESTED] = { [field]: result[field] };
+    for (const [key, item] of Object.entries(value)) result[key] = copyField(item, field, copy);
+    if (field in result) copy(result);
     return result;
 }
 
-// Nests the field in every `data` along the key path: the chart's, a series' or a preset section's.
+// Maps each `data` along the key path (chart, series or preset section), and the topology for a topology key.
+function mapKeyHosts(options: Options, keyPath: string, map: (value: unknown) => unknown) {
+    const parts = keyPath.split('.');
+    const topologyKey = parts.at(-1) === 'topologyIdKey';
+    for (let depth = 0; depth < parts.length; depth++) {
+        const host = depth === 0 ? options : getAt(options, parts.slice(0, depth).join('.'));
+        for (const item of Array.isArray(host) ? host : [host]) {
+            if (Array.isArray(item?.data)) item.data = map(item.data);
+            if (topologyKey && item?.topology != null) item.topology = map(item.topology);
+        }
+    }
+}
+
 function withKey(options: Options, keyPath: string, mode: 'nested' | 'absent'): Options {
     const field: string = getAt(options, keyPath);
     const result = deepClone(options);
-    if (mode === 'nested') {
-        const parts = keyPath.split('.');
-        for (let depth = 0; depth < parts.length; depth++) {
-            const host = depth === 0 ? result : getAt(result, parts.slice(0, depth).join('.'));
-            if (Array.isArray(host?.data)) host.data = nestField(host.data, field);
-            if (Array.isArray(host)) {
-                for (const item of host) if (Array.isArray(item?.data)) item.data = nestField(item.data, field);
-            }
-        }
-    }
+    const nest = (datum: Options) => (datum[NESTED] = { [field]: datum[field] });
+    if (mode === 'nested') mapKeyHosts(result, keyPath, (value) => copyField(value, field, nest));
     setAt(result, keyPath, mode === 'nested' ? `${NESTED}.${field}` : ABSENT);
     return result;
 }
 
-// Renames each key's field to a dotted property name, which only a chart with dot notation suppressed reads back.
+// Copies each key's field to a dotted property name, which only a chart with dot notation suppressed reads back.
 function withLiteralKeys(options: Options, keyPaths: string[]): Options {
     const result = deepClone(options);
     for (const keyPath of keyPaths) {
         const field: string = getAt(result, keyPath);
         const literal = `${NESTED}.${field}`;
-        const rename = (data: Options[]) =>
-            data.map(({ [field]: value, ...datum }) => (value === undefined ? datum : { ...datum, [literal]: value }));
-        const parts = keyPath.split('.');
-        for (let depth = 0; depth < parts.length; depth++) {
-            const host = depth === 0 ? result : getAt(result, parts.slice(0, depth).join('.'));
-            if (Array.isArray(host?.data)) host.data = rename(host.data);
-        }
+        const copy = (datum: Options) => (datum[literal] = datum[field]);
+        mapKeyHosts(result, keyPath, (value) => copyField(value, field, copy));
         setAt(result, keyPath, literal);
     }
     return { ...result, suppressFieldDotNotation: true };
@@ -401,13 +400,14 @@ const SERIES: KeyPathCase[] = [
                     type: 'map-shape',
                     data: countries,
                     idKey: 'name',
+                    topologyIdKey: 'name',
                     colorKey: 'population',
                     labelKey: 'label',
                     label: { enabled: true },
                 },
             ],
         },
-        keys: ['series.0.idKey', 'series.0.colorKey', 'series.0.labelKey'],
+        keys: ['series.0.idKey', 'series.0.topologyIdKey', 'series.0.colorKey', 'series.0.labelKey'],
     },
     {
         name: 'map-marker',
@@ -440,9 +440,18 @@ const SERIES: KeyPathCase[] = [
         name: 'map-marker by id',
         options: {
             topology: ukTopology,
-            series: [{ id: 'under-test', type: 'map-marker', data: countries, idKey: 'name', size: 40 }],
+            series: [
+                {
+                    id: 'under-test',
+                    type: 'map-marker',
+                    data: countries,
+                    idKey: 'name',
+                    topologyIdKey: 'name',
+                    size: 40,
+                },
+            ],
         },
-        keys: ['series.0.idKey'],
+        keys: ['series.0.idKey', 'series.0.topologyIdKey'],
     },
     {
         name: 'map-line',
@@ -457,6 +466,7 @@ const SERIES: KeyPathCase[] = [
                         { name: 'M6', traffic: 9, label: 'Motorway six' },
                     ],
                     idKey: 'name',
+                    topologyIdKey: 'name',
                     sizeKey: 'traffic',
                     colorKey: 'traffic',
                     labelKey: 'label',
@@ -464,7 +474,13 @@ const SERIES: KeyPathCase[] = [
                 },
             ],
         },
-        keys: ['series.0.idKey', 'series.0.sizeKey', 'series.0.colorKey', 'series.0.labelKey'],
+        keys: [
+            'series.0.idKey',
+            'series.0.topologyIdKey',
+            'series.0.sizeKey',
+            'series.0.colorKey',
+            'series.0.labelKey',
+        ],
     },
 ];
 
@@ -764,23 +780,21 @@ describe('datum key paths', () => {
         });
     });
 
-    const SUPPRESSED_CASES: KeyPathCase[] = [
-        {
-            name: 'bar with error bars',
-            options: {
-                data: categories,
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'low', yUpperKey: 'high' } }],
-            },
-            keys: ['series.0.yKey', 'series.0.errorBar.yLowerKey', 'series.0.errorBar.yUpperKey'],
-        },
-        ...FEATURE_CASES.filter(({ factory = 'create' }) => factory !== 'create'),
+    const SUPPRESSED_CASES = [
+        ...SERIES_CASES,
+        ...FEATURE_CASES.filter(({ name }) => name !== 'key names in the legend'),
     ];
 
     it.each(SUPPRESSED_CASES)(
         '$name reads literal dotted keys when dot notation is suppressed',
         async (keyPathCase) => {
             // Suppressed first, so text a literal key fails to resolve cannot be left over from a flat render.
-            const suppressed = await render(keyPathCase, withLiteralKeys(keyPathCase.options, keyPathCase.keys));
+            const literalOptions = withLiteralKeys(keyPathCase.options, keyPathCase.keys);
+            if (keyPathCase.interact != null) await render(keyPathCase, literalOptions);
+            const suppressed = await render(keyPathCase, literalOptions);
+            // A suppressed key names itself in full, so its tooltip names carry the literal prefix.
+            if (suppressed.probe !== undefined)
+                suppressed.probe = JSON.parse(JSON.stringify(suppressed.probe).replaceAll(`${NESTED}.`, ''));
             const flat = await render(keyPathCase, keyPathCase.options);
 
             expectNonBlank(flat.image);

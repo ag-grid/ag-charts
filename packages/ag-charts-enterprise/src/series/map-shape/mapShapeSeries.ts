@@ -28,6 +28,7 @@ import {
     Selection,
     Text,
     configureColorScale,
+    datumKeyReader,
     findDiscreteColorBinLabel,
     fitLabelTextToRegionAutoSize,
     formatValue,
@@ -287,9 +288,10 @@ export class MapShapeSeries
         const { data, topology, colorScale } = this;
         const { topologyIdKey, idKey, colorKey, labelKey } = this.options;
 
+        const readTopologyId = datumKeyReader(topologyIdKey, this.suppressFieldDotNotation);
         const featureById = new Map<string, Feature>();
         for (const feature of topology?.features.values() ?? []) {
-            const property = feature.properties?.[topologyIdKey];
+            const property = readTopologyId(feature.properties);
             if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) continue;
             featureById.set(property, feature);
         }

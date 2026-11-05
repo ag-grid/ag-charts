@@ -24,6 +24,7 @@ import {
     Text,
     Transformable,
     configureColorScale,
+    datumKeyReader,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
@@ -192,9 +193,10 @@ export class MapLineSeries
         const { data, topology, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain } = this.options;
 
+        const readTopologyId = datumKeyReader(topologyIdKey, this.suppressFieldDotNotation);
         const featureById = new Map<string, Feature>();
         for (const feature of topology?.features.values() ?? []) {
-            const property = feature.properties?.[topologyIdKey];
+            const property = readTopologyId(feature.properties);
             if (property == null || !containsType(feature.geometry, GeometryType.LineString)) continue;
             featureById.set(property, feature);
         }

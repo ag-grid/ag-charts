@@ -24,6 +24,7 @@ import {
     Text,
     applySizeMode,
     configureColorScale,
+    datumKeyReader,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
@@ -556,10 +557,11 @@ export class MapMarkerSeries
     }
 
     private buildFeatureMap(topologyIdKey: string): Map<string, Feature> {
+        const readTopologyId = datumKeyReader(topologyIdKey, this.suppressFieldDotNotation);
         const featureById = new Map<string, Feature>();
 
         for (const feature of this.topology?.features.values() ?? []) {
-            const property = feature.properties?.[topologyIdKey];
+            const property = readTopologyId(feature.properties);
             if (property != null) {
                 featureById.set(property, feature);
             }
