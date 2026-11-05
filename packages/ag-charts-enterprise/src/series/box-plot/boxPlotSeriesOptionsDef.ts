@@ -23,7 +23,6 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 
@@ -66,7 +65,7 @@ export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemea
     styler: boxPlotStyler,
     itemStyler: boxPlotStyler,
     tooltip: tooltipOptionsDefs,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...boxPlotStyleOptionsDef,
     highlight: multiSeriesGlowHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),

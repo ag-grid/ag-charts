@@ -1,22 +1,29 @@
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgMultiSeriesGlowHighlightOptions } from '../seriesOptions';
 import type {
     AgBaseRadialSeriesThemeableOptions,
+    AgRadialHighlightStyleOptions,
     AgRadialSeriesOptionsKeys,
     AgRadialSeriesOptionsNames,
 } from './radialOptions';
 
-export type AgRadialBarSeriesThemeableOptions<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = AgBaseRadialSeriesThemeableOptions<TDatum, TContext>;
+export interface AgRadialBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgBaseRadialSeriesThemeableOptions<TDatum, TContext>,
+    'highlight'
+> {
+    /** Configuration for the shadow used behind the series items. */
+    shadow?: AgDropShadowOptions;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgRadialHighlightStyleOptions, AgRadialHighlightStyleOptions>;
+}
 
 export interface AgRadialBarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
-        AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
+        AgRadialBarSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for Radial Bar Series. */
     type: 'radial-bar';
     /** The number to normalise the bar stacks to. Has no effect unless series are stacked. */

@@ -1,13 +1,19 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgGlowHighlightOptions,
+    AgHighlightStyleOptions,
+} from '../seriesOptions';
 
 export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'focusIndex'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
         AgChordSeriesOptionsKeys<TDatum>,
         AgChordSeriesOptionsNames,
         AgChordSeriesThemeableOptions<TDatum, TContext> {
@@ -69,6 +75,8 @@ export interface AgChordSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     link?: AgChordSeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgChordSeriesNodeOptions<TDatum, TContext>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum, TContext>>;
 }
@@ -90,6 +98,8 @@ export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgChordSeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesLinkStyle {
+    /** Configuration for the shadow used behind the links. */
+    shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual links, based on the given parameters.*/
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum, TContext>, AgChordSeriesLinkStyle>;
 }
@@ -104,6 +114,8 @@ export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgChordSeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesNodeStyle {
+    /** Configuration for the shadow used behind the nodes. */
+    shadow?: AgDropShadowOptions;
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */

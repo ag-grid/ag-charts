@@ -1885,6 +1885,45 @@ describe('Zoom', () => {
             expect(end - start).toBeCloseTo(0.25, 10);
         });
 
+        it('fires the zoom event after activeChange when panning a map to the focused shape', async () => {
+            const square = (lon: number, lat: number) => [
+                [
+                    [lon, lat],
+                    [lon + 1, lat],
+                    [lon + 1, lat + 1],
+                    [lon, lat + 1],
+                    [lon, lat],
+                ],
+            ];
+            const events: string[] = [];
+            chart = await createEnterpriseChart({
+                animation: { enabled: false },
+                data: [{ name: 'a' }, { name: 'b' }],
+                topology: {
+                    type: 'FeatureCollection',
+                    features: ['a', 'b'].map((name, index) => ({
+                        type: 'Feature',
+                        properties: { name },
+                        geometry: { type: 'Polygon', coordinates: square(index * 10, 0) },
+                    })),
+                },
+                zoom: { enabled: true },
+                initialState: { zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } } },
+                series: [{ type: 'map-shape', idKey: 'name' }],
+                listeners: {
+                    activeChange: () => events.push('activeChange'),
+                    zoom: () => events.push('zoom'),
+                },
+            });
+
+            await tabIntoChart(chart);
+            events.length = 0;
+            await pressKey(chart, 'ArrowRight');
+            await waitForChartStability(chart);
+
+            expect(events).toEqual(['activeChange', 'zoom']);
+        });
+
         describe('AG-14101 ArrowDown into a series whose datum is outside the viewport', () => {
             function getBarCentre(seriesIndex: number, datumIndex: number) {
                 const series = new Caster(deproxy(chart))

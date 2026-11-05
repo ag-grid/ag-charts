@@ -162,6 +162,28 @@ describe('Widget', () => {
         });
     });
 
+    describe('offsetWidth and offsetHeight', () => {
+        it('return the element layout size', () => {
+            const widget = makeWidget();
+            const elem = widget.getElement();
+            vi.spyOn(elem, 'offsetWidth', 'get').mockReturnValue(120);
+            vi.spyOn(elem, 'offsetHeight', 'get').mockReturnValue(45);
+
+            expect(widget.offsetWidth).toBe(120);
+            expect(widget.offsetHeight).toBe(45);
+        });
+    });
+
+    describe('setCSSPosition', () => {
+        it('sets and removes the position style', () => {
+            const widget = makeWidget();
+            widget.setCSSPosition('absolute');
+            expect(widget.getElement().style.position).toBe('absolute');
+            widget.setCSSPosition(undefined);
+            expect(widget.getElement().style.position).toBe('');
+        });
+    });
+
     describe('insertSiblingAfter', () => {
         it('moves the sibling element directly after this element without changing the widget tree', () => {
             const list = makeWidget();
@@ -179,6 +201,18 @@ describe('Widget', () => {
 
             second.insertSiblingAfter(floating);
             expect(list.getElement().lastElementChild).toBe(floating.getElement());
+        });
+    });
+
+    describe('clearWidth', () => {
+        it('drops only the width set by setBounds, so getBounds falls back to the rendered width', () => {
+            const widget = makeWidget();
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+
+            widget.clearWidth();
+
+            // jsdom does no layout, so the rendered width is 0.
+            expect(widget.getBounds()).toEqual({ x: 4, y: 5, width: 0, height: 20 });
         });
     });
 });

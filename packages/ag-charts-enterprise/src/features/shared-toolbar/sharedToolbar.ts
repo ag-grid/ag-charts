@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type BBox, type DynamicContext } from 'ag-charts-core';
+import { AbstractModuleInstance, type BBox, type DynamicContext, NativeWidget } from 'ag-charts-core';
 
 import type { SharedToolbarSection } from './sharedToolbarTypes';
 
@@ -25,7 +25,7 @@ export interface SharedToolbarWithSection<
 export class SharedToolbar extends AbstractModuleInstance {
     static readonly SECTION_ORDER: Array<SharedToolbarSection> = ['chartToolbar', 'annotations'];
 
-    private readonly container: HTMLElement;
+    private readonly container: NativeWidget;
     private sharedToolbar?: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>;
     private readonly activeSections: Set<SharedToolbarSection> = new Set();
     private readonly sectionButtons: Record<SharedToolbarSection, Array<_ModuleSupport.ToolbarButtonOptions>> = {
@@ -49,8 +49,10 @@ export class SharedToolbar extends AbstractModuleInstance {
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
-        this.container = this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar');
-        this.container.role = 'presentation';
+        // TODO: Phase 3 "Common Widget Ancestor" - DOMManager should hand out this container as a Widget.
+        // Not destroyed here: the element belongs to DOMManager, which removes it when the chart is destroyed.
+        this.container = new NativeWidget(this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar'));
+        this.container.setAriaRole('presentation');
         this.cleanup.register(
             ctx.eventsHub.on('font:load', () => this.invalidateWidthCache()),
             ctx.eventsHub.on('theme:params-change', () => this.invalidateWidthCache())
@@ -72,11 +74,10 @@ export class SharedToolbar extends AbstractModuleInstance {
         this.sharedToolbar = new _ModuleSupport.Toolbar(this.ctx, 'ariaLabelAnnotationsToolbar', 'vertical');
         this.sharedToolbar.addClass('ag-charts-shared-toolbar');
 
-        this.container.append(this.sharedToolbar.getElement());
+        this.container.addChild(this.sharedToolbar);
 
         this.cleanup.register(() => {
             if (!this.sharedToolbar) return;
-            this.sharedToolbar.getElement().remove();
             this.sharedToolbar.destroy();
             this.sharedToolbar = undefined;
         });
@@ -229,7 +230,7 @@ export class SharedToolbar extends AbstractModuleInstance {
     }
 
     private measureWidth(
-        sharedToolbar: Pick<_ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>, 'getBounds' | 'getElement'>
+        sharedToolbar: Pick<_ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>, 'getBounds' | 'clearWidth'>
     ): number {
         const signature = this.widthSignature();
         if (this.cachedWidth !== undefined && this.cachedWidthSignature === signature) {
@@ -237,7 +238,7 @@ export class SharedToolbar extends AbstractModuleInstance {
         }
 
         // `getBounds()` prefers the inline width, so it must be cleared to measure the natural width.
-        sharedToolbar.getElement().style.removeProperty('width');
+        sharedToolbar.clearWidth();
         const width = sharedToolbar.getBounds().width;
         // A zero width means the toolbar isn't laid out yet; don't pin the cache to it.
         if (width === 0) return width;

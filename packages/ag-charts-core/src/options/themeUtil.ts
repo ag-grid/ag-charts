@@ -3,6 +3,7 @@ import type {
     AgChartAllThemeParams,
     AgChartLabelFitOptions,
     AgChartLabelPlacementStyleOptions,
+    AgGlowOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
@@ -20,7 +21,6 @@ import { mapValues, mergeDefaults } from '../data/object';
 import { Color } from '../format/color';
 import type { DeepPartial } from '../types/global';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../types/themeConstants';
-import type { InternalAgGlowOptions } from './internalShadowOptions';
 import type {
     NormalisedDropShadowOptions,
     RequiredInternalAgGradientColor,
@@ -582,11 +582,6 @@ export const LABEL_OVERFLOW_DEFAULTS: WithThemeParams<AgChartLabelFitOptions> = 
     },
 };
 
-/** `truncate` for a label auto-sized to its container: on, unless the deprecated `overflowStrategy` says `'hide'`. */
-export const AUTO_SIZED_LABEL_TRUNCATE: Operation = {
-    $isUserOption: ['./overflowStrategy', { $eq: [{ $path: './overflowStrategy' }, 'ellipsis'] }, true],
-};
-
 /** Counterpart to {@link LABEL_OVERFLOW_DEFAULTS}, assigned to `label.collision.alwaysShow` one level deeper. */
 export const LABEL_OVERFLOW_ALWAYS_SHOW: Operation = {
     $if: [
@@ -677,19 +672,10 @@ export function inheritedShadowFillTheme(seriesShadowPath: string) {
     return shadowFillTheme({ $path: `${seriesShadowPath}/fill` }, { $path: `${seriesShadowPath}/fillOpacity` });
 }
 
-/** `shadowFillOpacity` is a private theme param that the public `Operation` type does not list. */
-const SHADOW_FILL_OPACITY_REF = { $ref: 'shadowFillOpacity' } as unknown as Operation;
-
-/** `fill` is undocumented, so `color` resolves to the colour the shadow casts, for readers of the options. */
-const SHADOW_COLOR_THEME: Operation = {
-    $isUserOption: ['./fill', { $path: './fill' }, { $opacity: [{ $path: './fill' }, { $path: './fillOpacity' }] }],
-};
-
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
 export const SHADOW_THEME_DEFAULTS = {
     enabled: false,
-    ...shadowFillTheme('#000', SHADOW_FILL_OPACITY_REF),
-    color: SHADOW_COLOR_THEME,
+    ...shadowFillTheme('#000', { $ref: 'shadowFillOpacity' }),
     xOffset: 3,
     yOffset: 3,
     blur: 5,
@@ -725,9 +711,7 @@ export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: r
 }
 
 /** The offset-free shadow that casts a `glow`. A glow with no `fill` leaves it unset, for the shape to fill in. */
-export function glowToShadow(
-    glow: DeepPartial<InternalAgGlowOptions> | undefined
-): NormalisedDropShadowOptions | undefined {
+export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
     if (glow?.enabled !== true) return;
 
     const { fill, fillOpacity, blur, spread } = glow;
@@ -749,9 +733,9 @@ export function withoutGlow<T extends object>(style: T): T {
 
 /** The `glow` of the highlight `buckets`, earlier buckets taking precedence. */
 export function mergeGlow(
-    ...buckets: Array<{ glow?: DeepPartial<InternalAgGlowOptions> } | undefined>
-): DeepPartial<InternalAgGlowOptions> | undefined {
-    return mergeDefaults<DeepPartial<InternalAgGlowOptions>>(...buckets.map((bucket) => bucket?.glow));
+    ...buckets: Array<{ glow?: DeepPartial<AgGlowOptions> } | undefined>
+): DeepPartial<AgGlowOptions> | undefined {
+    return mergeDefaults<DeepPartial<AgGlowOptions>>(...buckets.map((bucket) => bucket?.glow));
 }
 
 type SeriesTooltipTheme = WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'position' | 'interaction'>>;

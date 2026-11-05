@@ -1,5 +1,4 @@
-import type { AgCrossLineLabelPosition } from 'ag-charts-types';
-
+import type { CrossLineLabelPosition } from '../chart/crossLine';
 import type { Size } from '../types/scene';
 
 type LabelTranslationDirection = 1 | -1 | 0;
@@ -8,7 +7,7 @@ type CrossLineTranslationDirection = {
     yTranslationDirection: LabelTranslationDirection;
 };
 
-const horizontalCrosslineTranslationDirections: Record<AgCrossLineLabelPosition, CrossLineTranslationDirection> = {
+const horizontalCrosslineTranslationDirections: Record<CrossLineLabelPosition, CrossLineTranslationDirection> = {
     top: { xTranslationDirection: 0, yTranslationDirection: -1 },
     bottom: { xTranslationDirection: 0, yTranslationDirection: 1 },
     left: { xTranslationDirection: -1, yTranslationDirection: 0 },
@@ -28,7 +27,7 @@ const horizontalCrosslineTranslationDirections: Record<AgCrossLineLabelPosition,
     'inside-bottom-right': { xTranslationDirection: -1, yTranslationDirection: -1 },
 };
 
-const verticalCrossLineTranslationDirections: Record<AgCrossLineLabelPosition, CrossLineTranslationDirection> = {
+const verticalCrossLineTranslationDirections: Record<CrossLineLabelPosition, CrossLineTranslationDirection> = {
     top: { xTranslationDirection: 1, yTranslationDirection: 0 },
     bottom: { xTranslationDirection: -1, yTranslationDirection: 0 },
     left: { xTranslationDirection: 0, yTranslationDirection: -1 },
@@ -56,7 +55,7 @@ export function calculateLabelTranslation({
 }: {
     yDirection: boolean;
     padding: number;
-    position: AgCrossLineLabelPosition;
+    position: CrossLineLabelPosition;
     bbox: Size;
 }) {
     const crossLineTranslationDirections = yDirection

@@ -209,6 +209,26 @@ describe('Ranges', () => {
         });
     });
 
+    describe('container', () => {
+        it('places both toolbars in a presentation container', async () => {
+            chart = await createEnterpriseChart({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] },
+            });
+            const { body } = deproxy(chart).ctx.agDocument;
+
+            const toolbars = Array.from(body.querySelectorAll('.ag-charts-range-buttons'));
+            expect(toolbars).toHaveLength(2);
+            expect(toolbars[0].parentElement).toBe(toolbars[1].parentElement);
+            expect(toolbars[0].parentElement?.getAttribute('role')).toBe('presentation');
+        });
+    });
+
     describe('AG-16886 button value function source parameter', () => {
         it('should pass source parameter to AgRangesButtonValueFunction', async () => {
             const receivedSources: AgRangesButtonValueSource[] = [];
@@ -529,14 +549,20 @@ describe('Ranges', () => {
             }
         });
 
-        it('state borders set to true follow a boolean buttonBorder', async () => {
+        it('a boolean buttonBorder follows borderWidth in every state', async () => {
             const ranges = await resolvedRanges({
                 borderColor: 'purple',
+                borderWidth: 4,
                 buttonBorder: true,
                 buttonActiveBorder: true,
             });
 
-            expect(ranges?.button?.active).toMatchObject({ stroke: 'purple', strokeWidth: 1 });
+            const border = { stroke: 'purple', strokeWidth: 4 };
+            expect(ranges?.button).toMatchObject(border);
+            expect(ranges?.button?.hover).toMatchObject(border);
+            expect(ranges?.button?.active).toMatchObject(border);
+            expect(ranges?.button?.disabled?.strokeWidth).toBe(4);
+            expect(ranges?.dropdown?.strokeWidth).toBe(4);
         });
 
         it('state border objects apply their width in that state', async () => {

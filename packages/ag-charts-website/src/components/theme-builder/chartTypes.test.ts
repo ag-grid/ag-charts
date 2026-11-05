@@ -15,6 +15,7 @@ import {
     PREVIEW_CHART_TYPES,
     PREVIEW_PANES,
     THUMBNAIL_OPTIONS,
+    showsSeriesStrokes,
     snapSeriesCount,
 } from './chartTypes';
 import {
@@ -253,6 +254,16 @@ describe('preview chart types', () => {
         // outline round the candle, it is the candle, and a switch for it could
         // only blank the series.
         expect(CANDLESTICK.features).not.toContain('seriesStrokes');
+    });
+
+    it('shows series strokes only where the type offers them and they are switched on', () => {
+        for (const type of SERIES_STROKE_TYPES) {
+            expect(showsSeriesStrokes(type, { seriesStrokes: true }), type.id).toBe(true);
+            expect(showsSeriesStrokes(type, { seriesStrokes: false }), type.id).toBe(false);
+            expect(showsSeriesStrokes(type, {}), type.id).toBe(DEFAULT_CHART_FEATURES.seriesStrokes);
+        }
+        // Left over from a type that offered the switch, which the candlestick does not.
+        expect(showsSeriesStrokes(CANDLESTICK, { seriesStrokes: true })).toBe(false);
     });
 
     it('offers series labels on every type with a label option', () => {

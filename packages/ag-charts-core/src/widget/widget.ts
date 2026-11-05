@@ -34,6 +34,11 @@ abstract class WidgetBounds<TElement extends HTMLElement> {
         return getElementBBox(this.elemContainer ?? this.elem);
     }
 
+    /** Removes the inline width that `setBounds()` wrote, so `getBounds()` reports the rendered width. */
+    clearWidth(): void {
+        setElementStyle(this.elemContainer ?? this.elem, 'width', undefined);
+    }
+
     protected static setElementContainer(widget: WidgetBounds<HTMLElement>, elemContainer: HTMLDivElement) {
         const currentBounds = widget.getBounds();
         setElementBBox(elemContainer, currentBounds);
@@ -100,6 +105,14 @@ export abstract class Widget<
 
     get clientHeight(): number {
         return this.elem.clientHeight;
+    }
+
+    get offsetWidth(): number {
+        return this.elem.offsetWidth;
+    }
+
+    get offsetHeight(): number {
+        return this.elem.offsetHeight;
     }
 
     destroy(): void {
@@ -200,6 +213,11 @@ export abstract class Widget<
 
     setInnerHTML(html: string) {
         this.elem.innerHTML = html;
+    }
+
+    /** Sets the CSS `position` property, or removes it when `undefined`. */
+    setCSSPosition(position: BaseStyleTypeMap['position'] | undefined) {
+        setElementStyle(this.elem, 'position', position);
     }
 
     setPointerEvents(pointerEvents: BaseStyleTypeMap['pointer-events'] | undefined) {

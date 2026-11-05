@@ -26,7 +26,6 @@ import { AgCharts } from 'ag-charts-community';
 import {
     type ChartOrProxy,
     compareImageSnapshot,
-    expectWarningsCalls,
     getSeriesContextNodeData,
     getSeriesOptions,
     getSeriesSelectionNodes,
@@ -1463,19 +1462,6 @@ describe('series label fit', () => {
             expect(secondaryCount()).toBe(treemapData.length);
         });
 
-        it('warns on the deprecated overflowStrategy and maps `hide` onto truncate off', async () => {
-            chart = await createEnterpriseChart(treemapChart({ overflowStrategy: 'hide' }));
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`series[0].tile.label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                ],
-              ]
-            `);
-            expect(getSeriesOptions<AgTreemapSeriesOptions>(chart).tile?.label?.truncate).toBe(false);
-            expect(someTruncated(hierarchyLabelTexts())).toBe(false);
-        });
-
         it('renders whole, truncated, overflowing and hidden treemap labels', async () => {
             // Mid-sized tiles truncate, `alwaysShow` keeps the slivers' labels overflowing, secondaries hide.
             const data = [
@@ -1954,23 +1940,6 @@ describe('series label fit', () => {
             await renderGauge(options({ collision: {} }));
             expect(targetLabelTexts()).toEqual(['Target label text']);
             expect(scaleLabelTexts()).toEqual(['0', '20', '60', '80', '100']);
-        });
-
-        it('warns once on the deprecated avoidCollisions and keeps the label at its natural size', async () => {
-            const text = 'A long label text';
-            await renderGauge(
-                horizontalLinearGauge({
-                    label: { enabled: true, text, avoidCollisions: false, placement: 'bar-inside' },
-                })
-            );
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`label.avoidCollisions\` is deprecated. Use \`collision.alwaysShow\` instead.",
-                ],
-              ]
-            `);
-            expect(gaugeLabelTexts()).toEqual([text]);
         });
 
         it('styles and fits linear-gauge target labels', async () => {

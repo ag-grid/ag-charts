@@ -181,6 +181,7 @@ function onUpdate() {
 }
 
 // Updates a cross line's options without moving focus, so the focused proxy is reused for the new instance.
+/** inScope */
 function moveThreshold() {
     chart.updateDelta({
         axes: {

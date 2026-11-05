@@ -61,7 +61,8 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
 
 /** Mostly on by default, because a feature nobody switches on is a param nobody sees. */
 export const DEFAULT_CHART_FEATURES: ChartFeatures = {
-    seriesStrokes: true,
+    // Off, as charts draw no strokes until their options set a width.
+    seriesStrokes: false,
     // Off, as a label per datum swamps the chart once the series count climbs.
     seriesLabels: false,
     legend: true,

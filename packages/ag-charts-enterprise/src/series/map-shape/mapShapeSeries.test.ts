@@ -19,7 +19,6 @@ import {
     expectWarningsCalls,
     getVisibleLabelNodes,
     hoverAction,
-    internalOptions,
     resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
@@ -106,11 +105,10 @@ describe('MapShapeSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadowOptions = (seriesShadow?: typeof SMALL_SHADOW): AgChartOptions =>
-            internalOptions<AgChartOptions>({
-                ...SIMPLIFIED_EXAMPLE,
-                series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
-            });
+        const shadowOptions = (seriesShadow?: typeof SMALL_SHADOW): AgChartOptions => ({
+            ...SIMPLIFIED_EXAMPLE,
+            series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
+        });
 
         const renderSeries = async (options: AgChartOptions) => {
             chart = deproxy(await createEnterpriseChart(options));
@@ -159,22 +157,20 @@ describe('MapShapeSeries', () => {
             // The cutout erases the shape beneath the highlight before it is drawn again, so a
             // translucent highlight fill makes the erase visible. The in-place copy keeps casting the series
             // shadow, and the highlight copy casts only the glow.
-            const cutoutOptions = (seriesShadow?: typeof SMALL_SHADOW, glow?: object): AgChartOptions =>
-                internalOptions<AgChartOptions>({
-                    ...shadowOptions(seriesShadow),
-                    highlight: { drawingMode: 'cutout' },
-                    series: [
-                        {
-                            type: 'map-shape',
-                            idKey: 'name',
-                            shadow: seriesShadow,
-                            highlight: { highlightedItem: { fill: 'blue', fillOpacity: 0.4, glow } },
-                        },
-                    ],
-                });
+            const cutoutOptions = (seriesShadow?: typeof SMALL_SHADOW, glow?: object): AgChartOptions => ({
+                ...shadowOptions(seriesShadow),
+                highlight: { drawingMode: 'cutout' },
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        shadow: seriesShadow,
+                        highlight: { highlightedItem: { fill: 'blue', fillOpacity: 0.4, glow } },
+                    },
+                ],
+            });
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('draws the highlighted shape without the series shadow after the cutout', async () => {
+            it('draws the highlighted shape without the series shadow after the cutout', async () => {
                 await highlightFirstShape(cutoutOptions(SMALL_SHADOW));
 
                 const [highlighted, ...others] = collectShapes(chart.series[0].highlightNodeGroup);
@@ -391,62 +387,6 @@ describe('MapShapeSeries', () => {
                 const sizes = await renderSizes({ minimumFontSize: 8, itemStyler: () => ({ fontSize: 20 }) });
                 expect(sizes).toContain(20);
                 expect(sizes.some((size: number) => size > 10 && size < 20)).toBe(true);
-            });
-        });
-
-        // setupMockConsole() fails on any unasserted warning, so each case here must consume its deprecation notice.
-        describe('deprecated overflowStrategy', () => {
-            const render = async (label: object) => {
-                const options: AgChartOptions = {
-                    data: usData.map((d) => ({ ...d, label: `${d.name} ${d.name}` })),
-                    topology: usTopology,
-                    series: [
-                        { type: 'map-shape', idKey: 'name', labelKey: 'label', label: { fontSize: 10, ...label } },
-                    ],
-                } as AgChartOptions;
-                chart = deproxy(await createEnterpriseChart(options));
-                return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: string }) => d.text);
-            };
-
-            const resolvedTruncate = () => chart.series[0].options.label.truncate;
-
-            it('warns and maps `ellipsis` onto `truncate`', async () => {
-                const texts = await render({ overflowStrategy: 'ellipsis' });
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                    ],
-                  ]
-                `);
-                expect(resolvedTruncate()).toBe(true);
-                expect(texts.some((text: string) => text.includes('…'))).toBe(true);
-            });
-
-            it('keeps `hide` when another fit option would otherwise default `truncate` on', async () => {
-                const texts = await render({ overflowStrategy: 'hide', minimumFontSize: 8 });
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                    ],
-                  ]
-                `);
-                expect(resolvedTruncate()).toBe(false);
-                expect(texts.some((text: string) => text.includes('…'))).toBe(false);
-            });
-
-            it('lets an explicit `truncate` win over the deprecated value', async () => {
-                const texts = await render({ wrapping: 'never', overflowStrategy: 'ellipsis', truncate: false });
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
-                    ],
-                  ]
-                `);
-                expect(resolvedTruncate()).toBe(false);
-                expect(texts.some((text: string) => text.includes('…'))).toBe(false);
             });
         });
     });

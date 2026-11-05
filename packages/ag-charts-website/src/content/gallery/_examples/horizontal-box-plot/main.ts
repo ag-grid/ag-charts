@@ -112,7 +112,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         text: `Company Median: £${(overallMedian / 1000).toFixed(0)}k`,
                         placement: 'top',
-                        padding: 8,
+                        spacing: 8,
                     },
                 },
                 {
@@ -123,7 +123,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         text: 'Entry Level',
                         placement: 'inside-top-left',
-                        padding: 4,
+                        spacing: 4,
                     },
                 },
                 {
@@ -134,7 +134,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         text: 'Senior Level',
                         placement: 'inside-top-right',
-                        padding: 4,
+                        spacing: 4,
                     },
                 },
             ],

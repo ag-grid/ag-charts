@@ -133,7 +133,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         text: 'Extreme Heat\n(42°C)',
                         placement: 'right',
-                        padding: 8,
+                        spacing: 8,
                     },
                 },
                 {
@@ -146,7 +146,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         text: 'Near Freezing\n(5°C)',
                         placement: 'right',
-                        padding: 8,
+                        spacing: 8,
                     },
                 },
                 {
@@ -159,7 +159,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         text: 'Optimal\nComfort Zone',
                         placement: 'right',
-                        padding: 8,
+                        spacing: 8,
                     },
                 },
             ],

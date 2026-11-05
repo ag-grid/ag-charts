@@ -150,8 +150,7 @@ describe('ChordSeries', () => {
 
     describe('shadow highlight', () => {
         // The hovered node is redrawn on the highlight layer; its in-place copy keeps casting the node's shadow.
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should render a highlighted node with shadows enabled', async () => {
+        it('should render a highlighted node with shadows enabled', async () => {
             const options = flowProportionShadowOptions('chord', {
                 link: SMALL_SHADOW,
                 node: SMALL_SHADOW,
