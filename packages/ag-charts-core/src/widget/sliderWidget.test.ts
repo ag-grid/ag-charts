@@ -61,6 +61,7 @@ describe('SliderWidget', () => {
 
         it('clamp to the input range', () => {
             const slider = makeSlider();
+            slider.step = SliderWidget.STEP_HUNDRETH;
             slider.setValueRatio(1);
             slider.stepUp();
             expect(slider.getElement().value).toBe('100');

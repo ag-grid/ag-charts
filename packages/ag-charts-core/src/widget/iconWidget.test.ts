@@ -13,9 +13,9 @@ describe('IconWidget', () => {
 
     it('fromUrl creates an aria-hidden img', () => {
         const icon = IconWidget.fromUrl('https://example.com/icon.png');
-        const elem = icon.getElement() as HTMLImageElement;
-        expect(elem.tagName).toBe('IMG');
-        expect(elem.src).toBe('https://example.com/icon.png');
+        const elem = icon.getElement();
+        expect(elem).toBeInstanceOf(HTMLImageElement);
+        expect(elem).toHaveProperty('src', 'https://example.com/icon.png');
         expect(elem.className).toBe('');
         expect(elem.getAttribute('aria-hidden')).toBe('true');
     });

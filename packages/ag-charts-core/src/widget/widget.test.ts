@@ -9,6 +9,8 @@ function makeWidget() {
 }
 
 function makeEvent(target: EventTarget | null, currentTarget: EventTarget | null): Pick<WidgetEvent, 'sourceEvent'> {
+    // A dispatched Event resets `currentTarget` to null once dispatch ends, so the pair is faked; only these two
+    // fields are read.
     return { sourceEvent: { target, currentTarget } as Event };
 }
 
@@ -52,26 +54,32 @@ describe('Widget', () => {
     });
 
     describe('isEventTarget and isEventCurrentTarget', () => {
-        it('compares the source event target and current target with the element', () => {
+        it('distinguish the target from the current target of a bubbled event', () => {
             const parent = makeWidget();
             const child = makeWidget();
             parent.addChild(child);
-            const parentElem = parent.getElement();
-            const childElem = child.getElement();
+            const bubbled = makeEvent(child.getElement(), parent.getElement());
 
-            const bubbled = makeEvent(childElem, parentElem);
             expect(parent.isEventTarget(bubbled)).toBe(false);
             expect(parent.isEventCurrentTarget(bubbled)).toBe(true);
             expect(child.isEventTarget(bubbled)).toBe(true);
             expect(child.isEventCurrentTarget(bubbled)).toBe(false);
+        });
 
-            const direct = makeEvent(parentElem, parentElem);
-            expect(parent.isEventTarget(direct)).toBe(true);
-            expect(parent.isEventCurrentTarget(direct)).toBe(true);
+        it('match both for an event dispatched directly on the element', () => {
+            const widget = makeWidget();
+            const direct = makeEvent(widget.getElement(), widget.getElement());
 
+            expect(widget.isEventTarget(direct)).toBe(true);
+            expect(widget.isEventCurrentTarget(direct)).toBe(true);
+        });
+
+        it('match neither for an event without targets', () => {
+            const widget = makeWidget();
             const detached = makeEvent(null, null);
-            expect(parent.isEventTarget(detached)).toBe(false);
-            expect(parent.isEventCurrentTarget(detached)).toBe(false);
+
+            expect(widget.isEventTarget(detached)).toBe(false);
+            expect(widget.isEventCurrentTarget(detached)).toBe(false);
         });
     });
 
@@ -116,13 +124,20 @@ describe('Widget', () => {
 
     describe('isHovered and isFocusVisible', () => {
         // jsdom has no pointer state and rejects `:focus-visible`, so only the delegation is tested here.
-        it('query the matching CSS pseudo-class', () => {
+        it('isHovered queries :hover', () => {
             const widget = makeWidget();
-            const matches = vi.spyOn(widget.getElement(), 'matches').mockImplementation((s) => s === ':hover');
+            vi.spyOn(widget.getElement(), 'matches').mockImplementation((s) => s === ':hover');
 
             expect(widget.isHovered()).toBe(true);
             expect(widget.isFocusVisible()).toBe(false);
-            expect(matches.mock.calls).toEqual([[':hover'], [':focus-visible']]);
+        });
+
+        it('isFocusVisible queries :focus-visible', () => {
+            const widget = makeWidget();
+            vi.spyOn(widget.getElement(), 'matches').mockImplementation((s) => s === ':focus-visible');
+
+            expect(widget.isHovered()).toBe(false);
+            expect(widget.isFocusVisible()).toBe(true);
         });
     });
 
