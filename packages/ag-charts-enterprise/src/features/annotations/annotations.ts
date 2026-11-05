@@ -511,6 +511,7 @@ export class Annotations extends AbstractModuleInstance {
             }),
             toolbar.events.on('pressed-create-annotation', ({ annotation }) => {
                 this.cancel();
+                this.reset();
                 this.pushAnnotationState(InteractionState.Annotations);
                 this.state.transition(annotation);
                 this.pendingCreateType = annotation;

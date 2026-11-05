@@ -317,3 +317,25 @@ test.describe('annotations keyboard create', () => {
         await expectChartScreenshot(page, chartArea(page), 'annotations-keyboard-create-line.png');
     });
 });
+
+test.describe('annotations keyboard create with directly configured buttons', () => {
+    setupIntrinsicAssertions(test);
+
+    const { url } = toExamplePageUrl('annotations-e2e', 'keyboard-create-buttons', 'vanilla');
+
+    test.beforeEach(async ({ page }) => {
+        await gotoExample(page, url);
+    });
+
+    test('Enter places the tool chosen last when tools are switched without a menu', async ({ page }) => {
+        await page.getByTitle('Parallel Channel', { exact: true }).focus();
+        await page.keyboard.press('Enter');
+        await page.getByTitle('Text', { exact: true }).focus();
+        await page.keyboard.press('Enter');
+        await page.keyboard.press('Enter');
+
+        const annotations = await getAnnotations(page);
+        expect(annotations.map((a) => a.type)).toEqual(['text']);
+        await expect(page.locator(TEXT_INPUT)).toBeFocused();
+    });
+});
