@@ -75,6 +75,7 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerDatumType> extends
         const actionCreatedRender = () => {
             this.node?.toggleActive(true);
             onExitEnd();
+            ctx.update();
         };
 
         super('start', {

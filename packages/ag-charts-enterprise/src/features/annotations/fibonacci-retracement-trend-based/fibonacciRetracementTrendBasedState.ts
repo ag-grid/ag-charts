@@ -101,6 +101,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
         const actionCreatedRender = () => {
             this.node?.toggleActive(true);
             onExitEnd();
+            ctx.update();
         };
 
         super('start', {

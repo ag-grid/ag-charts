@@ -120,7 +120,7 @@ const TOOLS: ToolCase[] = [
     },
 ];
 
-const [TREND_LINE, , , , TEXT] = TOOLS;
+const [TREND_LINE, HORIZONTAL_LINE, , , TEXT] = TOOLS;
 
 type AnnotationState = Record<string, unknown>;
 
@@ -261,6 +261,23 @@ test.describe('annotations keyboard create', () => {
         await page.keyboard.press('Enter');
 
         await expect(page.locator(MENU_ROW).first()).toBeVisible();
+    });
+
+    test('Ctrl+Z and Ctrl+Y undo and redo each placed annotation in turn', async ({ page }) => {
+        await chooseTool(page, HORIZONTAL_LINE);
+        await page.keyboard.press('Enter');
+        await chooseTool(page, TREND_LINE);
+        await page.keyboard.press('Enter');
+        expect((await getAnnotations(page)).map((a) => a.type)).toEqual(['horizontal-line', 'line']);
+
+        await page.keyboard.press('Control+z');
+        expect((await getAnnotations(page)).map((a) => a.type)).toEqual(['horizontal-line']);
+
+        await page.keyboard.press('Control+z');
+        expect(await getAnnotations(page)).toHaveLength(0);
+
+        await page.keyboard.press('Control+y');
+        expect((await getAnnotations(page)).map((a) => a.type)).toEqual(['horizontal-line']);
     });
 
     test('Enter on the chart places the chosen annotation once the chart is focused', async ({ page }) => {

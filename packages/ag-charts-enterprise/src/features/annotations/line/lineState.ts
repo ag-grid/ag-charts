@@ -78,6 +78,7 @@ export abstract class LineTypeStateMachine<Datum extends LineTypeDatum> extends 
         const actionCreatedRender = () => {
             this.node?.toggleActive(true);
             onExitEnd();
+            ctx.update();
         };
 
         super('start', {
