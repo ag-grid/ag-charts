@@ -1044,7 +1044,14 @@ export abstract class Series<
         highlightState: HighlightState
     ): NormalisedDropShadowOptions | undefined {
         const cascades = (this.glowCascades ??= []);
-        let cascade = cascades.find((c) => c.source === seriesGlow);
+        let cascade: (typeof cascades)[number] | undefined;
+        // An indexed loop, as this runs per datum and a callback would allocate a closure each time.
+        for (let i = 0; i < cascades.length; i++) {
+            if (cascades[i].source === seriesGlow) {
+                cascade = cascades[i];
+                break;
+            }
+        }
         if (cascade == null) {
             cascade = { source: seriesGlow, byState: [] };
             cascades.push(cascade);
@@ -1052,10 +1059,26 @@ export abstract class Series<
         let glow = cascade.byState[highlightState];
         if (glow === undefined) {
             glow =
-                glowToShadow(mergeGlow({ glow: this.getHighlightGlow(highlightState) }, { glow: seriesGlow })) ?? null;
+                glowToShadow(mergeGlow({ glow: this.getPartHighlightGlow(highlightState) }, { glow: seriesGlow })) ??
+                null;
             cascade.byState[highlightState] = glow;
         }
         return glow ?? undefined;
+    }
+
+    /**
+     * The `glow` of a highlight state, for one part of a series whose `glow` is on several parts, such as the nodes and links
+     * of a flow, that share a highlight state. The theme gives the state an `enabled` that is on when any part is, so
+     * a state that still has that default leaves each part to its own `enabled`: a part that has its glow off is not
+     * turned on by another's. A state with any other `enabled` has been set, and applies to every part.
+     */
+    private getPartHighlightGlow(highlightState: HighlightState): DeepPartial<AgGlowOptions> | undefined {
+        const bucket = this.getHighlightGlow(highlightState);
+        if (bucket?.enabled == null || this.getSeriesGlows().length < 2 || bucket.enabled !== this.hasSeriesGlow()) {
+            return bucket;
+        }
+        const { enabled: _enabled, ...rest } = bucket;
+        return rest;
     }
 
     /** Whether any highlight state casts a glow, over any series-level `glow`; when none does, no glow is resolved per datum. */

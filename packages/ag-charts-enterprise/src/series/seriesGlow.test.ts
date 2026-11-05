@@ -12,7 +12,9 @@ import {
 } from 'ag-charts-community-test';
 import type { Shape } from 'ag-charts-core';
 
+import { getFlowNodeData } from '../test/enterpriseSeriesAccessors';
 import { HIERARCHY_SHADOW_DATA, SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
+import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
 
@@ -500,6 +502,156 @@ describe('series-level glow (enterprise series)', () => {
             for (const shape of inPlace) expect(shape.fillGlow).toMatchObject(glowShadow(GLOW));
             // The highlight copy casts the glow the hovered item gave up.
             expect(glowing(testCase, 'highlightGroup')).toHaveLength(copies);
+        });
+    });
+
+    /** A series whose `glow` is set on several parts that share one `highlight`, such as the nodes and links of a flow. */
+    interface PartsCase {
+        name: string;
+        data: object[];
+        parts: string[];
+        /** The series options, with the `glow` of each part, and the one common to all parts where the series has one. */
+        series: (glow: Record<string, object | undefined>, common?: object) => AnySeriesOptions;
+        /** The part that a shape casts for. */
+        partOf: (shape: Shape) => string | undefined;
+        /** The datum to hover, where the series does not keep its node data in one list. */
+        hovered?: (chart: AgChartInstance) => HighlightNodeDatum;
+        common?: boolean;
+    }
+
+    const FLOW_PART = (shape: Shape) =>
+        (shape.datum as { type?: FlowProportionDatumType } | undefined)?.type === FlowProportionDatumType.Link
+            ? 'link'
+            : 'node';
+    const ITEM_PART = (shape: Shape) => (shape.datum as { itemType?: string } | undefined)?.itemType;
+
+    const flow = (type: 'sankey' | 'chord') => (glow: Record<string, object | undefined>) =>
+        ({
+            type,
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            node: { glow: glow.node },
+            link: { glow: glow.link },
+        }) as AnySeriesOptions;
+
+    const PARTS: PartsCase[] = [
+        {
+            name: 'sankey',
+            data: FLOW,
+            parts: ['node', 'link'],
+            series: flow('sankey'),
+            partOf: FLOW_PART,
+            hovered: (c) => getFlowNodeData(c)[0] as HighlightNodeDatum,
+        },
+        {
+            name: 'chord',
+            data: FLOW,
+            parts: ['node', 'link'],
+            series: flow('chord'),
+            partOf: FLOW_PART,
+            hovered: (c) => getFlowNodeData(c)[0] as HighlightNodeDatum,
+        },
+        {
+            name: 'waterfall',
+            data: WATERFALL,
+            parts: ['positive', 'negative'],
+            partOf: ITEM_PART,
+            series: (glow) => ({
+                type: 'waterfall',
+                xKey: 'x',
+                yKey: 'y',
+                item: { positive: { glow: glow.positive }, negative: { glow: glow.negative } },
+            }),
+        },
+        {
+            name: 'hlc',
+            data: OHLC,
+            parts: ['high', 'low', 'close'],
+            partOf: ITEM_PART,
+            common: true,
+            series: (glow, common) => ({
+                type: 'hlc',
+                xKey: 'x',
+                highKey: 'high',
+                lowKey: 'low',
+                closeKey: 'close',
+                marker: { enabled: true, glow: common },
+                item: {
+                    high: { marker: { glow: glow.high } },
+                    low: { marker: { glow: glow.low } },
+                    close: { marker: { glow: glow.close } },
+                },
+            }),
+        },
+        {
+            name: 'range-area',
+            data: RANGE,
+            parts: ['low', 'high'],
+            partOf: ITEM_PART,
+            common: true,
+            series: (glow, common) => ({
+                type: 'range-area',
+                xKey: 'x',
+                yLowKey: 'low',
+                yHighKey: 'high',
+                marker: { enabled: true, glow: common },
+                item: { low: { marker: { glow: glow.low } }, high: { marker: { glow: glow.high } } },
+            }),
+        },
+    ];
+
+    describe.each(PARTS)('$name, a part with its own glow', (testCase) => {
+        const [first, second] = testCase.parts;
+
+        /** The parts that cast a glow at rest, then with the first datum hovered, in place or from the highlight layer. */
+        const glowingParts = async (glow: Record<string, object | undefined>, common?: object) => {
+            chart = await createEnterpriseChart({
+                data: testCase.data,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [testCase.series(glow, common)],
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+            const parts = () =>
+                new Set(
+                    (['contentGroup', 'highlightGroup'] as const).flatMap((group) =>
+                        collectShapes(getSeriesAt(chart)[group])
+                            .filter((shape) => shape.visible && shape.fillGlow?.enabled === true)
+                            .map(testCase.partOf)
+                    )
+                );
+
+            const atRest = parts();
+            const { ctx, id } = deproxy(chart);
+            ctx.highlightManager.updateHighlight(
+                id,
+                testCase.hovered?.(chart) ?? getSeriesNodeData<HighlightNodeDatum>(chart)[0]
+            );
+            await waitForChartStability(chart);
+            return { atRest, hovered: parts() };
+        };
+
+        it('glows at rest and on hover for that part alone', async () => {
+            const { atRest, hovered } = await glowingParts({ [first]: {} });
+
+            expect(atRest).toEqual(new Set([first]));
+            expect(hovered).toEqual(new Set([first]));
+        });
+
+        it('stays off where it is disabled while another part glows', async () => {
+            const { atRest, hovered } = await glowingParts({ [first]: {}, [second]: { enabled: false } });
+
+            expect(atRest).toEqual(new Set([first]));
+            expect(hovered).toEqual(new Set([first]));
+        });
+
+        it.skipIf(!testCase.common)('follows the glow of a part over the glow common to all', async () => {
+            const { atRest, hovered } = await glowingParts({ [second]: { enabled: false } }, {});
+
+            const expected = new Set(testCase.parts.filter((part) => part !== second));
+            expect(atRest).toEqual(expected);
+            expect(hovered).toEqual(expected);
         });
     });
 });
