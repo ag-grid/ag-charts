@@ -1454,10 +1454,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         if (overrides) {
             style = mergeDefaults(stylerLineHeightOverrides(overrides, style, lineHeight), style);
-            // The deprecated `overflowStrategy` is only mapped by the theme, so map a styler-returned value here.
-            if (overrides.overflowStrategy != null && overrides.truncate == null) {
-                style.truncate = overrides.overflowStrategy === 'ellipsis';
-            }
         }
 
         return style;
@@ -1558,8 +1554,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: this.getSelectionStateString(datumIndex),
             candidateState: this.getCandidateStateString(datumIndex),
-            // Deprecated: left unset so a styler that returns its spread params does not trigger the warning.
-            overflowStrategy: undefined,
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
     }
 

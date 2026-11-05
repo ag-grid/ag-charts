@@ -30,12 +30,4 @@ export interface AgNetworkSeriesTreeLayout {
      * Default: `40`
      */
     outerSpacing?: PixelSize;
-    /**
-     * Vertical gap in pixels between parent and child rows.
-     *
-     * Default: `52`
-     *
-     * @deprecated v14.1.0 Use `depthSpacing` instead.
-     */
-    verticalSpacing?: PixelSize;
 }

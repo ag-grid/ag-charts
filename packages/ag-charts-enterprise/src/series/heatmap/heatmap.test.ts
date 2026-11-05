@@ -1557,55 +1557,6 @@ describe('HeatmapSeries', () => {
             });
         });
 
-        // setupMockConsole() fails on any unasserted warning, so every case here must consume its deprecation notice.
-        describe('deprecated top-level options', () => {
-            it('warns and still applies the deprecated top-level values', async () => {
-                const anchor = await readAnchor(
-                    buildOptions({ label: { enabled: true }, textAlign: 'left', verticalAlign: 'bottom' })
-                );
-
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
-                    ],
-                    [
-                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
-                    ],
-                  ]
-                `);
-
-                expect(anchor.dx).toBeCloseTo(-0.5 * anchor.xSpan);
-                expect(anchor.dy).toBeCloseTo(0.5 * anchor.ySpan);
-                expect(anchor.textAlign).toBe('left');
-                expect(anchor.textBaseline).toBe('bottom');
-            });
-
-            it('lets label.textAlign win over the deprecated top-level value', async () => {
-                const anchor = await readAnchor(
-                    buildOptions({
-                        label: { enabled: true, textAlign: 'right', verticalAlign: 'top' },
-                        textAlign: 'left',
-                        verticalAlign: 'bottom',
-                    })
-                );
-
-                expectWarningsCalls().toMatchInlineSnapshot(`
-                  [
-                    [
-                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
-                    ],
-                    [
-                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
-                    ],
-                  ]
-                `);
-
-                expect(anchor.dx).toBeCloseTo(0.5 * anchor.xSpan);
-                expect(anchor.dy).toBeCloseTo(-0.5 * anchor.ySpan);
-            });
-        });
-
         describe('rendered output', () => {
             const cases: [TextAlign, VerticalAlign, string][] = [
                 ['left', 'middle', 'left-middle'],

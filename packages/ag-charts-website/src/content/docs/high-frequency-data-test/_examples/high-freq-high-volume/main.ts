@@ -550,6 +550,7 @@ function recordCpuUsage(elapsedMs: number) {
     }
 }
 
+/** inScope */
 async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; remove?: Datum[] }) {
     const start = performance.now();
 
@@ -569,6 +570,7 @@ async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; 
     return elapsed;
 }
 
+/** inScope */
 async function addPoints(count: number) {
     const append = createBatch(count);
     data = data.concat(append);
@@ -576,6 +578,7 @@ async function addPoints(count: number) {
     updateDataCountDisplay();
 }
 
+/** inScope */
 async function removePoints(count: number) {
     if (data.length <= count) {
         return;
@@ -597,6 +600,7 @@ async function rollBatch() {
     updateDataCountDisplay();
 }
 
+/** inScope */
 async function runAutoUpdate() {
     if (updateInFlight) {
         return;
@@ -625,6 +629,7 @@ async function runAutoUpdate() {
     }
 }
 
+/** inScope */
 function startUpdates() {
     if (isRunning) {
         return;
@@ -669,6 +674,7 @@ function stopUpdates() {
     }
 }
 
+/** inScope */
 function handleToggleUpdates() {
     if (isRunning) {
         stopUpdates();
@@ -690,6 +696,7 @@ function setUpdateMethod(method: string) {
     resetCpuIndicator();
 }
 
+/** inScope */
 function setUpdateFrequency(frequency: string) {
     const wasRunning = isRunning;
 
@@ -734,6 +741,7 @@ function setBatchSize(size: number) {
     updateButtonLabels();
 }
 
+/** inScope */
 async function setSeriesType(newSeriesType: SeriesType) {
     if (newSeriesType === currentSeriesType || seriesTypeUpdateInProgress) {
         return;
@@ -819,6 +827,7 @@ function setMatchingMode(mode: string) {
 
 let axisTypeUpdateInProgress = false;
 
+/** inScope */
 async function setAxisType(newAxisType: AxisType) {
     if (newAxisType === currentAxisType || axisTypeUpdateInProgress) {
         return;

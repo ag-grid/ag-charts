@@ -33,6 +33,7 @@ function stop() {
     running = false;
 }
 
+/** inScope */
 async function update() {
     if (!running) return;
 

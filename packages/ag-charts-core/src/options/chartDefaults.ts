@@ -52,7 +52,6 @@ import {
     labelBoxOptionsDef,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
-    overflowStrategy,
     padding,
     selectionOptionsDef,
     shapeHighlightOptionsDef,
@@ -834,7 +833,6 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
     wrapping: textWrap,
     truncate: boolean,
     collision: seriesLabelCollisionOptionsDef,
-    overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
 };
 
 export const errorBarThemeableOptionsDefs: OptionsDefs<AgErrorBarThemeableOptions> = {

@@ -25,14 +25,12 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     defined,
-    deprecated,
     fillCssOptionsDef,
     fillOptionsDef,
     fontOptionsDef,
     lineDashOptionsDef,
     number,
     optionsDefs,
-    overflowStrategy,
     padding,
     positiveNumber,
     positiveNumberNonZero,
@@ -54,7 +52,6 @@ const networkSeriesTreeLayoutDef: OptionsDefs<AgNetworkSeriesTreeLayout> = {
     depthSpacing: number,
     innerSpacing: number,
     outerSpacing: number,
-    verticalSpacing: deprecated(number, 'Use `depthSpacing` instead.'),
 };
 
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
@@ -146,7 +143,6 @@ const nodeTextStyleDef = {
     cornerRadius: positiveNumber,
     padding: padding,
     enabled: boolean,
-    overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
     truncate: boolean,
     spacing: number,
     textAlign: textAlign,

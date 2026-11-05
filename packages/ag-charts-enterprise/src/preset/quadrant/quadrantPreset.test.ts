@@ -746,24 +746,6 @@ describe('Quadrant Preset theme isolation', () => {
         expectPlainStyling(resolveAxes(plainOptions()));
         expectQuadrantStyling(resolveAxes(quadrantOptions(), 'quadrant'));
     });
-
-    // The preset omits an axis-line strokeWidth so the common template's width alias survives the merge.
-    it('still resolves a deprecated line.width theme override to strokeWidth on a quadrant chart', () => {
-        const axes = resolveAxes(
-            {
-                ...quadrantOptions(),
-                theme: { overrides: { scatter: { axes: { number: { line: { width: 3 } } } } } },
-            },
-            'quadrant'
-        );
-
-        expect(axes.x.line.strokeWidth).toBe(3);
-        expectWarningsCalls().toEqual([
-            [
-                'AG Charts - Option `theme.overrides.scatter.axes.number.line.width` is deprecated. Use `strokeWidth` instead.',
-            ],
-        ]);
-    });
 });
 
 describe('Quadrant Preset label enabled default', () => {

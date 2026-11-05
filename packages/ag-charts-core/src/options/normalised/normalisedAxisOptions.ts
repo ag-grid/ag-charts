@@ -22,7 +22,6 @@ import type {
     AgCartesianCrossLineLabelPlacement,
     AgCartesianTimeAxisLabelOptions,
     AgCategoryAxisOptions,
-    AgCrossLineLabelPosition,
     AgCrosshairLabel,
     AgCrosshairOptions,
     AgGroupedCategoryAxisLabelOptions,
@@ -129,7 +128,7 @@ export type NormalisedAngleAxisFormattableLabelOptions<TContext = ContextDefault
 
 // --- Line / tick / gridLine normalised shapes ---
 export type NormalisedAxisLineOptions = Normalised<
-    Omit<AgAxisLineOptions, 'width'>,
+    AgAxisLineOptions,
     'enabled' | 'strokeWidth' | 'strokeOpacity' | 'lineDash',
     { stroke?: CssColor }
 >;
@@ -392,8 +391,6 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     NormalisedLabelFitOptions & {
         overflow?: CrossLineLabelOverflow;
         reserveSpace?: boolean;
-        /** Cartesian cross lines only. */
-        position?: AgCrossLineLabelPosition;
         /** Cartesian cross lines only. */
         placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
         /** Cartesian cross lines only. */
