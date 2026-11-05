@@ -1,6 +1,6 @@
 import type { BaseAttributeTypeMap, BaseStyleTypeMap } from '../dom/attributeUtil';
 import { getAttribute, setAttribute, setElementStyle, setElementStyles } from '../dom/attributeUtil';
-import { getElementBBox, setElementBBox } from '../dom/domUtil';
+import { getElementBBox, isFocused, setElementBBox } from '../dom/domUtil';
 import { isNode } from '../dom/globalsProxy';
 import type { BoxBounds } from '../geometry/boxBounds';
 import type { ElementID } from '../identity/idBranding';
@@ -167,6 +167,28 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
     }
 
+    /** Sets the `title` attribute (the native tooltip), or removes it when `undefined` or empty. */
+    setTitle(title: BaseAttributeTypeMap['title'] | undefined) {
+        setAttribute(this.elem, 'title', title);
+    }
+
+    /**
+     * Sets a `data-*` attribute through `dataset`, or removes it when `value` is `undefined`.
+     * @param name - The camelCase `dataset` key, e.g. `popoverId` for `data-popover-id`.
+     */
+    setData(name: string, value: string | undefined) {
+        if (value === undefined) {
+            delete this.elem.dataset[name];
+        } else {
+            this.elem.dataset[name] = value;
+        }
+    }
+
+    /** Positions the element with a CSS `translate()` transform, in CSS pixels, replacing any existing transform. */
+    setTranslate(x: number, y: number) {
+        this.elem.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
     setInnerHTML(html: string) {
         this.elem.innerHTML = html;
     }
@@ -194,6 +216,39 @@ export abstract class Widget<
 
     containsTarget(event: Pick<WidgetEvent, 'sourceEvent'>) {
         return isNode(event.sourceEvent.target) && this.elem.contains(event.sourceEvent.target);
+    }
+
+    /** Whether the event was dispatched to this widget's own element, excluding its descendants. */
+    isEventTarget(event: Pick<WidgetEvent, 'sourceEvent'>): boolean {
+        return event.sourceEvent.target === this.elem;
+    }
+
+    /** Whether the event is being handled by a listener on this widget's own element. */
+    isEventCurrentTarget(event: Pick<WidgetEvent, 'sourceEvent'>): boolean {
+        return event.sourceEvent.currentTarget === this.elem;
+    }
+
+    /**
+     * Whether `other`'s element is this widget's element or one of its DOM descendants. This checks the DOM, not the
+     * widget tree.
+     */
+    contains(other: Pick<Widget, 'getElement'>): boolean {
+        return this.elem.contains(other.getElement());
+    }
+
+    /** Whether this widget's element is the active element of its document or shadow root. */
+    isFocused(): boolean {
+        return isFocused(this.elem);
+    }
+
+    /** Whether the pointer is over this widget's element (the CSS `:hover` state). */
+    isHovered(): boolean {
+        return this.elem.matches(':hover');
+    }
+
+    /** Whether this widget's element has keyboard-visible focus (the CSS `:focus-visible` state). */
+    isFocusVisible(): boolean {
+        return this.elem.matches(':focus-visible');
     }
 
     hasPopup(): boolean {
@@ -266,6 +321,14 @@ export abstract class Widget<
 
     toggleClass(token: string, force?: boolean) {
         this.elem.classList.toggle(token, force);
+    }
+
+    /**
+     * Moves `sibling`'s element into the DOM immediately after this widget's element. Only the DOM changes: the widget
+     * tree is not updated, so `sibling` keeps its current `parent` (if any).
+     */
+    insertSiblingAfter(sibling: Pick<Widget, 'getElement'>): void {
+        this.elem.insertAdjacentElement('afterend', sibling.getElement());
     }
 
     protected appendOrInsert(child: HTMLElement, before: TChildWidget | undefined) {

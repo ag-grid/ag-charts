@@ -554,7 +554,7 @@ export class ContextMenu extends AbstractModuleInstance {
             switch (item.type) {
                 case 'separator': {
                     const sep = menuWidget.addSeparator();
-                    sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
+                    sep.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
                     break;
                 }
                 case 'action': {

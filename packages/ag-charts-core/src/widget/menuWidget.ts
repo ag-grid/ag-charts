@@ -15,6 +15,7 @@ import type { CollapseOpts, ExpandOpts, ExpandableWidget } from './expandableWid
 import { MenuItemWidget } from './menuItemWidget';
 import type { RovingDirection } from './rovingDirection';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
+import { SeparatorWidget } from './separatorWidget';
 import type { KeyboardWidgetEvent, WidgetEvent } from './widgetEvents';
 
 interface ExpansionScope {
@@ -36,10 +37,13 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         this.collapse({ mode: CollapseMode.DESTROY });
     }
 
-    public addSeparator(): Element {
-        const sep = this.elem.ownerDocument.createElement('div');
-        setAttribute(sep, 'role', 'separator');
-        this.elem.appendChild(sep);
+    /**
+     * Appends a separator after the current rows. The separator is not a child widget, so the roving tab index skips
+     * it, and `clear()` removes it from the DOM along with the rows.
+     */
+    public addSeparator(): SeparatorWidget {
+        const sep = new SeparatorWidget(this.elem.ownerDocument);
+        this.elem.appendChild(sep.getElement());
         return sep;
     }
 
