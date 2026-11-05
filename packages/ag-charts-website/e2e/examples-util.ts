@@ -221,18 +221,18 @@ type SweptControl = {
  */
 function nextControl(page: Page, reverse: boolean, tag: number) {
     return page.evaluate(
-        ({ selector, sweptAttr, reverse, tag }): SweptControl | null => {
+        ({ selector, sweptAttr, fromEnd, tagValue }): SweptControl | null => {
             const candidates = Array.from(document.querySelectorAll(selector)).filter(
                 (el) => !el.hasAttribute(sweptAttr)
             );
-            const el = reverse ? candidates.at(-1) : candidates[0];
+            const el = fromEnd ? candidates.at(-1) : candidates[0];
             if (el == null) return null;
-            el.setAttribute(sweptAttr, String(tag));
+            el.setAttribute(sweptAttr, String(tagValue));
 
             const normalise = (text: string | null | undefined) => text?.replaceAll(/\s+/g, ' ').trim() ?? '';
             const keys: string[] = [];
             const addKey = (key: string | null | undefined) => {
-                if (key) keys.push(key);
+                if (key != null && key !== '') keys.push(key);
             };
 
             let kind: SweptControl['kind'];
@@ -252,9 +252,9 @@ function nextControl(page: Page, reverse: boolean, tag: number) {
             if (kind === 'button' || kind === 'label') {
                 addKey(el.textContent);
                 addKey(normalise(el.textContent));
-                addKey(input?.id ? `#${input.id}` : undefined);
+                addKey(input == null || input.id === '' ? undefined : `#${input.id}`);
             }
-            addKey(el.id ? `#${el.id}` : undefined);
+            addKey(el.id === '' ? undefined : `#${el.id}`);
             if (el instanceof HTMLSelectElement || el instanceof HTMLInputElement) {
                 addKey(el.getAttribute('name'));
                 const label = el.labels?.[0];
@@ -286,19 +286,23 @@ function nextControl(page: Page, reverse: boolean, tag: number) {
                 }
                 result.skip = result.optionIndex == null;
             } else if (kind === 'range' || kind === 'number') {
-                const step = Number(input!.step) || 1;
-                const value = Number(input!.value) || 0;
+                const toNumber = (text: string, fallback: number) => {
+                    const number = Number(text);
+                    return text === '' || Number.isNaN(number) ? fallback : number;
+                };
+                const step = toNumber(input!.step, 1);
+                const value = toNumber(input!.value, 0);
                 if (kind === 'number' && input!.min === '' && input!.max === '') {
                     result.value = String(value + step);
                 } else {
-                    const min = Number(input!.min || 0);
-                    const max = min + Math.floor((Number(input!.max || 100) - min) / step) * step;
+                    const min = toNumber(input!.min, 0);
+                    const max = min + Math.floor((toNumber(input!.max, 100) - min) / step) * step;
                     result.value = String(value === min ? max : min);
                 }
             }
             return result;
         },
-        { selector: SWEPT_CONTROLS, sweptAttr: SWEPT_ATTR, reverse, tag }
+        { selector: SWEPT_CONTROLS, sweptAttr: SWEPT_ATTR, fromEnd: reverse, tagValue: tag }
     );
 }
 
@@ -329,15 +333,15 @@ function markFirstWrapper(page: Page) {
 
 function firstWrapperRedrawn(page: Page, rendersBefore: number) {
     return page.evaluate(
-        ({ markAttr, rendersBefore }) => {
+        ({ markAttr, before }) => {
             const wrapper = document.querySelector('.ag-charts-wrapper');
             if (wrapper == null) return false;
             const renders = Number(wrapper.getAttribute('data-scene-renders'));
             // A mark left by an earlier action is stale when no chart was found before this one.
-            const sameWrapper = wrapper.hasAttribute(markAttr) && !Number.isNaN(rendersBefore);
-            return sameWrapper ? renders > rendersBefore : renders >= 1;
+            const sameWrapper = wrapper.hasAttribute(markAttr) && !Number.isNaN(before);
+            return sameWrapper ? renders > before : renders >= 1;
         },
-        { markAttr: WRAPPER_MARK_ATTR, rendersBefore }
+        { markAttr: WRAPPER_MARK_ATTR, before: rendersBefore }
     );
 }
 
