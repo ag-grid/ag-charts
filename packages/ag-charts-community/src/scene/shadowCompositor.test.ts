@@ -1149,6 +1149,33 @@ describe('Group shadow compositor', () => {
             // The cutout casts its own shadow, as a single caster.
             expect(at(330, 110)[3]).toBeGreaterThan(0);
         });
+
+        describe.each([
+            ['without a spread, inline', {}],
+            ['with a spread, from the pre-pass', { spread: 4 }],
+        ])('a cutout with a glow %s', (_name, extra) => {
+            const cutoutWith = (options: Partial<Shape>) =>
+                box(200, 90, 60, 40, { fill: 'rgba(0, 0, 255, 0.5)', drawingMode: 'cutout', ...options });
+
+            it('should cast its own glow as it casts its own shadow, once', () => {
+                renderNodes([box(100, 90, 40, 40, { fillShadow: RED_HALF }), cutoutWith({ fillShadow: RED_HALF })]);
+                const asShadow = pixels();
+                renderNodes([box(100, 90, 40, 40, { fillShadow: RED_HALF }), cutoutWith({ fillGlow: RED_HALF })]);
+
+                expect(pixels()).toEqual(asShadow);
+                // Cast by the cutout alone, at the strength of its fill: the batch would stack a second glow over it.
+                expect(at(330, 110)).toEqual([255, 0, 0, 64]);
+            });
+
+            it('should cast its glow and its shadow together, each once', () => {
+                const SHADOW = { ...RED_HALF, ...extra };
+                const GLOW = { ...BLUE, xOffset: -100, ...extra };
+                renderNodes([cutoutWith({ fillShadow: SHADOW, fillGlow: GLOW })]);
+
+                expect(at(330, 110)).toEqual([255, 0, 0, 64]);
+                expect(at(130, 110)).toEqual([0, 0, 255, 128]);
+            });
+        });
     });
 
     describe('mixed shadow options', () => {
