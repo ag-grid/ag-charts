@@ -204,8 +204,6 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'org-chart-zoom-scale': { skipCanvasUpdateCheck: ['100K'] },
     },
     'range-area-series-e2e': {
-        // The Low/High segment destroys and re-creates the chart, so the new wrapper's
-        // render counter restarts at 0 and can never exceed the old one.
-        'shared-low-high-match': { skipCanvasUpdateCheck: ['Low/High'], frameworks: ['vanilla'] },
+        'shared-low-high-match': { frameworks: ['vanilla'] },
     },
 };
