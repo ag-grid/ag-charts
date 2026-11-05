@@ -91,7 +91,17 @@ export class AnnotationSettingsDialog extends Dialog {
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
-        this.hideFns.push(() => this.events.emit('hidden', null));
+        this.hideFns.push(() => {
+            this.refreshCoordinateInputs = undefined;
+            this.events.emit('hidden', null);
+        });
+    }
+
+    private refreshCoordinateInputs?: () => void;
+
+    /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
+    public refreshCoordinates() {
+        this.refreshCoordinateInputs?.();
     }
 
     public show(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
@@ -299,8 +309,10 @@ export class AnnotationSettingsDialog extends Dialog {
         }
 
         const rows = new Map<CoordinateRow, HTMLElement[]>();
+        const refreshes: Array<(next: CoordinateField) => void> = [];
         for (const field of fields) {
-            const elements = this.createCoordinateInput(field, options);
+            const { elements, refresh } = this.createCoordinateInput(field, options);
+            refreshes.push(refresh);
             const row = rows.get(field.row);
             if (row) {
                 row.push(...elements);
@@ -309,6 +321,17 @@ export class AnnotationSettingsDialog extends Dialog {
             }
         }
 
+        this.refreshCoordinateInputs = () => {
+            const current = options.getContext();
+            const next = current && getCoordinateFields(datum, current);
+            if (next?.length !== refreshes.length) {
+                return;
+            }
+            for (const [index, refresh] of refreshes.entries()) {
+                refresh(next[index]);
+            }
+        };
+
         const panel = this.createTabPanel();
         for (const [row, inputs] of rows) {
             panel.append(this.createInputRow(COORDINATE_ROW_LABELS[row], inputs));
@@ -316,15 +339,16 @@ export class AnnotationSettingsDialog extends Dialog {
         return panel;
     }
 
-    private createCoordinateInput(field: CoordinateField, options: LinearSettingsDialogOptions) {
+    private createCoordinateInput(initial: CoordinateField, options: LinearSettingsDialogOptions) {
         const { localeManager } = this.ctx;
         const ariaLabel = localeManager.t('dialogInputCoordinatesAltText', {
-            label: localeManager.t(COORDINATE_ROW_LABELS[field.row]),
-            axis: localeManager.t(field.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'),
+            label: localeManager.t(COORDINATE_ROW_LABELS[initial.row]),
+            axis: localeManager.t(initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'),
         });
 
-        const suggestions = field.suggestions && createDatalist(field.suggestions);
+        const suggestions = initial.suggestions && createDatalist(initial.suggestions);
 
+        let field = initial;
         let committed = field.value;
         const input = this.createInput({
             ariaLabel,
@@ -351,7 +375,17 @@ export class AnnotationSettingsDialog extends Dialog {
                 options.onChangeCoordinates(props);
             },
         });
-        return suggestions ? [input, suggestions.datalist] : [input];
+
+        // An input being typed into keeps its text; the datum it will be compared against is still brought up to date.
+        const refresh = (next: CoordinateField) => {
+            field = next;
+            committed = next.value;
+            if (!input.matches(':focus')) {
+                input.value = committed;
+            }
+        };
+
+        return { elements: suggestions ? [input, suggestions.datalist] : [input], refresh };
     }
 
     private createColorPickerInput(

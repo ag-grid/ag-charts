@@ -36,7 +36,9 @@ describe('AnnotationSettingsDialog coordinates', () => {
             onChangeHideTextColor: noop,
             onChangeTextFontSize: noop,
         };
-        dialog.show({ ...lineDatum.create(), start: { x: 'Pears', y: 2 }, end: { x: 'Apples', y: 4 } }, options);
+        const datum = { ...lineDatum.create(), start: { x: 'Pears', y: 2 }, end: { x: 'Apples', y: 4 } };
+        dialog.show(datum, options);
+        return datum;
     };
     const inputs = () => Array.from(document.querySelectorAll<HTMLInputElement>('.ag-charts-dialog__input'));
     const commit = (input: HTMLInputElement, value: string) => {
@@ -70,6 +72,21 @@ describe('AnnotationSettingsDialog coordinates', () => {
         commit(startY, '51');
         expect(startY.value).toBe('20');
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
+    });
+
+    it('follows the annotation when it changes behind the dialog', () => {
+        const yScale = new LinearScale();
+        yScale.domain = [0, 50];
+        const datum = show(createAxesContext(new CategoryScale(), yScale));
+        const [, startY] = inputs();
+
+        // As an undo or a drag changes it.
+        datum.start.y = 30;
+        dialog.refreshCoordinates();
+        expect(startY.value).toBe('30');
+
+        commit(startY, '2');
+        expect(onChangeCoordinates).toHaveBeenCalledWith({ start: { y: 2 } });
     });
 
     it('offers the categories of a category axis and takes only one of them', () => {

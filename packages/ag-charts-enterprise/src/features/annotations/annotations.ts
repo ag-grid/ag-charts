@@ -796,6 +796,7 @@ export class Annotations extends AbstractModuleInstance {
     private onPreRender() {
         if (!(this.opts.enabled ?? true)) return;
         this.updateAnnotations();
+        this.settingsDialog.refreshCoordinates();
         this.state.transition('render');
     }
 
