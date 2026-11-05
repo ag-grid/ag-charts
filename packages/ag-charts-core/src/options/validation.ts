@@ -14,6 +14,7 @@ import {
     isString,
     isValidDate,
 } from '../data/typeGuards';
+import { isLightDarkColor } from '../format/color';
 import type { Logger } from '../logging/logger';
 import { isEnterprise } from '../modules/registryMode';
 import type { AreExact, IsUnion } from '../types/global';
@@ -166,8 +167,20 @@ export class ValidationError {
         if (type === ErrorType.Enterprise) {
             return `${this.getPrefix()} is an AG Charts Enterprise feature; ignoring.`;
         }
-        return `${this.getPrefix()} cannot be set to \`${stringifyValue(value, 50)}\`; expecting ${description}, ignoring.`;
+        return `${this.getPrefix()} cannot be set to \`${stringifyValue(value, 50)}\`; expecting ${description}${lightDarkAdvice(value)}, ignoring.`;
     }
+}
+
+const lightDarkMessage =
+    'light-dark() is not supported because charts are drawn on a canvas; use CSS variables or separate light and dark themes instead';
+
+function isLightDarkValue(value: unknown): boolean {
+    if (isString(value)) return isLightDarkColor(value);
+    return isArray(value) && value.some((item) => isString(item) && isLightDarkColor(item));
+}
+
+function lightDarkAdvice(value: unknown): string {
+    return isLightDarkValue(value) ? `. ${lightDarkMessage}` : '';
 }
 
 export class UnknownError extends ValidationError {
@@ -842,7 +855,7 @@ export const callbackOf = (validator: Validator, description?: string) =>
                     return result;
                 } else {
                     context.params.logger.warnOnce(
-                        `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${validatorDescription}, ignoring.`
+                        `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${validatorDescription}${lightDarkAdvice(result)}, ignoring.`
                     );
                 }
             },
@@ -912,10 +925,11 @@ function warnCallbackErrors(
             );
         }
         const errorValue = stringifyValue(error.value, 50);
+        const advice = lightDarkAdvice(error.value);
         context.params.logger.warnOnce(
             error.key == null || error.key === ''
-                ? `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
-                : `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
+                ? `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}${advice}, ignoring.`
+                : `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}${advice}, ignoring.`
         );
     }
 }

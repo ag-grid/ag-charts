@@ -377,6 +377,17 @@ describe('Validation utils', () => {
             expect(msgs[1]).toContain('expecting text segments');
         });
 
+        test('adds light-dark() advice when a callback returns a light-dark() colour', () => {
+            wrapFormatter(color, 'light-dark(red, blue)', 'series[0].fill');
+
+            const msgs = warnings();
+            expect(msgs).toHaveLength(1);
+            expect(msgs[0]).toContain('Callback `series[0].fill` returned an invalid value `"light-dark(red, blue)"`');
+            expect(msgs[0]).toContain(
+                'light-dark() is not supported because charts are drawn on a canvas; use CSS variables or separate light and dark themes instead, ignoring.'
+            );
+        });
+
         test('reports the offending sub-property for an invalid segment value', () => {
             const result = wrapFormatter(
                 textOrSegments,
@@ -964,8 +975,9 @@ describe('Validation utils', () => {
     });
 
     describe('color', () => {
-        it('rejects oklab(), lab(), lch() and color()', () => {
+        it('rejects oklab(), lab(), lch(), color() and light-dark()', () => {
             expect(isValid({ c: 'oklab(0.5 0.1 0.1)' }, { c: color })).toBe(false);
+            expect(isValid({ c: 'light-dark(red, blue)' }, { c: color })).toBe(false);
             expect(isValid({ c: 'lab(50% 40 59.5)' }, { c: color })).toBe(false);
             expect(isValid({ c: 'lch(50% 70 40)' }, { c: color })).toBe(false);
             expect(isValid({ c: 'color(display-p3 1 0.5 0)' }, { c: color })).toBe(false);
@@ -985,6 +997,30 @@ describe('Validation utils', () => {
         // regardless; here only `currentColor` distinguishes a targeted rejection from a blanket one.
         it('still accepts currentColor (D1 guard: not narrowed wholesale)', () => {
             expect(isValid({ c: 'currentColor' }, { c: color })).toBe(true);
+        });
+
+        const lightDarkAdvice =
+            'light-dark() is not supported because charts are drawn on a canvas; use CSS variables or separate light and dark themes instead';
+
+        it.each([
+            ['a light-dark() string', 'light-dark(red, blue)', { c: color }],
+            ['an array with a light-dark() entry', ['red', 'light-dark(red, blue)'], { c: arrayOf(color) }],
+        ])('appends light-dark() advice to the warning for %s', (_name, value, defs) => {
+            const [error] = validate({ c: value }, defs as OptionsDefs<{ c: unknown }>).invalid;
+
+            const message = String(error);
+            expect(message).toContain('Option `c` cannot be set to');
+            expect(message).toContain(`; expecting ${error.description}. ${lightDarkAdvice}, ignoring.`);
+        });
+
+        it.each([
+            ['an invalid non-light-dark() string', 'lab(50% 40 59.5)', { c: color }],
+            ['an object containing a light-dark() string', { x: 'light-dark(red, blue)' }, { c: color }],
+        ])('leaves the warning unchanged for %s', (_name, value, defs) => {
+            const [error] = validate({ c: value }, defs as OptionsDefs<{ c: unknown }>).invalid;
+
+            expect(String(error)).not.toContain('light-dark() is not supported');
+            expect(String(error)).toMatch(/; expecting [^.]+, ignoring\.$/);
         });
     });
 });
