@@ -111,7 +111,8 @@ export class AnnotationSettingsDialog extends Dialog {
             lineLabel = 'dialogHeaderDatePriceRange';
         }
 
-        const tabsOptions: Record<string, { label: string; panel: HTMLElement; onShow?: () => void }> = {
+        const coordinatesTab = this.createCoordinatesTab(datum, options);
+        const tabsOptions = {
             line: {
                 label: lineLabel,
                 panel: lineTab,
@@ -121,12 +122,8 @@ export class AnnotationSettingsDialog extends Dialog {
                 panel: textTab.panel,
                 onShow: textTab.onShow,
             },
+            ...(coordinatesTab && { coordinates: { label: 'dialogHeaderCoordinates', panel: coordinatesTab } }),
         };
-
-        const coordinatesTab = this.createCoordinatesTab(datum, options);
-        if (coordinatesTab) {
-            tabsOptions.coordinates = { label: 'dialogHeaderCoordinates', panel: coordinatesTab };
-        }
 
         const { tabs, initialFocus } = this.createTabs(
             'ariaLabelSettingsTabBar',
