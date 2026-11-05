@@ -1124,7 +1124,8 @@ export class MapShapeSeries
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): Path | undefined {
-        return findFocusedGeoGeometry(this, opts);
+        const geometry = findFocusedGeoGeometry(this, opts);
+        return geometry?.projectedGeometry == null ? undefined : geometry;
     }
 
     protected override hasItemStylers(): boolean {
