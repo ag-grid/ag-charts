@@ -44,7 +44,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
-            enabled: false,
+            enabled: { $isUserOption: '../labelKey' },
             fontSize: { $ref: 'seriesLabelFontSize' },
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
