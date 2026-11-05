@@ -1650,19 +1650,21 @@ export abstract class BubbleScatterSeries<
                 processedData,
                 'object'
             )[datumIndex];
-            const content = formatManager.format(this.callWithContext.bind(this), {
-                type: 'category',
-                value,
-                datum,
-                seriesId,
-                legendItemName,
-                key: labelKey,
-                source: 'tooltip',
-                property: 'label',
-                domain: [],
-                boundSeries: this.getFormatterContext('label'),
-            });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+            if (value != null) {
+                const content = formatManager.format(this.callWithContext.bind(this), {
+                    type: 'category',
+                    value,
+                    datum,
+                    seriesId,
+                    legendItemName,
+                    key: labelKey,
+                    source: 'tooltip',
+                    property: 'label',
+                    domain: [],
+                    boundSeries: this.getFormatterContext('label'),
+                });
+                data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+            }
         }
 
         data.push(
