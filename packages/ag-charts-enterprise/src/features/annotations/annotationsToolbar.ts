@@ -162,7 +162,11 @@ export class AnnotationsToolbar {
         buttonWidget,
     }: _ModuleSupport.ToolbarEventMap<AnnotationsToolbarButtonOptions>['button-pressed']) {
         // The button of a chosen tool places its annotation when pressed with the keyboard, rather than choosing the tool again.
-        if (event.device === 'keyboard' && button.value === this.activeToolButton) {
+        if (
+            event.device === 'keyboard' &&
+            event.sourceEvent.key === 'Enter' &&
+            button.value === this.activeToolButton
+        ) {
             this.events.emit('pressed-place-annotation', { sourceEvent: event.sourceEvent });
             return;
         }

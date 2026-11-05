@@ -261,6 +261,14 @@ test.describe('annotations keyboard create', () => {
         await expect(page.locator(MENU_ROW).first()).toBeVisible();
     });
 
+    test('Space on a chosen tool button opens its menu rather than placing the annotation', async ({ page }) => {
+        await chooseTool(page, TREND_LINE);
+        await page.keyboard.press('Space');
+
+        await expect(page.locator(MENU_ROW).first()).toBeVisible();
+        expect(await getAnnotations(page)).toHaveLength(0);
+    });
+
     test('Escape on the chart cancels a chosen tool and returns focus to its button', async ({ page }) => {
         await chooseTool(page, TREND_LINE);
         await page.locator(SWAPCHAIN).focus();
