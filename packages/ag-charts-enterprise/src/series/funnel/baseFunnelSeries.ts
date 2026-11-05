@@ -562,7 +562,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected resolveItemId(datum: unknown, datumIndex: number) {
-        return getItemId({ series: this, datum, datumIndex }, this.data?.dataIdKey);
+        return getItemId({ series: this, datum, datumIndex }, this.data);
     }
 
     protected abstract getItemStyle(

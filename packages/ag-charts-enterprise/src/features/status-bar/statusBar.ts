@@ -14,6 +14,7 @@ import {
     drawnLineHeight,
     isFiniteNumber,
     isNumericValue,
+    readDatumKey,
 } from 'ag-charts-core';
 
 import { findBandLevel } from './findBandLevel';
@@ -519,11 +520,12 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         this.labelGroup.visible = true;
 
         const itemId = activeHighlight?.itemId;
+        const suppress = this.ctx.chartState.getValue('options', 'suppressFieldDotNotation') ?? false;
 
         let baseStyle = itemId == null ? undefined : itemIdMap[itemId];
         if (baseStyle == null && opts.openKey != null && opts.closeKey != null) {
             // Fallback for series without distinct positive/negative items.
-            if (datum[opts.openKey] < datum[opts.closeKey]) {
+            if (readDatumKey(datum, opts.openKey, suppress) < readDatumKey(datum, opts.closeKey, suppress)) {
                 baseStyle = 'positive';
             } else {
                 baseStyle = 'negative';
@@ -539,7 +541,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             }
 
             const datumKey = opts[key];
-            const datumValue = datumKey == null ? undefined : datum?.[datumKey];
+            const datumValue = datumKey == null ? undefined : readDatumKey(datum, datumKey, suppress);
 
             value.setFont(opts[labelStyle]);
             value.fill = opts[labelStyle].color;

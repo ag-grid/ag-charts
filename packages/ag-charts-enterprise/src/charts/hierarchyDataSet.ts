@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, reversePush } from 'ag-charts-core';
+import { Logger, readDatumKey, reversePush } from 'ag-charts-core';
 
 type TransactionCollectionState<T> = _ModuleSupport.TransactionCollectionState<T>;
 type DataChangeDescriptionListener = _ModuleSupport.DataChangeDescriptionListener;
@@ -12,17 +12,6 @@ type DFSMemory<T> = {
     datumLookup: T[];
 };
 
-function pushChildren<T>(stack: T[], node: T, childrenKey: string): void {
-    if (typeof node === 'object' && node != null) {
-        const lenientNode: { [K in string]?: unknown } = node;
-        const children: unknown = lenientNode[childrenKey];
-        if (Array.isArray(children)) {
-            // push to stack in reverse, so that the first child is visited first:
-            reversePush(stack, children);
-        }
-    }
-}
-
 /**
  * DataSet subclass that understands hierarchical/nested data (e.g. treemap with `childrenKey`).
  * Extends ID-based transaction logic to find, update, and remove items nested within children arrays.
@@ -34,9 +23,10 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         data: T[],
         dataIdKey: string | undefined,
         private readonly childrenKey: string,
-        logger: Logger
+        logger: Logger,
+        suppressFieldDotNotation = false
     ) {
-        super(data, logger, dataIdKey);
+        super(data, logger, dataIdKey, suppressFieldDotNotation);
     }
 
     private getDfsOrdering(): DFSMemory<T> {
@@ -49,7 +39,11 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
             while (node !== undefined) {
                 this.dfsOrdering.datumLookup.push(node);
                 this.dfsOrdering.groupLookup.push(groupNumber);
-                pushChildren(stack, node, this.childrenKey);
+                const children = this.readChildren(node);
+                if (Array.isArray(children)) {
+                    // push to stack in reverse, so that the first child is visited first:
+                    reversePush(stack, children);
+                }
                 node = stack.pop();
             }
         }
@@ -67,11 +61,14 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     public isLeaf(datumIndex: number): boolean {
         const node: T | undefined = this.getDatumAt(datumIndex);
         if (node != null && typeof node === 'object') {
-            const lenientNode: { [K in string]?: { length?: unknown } } = node;
-            const children = lenientNode[this.childrenKey];
+            const children = this.readChildren(node);
             return children === undefined || children.length === 0;
         }
         return false;
+    }
+
+    private readChildren(node: unknown) {
+        return readDatumKey(node, this.childrenKey, this.suppressFieldDotNotation);
     }
 
     override size(): number {
@@ -225,7 +222,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     }
 
     private collectNestedIds(item: T, ids: Set<string | number>): void {
-        const children = (item as any)?.[this.childrenKey];
+        const children = this.readChildren(item);
         if (!Array.isArray(children)) return;
         for (const child of children) {
             const id = this.getIdValue(child as T);
@@ -332,7 +329,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
 
     /** Walks the tree to find and replace a nested item by ID. Returns true if found. */
     private replaceNestedItem(parent: T, targetId: string | number, newDatum: T): boolean {
-        const children = (parent as any)?.[this.childrenKey];
+        const children = this.readChildren(parent);
         if (!Array.isArray(children)) return false;
 
         for (let i = 0; i < children.length; i++) {
@@ -350,7 +347,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
 
     /** Walks the tree to find and splice a nested item by ID. Returns true if found. */
     private removeNestedItem(parent: T, targetId: string | number): boolean {
-        const children = (parent as any)?.[this.childrenKey];
+        const children = this.readChildren(parent);
         if (!Array.isArray(children)) return false;
 
         for (let i = 0; i < children.length; i++) {

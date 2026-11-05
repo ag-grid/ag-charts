@@ -71,6 +71,7 @@ import type {
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
+import type { DataIdReader } from './data/dataSet';
 import {
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
@@ -85,7 +86,7 @@ interface SeriesLike {
     id: string;
     ctx: DynamicContext<ChartRegistry>;
     declarationOrder: number;
-    readonly data?: { readonly dataIdKey?: string };
+    readonly data?: DataIdReader;
     get visible(): boolean;
     cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined;
     isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined): boolean;
@@ -520,9 +521,7 @@ export function getLabelStyles<TParams>(
             nodeDatum?.datumIndex
         );
 
-        const itemId: string | number | undefined = nodeDatum
-            ? getItemId(nodeDatum, series.data?.dataIdKey)
-            : undefined;
+        const itemId: string | number | undefined = nodeDatum ? getItemId(nodeDatum, series.data) : undefined;
 
         const styleParams: NormalisedCallbackParams<
             AgChartLabelStylerParams<unknown, unknown>,

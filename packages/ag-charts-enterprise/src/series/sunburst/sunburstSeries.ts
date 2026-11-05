@@ -29,6 +29,7 @@ import {
     Text,
     TransformableText,
     cycledValue,
+    datumKeyReader,
     drawnLineHeight,
     findDiscreteColorBinLabel,
     fontWithSize,
@@ -37,6 +38,7 @@ import {
     measureLabelText,
     mergeDefaults,
     normalizeAngle360,
+    readDatumKey,
 } from 'ag-charts-core';
 import type { Path } from 'ag-charts-core';
 import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight, PaddingOptions } from 'ag-charts-types';
@@ -430,12 +432,16 @@ export class SunburstSeries extends HierarchySeries<
             }
         });
 
+        const suppressFieldDotNotation = this.data?.suppressFieldDotNotation ?? false;
+        const readLabel = labelKey == null ? undefined : datumKeyReader(labelKey, suppressFieldDotNotation);
+        const readSecondaryLabel =
+            secondaryLabelKey == null ? undefined : datumKeyReader(secondaryLabelKey, suppressFieldDotNotation);
         rootNode?.walk((node) => {
             const { datum, depth, startAngle, endAngle, parent, sumSize } = node;
 
             let labelValue: NormalisedTextOrSegments | undefined;
             if (datum != null && depth != null && labelKey != null) {
-                const value = (datum as any)[labelKey];
+                const value = readLabel?.(datum);
                 labelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
                     value,
                     datum,
@@ -463,7 +469,7 @@ export class SunburstSeries extends HierarchySeries<
 
             let secondaryLabelValue: NormalisedTextOrSegments | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null) {
-                const value = (datum as any)[secondaryLabelKey];
+                const value = readSecondaryLabel?.(datum);
                 secondaryLabelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
                     value,
                     datum,
@@ -785,12 +791,12 @@ export class SunburstSeries extends HierarchySeries<
         return {
             childrenKey,
             colorKey,
-            colorName: colorName ?? colorKey,
+            colorName: colorName ?? this.optionalKeyName(colorKey),
             depth: node.depth ?? Number.NaN,
             labelKey,
             secondaryLabelKey,
             sizeKey,
-            sizeName: sizeName ?? sizeKey,
+            sizeName: sizeName ?? this.optionalKeyName(sizeKey),
         };
     }
 
@@ -943,8 +949,9 @@ export class SunburstSeries extends HierarchySeries<
         if (datum == null || depth == null) return;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
+        const suppressFieldDotNotation = this.data?.suppressFieldDotNotation ?? false;
 
-        const datumSize = sizeKey == null ? undefined : datum[sizeKey];
+        const datumSize = sizeKey == null ? undefined : readDatumKey(datum, sizeKey, suppressFieldDotNotation);
         if (datumSize != null) {
             const sizeDomain = [0, this.rootNode?.sumSize ?? 0];
             const content = formatManager.format(this.callWithContext.bind(this), {
@@ -961,10 +968,14 @@ export class SunburstSeries extends HierarchySeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: sizeName, fallbackLabel: sizeKey!, value: content ?? formatValue(datumSize) });
+            data.push({
+                label: sizeName,
+                fallbackLabel: this.keyName(sizeKey!),
+                value: content ?? formatValue(datumSize),
+            });
         }
 
-        const datumColor = colorKey == null ? undefined : datum[colorKey];
+        const datumColor = colorKey == null ? undefined : readDatumKey(datum, colorKey, suppressFieldDotNotation);
         if (datumColor != null) {
             const { colorDomain } = this;
             const content = formatManager.format(this.callWithContext.bind(this), {
@@ -989,7 +1000,7 @@ export class SunburstSeries extends HierarchySeries<
             );
             data.push({
                 label: colorName,
-                fallbackLabel: colorKey!,
+                fallbackLabel: this.keyName(colorKey!),
                 value: content ?? binLabel ?? formatValue(datumColor),
             });
         }
@@ -1017,7 +1028,7 @@ export class SunburstSeries extends HierarchySeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                title: labelKey == null ? undefined : datum[labelKey],
+                title: labelKey == null ? undefined : readDatumKey(datum, labelKey, suppressFieldDotNotation),
                 symbol: {
                     marker: markerStyle,
                 },

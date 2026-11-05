@@ -51,7 +51,6 @@ export {
     extendDomainToZero,
     getMissCount,
     datumKeys,
-    getPathComponents,
     NULL_KEY_STRING,
     UNDEFINED_KEY_STRING,
 } from './data-model/utils/helpers';
@@ -121,7 +120,7 @@ export class DataModel<
         private readonly opts: DataModelOptions<K, Grouped, true>,
         private readonly logger: Logger,
         private readonly mode: ChartMode = 'standalone',
-        private readonly suppressFieldDotNotation: boolean = false,
+        readonly suppressFieldDotNotation: boolean = false,
         private readonly eventsHub?: EventsHub
     ) {
         // Validate that keys appear before values in the definitions, as output ordering depends
