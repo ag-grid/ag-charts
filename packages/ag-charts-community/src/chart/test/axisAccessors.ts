@@ -105,6 +105,11 @@ export function getAxisTitleBBox(chartOrProxy: ChartOrProxy<any>, position: stri
     return Transformable.toCanvas(findAxis(chartOrProxy, position).caption.node);
 }
 
+/** The rotation of the axis title in radians. */
+export function getAxisTitleRotation(chartOrProxy: ChartOrProxy<any>, position: string): number {
+    return findAxis(chartOrProxy, position).caption.node.rotation;
+}
+
 /** The series rect, asserted to have been laid out. */
 export function getSeriesRect(chartOrProxy: ChartOrProxy<any>): BBox {
     const { seriesRect } = deproxy(chartOrProxy);
