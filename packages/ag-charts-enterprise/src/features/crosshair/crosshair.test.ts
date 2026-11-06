@@ -15,6 +15,7 @@ import type {
     AgLineSeriesOptions,
     AgOhlcSeriesOptions,
     AgRangeAreaSeriesOptions,
+    AgRangeBarCrosshairSnapValue,
     AgRangeBarSeriesOptions,
 } from 'ag-charts-community';
 import {
@@ -1612,6 +1613,25 @@ describe('Crosshair', () => {
 
                 await hoverDatum('B', 55);
                 expectLines('left', { medianKey: 45 });
+            });
+
+            it('falls back to the range-bar default when no value name is valid', async () => {
+                chart = await createEnterpriseChart(
+                    rangeOptions([rangeBar({ crosshairSnapTo: ['foo' as AgRangeBarCrosshairSnapValue] })])
+                );
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].crosshairSnapTo[0]\` cannot be set to \`"foo"\`; expecting one of ["yLow", "yHigh"], ignoring.",
+                    ],
+                    [
+                      "AG Charts - Option \`series[0].crosshairSnapTo\` cannot be set to \`["foo"]\`; expecting an array of crosshair snap values: ["yLow", "yHigh"], ignoring.",
+                    ],
+                  ]
+                `);
+
+                await hoverDatum('B', 55);
+                expectLines('left', { yLowKey: 30, yHighKey: 80 });
             });
         });
     });
