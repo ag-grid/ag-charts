@@ -215,4 +215,50 @@ describe('Widget', () => {
             expect(widget.getBounds()).toEqual({ x: 4, y: 5, width: 0, height: 20 });
         });
     });
+
+    describe('setCssOffset', () => {
+        // jsdom ignores `right: unset` and `bottom: unset`, so only left and top are observable here.
+        it('sets left and top in pixels', () => {
+            const widget = makeWidget();
+            widget.setCssOffset({ x: 12, y: 34.5 });
+            const { style } = widget.getElement();
+            expect(style.left).toBe('12px');
+            expect(style.top).toBe('34.5px');
+        });
+
+        it('keeps the current value of an omitted coordinate', () => {
+            const widget = makeWidget();
+            widget.setCssOffset({ x: 10, y: 20 });
+            widget.setCssOffset({ y: 30 });
+            expect(widget.cssLeft()).toBe(10);
+            expect(widget.cssTop()).toBe(30);
+        });
+    });
+
+    describe('setMinWidth', () => {
+        it('sets and removes min-width in pixels', () => {
+            const widget = makeWidget();
+            widget.setMinWidth(200);
+            expect(widget.getElement().style.minWidth).toBe('200px');
+            widget.setMinWidth(undefined);
+            expect(widget.getElement().style.minWidth).toBe('');
+        });
+    });
+
+    describe('removeChildWidget', () => {
+        it('leaves the other children alone when the widget is no longer a child', () => {
+            const parent = makeWidget();
+            const first = makeWidget();
+            const second = makeWidget();
+            parent.addChild(first);
+            parent.addChild(second);
+
+            first.remove();
+            first.remove();
+
+            expect(Array.from(parent.getElement().children)).toEqual([second.getElement()]);
+            second.remove();
+            expect(parent.getElement().children.length).toBe(0);
+        });
+    });
 });

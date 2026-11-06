@@ -60,6 +60,27 @@ test.describe('toolbar', () => {
         await expectChartScreenshot(page, page, 'line-8-paste.png', { animations: 'disabled' });
     });
 
+    test('second press of an options toolbar button closes its overlay', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.getByTitle('Trend Lines').click();
+        await page.getByText('Trend Line').click();
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+
+        await page.getByTitle('Line Stroke Width').click();
+        await expect(page.locator('.ag-charts-menu__label').first()).toBeVisible();
+        await page.getByTitle('Line Stroke Width').click();
+        await expect(page.locator('.ag-charts-menu__label')).toHaveCount(0);
+
+        await page.getByTitle('Line Color').click();
+        await expect(page.locator('.ag-charts-color-picker')).toBeVisible();
+        await page.getByTitle('Line Color').click();
+        await expect(page.locator('.ag-charts-color-picker')).toHaveCount(0);
+    });
+
     test('text', async ({ page }) => {
         await gotoExample(page, url);
 

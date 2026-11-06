@@ -23,6 +23,7 @@ const options: AgCartesianChartOptions = {
             sizeKey: 'weight',
             sizeName: 'Weight',
             labelKey: 'animal',
+            label: { enabled: false },
             fill: {
                 type: 'pattern',
                 pattern: 'stars',

@@ -37,13 +37,56 @@ function minifiedTwin(file) {
 }
 
 // Static imports and re-exports, minified or not, side-effect imports and dynamic `import()`.
-const RELATIVE_IMPORT = /(?:^|[^\w$.])(?:import|export)\s*(?:[^'";()]*?from\s*|\(\s*)?["'](\.{1,2}\/[^"']+)["']/g;
+const IMPORT = /(?:^|[^\w$.])(?:import|export)\s*(?:[^'";()]*?from\s*|\(\s*)?["']([^"']+)["']/g;
+
+function isRelative(specifier) {
+    return /^\.{1,2}\//.test(specifier);
+}
+
+function importSpecifiers(pkgDir, file) {
+    const source = fs.readFileSync(path.join(pkgDir, file), 'utf8');
+    return [...source.matchAll(IMPORT)].map(([, specifier]) => specifier);
+}
 
 function relativeImports(pkgDir, file) {
-    const source = fs.readFileSync(path.join(pkgDir, file), 'utf8');
-    return [...source.matchAll(RELATIVE_IMPORT)].map(([, specifier]) =>
-        path.posix.join(path.posix.dirname(file), specifier)
-    );
+    return importSpecifiers(pkgDir, file)
+        .filter(isRelative)
+        .map((specifier) => path.posix.join(path.posix.dirname(file), specifier));
+}
+
+// Stateless, so a bundle may carry its own copy and spare import maps from mapping them.
+const INLINABLE_PACKAGES = new Set(['ag-charts-locale', 'ag-charts-types']);
+
+// The minified twin of a per-module entry is its single-file bundle, so it must import no module, and must not
+// inline a package the tree imports: a second copy of one would split its module state.
+function checkBundle(pkgDir, entry, bundle) {
+    const tree = new Set([entry]);
+    const pending = [entry];
+    while (pending.length > 0) {
+        for (const target of relativeImports(pkgDir, pending.pop())) {
+            if (tree.has(target) || !fs.existsSync(path.join(pkgDir, target))) continue;
+            tree.add(target);
+            pending.push(target);
+        }
+    }
+    if (tree.size === 1 || !fs.existsSync(path.join(pkgDir, bundle))) return [];
+
+    const errors = [];
+    const bundled = new Set(importSpecifiers(pkgDir, bundle));
+    for (const specifier of bundled) {
+        if (!isRelative(specifier)) continue;
+        errors.push({ kind: 'bundle-relative-import', file: bundle, message: `${bundle} imports ${specifier}` });
+    }
+    const packages = new Set([...tree].flatMap((file) => importSpecifiers(pkgDir, file)).filter((s) => !isRelative(s)));
+    for (const specifier of packages) {
+        if (bundled.has(specifier) || INLINABLE_PACKAGES.has(specifier)) continue;
+        errors.push({
+            kind: 'bundle-inlined-package',
+            file: bundle,
+            message: `${bundle} inlines ${specifier}, which ${entry} imports`,
+        });
+    }
+    return errors;
 }
 
 function escapeRegExp(text) {
@@ -193,6 +236,9 @@ function checkPackage(pkgDir, { release = false } = {}) {
         expected.add(twin);
         if (!fs.existsSync(path.join(pkgDir, twin))) {
             errors.push({ kind: 'missing-twin', file: twin, message: `minified file is missing: ${twin}` });
+        }
+        if (file.endsWith('.mjs') && fs.existsSync(path.join(pkgDir, file))) {
+            errors.push(...checkBundle(pkgDir, file, twin));
         }
     }
 

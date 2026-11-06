@@ -46,12 +46,6 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'financial-chart-types': {
         'toggle-financial-features': { clickOrder: 'reverse' },
     },
-    'high-frequency-data': {
-        // Vue's reactive options hand the chart proxies of the data, so removing raw items by identity warns.
-        'high-frequency-showcase': {
-            frameworks: ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular'],
-        },
-    },
     'high-performance-charts': {
         // React and Vue clone the options per change, which outlasts the test timeout at 1m points.
         'bubble-scatter': { frameworks: ['vanilla', 'typescript', 'angular'] },
@@ -93,12 +87,6 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'tooltip-mode': { skipCanvasUpdateCheck: true },
         'tooltip-pagination': { skipCanvasUpdateCheck: true },
         'interaction-range': { skipCanvasUpdateCheck: true },
-    },
-    transactions: {
-        // Vue's reactive options hand the chart proxies of the data, so updating raw items by identity warns.
-        'simple-apply-transaction': {
-            frameworks: ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular'],
-        },
     },
     touch: {
         'long-tap': { skipCanvasUpdateCheck: true },

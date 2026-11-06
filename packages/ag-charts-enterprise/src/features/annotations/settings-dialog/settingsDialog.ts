@@ -1,5 +1,6 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 import { type DynamicContext, EventEmitter, focusCursorAtEnd } from 'ag-charts-core';
+import type { AgAnnotationFollowName } from 'ag-charts-types';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
@@ -20,6 +21,8 @@ import type {
     LineDatumType,
     MeasurerDatumType,
 } from '../annotationsSuperTypes';
+import { horizontalLineDatum } from '../cross-line/crossLineDatum';
+import { normaliseFollow } from '../cross-line/followValue';
 import { dateRangeDatum, priceRangeDatum } from '../measurer/measurerDatum';
 import { hasBackground, hasExtendable } from '../utils/has';
 import { isChannelType, isFibonacciType } from '../utils/types';
@@ -49,6 +52,8 @@ export interface LinearSettingsDialogLineChangeProps {
     reverse?: boolean;
     showFill?: boolean;
     bands?: FibonacciBands;
+    /** Make a horizontal line follow the first or last datum of a series, or `'none'` to stop it following. */
+    follow?: AgAnnotationFollowName | 'none';
 }
 
 export interface LinearSettingsDialogTextChangeProps {
@@ -105,7 +110,7 @@ export class AnnotationSettingsDialog extends Dialog {
         options.initialFocus = initialFocus;
 
         const popover = this.showWithChildren([tabs], options);
-        popover.classList.add('ag-charts-dialog--annotation-settings');
+        popover.addClass('ag-charts-dialog--annotation-settings');
     }
 
     private createLinearLineTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
@@ -159,6 +164,14 @@ export class AnnotationSettingsDialog extends Dialog {
         groupTwo.append(lineStyle);
 
         panel.append(groupOne, groupTwo);
+
+        if (horizontalLineDatum.is(datum)) {
+            panel.append(
+                this.createFollowSelect(normaliseFollow(datum.follow)?.follow ?? 'none', (follow) =>
+                    options.onChangeLine({ follow })
+                )
+            );
+        }
 
         if (isFibonacciType(datum)) {
             panel.append(
@@ -300,6 +313,24 @@ export class AnnotationSettingsDialog extends Dialog {
             options: FIBONACCI_RATIO_ITEMS.map(({ label, value }) => ({ label: label!, value: `${value}` })),
             value: String(bands),
             onChange: (value) => onChange(Number(value) as FibonacciBands),
+        });
+    }
+
+    private createFollowSelect(
+        follow: AgAnnotationFollowName | 'none',
+        onChange: (value: AgAnnotationFollowName | 'none') => void
+    ) {
+        const { localeManager } = this.ctx;
+        return this.createSelect({
+            label: 'dialogInputFollow',
+            altText: 'dialogInputFollowAltText',
+            options: [
+                { label: localeManager.t('dialogInputFollowNone'), value: 'none' },
+                { label: localeManager.t('dialogInputFollowFirst'), value: 'first' },
+                { label: localeManager.t('dialogInputFollowLast'), value: 'last' },
+            ],
+            value: follow,
+            onChange: (value) => onChange(value as AgAnnotationFollowName | 'none'),
         });
     }
 

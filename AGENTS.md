@@ -34,6 +34,24 @@ After meaningful chart changes, also run:
 -   `yarn nx test ag-charts-enterprise`
 -   `yarn nx test:e2e ag-charts-website`
 
+## CI on a draft PR
+
+Draft PRs skip CI. To run it without marking the PR ready, comment on the PR:
+
+-   `/ci` – full run (`nx run-many`)
+-   `/ci --affected` – `nx affected` only
+
+Without the comment trigger, dispatch it yourself: `gh workflow run ci.yml -R ag-grid/ag-charts --ref <branch> -f nx_command=run-many`.
+
+The result shows on the PR as the `CI (manual)` status, linked to the run, and in `gh pr checks`. When the PR is later marked ready, CI runs again and a failed `CI (manual)` is replaced by a passing one that says the PR run supersedes it. A manual run that finishes after the PR run stays red until the next push or mark-ready.
+
+Limits:
+
+-   Your own branch only, never `latest` (staging gates can apply there). `/ci` refuses forks, `ghabot-*` branches and PRs that aren't open drafts.
+-   Jobs that only run on `pull_request` (previews, L10n, snapshot review) and the demo port restamp check don't run.
+-   The run tests the branch head, not the merge ref, so it can pass where the merge would fail.
+-   Marking the PR ready re-runs CI.
+
 ## Review guidelines
 
 -   **Hot-path impact:** a chart renders up to a million datums at 60Hz, so the same edit is free in one file and costs frame time in another. Gate every review with `node tools/hot-paths/detect.js --range <base>...<head>` (sub-second); when it reports `triggered`, load the `hot-paths` skill, which also documents the detector's other modes and output. Do not assert a performance cost without naming the loop or caller that makes it hot.

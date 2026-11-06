@@ -112,9 +112,7 @@ interface TitleOrientationLayout {
 
 /** The orientation that reproduces the default title rendering for an axis position. */
 function defaultTitleOrientation(position: AgCartesianAxisPosition): AgAxisTitleOrientation {
-    if (position === 'left') return 'vertical';
-    if (position === 'right') return 'vertical-reversed';
-    return 'horizontal';
+    return position === 'left' || position === 'right' ? 'vertical' : 'horizontal';
 }
 
 /** True when the title text runs across the axis line rather than along it. */

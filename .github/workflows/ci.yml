@@ -445,7 +445,9 @@ jobs:
             # was already stale at the base when the change also moves its demo (an API migration):
             # that drift is not this change's, and is reported as a warning.
             - name: Edited demo ports are restamped
-              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              # Not on manual runs: a branch behind latest would be blamed for ports it never edited (the
+              # check compares the base tree with HEAD, as shallow clones have no merge base).
+              if: github.event_name != 'workflow_dispatch' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched "${{ steps.setup.outputs.base }}"
 
     generate:
@@ -614,6 +616,8 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         # Per-PR lock: stops this PR's publishers (the preview payload here and the
         # snapshot reports in `snapshot_review`) and its close-time cleanup from
         # running concurrently, which narrows the window in which a late publish
@@ -722,6 +726,8 @@ jobs:
         permissions:
             contents: read
             pull-requests: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -755,10 +761,11 @@ jobs:
                   mkdir -p "${RUNNER_TEMP}/pr-sections"
                   out="${RUNNER_TEMP}/pr-sections/30-l10n.md"
                   if [ -f l10n-review.md ]; then
-                      # Drop the standalone marker the generator prepends (review-translations.mjs);
-                      # the consolidated comment owns the parent marker. Prepend our section heading.
+                      # Keep the `<!-- l10n-translation-review -->` marker the generator leads with:
+                      # the AI Workflow pipeline reads a section whose content starts with a review
+                      # marker as that review. Prepend our section heading.
                       # [warn]: the reviewer flagged translations to read before merge.
-                      { echo '## [warn] Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
+                      { echo '## [warn] Translation review'; echo; cat l10n-review.md; } > "$out"
                   else
                       # [ok]: nothing to action.
                       printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
@@ -1788,6 +1795,8 @@ jobs:
             pull-requests: write
             statuses: write
             deployments: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         needs:
             [
                 detect-changes,
@@ -2247,6 +2256,68 @@ jobs:
                   name: ci-failure-slack
                   path: ci-failure-slack.json
                   retention-days: 7
+
+            # Manual-run status: fail open, because `report` is the required check.
+            - name: Publish manual run status check
+              # Not on ghabot-* branches: the watchdog acts on red rollup rows there.
+              if: always() && job.status != 'cancelled' && github.event_name == 'workflow_dispatch' && !startsWith(github.ref_name, 'ghabot-')
+              continue-on-error: true
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  WORKFLOW_STATUS: ${{ steps.lastJobStatus.outputs.workflowStatus }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  post_status() {
+                    gh api --method POST \
+                        -H "Accept: application/vnd.github+json" \
+                        "/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+                        -f state="$1" \
+                        -f context="CI (manual)" \
+                        -f description="$2" \
+                        -f target_url="${RUN_URL}" > /dev/null
+                  }
+
+                  case "${WORKFLOW_STATUS}" in
+                    success) state="success"; description="Manual CI run passed" ;;
+                    partial) state="success"; description="Manual CI run passed (Sonar failed)" ;;
+                    failure) state="failure"; description="Manual CI run failed" ;;
+                    *)
+                      echo "::warning::No workflow status for this run, so no manual run status was posted."
+                      exit 0
+                      ;;
+                  esac
+
+                  if ! post_status "${state}" "${description}" ; then
+                    echo "::warning::Could not post the manual run status."
+                  fi
+
+            - name: Supersede a red manual run status
+              # Not on drafts, where every job is skipped.
+              if: always() && job.status != 'cancelled' && github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+              continue-on-error: true
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  # Statuses come newest first.
+                  if ! manual_state=$(gh api "/repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/statuses?per_page=100" \
+                      --jq '[.[] | select(.context == "CI (manual)")][0].state // ""') ; then
+                    echo "::warning::Could not read the manual run status."
+                    exit 0
+                  fi
+                  if [[ "${manual_state}" != "failure" && "${manual_state}" != "error" ]] ; then
+                    exit 0
+                  fi
+                  if ! gh api --method POST \
+                      -H "Accept: application/vnd.github+json" \
+                      "/repos/${GITHUB_REPOSITORY}/statuses/${HEAD_SHA}" \
+                      -f state="success" \
+                      -f context="CI (manual)" \
+                      -f description="Superseded by the pull request CI run" \
+                      -f target_url="${RUN_URL}" > /dev/null ; then
+                    echo "::warning::Could not clear the failed manual run status."
+                  fi
 
             - name: Fail job if workflow failed
               if: success() && steps.lastJobStatus.outputs.workflowStatus == 'failure'
