@@ -21,6 +21,7 @@ import {
     getAxisLabelNodes,
     getAxisLinePosition,
     getAxisSizeLimit,
+    getAxisTitleRotation,
     getAxisTitleText,
     getLabelSegmentAlignments,
     getLabelText,
@@ -1982,7 +1983,7 @@ describe('CartesianAxis', () => {
             },
             {
                 // The right y-axis title flipped from its default vertical direction.
-                name: 'title-orientation-vertical-right',
+                name: 'title-orientation-vertical-reversed-right',
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     axes: {
@@ -1990,7 +1991,7 @@ describe('CartesianAxis', () => {
                         y: {
                             type: 'number',
                             position: 'right',
-                            title: { enabled: true, text: 'Temperature', orientation: 'vertical' },
+                            title: { enabled: true, text: 'Temperature', orientation: 'vertical-reversed' },
                         },
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -2045,6 +2046,27 @@ describe('CartesianAxis', () => {
 
         it.each(orientationScenarios)('$name', async ({ name, optionsFactory }) => {
             await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+        });
+
+        it('reads left and right y-axis titles in the same direction by default', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 0, y: 1, y2: 10 },
+                    { x: 1, y: 2, y2: 20 },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', title: { text: 'Left' } },
+                    y2: { type: 'number', position: 'right', title: { text: 'Right' } },
+                },
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2' },
+                ],
+            });
+
+            expect(getAxisTitleRotation(chart, 'left')).toBe(-Math.PI / 2);
+            expect(getAxisTitleRotation(chart, 'right')).toBe(-Math.PI / 2);
         });
     });
 
