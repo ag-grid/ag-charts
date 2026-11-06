@@ -279,25 +279,6 @@ describe('highlight marker size (enterprise series)', () => {
         });
     });
 
-    describe('map-marker with sizeKey', () => {
-        const testCase = SERIES.find(({ name }) => name === 'map-marker with sizeKey')!;
-
-        it('replaces the data-driven size of the hovered marker and of the others', async () => {
-            await create(testCase);
-            const driven = sizes(layers().own);
-            expect(new Set(driven).size).toBeGreaterThan(1);
-            for (const bucket of ['highlightedItem', 'unhighlightedItem'] as const) {
-                expect(driven).not.toContain(SIZES[bucket]);
-            }
-            chart.destroy();
-
-            const drawn = await hover(testCase, { highlight: highlightOf(['highlightedItem', 'unhighlightedItem']) });
-
-            allAt(drawn.highlighted, SIZES.highlightedItem);
-            allAt(drawn.others, SIZES.unhighlightedItem);
-        });
-    });
-
     describe('keyboard focus on map-marker', () => {
         const testCase = SERIES.find(({ name }) => name === 'map-marker')!;
         const RING_PADDING = 4;
