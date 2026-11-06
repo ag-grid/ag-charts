@@ -389,7 +389,7 @@ export const LINE_CROSSLINES_AXES: Record<'x' | 'y', AgCartesianAxisOptions> = {
                 label: {
                     text: '0.25 - 0.33',
                     placement: 'inside-left',
-                    padding: 10,
+                    spacing: 10,
                 },
                 ...yAxisCrossLineStyle,
             },

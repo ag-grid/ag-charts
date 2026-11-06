@@ -2,6 +2,12 @@
 version: v1.25.1
 
 ignore:
+    SNYK-JS-FOLLOWREDIRECTS-21762031:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-11-06T11:57:21.637Z
     SNYK-JS-FOLLOWREDIRECTS-21280747:
         - 'ag-charts-community@* > *':
               reason: >-

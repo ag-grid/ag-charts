@@ -82,10 +82,10 @@ export interface AgTooltipPositionOptions {
 }
 
 export interface AgTooltipRendererDataRow {
-    /** The label text for this data row. */
-    label: string;
-    /** The value to display for this data row. */
-    value: TextValue;
+    /** The label text for this data row. Omit to show the value on its own. */
+    label?: string;
+    /** The value to display for this data row. Omit to show the label on its own. */
+    value?: TextValue;
 }
 
 export interface AgTooltipRendererSymbolMarker extends FillOptions, StrokeOptions, LineDashOptions {

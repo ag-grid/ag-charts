@@ -914,7 +914,7 @@ export function cartesianChartAssertions(params?: {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('CartesianChart');
+        expect(chart.getChartType()).toBe('cartesian');
         expect(chart.axes).toHaveLength(Object.keys(axisTypes).length);
         expect(fromPairs(chart.axes.map((a) => [a.id, a.type]))).toEqual(axisTypes);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
@@ -926,7 +926,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -937,7 +937,7 @@ export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('TopologyChart');
+        expect(chart.getChartType()).toBe('topology');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -948,7 +948,7 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -959,7 +959,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -968,7 +968,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 export function gaugeAssertions() {
     return (chartOrProxy: ChartOrProxy<AgGaugeOptions>) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
     };
 }
 
@@ -1339,6 +1339,41 @@ export function keyDownAction(
 
         dispatchEvent(testTarget, keydownEvent(input));
         return delay(50);
+    };
+}
+
+// Popup UI such as the context menu has no canvas position, so these actions target its elements directly.
+
+export function focusElementAction(element: Element): (chart: ChartOrProxy) => Promise<void> {
+    return async (chart) => {
+        expect(element).toBeInstanceOf(HTMLElement);
+        (element as HTMLElement).focus();
+        await waitForChartStability(chart);
+    };
+}
+
+/** Moves keyboard focus to a focusable element elsewhere in the page, as Tab past the chart's last stop does. */
+export function focusOutsideChartAction(): (chart: ChartOrProxy) => Promise<void> {
+    return async (chart) => {
+        const outside = document.createElement('button');
+        document.body.append(outside);
+        try {
+            outside.focus();
+            await waitForChartStability(chart);
+        } finally {
+            outside.remove();
+        }
+    };
+}
+
+/** Right-clicks `element`. Resolves to the event, so that a test can check whether the browser menu was suppressed. */
+export function contextMenuElementAction(element: Element): (chart: ChartOrProxy) => Promise<MouseEvent> {
+    return async (chart) => {
+        // `cancelable` is required, otherwise `defaultPrevented` stays false whatever the chart does.
+        const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+        element.dispatchEvent(event);
+        await waitForChartStability(chart);
+        return event;
     };
 }
 
@@ -2487,7 +2522,14 @@ export interface LegendTestItemNode {
     opacity?: number;
     label: { opacity?: number; text?: string };
     symbolsGroup: { opacity?: number };
-    marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
+    marker?: {
+        fill?: string;
+        fillOpacity?: number;
+        stroke?: string;
+        strokeOpacity?: number;
+        strokeWidth?: number;
+        shape?: unknown;
+    };
     line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
 }
 

@@ -19,14 +19,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -37,14 +40,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Zoom to here
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -55,14 +61,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Pan to here
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -73,14 +82,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Reset zoom
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -108,14 +120,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -126,14 +141,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Zoom to here
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -144,14 +162,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Pan to here
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -162,14 +183,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Reset zoom
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -197,14 +221,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -215,14 +242,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Zoom to here
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -233,14 +263,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Pan to here
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>
@@ -251,14 +284,17 @@ HTMLCollection [
         tabindex="-1"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Reset zoom
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>

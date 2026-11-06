@@ -16,6 +16,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type {
     AgAnnotationsToolbarButton,
@@ -26,6 +27,7 @@ import type {
 } from 'ag-charts-types';
 
 import { setupEnterpriseModules } from '../../setup';
+import { collectShapes } from '../../test/utils';
 import { getStockData } from '../test/stockData';
 import { totalSegmentBlocks, totalSegmentLabels } from '../test/totalSegment';
 import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volumeProfileData';
@@ -280,6 +282,11 @@ describe('priceVolumePreset', () => {
             'smaller tick size': { data: getStockData(), volumeProfile, tickSize: 1 },
             'matching tick size': { data: getStockData(), volumeProfile, tickSize: 2.5 },
             'larger tick size': { data: getStockData(), volumeProfile, tickSize: 5 },
+            'single level': {
+                data: getStockData(),
+                volumeProfile: { ...volumeProfile, totalSegment: { enabled: true } },
+                tickSize: 1000,
+            },
             'total segment placement left': {
                 data: getStockData(),
                 volumeProfile: { ...volumeProfile, placement: 'left', totalSegment: { enabled: true } },
@@ -309,6 +316,24 @@ describe('priceVolumePreset', () => {
                 await compare();
             }
         );
+
+        it('should keep a single level centred on the price axis when it is zoomed', async () => {
+            const extents = async (initialState?: AgFinancialChartOptions['initialState']) => {
+                chart = AgCharts.createFinancialChart(
+                    prepareFinancialTestOptions({ ...VOLUME_PROFILE_EXAMPLES['single level'], initialState })
+                );
+                await waitForChartStability(chart);
+                const profile = deproxy(chart).series.find((s) => s.id === 'volumeProfileUp')!;
+                const [bar] = collectShapes(profile.contentGroup).filter((node) => node.visible) as Rect[];
+                const [block] = totalSegmentBlocks(chart);
+                chart.destroy();
+                return { bar: [bar.y, bar.height], block: [block.y, block.height] };
+            };
+
+            const unzoomed = await extents();
+            const zoomed = await extents({ zoom: { ratioY: { start: 0, end: 0.5 } } });
+            expect(zoomed).toEqual(unzoomed);
+        });
 
         it('should warn when a key is found in no data element', async () => {
             chart = AgCharts.createFinancialChart(

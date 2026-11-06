@@ -1,3 +1,4 @@
+import { getThemeName } from '@stores/themeStore';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classNames from 'classnames';
 import { type FunctionComponent, useEffect, useState } from 'react';
@@ -33,7 +34,7 @@ export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleNa
     const [srcSet, setSrcSet] = useState<string>('');
 
     const urlFor = (variant: 'light' | 'dark', dpi: 1 | 2, ext: 'png' | 'webp') => {
-        const url = getExampleImageUrl({ exampleName, theme: variant === 'dark' ? `${theme}-dark` : theme, dpi, ext });
+        const url = getExampleImageUrl({ exampleName, theme: getThemeName(theme, variant === 'dark'), dpi, ext });
         return url;
     };
 

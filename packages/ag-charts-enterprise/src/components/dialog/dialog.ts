@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type {
     BBox,
+    ContainerWidget,
     CheckboxOptions as CoreCheckboxOptions,
     SelectOptions as CoreSelectOptions,
     TextAreaOptions as CoreTextAreaOptions,
@@ -12,6 +13,7 @@ import {
     NativeWidget,
     type Point,
     Vec2,
+    type Widget,
     createButton,
     createCheckbox,
     createElement,
@@ -85,16 +87,16 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         this.cleanup.register(ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)));
     }
 
-    protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
+    protected override showWithChildren(children: Widget[], options: Options): ContainerWidget {
         const popover = super.showWithChildren(children, options);
-        popover.classList.add('ag-charts-dialog');
-        popover.setAttribute('role', 'dialog');
+        popover.addClass('ag-charts-dialog');
+        popover.setAriaRole('dialog');
 
-        popover.addEventListener('mousedown', (event) => {
+        popover.getElement().addEventListener('mousedown', (event) => {
             if ((event.target as any).classList?.contains('ag-charts-dialog__color-picker-button')) return;
             this.colorPicker.hide();
         });
-        popover.addEventListener('keydown', this.onKeyDown.bind(this));
+        popover.addListener('keydown', ({ sourceEvent }) => this.onKeyDown(sourceEvent));
 
         // Give the dialog's dimensions a chance to be calculated before positioning
         this.ctx.agDocument.requestAnimationFrame(() => this.reposition());
@@ -173,7 +175,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         onPressTab(initial);
         initRovingTabIndex({ orientation: 'horizontal', buttons: Object.values(tabButtons) });
 
-        return { tabs: element, initialFocus: tabButtons[initial] };
+        // TODO: Phase 3 "Common Widget Ancestor" - the tabs are still built from raw elements
+        return { tabs: new NativeWidget(element), initialFocus: new NativeWidget(tabButtons[initial]) };
     }
 
     protected createTabPanel() {
@@ -373,7 +376,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private reposition() {
         const { seriesRect, ctx } = this;
-        const popover = this.getPopoverElement();
+        const popover = this.getPopoverWidget();
         if (!seriesRect || !popover) return;
 
         // Avoid triggering a layout change when getting the client rect unless absolutely necessary..

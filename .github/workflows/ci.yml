@@ -152,6 +152,7 @@ jobs:
             test_pkg_matrix: ${{ steps.matrix.outputs.pkg_matrix }}
             e2e_matrix: ${{ steps.matrix.outputs.e2e_matrix }}
             e2e_count: ${{ steps.matrix.outputs.e2e_count }}
+            e2e_cross_browser: ${{ steps.matrix.outputs.e2e_cross_browser }}
             demos_suites: ${{ steps.matrix.outputs.demos_suites }}
             build_type: ${{ steps.setup.outputs.type }}
             snapshot_branch: ${{ steps.snapshot-prepare.outputs.branch }}
@@ -235,13 +236,30 @@ jobs:
                   echo "pkg_matrix=${pkg_matrix}" >> $GITHUB_OUTPUT
                   echo "Package test matrix determined to be: ${pkg_matrix}"
 
+                  # A PR that changes only the website runs the specs it can break. Pushes and manual
+                  # runs always run everything, and so does any PR the script cannot classify.
+                  e2e_specs_file="${RUNNER_TEMP}/e2e-specs.txt"
+                  e2e_cross_browser=true
+                  e2e_list_args=()
+                  e2e_assign_args=()
+                  if [[ "${{ github.event_name }}" == "pull_request" ]] ; then
+                    e2e_scope=$(node tools/ci/e2e-scope.mjs --base ${{ steps.setup.outputs.base }} --out "${e2e_specs_file}")
+                    echo "E2E scope: ${e2e_scope}"
+                    if [[ $(jq -r .scope <<< "${e2e_scope}") == "scoped" ]] ; then
+                      e2e_cross_browser=$(jq -r .crossBrowser <<< "${e2e_scope}")
+                      mapfile -t e2e_list_args < <(sed 's#^#e2e/#' "${e2e_specs_file}")
+                      e2e_assign_args=(--specs "${e2e_specs_file}")
+                    fi
+                  fi
+                  echo "e2e_cross_browser=${e2e_cross_browser}" >> $GITHUB_OUTPUT
+
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     e2e_nx_count=1
                   else
                     e2e_nx_count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
                   fi
                   if [[ ${e2e_nx_count} -gt 0 ]] ; then
-                    e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
+                    e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list "${e2e_list_args[@]}" | grep -v '!!!SKIPPED!!!' | wc -l)
                   else
                     e2e_count=0
                   fi
@@ -285,7 +303,8 @@ jobs:
                     --max ${e2e_shards} \
                     --count ${e2e_count} \
                     --timings packages/ag-charts-website/e2e/${e2e_timings} \
-                    --test-dir packages/ag-charts-website/e2e)
+                    --test-dir packages/ag-charts-website/e2e \
+                    "${e2e_assign_args[@]}")
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
@@ -404,6 +423,10 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx run ag-charts-demos:check-seeds
 
+            - name: E2E scope tests
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: node --test tools/ci/e2e-scope.test.mjs
+
             # The Angular, Vue and TypeScript seeds are ports of the React demos, aligned after the
             # fact: a demo change is expected to leave them stale, and they stay stale on latest
             # between releases. The "Demo Port Alignment" workflow (demo-port-align.yml) aligns them
@@ -422,7 +445,9 @@ jobs:
             # was already stale at the base when the change also moves its demo (an API migration):
             # that drift is not this change's, and is reported as a warning.
             - name: Edited demo ports are restamped
-              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              # Not on manual runs: a branch behind latest would be blamed for ports it never edited (the
+              # check compares the base tree with HEAD, as shallow clones have no merge base).
+              if: github.event_name != 'workflow_dispatch' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched "${{ steps.setup.outputs.base }}"
 
     generate:
@@ -591,6 +616,8 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         # Per-PR lock: stops this PR's publishers (the preview payload here and the
         # snapshot reports in `snapshot_review`) and its close-time cleanup from
         # running concurrently, which narrows the window in which a late publish
@@ -699,6 +726,8 @@ jobs:
         permissions:
             contents: read
             pull-requests: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -732,10 +761,11 @@ jobs:
                   mkdir -p "${RUNNER_TEMP}/pr-sections"
                   out="${RUNNER_TEMP}/pr-sections/30-l10n.md"
                   if [ -f l10n-review.md ]; then
-                      # Drop the standalone marker the generator prepends (review-translations.mjs);
-                      # the consolidated comment owns the parent marker. Prepend our section heading.
+                      # Keep the `<!-- l10n-translation-review -->` marker the generator leads with:
+                      # the AI Workflow pipeline reads a section whose content starts with a review
+                      # marker as that review. Prepend our section heading.
                       # [warn]: the reviewer flagged translations to read before merge.
-                      { echo '## [warn] Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
+                      { echo '## [warn] Translation review'; echo; cat l10n-review.md; } > "$out"
                   else
                       # [ok]: nothing to action.
                       printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
@@ -1147,9 +1177,9 @@ jobs:
             contents: write
             packages: read
         needs: [detect-changes, init, playwright_image]
-        # Gated on run_full_ci only — NOT on init's e2e_count, which is derived from the *main*
-        # config's test list and so no longer counts this job's workload at all.
-        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        # NOT gated on init's e2e_count, which is derived from the *main* config's test list and so
+        # no longer counts this job's workload at all.
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_cross_browser != 'false'
         env:
             PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
             GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
@@ -1765,6 +1795,8 @@ jobs:
             pull-requests: write
             statuses: write
             deployments: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         needs:
             [
                 detect-changes,
@@ -2224,6 +2256,68 @@ jobs:
                   name: ci-failure-slack
                   path: ci-failure-slack.json
                   retention-days: 7
+
+            # Manual-run status: fail open, because `report` is the required check.
+            - name: Publish manual run status check
+              # Not on ghabot-* branches: the watchdog acts on red rollup rows there.
+              if: always() && job.status != 'cancelled' && github.event_name == 'workflow_dispatch' && !startsWith(github.ref_name, 'ghabot-')
+              continue-on-error: true
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  WORKFLOW_STATUS: ${{ steps.lastJobStatus.outputs.workflowStatus }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  post_status() {
+                    gh api --method POST \
+                        -H "Accept: application/vnd.github+json" \
+                        "/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+                        -f state="$1" \
+                        -f context="CI (manual)" \
+                        -f description="$2" \
+                        -f target_url="${RUN_URL}" > /dev/null
+                  }
+
+                  case "${WORKFLOW_STATUS}" in
+                    success) state="success"; description="Manual CI run passed" ;;
+                    partial) state="success"; description="Manual CI run passed (Sonar failed)" ;;
+                    failure) state="failure"; description="Manual CI run failed" ;;
+                    *)
+                      echo "::warning::No workflow status for this run, so no manual run status was posted."
+                      exit 0
+                      ;;
+                  esac
+
+                  if ! post_status "${state}" "${description}" ; then
+                    echo "::warning::Could not post the manual run status."
+                  fi
+
+            - name: Supersede a red manual run status
+              # Not on drafts, where every job is skipped.
+              if: always() && job.status != 'cancelled' && github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+              continue-on-error: true
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  # Statuses come newest first.
+                  if ! manual_state=$(gh api "/repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/statuses?per_page=100" \
+                      --jq '[.[] | select(.context == "CI (manual)")][0].state // ""') ; then
+                    echo "::warning::Could not read the manual run status."
+                    exit 0
+                  fi
+                  if [[ "${manual_state}" != "failure" && "${manual_state}" != "error" ]] ; then
+                    exit 0
+                  fi
+                  if ! gh api --method POST \
+                      -H "Accept: application/vnd.github+json" \
+                      "/repos/${GITHUB_REPOSITORY}/statuses/${HEAD_SHA}" \
+                      -f state="success" \
+                      -f context="CI (manual)" \
+                      -f description="Superseded by the pull request CI run" \
+                      -f target_url="${RUN_URL}" > /dev/null ; then
+                    echo "::warning::Could not clear the failed manual run status."
+                  fi
 
             - name: Fail job if workflow failed
               if: success() && steps.lastJobStatus.outputs.workflowStatus == 'failure'

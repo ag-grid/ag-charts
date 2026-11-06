@@ -69,8 +69,6 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import { LogAxis } from '../../axis/logAxis';
-import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, extendDomainToZero, fixNumericExtent } from '../../data/dataModel';
@@ -202,6 +200,9 @@ interface BarSeriesNodeDatumContext {
     readonly groupOffset: number;
     readonly barOffset: number;
     readonly barWidth: number;
+    readonly bandwidth: number;
+    /** Set for a profile on a log axis, whose levels each scale the shared band to their own. */
+    readonly logProfileStep: number | undefined;
     readonly range: number;
 
     // Pre-computed values (scale conversions or computed - worth caching)
@@ -544,6 +545,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (dataModel == null || processedData == null) return { domain: [] };
 
         if (direction === this.getCategoryDirection()) {
+            if (this.describesOtherSeries()) return { domain: [] };
+
             const keyDef = dataModel.resolveProcessedDataDefById(this, 'xValue');
             const keys = dataModel.getDomain(this, 'xValue', 'key', processedData);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
@@ -574,7 +577,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
 
         const yAxis = this.getValueAxis();
-        if (yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
+        if (yAxis?.scale.type === 'number') {
             return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };
@@ -716,7 +719,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const labelFit = labelsEnabled ? resolveLabelFit(label, !alwaysShow) : undefined;
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
+        const { groupOffset, barOffset, barWidth, bandwidth } = this.getBarDimensions();
 
         let yStartValues: AgNumericValue[] | undefined;
         let yEndValues: AgNumericValue[] | undefined;
@@ -772,6 +775,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             groupOffset,
             barOffset,
             barWidth,
+            bandwidth,
+            logProfileStep: this.logProfileStep(xAxis),
             range,
             yReversed: yAxis.isReversed(),
             crossReversed: this.getCategoryAxis()?.isReversed() ?? false,
@@ -785,7 +790,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             crisp:
                 dataAggregationFilter == null &&
                 (this.options.crisp ??
-                    checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval)),
+                    // Profile bars tile fractional steps, which snapped edges would break into uneven gaps.
+                    (!this.isProfile() &&
+                        checkCrisp(
+                            xAxis?.scale,
+                            xAxis?.visibleRange,
+                            this.smallestDataInterval,
+                            this.largestDataInterval
+                        ))),
             isStacked,
             filteredValueExceedUnfiltered,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -826,9 +838,26 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * Computes the x position for a datum at the given index.
      */
     private computeXPosition(ctx: BarSeriesNodeDatumContext, datumIndex: number): number {
-        const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
+        const xValue = ctx.xValues[datumIndex];
+        const { logProfileStep } = ctx;
+        if (logProfileStep != null) {
+            const start = this.logProfileLevelStart(ctx.xScale, xValue, logProfileStep);
+            const offset = ctx.groupOffset + ctx.barOffset + ctx.bandwidth / 2;
+            return start + offset * this.logProfileLevelRatio(ctx, xValue, logProfileStep);
+        }
+        const x = ctx.xScale.convert(xValue);
         if (!Number.isFinite(x)) return Number.NaN;
-        return x + ctx.groupOffset + ctx.barOffset + this.getDatumOffset(ctx.xValues[datumIndex]);
+        return x + ctx.groupOffset + ctx.barOffset + this.getDatumOffset(xValue);
+    }
+
+    private computeBarWidth(ctx: BarSeriesNodeDatumContext, datumIndex: number): number {
+        const { logProfileStep } = ctx;
+        if (logProfileStep == null) return ctx.barWidth;
+        return ctx.barWidth * this.logProfileLevelRatio(ctx, ctx.xValues[datumIndex], logProfileStep);
+    }
+
+    private logProfileLevelRatio(ctx: BarSeriesNodeDatumContext, xValue: unknown, step: number) {
+        return this.logProfileLevelWidth(ctx.xScale, xValue, step) / ctx.bandwidth;
     }
 
     private resolveFilterStackValue(
@@ -1288,7 +1317,13 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 const xMax = xPosition(xMaxIndex);
                 const x = Math.min(xMin, xMax);
                 // The width of the shape is the width from the left of the first bar to the right of the second bar
-                const width = Math.abs(xMax - xMin) + ctx.barWidth;
+                const width =
+                    ctx.logProfileStep == null
+                        ? Math.abs(xMax - xMin) + ctx.barWidth
+                        : Math.max(
+                              xMin + this.computeBarWidth(ctx, xMinIndex),
+                              xMax + this.computeBarWidth(ctx, xMaxIndex)
+                          ) - x;
 
                 // start & end may be incorrect when there's a lot of missing data
                 if (x + width < 0 || x > ctx.range) continue;
@@ -1336,7 +1371,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     ): void {
         const processedData = this.processedData! as GroupedData<any>;
         const invalidData = processedData.invalidData?.get(this.id);
-        const width = ctx.barWidth;
+        const { barWidth, logProfileStep } = ctx;
         let yRangeIndex: number;
         if (ctx.filteredValueExceedUnfiltered) {
             yRangeIndex = this.dataModel!.resolveProcessedDataIndexById(this, 'yFilterValue-range');
@@ -1348,11 +1383,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
         const groups = processedData.groups;
 
-        const visibleRange = visibleRangeIndices(1, groups.length, ctx.xAxis.range, (groupIndex) => {
-            const group = groups[groupIndex];
-            const xValue = group.keys[0];
-            return this.xCoordinateRange(xValue);
-        });
+        const groupRange = (groupIndex: number) => this.xCoordinateRange(groups[groupIndex].keys[0]);
+        // Vertical axes and descending keys both run their groups towards lower pixels.
+        const [r0, r1] = ctx.xAxis.range;
+        const descending = groups.length > 1 && groupRange(0)[0] > groupRange(groups.length - 1)[0];
+        const sortOrder = descending ? -1 : 1;
+        const visibleRange = visibleRangeIndices(
+            sortOrder,
+            groups.length,
+            [Math.min(r0, r1), Math.max(r0, r1)],
+            groupRange
+        );
         const start = visibleRange[0];
         const end = visibleRange[1];
 
@@ -1383,7 +1424,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
                 nodeDatumParamsScratch.datumIndex = datumIndex;
                 nodeDatumParamsScratch.x = x;
-                nodeDatumParamsScratch.width = width;
+                nodeDatumParamsScratch.width =
+                    logProfileStep == null ? barWidth : this.computeBarWidth(ctx, datumIndex);
                 nodeDatumParamsScratch.yStart = yStart;
                 nodeDatumParamsScratch.yEnd = yEnd;
                 nodeDatumParamsScratch.yRange = yRange;
@@ -1404,7 +1446,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         nodeDatumParamsScratch: NodeDatumParams
     ): void {
         const invalidData = this.processedData!.invalidData?.get(this.id);
-        const width = ctx.barWidth;
+        const { barWidth, logProfileStep } = ctx;
         const visibleRange = this.visibleRangeIndices('xValue', ctx.xAxis.range);
         let start = visibleRange[0];
         let end = visibleRange[1];
@@ -1426,7 +1468,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
             nodeDatumParamsScratch.datumIndex = datumIndex;
             nodeDatumParamsScratch.x = x;
-            nodeDatumParamsScratch.width = width;
+            nodeDatumParamsScratch.width = logProfileStep == null ? barWidth : this.computeBarWidth(ctx, datumIndex);
             // zeroLike() so a bigint value's baseline stays bigint and shares its full-precision convert() path.
             nodeDatumParamsScratch.yStart = zeroLike(yEnd);
             nodeDatumParamsScratch.yEnd = yEnd;
@@ -2039,10 +2081,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { xKey, xName, yKey, yName, legendItemName } = this.options;
         return {
             xKey,
-            xName: xName ?? xKey,
+            xName: xName ?? this.keyName(xKey),
             yKey,
-            yName: yName ?? yKey,
-            legendItemName: legendItemName ?? xName ?? xKey,
+            yName: yName ?? this.keyName(yKey),
+            legendItemName: legendItemName ?? xName ?? this.keyName(xKey),
         };
     }
 
@@ -2101,7 +2143,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: yKey,
+                        fallbackLabel: this.keyName(yKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                         missing: isTooltipValueMissing(yValue),
                     },
@@ -2165,7 +2207,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 itemId,
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
-                label: { text: legendItemName ?? yName ?? itemId },
+                label: { text: legendItemName ?? yName ?? this.keyName(itemId) },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: showInLegend === false,
@@ -2277,8 +2319,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const bottomY = ctx.yScale.convert(yStart);
         if (!Number.isFinite(y) || !Number.isFinite(bottomY)) return undefined;
 
-        const crossStart = x + ctx.barWidth * 0.5 * (1 - crossScale);
-        const crossWidth = ctx.barWidth * crossScale;
+        const barWidth = this.computeBarWidth(ctx, datumIndex);
+        const crossStart = x + barWidth * 0.5 * (1 - crossScale);
+        const crossWidth = barWidth * crossScale;
         const alongStart = Math.min(y, bottomY);
         const alongLength = Math.abs(bottomY - y);
 

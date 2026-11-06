@@ -17,7 +17,7 @@ interface PointStateMachineContext<Datum extends PointDatum> extends Omit<
 
 export abstract class PointStateMachine<Datum extends PointDatum, Node extends PointScene<Datum>> extends StateMachine<
     'start' | 'waiting-first-render',
-    Pick<AnnotationStateEvents, 'click' | 'drag' | 'cancel' | 'render' | 'reset'>
+    Pick<AnnotationStateEvents, 'click' | 'drag' | 'create' | 'cancel' | 'render' | 'reset'>
 > {
     override debug = Debug.create(true, 'annotations');
 
@@ -50,6 +50,10 @@ export abstract class PointStateMachine<Datum extends PointDatum, Node extends P
                 drag: {
                     target: 'waiting-first-render',
                     action: actionCreate,
+                },
+                create: {
+                    target: 'waiting-first-render',
+                    action: ({ points: [point] }) => actionCreate({ point }),
                 },
                 cancel: StateMachine.parent,
                 reset: StateMachine.parent,

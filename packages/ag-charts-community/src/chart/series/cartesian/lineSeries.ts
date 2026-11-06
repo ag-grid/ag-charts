@@ -42,8 +42,6 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import { LogAxis } from '../../axis/logAxis';
-import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
@@ -373,7 +371,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             'xValue'
         );
 
-        if (this.isNormalized() && yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
+        if (this.isNormalized() && yAxis?.scale.type === 'number') {
             return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };
@@ -1213,7 +1211,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: yKey,
+                        fallbackLabel: this.keyName(yKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                         missing: isTooltipValueMissing(yValue),
                     },
@@ -1294,7 +1292,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: legendItemName ?? title ?? yName ?? itemId,
+                    text: legendItemName ?? title ?? yName ?? this.keyName(itemId),
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: showInLegend === false,

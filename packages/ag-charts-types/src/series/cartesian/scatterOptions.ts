@@ -62,6 +62,8 @@ export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
         AgChartLabelCollisionFitOptions,
         AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
+    /** Whether to show the labels. Defaults to `true` when `labelKey` is set. */
+    enabled?: boolean;
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered
      * fallback list tried in turn until one fits. Use `inside` to centre the label within the marker.

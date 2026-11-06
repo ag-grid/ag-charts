@@ -7,15 +7,15 @@ import type { AxisInsetValueOptions } from './axisInsetValueTypes';
 
 /**
  * Reserves a fixed-width strip between an axis position and the series area, and fills it with one
- * labelled block per category, valued from the data of the series bound to the axis. Presets switch it
+ * labelled block per level, valued from the data of the series bound to the axis. Presets switch it
  * on and supply the keys; it has no public options. As with the other axis plugins, its option defs sit with the
- * axis in community (`categoryAxisOptionsDefs`).
+ * axes in community (`categoryAxisOptionsDefs`, `numberAxisOptionsDefs`).
  */
 export const AxisInsetValueModule: AxisPluginModuleDefinition<AxisInsetValueOptions> = {
     type: 'axis:plugin',
     name: 'axisInsetValue',
     chartTypes: ['cartesian'],
-    axisTypes: ['category'],
+    axisTypes: ['category', 'number'],
     enterprise: true,
     version: VERSION,
 

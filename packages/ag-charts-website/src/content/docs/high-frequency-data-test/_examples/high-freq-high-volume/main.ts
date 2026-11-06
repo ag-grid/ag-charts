@@ -966,10 +966,6 @@ window.addEventListener('hashchange', () => {
     void setAxisType(axisType as AxisType);
 };
 (window as any).rollBatch = rollBatch;
-(window as any).setMatchingMode = (mode: string) => {
-    setMatchingMode(mode);
-};
-
 // Store original state for restoration after benchmark
 let originalSeriesType: SeriesType;
 

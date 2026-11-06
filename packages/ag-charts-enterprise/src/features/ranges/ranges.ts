@@ -12,6 +12,7 @@ import {
     ChartAxisDirection,
     Color,
     type DynamicContext,
+    NativeWidget,
     type NormalisedRangesOptions,
     clamp,
     intervalAgo,
@@ -70,7 +71,7 @@ function resolveStyles(styles: AgRangesStyles | undefined): ResolvedStyles {
 }
 
 export class Ranges extends AbstractModuleInstance {
-    private container?: HTMLElement;
+    private container?: NativeWidget;
     private dropdownMenu?: _ModuleSupport.Menu;
     private buttonsToolbar?: _ModuleSupport.BaseToolbar;
     private dropdownToolbar?: _ModuleSupport.BaseToolbar;
@@ -118,16 +119,18 @@ export class Ranges extends AbstractModuleInstance {
     private setup() {
         if (this.container != null) return;
 
-        this.container = this.ctx.domManager.addChild('canvas-overlay', 'range-buttons');
-        this.container.role = 'presentation';
+        // TODO: Phase 3 "Common Widget Ancestor" - DOMManager should hand out this container as a Widget.
+        // Not destroyed here: the element belongs to DOMManager, which removes it when the chart is destroyed.
+        this.container = new NativeWidget(this.ctx.domManager.addChild('canvas-overlay', 'range-buttons'));
+        this.container.setAriaRole('presentation');
 
         this.buttonsToolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
         this.buttonsToolbar.addClass('ag-charts-range-buttons', 'ag-charts-range-buttons--buttons');
-        this.container.append(this.buttonsToolbar.getElement());
+        this.container.addChild(this.buttonsToolbar);
 
         this.dropdownToolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
         this.dropdownToolbar.addClass('ag-charts-range-buttons', 'ag-charts-range-buttons--dropdown');
-        this.container.append(this.dropdownToolbar.getElement());
+        this.container.addChild(this.dropdownToolbar);
 
         this.dropdownMenu = new _ModuleSupport.Menu(this.ctx, 'ranges-dropdown');
 
@@ -138,10 +141,7 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private teardown() {
-        this.buttonsToolbar?.getElement().remove();
         this.buttonsToolbar?.destroy();
-
-        this.dropdownToolbar?.getElement().remove();
         this.dropdownToolbar?.destroy();
     }
 

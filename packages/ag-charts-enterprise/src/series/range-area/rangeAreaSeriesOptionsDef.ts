@@ -13,6 +13,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    crosshairSnapToValidator,
     fillOptionsDef,
     glowOptionsDefs,
     interpolationOptionsDefs,
@@ -33,6 +34,7 @@ import {
     strokeOptionsDef,
     tooltipOptionsDefs,
     undocumentedDefs,
+    union,
 } from 'ag-charts-core';
 
 import { rangeInsideOutsidePlacementDef } from '../range-bar/rangeBarSeriesOptionsDef';
@@ -65,6 +67,8 @@ const rangeAreaSeriesLineStyleDef: OptionsDefs<AgRangeAreaSeriesLineStyle> = {
 };
 
 export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesThemeableOptions> = {
+    crosshairSnapTo: crosshairSnapToValidator(['yLow', 'yHigh']),
+    crosshairSnapMode: union('all', 'nearest'),
     showInMiniChart: boolean,
     connectMissingData: boolean,
     interpolation: interpolationOptionsDefs,

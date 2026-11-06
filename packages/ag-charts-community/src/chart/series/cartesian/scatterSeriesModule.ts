@@ -34,7 +34,7 @@ import { predictCartesianAxis } from './util';
 const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
-        shape: 'circle',
+        shape: { $palette: 'markerShape' },
         size: 7,
         fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
         stroke: { $palette: 'stroke' },
@@ -47,7 +47,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
-            enabled: false,
+            enabled: { $isUserOption: '../labelKey' },
             fontSize: { $ref: 'seriesLabelFontSize' },
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },

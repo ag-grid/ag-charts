@@ -11,6 +11,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    crosshairSnapToValidator,
     fillOptionsDef,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
@@ -43,6 +44,8 @@ const rangeBarStyleCallback = callbackDefs<AgRangeBarSeriesStyle>({
 });
 
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {
+    crosshairSnapTo: crosshairSnapToValidator(['yLow', 'yHigh']),
+    crosshairSnapMode: union('all', 'nearest'),
     direction: union('horizontal', 'vertical'),
     grouped: boolean,
     showInMiniChart: boolean,

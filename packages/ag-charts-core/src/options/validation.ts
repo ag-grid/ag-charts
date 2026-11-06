@@ -14,6 +14,7 @@ import {
     isString,
     isValidDate,
 } from '../data/typeGuards';
+import { isLightDarkColor } from '../format/color';
 import type { Logger } from '../logging/logger';
 import { isEnterprise } from '../modules/registryMode';
 import type { AreExact, IsUnion } from '../types/global';
@@ -166,8 +167,20 @@ export class ValidationError {
         if (type === ErrorType.Enterprise) {
             return `${this.getPrefix()} is an AG Charts Enterprise feature; ignoring.`;
         }
-        return `${this.getPrefix()} cannot be set to \`${stringifyValue(value, 50)}\`; expecting ${description}, ignoring.`;
+        return `${this.getPrefix()} cannot be set to \`${stringifyValue(value, 50)}\`; expecting ${description}${lightDarkAdvice(value)}, ignoring.`;
     }
+}
+
+const lightDarkMessage =
+    'light-dark() is not supported because charts are drawn on a canvas; use CSS variables or separate light and dark themes instead';
+
+function isLightDarkValue(value: unknown): boolean {
+    if (isString(value)) return isLightDarkColor(value);
+    return isArray(value) && value.some((item) => isString(item) && isLightDarkColor(item));
+}
+
+function lightDarkAdvice(value: unknown): string {
+    return isLightDarkValue(value) ? `. ${lightDarkMessage}` : '';
 }
 
 export class UnknownError extends ValidationError {
@@ -290,7 +303,10 @@ export function validate<T>(
                 if (validatorResult.valid) {
                     cleared[key as keyof T] = validatorResult.cleared as any;
                     continue;
-                } else if (hasRequiredInPath(validatorResult.invalid, keyPath)) {
+                } else if (
+                    hasRequiredInPath(validatorResult.invalid, keyPath) ||
+                    hasErrorAtPath(validatorResult.invalid, keyPath)
+                ) {
                     continue;
                 }
             } else if (validatorResult) {
@@ -788,6 +804,27 @@ export const arrayOf = (validator: Validator, description?: string, strict: bool
     );
 
 /**
+ * Creates a validator for a `crosshairSnapTo` list: unknown names are reported individually and dropped, while valid
+ * names are kept.
+ * @param values The value names the series type supports.
+ */
+export const crosshairSnapToValidator = (values: readonly string[]) => {
+    const description = `one of ["${values.join('", "')}"]`;
+    return arrayOf(
+        attachDescription((value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
+            if (typeof value === 'string' && values.includes(value)) return true;
+            return {
+                valid: false,
+                cleared: null,
+                invalid: [new ValidationError(ErrorType.Invalid, description, value, context.path)],
+            };
+        }, description),
+        `an array of crosshair snap values: ["${values.join('", "')}"]`,
+        false
+    );
+};
+
+/**
  * Creates a validator for arrays where each element is validated against a given set of definitions.
  * Allows capturing both valid and invalid values while providing detailed validation errors.
  * @param defs The validation definitions to apply to each array element.
@@ -842,7 +879,7 @@ export const callbackOf = (validator: Validator, description?: string) =>
                     return result;
                 } else {
                     context.params.logger.warnOnce(
-                        `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${validatorDescription}, ignoring.`
+                        `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${validatorDescription}${lightDarkAdvice(result)}, ignoring.`
                     );
                 }
             },
@@ -898,6 +935,12 @@ export function hasRequiredInPath(errors: ValidationError[], rootPath: string) {
     return errors.some((error: ValidationError) => error.type === ErrorType.Required && error.path === rootPath);
 }
 
+function hasErrorAtPath(errors: ValidationError[], path: string) {
+    return errors.some(
+        ({ path: errorPath, key }) => (key == null || key === '' ? errorPath : extendPath(errorPath, key)) === path
+    );
+}
+
 function warnCallbackErrors(
     validatorResult: Pick<ValidatorResult, 'invalid'>,
     context: ValidatorContext,
@@ -912,10 +955,11 @@ function warnCallbackErrors(
             );
         }
         const errorValue = stringifyValue(error.value, 50);
+        const advice = lightDarkAdvice(error.value);
         context.params.logger.warnOnce(
             error.key == null || error.key === ''
-                ? `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
-                : `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
+                ? `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}${advice}, ignoring.`
+                : `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}${advice}, ignoring.`
         );
     }
 }

@@ -1,4 +1,4 @@
-import { type Point, clamp } from 'ag-charts-core';
+import { type ContainerWidget, type Point, type Widget, clamp } from 'ag-charts-core';
 import type { ExpandableWidget, ExpansionControllerWidget } from 'ag-charts-core';
 
 import { Popover, type PopoverOptions } from './popover';
@@ -36,15 +36,19 @@ export abstract class AnchoredPopover<
         }
     }
 
-    protected override showWidget(controller: ExpansionControllerWidget, owns: ExpandableWidget, options: Options) {
+    protected override showWidget(
+        controller: ExpansionControllerWidget,
+        owns: ExpandableWidget & Widget,
+        options: Options
+    ) {
         super.showWidget(controller, owns, options);
-        this.getPopoverElement()?.classList.add('ag-charts-popover--anchored');
+        owns.addClass('ag-charts-popover--anchored');
         this.updateAfterShow(options);
     }
 
-    protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
+    protected override showWithChildren(children: Widget[], options: Options): ContainerWidget {
         const popover = super.showWithChildren(children, options);
-        popover.classList.add('ag-charts-popover--anchored');
+        popover.addClass('ag-charts-popover--anchored');
         this.updateAfterShow(options);
 
         return popover;
@@ -52,7 +56,7 @@ export abstract class AnchoredPopover<
 
     protected repositionWithinBounds() {
         const { anchor, ctx, fallbackAnchor } = this;
-        const popover = this.getPopoverElement();
+        const popover = this.getPopoverWidget();
 
         if (!anchor || !popover) return;
 
