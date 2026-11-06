@@ -1247,9 +1247,10 @@ export abstract class BubbleScatterSeries<
     };
 
     private static readonly applyNoStylerTemplate: BubbleNoStylerApply = (_series, _ctx, datum, _h, _s, template) => {
-        const { style, stateSized } = template;
+        const style = template.style;
         // Reuse the cached object directly when size matches (e.g. ScatterSeries with fixed size).
-        datum.style = stateSized || style.size === datum.point.size ? style : { ...style, size: datum.point.size };
+        datum.style =
+            template.stateSized || style.size === datum.point.size ? style : { ...style, size: datum.point.size };
     };
 
     private static readonly computePerDatumStylerStyle: BubbleStylerCompute = (series, _ctx, highlightState) => {
