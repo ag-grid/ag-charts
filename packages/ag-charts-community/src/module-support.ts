@@ -144,6 +144,7 @@ export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation }
 export type { SeriesItemHighlightStyle } from './chart/series/seriesProperties';
 export { hasStateStyle, toHighlightString, toSelectionString, isUnselected } from './chart/series/seriesProperties';
 export type {
+    CrosshairSnapConfig,
     DatumIndex,
     ErrorBoundSeriesNodeDatum,
     ISeries,

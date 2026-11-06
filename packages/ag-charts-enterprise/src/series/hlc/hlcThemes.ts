@@ -148,11 +148,6 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
         selection: SERIES_SELECTION_THEME,
     },
     axes: {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: {
-            crosshair: {
-                snap: false,
-            },
-        },
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
             groupPaddingInner: 0,
             crosshair: {

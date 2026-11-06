@@ -56,11 +56,6 @@ const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
         selection: SERIES_SELECTION_THEME,
     },
     axes: {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: {
-            crosshair: {
-                snap: false,
-            },
-        },
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
             groupPaddingInner: 0,
             crosshair: {

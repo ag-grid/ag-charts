@@ -124,6 +124,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
 export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['range-area']> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
+        crosshairSnapTo: ['yLow', 'yHigh'],
         fill: {
             $applySwitch: [
                 { $path: 'type' },

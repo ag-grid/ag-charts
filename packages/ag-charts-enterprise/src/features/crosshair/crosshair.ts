@@ -33,6 +33,8 @@ import { CrosshairLabel } from './crosshairLabel';
 
 const { FormatManager, InteractionState } = _ModuleSupport;
 type HoverLikeEvent = DragWidgetEvent | MouseWidgetEvent<'mousemove'> | Extract<ClickWidgetEvent, CurrentPoint>;
+type ActiveHighlight = Exclude<_ModuleSupport.HighlightChangeEvent['currentHighlight'], undefined>;
+type CrosshairData = { [key: string]: { position: number; value: any } };
 
 interface FormatterCache {
     type: string;
@@ -76,6 +78,11 @@ export class Crosshair
 
     private activeHighlight: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     private activeHighlightInViewport: boolean = false;
+    /** Key properties the highlight snaps to, `'pointer'` to follow the pointer, or `undefined` for a single value. */
+    private highlightSnapKeys: readonly string[] | 'pointer' | undefined = undefined;
+    private highlightSnapNearest: boolean = false;
+    private snapsWithoutHighlight: boolean = true;
+    private lastPointer: CurrentPoint | undefined = undefined;
     // Set for the duration of a drag of a cross-line annotation whose own axis label is on this axis.
     private annotationLabelDragging: boolean = false;
 
@@ -91,7 +98,10 @@ export class Crosshair
         this.cleanup.register(
             ctx.scene.attachNode(this.crosshairGroup),
             ctx.widgets.seriesBoundsWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
-            ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onMouseOut()),
+            ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => {
+                this.lastPointer = undefined;
+                this.onMouseOut();
+            }),
             ctx.eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
@@ -186,6 +196,9 @@ export class Crosshair
         const crosshairKeys = ['pointer', ...this.axisCtx.seriesKeyProperties()];
         this.updateSelections(crosshairKeys);
 
+        this.snapsWithoutHighlight = this.computeSnapsWithoutHighlight();
+        this.resolveHighlightSnap();
+
         const followsPointer = this.followsPointer();
         if (followsPointer && this.activeHighlight) {
             // A non-snapping crosshair tracks the mouse position, so a layout:complete raised by clicking a node
@@ -254,7 +267,49 @@ export class Crosshair
 
     /** A snap interval keeps a snapping crosshair on the pointer, snapped to the interval, rather than on the highlight. */
     private followsPointer(): boolean {
-        return !this.options?.snap || this.snapInterval() != null;
+        const snap = this.options?.snap;
+        if (snap === false || this.snapInterval() != null) return true;
+        if (this.activeHighlight) return this.highlightSnapKeys === 'pointer';
+        return snap == null && !this.snapsWithoutHighlight;
+    }
+
+    private computeSnapsWithoutHighlight(): boolean {
+        const { axisId, direction } = this.axisCtx;
+        return this.ctx.chartService.series.some((series) => {
+            if (series.axes.x?.id !== axisId && series.axes.y?.id !== axisId) return false;
+            const config = series.getCrosshairSnapConfig?.();
+            if (config == null || series.getKeyProperties(direction).length < 2) return true;
+            return config.snapTo != null && config.snapTo.length > 0;
+        });
+    }
+
+    private resolveHighlightSnap() {
+        this.highlightSnapKeys = undefined;
+        this.highlightSnapNearest = false;
+
+        const series = this.activeHighlight?.series;
+        const config = series?.getCrosshairSnapConfig?.();
+        const { axisId, direction } = this.axisCtx;
+        if (config == null || series?.axes[direction]?.id !== axisId) return;
+
+        const keyProperties = series.getKeyProperties(direction);
+        if (keyProperties.length < 2) return;
+
+        const { snapTo, mode } = config;
+        let keys: readonly string[] = keyProperties;
+        if (snapTo == null) {
+            if (this.options?.snap !== true) keys = [];
+        } else {
+            keys = keyProperties.filter((key) => snapTo.includes(key));
+        }
+        this.highlightSnapKeys = keys.length > 0 ? keys : 'pointer';
+        this.highlightSnapNearest = mode === 'nearest';
+    }
+
+    private pointerPosition(): number | undefined {
+        const { lastPointer } = this;
+        if (lastPointer == null) return undefined;
+        return this.isVertical() ? lastPointer.currentX : lastPointer.currentY;
     }
 
     private snapInterval(): number | undefined {
@@ -285,16 +340,29 @@ export class Crosshair
     }
 
     private onMouseHoverLike(event: HoverLikeEvent) {
+        this.lastPointer = event;
         const options = this.options;
-        if (!options?.enabled || !this.followsPointer()) return;
+        if (!options?.enabled) return;
+
+        const followsPointer = this.followsPointer();
+        const tracksNearest =
+            !followsPointer &&
+            this.highlightSnapNearest &&
+            this.activeHighlight != null &&
+            this.activeHighlightInViewport;
+        if (!followsPointer && !tracksNearest) return;
 
         const requiredState = this.isHover(event)
             ? InteractionState.Hoverable | InteractionState.Frozen
             : InteractionState.AnnotationsMoveable;
         if (!this.ctx.interactionManager.isState(requiredState)) return;
 
-        this.updatePositions(this.getData(event));
-        this.crosshairGroup.visible = true;
+        if (followsPointer) {
+            this.updatePositions(this.getData(event));
+            this.crosshairGroup.visible = true;
+        } else {
+            this.refreshPositions();
+        }
 
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
@@ -331,19 +399,23 @@ export class Crosshair
     }
 
     private onSeriesBlurred() {
+        this.lastPointer = undefined;
         if (this.checkInteractionState() || !this.crosshairGroup.visible) return;
         this.hideCrosshairs();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     private onKeyPress() {
+        this.lastPointer = undefined;
         const options = this.options;
-        if (
-            options?.enabled &&
-            this.followsPointer() &&
-            this.ctx.interactionManager.isState(InteractionState.Default)
-        ) {
+        if (!options?.enabled || !this.ctx.interactionManager.isState(InteractionState.Default)) return;
+
+        if (this.followsPointer()) {
             this.hideCrosshairs();
+        } else if (this.highlightSnapNearest && this.activeHighlightInViewport && this.crosshairGroup.visible) {
+            // Focus changes fire after the highlight change, which was drawn against the stale pointer.
+            this.refreshPositions();
+            this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
         }
     }
 
@@ -358,12 +430,18 @@ export class Crosshair
             (datum != null || datums != null) &&
             (series?.axes.x?.id === axisCtx.axisId || series?.axes.y?.id === axisCtx.axisId);
 
+        const followedPointer = this.followsPointer();
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
         this.activeHighlightInViewport = event.highlightInViewport;
+        this.resolveHighlightSnap();
 
         if (!this.activeHighlight) {
             this.hideCrosshairs();
-        } else if (!this.followsPointer()) {
+        } else if (this.followsPointer()) {
+            if (!followedPointer) {
+                this.showPointer();
+            }
+        } else {
             if (event.highlightInViewport) {
                 const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
@@ -380,6 +458,16 @@ export class Crosshair
 
     private isInRange(value: number) {
         return this.axisCtx.inRange(value);
+    }
+
+    private showPointer() {
+        const data = this.lastPointer == null ? undefined : this.getData(this.lastPointer);
+        if (data?.pointer == null) {
+            this.hideCrosshairs();
+            return;
+        }
+        this.updatePositions(data);
+        this.crosshairGroup.visible = true;
     }
 
     private refreshPositions() {
@@ -419,9 +507,7 @@ export class Crosshair
         });
     }
 
-    private getData(event: CurrentPoint): {
-        [key: string]: { position: number; value: any };
-    } {
+    private getData(event: CurrentPoint): CrosshairData {
         const { axisCtx } = this;
         const key = 'pointer';
         const { xKey = '', yKey = '' } = this.activeHighlight ?? {};
@@ -448,9 +534,12 @@ export class Crosshair
         return { [key]: snapPositionToInterval(axisCtx, position, snapInterval) };
     }
 
-    private getActiveHighlightData(
-        activeHighlight: Exclude<_ModuleSupport.HighlightChangeEvent['currentHighlight'], undefined>
-    ): { [key: string]: { position: number; value: any } } {
+    private getActiveHighlightData(activeHighlight: ActiveHighlight): CrosshairData {
+        const { highlightSnapKeys } = this;
+        if (Array.isArray(highlightSnapKeys)) {
+            return this.getSnapKeysData(activeHighlight, highlightSnapKeys);
+        }
+
         const { axisCtx } = this;
         const { series, xKey = '', aggregatedValue, cumulativeValue, cumulativeValueExact, midPoint } = activeHighlight;
         const datum = readDatum(activeHighlight);
@@ -501,6 +590,35 @@ export class Crosshair
         }
 
         return activeHighlightData;
+    }
+
+    private getSnapKeysData(activeHighlight: ActiveHighlight, keys: readonly string[]): CrosshairData {
+        const { scale } = this.axisCtx;
+        const values = activeHighlight.series.getCrosshairSnapValues?.(activeHighlight);
+        const halfBandwidth = (scale.bandwidth ?? 0) / 2;
+        const pointerPosition = this.highlightSnapNearest ? this.pointerPosition() : undefined;
+
+        let data: CrosshairData = {};
+        let nearestDistance = Infinity;
+        for (const key of keys) {
+            const value = values?.[key];
+            if (value == null) continue;
+
+            const position = scale.convert(value) + halfBandwidth;
+            if (!this.isInRange(position)) continue;
+
+            if (pointerPosition == null) {
+                data[key] = { value, position };
+                continue;
+            }
+
+            const distance = Math.abs(position - pointerPosition);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                data = { [key]: { value, position } };
+            }
+        }
+        return data;
     }
 
     private getLabelHtml(value: any, label: CrosshairLabel) {

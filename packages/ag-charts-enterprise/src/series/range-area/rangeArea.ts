@@ -56,6 +56,7 @@ import {
 import type { BoxBounds, Path, Segment, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
+import { collectCrosshairSnapValues, resolveCrosshairSnapConfig } from '../../utils/crosshairSnap';
 import {
     type RangeAreaSeriesDataAggregationFilter,
     aggregateRangeAreaDataFromDataModel,
@@ -276,6 +277,12 @@ type RangeAreaStylerApply = _ModuleSupport.MarkerStyleApply<
     StylerResult
 >;
 
+const RANGE_AREA_VALUE_KEYS = ['yLowKey', 'yHighKey'] as const;
+
+function isRangeAreaMarkerDatum(nodeDatum: _ModuleSupport.SeriesNodeDatum): nodeDatum is RangeAreaMarkerDatum {
+    return 'yLowValue' in nodeDatum && 'yHighValue' in nodeDatum;
+}
+
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSeriesTypes> {
     static override readonly className = 'RangeAreaSeries';
     static readonly type = 'range-area' as const;
@@ -307,6 +314,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             yLowKey: this.options.yLowKey,
             yHighKey: this.options.yHighKey,
         };
+    }
+
+    getCrosshairSnapConfig(): _ModuleSupport.CrosshairSnapConfig {
+        return resolveCrosshairSnapConfig(this.options, RANGE_AREA_VALUE_KEYS);
+    }
+
+    getCrosshairSnapValues(nodeDatum: _ModuleSupport.SeriesNodeDatum): Partial<Record<string, unknown>> {
+        if (!isRangeAreaMarkerDatum(nodeDatum)) return {};
+        return collectCrosshairSnapValues([
+            ['yLowKey', nodeDatum.yLowValue],
+            ['yHighKey', nodeDatum.yHighValue],
+        ]);
     }
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();

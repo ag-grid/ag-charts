@@ -33,6 +33,7 @@ import {
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import { collectCrosshairSnapValues, resolveCrosshairSnapConfig } from '../../utils/crosshairSnap';
 import {
     type OhlcSeriesDataAggregationFilter,
     aggregateOhlcDataFromDataModel,
@@ -45,6 +46,7 @@ const HIGH = AGGREGATION_INDEX_Y_MAX;
 const LOW = AGGREGATION_INDEX_Y_MIN;
 const CLOSE = AGGREGATION_INDEX_X_MAX;
 const SPAN = AGGREGATION_SPAN;
+const OHLC_VALUE_KEYS = ['openKey', 'highKey', 'lowKey', 'closeKey'] as const;
 
 const {
     AggregationManager,
@@ -89,6 +91,10 @@ export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDa
     readonly crisp: boolean;
 
     style?: Required<NormalisedOhlcCandleStickSeriesStyle>;
+}
+
+function isOhlcNodeDatum(nodeDatum: _ModuleSupport.SeriesNodeDatum): nodeDatum is OhlcNodeDatum {
+    return 'openValue' in nodeDatum && 'closeValue' in nodeDatum;
 }
 
 /**
@@ -212,6 +218,20 @@ export abstract class OhlcSeriesBase<
             highKey: this.options.highKey,
             lowKey: this.options.lowKey,
         };
+    }
+
+    getCrosshairSnapConfig(): _ModuleSupport.CrosshairSnapConfig {
+        return resolveCrosshairSnapConfig(this.options, OHLC_VALUE_KEYS);
+    }
+
+    getCrosshairSnapValues(nodeDatum: _ModuleSupport.SeriesNodeDatum): Partial<Record<string, unknown>> {
+        if (!isOhlcNodeDatum(nodeDatum)) return {};
+        return collectCrosshairSnapValues([
+            ['openKey', nodeDatum.openValue],
+            ['highKey', nodeDatum.highValue],
+            ['lowKey', nodeDatum.lowValue],
+            ['closeKey', nodeDatum.closeValue],
+        ]);
     }
 
     private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();

@@ -218,6 +218,9 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
     ): Array<{ seriesId: string; key: string; name: string | undefined }>;
     resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection;
     datumMidPoint?<T extends SeriesNodeDatum>(datum: T): Point | undefined;
+    getCrosshairSnapConfig?(): CrosshairSnapConfig;
+    /** Values the crosshair can snap to, keyed by key property; missing values are omitted. */
+    getCrosshairSnapValues?(nodeDatum: SeriesNodeDatum): Partial<Record<string, unknown>>;
     isEnabled(): boolean;
     type: string;
     visible: boolean;
@@ -233,6 +236,12 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
     readonly data?: DataSet<any>;
     pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
     ensureBucketLookupFeature(): BucketLookupFeature | undefined;
+}
+
+export interface CrosshairSnapConfig {
+    /** Key properties to snap to, or `undefined` when the series has no list. */
+    readonly snapTo: readonly string[] | undefined;
+    readonly mode: 'all' | 'nearest';
 }
 
 type SeriesNodeDatumSeries = ISeries<SeriesNodeDatum, ISeriesOptions, unknown>;

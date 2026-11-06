@@ -40,6 +40,7 @@ import {
 import type { Path, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
+import { collectCrosshairSnapValues, resolveCrosshairSnapConfig } from '../../utils/crosshairSnap';
 import {
     type OhlcSeriesDataAggregationFilter,
     aggregateOhlcDataFromDataModel,
@@ -193,6 +194,12 @@ type HlcAnimationData = _ModuleSupport.CartesianAnimationData<
     HlcContext
 >;
 
+const HLC_VALUE_KEYS = ['highKey', 'lowKey', 'closeKey'] as const;
+
+function isHlcMarkerDatum(nodeDatum: _ModuleSupport.SeriesNodeDatum): nodeDatum is HlcMarkerDatum {
+    return 'highValue' in nodeDatum && 'lowValue' in nodeDatum && 'closeValue' in nodeDatum;
+}
+
 export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
     static override readonly className = 'HlcSeries';
     static readonly type = 'hlc' as const;
@@ -222,6 +229,19 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
     override createNodeParams(datum: HlcMarkerDatum) {
         const { xKey, highKey, lowKey, closeKey } = this.options;
         return { ...super.createNodeParams(datum), xKey, highKey, lowKey, closeKey };
+    }
+
+    getCrosshairSnapConfig(): _ModuleSupport.CrosshairSnapConfig {
+        return resolveCrosshairSnapConfig(this.options, HLC_VALUE_KEYS);
+    }
+
+    getCrosshairSnapValues(nodeDatum: _ModuleSupport.SeriesNodeDatum): Partial<Record<string, unknown>> {
+        if (!isHlcMarkerDatum(nodeDatum)) return {};
+        return collectCrosshairSnapValues([
+            ['highKey', nodeDatum.highValue],
+            ['lowKey', nodeDatum.lowValue],
+            ['closeKey', nodeDatum.closeValue],
+        ]);
     }
 
     private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
