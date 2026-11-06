@@ -195,6 +195,36 @@ describe('Widget', () => {
         });
     });
 
+    describe('setWidth', () => {
+        it('sets and removes width in pixels', () => {
+            const widget = makeWidget();
+            widget.setWidth(120);
+            expect(widget.getElement().style.width).toBe('120px');
+            widget.setWidth(undefined);
+            expect(widget.getElement().style.width).toBe('');
+        });
+    });
+
+    describe('setMaxWidth', () => {
+        it('sets and removes max-width in pixels', () => {
+            const widget = makeWidget();
+            widget.setMaxWidth(300.5);
+            expect(widget.getElement().style.maxWidth).toBe('300.5px');
+            widget.setMaxWidth(undefined);
+            expect(widget.getElement().style.maxWidth).toBe('');
+        });
+    });
+
+    describe('setTextAlign', () => {
+        it('sets and removes text-align', () => {
+            const widget = makeWidget();
+            widget.setTextAlign('right');
+            expect(widget.getElement().style.textAlign).toBe('right');
+            widget.setTextAlign(undefined);
+            expect(widget.getElement().style.textAlign).toBe('');
+        });
+    });
+
     describe('removeChildWidget', () => {
         it('leaves the other children alone when the widget is no longer a child', () => {
             const parent = makeWidget();
