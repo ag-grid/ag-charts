@@ -295,10 +295,11 @@ describe('series-level glow on phantom nodes', () => {
     // The phantoms draw the filtered-out part of each item, one for each item.
     const PHANTOM_DATA = DATA.map((datum) => ({ ...datum, f: datum.v / 2 }));
 
+    // Their groups are not batched, so as to leave the `shadow` they cast alone: the items cast the glow, the phantoms none.
     it.each([
         ['bar', { type: 'bar', xKey: 'x', yKey: 'v', yFilterKey: 'f' }],
         ['donut', { type: 'donut', angleKey: 'v', angleFilterKey: 'f' }],
-    ])('casts the glow of %s phantoms and of their highlight copies', async (_name, series) => {
+    ])('casts the glow of %s items and not of their phantoms', async (_name, series) => {
         chart = deproxy(
             await createChart({
                 data: PHANTOM_DATA,
@@ -311,17 +312,17 @@ describe('series-level glow on phantom nodes', () => {
         const { contentGroup, highlightGroup } = getSeriesAt(chart);
         const glowing = (root: typeof contentGroup) =>
             shapesOf(root, Shape).filter((shape) => shape.visible && shape.fillGlow?.enabled === true);
+        const phantoms = Array(PHANTOM_DATA.length).fill(expect.stringContaining('"phantom"'));
 
-        // An item and its phantom each.
+        // An item and its phantom each, and only the phantoms are left uncast.
         expect(glowing(contentGroup)).toHaveLength(PHANTOM_DATA.length * 2);
-        expect(uncastGlows(contentGroup)).toEqual([]);
+        expect(uncastGlows(contentGroup)).toEqual(phantoms);
 
         chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
         await waitForChartStability(chart);
 
-        expect(glowing(highlightGroup).length).toBeGreaterThan(0);
-        expect(uncastGlows(highlightGroup)).toEqual([]);
-        expect(uncastGlows(contentGroup)).toEqual([]);
+        for (const label of uncastGlows(contentGroup)) expect(label).toContain('"phantom"');
+        expect(glowing(highlightGroup).length).toBeGreaterThan(uncastGlows(highlightGroup).length);
     });
 });
 
