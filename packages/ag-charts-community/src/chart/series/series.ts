@@ -152,6 +152,9 @@ const MARKERLESS_NODE_PICK_RANGE = 10;
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
+/** What `resolveInPlaceCopy` returns, in place of a `HighlightState`, for the in-place copy of the hovered item. */
+const HOVERED_IN_PLACE = -1;
+
 export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     itemId: string;
     nodeData: S[];
@@ -901,7 +904,7 @@ export abstract class Series<
      * In `highlight.mode: 'shared'`, the index of this series' item sharing the highlighted datum's category.
      * `undefined` when there is none, for series-level highlights, and for the hovered series itself.
      */
-    protected getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
+    private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
         if (highlightedDatum?.series == null || !this.isDatumHighlight(highlightedDatum)) return;
         // The hovered series is styled as in `'single'` mode, so a match of its own would only repaint it.
         if (highlightedDatum.series === this) return;
@@ -1009,10 +1012,16 @@ export abstract class Series<
         const hasItemStylers = this.hasItemStylers();
 
         // The hovered item's in-place copy casts no glow (see `resolveItemGlow`) and the `highlightedItem.shadow` (see
-        // `resolveItemShadow`), so the in-place nodes redraw when the item the highlight layer redraws changes.
+        // `resolveItemShadow`), so the in-place nodes redraw when the item the highlight layer redraws changes. So do an
+        // item that shares the hovered category, in `highlight.mode: 'shared'`, which casts the item state's glow and shadow.
+        const hasItemShadow = this.getItemShadowBucket() != null;
         const castSwapped =
-            (this.hasGlowIn(HighlightState.OtherItem) || this.getItemShadowBucket() != null) &&
-            this.getRedrawnDatumIndex(previousHighlightedDatum) !== this.getRedrawnDatumIndex(currentHighlightedDatum);
+            ((this.hasGlowIn(HighlightState.OtherItem) || hasItemShadow) &&
+                this.getRedrawnDatumIndex(previousHighlightedDatum) !==
+                    this.getRedrawnDatumIndex(currentHighlightedDatum)) ||
+            ((this.hasGlowIn(HighlightState.Item) || hasItemShadow) &&
+                this.getSharedCategoryMatch(previousHighlightedDatum) !==
+                    this.getSharedCategoryMatch(currentHighlightedDatum));
 
         if (!hasItemStylers && !castSwapped && currentHighlightState === previousHighlightState) {
             // Datum-level and series-level highlights both report HighlightState.Series here, yet dim
@@ -1191,22 +1200,23 @@ export abstract class Series<
     }
 
     /**
-     * The highlight state of an in-place copy, and whether it is the hovered item's. The highlight layer owns `Item`, so
-     * the hovered item's in-place copy has the state of `OtherItem`: it is told by being the item that
-     * {@link getRedrawnDatumIndex} reports. Both `resolveItemShadow` and `resolveItemGlow` read it.
+     * The highlight state of an in-place copy, or {@link HOVERED_IN_PLACE} for the hovered item's. The highlight layer
+     * owns `Item`, so the hovered item's in-place copy has the state of `OtherItem`: it is told by being the item that
+     * {@link getRedrawnDatumIndex} reports. Both `resolveItemShadow` and `resolveItemGlow` read it. It returns a
+     * scalar, as it runs per datum on every hover redraw.
      */
     private resolveInPlaceCopy(
         highlightedDatum: HighlightNodeDatum,
         datumIndex: DatumIndex | undefined,
         highlightState: HighlightState | undefined,
         legendItemValues: string[] | undefined
-    ) {
+    ): HighlightState | typeof HOVERED_IN_PLACE {
         const state = highlightState ?? this.getHighlightState(highlightedDatum, false, datumIndex, legendItemValues);
         const isHovered =
             datumIndex != null &&
             state === HighlightState.OtherItem &&
             this.getRedrawnIndex(highlightedDatum) === datumIndex;
-        return { state, isHovered };
+        return isHovered ? HOVERED_IN_PLACE : state;
     }
 
     /**
@@ -1229,13 +1239,10 @@ export abstract class Series<
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         if (highlightedDatum == null) return shadow;
 
-        const { state, isHovered } = this.resolveInPlaceCopy(
-            highlightedDatum,
-            datumIndex,
-            highlightState,
-            legendItemValues
-        );
-        return isHovered || state === HighlightState.Item ? this.getCascadedShadow(shadow, bucket) : shadow;
+        const copy = this.resolveInPlaceCopy(highlightedDatum, datumIndex, highlightState, legendItemValues);
+        return copy === HOVERED_IN_PLACE || copy === HighlightState.Item
+            ? this.getCascadedShadow(shadow, bucket)
+            : shadow;
     }
 
     /**
@@ -1255,13 +1262,8 @@ export abstract class Series<
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         if (highlightedDatum == null) return this.getCascadedGlow(seriesGlow, HighlightState.None);
 
-        const { state, isHovered } = this.resolveInPlaceCopy(
-            highlightedDatum,
-            datumIndex,
-            highlightState,
-            legendItemValues
-        );
-        return isHovered ? undefined : this.getCascadedGlow(seriesGlow, state);
+        const copy = this.resolveInPlaceCopy(highlightedDatum, datumIndex, highlightState, legendItemValues);
+        return copy === HOVERED_IN_PLACE ? undefined : this.getCascadedGlow(seriesGlow, copy);
     }
 
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */

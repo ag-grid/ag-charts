@@ -1216,6 +1216,48 @@ describe('highlight glow (enterprise series)', () => {
 
                 expect(batched()).toBe(true);
             });
+
+            const castsBucket = (shape: Shape) => shape.fillShadow?.fill === HIGHLIGHT_SHADOW.fill;
+            const cellsOf = (seriesIndex: number) =>
+                [...collectShapes(getSeriesAt(chart, seriesIndex).contentGroup)].filter(
+                    (shape) => shape instanceof Rect && shape.visible
+                );
+            const batchedIn = (seriesIndex: number) =>
+                [...getSeriesAt(chart, seriesIndex).contentGroup.descendants()].some(
+                    (node) => node instanceof HeatmapCellBatch && node.visible
+                );
+
+            it('casts the bucket from the hovered cell it unbatches, and batches the cells again when the hover ends', async () => {
+                // A series shadow would unbatch the cells on its own.
+                const { inPlace } = await hoverItem(heatmap, undefined, {
+                    highlightedItem: { shadow: HIGHLIGHT_SHADOW },
+                });
+
+                expect(batched()).toBe(false);
+                expect(inPlace).toHaveLength(GRID_DATA.length);
+                expect(inPlace.filter(castsBucket)).toHaveLength(1);
+                expect(inPlace.filter((cell) => cell.fillShadow?.enabled === true)).toHaveLength(1);
+
+                raiseHighlight();
+                await waitForChartStability(chart);
+                expect(batched()).toBe(true);
+            });
+
+            it('leaves the cells of another heatmap batched in shared mode, as a heatmap has no category to share', async () => {
+                const { series } = heatmap;
+                chart = await createEnterpriseChart({
+                    data: GRID_DATA,
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    highlight: { mode: 'shared' },
+                    series: [0, 1].map(() => series(undefined, { highlightedItem: { shadow: HIGHLIGHT_SHADOW } })),
+                } as AgChartOptions);
+                raiseHighlight(getSeriesNodeData<HighlightNodeDatum>(chart, 0)[0]);
+                await waitForChartStability(chart);
+
+                expect([batchedIn(0), batchedIn(1)]).toEqual([false, true]);
+                expect([0, 1].map((index) => cellsOf(index).filter(castsBucket).length)).toEqual([1, 0]);
+            });
         });
 
         describe.each([...SERIES.filter(({ name }) => !/^(sunburst|treemap)/.test(name)), HLC_CASE])(

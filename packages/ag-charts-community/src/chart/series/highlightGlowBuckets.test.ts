@@ -339,7 +339,7 @@ describe('highlightedItem.shadow with highlight.mode: shared', () => {
         { x: 2, v: 8, w: 4 },
     ];
 
-    it('casts the shadow from the items that share the hovered category, and from them alone', async () => {
+    const createShared = async () => {
         chart = deproxy(
             await createChart({
                 data: CATEGORIES,
@@ -359,14 +359,71 @@ describe('highlightedItem.shadow with highlight.mode: shared', () => {
                 })),
             } as AgChartOptions)
         );
-        chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart, 0)[0]);
+    };
+
+    /**
+     * Options cannot clear the opacity that the theme gives the dimmed items, so it is dropped from the resolved options,
+     * as a theme with none would leave them.
+     */
+    const dropDimming = () => {
+        for (const series of chart.series) {
+            const { unhighlightedItem, unhighlightedSeries } = (series as any).options.highlight;
+            delete unhighlightedItem.opacity;
+            delete unhighlightedSeries.opacity;
+        }
+    };
+
+    const hover = async (datumIndex?: number) => {
+        const datum = datumIndex == null ? undefined : getSeriesNodeData<HighlightNodeDatum>(chart, 0)[datumIndex];
+        chart.ctx.highlightManager.updateHighlight(chart.id, datum);
         await waitForChartStability(chart);
+    };
+
+    /** The shadow that each bar of each series casts: the bucket's (`'item'`) or the series' own (`'series'`). */
+    const castsOf = () =>
+        [0, 1].map((seriesIndex) =>
+            shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Rect).map((rect) =>
+                rect.fillShadow?.fill === HIGHLIGHT_SHADOW.fill ? 'item' : 'series'
+            )
+        );
+
+    it('casts the shadow from the items that share the hovered category, and from them alone', async () => {
+        await createShared();
+        await hover(0);
 
         // Series 0 holds the hovered bar; series 1 holds the bar that shares its category.
+        expect(castsOf()).toEqual([
+            ['item', 'series'],
+            ['item', 'series'],
+        ]);
         for (const seriesIndex of [0, 1]) {
             const [first, second] = shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Rect);
             expect(first.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
             expect(second.fillShadow).toMatchObject(SERIES_SHADOW);
         }
     });
+
+    // With no state style on the dimmed items, only the cast itself tells the in-place nodes to redraw.
+    it.each([
+        ['with the theme dimming', { clearDimming: false }],
+        ['with the dimming cleared', { clearDimming: true }],
+    ])(
+        'moves the shadow to the items of the next category, and takes it off when the hover ends, %s',
+        async (_name, { clearDimming }) => {
+            await createShared();
+            if (clearDimming) dropDimming();
+            await hover(0);
+            await hover(1);
+            expect(castsOf()).toEqual([
+                ['series', 'item'],
+                ['series', 'item'],
+            ]);
+
+            await hover();
+            expect(castsOf()).toEqual([
+                ['series', 'series'],
+                ['series', 'series'],
+            ]);
+        }
+    );
 });
