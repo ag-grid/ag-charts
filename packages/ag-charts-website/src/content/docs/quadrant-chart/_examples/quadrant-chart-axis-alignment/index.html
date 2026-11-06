@@ -1,8 +1,9 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button id="alignAxesToPivotToggle" aria-pressed="true" onclick="toggleAlignAxesToPivot()">
+        <label>
+            <input type="checkbox" role="switch" checked onchange="toggleAlignAxesToPivot(event.target.checked)" />
             Align Axes to Pivot
-        </button>
+        </label>
         <fieldset id="placementGroup" class="control-group">
             <label for="title-placement">Title:</label>
             <select id="title-placement" onchange="updateTitlePlacement(event.target.value)">

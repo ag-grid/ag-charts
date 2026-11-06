@@ -7,10 +7,14 @@
                 <option value="donut">Donut</option>
             </select>
         </div>
-        <button id="calloutLabelToggle" aria-pressed="true" onclick="toggleCalloutLabel()">
-            Toggle Callout Labels
-        </button>
-        <button id="sectorLabelToggle" aria-pressed="true" onclick="toggleSectorLabel()">Toggle Sector Labels</button>
+        <label>
+            <input type="checkbox" role="switch" checked onchange="toggleCalloutLabel(event.target.checked)" />
+            Callout Labels
+        </label>
+        <label>
+            <input type="checkbox" role="switch" checked onchange="toggleSectorLabel(event.target.checked)" />
+            Sector Labels
+        </label>
         <div class="gap-left">
             <label for="maxWidthSlider">Max Label Width:</label>
             <input

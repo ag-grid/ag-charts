@@ -1,15 +1,38 @@
 <div class="example-controls">
     <div class="controls-row">
-        Toggle:
-        <button id="toggle-navigator" aria-pressed="false" onclick="toggleFeature('navigator')">Navigator</button>
-        <button id="toggle-toolbar" aria-pressed="true" onclick="toggleFeature('toolbar')">Toolbar</button>
-        <button id="toggle-rangeButtons" aria-pressed="true" onclick="toggleFeature('rangeButtons')">
+        <label>
+            <input type="checkbox" role="switch" onchange="toggleFeature('navigator', event.target.checked)" />
+            Navigator
+        </label>
+        <label>
+            <input type="checkbox" role="switch" checked onchange="toggleFeature('toolbar', event.target.checked)" />
+            Toolbar
+        </label>
+        <label>
+            <input
+                type="checkbox"
+                role="switch"
+                checked
+                onchange="toggleFeature('rangeButtons', event.target.checked)"
+            />
             Range Buttons
-        </button>
-        <button id="toggle-volume" aria-pressed="true" onclick="toggleFeature('volume')">Volume</button>
-        <button id="toggle-statusBar" aria-pressed="true" onclick="toggleFeature('statusBar')">Status Bar</button>
-        <button id="toggle-zoom" aria-pressed="true" onclick="toggleFeature('zoom')">Zoom</button>
-        <button id="toggle-volumeProfile" aria-pressed="false" onclick="toggleVolumeProfile()">Volume Profile</button>
+        </label>
+        <label>
+            <input type="checkbox" role="switch" checked onchange="toggleFeature('volume', event.target.checked)" />
+            Volume
+        </label>
+        <label>
+            <input type="checkbox" role="switch" checked onchange="toggleFeature('statusBar', event.target.checked)" />
+            Status Bar
+        </label>
+        <label>
+            <input type="checkbox" role="switch" checked onchange="toggleFeature('zoom', event.target.checked)" />
+            Zoom
+        </label>
+        <label>
+            <input type="checkbox" role="switch" onchange="toggleVolumeProfile(event.target.checked)" />
+            Volume Profile
+        </label>
     </div>
 </div>
 <div id="myChart"></div>
