@@ -3,10 +3,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    MIN_UNHIGHLIGHT_DELAY,
     deproxy,
     focusIndicatorContainsCanvasPoint,
     getSeriesAt,
     getSeriesNodeData,
+    hoverAction,
     pressKey,
     setupMockCanvas,
     setupMockConsole,
@@ -276,6 +278,34 @@ describe('highlight marker size (enterprise series)', () => {
 
             await raiseHighlight();
             expect(none()).toEqual([0, 0, 0]);
+        });
+    });
+
+    // range-area and hlc pick by axis only, and a data-driven size can cover the offset point in place.
+    const EXACT_PICKED = ['radar-line', 'radar-area', 'map-marker'];
+
+    describe.each(SERIES.filter(({ name }) => EXACT_PICKED.includes(name)))('$name exact hit testing', (testCase) => {
+        const ENLARGED = 40;
+        // Diagonal, so the point is inside the enlarged marker but outside its in-place copy of CONFIGURED size.
+        const OFFSET = 10;
+        const activeDatumIndex = () => deproxy(chart).ctx.highlightManager.getActiveHighlight()?.datumIndex;
+
+        it.each([
+            ['keeps the item highlighted inside its enlarged marker', { highlightedItem: { size: ENLARGED } }, true],
+            ['drops the highlight at that point without a highlight size', undefined, false],
+        ])('%s', async (_name, highlight, kept) => {
+            await create(testCase, { highlight }, { tooltip: { range: 'exact' } });
+            const [marker] = markersOf(getSeriesAt(chart, 0).contentGroup);
+            const { x, y } = Transformable.toCanvas(marker).computeCenter();
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+            const hoveredIndex = activeDatumIndex();
+            expect(hoveredIndex).toBeDefined();
+
+            await hoverAction(x + OFFSET, y - OFFSET)(chart);
+            await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
+
+            expect(activeDatumIndex()).toBe(kept ? hoveredIndex : undefined);
         });
     });
 
