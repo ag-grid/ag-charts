@@ -840,7 +840,7 @@ export class MapMarkerSeries
             lineDash,
             lineDashOffset,
         };
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle: Partial<NormalisedMapMarkerSeriesStyle> = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, ownStyle);
 
@@ -855,7 +855,7 @@ export class MapMarkerSeries
             baseStyle.fill = missingDataFill;
         }
 
-        if (sizeValue != null) {
+        if (sizeValue != null && selectionStyle?.size == null && highlightStyle?.size == null) {
             baseStyle.size = this.scaleMarkerSize(sizeValue);
         }
 
@@ -1258,7 +1258,7 @@ export class MapMarkerSeries
     }
 
     public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
-        const format = this.getMarkerItemStyle(markerDatum, false);
+        const format = this.getMarkerItemStyle(markerDatum, true);
 
         return { size: format.size, shape: format.shape };
     }
