@@ -303,7 +303,10 @@ export function validate<T>(
                 if (validatorResult.valid) {
                     cleared[key as keyof T] = validatorResult.cleared as any;
                     continue;
-                } else if (hasRequiredInPath(validatorResult.invalid, keyPath)) {
+                } else if (
+                    hasRequiredInPath(validatorResult.invalid, keyPath) ||
+                    hasErrorAtPath(validatorResult.invalid, keyPath)
+                ) {
                     continue;
                 }
             } else if (validatorResult) {
@@ -909,6 +912,12 @@ export const callbackDefs = <T>(
 
 export function hasRequiredInPath(errors: ValidationError[], rootPath: string) {
     return errors.some((error: ValidationError) => error.type === ErrorType.Required && error.path === rootPath);
+}
+
+function hasErrorAtPath(errors: ValidationError[], path: string) {
+    return errors.some(
+        ({ path: errorPath, key }) => (key == null || key === '' ? errorPath : extendPath(errorPath, key)) === path
+    );
 }
 
 function warnCallbackErrors(
