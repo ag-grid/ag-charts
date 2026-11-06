@@ -145,6 +145,9 @@ jobs:
                   pr-author: ${{ steps.pr-meta.outputs.pr-author }}
                   github-token: ${{ github.token }}
                   inline-comments: 'true'
+                  # The summary is the `codex-review` section of the consolidated PR comment
+                  # that ci.yml's pr-report-comment sections share, not a comment of its own.
+                  summary-comment: section
                   dev-prompts-version: ${{ env.DEV_PROMPTS_CHANNEL }}
                   # See ag-dev-prompts docs/installation.md.
                   driver: ${{ inputs.driver || 'explore' }}

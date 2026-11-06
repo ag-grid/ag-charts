@@ -616,6 +616,8 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         # Per-PR lock: stops this PR's publishers (the preview payload here and the
         # snapshot reports in `snapshot_review`) and its close-time cleanup from
         # running concurrently, which narrows the window in which a late publish
@@ -724,6 +726,8 @@ jobs:
         permissions:
             contents: read
             pull-requests: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -757,10 +761,11 @@ jobs:
                   mkdir -p "${RUNNER_TEMP}/pr-sections"
                   out="${RUNNER_TEMP}/pr-sections/30-l10n.md"
                   if [ -f l10n-review.md ]; then
-                      # Drop the standalone marker the generator prepends (review-translations.mjs);
-                      # the consolidated comment owns the parent marker. Prepend our section heading.
+                      # Keep the `<!-- l10n-translation-review -->` marker the generator leads with:
+                      # the AI Workflow pipeline reads a section whose content starts with a review
+                      # marker as that review. Prepend our section heading.
                       # [warn]: the reviewer flagged translations to read before merge.
-                      { echo '## [warn] Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
+                      { echo '## [warn] Translation review'; echo; cat l10n-review.md; } > "$out"
                   else
                       # [ok]: nothing to action.
                       printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
@@ -1790,6 +1795,8 @@ jobs:
             pull-requests: write
             statuses: write
             deployments: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         needs:
             [
                 detect-changes,
