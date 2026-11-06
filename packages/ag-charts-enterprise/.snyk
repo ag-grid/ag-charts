@@ -279,7 +279,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:14:43.688Z
-    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.1.4:
+    - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -295,7 +295,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:14:13.063Z
-    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.1.4:
+    - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -533,7 +533,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-MINIMATCH-15353389:
-    - glob@8.0.3 > minimatch@5.1.6:
+    - 'glob@8.1.0 > minimatch@5.1.6':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:26:09.401Z
@@ -550,7 +550,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:25:58.996Z
   SNYK-JS-MINIMATCH-15309438:
-    - glob@8.0.3 > minimatch@5.1.6:
+    - 'glob@8.1.0 > minimatch@5.1.6':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:56:40.081Z

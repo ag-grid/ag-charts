@@ -182,7 +182,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-QS-20943482:
-    - 'react-instantsearch@7.50.0 > instantsearch.js@4.118.0 > qs@6.14.1':
+    - 'react-instantsearch@7.54.0 > instantsearch.js@4.122.0 > qs@6.14.1':
         reason: >-
             Only exploitable via qs.stringify with arrayFormat 'comma', which instantsearch.js never uses
         expires: '2027-03-02T00:00:00.000Z'
@@ -239,7 +239,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
@@ -310,7 +310,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
@@ -381,7 +381,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
@@ -452,7 +452,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
@@ -523,7 +523,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
@@ -594,7 +594,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
@@ -665,7 +665,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
@@ -736,7 +736,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
@@ -815,7 +815,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:16:56.016Z
   SNYK-JS-BRACES-19963945:
-    - sass@1.105.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > braces@3.0.3:
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > braces@3.0.3':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -826,7 +826,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.491Z
   SNYK-JS-BRACEEXPANSION-20244952:
-    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.1.4:
+    - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -842,7 +842,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.490Z
   SNYK-JS-BRACEEXPANSION-20244948:
-    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.1.4:
+    - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -873,7 +873,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > tar@7.5.16:
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -939,7 +939,7 @@ ignore:
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - sass@1.105.0 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > tar@7.5.16:
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1302,7 +1302,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-04-15T11:47:26.470Z
   SNYK-JS-PICOMATCH-15765511:
-    - sass@1.105.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1:
+    - 'sass@1.106.1 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1368,7 +1368,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:34:56.043Z
   SNYK-JS-QS-15268416:
-    - 'react-instantsearch@7.50.0 > instantsearch.js@4.118.0 > qs@6.14.1':
+    - 'react-instantsearch@7.54.0 > instantsearch.js@4.122.0 > qs@6.14.1':
         reason: 'Used for search, so would only affect users browser - does not affect production build of libraries'
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:33:07.518Z
@@ -1387,7 +1387,7 @@ ignore:
             input.
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:05.128Z
-    - glob@8.0.3 > minimatch@5.1.6:
+    - 'glob@8.1.0 > minimatch@5.1.6':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:05.115Z
@@ -1406,7 +1406,7 @@ ignore:
             input.
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:58:54.289Z
-    - glob@8.0.3 > minimatch@5.1.6:
+    - 'glob@8.1.0 > minimatch@5.1.6':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:58:54.276Z
@@ -1436,12 +1436,12 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-IMMUTABLE-17900558:
-    - 'sass@1.105.0 > immutable@5.1.6':
+    - 'sass@1.106.1 > immutable@5.1.6':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-IMMUTABLE-17900573:
-    - 'sass@1.105.0 > immutable@5.1.6':
+    - 'sass@1.106.1 > immutable@5.1.6':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
