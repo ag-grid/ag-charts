@@ -2,7 +2,7 @@ import { ChartAxisDirection, datumKeyReader } from 'ag-charts-core';
 import type { AgAnnotationFollow, AgAnnotationFollowName } from 'ag-charts-types';
 
 import type { PointType } from '../utils/scale';
-import { type CrossLineDatum, horizontalLineDatum } from './crossLineDatum';
+import { type CrossLineDatum, type HorizontalLineDatum, horizontalLineDatum } from './crossLineDatum';
 
 /** The part of a series that a followed value is read from. */
 export interface FollowableSeries {
@@ -23,12 +23,12 @@ export interface NormalisedFollow {
 
 const FOLLOW_NAMES: readonly unknown[] = ['first', 'last'] satisfies AgAnnotationFollowName[];
 
-export function isFollowName(value: unknown): value is AgAnnotationFollowName {
+function isFollowName(value: unknown): value is AgAnnotationFollowName {
     return FOLLOW_NAMES.includes(value);
 }
 
 /** Whether the line follows a series; `value` is ignored for such a line. */
-export function isFollowing(datum: CrossLineDatum) {
+export function isFollowing(datum: CrossLineDatum): datum is HorizontalLineDatum & { follow: AgAnnotationFollow } {
     return horizontalLineDatum.is(datum) && datum.follow != null;
 }
 

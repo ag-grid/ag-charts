@@ -1324,7 +1324,7 @@ describe('Annotations', () => {
             series: AgCartesianChartOptions['series']
         ): AgCartesianChartOptions => ({ ...ANNOTATIONS_EXAMPLE_OPTIONS, data, series });
 
-        // The axis label of each annotation, in annotation order, as the text it shows and where it is drawn.
+        // The axis label of each annotation, in annotation order: the text it shows, where it is drawn and whether it is shown.
         const axisLabels = () =>
             findSceneNodes(
                 chart,
@@ -1332,6 +1332,7 @@ describe('Annotations', () => {
             ).map((group) => ({
                 text: Array.from(group.descendants()).find((node): node is Text => node instanceof Text)?.text,
                 y: group.getBBox().y + group.getBBox().height / 2,
+                visible: group.visible,
             }));
 
         // The y of `value` on the y axis in canvas coordinates; the axis is linear.
@@ -1418,8 +1419,7 @@ describe('Annotations', () => {
         });
 
         it('hides the axis label when the followed series loses its values', async () => {
-            const labelVisibility = () =>
-                findSceneNodes(chart, (node) => node.name === ANNOTATION_AXIS_LABEL_GROUP).map((node) => node.visible);
+            const labelVisibility = () => axisLabels().map(({ visible }) => visible);
 
             await prepareChart(
                 { annotations: [{ type: 'horizontal-line', follow: 'last', ...labelled('last') }] },

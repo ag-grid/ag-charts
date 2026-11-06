@@ -69,7 +69,7 @@ export class CrossLineScene extends AnnotationScene<never> {
 
     /** The value to draw at: the followed datum's value for a followed line, otherwise the stored `value`. */
     private resolveValue(datum: CrossLineDatum, context: AnnotationContext): PointType | undefined {
-        if (horizontalLineDatum.is(datum) && datum.follow != null) return context.getFollowedValue(datum.follow);
+        if (isFollowing(datum)) return context.getFollowedValue(datum.follow);
         return datum.value;
     }
 

@@ -51,7 +51,7 @@ import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { CalloutScene } from './callout/calloutScene';
 import { horizontalLineDatum, verticalLineDatum } from './cross-line/crossLineDatum';
-import { findFollowedSeries, normaliseFollow, readFollowedValue } from './cross-line/followValue';
+import { findFollowedSeries, isFollowing, normaliseFollow, readFollowedValue } from './cross-line/followValue';
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
@@ -1305,7 +1305,7 @@ export class Annotations extends AbstractModuleInstance {
         if (!isHorizontal && !verticalLineDatum.is(datum)) return;
         if (!datum.axisLabel.enabled) return;
         // A followed line is not dragged, so there is no dragged value for its label to report
-        if (isHorizontal && datum.follow != null) return;
+        if (isFollowing(datum)) return;
 
         const axis = isHorizontal ? this.yAxis : this.xAxis;
         if (!axis) return;

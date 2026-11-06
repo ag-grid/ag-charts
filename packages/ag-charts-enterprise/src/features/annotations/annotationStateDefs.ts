@@ -54,11 +54,12 @@ export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
         axisLabel: { ...annotationAxisLabelOptionsDef, textAlign },
         text: lineText,
     };
+    const followName = union('first', 'last');
     const horizontalLine = {
         ...crossLine,
         follow: or(
-            union('first', 'last'),
-            optionsDefs<AgAnnotationFollowOptions>({ follow: required(union('first', 'last')), seriesId: string })
+            followName,
+            optionsDefs<AgAnnotationFollowOptions>({ follow: required(followName), seriesId: string })
         ),
     };
     const fibonacci = { ...annotationFibonacciStylesDefs, ...startEnd, text: lineText, reverse: boolean };
