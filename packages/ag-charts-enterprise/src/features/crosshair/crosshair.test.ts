@@ -55,6 +55,14 @@ interface RangeBarNode {
     yHighValue: number;
 }
 
+interface CandlestickNode {
+    centerX: number;
+    y: number;
+    height: number;
+    highValue: number;
+    datum: { high: number };
+}
+
 // JS callers can return null from a label renderer even though the type forbids it, so this is the one value the
 // options type cannot express.
 const RENDERS_NULL = (() => null) as unknown as () => undefined;
@@ -1595,6 +1603,42 @@ describe('Crosshair', () => {
                 expect(visibleLabelCount('left')).toBe(2);
                 expect(Math.abs(high.position - aggregated!.y)).toBeLessThan(1);
                 expect(Math.abs(high.position - yAxis.scale.convert(aggregated!.yHighValue))).toBeGreaterThan(3);
+            });
+
+            it('snaps to the aggregated high of a candlestick', async () => {
+                chart = await createEnterpriseChart({
+                    data: Array.from({ length: HIGH_VOLUME_COUNT }, (_row, i) => {
+                        const base = Math.sin(i / 10);
+                        return {
+                            date: i + 1,
+                            open: base - 0.2,
+                            close: base + 0.2,
+                            high: base + 0.5 + 0.5 * ((i * 7) % 11),
+                            low: base - 0.5,
+                        };
+                    }),
+                    series: [candlestick({ xKey: 'date', crosshairSnapTo: ['high'] })],
+                    axes: STRIPPED_NUMBER_AXES as AgCartesianChartOptions['axes'],
+                });
+
+                const nodes = getSeriesNodeData<CandlestickNode>(chart);
+                expect(nodes.length).toBeLessThan(HIGH_VOLUME_COUNT / 2);
+
+                const yAxis = findAxis(chart, 'left');
+                const aggregated = nodes.find(
+                    (node) => Math.abs(yAxis.scale.convert(node.datum.high) - node.y) > 3 && node.height > 10
+                );
+                expect(aggregated, 'a candle whose midpoint row differs from its bucket').toBeDefined();
+
+                const { x, y } = getSeriesRect(chart);
+                await hoverAction(x + aggregated!.centerX, y + aggregated!.y + aggregated!.height / 2)(chart);
+                await waitForChartStability(chart);
+
+                const lines = getCrosshairLines(chart, 'left');
+                expect(lines.map(({ key }) => key)).toEqual(['highKey']);
+                expect(visibleLabelCount('left')).toBe(1);
+                expect(Math.abs(lines[0].position - yAxis.scale.convert(aggregated!.highValue))).toBeLessThan(1);
+                expect(Math.abs(lines[0].position - yAxis.scale.convert(aggregated!.datum.high))).toBeGreaterThan(3);
             });
         });
 
