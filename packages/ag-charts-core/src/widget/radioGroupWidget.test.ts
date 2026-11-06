@@ -67,12 +67,13 @@ describe('RadioGroupWidget', () => {
 
     it('destroys its label', () => {
         const label = new LabelWidget('Dash');
+        let labelDestroyed = false;
+        label.destroyListener = () => (labelDestroyed = true);
         const group = new RadioGroupWidget(label);
-        document.body.append(group.getElement());
 
         group.destroy();
 
-        expect(label.getElement().isConnected).toBe(false);
+        expect(labelDestroyed).toBe(true);
     });
 });
 
