@@ -15,11 +15,12 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
+    glowOptionsDefs,
     interpolationOptionsDefs,
     lineDashOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     required,
     shadowOptionsDefs,
     shapeHighlightOptionsDef,
@@ -33,6 +34,7 @@ const hlcSeriesItemLineThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemLineTheme
     marker: {
         enabled: boolean,
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         ...markerStyleOptionsDefs,
     },
     ...strokeOptionsDef,
@@ -74,7 +76,7 @@ export const hlcSeriesThemeableOptionsDef: OptionsDefs<AgHlcSeriesThemeableOptio
             close: { ...hlcSeriesLineStyleDef },
         },
     }),
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const hlcSeriesOptionsDef: OptionsDefs<AgHlcSeriesOptions> = {

@@ -14,6 +14,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
+    glowOptionsDefs,
     interpolationOptionsDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
@@ -50,6 +51,7 @@ export const rangeAreaSeriesItemLineThemeableOptionsDef: OptionsDefs<
     marker: {
         enabled: boolean,
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         ...markerStyleOptionsDefs,
     },
     ...strokeOptionsDef,

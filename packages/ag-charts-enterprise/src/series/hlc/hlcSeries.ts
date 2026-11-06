@@ -21,6 +21,7 @@ import {
     type DomainWithMetadata,
     type DynamicContext,
     type NormalisedColorType,
+    type NormalisedDropShadowOptions,
     type NormalisedHlcSeriesMarkerOptions,
     type NormalisedHlcSeriesOptions,
     type NormalisedHlcSeriesOwnOptions,
@@ -217,6 +218,16 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         ) {
             this.markerDirty = true;
         }
+    }
+
+    protected override getSeriesGlows() {
+        const { high, low, close } = this.itemMarkers;
+        return [high.glow, low.glow, close.glow];
+    }
+
+    // A highlight copy keeps casting its marker's `shadow`, as before `glow`; `isHighlight` is for the glow only.
+    protected override resolveItemShadow(shadow: NormalisedDropShadowOptions | undefined) {
+        return shadow;
     }
 
     override createNodeParams(datum: HlcMarkerDatum) {
@@ -1055,6 +1066,9 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
                 hideWithSize0,
                 pickInflation,
                 shadow: itemMarkers[datum.itemType].shadow,
+                glow: itemMarkers[datum.itemType].glow,
+                isHighlight,
+                datumIndex: datum.datumIndex,
             });
             node.drawingMode = drawingMode;
         });

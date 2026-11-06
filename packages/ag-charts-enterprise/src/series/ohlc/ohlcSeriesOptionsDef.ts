@@ -6,6 +6,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    glowOptionsDefs,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
@@ -35,6 +36,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
     },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
+    glow: glowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: multiSeriesGlowHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };

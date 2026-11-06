@@ -288,6 +288,10 @@ export abstract class BaseFunnelSeries<
         return undefined;
     }
 
+    protected connectorGlow(): NormalisedDropShadowOptions | undefined {
+        return undefined;
+    }
+
     /** Radius of the segment corners the drop-off connectors have to butt up against. */
     protected connectorCornerRadius(): number {
         return 0;
@@ -754,6 +758,7 @@ export abstract class BaseFunnelSeries<
         const fillBBox = this.getShapeFillBBox();
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
         const shadow = this.connectorShadow();
+        const glow = this.connectorGlow();
 
         opts.connectorSelection.each((connector, datum) => {
             // Colour refs are resolved during theme-merge, so the style is already normalised by render.
@@ -768,6 +773,7 @@ export abstract class BaseFunnelSeries<
             connector.startCornerRadius = datum.startCornerRadius;
             connector.endCornerRadius = datum.endCornerRadius;
             connector.fillShadow = shadow;
+            connector.fillGlow = glow;
 
             connector.setStyleProperties(
                 {

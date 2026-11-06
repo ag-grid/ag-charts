@@ -2,6 +2,7 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     NEAREST_TOOLTIP_THEME,
@@ -35,6 +36,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
         marker: {
             enabled: true,
             shadow: SHADOW_THEME_DEFAULTS,
+            glow: GLOW_THEME_DEFAULTS,
             fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             stroke: { $palette: 'stroke' },
             fillOpacity: 1,
@@ -43,7 +45,13 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
             ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         },
-        highlight: withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
+        highlight: withGlowThemeDefaults(
+            { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+            SERIES_GLOW_BUCKETS,
+            {
+                glow: '/series/$index/marker/glow',
+            }
+        ),
         selection: SERIES_SELECTION_THEME,
         tooltip: NEAREST_TOOLTIP_THEME,
     },

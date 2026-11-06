@@ -371,8 +371,8 @@ describe('highlight glow on heatmap cells', () => {
         // The batch can't paint a glow, so every cell is a node, the hovered one beneath its highlight copy.
         expect(cells()).toHaveLength(GRID_DATA.length);
         const [hovered, ...others] = cells();
-        expect(hovered.fillShadow?.enabled).not.toBe(true);
-        for (const cell of others) expect(cell.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+        expect(hovered.fillGlow?.enabled).not.toBe(true);
+        for (const cell of others) expect(cell.fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
     });
 
     it('keeps the cell batch when unhighlightedItem.glow is configured but disabled', async () => {
@@ -386,7 +386,7 @@ describe('highlight glow on heatmap cells', () => {
 
         const highlighted = getSeriesSelectionNodes<Rect>(chart, 'highlightSelection').filter((cell) => cell.visible);
         expect(highlighted).toHaveLength(1);
-        expect(highlighted[0].fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+        expect(highlighted[0].fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
     });
 });
 
@@ -410,7 +410,7 @@ describe.each(['sankey', 'chord'] as const)('highlight glow on %s focus copies',
 
     const castCounts = (root: Group) => {
         const shapes = collectShapes(root).filter((shape) => shape.visible);
-        return { glowing: shapes.filter((shape) => shape.fillShadow?.enabled).length };
+        return { glowing: shapes.filter((shape) => shape.fillGlow?.enabled).length };
     };
 
     /** Hovers the first node or link, and counts the shapes that cast in the content layer and in the focus layers. */
@@ -439,15 +439,15 @@ describe.each(['sankey', 'chord'] as const)('highlight glow on %s focus copies',
         };
     };
 
-    it('casts unhighlightedItem.glow in the content layer and, for the connected items, again in the focus layer', async () => {
+    it('casts unhighlightedItem.glow in the content layer alone, and not again from the focus layer', async () => {
         const { content, hovered, focus } = await hover('node', { unhighlightedItem: { glow: HIGHLIGHT_GLOW } });
 
         // Every link and every node but the hovered one casts in the content layer ...
         expect(content.glowing).toBe(4 + 3);
         // ... the hovered node's own highlight copy casts none ...
         expect(hovered).toBe(0);
-        // ... and its two links and two neighbouring nodes cast again from the focus layer.
-        expect(focus).toBe(2 + 2);
+        // ... and the focus layer, which redraws the connected items undimmed, casts none: their glow is cast already.
+        expect(focus).toBe(0);
     });
 
     it('casts nothing from the focus layer or the highlight copy for the hovered link', async () => {
@@ -456,7 +456,7 @@ describe.each(['sankey', 'chord'] as const)('highlight glow on %s focus copies',
         // The hovered link keeps no glow of its own in either layer; the other three links and every node do.
         expect(content.glowing).toBe(3 + 4);
         expect(hovered).toBe(0);
-        expect(focus).toBe(2);
+        expect(focus).toBe(0);
     });
 
     it('casts no glow anywhere when unhighlightedItem.glow is disabled', async () => {

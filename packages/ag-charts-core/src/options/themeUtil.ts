@@ -701,12 +701,62 @@ export const SERIES_GLOW_BUCKETS = ['highlightedSeries', 'unhighlightedSeries'] 
 /** The highlight states of a hierarchy series, where branch states take the place of the series states. */
 export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] as const;
 
-/** Adds the disabled {@link GLOW_THEME_DEFAULTS} to each of the `buckets` of a highlight theme, keeping what they hold. */
-export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: readonly string[]): T {
+/**
+ * Adds the disabled {@link GLOW_THEME_DEFAULTS} to each of the `buckets` of a highlight theme, keeping what they hold. For
+ * a series with no series-level `glow` for its buckets to follow, such as treemap and sunburst.
+ */
+export function withDisabledGlowThemeDefaults<T extends object>(highlight: T, buckets: readonly string[]): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
     for (const bucket of buckets) {
         result[bucket] = { ...(result[bucket] as object | undefined), glow: GLOW_THEME_DEFAULTS };
     }
+    return result as T;
+}
+
+/** Where the `glow` that a highlight falls back to, and the `highlight` that holds the buckets, are in the theme. */
+export interface GlowThemePaths {
+    /**
+     * The series-level `glow`, such as `marker.glow`. A series with a `glow` on more than one part, such as
+     * the links and nodes of a flow, lists them all: a bucket's `enabled` is then left unset unless the user sets its `glow`.
+     */
+    readonly glow?: string | readonly string[];
+    /** The `highlight` options of the series, or of the part of it with the `glow`. */
+    readonly highlight?: string;
+}
+
+/**
+ * Gives each highlight bucket a `glow` whose `enabled` follows the one it falls back to, so that the bucket's other options
+ * come from the series-level `glow`. A bucket with a `glow` of its own is enabled by it alone, as a user's `enabled` is
+ * declared at that path; and a bucket without one has the series, on or off.
+ *
+ * A series with a `glow` on more than one part has no one value for a bucket without a `glow` of its own to follow, so
+ * its `enabled` is left unset there, and each part keeps its own.
+ *
+ * The item buckets fall back to the series bucket, or the branch bucket of a hierarchy, that is among `buckets`, and
+ * the others to the series-level `glow`. `buckets` are the states of the series that the item states fall back to.
+ */
+export function withGlowThemeDefaults<T extends object>(
+    highlight: T,
+    buckets: readonly string[],
+    { glow = '/series/$index/glow', highlight: highlightPath = '/series/$index/highlight' }: GlowThemePaths = {}
+): T {
+    const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
+    const glowPaths = typeof glow === 'string' ? [glow] : glow;
+    const perPart = glowPaths.length > 1;
+    const follow = (bucket: string, enabled: object) => {
+        result[bucket] = {
+            ...(result[bucket] as object | undefined),
+            glow: { enabled: perPart ? { $isUserOption: ['./', enabled, undefined] } : enabled },
+        };
+    };
+    const enabledPaths = glowPaths.map((path) => ({ $path: `${path}/enabled` }));
+    const seriesEnabled = enabledPaths.length === 1 ? enabledPaths[0] : { $or: enabledPaths };
+    for (const bucket of buckets) {
+        if (!ITEM_GLOW_BUCKETS.includes(bucket as (typeof ITEM_GLOW_BUCKETS)[number])) follow(bucket, seriesEnabled);
+    }
+    const stateBucket = buckets.find((bucket) => bucket === 'highlightedSeries' || bucket === 'highlightedBranch');
+    const itemEnabled = stateBucket == null ? seriesEnabled : { $path: `${highlightPath}/${stateBucket}/glow/enabled` };
+    for (const bucket of ITEM_GLOW_BUCKETS) follow(bucket, itemEnabled);
     return result as T;
 }
 

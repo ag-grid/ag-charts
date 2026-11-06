@@ -1,4 +1,4 @@
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type { ContextDefault, DatumDefault, Ratio } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgMultiSeriesGlowHighlightOptions } from '../seriesOptions';
 import type {
@@ -37,6 +37,8 @@ export interface AgRadialColumnSeriesThemeableOptions<
     maxColumnWidthRatio?: Ratio;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the columns. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesGlowHighlightOptions<AgRadialHighlightStyleOptions, AgRadialHighlightStyleOptions>;
 }

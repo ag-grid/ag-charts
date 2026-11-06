@@ -13,7 +13,7 @@ import {
     cycledFillThemeTemplate,
     themeLineHeight,
     undocumentedThemeOptions,
-    withGlowThemeDefaults,
+    withDisabledGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -80,7 +80,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         },
         sectorSpacing: 2,
         padding: 3,
-        highlight: withGlowThemeDefaults(
+        highlight: withDisabledGlowThemeDefaults(
             {
                 enabled: { $circular: { $path: '/highlight/enabled' } },
                 unhighlightedItem: {
