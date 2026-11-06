@@ -1,6 +1,105 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-OPEN-22112123:
+    - patch-package@8.0.1 > open@7.4.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.283Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > open@8.4.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.275Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > open@8.4.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.270Z
+    - '@size-limit/esbuild-why@11.2.0 > open@10.1.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.264Z
+    - '@size-limit/esbuild-why@11.2.0 > esbuild-visualizer@0.7.0 > open@8.4.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.256Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1 > open@8.4.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.252Z
+    - nx@20.3.1 > open@8.4.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.234Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-21756800:
+    - rulesync@8.8.1 > fastmcp@3.34.0 > @modelcontextprotocol/sdk@1.26.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.567Z
+    - rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.556Z
+    - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.548Z
+    - '@modelcontextprotocol/server-sequential-thinking@2025.12.18 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.540Z
+    - '@modelcontextprotocol/server-puppeteer@2025.5.12 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.532Z
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.515Z
+  SNYK-JS-FOLLOWREDIRECTS-21762031:
+    - rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5 > follow-redirects@1.16.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:04.032Z
+    - wait-on@9.5.1 > axios@1.21.0 > follow-redirects@1.16.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:04.016Z
+  SNYK-JS-FLAT-22148819:
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > flat@5.0.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:01:48.534Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > flat@5.0.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:01:48.531Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1 > flat@5.0.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:01:48.527Z
+    - nx@20.3.1 > flat@5.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:01:48.517Z
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-21460687:
     - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
@@ -1347,6 +1446,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:00:09.833Z
   SNYK-JS-URIJS-19963963:
+    - eslint@10.13.0 > ajv@6.15.0 > uri-js@4.4.1:
+        reason: >-
+            Lint dependency - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:41.619Z
     - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
         reason: >-
             Used in build & dev - not included in final production build
