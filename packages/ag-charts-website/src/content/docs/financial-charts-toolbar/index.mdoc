@@ -38,11 +38,11 @@ Users can extend one or both ends of lines and channels to infinity. This is don
 
 ### Following a Series Value
 
-Users can make a horizontal line follow the first or last value of a series using the 'Follow' option in the 'Settings' button. A followed line moves when the chart data is updated, for example to show the latest price, and cannot be dragged. Choose 'None' to stop it following, which leaves the line where it was.
+Users can make a horizontal line follow the first or last value of a series using the 'Follow' option in the 'Settings' button. A followed line moves when the chart data is updated, for example to show the latest price, and cannot be dragged. Choose 'None' to stop it following, which leaves the line where it was. Choosing 'First' or 'Last' again then follows the default series described below, even if the line was originally set to follow a specific series.
 
-The value used is the series' `yKey`, or its `closeKey` for Candlestick, OHLC and HLC series. When the chart has several series, the first visible series on the y-axis is used.
+The value used is the series' `yKey`, or its `closeKey` for Candlestick, OHLC and HLC series. A datum with no value is skipped in favour of its nearest neighbour. When the chart has several series, the first visible series on the y-axis is used.
 
-To make a horizontal line follow a series programmatically, set `follow` using the [Chart State API](./api-state/). Use the object form to choose a series with its `id`.
+Annotations are set through the [Chart State API](./api-state/), using `initialState` or `setState`, and `follow` is saved and restored along with the rest of the annotation. The `value` of a followed line is ignored, so it can be left out. Use the object form to choose a series with its `id`. The series must be on the same y-axis as the line, and is followed even while it is hidden.
 
 ```js format="snippet"
 {
