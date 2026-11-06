@@ -12,6 +12,7 @@ import {
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
+    ScatterSeriesModule,
     VERSION,
 } from 'ag-charts-community';
 
@@ -26,12 +27,14 @@ ModuleRegistry.registerModules([
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,
+    ScatterSeriesModule,
 ]);
 
 (window as any).agChartsDebug = 'scene:stats';
 
 const SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000', fillOpacity: 0.5, xOffset: 4, yOffset: 4, blur: 8 };
 const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 14 };
+const ITEM_SHADOW: AgDropShadowOptions = { fill: '#000', fillOpacity: 0.5, xOffset: 2, yOffset: 2, blur: 6 };
 const GLOW: AgGlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35, blur: 6, spread: 14 };
 const SERIES_GLOW: AgGlowOptions = { fillOpacity: 0.35, blur: 6, spread: 4 };
 
@@ -51,12 +54,15 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
-type Scenario = 'bars' | 'areas' | 'highlight' | 'many-markers' | 'series-glow';
+type Scenario =
+    'bars' | 'areas' | 'highlight' | 'many-markers' | 'series-glow' | 'item-shadow-bar' | 'item-shadow-scatter';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
 // `many-markers` and `series-glow` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
 // `series-glow` sets the series-level `marker.glow`, which every highlight state inherits, so a hover recasts every series.
+// `item-shadow-bar` and `item-shadow-scatter` set `highlightedItem.shadow` only, so the option itself is what the second variant adds.
+// The bars cast a series shadow that the hovered bar swaps for the bucket's; the scatter casts none until a point is hovered.
 /** inScope */
 function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOptions {
     const shadow = <T extends AgDropShadowOptions>(value: T) => (shadowOn ? value : undefined);
@@ -70,6 +76,36 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
                 xKey: 'x',
                 yKey: `y${i}`,
                 shadow: shadow(SPREAD_SHADOW),
+            })),
+        };
+    }
+
+    if (scenario === 'item-shadow-bar') {
+        return {
+            data: getRows(20, 4, true),
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+            series: Array.from({ length: 4 }, (_, i) => ({
+                type: 'bar' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                shadow: SPREAD_SHADOW,
+                highlight: { highlightedItem: { shadow: shadow(ITEM_SHADOW) } },
+            })),
+        };
+    }
+
+    if (scenario === 'item-shadow-scatter') {
+        return {
+            width: 1400,
+            height: 600,
+            data: getRows(5000, 10, false),
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 10 }, (_, i) => ({
+                type: 'scatter' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                size: 6,
+                highlight: { highlightedItem: { shadow: shadow(ITEM_SHADOW) } },
             })),
         };
     }
@@ -225,6 +261,24 @@ function getBenchmarkConfig(): BenchmarkConfig {
                         'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10),
                     },
                     'Glow'
+                ),
+            },
+            {
+                id: 'item-shadow-bar',
+                label: '4 bar series x 20 categories, highlightedItem.shadow',
+                variants: variantsOf(
+                    'item-shadow-bar',
+                    { 'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10) },
+                    'Item Shadow'
+                ),
+            },
+            {
+                id: 'item-shadow-scatter',
+                label: '10 scatter series x 5,000 points, highlightedItem.shadow',
+                variants: variantsOf(
+                    'item-shadow-scatter',
+                    { 'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10) },
+                    'Item Shadow'
                 ),
             },
         ],
