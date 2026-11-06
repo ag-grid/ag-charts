@@ -1147,6 +1147,16 @@ describe('ChartTheme', () => {
             { type: 'bubble', setShape: (shape: unknown) => ({ shape }) },
         ] as const;
 
+        const prepareOptions = () => ({
+            width: 800,
+            height: 600,
+            animation: { enabled: false },
+            data: [
+                { x: 1, y0: 2, y1: 3, y2: 4, s: 3 },
+                { x: 2, y0: 4, y1: 5, y2: 6, s: 5 },
+            ],
+        });
+
         const createShapeChart = (
             type: (typeof cases)[number]['type'],
             theme: AgChartTheme,
@@ -1164,16 +1174,6 @@ describe('ChartTheme', () => {
                 })),
             } as AgCartesianChartOptions);
 
-        const prepareOptions = () => ({
-            width: 800,
-            height: 600,
-            animation: { enabled: false },
-            data: [
-                { x: 1, y0: 2, y1: 3, y2: 4, s: 3 },
-                { x: 2, y0: 4, y1: 5, y2: 6, s: 5 },
-            ],
-        });
-
         const resolvedShapes = (count = 3) =>
             Array.from({ length: count }, (_, i) => {
                 const { marker, shape } = getSeriesOptions<ShapeHolder>(chart, i);
@@ -1185,9 +1185,7 @@ describe('ChartTheme', () => {
                 chart = createShapeChart(type, { palette: { markerShapes: ['square', customShapeFn] } });
                 await waitForChartStability(chart);
 
-                const shapes = resolvedShapes();
-                expect(shapes).toEqual(['square', customShapeFn, 'square']);
-                expect(shapes[1]).toBe(customShapeFn);
+                expect(resolvedShapes()).toEqual(['square', customShapeFn, 'square']);
             });
 
             it('prefers an explicit series shape', async () => {

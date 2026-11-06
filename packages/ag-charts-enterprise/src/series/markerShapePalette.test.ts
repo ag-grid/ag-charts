@@ -19,7 +19,6 @@ interface Case {
     firstIndex: number;
     base: object;
     series: (shape: AgMarkerShape | undefined, name: string) => object;
-    /** Items whose markers must resolve to the series' shape. */
     items: string[];
     /** hlc is excluded: its legend always draws a bands glyph. */
     legend: boolean;
