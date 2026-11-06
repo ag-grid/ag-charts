@@ -43,7 +43,7 @@ export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault>
         AgChartLabelCollisionFitOptions,
         AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
-    /** Whether to show the labels. Defaults to `true` when `labelKey` is set. */
+    /** Whether to show the labels. Labels render only when `labelKey` is set. */
     enabled?: boolean;
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered
