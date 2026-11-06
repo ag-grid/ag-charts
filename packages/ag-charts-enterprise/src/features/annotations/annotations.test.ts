@@ -1417,6 +1417,23 @@ describe('Annotations', () => {
             await compare();
         });
 
+        it('hides the axis label when the followed series loses its values', async () => {
+            const labelVisibility = () =>
+                findSceneNodes(chart, (node) => node.name === ANNOTATION_AXIS_LABEL_GROUP).map((node) => node.visible);
+
+            await prepareChart(
+                { annotations: [{ type: 'horizontal-line', follow: 'last', ...labelled('last') }] },
+                TWO_SERIES
+            );
+            expect(labelVisibility()).toEqual([true]);
+
+            const emptied = (TWO_SERIES.data as object[]).map((row) => ({ ...row, a: null }));
+            await chart.update(prepareEnterpriseTestOptions({ ...TWO_SERIES, data: emptied }));
+            await waitForChartStability(chart);
+
+            expect(labelVisibility()).toEqual([false]);
+        });
+
         it('follows the nearest datum that has a value when the last one has none', async () => {
             await prepareChart(
                 undefined,

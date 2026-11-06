@@ -53,6 +53,8 @@ export class CrossLineScene extends AnnotationScene<never> {
 
         if (coords == null) {
             this.visible = false;
+            // The axis label is attached to the axis rather than to this node, and is made visible before every update.
+            if (this.axisLabel) this.axisLabel.visible = false;
             return;
         }
 
