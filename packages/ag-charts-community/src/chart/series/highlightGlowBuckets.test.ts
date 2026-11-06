@@ -15,6 +15,7 @@ import {
 } from '../test/seriesAccessors';
 import { HIGHLIGHT_GLOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     createChart,
     deproxy,
     hoverAction,
@@ -73,6 +74,7 @@ describe.each(SERIES)(
                     data: DATA,
                     animation: { enabled: false },
                     legend: { enabled: false },
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     series: [series('v', shadow, highlight), series('w', shadow, highlight)],
                 } as AgChartOptions)
             );
@@ -187,6 +189,7 @@ describe('glow when the hover moves between series', () => {
                 data: DATA,
                 animation: { enabled: false },
                 legend: { enabled: false },
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 series: seriesOptions,
             } as AgChartOptions)
         );

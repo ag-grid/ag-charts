@@ -10,6 +10,7 @@ import type {
     AgLineSeriesOptions,
 } from 'ag-charts-community';
 import {
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     applyAxesFlip,
     compareImageSnapshot,
     delay,
@@ -58,6 +59,7 @@ const CROSSHAIR_OPTIONS = {
 };
 
 const BASE_OPTIONS: AgCartesianChartOptions = {
+    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     theme: {
         palette: {
             strokes: ['#9A60B4', '#91CC75', '#EE6666'],
@@ -149,7 +151,7 @@ const SIMPLE_LINE_OPTIONS: AgCartesianChartOptions = {
 const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: CATEGORY_AXIS_OPTIONS,
-    tooltip: { range: 'exact' },
+    tooltip: { mode: 'shared', range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar' })) as AgBarSeriesOptions[],
 };
 
@@ -162,21 +164,21 @@ const LINE_SECONDARY_AXIS_OPTIONS: AgCartesianChartOptions = {
 const STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SIMPLE_AXIS_OPTIONS,
-    tooltip: { range: 'exact' },
+    tooltip: { mode: 'shared', range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar', stacked: true })) as AgBarSeriesOptions[],
 };
 
 const GROUPED_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: CATEGORY_AXIS_OPTIONS,
-    tooltip: { range: 'exact' },
+    tooltip: { mode: 'shared', range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar', stacked: false })) as AgBarSeriesOptions[],
 };
 
 const STACKED_BAR_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SIMPLE_AXIS_OPTIONS,
-    tooltip: { range: 'exact' },
+    tooltip: { mode: 'shared', range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({
         ...s,
         type: 'bar',
@@ -193,7 +195,7 @@ const GROUPED_BAR_OPTIONS: AgCartesianChartOptions = {
         { x: 2, y1: 25, y2: 200, y3: 48 },
         { x: 3, y1: 75, y2: 2000, y3: 72 },
     ],
-    tooltip: { range: 'exact' },
+    tooltip: { mode: 'shared', range: 'exact' },
     axes: {
         x: {
             position: 'bottom',

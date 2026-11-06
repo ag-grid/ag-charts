@@ -42,6 +42,7 @@ import { getSeriesContextNodeData, getSeriesOptions, getSeriesSelectionNodes } f
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     type PhasedPropertyExpectation,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     type SceneFrameInvariant,
     type SceneGeometrySample,
     type SceneNodeExpectation,
@@ -2781,8 +2782,10 @@ describe('LineSeries', () => {
                     },
                 ],
                 highlight: {
+                    mode: 'single',
                     drawingMode: 'cutout',
                 },
+                tooltip: { mode: 'shared' },
                 axes: {
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
@@ -2910,6 +2913,7 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 axes: {
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },

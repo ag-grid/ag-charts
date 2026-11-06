@@ -5,6 +5,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     compareImageSnapshot,
     deproxy,
     getSeriesNodeData,
@@ -266,6 +267,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'candlestick',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: financialData,
                 axes: {
                     x: { type: 'time', position: 'bottom' },
@@ -294,6 +296,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'ohlc',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: financialData,
                 axes: {
                     x: { type: 'time', position: 'bottom' },
@@ -321,6 +324,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'hlc',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: financialData,
                 axes: {
                     x: { type: 'time', position: 'bottom' },
@@ -349,6 +353,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'nightingale',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: polarCategoryData,
                 legend: { enabled: false },
                 series: [
@@ -373,6 +378,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'radar-area',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: polarCategoryData,
                 legend: { enabled: false },
                 axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
@@ -404,6 +410,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'radar-line',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: polarCategoryData,
                 legend: { enabled: false },
                 axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
@@ -431,6 +438,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'radial-bar',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: polarCategoryData,
                 axes: { angle: { type: 'angle-number' }, radius: { type: 'radius-category' } },
                 series: [
@@ -455,6 +463,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'radial-column',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: polarCategoryData,
                 axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
                 series: [
@@ -478,6 +487,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'range-area',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: rangeAreaData,
                 axes: {
                     x: { position: 'bottom', type: 'number' },
@@ -508,6 +518,7 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'range-bar',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: rangeBarData,
                 series: [
                     {
