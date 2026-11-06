@@ -63,8 +63,9 @@ export interface AgShadowHighlightStyleOptions {
      * turns it on, so `shadow: {}` is enough, and `shadow: { enabled: false }` removes the shadow of the series from the
      * highlighted item.
      *
-     * The shadow is drawn at the same depth as the `shadow` of the series, behind every series. It is not available on
-     * `highlightedSeries`, `unhighlightedItem` or `unhighlightedSeries`, and is ignored where an item cannot cast a shadow.
+     * With `highlight.mode: 'shared'`, the items that share the highlighted category cast it too. The shadow is drawn at
+     * the same depth as the `shadow` of the series, behind every series. It is not available on `highlightedSeries`,
+     * `unhighlightedItem` or `unhighlightedSeries`, and is ignored where an item cannot cast a shadow.
      *
      * Default: the `shadow` of the series
      */
