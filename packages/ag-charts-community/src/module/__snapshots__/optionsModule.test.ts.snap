@@ -89,6 +89,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       },
       "position": "top",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": true,
         "size": 6,
@@ -148,6 +149,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "nice": false,
       "position": "right",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": true,
         "size": 10,
@@ -785,6 +787,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "maxThicknessRatio": 0.3,
       "position": "right",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -849,6 +852,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -908,6 +912,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -1545,6 +1550,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -1604,6 +1610,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -2757,6 +2764,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -2816,6 +2824,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -4075,6 +4084,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -4133,6 +4143,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -4529,6 +4540,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       },
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -4587,6 +4599,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -5352,6 +5365,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -5410,6 +5424,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -6351,6 +6366,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -6415,6 +6431,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -6791,6 +6808,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -6855,6 +6873,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -7248,6 +7267,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       "paddingOuter": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": true,
         "size": 6,
@@ -7307,6 +7327,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       "paddingOuter": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": true,
         "size": 6,
@@ -7680,6 +7701,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       "nice": false,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -7741,6 +7763,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       "nice": false,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -8119,6 +8142,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -8177,6 +8201,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -8674,6 +8699,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -8738,6 +8764,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -9247,6 +9274,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -9306,6 +9334,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -10460,6 +10489,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -10521,6 +10551,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "nice": false,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -12820,6 +12851,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -12880,6 +12912,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -13263,6 +13296,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -13322,6 +13356,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -14596,6 +14631,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -14661,6 +14697,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -15299,6 +15336,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -15358,6 +15396,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -16399,6 +16438,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       },
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -16458,6 +16498,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -17263,6 +17304,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -17322,6 +17364,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -18187,6 +18230,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       },
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -18246,6 +18290,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -19170,6 +19215,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -19228,6 +19274,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -19623,6 +19670,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -19682,6 +19730,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -20798,6 +20847,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "nice": false,
       "position": "top",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -20862,6 +20912,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -21624,6 +21675,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -21683,6 +21735,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -22580,6 +22633,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -22644,6 +22698,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "nice": false,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -23064,6 +23119,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -23128,6 +23184,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "nice": false,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -23548,6 +23605,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
       "nice": false,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -23612,6 +23670,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
       "maxThicknessRatio": 0.3,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -24030,6 +24089,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -24094,6 +24154,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "nice": false,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -24513,6 +24574,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -24577,6 +24639,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "nice": false,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -24995,6 +25058,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -25059,6 +25123,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "nice": false,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -25477,6 +25542,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
       "maxThicknessRatio": 0.3,
       "position": "bottom",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,
@@ -25541,6 +25607,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
       "nice": false,
       "position": "left",
       "reverse": false,
+      "spacing": 15,
       "tick": {
         "enabled": false,
         "size": 6,

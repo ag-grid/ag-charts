@@ -38,7 +38,6 @@ import type { ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTy
 export type ChartAxisLabelFlipFlag = 1 | -1;
 
 interface AxisLayoutConstraints {
-    stacked: boolean;
     align: 'justify' | 'start' | 'center' | 'end';
     width: number;
     unit: 'percent' | 'px';
@@ -137,6 +136,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     interactionEnabled: boolean;
     seriesAreaVisible: boolean;
     layoutConstraints: AxisLayoutConstraints;
+    readonly lengthRatio?: number;
     nice: boolean;
     options: TOptions;
     mirrored: boolean;

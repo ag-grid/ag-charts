@@ -26,6 +26,7 @@ import type {
     AgCrosshairOptions,
     AgGroupedCategoryAxisLabelOptions,
     AgGroupedCategoryAxisOptions,
+    AgInsetNumberAxisOptions,
     AgLineCrossLineOptions,
     AgLogAxisOptions,
     AgNumberAxisOptions,
@@ -165,7 +166,7 @@ export type NormalisedTimeAxisParentLevelOptions<TContext = ContextDefault> = No
 // The base alias keeps `title` optional because angle axes do not render a title.
 type AxisRequiredKeys = 'label' | 'line' | 'tick' | 'gridLine' | 'reverse';
 type TitledAxisRequiredKeys = AxisRequiredKeys | 'title';
-type CartesianAxisRequiredKeys = TitledAxisRequiredKeys | 'maxThicknessRatio';
+type CartesianAxisRequiredKeys = TitledAxisRequiredKeys | 'maxThicknessRatio' | 'spacing';
 type CategoryStyleAxisRequiredKeys = CartesianAxisRequiredKeys | 'groupPaddingInner';
 
 type AxisLineTickGridLineMorph = {
@@ -265,6 +266,12 @@ export type NormalisedBaseRadiusAxisOptions<
 
 export type NormalisedNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AgNumberAxisOptions<TContext>,
+    CartesianAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
+>;
+
+export type NormalisedInsetNumberAxisOptions<TContext = ContextDefault> = Normalised<
+    AgInsetNumberAxisOptions<TContext>,
     CartesianAxisRequiredKeys,
     AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
 >;

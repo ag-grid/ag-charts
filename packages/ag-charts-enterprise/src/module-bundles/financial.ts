@@ -2,6 +2,7 @@ import { BarSeriesModule, CategoryAxisModule, LineSeriesModule } from 'ag-charts
 import type { ModuleDefinition } from 'ag-charts-core';
 
 import { NumberAxisModule, TimeAxisModule } from '../axes/cartesian/cartesianAxisModules';
+import { InsetNumberAxisModule } from '../axes/inset-number/insetNumberAxisModule';
 import { OrdinalTimeAxisModule } from '../axes/ordinal/ordinalTimeAxisModule';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
@@ -61,4 +62,5 @@ export const FinancialChartModule: ModuleDefinition[] = [
     OrdinalTimeAxisModule,
     TimeAxisModule,
     NumberAxisModule,
+    InsetNumberAxisModule,
 ];
