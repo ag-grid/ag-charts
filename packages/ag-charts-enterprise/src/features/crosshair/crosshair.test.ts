@@ -1306,9 +1306,14 @@ describe('Crosshair', () => {
                 expected: { medianKey: 45 },
             },
             'replaces the range-bar default with a user list': {
-                options: rangeOptions([rangeBar({ crosshairSnapTo: ['yHigh'] })]),
+                options: rangeOptions([rangeBar({ crosshairSnapTo: ['yLow'] })]),
                 hover: ['B', 55],
-                expected: { yHighKey: 80 },
+                expected: { yLowKey: 30 },
+            },
+            'replaces the range-bar default with an empty list': {
+                options: rangeOptions([rangeBar({ crosshairSnapTo: [] })]),
+                hover: ['B', 55],
+                expected: 'pointer',
             },
             'omits the line of a listed value outside the axis range and draws the others': {
                 options: boxOptions([boxPlot({ crosshairSnapTo: ['median', 'q3'] })], {
@@ -1337,6 +1342,13 @@ describe('Crosshair', () => {
                 options: candleOptions([hlc()], { y: { type: 'number', crosshair: { snap: true } } }),
                 hover: [CANDLES[1].date, 120],
                 expected: { highKey: 140, lowKey: 95, closeKey: 105 },
+            },
+            'draws a line per value for axis snap true and nearest mode without a list': {
+                options: candleOptions([candlestick({ crosshairSnapMode: 'nearest' })], {
+                    y: { type: 'number', crosshair: { snap: true } },
+                }),
+                hover: [CANDLES[1].date, 120],
+                expected: { openKey: 110, highKey: 140, lowKey: 95, closeKey: 105 },
             },
             'follows the pointer for axis snap false whatever the list': {
                 options: candleOptions([candlestick({ crosshairSnapTo: ['close'] })], {
@@ -1460,6 +1472,20 @@ describe('Crosshair', () => {
                 }
             }
         );
+
+        describe('with nothing highlighted', () => {
+            it('hides the crosshair in a gap of a bar series', async () => {
+                chart = await createEnterpriseChart(rangeOptions([{ type: 'bar', xKey: 'x', yKey: 'hi' }]));
+                await hoverDatum('A', 75);
+                expect(lineKeys('left')).toEqual([]);
+            });
+
+            it('follows the pointer on a box-plot without a list', async () => {
+                chart = await createEnterpriseChart(boxOptions([boxPlot()]));
+                const point = await hoverDatum('B', 10);
+                expectFollowsPointer('left', point);
+            });
+        });
 
         describe('crosshairSnapMode nearest', () => {
             const ALL_VALUES = { openKey: 110, highKey: 140, lowKey: 95, closeKey: 105 };

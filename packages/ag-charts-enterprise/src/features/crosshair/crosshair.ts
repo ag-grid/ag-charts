@@ -303,7 +303,7 @@ export class Crosshair
             keys = keyProperties.filter((key) => snapTo.includes(key));
         }
         this.highlightSnapKeys = keys.length > 0 ? keys : 'pointer';
-        this.highlightSnapNearest = mode === 'nearest';
+        this.highlightSnapNearest = snapTo != null && mode === 'nearest';
     }
 
     private pointerPosition(): number | undefined {
