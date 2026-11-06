@@ -73,7 +73,7 @@ export interface AgMarkerHighlightSizeOptions {
     /**
      * The size in pixels of the markers while this highlight state applies.
      *
-     * Default: the marker `size`
+     * Default: the size of the marker outside a highlight
      */
     size?: PixelSize;
 }

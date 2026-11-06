@@ -840,7 +840,7 @@ export class MapMarkerSeries
             lineDash,
             lineDashOffset,
         };
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle: Partial<NormalisedMapMarkerSeriesStyle> = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, ownStyle);
 

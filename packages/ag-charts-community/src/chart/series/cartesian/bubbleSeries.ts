@@ -1348,8 +1348,11 @@ export abstract class BubbleScatterSeries<
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
-        const highlightSize = (state: HighlightState): number | undefined =>
-            (this.getHighlightStyle(isHighlight, undefined, state) as NormalisedSeriesMarkerStyle).size;
+        const highlightSizes: Array<number | undefined> = [];
+        for (let state = HighlightState.None; state <= HighlightState.OtherItem; state++) {
+            const highlightStyle: NormalisedSeriesMarkerStyle = this.getHighlightStyle(isHighlight, undefined, state);
+            highlightSizes[state] = highlightStyle.size;
+        }
         const { shadow } = this.marker;
 
         datumSelection.each((node, datum, index) => {
@@ -1364,7 +1367,7 @@ export abstract class BubbleScatterSeries<
                 datum.style == null
                     ? {
                           ...contextNodeData.styles[state],
-                          size: highlightSize(state) ?? size,
+                          size: highlightSizes[state] ?? size,
                       }
                     : { ...datum.style };
 
