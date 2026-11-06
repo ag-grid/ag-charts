@@ -1943,7 +1943,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 datum.bottomLeftCornerRadius ? cornerRadius : 0,
                 visible,
                 datum.crisp,
-                series.resolveItemShadow(shadow, isHighlight),
+                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex),
                 series.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState),
                 direction,
                 datum.featherRatio,

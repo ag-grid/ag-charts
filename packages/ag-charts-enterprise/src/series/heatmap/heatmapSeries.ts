@@ -846,11 +846,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { cornerRadius, shadow, glow } = this.options;
         // The batch paints no glow, which the cells cast in place: the series' own, and a highlight state's while one is active.
         const glowsInPlace = this.hasInPlaceGlow() && (glow?.enabled === true || this.isHighlightActive());
+        // Nor does it paint the `shadow` of `highlightedItem`, which the hovered cell casts in place.
+        const highlightShadowsInPlace = this.getItemShadowBucket() != null && this.isHighlightActive();
         return (
             this.unbatchableCells === 0 &&
             ((cornerRadius ?? 0) <= 0 || Number.isNaN(cornerRadius)) &&
             shadow?.enabled !== true &&
-            !glowsInPlace
+            !glowsInPlace &&
+            !highlightShadowsInPlace
         );
     }
 
@@ -1024,7 +1027,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
             rect.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
 
             rect.crisp = crisp;

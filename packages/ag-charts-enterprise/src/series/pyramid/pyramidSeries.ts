@@ -953,7 +953,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             applyPyramidDatum(connector, nodeDatum);
 
-            connector.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+            connector.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
 
             connector.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
         });
