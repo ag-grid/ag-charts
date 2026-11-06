@@ -21,7 +21,7 @@ import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgHighlightStyleOptions,
+    AgMarkerHighlightStyleOptions,
     AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
@@ -134,7 +134,7 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     /** Function used to return formatting for individual markers, based on the supplied information.*/
     itemStyler?: Styler<AgBubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
 }

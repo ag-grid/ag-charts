@@ -21,7 +21,7 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOption
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgHighlightStyleOptions,
+    AgMarkerHighlightStyleOptions,
     AgMultiSeriesGlowHighlightOptions,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
@@ -162,7 +162,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgRangeAreaSeriesStylerParams<TDatum, TContext>, AgRangeAreaSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
     /** Style options for the fill of areas where the `yHigh` line is below the `yLow` line. */

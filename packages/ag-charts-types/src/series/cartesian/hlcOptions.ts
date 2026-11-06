@@ -13,7 +13,7 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOption
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgHighlightStyleOptions,
+    AgMarkerHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
@@ -147,7 +147,7 @@ export interface AgHlcSeriesThemeableOptions<
     /** Function used to return formatting for the entire series, based on the given parameters. */
     styler?: Styler<AgHlcSeriesStylerParams<TDatum, TContext>, AgHlcSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
 }
 
 export interface AgHlcSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

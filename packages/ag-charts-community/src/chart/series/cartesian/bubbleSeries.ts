@@ -200,17 +200,22 @@ interface BubbleStylerPassCtx extends BubbleNoStylerPassCtx {
     colorKey: string | undefined;
 }
 
+interface BubbleNoStylerTemplate {
+    style: NormalisedSeriesMarkerStyle;
+    /** The selection or highlight state sets the size, so it replaces the data-driven `point.size`. */
+    stateSized: boolean;
+}
 type BubbleNoStylerCompute = MarkerStyleCompute<
     BubbleSeries,
     BubbleNoStylerPassCtx,
     BubbleScatterNodeDatum,
-    NormalisedSeriesMarkerStyle
+    BubbleNoStylerTemplate
 >;
 type BubbleNoStylerApply = MarkerStyleApply<
     BubbleSeries,
     BubbleNoStylerPassCtx,
     BubbleScatterNodeDatum,
-    NormalisedSeriesMarkerStyle
+    BubbleNoStylerTemplate
 >;
 type BubbleStylerCompute = MarkerStyleCompute<
     BubbleSeries,
@@ -1223,18 +1228,28 @@ export abstract class BubbleScatterSeries<
         datum
     ) => {
         const stylerStyle = series.getStyle(highlightState);
-        return series.getMarkerStyle(
+        const style = series.getMarkerStyle(
             ctx.marker,
             datum,
             ctx.params,
             { isHighlight: ctx.isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
             { ...stylerStyle, size: datum.point.size }
         );
+        const selectionStyle: NormalisedSeriesMarkerStyle | undefined = series.isSelectionEnabled()
+            ? series.getSelectionStyle(datum.datumIndex, selectionState)
+            : undefined;
+        const highlightStyle: NormalisedSeriesMarkerStyle = series.getHighlightStyle(
+            ctx.isHighlight,
+            datum.datumIndex,
+            highlightState
+        );
+        return { style, stateSized: (selectionStyle?.size ?? highlightStyle.size) != null };
     };
 
     private static readonly applyNoStylerTemplate: BubbleNoStylerApply = (_series, _ctx, datum, _h, _s, template) => {
+        const { style, stateSized } = template;
         // Reuse the cached object directly when size matches (e.g. ScatterSeries with fixed size).
-        datum.style = template.size === datum.point.size ? template : { ...template, size: datum.point.size };
+        datum.style = stateSized || style.size === datum.point.size ? style : { ...style, size: datum.point.size };
     };
 
     private static readonly computePerDatumStylerStyle: BubbleStylerCompute = (series, _ctx, highlightState) => {
@@ -1280,7 +1295,7 @@ export abstract class BubbleScatterSeries<
             this.runMarkerStylePass<
                 BubbleNoStylerPassCtx,
                 BubbleScatterNodeDatum,
-                NormalisedSeriesMarkerStyle,
+                BubbleNoStylerTemplate,
                 BubbleSeries
             >(
                 datumSelection,
@@ -1333,6 +1348,8 @@ export abstract class BubbleScatterSeries<
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+        const highlightSize = (state: HighlightState): number | undefined =>
+            (this.getHighlightStyle(isHighlight, undefined, state) as NormalisedSeriesMarkerStyle).size;
         const { shadow } = this.marker;
 
         datumSelection.each((node, datum, index) => {
@@ -1343,7 +1360,13 @@ export abstract class BubbleScatterSeries<
                 dilation,
             } = datum;
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const style = datum.style == null ? { ...contextNodeData.styles[state], size } : { ...datum.style };
+            const style =
+                datum.style == null
+                    ? {
+                          ...contextNodeData.styles[state],
+                          size: highlightSize(state) ?? size,
+                      }
+                    : { ...datum.style };
 
             if (dilation > 1) {
                 const fillOpacity = style.fillOpacity ?? 0;
@@ -1932,7 +1955,7 @@ export abstract class BubbleScatterSeries<
             this.marker,
             datum,
             { xKey, yKey, sizeKey, labelKey, colorKey },
-            { resolveMarkerSubPath: [] }
+            { isHighlight: true, resolveMarkerSubPath: [] }
         );
     }
 

@@ -20,7 +20,7 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOption
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgHighlightStyleOptions,
+    AgMarkerHighlightStyleOptions,
     AgMultiSeriesGlowHighlightOptions,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
@@ -70,7 +70,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
 }
