@@ -123,7 +123,7 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
         marker: {
             enabled: false,
             shadow: SHADOW_THEME_DEFAULTS,
-            shape: 'circle',
+            shape: { $palette: 'markerShape' },
             size: 6,
             fillOpacity: 1,
             strokeWidth: 2,

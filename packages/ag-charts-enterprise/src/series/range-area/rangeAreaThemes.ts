@@ -140,7 +140,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             enabled: false,
             shadow: SHADOW_THEME_DEFAULTS,
             fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
-            shape: 'circle',
+            shape: { $palette: 'markerShape' },
             stroke: { $palette: 'stroke' },
             size: 6,
             fillOpacity: 1,

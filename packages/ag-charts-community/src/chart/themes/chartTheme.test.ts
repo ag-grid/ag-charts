@@ -18,6 +18,7 @@ import { AreaSeries } from '../series/cartesian/areaSeries';
 import { BarSeries } from '../series/cartesian/barSeries';
 import { LineSeries } from '../series/cartesian/lineSeries';
 import { PieSeries } from '../series/polar/pieSeries';
+import { getLegendItemNodes, getSeriesOptions } from '../test/seriesAccessors';
 import type { ChartOrProxy } from '../test/utils';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
@@ -1132,6 +1133,124 @@ describe('ChartTheme', () => {
             expect(classCast(series[1], BarSeries).options.strokeWidth).toEqual(16);
             expect(classCast(series[2], LineSeries).options.strokeWidth).toEqual(17);
             expect(classCast(series[3], AreaSeries).options.strokeWidth).toEqual(18);
+        });
+    });
+
+    describe('palette.markerShapes', () => {
+        type ShapeHolder = { marker?: { shape?: unknown }; shape?: unknown };
+        const customShapeFn = () => ({});
+
+        const cases = [
+            { type: 'line', setShape: (shape: unknown) => ({ marker: { shape } }) },
+            { type: 'area', setShape: (shape: unknown) => ({ marker: { shape } }) },
+            { type: 'scatter', setShape: (shape: unknown) => ({ shape }) },
+            { type: 'bubble', setShape: (shape: unknown) => ({ shape }) },
+        ] as const;
+
+        const prepareOptions = () => ({
+            width: 800,
+            height: 600,
+            animation: { enabled: false },
+            data: [
+                { x: 1, y0: 2, y1: 3, y2: 4, s: 3 },
+                { x: 2, y0: 4, y1: 5, y2: 6, s: 5 },
+            ],
+        });
+
+        const createShapeChart = (
+            type: (typeof cases)[number]['type'],
+            theme: AgChartTheme,
+            seriesOverrides: Record<string, unknown>[] = [{}, {}, {}]
+        ) =>
+            AgCharts.create({
+                ...prepareOptions(),
+                theme,
+                series: seriesOverrides.map((extra, i) => ({
+                    type,
+                    xKey: 'x',
+                    yKey: `y${i}`,
+                    ...(type === 'bubble' ? { sizeKey: 's' } : {}),
+                    ...extra,
+                })),
+            } as AgCartesianChartOptions);
+
+        const resolvedShapes = (count = 3) =>
+            Array.from({ length: count }, (_, i) => {
+                const { marker, shape } = getSeriesOptions<ShapeHolder>(chart, i);
+                return marker?.shape ?? shape;
+            });
+
+        describe.each(cases)('$type', ({ type, setShape }) => {
+            it('rotates through the palette by series index', async () => {
+                chart = createShapeChart(type, { palette: { markerShapes: ['square', customShapeFn] } });
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['square', customShapeFn, 'square']);
+            });
+
+            it('prefers an explicit series shape', async () => {
+                chart = createShapeChart(type, { palette: { markerShapes: ['square', 'triangle'] } }, [
+                    {},
+                    setShape('diamond'),
+                    {},
+                ]);
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['square', 'diamond', 'square']);
+            });
+
+            it('replaces rather than merges with the base theme palette', async () => {
+                chart = createShapeChart(type, {
+                    baseTheme: {
+                        baseTheme: 'ag-default',
+                        palette: { markerShapes: ['square', 'triangle', 'diamond'] },
+                    },
+                    palette: { markerShapes: ['cross'] },
+                } as unknown as AgChartTheme);
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['cross', 'cross', 'cross']);
+            });
+
+            it('keeps circle when the palette sets only fills', async () => {
+                chart = createShapeChart(type, { palette: { fills: ['red', 'green'] } });
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['circle', 'circle', 'circle']);
+            });
+
+            it('shows the palette shapes in the legend', async () => {
+                chart = createShapeChart(
+                    type,
+                    { palette: { markerShapes: ['square', customShapeFn] } },
+                    [{}, {}, {}].map(() => (type === 'area' ? { marker: { enabled: true } } : {}))
+                );
+                await waitForChartStability(chart);
+
+                const legendShapes = getLegendItemNodes(chart).map((node) => node.marker?.shape);
+                expect(legendShapes).toEqual(resolvedShapes());
+                expect(legendShapes).toEqual(['square', customShapeFn, 'square']);
+            });
+        });
+
+        it('lets a theme override beat the palette', async () => {
+            chart = createShapeChart('line', {
+                palette: { markerShapes: ['square', 'triangle'] },
+                overrides: { line: { series: { marker: { shape: 'star' } } } },
+            });
+            await waitForChartStability(chart);
+
+            expect(resolvedShapes()).toEqual(['star', 'star', 'star']);
+        });
+
+        it('shows the palette shape in the legend of an area series without markers or stroke', async () => {
+            chart = createShapeChart('area', { palette: { markerShapes: ['square', 'triangle'] } }, [
+                { strokeWidth: 0 },
+                { strokeWidth: 0 },
+            ]);
+            await waitForChartStability(chart);
+
+            expect(getLegendItemNodes(chart).map((node) => node.marker?.shape)).toEqual(['square', 'triangle']);
         });
     });
 });

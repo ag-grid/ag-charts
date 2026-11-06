@@ -2522,7 +2522,14 @@ export interface LegendTestItemNode {
     opacity?: number;
     label: { opacity?: number; text?: string };
     symbolsGroup: { opacity?: number };
-    marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
+    marker?: {
+        fill?: string;
+        fillOpacity?: number;
+        stroke?: string;
+        strokeOpacity?: number;
+        strokeWidth?: number;
+        shape?: unknown;
+    };
     line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
 }
 
