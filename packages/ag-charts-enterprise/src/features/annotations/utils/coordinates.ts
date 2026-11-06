@@ -79,15 +79,6 @@ export function getCoordinateKind(axis: Pick<AnnotationAxisContext, 'scale'>): C
     }
 }
 
-function pad(value: number, length = 2) {
-    return String(value).padStart(length, '0');
-}
-
-/** A text input drops line breaks from its value, so categories are shown and matched without them. */
-function withoutLineBreaks(category: unknown) {
-    return String(category).replace(/[\r\n]/g, '');
-}
-
 /** Formats a value for the matching input: a number as-is, a date as the local `datetime-local` value. Milliseconds are shown only when present. */
 export function formatCoordinate(point: PointType | undefined, kind: CoordinateKind): string {
     const value = getGroupingValue(point);
@@ -109,25 +100,6 @@ export function formatCoordinate(point: PointType | undefined, kind: CoordinateK
     const time = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     const milliseconds = date.getMilliseconds() === 0 ? '' : `.${pad(date.getMilliseconds(), 3)}`;
     return `${day}T${time}${milliseconds}`;
-}
-
-function toPointType(parsed: ParsedCoordinate, kind: CoordinateKind, current: PointType | undefined): PointType {
-    if (kind === 'number' || kind === 'time') {
-        return parsed;
-    }
-    return { value: parsed, groupPercentage: getGrouping(current).groupPercentage };
-}
-
-const INTEGER_TEXT = /^[+-]?\d+$/;
-const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
-
-/** A number, or a bigint for an integer beyond the range a number holds exactly. */
-function parseNumeric(text: string): AgNumericValue | undefined {
-    const trimmed = text.trim();
-    const integer = INTEGER_TEXT.test(trimmed) ? BigInt(trimmed) : undefined;
-    const beyondSafe = integer != null && (integer < -MAX_SAFE_INTEGER || integer > MAX_SAFE_INTEGER);
-    const value = beyondSafe ? integer : Number(trimmed);
-    return isFiniteNumericValue(value) ? value : undefined;
 }
 
 /** The inverse of `formatCoordinate`; `undefined` when the text is not a valid value. */
@@ -183,6 +155,7 @@ export function floorToBand(date: Date, scale: UnitTimeScale): Date | undefined 
  * The value to apply for a parsed one, or `undefined` to reject it. A point must pass the test a dragged handle does,
  * land on a bar or band of a time band axis, or name a category; an offset is a distance, so it is not bound to the axis.
  */
+
 export function resolveCoordinate(
     field: CoordinateField,
     parsed: ParsedCoordinate,
@@ -203,80 +176,6 @@ export function resolveCoordinate(
         return parsed instanceof Date ? snapToBar(parsed, axis.scale.domain) : undefined;
     }
     return validateDatumPointDirection(parsed, axis) ? parsed : undefined;
-}
-
-interface CoordinateAxis {
-    axis: 'x' | 'y';
-    context: AnnotationAxisContext;
-    kind: CoordinateKind;
-}
-
-function getCoordinateAxis(axis: 'x' | 'y', context: AnnotationAxisContext): CoordinateAxis | undefined {
-    const kind = getCoordinateKind(context);
-    return kind == null ? undefined : { axis, context, kind };
-}
-
-function getTimeStep(kind: CoordinateKind, formatted: string) {
-    if (kind === 'number' || kind === 'category') {
-        return;
-    }
-    return formatted.includes('.') ? 0.001 : 1;
-}
-
-function createPointField(
-    row: CoordinateRow,
-    { axis, context, kind }: CoordinateAxis,
-    current: PointType | undefined,
-    toProps: (value: PointType) => CoordinateChangeProps
-): CoordinateField {
-    const value = formatCoordinate(current, kind);
-    return {
-        row,
-        axis,
-        kind,
-        value,
-        step: getTimeStep(kind, value),
-        suggestions: kind === 'category' ? context.scale.domain.map(withoutLineBreaks) : undefined,
-        toProps: (parsed) => toProps(toPointType(parsed, kind, current)),
-    };
-}
-
-function createOffsetField(
-    row: CoordinateRow,
-    current: AgNumericValue,
-    key: 'height' | 'startHeight' | 'endHeight'
-): CoordinateField {
-    return {
-        row,
-        axis: 'y',
-        kind: 'number',
-        value: String(current),
-        toProps: (parsed) => (isNumericValue(parsed) ? { [key]: parsed } : undefined),
-    };
-}
-
-function getOffsetFields(datum: LinearDialogDatumType): CoordinateField[] {
-    if (parallelChannelDatum.is(datum)) {
-        return [createOffsetField('offset', datum.height, 'height')];
-    }
-    if (disjointChannelDatum.is(datum)) {
-        return [
-            createOffsetField('startOffset', datum.startHeight, 'startHeight'),
-            createOffsetField('endOffset', datum.endHeight, 'endHeight'),
-        ];
-    }
-    return [];
-}
-
-function getPointRows(datum: Exclude<LinearDialogDatumType, CrossLineDatum>): [PointRow, DataPoint][] {
-    const rows: [PointRow, DataPoint][] = [
-        ['start', datum.start],
-        ['end', datum.end],
-    ];
-    if (fibonacciRetracementTrendBasedDatum.is(datum)) {
-        rows.push(['endRetracement', datum.endRetracement]);
-    }
-    return rows;
 }
 
 /** The editable coordinates of an annotation, in the order the dialog lists them. */
@@ -305,4 +204,106 @@ export function getCoordinateFields(datum: LinearDialogDatumType, context: Annot
     }
 
     return fields;
+}
+
+/** A text input drops line breaks from its value, so categories are shown and matched without them. */
+function withoutLineBreaks(category: unknown) {
+    return String(category).replace(/[\r\n]/g, '');
+}
+
+function pad(value: number, length = 2) {
+    return String(value).padStart(length, '0');
+}
+
+const INTEGER_TEXT = /^[+-]?\d+$/;
+const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
+
+/** A number, or a bigint for an integer beyond the range a number holds exactly. */
+function parseNumeric(text: string): AgNumericValue | undefined {
+    const trimmed = text.trim();
+    const integer = INTEGER_TEXT.test(trimmed) ? BigInt(trimmed) : undefined;
+    const beyondSafe = integer != null && (integer < -MAX_SAFE_INTEGER || integer > MAX_SAFE_INTEGER);
+    const value = beyondSafe ? integer : Number(trimmed);
+    return isFiniteNumericValue(value) ? value : undefined;
+}
+
+interface CoordinateAxis {
+    axis: 'x' | 'y';
+    context: AnnotationAxisContext;
+    kind: CoordinateKind;
+}
+
+function getCoordinateAxis(axis: 'x' | 'y', context: AnnotationAxisContext): CoordinateAxis | undefined {
+    const kind = getCoordinateKind(context);
+    return kind == null ? undefined : { axis, context, kind };
+}
+
+function createPointField(
+    row: CoordinateRow,
+    { axis, context, kind }: CoordinateAxis,
+    current: PointType | undefined,
+    toProps: (value: PointType) => CoordinateChangeProps
+): CoordinateField {
+    const value = formatCoordinate(current, kind);
+    return {
+        row,
+        axis,
+        kind,
+        value,
+        step: getTimeStep(kind, value),
+        suggestions: kind === 'category' ? context.scale.domain.map(withoutLineBreaks) : undefined,
+        toProps: (parsed) => toProps(toPointType(parsed, kind, current)),
+    };
+}
+
+function getTimeStep(kind: CoordinateKind, formatted: string) {
+    if (kind === 'number' || kind === 'category') {
+        return;
+    }
+    return formatted.includes('.') ? 0.001 : 1;
+}
+
+function toPointType(parsed: ParsedCoordinate, kind: CoordinateKind, current: PointType | undefined): PointType {
+    if (kind === 'number' || kind === 'time') {
+        return parsed;
+    }
+    return { value: parsed, groupPercentage: getGrouping(current).groupPercentage };
+}
+
+function getPointRows(datum: Exclude<LinearDialogDatumType, CrossLineDatum>): [PointRow, DataPoint][] {
+    const rows: [PointRow, DataPoint][] = [
+        ['start', datum.start],
+        ['end', datum.end],
+    ];
+    if (fibonacciRetracementTrendBasedDatum.is(datum)) {
+        rows.push(['endRetracement', datum.endRetracement]);
+    }
+    return rows;
+}
+
+function getOffsetFields(datum: LinearDialogDatumType): CoordinateField[] {
+    if (parallelChannelDatum.is(datum)) {
+        return [createOffsetField('offset', datum.height, 'height')];
+    }
+    if (disjointChannelDatum.is(datum)) {
+        return [
+            createOffsetField('startOffset', datum.startHeight, 'startHeight'),
+            createOffsetField('endOffset', datum.endHeight, 'endHeight'),
+        ];
+    }
+    return [];
+}
+
+function createOffsetField(
+    row: CoordinateRow,
+    current: AgNumericValue,
+    key: 'height' | 'startHeight' | 'endHeight'
+): CoordinateField {
+    return {
+        row,
+        axis: 'y',
+        kind: 'number',
+        value: String(current),
+        toProps: (parsed) => (isNumericValue(parsed) ? { [key]: parsed } : undefined),
+    };
 }
