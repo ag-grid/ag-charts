@@ -55,7 +55,8 @@ The result shows on the PR as the `CI (manual)` status, linked to the run, and i
 Limits:
 
 -   Your own branch only, never `latest` (staging gates can apply there). `/ci` refuses forks, `ghabot-*` branches and PRs that aren't open drafts.
--   Jobs that only run on `pull_request` (previews, L10n, snapshot review) and the demo port restamp check don't run.
+-   `/ci` also runs PR Preview, Snapshot Review and L10n Review (when the PR touches `packages/ag-charts-locale/src/**`) and updates the PR comment, as marking the PR ready does. It does this only when the PR is open, from this repo and on the dispatched branch; otherwise the run warns and skips them. By hand, add `-f pr_number=<N>` to the `gh workflow run` above.
+-   CodeQL, the Codex review and the demo port restamp check don't run. Comment `/pr-review` on the draft for the Codex review.
 -   The run tests the branch head, not the merge ref, so it can pass where the merge would fail.
 -   Marking the PR ready re-runs CI.
 

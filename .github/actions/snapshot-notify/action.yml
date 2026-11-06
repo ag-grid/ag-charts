@@ -10,6 +10,20 @@ inputs:
     slack_webhook:
         description: 'Slack webhook to use for notification.'
         required: true
+    base_sha:
+        description: >-
+            PR base commit for the snapshot-status section. Defaults to the pull_request event's, so only a
+            workflow_dispatch that resolved a PR (see pr-context) needs to pass it.
+        required: false
+        default: ''
+    head_sha:
+        description: 'PR head commit for the snapshot-status section. Same default as base_sha.'
+        required: false
+        default: ''
+    head_ref:
+        description: 'PR head branch for the snapshot-status section. Same default as base_sha.'
+        required: false
+        default: ''
 outputs:
     updated:
         description: 'If any snapshots were updated.'
@@ -62,13 +76,17 @@ runs:
           if: steps.snapshot_check.outputs.updated == 'true' && github.ref != 'refs/heads/latest'
           uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
           continue-on-error: true
+          env:
+              BASE_SHA: ${{ inputs.base_sha }}
+              HEAD_SHA: ${{ inputs.head_sha }}
+              HEAD_REF: ${{ inputs.head_ref }}
           with:
               script: |
                   const fs = require('fs');
                   const path = require('path');
-                  const baseSha = context.payload.pull_request.base.sha;
-                  const headSha = context.payload.pull_request.head.sha;
-                  const headRef = context.payload.pull_request.head.ref;
+                  const baseSha = process.env.BASE_SHA || context.payload.pull_request.base.sha;
+                  const headSha = process.env.HEAD_SHA || context.payload.pull_request.head.sha;
+                  const headRef = process.env.HEAD_REF || context.payload.pull_request.head.ref;
                   const snapshotBranch = "${{inputs.branch}}";
                   const repoUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
                   const encodedHeadRef = encodeURIComponent(headRef);
