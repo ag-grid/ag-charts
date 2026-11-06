@@ -20,7 +20,7 @@ import {
     releaseShadowScratch,
     shadowPass,
 } from 'ag-charts-core';
-import type { RenderContext, ResolvedDropShadowOptions, ShadowCaster, ShadowKey, Shape } from 'ag-charts-core';
+import type { RenderContext, ResolvedDropShadowOptions, ShadowKey, Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { BLACK, type Pixel, box, isHalfRed } from '../util/test/shadowPixels';
@@ -2463,8 +2463,9 @@ describe('Group shadow compositor', () => {
 
         const keyOf = (caster: Shape, shadow: ResolvedDropShadowOptions): ShadowKey => ({
             shadow,
+            slot: 'shadow',
             clip: undefined,
-            casters: [caster as ShadowCaster],
+            casters: [caster],
         });
 
         it('should draw no shadow at all when one of its keys can not be cast', () => {

@@ -6,7 +6,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -63,6 +63,8 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     interpolation?: AgInterpolationType;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
+    /** The glow of the fill, which is not redrawn when highlighted. Off unless set. */
+    glow?: AgGlowOptions;
     /** Configuration for the labels shown on top of data points. */
     label?: AgAreaSeriesLabelOptions<TDatum, AgAreaSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */

@@ -5,6 +5,8 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
@@ -16,7 +18,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     themeLineHeight,
-    withGlowThemeDefaults,
+    withSeriesGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -40,6 +42,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
         strokeWidth: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         shadow: SHADOW_THEME_DEFAULTS,
+        glow: GLOW_THEME_DEFAULTS,
         maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
@@ -56,7 +59,10 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
             placement: 'top',
         },
         tooltip: NEAREST_NODE_TOOLTIP_THEME,
-        highlight: withGlowThemeDefaults({ ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
+        highlight: withSeriesGlowThemeDefaults(
+            { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+            { item: ITEM_GLOW_BUCKETS, series: SERIES_GLOW_BUCKETS }
+        ),
         selection: SERIES_SELECTION_THEME,
         colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,
     },

@@ -82,6 +82,8 @@ export type NormalisedDropShadowOptions = Normalised<
     'enabled' | 'xOffset' | 'yOffset' | 'blur'
 > & {
     glow?: true;
+    /** Only a glow has one. See `AgGlowOptions.gap`. */
+    gap?: number;
 };
 
 /** A shadow with the `fill` that it casts in. */

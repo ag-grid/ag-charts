@@ -330,6 +330,14 @@ export class DonutSeries extends PolarSeries<
     private titleLabel: PolarLabelDatum | undefined;
     private labelLayout = '';
 
+    protected override getSeriesGlows() {
+        return [this.options.glow];
+    }
+
+    protected override getSeriesShadows() {
+        return [this.options.shadow];
+    }
+
     override readonly supportsDataTransactions = false;
     override readonly snapsSeriesAreaOrigin = false;
     override readonly seriesAreaLayout = donutSeriesAreaLayout;
@@ -1315,13 +1323,13 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.resolveItemShadow(
+            sector.fillShadow = this.resolveShadowSlot(
                 this.options.shadow,
+                this.options.glow,
                 isDatumHighlighted,
-                datum.datumIndex,
-                undefined,
-                legendItemValues
+                datum.datumIndex
             );
+            sector.fillGlow = this.resolveGlowSlot(this.options.glow, isDatumHighlighted, datum.datumIndex);
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
         };

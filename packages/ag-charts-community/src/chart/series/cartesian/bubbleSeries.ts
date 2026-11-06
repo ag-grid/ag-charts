@@ -63,6 +63,7 @@ import {
     type AgBubbleSeriesStylerResult,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgGlowOptions,
     type AgMarkerSizeMode,
     type AgNumericValue,
     type AgScatterSeriesOptionsKeys,
@@ -384,10 +385,25 @@ export abstract class BubbleScatterSeries<
     }
 
     private marker!: BubbleScatterMarkerOptions;
+    private markerGlow?: DeepPartial<AgGlowOptions>;
+
+    /** Only the scatter series has a `glow`, which bubbles have yet to take. */
+    private getMarkerGlow() {
+        return this.markerGlow;
+    }
+
+    protected override getSeriesGlows() {
+        return [this.markerGlow];
+    }
+
+    protected override getSeriesShadows() {
+        return [this.marker.shadow];
+    }
     private markerDirty = true;
 
     protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedSeriesOptions<TOptions>> | undefined) {
         const { options } = this;
+        this.markerGlow = (options as { glow?: DeepPartial<AgGlowOptions> }).glow;
         this.marker = {
             enabled: true,
             ...this.markerSizeRange(),
@@ -1308,6 +1324,7 @@ export abstract class BubbleScatterSeries<
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
         const { shadow } = this.marker;
+        const glow = this.getMarkerGlow();
 
         datumSelection.each((node, datum, index) => {
             const {
@@ -1337,6 +1354,7 @@ export abstract class BubbleScatterSeries<
                 hideWithSize0: false,
                 pickInflation,
                 shadow,
+                glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
                 highlightState: state,

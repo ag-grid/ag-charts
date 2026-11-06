@@ -253,6 +253,7 @@ const PAINT_ONLY_PROPERTIES: ReadonlySet<string> = new Set([
     '__strokeOpacity',
     '__opacity',
     '__fillShadow',
+    '__fillGlow',
     '__shadowMode',
     '__fillBBox',
     '__fillParams',

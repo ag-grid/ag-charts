@@ -16,6 +16,7 @@ import {
     constant,
     crosshairSnapToValidator,
     fillOptionsDef,
+    glowOptionsDefs,
     interpolationOptionsDefs,
     lineDashOptionsDef,
     markerOptionsDefs,
@@ -35,6 +36,7 @@ const hlcSeriesItemLineThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemLineTheme
     marker: {
         enabled: boolean,
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         ...markerStyleOptionsDefs,
     },
     ...strokeOptionsDef,

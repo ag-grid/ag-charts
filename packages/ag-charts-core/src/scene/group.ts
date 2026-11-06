@@ -780,7 +780,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      * Outside a layer the root casts nothing for the cutout, so a group of only cutouts is gathered as a frame without keys.
      */
     private castsShadow(child: Node, shared: boolean): boolean {
-        return (shared ? getRootShadow(child) : getBatchedShadow(child)) != null;
+        return (shared ? (getRootShadow(child) ?? getRootShadow(child, 'glow')) : getBatchedShadow(child)) != null;
     }
 
     /** Renders the children in order, with each run that shares a shadow batched if {@link batchShadows} is on. */

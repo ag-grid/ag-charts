@@ -2,6 +2,8 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
+    GLOW_THEME_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_OVERFLOW_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
     PLACED_LABEL_BOXING_DEFAULTS,
@@ -12,7 +14,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
     themeLineHeight,
-    withGlowThemeDefaults,
+    withSeriesGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -101,8 +103,12 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         sectorSpacing: 1,
         hideZeroValueSectorsInLegend: false,
         shadow: SHADOW_THEME_DEFAULTS,
+        glow: GLOW_THEME_DEFAULTS,
         tooltip: SERIES_TOOLTIP_THEME,
-        highlight: withGlowThemeDefaults({ ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
+        highlight: withSeriesGlowThemeDefaults(
+            { ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true },
+            { item: ITEM_GLOW_BUCKETS, series: SERIES_GLOW_BUCKETS }
+        ),
         selection: SERIES_SELECTION_THEME,
     },
     legend: { enabled: true },

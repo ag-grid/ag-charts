@@ -7,7 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
@@ -86,6 +86,8 @@ export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext
     maxRenderedItems?: number;
     /** Configuration for the shadow used behind the markers. Not applied to custom marker shapes. */
     shadow?: AgDropShadowOptions;
+    /** The glow of every marker, which the highlight options override. Off unless set. Not applied to custom marker shapes. */
+    glow?: AgGlowOptions;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
@@ -95,7 +97,7 @@ export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgScatterSeriesStylerParams<TDatum, TContext>, AgScatterSeriesStylerResult>;
     /** Function used to return formatting for individual markers, based on the supplied information.*/
-    itemStyler?: Styler<AgScatterSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<AgScatterSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle & AgItemShadowStyle>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */

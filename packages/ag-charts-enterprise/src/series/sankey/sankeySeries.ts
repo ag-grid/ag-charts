@@ -1144,7 +1144,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
-        const { shadow } = this.options.node;
+        const { shadow, glow } = this.options.node;
 
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
@@ -1158,7 +1158,8 @@ export class SankeySeries extends FlowProportionSeries<
 
             rect.setStyleProperties(style, fillBBox);
             rect.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex);
+                datum === focusedDatum ? undefined : this.resolveShadowSlot(shadow, glow, isHighlight, datumIndex);
+            rect.fillGlow = this.resolveGlowSlot(glow, isHighlight, datumIndex);
         });
     }
 
@@ -1251,7 +1252,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         const fillBBox = this.getShapeFillBBox();
         const { cornerRadius } = this.options.node;
-        const { shadow } = this.options.link;
+        const { shadow, glow } = this.options.link;
 
         datumSelection.each((link, datum) => {
             const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
@@ -1267,7 +1268,10 @@ export class SankeySeries extends FlowProportionSeries<
 
             link.setStyleProperties(style, fillBBox);
             link.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
+                datum === focusedDatum
+                    ? undefined
+                    : this.resolveShadowSlot(shadow, glow, isHighlight, datum.datumIndex);
+            link.fillGlow = this.resolveGlowSlot(glow, isHighlight, datum.datumIndex);
 
             link.inset = link.strokeWidth / 2;
         });
@@ -1280,6 +1284,15 @@ export class SankeySeries extends FlowProportionSeries<
             return Transformable.toCanvas(this.contentGroup, bbox);
         }
         return node;
+    }
+
+    protected override getSeriesGlows() {
+        return [this.options.node.glow, this.options.link.glow];
+    }
+
+    // The one `highlightedItem.shadow` follows, which links and nodes share.
+    protected override getSeriesShadows() {
+        return [this.options.node.shadow];
     }
 
     protected override hasItemStylers(): boolean {
