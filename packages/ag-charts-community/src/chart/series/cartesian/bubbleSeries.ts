@@ -303,6 +303,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     /** The marker outline the label's text is bounded by, rather than the rect inscribed in it. */
     readonly labelInsideMask: FitRegionMask | undefined;
     readonly labelInsideSize: { width: number; height: number } | undefined;
+    readonly labelTextDomain: any[];
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
     readonly labelFit: LabelFit | undefined;
@@ -765,6 +766,7 @@ export abstract class BubbleScatterSeries<
             labelInsideMask: insideOnly ? markerRowSpans(marker.shape) : undefined,
             labelInsideSize:
                 !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
+            labelTextDomain: [],
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit,
@@ -977,7 +979,7 @@ export abstract class BubbleScatterSeries<
             datum,
             ctx.labelKey!,
             'label',
-            [],
+            ctx.labelTextDomain,
             this.options.label,
             {
                 value: labelTextValue,
