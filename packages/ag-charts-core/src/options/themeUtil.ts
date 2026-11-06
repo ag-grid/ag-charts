@@ -713,15 +713,13 @@ export function withDisabledGlowThemeDefaults<T extends object>(highlight: T, bu
     return result as T;
 }
 
-/** Where the `glow` that a highlight falls back to, and the `highlight` that holds the buckets, are in the theme. */
+/** Where the `glow` that a highlight falls back to is in the theme. */
 export interface GlowThemePaths {
     /**
      * The series-level `glow`, such as `marker.glow`. A series with a `glow` on more than one part, such as
      * the links and nodes of a flow, lists them all: a bucket's `enabled` is then left unset unless the user sets its `glow`.
      */
     readonly glow?: string | readonly string[];
-    /** The `highlight` options of the series, or of the part of it with the `glow`. */
-    readonly highlight?: string;
 }
 
 /**
@@ -732,13 +730,13 @@ export interface GlowThemePaths {
  * A series with a `glow` on more than one part has no one value for a bucket without a `glow` of its own to follow, so
  * its `enabled` is left unset there, and each part keeps its own.
  *
- * The item buckets fall back to the series bucket, or the branch bucket of a hierarchy, that is among `buckets`, and
- * the others to the series-level `glow`. `buckets` are the states of the series that the item states fall back to.
+ * The item buckets fall back to the `highlightedSeries` bucket if it is among `buckets`, and the others to the
+ * series-level `glow`. `buckets` are the states of the series that the item states fall back to.
  */
 export function withGlowThemeDefaults<T extends object>(
     highlight: T,
     buckets: readonly string[],
-    { glow = '/series/$index/glow', highlight: highlightPath = '/series/$index/highlight' }: GlowThemePaths = {}
+    { glow = '/series/$index/glow' }: GlowThemePaths = {}
 ): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
     const glowPaths = typeof glow === 'string' ? [glow] : glow;
@@ -754,8 +752,9 @@ export function withGlowThemeDefaults<T extends object>(
     for (const bucket of buckets) {
         if (!ITEM_GLOW_BUCKETS.includes(bucket as (typeof ITEM_GLOW_BUCKETS)[number])) follow(bucket, seriesEnabled);
     }
-    const stateBucket = buckets.find((bucket) => bucket === 'highlightedSeries' || bucket === 'highlightedBranch');
-    const itemEnabled = stateBucket == null ? seriesEnabled : { $path: `${highlightPath}/${stateBucket}/glow/enabled` };
+    const itemEnabled = buckets.includes('highlightedSeries')
+        ? { $path: '/series/$index/highlight/highlightedSeries/glow/enabled' }
+        : seriesEnabled;
     for (const bucket of ITEM_GLOW_BUCKETS) follow(bucket, itemEnabled);
     return result as T;
 }
