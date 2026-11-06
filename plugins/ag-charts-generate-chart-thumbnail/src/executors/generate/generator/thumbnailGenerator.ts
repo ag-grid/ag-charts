@@ -4,7 +4,7 @@ import path from 'path';
 import sharp from 'sharp';
 import { Canvas, type CanvasRenderingContext2D } from 'skia-canvas';
 
-import { type AgChartOptions, type AgChartThemeName, AgCharts } from 'ag-charts-community';
+import { type AgChartInstance, type AgChartOptions, type AgChartThemeName, AgCharts } from 'ag-charts-community';
 import { deepClone } from 'ag-charts-core';
 import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 import { type GeneratedContents, transformPlainEntryFile } from 'ag-charts-generate-example-files';
@@ -24,7 +24,7 @@ import { patchOptions } from './patchOptions';
 
 ModuleRegistry.registerModules(AllEnterpriseModule);
 
-type ChartApi = 'create' | 'createGauge' | 'createFinancialChart';
+type ChartApi = 'create' | 'createGauge' | 'createFinancialChart' | 'createQuadrantChart';
 
 export interface PreparedExample {
     optionsById: Map<string, AgChartOptions>;
@@ -124,14 +124,15 @@ export async function generateThumbnail({ prepared, theme, outputPath, dpi, mock
         const x0 = (containerWidth * column + (containerWidth - width) / 2) | 0;
         const y0 = (containerHeight * row + (containerHeight - height) / 2) | 0;
 
-        const chartProxy = AgCharts[api]({
+        const createChart: (options: any) => AgChartInstance<any> = AgCharts[api];
+        const chartProxy = createChart({
             ...options,
             document,
             window,
             width,
             height,
             overrideDevicePixelRatio: dpi,
-        } as any);
+        });
 
         try {
             await chartProxy.waitForUpdate();
