@@ -203,9 +203,31 @@ export interface AgLineAnnotation
     text?: AgLineAnnotationText;
 }
 
-export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
+/** A named datum of a series that a horizontal-line annotation can follow. */
+export type AgAnnotationFollowName = 'first' | 'last';
+
+export interface AgAnnotationFollowOptions {
+    /** The named datum to follow. */
+    follow: AgAnnotationFollowName;
+    /** The `id` of the series to follow. If not set, the first visible series bound to the y-axis is used. */
+    seriesId?: string;
+}
+
+export type AgAnnotationFollow = AgAnnotationFollowName | AgAnnotationFollowOptions;
+
+export interface AgHorizontalLineAnnotation extends Omit<AgCrossLineAnnotation, 'value'> {
     /** Configuration for the horizontal-line annotation.*/
     type: 'horizontal-line';
+    /** Position of the annotation specified in terms of the y-axis value. Required unless `follow` is set. */
+    value?: AgAnnotationValue;
+    /**
+     * Make the annotation follow the `'first'` or `'last'` datum of a series, so it moves when the data changes. A
+     * followed annotation cannot be dragged and `value` is ignored.
+     *
+     * The series' value is its `yKey`, or its `closeKey` for financial series. Pass an object to choose the series
+     * with `seriesId`.
+     */
+    follow?: AgAnnotationFollow;
     /** Configuration for the line text. */
     text?: AgLineAnnotationText;
 }

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
+import type { AgAnnotation, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
     clickAction,
     deproxy,
@@ -1315,5 +1315,128 @@ describe('Annotations', () => {
                 expect(await gapWith(position, label)).toBeCloseTo(0, 1);
             });
         }
+    });
+
+    describe('following a series value (AG-16273)', () => {
+        const day = (value: string) => new Date(value);
+        const withSeries = (
+            data: AgCartesianChartOptions['data'],
+            series: AgCartesianChartOptions['series']
+        ): AgCartesianChartOptions => ({ ...ANNOTATIONS_EXAMPLE_OPTIONS, data, series });
+
+        // The axis label of each annotation, in annotation order, as the text it shows and where it is drawn.
+        const axisLabels = () =>
+            findSceneNodes(
+                chart,
+                (node): node is Group => node instanceof Group && node.name === ANNOTATION_AXIS_LABEL_GROUP
+            ).map((group) => ({
+                text: Array.from(group.descendants()).find((node): node is Text => node instanceof Text)?.text,
+                y: group.getBBox().y + group.getBBox().height / 2,
+            }));
+
+        // The y of `value` on the y axis in canvas coordinates; the axis is linear.
+        const yOf = (value: number) => {
+            const [min, max] = getAnnotationYAxisDomain(chart);
+            const { y, height } = getSeriesRect(chart);
+            return y + (height * (max - value)) / (max - min);
+        };
+
+        const SCATTER_DATA = ANNOTATIONS_EXAMPLE_OPTIONS.data;
+
+        const TWO_SERIES = withSeries(
+            [
+                { x: day('2024-01-05'), a: 10, b: 60 },
+                { x: day('2024-06-15'), a: 40, b: 30 },
+                { x: day('2024-12-25'), a: 20, b: 80 },
+            ],
+            [
+                { type: 'line', id: 'a', xKey: 'x', yKey: 'a' },
+                { type: 'line', id: 'b', xKey: 'x', yKey: 'b' },
+            ]
+        );
+
+        const labelled = (
+            label: string,
+            position: 'top' | 'bottom' = 'top'
+        ): Pick<AgHorizontalLineAnnotation, 'axisLabel' | 'text'> => ({
+            axisLabel: { enabled: true },
+            text: { label, position, alignment: 'left' },
+        });
+
+        const EXAMPLES: Record<string, { options: AgCartesianChartOptions; annotations: object[] }> = {
+            // Without a `seriesId` the first series bound to the y axis is followed.
+            FIRST_AND_LAST: {
+                options: ANNOTATIONS_EXAMPLE_OPTIONS,
+                annotations: [
+                    { type: 'horizontal-line', follow: 'first', stroke: 'red', ...labelled('first') },
+                    { type: 'horizontal-line', follow: 'last', stroke: 'green', ...labelled('last') },
+                ],
+            },
+            SERIES_ID: {
+                options: TWO_SERIES,
+                annotations: [
+                    { type: 'horizontal-line', follow: 'last', stroke: 'red', ...labelled('default: a') },
+                    {
+                        type: 'horizontal-line',
+                        follow: { follow: 'last', seriesId: 'b' },
+                        stroke: 'green',
+                        ...labelled('b last', 'bottom'),
+                    },
+                    {
+                        type: 'horizontal-line',
+                        follow: { follow: 'first', seriesId: 'b' },
+                        stroke: 'blue',
+                        ...labelled('b first'),
+                    },
+                ],
+            },
+        };
+
+        for (const [name, { options, annotations }] of Object.entries(EXAMPLES)) {
+            it(`renders ${name}`, async () => {
+                await prepareChart({ annotations: annotations as AgAnnotation[] }, options);
+                await compare();
+            });
+        }
+
+        it('moves the line and its axis label when the chart data is updated', async () => {
+            await prepareChart({
+                annotations: [{ type: 'horizontal-line', follow: 'last', ...labelled('last') }],
+            });
+            const before = axisLabels();
+            expect(before.map(({ text }) => text)).toEqual(['95']);
+
+            const appended = [...(SCATTER_DATA as object[]), { x: day('2025-03-01'), y: 30 }];
+            await chart.update(prepareEnterpriseTestOptions({ ...ANNOTATIONS_EXAMPLE_OPTIONS, data: appended }));
+            await waitForChartStability(chart);
+
+            const after = axisLabels();
+            expect(after.map(({ text }) => text)).toEqual(['30']);
+            expect(after[0].y).toBeGreaterThan(before[0].y);
+            expect(after[0].y).toBeCloseTo(yOf(30), 0);
+            await compare();
+        });
+
+        it('follows the nearest datum that has a value when the last one has none', async () => {
+            await prepareChart(
+                undefined,
+                withSeries(
+                    [
+                        { x: day('2024-01-05'), y: 5 },
+                        { x: day('2024-06-15'), y: 50 },
+                        { x: day('2024-12-25'), y: null },
+                    ],
+                    [{ type: 'scatter', xKey: 'x', yKey: 'y' }]
+                )
+            );
+
+            await applyAnnotations([{ type: 'horizontal-line', follow: 'last', ...labelled('last') }]);
+
+            expect(axisLabels().map(({ text }) => text)).toEqual(['50']);
+            // The null y is the series' own warning, not the annotation's
+            expectWarningsCalls().toEqual([
+                ['AG Charts - invalid value of type [object] for [ScatterSeries-1 / yValue] ignored:', '[null]'],
+            ]);
+        });
     });
 });

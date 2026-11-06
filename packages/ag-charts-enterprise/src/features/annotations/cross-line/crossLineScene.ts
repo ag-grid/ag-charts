@@ -10,9 +10,10 @@ import { translate } from '../utils/coords';
 import { isWriteable } from '../utils/datum';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
-import { getGroupingValue } from '../utils/scale';
+import { type PointType, getGroupingValue } from '../utils/scale';
 import { convert, invertCoords } from '../utils/values';
 import { type CrossLineDatum, horizontalLineDatum } from './crossLineDatum';
+import { isFollowing } from './followValue';
 
 export class CrossLineScene extends AnnotationScene<never> {
     static override is(value: unknown): value is CrossLineScene {
@@ -47,7 +48,8 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.isHorizontal = horizontalLineDatum.is(datum);
         const axisContext = this.isHorizontal ? context.yAxis : context.xAxis;
 
-        const coords = this.convertCrossLine(datum, axisContext);
+        const value = this.resolveValue(datum, context);
+        const coords = this.convertCrossLine(value, this.isHorizontal, axisContext);
 
         if (coords == null) {
             this.visible = false;
@@ -60,7 +62,13 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.updateLine(datum, coords);
         this.updateHandle(datum, coords);
         this.updateText(datum, coords);
-        this.updateAxisLabel(datum, axisContext, coords);
+        this.updateAxisLabel(datum, value, axisContext, coords);
+    }
+
+    /** The value to draw at: the followed datum's value for a followed line, otherwise the stored `value`. */
+    private resolveValue(datum: CrossLineDatum, context: AnnotationContext): PointType | undefined {
+        if (horizontalLineDatum.is(datum) && datum.follow != null) return context.getFollowedValue(datum.follow);
+        return datum.value;
     }
 
     private updateLine(datum: CrossLineDatum, coords: Bounds4) {
@@ -102,7 +110,8 @@ export class CrossLineScene extends AnnotationScene<never> {
         middle.gradient = this.isHorizontal ? 'horizontal' : 'vertical';
         middle.update({ ...handleStyles, ...handlePosition });
 
-        middle.toggleLocked(locked ?? false);
+        // A followed line cannot be dragged, so its handle takes the locked look
+        middle.toggleLocked((locked ?? false) || isFollowing(datum));
     }
 
     private updateText(datum: CrossLineDatum, coords: Bounds4) {
@@ -117,7 +126,12 @@ export class CrossLineScene extends AnnotationScene<never> {
         return axisLabel;
     }
 
-    private updateAxisLabel(datum: CrossLineDatum, axisContext: AnnotationAxisContext, coords: Bounds4) {
+    private updateAxisLabel(
+        datum: CrossLineDatum,
+        value: PointType | undefined,
+        axisContext: AnnotationAxisContext,
+        coords: Bounds4
+    ) {
         this.axisLabel ??= this.createAxisLabel(axisContext);
 
         const { axisLabel, seriesRect } = this;
@@ -133,10 +147,9 @@ export class CrossLineScene extends AnnotationScene<never> {
                 return;
             }
 
-            const value = getGroupingValue(datum.value);
             axisLabel.update({
                 ...Vec2.add(labelCorner, Vec2.required(seriesRect)),
-                value,
+                value: getGroupingValue(value),
                 styles: datum.axisLabel,
                 context: axisContext,
             });
@@ -184,7 +197,7 @@ export class CrossLineScene extends AnnotationScene<never> {
     public drag(datum: CrossLineDatum, target: Point, context: AnnotationContext) {
         const { activeHandle, dragState } = this;
 
-        if (!isWriteable(datum) || !dragState) return;
+        if (!this.isMovable(datum) || !dragState) return;
 
         if (activeHandle != null) {
             this[activeHandle].toggleDragging(true);
@@ -194,13 +207,17 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     public translate(datum: CrossLineDatum, translation: Point, context: AnnotationContext) {
-        if (!isWriteable(datum)) return;
+        if (!this.isMovable(datum)) return;
 
         const vector = horizontalLineDatum.is(datum)
             ? Vec2.from(0, convert(datum.value, context.yAxis))
             : Vec2.from(convert(datum.value, context.xAxis), 0);
 
         this.translatePoint(datum, vector, translation, context);
+    }
+
+    private isMovable(datum: CrossLineDatum) {
+        return isWriteable(datum) && !isFollowing(datum);
     }
 
     protected translatePoint(datum: CrossLineDatum, value: Point, translation: Point, context: AnnotationContext) {
@@ -219,10 +236,13 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     public copy<D extends CrossLineDatum>(datum: D, copiedDatum: D, context: AnnotationContext): D | undefined {
+        // A copy of a followed line would sit exactly on top of it
+        if (isFollowing(datum)) return;
+
         const isHorizontal = horizontalLineDatum.is(datum);
         const axisContext = isHorizontal ? context.yAxis : context.xAxis;
 
-        const coords = this.convertCrossLine(datum, axisContext);
+        const coords = this.convertCrossLine(datum.value, isHorizontal, axisContext);
         if (!coords) {
             return;
         }
@@ -273,17 +293,17 @@ export class CrossLineScene extends AnnotationScene<never> {
         return { x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2, position: 'right' as const };
     }
 
-    private convertCrossLine(datum: CrossLineDatum, context: AnnotationAxisContext) {
-        if (datum.value == null) return;
+    private convertCrossLine(value: PointType | undefined, isHorizontal: boolean, context: AnnotationAxisContext) {
+        if (value == null) return;
 
         let x1 = 0;
         let y1 = 0;
         let x2: number, y2: number;
 
         const { bounds } = context;
-        const scaledValue = convert(datum.value, context);
+        const scaledValue = convert(value, context);
 
-        if (horizontalLineDatum.is(datum)) {
+        if (isHorizontal) {
             x2 = bounds.width;
             y1 = scaledValue;
             y2 = scaledValue;
