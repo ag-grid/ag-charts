@@ -93,7 +93,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     dialogInputFibonacciBands: 'Dải',
     dialogInputFibonacciBandsAltText: 'Dải Fibonacci',
     dialogInputFollow: 'Theo dõi',
-    dialogInputFollowAltText: 'Theo dõi giá trị của dãy số',
+    dialogInputFollowAltText: 'Theo dõi giá trị của chuỗi dữ liệu',
     dialogInputFollowNone: 'Không',
     dialogInputFollowFirst: 'Giá trị đầu tiên',
     dialogInputFollowLast: 'Giá trị cuối cùng',
