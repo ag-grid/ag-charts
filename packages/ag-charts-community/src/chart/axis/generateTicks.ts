@@ -306,9 +306,8 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
     };
 }
 
-// Explicit values leave no meaningful tick count to nice against: take the tightest enclosing candidate.
-// Time scales are excluded from the even spacing fit: it would hand a gap the user never configured to
-// `TimeScale.niceDomain` as an interval.
+// Explicit values leave no tick count to nice against: take the tightest enclosing candidate. Time scales skip
+// the even spacing fit, which would hand `TimeScale.niceDomain` a gap the user never configured as an interval.
 function calculateNiceDomain<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     scale: TScale,
     domainParams: ScaleTickParams<any>,
