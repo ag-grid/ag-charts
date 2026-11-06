@@ -3,17 +3,29 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
+    AgBoxPlotCrosshairSnapValue,
+    AgBoxPlotSeriesOptions,
+    AgCandlestickSeriesOptions,
     AgCartesianAxesOptions,
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
+    AgCrosshairOptions,
+    AgHlcSeriesOptions,
     AgLineSeriesOptions,
+    AgOhlcSeriesOptions,
+    AgRangeAreaSeriesOptions,
+    AgRangeBarCrosshairSnapValue,
+    AgRangeBarSeriesOptions,
 } from 'ag-charts-community';
 import {
+    HIGH_VOLUME_COUNT,
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+    STRIPPED_NUMBER_AXES,
     applyAxesFlip,
     compareImageSnapshot,
     delay,
+    expectWarningsCalls,
     findAxis,
     getAxisLayoutState,
     getAxisTitleBBox,
@@ -22,17 +34,35 @@ import {
     hoverAction,
     mouseDownAction,
     mouseUpAction,
+    pressKey,
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
+    tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { mapValues } from 'ag-charts-core';
 import type { AgAnnotation } from 'ag-charts-types';
 
-import { getCrosshairLine } from '../../test/featureAccessors';
+import { getCrosshairLine, getCrosshairLines } from '../../test/featureAccessors';
 import { createEnterpriseChart } from '../../test/utils';
 import { ZOOM_VALID_CHECK_DEBOUNCE } from '../zoom/zoomUtils';
+
+interface RangeBarNode {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    yHighValue: number;
+}
+
+interface CandlestickNode {
+    centerX: number;
+    y: number;
+    height: number;
+    highValue: number;
+    datum: { high: number };
+}
 
 // JS callers can return null from a label renderer even though the type forbids it, so this is the one value the
 // options type cannot express.
@@ -271,6 +301,21 @@ describe('Crosshair', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
+    const toCanvas = (x: unknown, y: unknown) => {
+        const xAxis = findAxis(chart, 'bottom');
+        const yAxis = findAxis(chart, 'left');
+        return {
+            x:
+                getAxisLayoutState(chart, 'bottom').translation.x +
+                xAxis.scale.convert(x) +
+                (xAxis.scale.bandwidth ?? 0) / 2,
+            y:
+                getAxisLayoutState(chart, 'left').translation.y +
+                yAxis.scale.convert(y) +
+                (yAxis.scale.bandwidth ?? 0) / 2,
+        };
+    };
+
     const CASES = [
         SIMPLE_LINE_OPTIONS,
         applyAxesFlip(SIMPLE_LINE_OPTIONS),
@@ -397,6 +442,33 @@ describe('Crosshair', () => {
 
         chart = await createEnterpriseChart(options);
         await hoverAction(300, 300)(chart);
+        await compare();
+    });
+
+    it('should follow the pointer on an inset axis in a zoomed chart', async () => {
+        chart = await createEnterpriseChart({
+            ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+            theme: BASE_OPTIONS.theme,
+            data: BASE_OPTIONS.data,
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y1' },
+                { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'yInset' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom', crosshair: CROSSHAIR_OPTIONS },
+                y: { type: 'number', position: 'left', crosshair: CROSSHAIR_OPTIONS },
+                yInset: {
+                    type: 'inset-number',
+                    position: 'right',
+                    lengthRatio: 0.4,
+                    label: { enabled: true },
+                    crosshair: { ...CROSSHAIR_OPTIONS, enabled: true },
+                },
+            },
+            zoom: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.2, end: 0.8 } } },
+        });
+        await hoverAction(300, 450)(chart);
         await compare();
     });
 
@@ -955,16 +1027,6 @@ describe('Crosshair', () => {
             for (const axisId of shown) expect(visibleLabels(axisId), `${axisId} label`).toBe(1);
         };
 
-        // Canvas position of a data point, read from the axes so the test does not encode layout sizes.
-        const toCanvas = (x: number, y: number) => {
-            const xAxis = findAxis(chart, 'bottom');
-            const yAxis = findAxis(chart, 'left');
-            return {
-                x: getAxisLayoutState(chart, 'bottom').translation.x + xAxis.scale.convert(x),
-                y: getAxisLayoutState(chart, 'left').translation.y + yAxis.scale.convert(y),
-            };
-        };
-
         // Every annotation under test passes through the datum at (5, 5); hovering there first is what marks it
         // as the drag target. The drag ends near (8, 8), along the series and far enough that a snapping
         // crosshair changes its highlighted datum mid-drag.
@@ -1093,6 +1155,556 @@ describe('Crosshair', () => {
                 await dragOut(rect.x + rect.width + 20, from.y, 20, 0);
                 expect(crosshairLine('x').visible, 'right').toBe(false);
                 expect(visibleLabels('x'), 'x label right').toBe(0);
+            });
+        });
+    });
+
+    describe('crosshairSnapTo', () => {
+        const BOX_DATA = [
+            { x: 'A', min: 10, q1: 30, median: 50, q3: 70, max: 90 },
+            { x: 'B', min: 20, q1: 35, median: 45, q3: 65, max: 95 },
+            { x: 'C', min: 5, q1: 25, median: 40, q3: 60, max: 80 },
+        ];
+        const CANDLES = [
+            { date: new Date('2024-01-01'), open: 100, high: 130, low: 90, close: 110 },
+            { date: new Date('2024-01-02'), open: 110, high: 140, low: 95, close: 105 },
+            { date: new Date('2024-01-03'), open: 105, high: 125, low: 85, close: 120 },
+        ];
+        const RANGES = [
+            { x: 'A', lo: 20, hi: 60 },
+            { x: 'B', lo: 30, hi: 80 },
+            { x: 'C', lo: 10, hi: 50 },
+        ];
+
+        const boxPlot = (extra: Partial<AgBoxPlotSeriesOptions> = {}): AgBoxPlotSeriesOptions => ({
+            type: 'box-plot',
+            xKey: 'x',
+            minKey: 'min',
+            q1Key: 'q1',
+            medianKey: 'median',
+            q3Key: 'q3',
+            maxKey: 'max',
+            ...extra,
+        });
+        const candlestick = (extra: Partial<AgCandlestickSeriesOptions> = {}): AgCandlestickSeriesOptions => ({
+            type: 'candlestick',
+            xKey: 'date',
+            openKey: 'open',
+            highKey: 'high',
+            lowKey: 'low',
+            closeKey: 'close',
+            ...extra,
+        });
+        const ohlc = (extra: Partial<AgOhlcSeriesOptions> = {}): AgOhlcSeriesOptions => ({
+            type: 'ohlc',
+            xKey: 'date',
+            openKey: 'open',
+            highKey: 'high',
+            lowKey: 'low',
+            closeKey: 'close',
+            ...extra,
+        });
+        const hlc = (extra: Partial<AgHlcSeriesOptions> = {}): AgHlcSeriesOptions => ({
+            type: 'hlc',
+            xKey: 'date',
+            highKey: 'high',
+            lowKey: 'low',
+            closeKey: 'close',
+            ...extra,
+        });
+        const rangeBar = (extra: Partial<AgRangeBarSeriesOptions> = {}): AgRangeBarSeriesOptions => ({
+            type: 'range-bar',
+            xKey: 'x',
+            yLowKey: 'lo',
+            yHighKey: 'hi',
+            ...extra,
+        });
+        const rangeArea = (extra: Partial<AgRangeAreaSeriesOptions> = {}): AgRangeAreaSeriesOptions => ({
+            type: 'range-area',
+            xKey: 'x',
+            yLowKey: 'lo',
+            yHighKey: 'hi',
+            ...extra,
+        });
+
+        const valueAxis = (crosshair: AgCrosshairOptions): AgCartesianAxesOptions => ({
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'number', position: 'left', crosshair },
+        });
+        const categoryCrosshair: AgCartesianAxesOptions = {
+            x: { type: 'category', position: 'bottom', crosshair: { enabled: true, snap: true } },
+            y: { type: 'number', position: 'left' },
+        };
+        const horizontalAxes: AgCartesianAxesOptions = {
+            x: { type: 'number', position: 'bottom' },
+            y: { type: 'category', position: 'left' },
+        };
+
+        const candleOptions = (
+            series: AgCartesianChartOptions['series'],
+            axes?: AgCartesianAxesOptions
+        ): AgCartesianChartOptions => ({ data: CANDLES, series, axes });
+        const boxOptions = (
+            series: AgCartesianChartOptions['series'],
+            axes?: AgCartesianAxesOptions
+        ): AgCartesianChartOptions => ({ data: BOX_DATA, series, axes });
+        const rangeOptions = (
+            series: AgCartesianChartOptions['series'],
+            axes?: AgCartesianAxesOptions
+        ): AgCartesianChartOptions => ({ data: RANGES, series, axes });
+
+        const axisPositionOf = (axis: string, value: unknown) => {
+            const { scale } = findAxis(chart, axis);
+            return scale.convert(value) + (scale.bandwidth ?? 0) / 2;
+        };
+
+        const visibleLabelCount = (axis: string) =>
+            document.querySelectorAll(
+                `.ag-charts-crosshair-label[data-axis-id="${findAxis(chart, axis).id}"]:not(.ag-charts-crosshair-label--hidden)`
+            ).length;
+
+        const byName = (a: string, b: string) => a.localeCompare(b);
+
+        const lineKeys = (axis: string) => getCrosshairLines(chart, axis).map(({ key }) => key);
+
+        const expectLines = (axis: string, expected: Record<string, unknown>) => {
+            const lines = getCrosshairLines(chart, axis);
+            expect(lines.map(({ key }) => key).toSorted(byName)).toEqual(Object.keys(expected).toSorted(byName));
+            for (const { key, position } of lines) {
+                expect(position, `${key} position`).toBeCloseTo(axisPositionOf(axis, expected[key]), 0);
+            }
+            expect(visibleLabelCount(axis), 'visible labels').toBe(lines.length);
+        };
+
+        const expectFollowsPointer = (axis: string, point: { x: number; y: number }) => {
+            const { x, y } = getSeriesRect(chart);
+            const lines = getCrosshairLines(chart, axis);
+            expect(lines.map(({ key }) => key)).toEqual(['pointer']);
+            const expected = ['bottom', 'top'].includes(findAxis(chart, axis).position ?? '')
+                ? point.x - x
+                : point.y - y;
+            expect(lines[0].position).toBeCloseTo(expected, 0);
+            expect(visibleLabelCount(axis)).toBe(1);
+        };
+
+        const hoverDatum = async (x: unknown, y: unknown, offsetX = 0) => {
+            const { x: canvasX, y: canvasY } = toCanvas(x, y);
+            const point = { x: canvasX + offsetX, y: canvasY };
+            await hoverAction(point.x, point.y)(chart);
+            await waitForChartStability(chart);
+            return point;
+        };
+
+        interface SnapCase {
+            options: AgCartesianChartOptions;
+            hover: [x: unknown, y: unknown];
+            offsetX?: number;
+            axis?: string;
+            expected: Record<string, unknown> | 'pointer';
+            cross?: Record<string, unknown>;
+        }
+
+        const SNAP_CASES: Record<string, SnapCase> = {
+            'box-plot ["median"] draws one line at the median': {
+                options: boxOptions([boxPlot({ crosshairSnapTo: ['median'] })]),
+                hover: ['B', 55],
+                expected: { medianKey: 45 },
+            },
+            'candlestick ["close"] draws one line at the close': {
+                options: candleOptions([candlestick({ crosshairSnapTo: ['close'] })]),
+                hover: [CANDLES[1].date, 120],
+                expected: { closeKey: 105 },
+            },
+            'box-plot ["q1", "q3"] draws a line and a label for each': {
+                options: boxOptions([boxPlot({ crosshairSnapTo: ['q1', 'q3'] })]),
+                hover: ['B', 55],
+                expected: { q1Key: 35, q3Key: 65 },
+            },
+            'ignores the order of the list': {
+                options: candleOptions([candlestick({ crosshairSnapTo: ['open', 'close'] })]),
+                hover: [CANDLES[1].date, 120],
+                expected: { openKey: 110, closeKey: 105 },
+            },
+            'ignores duplicates in the list': {
+                options: candleOptions([candlestick({ crosshairSnapTo: ['close', 'close', 'open'] })]),
+                hover: [CANDLES[1].date, 120],
+                expected: { openKey: 110, closeKey: 105 },
+            },
+            'snaps with highlight disabled on the series': {
+                options: boxOptions([boxPlot({ crosshairSnapTo: ['median'], highlight: { enabled: false } })]),
+                hover: ['B', 55],
+                expected: { medianKey: 45 },
+            },
+            'applies a theme override of crosshairSnapTo': {
+                options: {
+                    ...boxOptions([boxPlot()]),
+                    theme: { overrides: { 'box-plot': { series: { crosshairSnapTo: ['median'] } } } },
+                },
+                hover: ['B', 55],
+                expected: { medianKey: 45 },
+            },
+            'replaces the range-bar default with a user list': {
+                options: rangeOptions([rangeBar({ crosshairSnapTo: ['yLow'] })]),
+                hover: ['B', 55],
+                expected: { yLowKey: 30 },
+            },
+            'replaces the range-bar default with an empty list': {
+                options: rangeOptions([rangeBar({ crosshairSnapTo: [] })]),
+                hover: ['B', 55],
+                expected: 'pointer',
+            },
+            'omits the line of a listed value outside the axis range and draws the others': {
+                options: boxOptions([boxPlot({ crosshairSnapTo: ['median', 'q3'] })], {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 60 },
+                }),
+                hover: ['A', 40],
+                expected: { medianKey: 50 },
+            },
+            'draws a line per value for axis snap true without a list on a box-plot': {
+                options: boxOptions([boxPlot()], valueAxis({ snap: true })),
+                hover: ['B', 55],
+                expected: { minKey: 20, q1Key: 35, medianKey: 45, q3Key: 65, maxKey: 95 },
+            },
+            'draws a line per value for axis snap true without a list on a candlestick': {
+                options: candleOptions([candlestick()], { y: { type: 'number', crosshair: { snap: true } } }),
+                hover: [CANDLES[1].date, 120],
+                expected: { openKey: 110, highKey: 140, lowKey: 95, closeKey: 105 },
+            },
+            'draws a line per value for axis snap true without a list on an ohlc': {
+                options: candleOptions([ohlc()], { y: { type: 'number', crosshair: { snap: true } } }),
+                hover: [CANDLES[1].date, 120],
+                expected: { openKey: 110, highKey: 140, lowKey: 95, closeKey: 105 },
+            },
+            'draws a line per value for axis snap true without a list on an hlc': {
+                options: candleOptions([hlc()], { y: { type: 'number', crosshair: { snap: true } } }),
+                hover: [CANDLES[1].date, 120],
+                expected: { highKey: 140, lowKey: 95, closeKey: 105 },
+            },
+            'draws a line per value for axis snap true and nearest mode without a list': {
+                options: candleOptions([candlestick({ crosshairSnapMode: 'nearest' })], {
+                    y: { type: 'number', crosshair: { snap: true } },
+                }),
+                hover: [CANDLES[1].date, 120],
+                expected: { openKey: 110, highKey: 140, lowKey: 95, closeKey: 105 },
+            },
+            'follows the pointer for axis snap false whatever the list': {
+                options: candleOptions([candlestick({ crosshairSnapTo: ['close'] })], {
+                    y: { type: 'number', crosshair: { snap: false } },
+                }),
+                hover: [CANDLES[1].date, 120],
+                expected: 'pointer',
+                cross: { xKey: CANDLES[1].date },
+            },
+            'follows the pointer for an empty list': {
+                options: candleOptions([candlestick({ crosshairSnapTo: [] })]),
+                hover: [CANDLES[1].date, 120],
+                expected: 'pointer',
+                cross: { xKey: CANDLES[1].date },
+            },
+            'follows the pointer for crosshairSnapMode without a list': {
+                options: candleOptions([candlestick({ crosshairSnapMode: 'nearest' })]),
+                hover: [CANDLES[1].date, 120],
+                expected: 'pointer',
+                cross: { xKey: CANDLES[1].date },
+            },
+            'follows the pointer on a box-plot with no options': {
+                options: boxOptions([boxPlot()], categoryCrosshair),
+                hover: ['B', 55],
+                expected: 'pointer',
+                cross: { xKey: 'B' },
+            },
+            'follows the pointer on a candlestick with no options': {
+                options: candleOptions([candlestick()]),
+                hover: [CANDLES[1].date, 120],
+                expected: 'pointer',
+                cross: { xKey: CANDLES[1].date },
+            },
+            'follows the pointer on an ohlc with no options': {
+                options: candleOptions([ohlc()]),
+                hover: [CANDLES[1].date, 120],
+                expected: 'pointer',
+                cross: { xKey: CANDLES[1].date },
+            },
+            'follows the pointer on an hlc with no options': {
+                options: candleOptions([hlc()]),
+                hover: [CANDLES[1].date, 120],
+                expected: 'pointer',
+                cross: { xKey: CANDLES[1].date },
+            },
+            'follows the pointer on a candlestick with a log value axis and no list': {
+                options: candleOptions([candlestick()], { y: { type: 'log' } }),
+                hover: [CANDLES[1].date, 120],
+                expected: 'pointer',
+                cross: { xKey: CANDLES[1].date },
+            },
+            'snaps a line series to the hovered datum with no options': {
+                options: {
+                    data: [
+                        { x: 'A', y: 20 },
+                        { x: 'B', y: 30 },
+                        { x: 'C', y: 25 },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                },
+                hover: ['B', 30],
+                expected: { yKey: 30 },
+            },
+            'snaps to the low and high of a range-bar with no options': {
+                options: rangeOptions([rangeBar()]),
+                hover: ['B', 55],
+                expected: { yLowKey: 30, yHighKey: 80 },
+            },
+            'snaps to the low and high of a range-area with no options': {
+                options: rangeOptions([rangeArea()]),
+                hover: ['B', 55],
+                expected: { yLowKey: 30, yHighKey: 80 },
+            },
+            'applies the list of a horizontal box-plot to the x axis': {
+                options: boxOptions(
+                    [boxPlot({ direction: 'horizontal', crosshairSnapTo: ['median'] })],
+                    horizontalAxes
+                ),
+                hover: [55, 'B'],
+                axis: 'bottom',
+                expected: { medianKey: 45 },
+            },
+            'applies the default of a horizontal range-bar to the x axis': {
+                options: rangeOptions([rangeBar({ direction: 'horizontal' })], horizontalAxes),
+                hover: [55, 'B'],
+                axis: 'bottom',
+                expected: { yLowKey: 30, yHighKey: 80 },
+            },
+            'keeps following the pointer on the category axis of a box-plot': {
+                options: boxOptions([boxPlot({ crosshairSnapTo: ['median'] })], {
+                    x: { type: 'category', position: 'bottom', crosshair: { enabled: true } },
+                    y: { type: 'number', position: 'left' },
+                }),
+                hover: ['B', 55],
+                offsetX: 12,
+                axis: 'bottom',
+                expected: 'pointer',
+            },
+            'keeps snapping on the x axis of a candlestick': {
+                options: candleOptions([candlestick({ crosshairSnapTo: ['close'] })]),
+                hover: [CANDLES[1].date, 120],
+                offsetX: 6,
+                axis: 'bottom',
+                expected: { xKey: CANDLES[1].date },
+            },
+        };
+
+        it.each(Object.entries(SNAP_CASES))(
+            '%s',
+            async (_name, { options, hover, offsetX, axis = 'left', expected, cross }) => {
+                chart = await createEnterpriseChart(options);
+                const point = await hoverDatum(hover[0], hover[1], offsetX);
+
+                if (expected === 'pointer') {
+                    expectFollowsPointer(axis, point);
+                } else {
+                    expectLines(axis, expected);
+                }
+                if (cross != null) {
+                    expectLines('bottom', cross);
+                }
+            }
+        );
+
+        describe('with nothing highlighted', () => {
+            it('hides the crosshair in a gap of a bar series', async () => {
+                chart = await createEnterpriseChart(rangeOptions([{ type: 'bar', xKey: 'x', yKey: 'hi' }]));
+                await hoverDatum('A', 75);
+                expect(lineKeys('left')).toEqual([]);
+            });
+
+            it('follows the pointer on a box-plot without a list', async () => {
+                chart = await createEnterpriseChart(boxOptions([boxPlot()]));
+                const point = await hoverDatum('B', 10);
+                expectFollowsPointer('left', point);
+            });
+        });
+
+        describe('crosshairSnapMode nearest', () => {
+            const ALL_VALUES = { openKey: 110, highKey: 140, lowKey: 95, closeKey: 105 };
+            const nearestOptions = candleOptions([
+                candlestick({ crosshairSnapTo: ['open', 'high', 'low', 'close'], crosshairSnapMode: 'nearest' }),
+            ]);
+
+            it('draws one line at the value nearest the pointer', async () => {
+                chart = await createEnterpriseChart(nearestOptions);
+
+                await hoverDatum(CANDLES[1].date, 138);
+                expectLines('left', { highKey: ALL_VALUES.highKey });
+
+                await hoverDatum(CANDLES[1].date, 97);
+                expectLines('left', { lowKey: ALL_VALUES.lowKey });
+            });
+
+            it('draws every listed value for a datum highlighted by keyboard', async () => {
+                chart = await createEnterpriseChart(nearestOptions);
+
+                await tabIntoChart(chart);
+                await pressKey(chart, 'ArrowRight');
+
+                expect(lineKeys('left').toSorted(byName)).toEqual(Object.keys(ALL_VALUES).toSorted(byName));
+            });
+
+            it('draws every listed value when the keyboard moves on from a hover', async () => {
+                chart = await createEnterpriseChart(nearestOptions);
+
+                await hoverDatum(CANDLES[1].date, 138);
+                expect(lineKeys('left')).toEqual(['highKey']);
+
+                await pressKey(chart, 'ArrowRight');
+                expect(lineKeys('left').toSorted(byName)).toEqual(Object.keys(ALL_VALUES).toSorted(byName));
+            });
+        });
+
+        describe('several series on one axis', () => {
+            const SECOND_BOX_DATA = [
+                { x: 'D', min: 12, q1: 32, median: 52, q3: 72, max: 92 },
+                { x: 'E', min: 22, q1: 37, median: 47, q3: 67, max: 97 },
+            ];
+            const twoSeries = (first: Partial<AgBoxPlotSeriesOptions>, second: Partial<AgBoxPlotSeriesOptions>) =>
+                createEnterpriseChart({
+                    series: [
+                        { ...boxPlot(first), data: BOX_DATA },
+                        { ...boxPlot(second), data: SECOND_BOX_DATA },
+                    ],
+                    axes: valueAxis({}),
+                });
+
+            it('follows the pointer over a series with an empty list while another one keeps snapping', async () => {
+                chart = await twoSeries({ crosshairSnapTo: [] }, { crosshairSnapTo: ['median'] });
+
+                const pointer = await hoverDatum('B', 55, -20);
+                expectFollowsPointer('left', pointer);
+
+                await hoverDatum('D', 55, 20);
+                expectLines('left', { medianKey: 52 });
+
+                const back = await hoverDatum('B', 55, -20);
+                expectFollowsPointer('left', back);
+            });
+
+            it('applies the list of the highlighted series', async () => {
+                chart = await twoSeries({ crosshairSnapTo: ['q1'] }, { crosshairSnapTo: ['q3'] });
+
+                await hoverDatum('B', 55, -20);
+                expectLines('left', { q1Key: 35 });
+
+                await hoverDatum('D', 55, 20);
+                expectLines('left', { q3Key: 72 });
+            });
+        });
+
+        describe('aggregated data', () => {
+            it('snaps to the aggregated values of a range-bar', async () => {
+                chart = await createEnterpriseChart({
+                    data: Array.from({ length: HIGH_VOLUME_COUNT }, (_row, i) => ({
+                        x: i + 1,
+                        lo: Math.sin(i / 10) - 1,
+                        hi: Math.sin(i / 10) + 1,
+                    })),
+                    series: [rangeBar({ xKey: 'x', strokeWidth: 0 })],
+                    axes: STRIPPED_NUMBER_AXES as AgCartesianChartOptions['axes'],
+                });
+
+                const nodes = getSeriesNodeData<RangeBarNode>(chart);
+                expect(nodes.length).toBeLessThan(HIGH_VOLUME_COUNT / 2);
+
+                const yAxis = findAxis(chart, 'left');
+                const aggregated = nodes.find(
+                    (node) => Math.abs(yAxis.scale.convert(node.yHighValue) - node.y) > 3 && node.height > 10
+                );
+                expect(aggregated, 'a bar whose row differs from its bucket').toBeDefined();
+
+                const { x, y } = getSeriesRect(chart);
+                await hoverAction(
+                    x + aggregated!.x + aggregated!.width / 2,
+                    y + aggregated!.y + aggregated!.height / 2
+                )(chart);
+                await waitForChartStability(chart);
+
+                const [high] = getCrosshairLines(chart, 'left').filter(({ key }) => key === 'yHighKey');
+                expect(getCrosshairLines(chart, 'left')).toHaveLength(2);
+                expect(visibleLabelCount('left')).toBe(2);
+                expect(Math.abs(high.position - aggregated!.y)).toBeLessThan(1);
+                expect(Math.abs(high.position - yAxis.scale.convert(aggregated!.yHighValue))).toBeGreaterThan(3);
+            });
+
+            it('snaps to the aggregated high of a candlestick', async () => {
+                chart = await createEnterpriseChart({
+                    data: Array.from({ length: HIGH_VOLUME_COUNT }, (_row, i) => {
+                        const base = Math.sin(i / 10);
+                        return {
+                            date: i + 1,
+                            open: base - 0.2,
+                            close: base + 0.2,
+                            high: base + 0.5 + 0.5 * ((i * 7) % 11),
+                            low: base - 0.5,
+                        };
+                    }),
+                    series: [candlestick({ xKey: 'date', crosshairSnapTo: ['high'] })],
+                    axes: STRIPPED_NUMBER_AXES as AgCartesianChartOptions['axes'],
+                });
+
+                const nodes = getSeriesNodeData<CandlestickNode>(chart);
+                expect(nodes.length).toBeLessThan(HIGH_VOLUME_COUNT / 2);
+
+                const yAxis = findAxis(chart, 'left');
+                const aggregated = nodes.find(
+                    (node) => Math.abs(yAxis.scale.convert(node.datum.high) - node.y) > 3 && node.height > 10
+                );
+                expect(aggregated, 'a candle whose midpoint row differs from its bucket').toBeDefined();
+
+                const { x, y } = getSeriesRect(chart);
+                await hoverAction(x + aggregated!.centerX, y + aggregated!.y + aggregated!.height / 2)(chart);
+                await waitForChartStability(chart);
+
+                const lines = getCrosshairLines(chart, 'left');
+                expect(lines.map(({ key }) => key)).toEqual(['highKey']);
+                expect(visibleLabelCount('left')).toBe(1);
+                expect(Math.abs(lines[0].position - yAxis.scale.convert(aggregated!.highValue))).toBeLessThan(1);
+                expect(Math.abs(lines[0].position - yAxis.scale.convert(aggregated!.datum.high))).toBeGreaterThan(3);
+            });
+        });
+
+        describe('validation', () => {
+            it('warns about a value name the series does not have and applies the valid ones', async () => {
+                chart = await createEnterpriseChart(
+                    boxOptions([boxPlot({ crosshairSnapTo: ['median', 'foo' as AgBoxPlotCrosshairSnapValue] })])
+                );
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].crosshairSnapTo[1]\` cannot be set to \`"foo"\`; expecting one of ["min", "q1", "median", "q3", "max"], ignoring.",
+                    ],
+                  ]
+                `);
+
+                await hoverDatum('B', 55);
+                expectLines('left', { medianKey: 45 });
+            });
+
+            it('falls back to the range-bar default when no value name is valid', async () => {
+                chart = await createEnterpriseChart(
+                    rangeOptions([rangeBar({ crosshairSnapTo: ['foo' as AgRangeBarCrosshairSnapValue] })])
+                );
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].crosshairSnapTo[0]\` cannot be set to \`"foo"\`; expecting one of ["yLow", "yHigh"], ignoring.",
+                    ],
+                    [
+                      "AG Charts - Option \`series[0].crosshairSnapTo\` cannot be set to \`["foo"]\`; expecting an array of crosshair snap values: ["yLow", "yHigh"], ignoring.",
+                    ],
+                  ]
+                `);
+
+                await hoverDatum('B', 55);
+                expectLines('left', { yLowKey: 30, yHighKey: 80 });
             });
         });
     });

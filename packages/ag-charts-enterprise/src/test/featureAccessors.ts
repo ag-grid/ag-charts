@@ -256,7 +256,22 @@ export function getAxisGrantedLabelWidth(chartOrProxy: ChartOrProxy<any>, positi
 // `Crosshair.crosshairGroup` and `Crosshair.lineGroupSelection` are private; the axis owns the crosshair as a module.
 interface CrosshairHost {
     crosshairGroup: { visible: boolean };
-    lineGroupSelection: { nodes(): { visible: boolean; y1: number }[] };
+    lineGroupSelection: {
+        nodes(): { visible: boolean; y1: number }[];
+        each(callback: (line: { visible: boolean; x1: number; y1: number }, key: string) => void): void;
+    };
+}
+
+function getCrosshair(chartOrProxy: ChartOrProxy<any>, positionOrId: string): CrosshairHost {
+    const crosshair = (
+        findAxis(chartOrProxy, positionOrId) as unknown as {
+            getModuleMap(): { getModule<T>(name: string): T | undefined };
+        }
+    )
+        .getModuleMap()
+        .getModule<CrosshairHost>('crosshair');
+    assertPresent(crosshair, `${positionOrId} axis crosshair`);
+    return crosshair;
 }
 
 /**
@@ -267,17 +282,29 @@ export function getCrosshairLine(
     chartOrProxy: ChartOrProxy<any>,
     positionOrId: string
 ): { visible: boolean; y1: number } {
-    const crosshair = (
-        findAxis(chartOrProxy, positionOrId) as unknown as {
-            getModuleMap(): { getModule<T>(name: string): T | undefined };
-        }
-    )
-        .getModuleMap()
-        .getModule<CrosshairHost>('crosshair');
-    assertPresent(crosshair, `${positionOrId} axis crosshair`);
+    const crosshair = getCrosshair(chartOrProxy, positionOrId);
     const [line] = crosshair.lineGroupSelection.nodes();
     assertPresent(line, `${positionOrId} axis crosshair line`);
     return { visible: crosshair.crosshairGroup.visible && line.visible, y1: line.y1 };
+}
+
+/**
+ * Every line the crosshair of the axis at `positionOrId` currently shows, keyed by the series key property it was
+ * drawn for (`'pointer'` for the pointer line). `position` is along the axis, relative to the series area: `x1` of a
+ * crosshair on a horizontal axis, `y1` of one on a vertical axis.
+ */
+export function getCrosshairLines(
+    chartOrProxy: ChartOrProxy<any>,
+    positionOrId: string
+): { key: string; position: number }[] {
+    const crosshair = getCrosshair(chartOrProxy, positionOrId);
+    const isHorizontalAxis = ['bottom', 'top'].includes(findAxis(chartOrProxy, positionOrId).position ?? '');
+    const lines: { key: string; position: number }[] = [];
+    if (!crosshair.crosshairGroup.visible) return lines;
+    crosshair.lineGroupSelection.each((line, key) => {
+        if (line.visible) lines.push({ key, position: isHorizontalAxis ? line.x1 : line.y1 });
+    });
+    return lines;
 }
 
 /** The navigator module. Its track and mini chart are public; the range and drag handling are not, see below. */

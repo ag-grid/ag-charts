@@ -32,7 +32,11 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
             defined,
             cartesianCrossLineLabelOptionsDefs
         ),
-        /* #__PURE__ */ crossLinesContribution(['number', 'log'], numericValue, cartesianCrossLineLabelOptionsDefs),
+        /* #__PURE__ */ crossLinesContribution(
+            ['number', 'inset-number', 'log'],
+            numericValue,
+            cartesianCrossLineLabelOptionsDefs
+        ),
         /* #__PURE__ */ crossLinesContribution(
             ['time', 'unit-time', 'ordinal-time'],
             /* #__PURE__ */ or(numericValue, date),

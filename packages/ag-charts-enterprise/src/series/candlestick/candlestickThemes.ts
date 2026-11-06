@@ -60,11 +60,6 @@ export const CANDLESTICK_SERIES_THEME: ExtensibleSeriesTheme<'candlestick'> = {
     },
     animation: { enabled: false },
     axes: {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: {
-            crosshair: {
-                snap: false,
-            },
-        },
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
             groupPaddingInner: 0,
             crosshair: {

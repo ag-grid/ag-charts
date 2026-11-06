@@ -11,6 +11,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    crosshairSnapToValidator,
     fillOptionsDef,
     lineDashOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
@@ -22,6 +23,7 @@ import {
     strokeOptionsDef,
     tooltipOptionsDefs,
     undocumentedDefs,
+    union,
 } from 'ag-charts-core';
 
 const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOptions> = {
@@ -41,6 +43,8 @@ const candlestickHighlightStyleOptionsDef: OptionsDefs<AgCandlestickHighlightSty
 };
 
 export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeriesThemeableOptions> = {
+    crosshairSnapTo: crosshairSnapToValidator(['open', 'high', 'low', 'close']),
+    crosshairSnapMode: union('all', 'nearest'),
     item: {
         up: candlestickSeriesItemOptionsDef,
         down: candlestickSeriesItemOptionsDef,

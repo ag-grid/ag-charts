@@ -1093,6 +1093,38 @@ describe('CartesianAxis', () => {
         });
     });
 
+    describe('spacing', () => {
+        const leftAxesOptions = (inner: object, outer: object): AgCartesianChartOptions => ({
+            data: [
+                { x: 1, a: 1, b: 10 },
+                { x: 2, a: 2, b: 20 },
+            ],
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'a', yKeyAxis: 'inner' },
+                { type: 'line', xKey: 'x', yKey: 'b', yKeyAxis: 'outer' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                inner: { type: 'number', position: 'left', thickness: 40, ...inner },
+                outer: { type: 'number', position: 'left', thickness: 40, ...outer },
+            },
+        });
+
+        const seriesLeft = async (options: AgCartesianChartOptions) => {
+            chart?.destroy();
+            chart = await createChart(options);
+            return getSeriesRect(chart).x;
+        };
+
+        it('should space stacked axes by the inner axis spacing, not from the series area', async () => {
+            const defaultLeft = await seriesLeft(leftAxesOptions({}, {}));
+
+            expect(await seriesLeft(leftAxesOptions({ spacing: 40 }, {}))).toBe(defaultLeft + 25);
+            expect(await seriesLeft(leftAxesOptions({ spacing: 0 }, {}))).toBe(defaultLeft - 15);
+            expect(await seriesLeft(leftAxesOptions({}, { spacing: 40 }))).toBe(defaultLeft);
+        });
+    });
+
     describe('line', () => {
         const options = (line: AgCartesianChartOptions['axes']): AgCartesianChartOptions => ({
             data: NUMERIC_DATA,

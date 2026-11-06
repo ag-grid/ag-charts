@@ -476,61 +476,6 @@ export const COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES: AgCartesianChar
     })),
 };
 
-export const COMBO_SERIES_COMPLEX_LAYOUT: AgCartesianChartOptions = {
-    ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,
-    axes: {
-        x: COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes!.x,
-        y: { ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes!.y!, min: 0, max: 4000 },
-        ySecondary: { ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes!.ySecondary, min: 100000, max: 140000 },
-        yStart1: {
-            ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes!.y!,
-            min: 0,
-            max: 4000,
-            layoutConstraints: {
-                stacked: false,
-                width: 50,
-                unit: 'percent',
-                align: 'start',
-            },
-        },
-        yStart2: {
-            ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes!.ySecondary,
-            min: 100000,
-            max: 140000,
-            layoutConstraints: {
-                stacked: false,
-                width: 50,
-                unit: 'percent',
-                align: 'start',
-            },
-        },
-        yEnd1: {
-            ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes!.y,
-            min: 0,
-            max: 4000,
-            reverse: true,
-            layoutConstraints: {
-                stacked: false,
-                width: 50,
-                unit: 'percent',
-                align: 'end',
-            },
-        },
-        yEnd2: {
-            ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes!.ySecondary,
-            min: 100000,
-            max: 140000,
-            reverse: true,
-            layoutConstraints: {
-                stacked: false,
-                width: 50,
-                unit: 'percent',
-                align: 'end',
-            },
-        },
-    } as any,
-};
-
 export const AREA_CHART_NO_SERIES: AgCartesianChartOptions = {
     ...examples.STACKED_AREA_GRAPH_EXAMPLE,
     series: examples.STACKED_AREA_GRAPH_EXAMPLE.series?.map((s) => ({ ...s, visible: false })),
