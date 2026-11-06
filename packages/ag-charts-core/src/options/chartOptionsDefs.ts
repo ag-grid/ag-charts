@@ -1,7 +1,6 @@
 import type {
     AgActiveItemState,
     AgActiveState,
-    AgBaseThemeableChartOptions,
     AgCartesianChartOptions,
     AgCartesianSeriesAreaThemableOptions,
     AgChartValidationSeverity,
@@ -38,7 +37,6 @@ import {
     strictUnion,
     string,
     undocumented,
-    undocumentedDefs,
 } from './validation';
 
 /** `seriesArea.backgroundRegions` is owned by the enterprise background regions module. */
@@ -148,14 +146,6 @@ const serializableDate = optionsDefs<AgStateSerializableDate>(
 
 const zoomRangeDef = { start: or(number, serializableDate), end: or(number, serializableDate) };
 const zoomRatioDef = { start: ratio, end: ratio };
-
-export const cartesianChartThemeOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBaseThemeableChartOptions>> = {
-    ...commonChartOptionsDefs,
-    ...undocumentedDefs({
-        // Owned by AG Grid, which stores scatter paired mode in theme overrides.
-        paired: boolean,
-    }),
-};
 
 /** Theme overrides under `common`; axes and module-owned keys are composed in from the registered modules. */
 export const commonThemeOverridesOptionsDefs: OptionsDefs<
