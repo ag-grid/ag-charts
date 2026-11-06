@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Color, type DynamicContext, clamp, isFocused, setAttribute } from 'ag-charts-core';
+import { Color, type DynamicContext, NativeWidget, clamp, isFocused, setAttribute } from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
@@ -42,9 +42,11 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         this.onChangeHide = options.onChangeHide;
 
         const { element, initialFocus } = this.createColorPicker(options);
-        const popover = this.showWithChildren([element], { initialFocus, ...options });
-        popover.classList.add('ag-charts-color-picker');
-        popover.setAttribute('role', 'dialog');
+        // TODO: Phase 3 "Common Widget Ancestor" - the colour picker content is still built from raw elements
+        const content = new NativeWidget(element);
+        const popover = this.showWithChildren([content], { initialFocus: new NativeWidget(initialFocus), ...options });
+        popover.addClass('ag-charts-color-picker');
+        popover.setAriaRole('dialog');
     }
 
     private createColorPicker(opts: ColorPickerOptions) {
