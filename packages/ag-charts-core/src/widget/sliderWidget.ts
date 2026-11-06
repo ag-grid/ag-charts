@@ -59,6 +59,8 @@ export class SliderWidget extends Widget<HTMLInputElement> {
 
     constructor() {
         super(createElement('input'));
+        this.elem.type = 'range';
+        this.elem.style.margin = '0px';
         this.orientation = 'both';
     }
 
@@ -87,6 +89,42 @@ export class SliderWidget extends Widget<HTMLInputElement> {
 
     getValueRatio() {
         return this.getElement().valueAsNumber / this.step.divider;
+    }
+
+    setAriaValueBounds(min: number, max: number) {
+        setAttribute(this.elem, 'aria-valuemin', min);
+        setAttribute(this.elem, 'aria-valuemax', max);
+    }
+
+    /** Sets `aria-valuetext` without changing the value. `setValueRatio` also sets it. */
+    setAriaValueText(ariaValueText: string | undefined) {
+        setAttribute(this.elem, 'aria-valuetext', ariaValueText);
+    }
+
+    /**
+     * Increments the value by one `step` with the native `stepUp()`, so the result snaps to the step grid and is
+     * clamped to the input's range. The input's `step` attribute is restored afterwards.
+     * @param step - The step to use, defaulting to `keyboardStep`.
+     */
+    stepUp(step?: Readonly<SliderStep>) {
+        this.stepBy(step, 1);
+    }
+
+    /** As `stepUp`, but decrements. */
+    stepDown(step?: Readonly<SliderStep>) {
+        this.stepBy(step, -1);
+    }
+
+    private stepBy(step: Readonly<SliderStep> | undefined, direction: 1 | -1) {
+        const elem = this.getElement();
+        const previous = elem.step;
+        elem.step = (step ?? this.keyboardStep ?? this.step).attributeValue;
+        if (direction === 1) {
+            elem.stepUp();
+        } else {
+            elem.stepDown();
+        }
+        elem.step = previous;
     }
 
     private static registerDefaultPreventers(target: SliderWidget, orientation: RovingDirection) {

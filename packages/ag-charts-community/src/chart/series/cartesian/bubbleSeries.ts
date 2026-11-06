@@ -1643,38 +1643,21 @@ export abstract class BubbleScatterSeries<
 
         const data: TooltipContentDataRow[] = [];
 
-        if (this.isLabelEnabled() && labelKey != null) {
-            const value = dataModel.resolveColumnById<string | number | Date>(
-                this,
-                `labelValue`,
-                processedData,
-                'object'
-            )[datumIndex];
-            const content = formatManager.format(this.callWithContext.bind(this), {
-                type: 'category',
-                value,
-                datum,
-                seriesId,
-                legendItemName,
-                key: labelKey,
-                source: 'tooltip',
-                property: 'label',
-                domain: [],
-                boundSeries: this.getFormatterContext('label'),
-            });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+        const labelRow = this.getTooltipLabelRow(dataModel, processedData, datumIndex, datum);
+        if (labelRow != null) {
+            data.push(labelRow);
         }
 
         data.push(
             {
                 label: xName,
-                fallbackLabel: xKey,
+                fallbackLabel: this.keyName(xKey),
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
                 missing: isTooltipValueMissing(xValue, allowNullKeys),
             },
             {
                 label: yName,
-                fallbackLabel: yKey,
+                fallbackLabel: this.keyName(yKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName, allowNullKeys),
                 missing: isTooltipValueMissing(yValue, allowNullKeys),
             }
@@ -1703,7 +1686,7 @@ export abstract class BubbleScatterSeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: name, fallbackLabel: key, value: content ?? formatValue(value) });
+            data.push({ label: name, fallbackLabel: this.keyName(key), value: content ?? formatValue(value) });
             return value;
         };
 
@@ -1767,6 +1750,35 @@ export abstract class BubbleScatterSeries<
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
+    }
+
+    private getTooltipLabelRow(
+        dataModel: DataModel<any, any, true>,
+        processedData: ProcessedData<any>,
+        datumIndex: number,
+        datum: unknown
+    ): TooltipContentDataRow | undefined {
+        const { labelKey, labelName, legendItemName } = this.options;
+        if (!this.isLabelEnabled() || labelKey == null) return undefined;
+
+        const value = dataModel.resolveColumnById<string | number | Date>(this, `labelValue`, processedData, 'object')[
+            datumIndex
+        ];
+        if (value == null) return undefined;
+
+        const content = this.ctx.formatManager.format(this.callWithContext.bind(this), {
+            type: 'category',
+            value,
+            datum,
+            seriesId: this.id,
+            legendItemName,
+            key: labelKey,
+            source: 'tooltip',
+            property: 'label',
+            domain: [],
+            boundSeries: this.getFormatterContext('label'),
+        });
+        return { label: labelName, fallbackLabel: this.keyName(labelKey), value: content ?? formatValue(value) };
     }
 
     private legendItemSymbol(styleOverride?: Partial<NormalisedSeriesMarkerStyle>): LegendSymbolOptions {
@@ -1837,7 +1849,7 @@ export abstract class BubbleScatterSeries<
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: legendItemName ?? title ?? yName ?? itemId,
+                    text: legendItemName ?? title ?? yName ?? this.keyName(itemId),
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,

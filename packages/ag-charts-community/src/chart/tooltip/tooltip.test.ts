@@ -641,6 +641,59 @@ describe('Tooltip', () => {
             expect(content).toContain('label 2');
         });
 
+        it('should render custom renderer rows that omit label or value', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: [{ x: 'Q1', y: 10 }],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            tooltip: {
+                                renderer: () => ({
+                                    data: [{ value: 'only value' }, { label: 'only label' }, {}],
+                                }),
+                            },
+                        },
+                    ],
+                })
+            );
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            const rows = Array.from(element?.getElementsByClassName('ag-charts-tooltip-row') ?? []);
+            expect(rows.map((row) => [row.children.length, row.textContent])).toEqual([
+                [1, 'only value'],
+                [1, 'only label'],
+            ]);
+            expect(element?.getElementsByClassName('ag-charts-tooltip-value')).toHaveLength(0);
+        });
+
+        it('should show the heading inline beside a single value-only custom renderer row', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: [{ x: 'Q1', y: 10 }],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            tooltip: { renderer: () => ({ data: [{ value: 'only value' }] }) },
+                        },
+                    ],
+                })
+            );
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            const rows = Array.from(element?.getElementsByClassName('ag-charts-tooltip-row') ?? []);
+            expect(rows.map((row) => row.textContent)).toEqual(['Q1 only value']);
+            expect(element?.getElementsByClassName('ag-charts-tooltip-heading')).toHaveLength(0);
+        });
+
         it('should not show rows for series with non-finite values (NaN, Infinity) in shared tooltips', async () => {
             chart = deproxy(
                 await createChart({

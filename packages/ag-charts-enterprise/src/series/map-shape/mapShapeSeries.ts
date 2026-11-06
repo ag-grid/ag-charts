@@ -28,6 +28,7 @@ import {
     Selection,
     Text,
     configureColorScale,
+    datumKeyReader,
     findDiscreteColorBinLabel,
     fitLabelTextToRegionAutoSize,
     formatValue,
@@ -287,9 +288,10 @@ export class MapShapeSeries
         const { data, topology, colorScale } = this;
         const { topologyIdKey, idKey, colorKey, labelKey } = this.options;
 
+        const readTopologyId = datumKeyReader(topologyIdKey, this.suppressFieldDotNotation);
         const featureById = new Map<string, Feature>();
         for (const feature of topology?.features.values() ?? []) {
-            const property = feature.properties?.[topologyIdKey];
+            const property = readTopologyId(feature.properties);
             if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) continue;
             featureById.set(property, feature);
         }
@@ -1025,7 +1027,7 @@ export class MapShapeSeries
                 itemId: seriesId,
                 seriesId,
                 enabled: visible,
-                label: { text: legendItemName ?? title ?? idName ?? idKey },
+                label: { text: legendItemName ?? title ?? idName ?? this.keyName(idKey) },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: showInLegend === false,
@@ -1076,7 +1078,7 @@ export class MapShapeSeries
                 domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
+            data.push({ label: labelName, fallbackLabel: this.keyName(labelKey), value: content ?? labelValue });
         }
         if (colorValue != null) {
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
@@ -1100,7 +1102,11 @@ export class MapShapeSeries
                 colorValue,
                 formatValue
             );
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? binLabel ?? String(colorValue) });
+            data.push({
+                label: colorName,
+                fallbackLabel: this.keyName(colorKey!),
+                value: content ?? binLabel ?? String(colorValue),
+            });
         }
 
         const format = this.getItemStyle({ datum, datumIndex, colorValue }, false);
@@ -1118,7 +1124,8 @@ export class MapShapeSeries
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): Path | undefined {
-        return findFocusedGeoGeometry(this, opts);
+        const geometry = findFocusedGeoGeometry(this, opts);
+        return geometry?.projectedGeometry == null ? undefined : geometry;
     }
 
     protected override hasItemStylers(): boolean {

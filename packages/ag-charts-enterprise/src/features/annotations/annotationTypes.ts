@@ -1,6 +1,6 @@
 import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 import type { BBox, Logger } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgAnnotationFollow, AgNumericValue } from 'ag-charts-types';
 
 import type { PointType } from './utils/scale';
 
@@ -120,6 +120,7 @@ export interface AnnotationContext {
     yAxis: AnnotationAxisContext;
     isRtl: boolean;
     getVolume(from: DataPoint['x'], to: DataPoint['x']): AgNumericValue | undefined;
+    getFollowedValue(follow: AgAnnotationFollow): PointType | undefined;
 }
 
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';

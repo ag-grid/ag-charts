@@ -28,10 +28,11 @@ export abstract class TextualStartEndStateMachine<
     Datum extends TextualStartEndDatum,
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
-    'start' | 'waiting-first-render' | 'edit' | 'end',
+    'start' | 'waiting-first-render' | 'waiting-create-render' | 'edit' | 'end',
     Pick<
         AnnotationStateEvents,
         | 'click'
+        | 'create'
         | 'drag'
         | 'dragEnd'
         | 'dragStart'
@@ -64,10 +65,21 @@ export abstract class TextualStartEndStateMachine<
             ctx.create(datum);
         };
 
+        const actionCreateAll = ({ points: [start, end] }: { points: DataPoint[] }) => {
+            const datum = this.createDatum();
+            applyAnnotationOptions(datum, { start, end, visible: true });
+            ctx.create(datum);
+        };
+
         const actionFirstRender = () => {
             const { node } = this;
             node?.toggleActive(true);
             node?.toggleHandles({ start: true });
+        };
+
+        const actionCreatedRender = () => {
+            this.node?.toggleActive(true);
+            ctx.showAnnotationOptions();
         };
 
         const onStartEditing = () => {
@@ -163,6 +175,10 @@ export abstract class TextualStartEndStateMachine<
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
+                create: {
+                    target: 'waiting-create-render',
+                    action: actionCreateAll,
+                },
                 cancel: StateMachine.parent,
                 reset: StateMachine.parent,
             },
@@ -170,6 +186,12 @@ export abstract class TextualStartEndStateMachine<
                 render: {
                     target: 'end',
                     action: actionFirstRender,
+                },
+            },
+            'waiting-create-render': {
+                render: {
+                    target: 'edit',
+                    action: actionCreatedRender,
                 },
             },
             end: {

@@ -1,4 +1,4 @@
-import type { DragWidgetEvent, NativeWidget, Point } from 'ag-charts-core';
+import type { DragWidgetEvent, Point, Widget } from 'ag-charts-core';
 import { Vec2 } from 'ag-charts-core';
 
 import { Popover, type PopoverOptions } from './popover';
@@ -10,7 +10,7 @@ export abstract class DraggablePopover<Options extends PopoverOptions = PopoverO
 
     private dragStartState?: { client: Point; position: Point };
 
-    public setDragHandle(dragHandle: NativeWidget) {
+    public setDragHandle(dragHandle: Widget) {
         dragHandle.addListener('drag-start', (event) => {
             dragHandle.addClass(this.dragHandleDraggingClass);
             this.onDragStart(event);
@@ -23,7 +23,7 @@ export abstract class DraggablePopover<Options extends PopoverOptions = PopoverO
     }
 
     protected onDragStart(event: DragWidgetEvent<'drag-start'>) {
-        const popover = this.getPopoverElement();
+        const popover = this.getPopoverWidget();
         if (!popover) return;
 
         // Prevent text selection while dragging
@@ -33,16 +33,13 @@ export abstract class DraggablePopover<Options extends PopoverOptions = PopoverO
 
         this.dragStartState = {
             client: Vec2.from(event.clientX, event.clientY),
-            position: Vec2.from(
-                Number(popover.style.getPropertyValue('left').replace('px', '')),
-                Number(popover.style.getPropertyValue('top').replace('px', ''))
-            ),
+            position: Vec2.from(popover.cssLeft(), popover.cssTop()),
         };
     }
 
     protected onDragMove(event: DragWidgetEvent<'drag-move'>) {
         const { dragStartState } = this;
-        const popover = this.getPopoverElement();
+        const popover = this.getPopoverWidget();
 
         if (!dragStartState || !popover) return;
 

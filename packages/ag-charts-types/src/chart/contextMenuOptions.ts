@@ -305,7 +305,7 @@ export interface AgContextMenuOptions<TDatum = DatumDefault, TContext = ContextD
     /**
      * Whether a right-click with the Ctrl or Cmd key held opens the browser context menu instead of the chart context menu.
      *
-     * This is mainly useful for reaching the browser developer tools, for example to inspect the chart. Set to `false` to always show the chart context menu.
+     * This is mainly useful for reaching the browser developer tools, for example to inspect the chart.
      *
      * Default: `true`
      */

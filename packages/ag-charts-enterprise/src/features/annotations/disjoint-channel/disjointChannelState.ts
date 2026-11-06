@@ -16,10 +16,10 @@ interface DisjointChannelStateMachineContext extends Omit<AnnotationsCreateState
 }
 
 export class DisjointChannelStateMachine extends StateMachine<
-    'start' | 'waiting-first-render' | 'end' | 'height',
+    'start' | 'waiting-first-render' | 'waiting-create-render' | 'end' | 'height',
     Pick<
         AnnotationStateEvents,
-        'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset' | 'render'
+        'click' | 'create' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset' | 'render'
     >
 > {
     override debug = Debug.create(true, 'annotations');
@@ -38,6 +38,20 @@ export class DisjointChannelStateMachine extends StateMachine<
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = disjointChannelDatum.create();
             applyAnnotationOptions(datum, { start: point, end: point });
+            ctx.create(datum);
+        };
+
+        const actionCreateAll = ({ points: [start, end, heightPoint] }: { points: DataPoint[] }) => {
+            const datum = disjointChannelDatum.create();
+            applyAnnotationOptions(datum, { start, end });
+
+            const startY = getGroupingValue(start.y);
+            const endY = getGroupingValue(end.y);
+            if (isNumber(startY) && isNumber(endY) && isNumber(heightPoint.y)) {
+                datum.endHeight = endY - heightPoint.y;
+                datum.startHeight = (startY - endY) * 2 + datum.endHeight;
+            }
+
             ctx.create(datum);
         };
 
@@ -122,6 +136,13 @@ export class DisjointChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
+        const actionCreatedRender = () => {
+            this.node?.toggleActive(true);
+            ctx.recordAction(`Create ${AnnotationType.DisjointChannel} annotation`);
+            ctx.showAnnotationOptions();
+            ctx.update();
+        };
+
         const actionCancel = () => ctx.delete();
 
         super('start', {
@@ -134,12 +155,22 @@ export class DisjointChannelStateMachine extends StateMachine<
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
+                create: {
+                    target: 'waiting-create-render',
+                    action: actionCreateAll,
+                },
                 reset: StateMachine.parent,
             },
             'waiting-first-render': {
                 render: {
                     target: 'end',
                     action: actionFirstRender,
+                },
+            },
+            'waiting-create-render': {
+                render: {
+                    target: StateMachine.parent,
+                    action: actionCreatedRender,
                 },
             },
             end: {

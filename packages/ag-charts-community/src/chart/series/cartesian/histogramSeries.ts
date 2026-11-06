@@ -1238,7 +1238,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const data: TooltipContentDataRow[] = [
             {
                 label: xName,
-                fallbackLabel: xKey,
+                fallbackLabel: this.keyName(xKey),
                 value: `${this.getAxisValueText(xAxis, 'tooltip', rangeMin, datum, xKey, legendItemName)} - ${this.getAxisValueText(xAxis, 'tooltip', rangeMax, datum, xKey, legendItemName)}`,
             },
             {
@@ -1251,13 +1251,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             let label: string;
             switch (options.aggregation) {
                 case 'sum':
-                    label = localeManager.t('seriesHistogramTooltipSum', { yName: yName ?? yKey });
+                    label = localeManager.t('seriesHistogramTooltipSum', { yName: yName ?? this.keyName(yKey) });
                     break;
                 case 'mean':
-                    label = localeManager.t('seriesHistogramTooltipMean', { yName: yName ?? yKey });
+                    label = localeManager.t('seriesHistogramTooltipMean', { yName: yName ?? this.keyName(yKey) });
                     break;
                 case 'count':
-                    label = localeManager.t('seriesHistogramTooltipCount', { yName: yName ?? yKey });
+                    label = localeManager.t('seriesHistogramTooltipCount', { yName: yName ?? this.keyName(yKey) });
                     break;
             }
 
@@ -1323,7 +1323,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: yName ?? itemId ?? 'Frequency',
+                    text: yName ?? (itemId == null ? undefined : this.keyName(itemId)) ?? 'Frequency',
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: showInLegend === false,

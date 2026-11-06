@@ -1,5 +1,5 @@
 import {
-    AgChartOptions,
+    AgCartesianChartOptions,
     AgCharts,
     CategoryAxisModule,
     LineSeriesModule,
@@ -12,7 +12,7 @@ import { DataType, getData } from './data';
 
 ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, RangesModule]);
 
-const options: AgChartOptions<DataType> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     ranges: {
@@ -65,7 +65,7 @@ function testThemeTop() {
             },
         },
     };
-    chart.update(options as any);
+    chart.update(options);
 }
 
 function testThemeChild() {
@@ -109,5 +109,5 @@ function testThemeChild() {
             },
         },
     };
-    chart.update(options as any);
+    chart.update(options);
 }

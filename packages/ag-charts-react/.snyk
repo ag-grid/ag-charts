@@ -1,6 +1,12 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-FOLLOWREDIRECTS-21762031:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.649Z
   SNYK-JS-FOLLOWREDIRECTS-21280747:
     - 'ag-charts-community@0.0.0-use.local > ag-charts-test@0.0.0-use.local > skia-canvas@3.0.8 > follow-redirects@1.16.0':
         reason: >-

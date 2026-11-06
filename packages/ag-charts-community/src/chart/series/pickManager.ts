@@ -1,6 +1,7 @@
 import { type Node, objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
+import type { DataIdReader } from '../data/dataSet';
 import type { ActiveManager } from '../interaction/activeManager';
 import type { SeriesNodeDatum } from './seriesTypes';
 
@@ -22,12 +23,12 @@ export type PickedNodes = {
     target: Node<unknown> | undefined;
 };
 
-export function getItemId(node: PickedNode, dataIdKey?: string): NonNullable<AgActiveItemState['itemId']> {
+export function getItemId(node: PickedNode, dataSet?: DataIdReader): NonNullable<AgActiveItemState['itemId']> {
     if (node.itemId !== undefined) {
         return node.itemId;
     }
-    if (dataIdKey !== undefined) {
-        const idValue = (node.datum as any)?.[dataIdKey];
+    if (dataSet?.dataIdKey !== undefined) {
+        const idValue = dataSet.readDataId(node.datum);
         if (idValue != null) {
             return typeof idValue === 'number' ? idValue : String(idValue);
         }
@@ -94,7 +95,7 @@ export class PickManager {
             return [undefined, undefined];
         } else {
             const seriesId: string = desiredActive.series.id;
-            const itemId: string | number = getItemId(desiredActive, desiredActive.series.data?.dataIdKey);
+            const itemId: string | number = getItemId(desiredActive, desiredActive.series.data);
             return [{ type: 'series-node', seriesId, itemId }, desiredActive];
         }
     }

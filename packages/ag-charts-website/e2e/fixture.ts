@@ -38,7 +38,7 @@ const LOCATOR_FACTORIES = new Set([
 // A chart wrapper whose stability attributes are missing or not yet both 'false'.
 const UNSETTLED_CHART = '.ag-charts-wrapper:not([data-update-pending="false"][data-animating="false"])';
 
-async function waitForCharts(page: Page) {
+export async function waitForCharts(page: Page) {
     // rAF then setTimeout(0): lets rAF-scheduled chart updates start and DOMElementProxy's deferred
     // DOM flush run, so the stability attributes are not read before an animation is scheduled.
     await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));

@@ -124,3 +124,15 @@ export const TEXT_SIZE_ITEMS: _ModuleSupport.MenuItem<number>[] = [
     { label: '36', value: 36 },
     { label: '46', value: 46 },
 ];
+
+const ANNOTATION_ITEMS = [
+    ...LINE_ANNOTATION_ITEMS,
+    ...FIBONACCI_ANNOTATION_ITEMS,
+    ...TEXT_ANNOTATION_ITEMS,
+    ...SHAPE_ANNOTATION_ITEMS,
+    ...MEASURER_ANNOTATION_ITEMS,
+];
+
+export function getAnnotationLabel(type: AnnotationType) {
+    return ANNOTATION_ITEMS.find((item) => item.value === type)?.label;
+}

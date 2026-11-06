@@ -1,3 +1,4 @@
+import type { ChartType } from 'ag-charts-core';
 import {
     BASE_FONT_SIZE,
     Color,
@@ -37,7 +38,6 @@ import type {
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
-import type { ChartType } from '../chartType';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts

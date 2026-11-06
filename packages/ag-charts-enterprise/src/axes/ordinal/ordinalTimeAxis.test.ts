@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
 import type { ChartOrProxy } from 'ag-charts-community-test';
 import {
     applyIntervalBetween,
@@ -600,7 +599,7 @@ describe('Ordinal Time Axis Examples', () => {
         });
 
         // Every node in the scene graph: a base tier that was merely hidden would otherwise pass as removed.
-        const labelTexts = (chartInstance: _ModuleSupport.Chart): string[] =>
+        const labelTexts = (chartInstance: Parameters<typeof getAxisLabelTexts>[0]): string[] =>
             getAxisLabelTexts(chartInstance, 'bottom', { visibleOnly: false });
 
         const isParentTier = (text: string) => /[A-Za-z]/.test(text);

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 
-import { Color, isUnsupportedColorFormat } from './color';
+import { Color, isLightDarkColor, isUnsupportedColorFormat } from './color';
 
 describe('Color', () => {
     test('constructor', () => {
@@ -416,15 +416,19 @@ describe('Color', () => {
         }
     });
 
-    test('isUnsupportedColorFormat rejects the four unsupported formats, incl. mixed case and leading whitespace', () => {
+    test('isUnsupportedColorFormat rejects the unsupported formats, incl. mixed case and leading whitespace', () => {
         const unsupported = [
             'oklab(0.5 0.1 0.1)',
             'lab(50% 40 59.5)',
             'lch(50% 70 40)',
             'color(display-p3 1 0.5 0)',
             'color(srgb 1 0 0)',
+            'light-dark(red, blue)',
+            'light-dark(rgb(0, 0, 0), #fff)',
             'LAB(50% 40 59.5)',
+            'LIGHT-DARK(red, blue)',
             '  lch(50% 70 40)',
+            '  light-dark(red, blue)',
         ];
         for (const value of unsupported) {
             expect(isUnsupportedColorFormat(value)).toBe(true);
@@ -443,12 +447,21 @@ describe('Color', () => {
         expect(isUnsupportedColorFormat('rgb(1,2,3)')).toBe(false);
     });
 
-    test('isUnsupportedColorFormat does not reject formats outside its four-format scope (D1 guard)', () => {
-        // The predicate rejects exactly `oklab()`/`lab()`/`lch()`/`color()`; every other format the browser
+    test('isUnsupportedColorFormat does not reject formats outside its scope (D1 guard)', () => {
+        // The predicate rejects exactly `oklab()`/`lab()`/`lch()`/`color()`/`light-dark()`; every other format the browser
         // accepts must fall through so the generic `color` validator is not narrowed wholesale.
         expect(isUnsupportedColorFormat('hwb(194 0% 0%)')).toBe(false);
         expect(isUnsupportedColorFormat('color-mix(in srgb, red, blue)')).toBe(false);
         expect(isUnsupportedColorFormat('currentColor')).toBe(false);
+        expect(isUnsupportedColorFormat('var(--x)')).toBe(false);
+    });
+
+    test('isLightDarkColor matches only a light-dark() colour', () => {
+        expect(isLightDarkColor('light-dark(red, blue)')).toBe(true);
+        expect(isLightDarkColor(' LIGHT-DARK(red, blue)')).toBe(true);
+        expect(isLightDarkColor('lab(50% 40 59.5)')).toBe(false);
+        expect(isLightDarkColor('var(--x)')).toBe(false);
+        expect(isLightDarkColor('red')).toBe(false);
     });
 
     test('validColorString/fromString dispatch case-insensitively for rgb/hsl', () => {

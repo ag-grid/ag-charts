@@ -8,15 +8,7 @@ import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanc
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type {
-    ContextDefault,
-    CssColor,
-    DatumDefault,
-    Opacity,
-    PixelSize,
-    Ratio,
-    ResolvedDatumKey,
-} from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type {
     AgColorScale,
     AgColorType,
@@ -154,15 +146,15 @@ export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = Conte
 
 export interface AgSunburstSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the label. */
-    labelKey?: ResolvedDatumKey<TDatum>;
+    labelKey?: DatumKey<TDatum>;
     /** The name of the node key containing a secondary label. */
-    secondaryLabelKey?: ResolvedDatumKey<TDatum>;
+    secondaryLabelKey?: DatumKey<TDatum>;
     /** The name of the node key containing the children. Defaults to `children`. */
-    childrenKey?: ResolvedDatumKey<TDatum>;
+    childrenKey?: DatumKey<TDatum>;
     /** The name of the node key containing the size value. */
-    sizeKey?: ResolvedDatumKey<TDatum>;
+    sizeKey?: DatumKey<TDatum>;
     /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the segment colour. */
-    colorKey?: ResolvedDatumKey<TDatum>;
+    colorKey?: DatumKey<TDatum>;
 }
 
 export interface AgSunburstSeriesOptionsNames {

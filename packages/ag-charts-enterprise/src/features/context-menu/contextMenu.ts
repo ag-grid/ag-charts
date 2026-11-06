@@ -25,12 +25,13 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { CallbackParamRules, DynamicContext, NormalisedContextMenuOptions, WidgetEvent } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
+    ContextMenuContainerWidget,
+    IconWidget,
+    MenuItemCellWidget,
     MenuItemWidget,
     MenuWidget,
     callWithContext,
     clamp,
-    createElement,
-    getIconClassNames,
     toPlainText,
 } from 'ag-charts-core';
 
@@ -113,10 +114,9 @@ export class ContextMenu extends AbstractModuleInstance {
     private y: number = 0;
     private collapsingSubMenus = 0;
 
-    // HTML elements
-    private readonly element: HTMLElement;
+    // Widgets
+    private readonly container: ContextMenuContainerWidget;
     private readonly menuWidget: MenuWidget = new MenuWidget();
-    private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: ContextMenuCtx) {
         super();
@@ -125,35 +125,31 @@ export class ContextMenu extends AbstractModuleInstance {
         this.interactionManager = ctx.interactionManager;
 
         // State
-        this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
-        this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
-        this.element.style.display = 'none';
-        this.element.addEventListener('contextmenu', (event) => event.preventDefault());
+        const container = new ContextMenuContainerWidget(ctx.domManager.addChild('canvas-overlay', moduleId));
+        this.container = container;
+        container.addClass(DEFAULT_CONTEXT_MENU_CLASS);
+        container.setHidden(true);
+        container.addListener('contextmenu', ({ sourceEvent }) => sourceEvent.preventDefault());
         // Automatically close the context menu when focus changes with TAB / Shift+TAB.
-        this.element.addEventListener('focusout', ({ relatedTarget }) => {
+        container.addFocusLeaveListener(() => {
             if (this.collapsingSubMenus > 0) return;
-            if (relatedTarget == null || (relatedTarget instanceof Node && !this.element.contains(relatedTarget))) {
-                this.hide();
-            }
+            this.hide();
         });
         this.cleanup.register(
-            () => this.element.remove(),
+            // Destroy the menu while it is detached from the document, then release the container's listeners.
+            () => container.remove(),
             () => this.menuWidget.destroy(),
+            () => container.destroy(),
             ctx.eventsHub.on('dom:hidden', () => this.hide()),
             this.menuWidget.addListener('collapse-widget', () => this.onCollapse())
         );
         this.menuWidget.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
 
-        if (typeof MutationObserver !== 'undefined') {
-            const observer = new MutationObserver(() => {
-                if (this.element.contains(this.menuWidget.getElement())) {
-                    this.reposition();
-                }
-            });
-            observer.observe(this.element, { childList: true });
-            this.mutationObserver = observer;
-            this.cleanup.register(() => observer.disconnect());
-        }
+        container.observeChildList(() => {
+            if (container.contains(this.menuWidget)) {
+                this.reposition();
+            }
+        });
 
         this.ctx.contextMenuRegistry.builtins.items['download'].action = () => {
             const title = ctx.chartService.title;
@@ -284,7 +280,7 @@ export class ContextMenu extends AbstractModuleInstance {
     ): SeriesNodeParams[] {
         return pickedNodes.map((node: PickedNode): SeriesNodeParams => {
             // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
-            const itemId = getItemId(node, node.series.data?.dataIdKey);
+            const itemId = getItemId(node, node.series.data);
             const region: SeriesNodeParams = {
                 showOn: 'series-node',
                 event,
@@ -470,7 +466,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private show(event: ContextMenuEvent, expandedItems: ContextMenuItem[]) {
         const { sourceEvent } = event.widgetEvent;
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
-        this.element.style.display = 'block';
+        this.container.setHidden(false);
 
         const overrideFocusVisible = sourceEvent.pointerType === 'touch' ? false : undefined;
         if (overrideFocusVisible !== undefined) {
@@ -478,7 +474,7 @@ export class ContextMenu extends AbstractModuleInstance {
         }
 
         this.createMenu(event, expandedItems);
-        this.element.appendChild(this.menuWidget.getElement());
+        this.container.addChild(this.menuWidget);
         this.menuWidget.expand({ sourceEvent, overrideFocusVisible });
     }
 
@@ -488,22 +484,22 @@ export class ContextMenu extends AbstractModuleInstance {
 
     private onCollapse() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
-        this.menuWidget.getElement().remove();
-        this.element.style.display = 'none';
+        this.menuWidget.remove();
+        this.container.setHidden(true);
     }
 
     private onSubMenuExpand(button: MenuItemWidget, menu: MenuWidget) {
         const bounds = button.getBounds();
         button.setFocusOverride(true);
-        button.getElement().insertAdjacentElement('afterend', menu.getElement());
-        menu.getElement().style.position = 'absolute';
+        button.insertSiblingAfter(menu);
+        menu.setCSSPosition('absolute');
 
         const { isRtl } = this.ctx.domManager;
         const canvasRect = this.ctx.domManager.getBoundingClientRect();
         const buttonClientRect = button.getBoundingClientRect();
         const remainingSpaceOnRight = canvasRect.right - buttonClientRect.right;
         const remainingSpaceOnLeft = buttonClientRect.left - canvasRect.left;
-        const { offsetWidth: menuOffsetWidth, offsetHeight: menuOffsetHeight } = menu.getElement();
+        const { offsetWidth: menuOffsetWidth, offsetHeight: menuOffsetHeight } = menu;
 
         let y: number = bounds.y;
         // Clip the Y-position (if the submenu fits in the canvas).
@@ -554,7 +550,7 @@ export class ContextMenu extends AbstractModuleInstance {
             switch (item.type) {
                 case 'separator': {
                     const sep = menuWidget.addSeparator();
-                    sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
+                    sep.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
                     break;
                 }
                 case 'action': {
@@ -721,17 +717,16 @@ export class ContextMenu extends AbstractModuleInstance {
         }
     }
 
-    private initTableCells(elem: Element) {
-        const cellIcon = createElement('div');
-        const cellLabel = createElement('div');
-        const cellArrow = createElement('div');
-        cellIcon.classList.toggle(`${DEFAULT_CONTEXT_MENU_CLASS}__icon`, true);
-        cellLabel.classList.toggle(`${DEFAULT_CONTEXT_MENU_CLASS}__cell`, true);
-        cellArrow.classList.toggle(`${DEFAULT_CONTEXT_MENU_CLASS}__cell`, true);
-        cellIcon.ariaHidden = 'true';
-        cellLabel.role = 'presentation';
-        cellArrow.ariaHidden = 'true';
-        elem.append(cellIcon, cellLabel, cellArrow);
+    private initTableCells(button: MenuItemWidget) {
+        const cellIcon = new MenuItemCellWidget(`${DEFAULT_CONTEXT_MENU_CLASS}__icon`);
+        const cellLabel = new MenuItemCellWidget(`${DEFAULT_CONTEXT_MENU_CLASS}__cell`);
+        const cellArrow = new MenuItemCellWidget(`${DEFAULT_CONTEXT_MENU_CLASS}__cell`);
+        cellIcon.setAriaHidden(true);
+        cellLabel.setAriaRole('presentation');
+        cellArrow.setAriaHidden(true);
+        button.addChild(cellIcon);
+        button.addChild(cellLabel);
+        button.addChild(cellArrow);
         return { cellIcon, cellLabel, cellArrow };
     }
 
@@ -741,19 +736,16 @@ export class ContextMenu extends AbstractModuleInstance {
         const label = this.ctx.localeManager.t(item.label);
 
         const cellPaddingClass = `${DEFAULT_CONTEXT_MENU_CLASS}__cellpadding`;
-        const { cellIcon, cellLabel, cellArrow } = this.initTableCells(button.getElement());
-        cellLabel.textContent = label;
-        cellLabel.classList.add(cellPaddingClass);
+        const { cellIcon, cellLabel, cellArrow } = this.initTableCells(button);
+        cellLabel.setTextContent(label);
+        cellLabel.addClass(cellPaddingClass);
         if (item.iconUrl != null) {
-            const img = createElement('img');
-            img.src = item.iconUrl;
-            cellIcon.append(img);
-            cellIcon.classList.add(cellPaddingClass);
+            cellIcon.addChild(IconWidget.fromUrl(item.iconUrl));
+            cellIcon.addClass(cellPaddingClass);
         }
         if (item.items.length > 0) {
-            const span = createElement('span', getIconClassNames('chevron-right'));
-            cellArrow.append(span);
-            cellArrow.classList.add(cellPaddingClass);
+            cellArrow.addChild(IconWidget.fromName('chevron-right'));
+            cellArrow.addClass(cellPaddingClass);
         }
 
         const { showOn, action } = item;
@@ -771,23 +763,19 @@ export class ContextMenu extends AbstractModuleInstance {
         const { isRtl } = this.ctx.domManager;
         let { x, y } = this;
 
-        this.element.style.top = 'unset';
-        this.element.style.bottom = 'unset';
+        this.container.unsetVerticalPosition();
 
         const canvasRect = this.ctx.domManager.getBoundingClientRect();
-        const { offsetWidth: width, offsetHeight: height } = this.element;
+        const { offsetWidth: width, offsetHeight: height } = this.container;
 
         x = clamp(0, isRtl ? x - width : x, canvasRect.width - width);
         y = clamp(0, y, canvasRect.height - height);
 
-        this.element.style.left = `${x}px`;
-        this.element.style.top = `calc(${y}px - 0.5em)`;
+        this.container.setPosition(x, y);
     }
 
     public override destroy() {
         super.destroy();
-
-        this.mutationObserver?.disconnect();
 
         this.ctx.domManager.removeStyles(moduleId);
         this.ctx.domManager.removeChild('canvas-overlay', moduleId);
