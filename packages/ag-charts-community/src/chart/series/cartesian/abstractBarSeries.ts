@@ -189,11 +189,41 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
      * axis, so each bar tiles one data step.
      */
     isProfile() {
-        if (this.getValueAxis()?.lengthRatio == null) return false;
+        const valueAxis = this.getValueAxis();
         const categoryAxis = this.getCategoryAxis();
-        if (categoryAxis == null || !ContinuousScale.is(categoryAxis.scale)) return false;
-        return categoryAxis.boundSeries.some((series) => series !== this && isValueAxisOf(series, categoryAxis));
+        const lengthRatio = valueAxis?.lengthRatio;
+        const scale = categoryAxis?.scale;
+        const boundSeries = categoryAxis?.boundSeries;
+        const cached = this.profileCache;
+        if (
+            cached != null &&
+            cached.valueAxis === valueAxis &&
+            cached.lengthRatio === lengthRatio &&
+            cached.scale === scale &&
+            cached.boundSeries === boundSeries
+        ) {
+            return cached.isProfile;
+        }
+
+        const isProfile =
+            lengthRatio != null &&
+            categoryAxis != null &&
+            ContinuousScale.is(scale) &&
+            categoryAxis.boundSeries.some((series) => series !== this && isValueAxisOf(series, categoryAxis));
+        this.profileCache = { valueAxis, lengthRatio, scale, boundSeries, isProfile };
+        return isProfile;
     }
+
+    // Binding series to axes assigns a fresh `boundSeries` array, so its identity marks a rebinding.
+    private profileCache:
+        | {
+              valueAxis: ChartAxis | undefined;
+              lengthRatio: number | undefined;
+              scale: ChartAxis['scale'] | undefined;
+              boundSeries: ChartAxis['boundSeries'] | undefined;
+              isProfile: boolean;
+          }
+        | undefined;
 
     /** A profile leaves its category axis' domain to the series it describes while any of them is shown. */
     protected describesOtherSeries() {
@@ -236,9 +266,31 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return (axis.range[0] + axis.range[1]) / 2 - axis.scale.convert(level);
     }
 
+    /** The data step of a profile on a log axis, where each level tiles its own pixel band rather than a shared one. */
+    protected logProfileStep(axis: ChartAxis): number | undefined {
+        if (axis.scale.type !== 'log' || !this.isProfile()) return;
+        const step = Number(this.smallestDataInterval);
+        return Number.isFinite(step) && step > 0 ? step : undefined;
+    }
+
+    protected logProfileLevelStart(scale: ChartAxis['scale'], level: unknown, step: number) {
+        const value = Number(level);
+        return Math.min(scale.convert(value - step / 2), scale.convert(value + step / 2));
+    }
+
+    protected logProfileLevelWidth(scale: ChartAxis['scale'], level: unknown, step: number) {
+        const value = Number(level);
+        return Math.abs(scale.convert(value + step / 2) - scale.convert(value - step / 2));
+    }
+
     profileLevelExtent(level: unknown): [number, number] | undefined {
         const axis = this.getCategoryAxis();
         if (axis == null || !this.isProfile()) return;
+        const logStep = this.logProfileStep(axis);
+        if (logStep != null) {
+            const start = this.logProfileLevelStart(axis.scale, level, logStep);
+            return [start, start + this.logProfileLevelWidth(axis.scale, level, logStep)];
+        }
         const half = this.profileLevelWidth(axis) / 2;
         const centre = axis.scale.convert(level) + this.singleLevelOffset(axis);
         return [centre - half, centre + half];
@@ -247,6 +299,11 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     override xCoordinateRange(xValue: any): [number, number] {
         const xAxis = this.axes[this.getCategoryDirection()]!;
         const xScale = xAxis.scale;
+        const logStep = this.logProfileStep(xAxis);
+        if (logStep != null) {
+            const start = this.logProfileLevelStart(xScale, xValue, logStep);
+            return [start, start + this.logProfileLevelWidth(xScale, xValue, logStep)];
+        }
         const bandWidth = this.getBandwidth(xAxis, 0);
         const barOffset = ContinuousScale.is(xScale) ? bandWidth * -0.5 + this.singleLevelOffset(xAxis) : 0;
         const x = xScale.convert(xValue) + barOffset;
@@ -280,7 +337,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             groupOffset = bandwidth - groupOffset - groupBandWidth;
         }
 
-        return { groupOffset, barOffset, barWidth };
+        return { groupOffset, barOffset, barWidth, bandwidth };
     }
 
     /**

@@ -265,7 +265,7 @@ export class CartesianChartType implements ChartTypeInstance {
             const start = bandStart <= 0 ? paddedStart : rectStart + bandStart;
             const end = bandEnd >= rectLength - 1e-6 ? paddedStart + paddedLength : rectStart + bandEnd;
             for (const series of axis.boundSeries) {
-                // A profile tiles half a step past its outer levels, so it stays clipped while the chart is not.
+                // Bands clip with the series area, but a profile tiles half a step past its outer levels so always clips.
                 if (!enableClip && !series.isProfile?.()) continue;
                 const band = bands.get(series) ?? seriesPaddedRect.clone();
                 if (isHorizontal) {
@@ -293,12 +293,7 @@ export class CartesianChartType implements ChartTypeInstance {
             const band = seriesBands.get(series);
             if (band == null && !bandClippedSeries.has(series)) continue;
 
-            for (const group of [
-                series.contentGroup,
-                series.highlightGroup,
-                series.labelGroup,
-                series.annotationGroup,
-            ]) {
+            for (const group of series.getRenderGroups()) {
                 group.setClipRect(band);
             }
         }

@@ -627,10 +627,7 @@ export interface AgInsetNumberAxisThemeOptions<
     extends
         Omit<AgInsetNumberAxisOptions<TContext>, ThemeOmittedAxisOptions | 'lengthRatio'>,
         AgCartesianAxisThemeOptions<Omit<AgInsetNumberAxisOptions<TContext>, 'lengthRatio'>>,
-        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {
-    /** The length of the axis, as a ratio of the series area. */
-    lengthRatio?: Ratio;
-}
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
 export interface AgLogAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
     extends

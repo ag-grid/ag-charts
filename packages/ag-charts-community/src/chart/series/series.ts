@@ -1221,6 +1221,11 @@ export abstract class Series<
     /** The canvas-space band the series is clipped to; it takes no interactions outside it. */
     interactionBand: BBox | undefined = undefined;
 
+    /** Every group the series draws into. */
+    getRenderGroups(): Group[] {
+        return [this.contentGroup, this.highlightGroup, this.labelGroup, this.annotationGroup];
+    }
+
     private isInInteractionBand({ x, y }: Point) {
         const { interactionBand } = this;
         if (interactionBand == null) return true;

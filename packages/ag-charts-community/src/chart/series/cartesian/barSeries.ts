@@ -199,6 +199,9 @@ interface BarSeriesNodeDatumContext {
     readonly groupOffset: number;
     readonly barOffset: number;
     readonly barWidth: number;
+    readonly bandwidth: number;
+    /** Set for a profile on a log axis, whose levels each scale the shared band to their own. */
+    readonly logProfileStep: number | undefined;
     readonly range: number;
 
     // Pre-computed values (scale conversions or computed - worth caching)
@@ -715,7 +718,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const labelFit = labelsEnabled ? resolveLabelFit(label, !alwaysShow) : undefined;
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
+        const { groupOffset, barOffset, barWidth, bandwidth } = this.getBarDimensions();
 
         let yStartValues: AgNumericValue[] | undefined;
         let yEndValues: AgNumericValue[] | undefined;
@@ -771,6 +774,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             groupOffset,
             barOffset,
             barWidth,
+            bandwidth,
+            logProfileStep: this.logProfileStep(xAxis),
             range,
             yReversed: yAxis.isReversed(),
             crossReversed: this.getCategoryAxis()?.isReversed() ?? false,
@@ -832,9 +837,26 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * Computes the x position for a datum at the given index.
      */
     private computeXPosition(ctx: BarSeriesNodeDatumContext, datumIndex: number): number {
-        const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
+        const xValue = ctx.xValues[datumIndex];
+        const { logProfileStep } = ctx;
+        if (logProfileStep != null) {
+            const start = this.logProfileLevelStart(ctx.xScale, xValue, logProfileStep);
+            const offset = ctx.groupOffset + ctx.barOffset + ctx.bandwidth / 2;
+            return start + offset * this.logProfileLevelRatio(ctx, xValue, logProfileStep);
+        }
+        const x = ctx.xScale.convert(xValue);
         if (!Number.isFinite(x)) return Number.NaN;
-        return x + ctx.groupOffset + ctx.barOffset + this.getDatumOffset(ctx.xValues[datumIndex]);
+        return x + ctx.groupOffset + ctx.barOffset + this.getDatumOffset(xValue);
+    }
+
+    private computeBarWidth(ctx: BarSeriesNodeDatumContext, datumIndex: number): number {
+        const { logProfileStep } = ctx;
+        if (logProfileStep == null) return ctx.barWidth;
+        return ctx.barWidth * this.logProfileLevelRatio(ctx, ctx.xValues[datumIndex], logProfileStep);
+    }
+
+    private logProfileLevelRatio(ctx: BarSeriesNodeDatumContext, xValue: unknown, step: number) {
+        return this.logProfileLevelWidth(ctx.xScale, xValue, step) / ctx.bandwidth;
     }
 
     private resolveFilterStackValue(
@@ -1294,7 +1316,13 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 const xMax = xPosition(xMaxIndex);
                 const x = Math.min(xMin, xMax);
                 // The width of the shape is the width from the left of the first bar to the right of the second bar
-                const width = Math.abs(xMax - xMin) + ctx.barWidth;
+                const width =
+                    ctx.logProfileStep == null
+                        ? Math.abs(xMax - xMin) + ctx.barWidth
+                        : Math.max(
+                              xMin + this.computeBarWidth(ctx, xMinIndex),
+                              xMax + this.computeBarWidth(ctx, xMaxIndex)
+                          ) - x;
 
                 // start & end may be incorrect when there's a lot of missing data
                 if (x + width < 0 || x > ctx.range) continue;
@@ -1342,7 +1370,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     ): void {
         const processedData = this.processedData! as GroupedData<any>;
         const invalidData = processedData.invalidData?.get(this.id);
-        const width = ctx.barWidth;
+        const { barWidth, logProfileStep } = ctx;
         let yRangeIndex: number;
         if (ctx.filteredValueExceedUnfiltered) {
             yRangeIndex = this.dataModel!.resolveProcessedDataIndexById(this, 'yFilterValue-range');
@@ -1395,7 +1423,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
                 nodeDatumParamsScratch.datumIndex = datumIndex;
                 nodeDatumParamsScratch.x = x;
-                nodeDatumParamsScratch.width = width;
+                nodeDatumParamsScratch.width =
+                    logProfileStep == null ? barWidth : this.computeBarWidth(ctx, datumIndex);
                 nodeDatumParamsScratch.yStart = yStart;
                 nodeDatumParamsScratch.yEnd = yEnd;
                 nodeDatumParamsScratch.yRange = yRange;
@@ -1416,7 +1445,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         nodeDatumParamsScratch: NodeDatumParams
     ): void {
         const invalidData = this.processedData!.invalidData?.get(this.id);
-        const width = ctx.barWidth;
+        const { barWidth, logProfileStep } = ctx;
         const visibleRange = this.visibleRangeIndices('xValue', ctx.xAxis.range);
         let start = visibleRange[0];
         let end = visibleRange[1];
@@ -1438,7 +1467,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
             nodeDatumParamsScratch.datumIndex = datumIndex;
             nodeDatumParamsScratch.x = x;
-            nodeDatumParamsScratch.width = width;
+            nodeDatumParamsScratch.width = logProfileStep == null ? barWidth : this.computeBarWidth(ctx, datumIndex);
             // zeroLike() so a bigint value's baseline stays bigint and shares its full-precision convert() path.
             nodeDatumParamsScratch.yStart = zeroLike(yEnd);
             nodeDatumParamsScratch.yEnd = yEnd;
@@ -2267,8 +2296,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const bottomY = ctx.yScale.convert(yStart);
         if (!Number.isFinite(y) || !Number.isFinite(bottomY)) return undefined;
 
-        const crossStart = x + ctx.barWidth * 0.5 * (1 - crossScale);
-        const crossWidth = ctx.barWidth * crossScale;
+        const barWidth = this.computeBarWidth(ctx, datumIndex);
+        const crossStart = x + barWidth * 0.5 * (1 - crossScale);
+        const crossWidth = barWidth * crossScale;
         const alongStart = Math.min(y, bottomY);
         const alongLength = Math.abs(bottomY - y);
 

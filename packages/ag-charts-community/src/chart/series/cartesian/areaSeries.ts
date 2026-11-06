@@ -316,6 +316,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         seriesContentNode.appendChild(this.backgroundGroup);
     }
 
+    override getRenderGroups() {
+        return [...super.getRenderGroups(), this.backgroundGroup];
+    }
+
     override detachSeries(
         seriesContentNode: Group | undefined,
         seriesNode: Group,

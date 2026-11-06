@@ -14,8 +14,9 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { Rect } from 'ag-charts-core';
 
-import { createEnterpriseChart } from '../../test/utils';
+import { createEnterpriseChart, itemNodes } from '../../test/utils';
 
 const DATA = [
     { year: '2001', price: 24, volume: 13, size: 3 },
@@ -184,6 +185,37 @@ describe('InsetNumberAxis', () => {
         expect([...axisLabels].sort((a, b) => a.localeCompare(b))).toEqual(['x: price', 'y: price', 'y: profile']);
     });
 
+    it('should tile profile bars edge to edge on a log price axis', async () => {
+        chart = await createEnterpriseChart({
+            data: DATA,
+            series: [
+                {
+                    type: 'bar',
+                    direction: 'horizontal',
+                    data: [20, 22, 24, 26, 28, 30, 32].map((price, i) => ({ price, volume: 3 + i })),
+                    xKey: 'price',
+                    yKey: 'volume',
+                    yKeyAxis: 'xProfile',
+                },
+                { type: 'line', xKey: 'year', yKey: 'price' },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'log', position: 'right', nice: false, min: 19, max: 33 },
+                xProfile: { type: 'inset-number', position: 'top', lengthRatio: 0.4, reverse: true },
+            },
+        });
+
+        const spans = itemNodes<Rect>(chart)
+            .map(({ y, height }) => [y, y + height])
+            .sort(([a], [b]) => a - b);
+        expect(spans).toHaveLength(7);
+        for (let i = 1; i < spans.length; i++) {
+            expect(spans[i][0]).toBeCloseTo(spans[i - 1][1]);
+        }
+        expect(spans[0][1] - spans[0][0]).not.toBeCloseTo(spans.at(-1)![1] - spans.at(-1)![0]);
+    });
+
     it('should keep ordinary bar widths on an inset axis over a time axis', async () => {
         chart = await createEnterpriseChart({
             data: DATA.map((d, i) => ({ ...d, date: new Date(2024, 0, 1 + i) })),
@@ -242,6 +274,46 @@ describe('InsetNumberAxis', () => {
         });
 
         await expectPixelIdenticalAcrossUpdate(ctx, createEnterpriseChart, options(false), options(true));
+    });
+
+    it('should clip the fill of an area series overrunning its band', async () => {
+        chart = await createEnterpriseChart({
+            data: DATA,
+            series: [
+                { type: 'line', xKey: 'year', yKey: 'price' },
+                { type: 'area', xKey: 'year', yKey: 'volume', yKeyAxis: 'yVolume' },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'right' },
+                yVolume: { type: 'inset-number', position: 'left', lengthRatio: 0.25, max: 10 },
+            },
+        });
+
+        await compareImageSnapshot(chart, ctx);
+    });
+
+    it('should leave series unclipped past their band while the series area is unclipped', async () => {
+        chart = await createEnterpriseChart({
+            data: DATA,
+            series: [
+                { type: 'line', xKey: 'year', yKey: 'price' },
+                {
+                    type: 'bar',
+                    xKey: 'year',
+                    yKey: 'volume',
+                    yKeyAxis: 'yVolume',
+                    label: { enabled: true, placement: 'outside-end', fontSize: 24 },
+                },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'right' },
+                yVolume: { type: 'inset-number', position: 'left', lengthRatio: 0.25 },
+            },
+        });
+
+        await compareImageSnapshot(chart, ctx);
     });
 
     describe('outside the band', () => {

@@ -310,24 +310,24 @@ describe('Zoom', () => {
     });
 
     describe('inset axes', () => {
-        it('should keep the whole domain of an inset axis in view when zoomed', async () => {
-            const baseOptions: AgCartesianChartOptions = {
-                ...EXAMPLE_OPTIONS,
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y' },
-                    { type: 'line', xKey: 'x', yKey: 'y', yName: 'Inset', yKeyAxis: 'yInset' },
-                ],
-                axes: {
-                    x: { type: 'number', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                    yInset: { type: 'inset-number', position: 'right', lengthRatio: 0.5 },
-                },
-            };
+        const insetOptions = (yInset: object = {}): AgCartesianChartOptions => ({
+            ...EXAMPLE_OPTIONS,
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y' },
+                { type: 'line', xKey: 'x', yKey: 'y', yName: 'Inset', yKeyAxis: 'yInset' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+                yInset: { type: 'inset-number', position: 'right', lengthRatio: 0.5, ...yInset },
+            },
+        });
 
+        it('should keep the whole domain of an inset axis in view when zoomed', async () => {
             await prepareChart(
                 undefined,
                 { ratioX: { start: 0.25, end: 0.75 }, ratioY: { start: 0.25, end: 0.75 } },
-                baseOptions,
+                insetOptions(),
                 false
             );
 
@@ -343,24 +343,11 @@ describe('Zoom', () => {
         });
 
         describe('axis gestures', () => {
-            const insetOptions: AgCartesianChartOptions = {
-                ...EXAMPLE_OPTIONS,
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y' },
-                    { type: 'line', xKey: 'x', yKey: 'y', yName: 'Inset', yKeyAxis: 'yInset' },
-                ],
-                axes: {
-                    x: { type: 'number', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                    yInset: { type: 'inset-number', position: 'right', lengthRatio: 0.5, label: { enabled: true } },
-                },
-            };
-
             async function prepareInsetChart(zoomOptions: AgChartOptions['zoom']) {
                 await prepareChart(
                     { axes: 'xy', ...zoomOptions },
                     { ratioX: { start: 0.25, end: 0.75 }, ratioY: { start: 0.25, end: 0.75 } },
-                    insetOptions
+                    insetOptions({ label: { enabled: true } })
                 );
                 const { seriesRect } = deproxy(chart);
                 return { x: seriesRect!.x + seriesRect!.width + 10, y: seriesRect!.y + seriesRect!.height * 0.75 };

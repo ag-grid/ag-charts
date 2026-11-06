@@ -7,8 +7,8 @@ import {
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
-    ratio,
     titleAxisThemeTemplate,
+    without,
 } from 'ag-charts-core';
 
 import { AxisInteractionModule } from '../../features/axis-interaction/axisInteractionModule';
@@ -29,7 +29,9 @@ export const InsetNumberAxisModule: AxisModuleDefinition<
 
     options: insetNumberAxisOptionsDefs,
 
-    themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs({ ...insetNumberAxisOptionsDefs, lengthRatio: ratio }),
+    themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(
+        /* #__PURE__ */ without(insetNumberAxisOptionsDefs, ['lengthRatio'])
+    ),
     themeTemplate: mergeDefaults(
         {
             nice: false,
