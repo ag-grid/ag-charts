@@ -384,7 +384,7 @@ export type CrossLineLabelOverflow = 'pad-chart' | 'realign-text' | 'clip-text';
 // themed in `crossLinesModule.ts`, so they are absent from the public label options.
 export type NormalisedAxisCrossLineLabelOptions = Normalised<
     AgBaseCrossLineLabelOptions,
-    'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'color' | 'cornerRadius',
+    'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'spacing' | 'color' | 'cornerRadius',
     { fontFamily: string; color?: CssColor; fill?: NormalisedColorType; border?: NormalisedBorderOptions }
 > &
     // The fit options apply to cartesian cross lines only.

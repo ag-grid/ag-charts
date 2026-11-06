@@ -72,6 +72,7 @@ type InteractionEvents = {
 };
 
 type ActionEvents = {
+    create: { points: DataPoint[] };
     copy: undefined;
     cut: undefined;
     paste: undefined;

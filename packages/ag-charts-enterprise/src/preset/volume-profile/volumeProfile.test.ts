@@ -25,7 +25,8 @@ describe('volume profile levels', () => {
                 { price: 160, up: 7, down: 8 },
             ],
             KEYS,
-            10
+            10,
+            false
         );
 
         expect(levels.map(({ price, priceLow, priceHigh }) => [price, priceLow, priceHigh])).toEqual([
@@ -37,7 +38,7 @@ describe('volume profile levels', () => {
     });
 
     it('should keep the bounds free of float noise', () => {
-        const [level] = normaliseVolumeProfile([{ price: 0.3, up: 1, down: 1 }], KEYS, 0.1);
+        const [level] = normaliseVolumeProfile([{ price: 0.3, up: 1, down: 1 }], KEYS, 0.1, false);
         expect([level.priceLow, level.priceHigh]).toEqual([0.25, 0.35]);
     });
 });
@@ -47,7 +48,7 @@ describe('volume profile tooltips', () => {
     const getTheme = () => ({}) as ChartTheme;
     const [upSeries, downSeries] = createVolumeProfileSeries(getTheme, 'x');
 
-    const [level] = normaliseVolumeProfile([{ price: 150, up: 56617298, down: 68115020 }], KEYS, 10);
+    const [level] = normaliseVolumeProfile([{ price: 150, up: 56617298, down: 68115020 }], KEYS, 10, false);
 
     const renderTooltip = (series: typeof upSeries, datum = level) => {
         const { yKey, yName } = series;
@@ -78,7 +79,7 @@ describe('volume profile tooltips', () => {
     });
 
     it('should keep the one decimal place when a volume is a round number', () => {
-        const [round] = normaliseVolumeProfile([{ price: 150, up: 3_000_000, down: 1_000 }], KEYS, 10);
+        const [round] = normaliseVolumeProfile([{ price: 150, up: 3_000_000, down: 1_000 }], KEYS, 10, false);
         expect(render(downSeries, round)).toEqual([
             { label: 'Down Volume', value: '1.0K' },
             { label: 'Total', value: '3.0M' },

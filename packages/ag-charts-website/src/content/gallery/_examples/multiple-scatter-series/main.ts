@@ -216,7 +216,7 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Global Average',
                         placement: 'right',
-                        padding: 5,
+                        spacing: 5,
                     },
                 },
             ],

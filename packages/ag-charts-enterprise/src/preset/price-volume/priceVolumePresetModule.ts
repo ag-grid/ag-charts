@@ -70,6 +70,7 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     dataSource: defined,
     formatter: defined,
     enableRtl: boolean,
+    suppressFieldDotNotation: boolean,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
         foreground: defined,

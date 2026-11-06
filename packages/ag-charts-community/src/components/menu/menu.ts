@@ -1,12 +1,12 @@
 import type { ClickWidgetEvent, ExpansionControllerWidget, LabelIcon } from 'ag-charts-core';
-import { MenuItemRadioWidget, MenuItemWidget, MenuWidget, createElement, getIconClassNames } from 'ag-charts-core';
+import { IconWidget, MenuItemRadioWidget, MenuItemWidget, MenuWidget, TextSpanWidget } from 'ag-charts-core';
 
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 
 export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
     items: Array<MenuItem<Value>>;
     value?: Value;
-    onPress?: (item: MenuItem<Value>) => void;
+    onPress?: (item: MenuItem<Value>, event: ClickWidgetEvent) => void;
     menuItemRole?: 'menuitem' | 'menuitemradio';
 }
 
@@ -54,12 +54,11 @@ export class Menu extends AnchoredPopover {
         row.toggleClass(`ag-charts-menu__row--active`, active);
 
         if (typeof item.value === 'string') {
-            row.getElement().dataset.popoverId = item.value;
+            row.setData('popoverId', item.value);
         }
 
         if (item.icon != null) {
-            const icon = createElement('span', `ag-charts-menu__icon ${getIconClassNames(item.icon)}`);
-            row.getElement().appendChild(icon);
+            row.addChild(IconWidget.fromName(item.icon, 'ag-charts-menu__icon'));
         }
 
         const strokeWidthVisible = item.strokeWidth != null;
@@ -69,17 +68,16 @@ export class Menu extends AnchoredPopover {
         }
 
         if (item.label != null) {
-            const label = createElement('span', 'ag-charts-menu__label');
-            label.textContent = this.ctx.localeManager.t(item.label);
-            row.getElement().appendChild(label);
+            row.addChild(new TextSpanWidget(this.ctx.localeManager.t(item.label), 'ag-charts-menu__label'));
         }
 
         if ('altText' in item) {
             row.setAriaLabel(this.ctx.localeManager.t(item.altText));
         }
 
-        row.addListener('click', ({ sourceEvent }: ClickWidgetEvent) => {
-            options.onPress?.(item);
+        row.addListener('click', (event: ClickWidgetEvent) => {
+            const { sourceEvent } = event;
+            options.onPress?.(item, event);
             sourceEvent.preventDefault();
             menu.collapse();
         });

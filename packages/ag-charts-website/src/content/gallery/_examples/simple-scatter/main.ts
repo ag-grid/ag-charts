@@ -81,7 +81,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     label: {
                         text: 'Mean: 201 lbs',
                         placement: 'left-top',
-                        padding: 8,
+                        spacing: 8,
                     },
                 },
             ],
@@ -115,7 +115,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     label: {
                         text: `Mean: 6'2"`,
                         placement: 'bottom-right',
-                        padding: 8,
+                        spacing: 8,
                     },
                 },
             ],

@@ -1,5 +1,5 @@
 import { _Theme } from 'ag-charts-community';
-import { type Logger } from 'ag-charts-core';
+import { type Logger, datumKeyReader } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
@@ -107,13 +107,16 @@ export function priceVolume(
     const shownVolumeKey = volume ? volumeKey : undefined;
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
 
-    const profileLevels = volumeProfile && groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize, logger);
+    const suppressFieldDotNotation = opts.suppressFieldDotNotation ?? false;
+    const profileLevels =
+        volumeProfile &&
+        groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize, suppressFieldDotNotation, logger);
 
     return {
         animation: { enabled: false },
         legend: { enabled: false },
         series: [
-            ...createVolumeSeries(getTheme, keys, shownVolumeKey),
+            ...createVolumeSeries(getTheme, keys, shownVolumeKey, suppressFieldDotNotation),
             ...createPriceVolumeProfileSeries(getTheme, profileLevels, volumeProfile),
             ...createPriceSeries(chartType, keys, logger),
         ],
@@ -250,9 +253,13 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
 function createVolumeSeries(
     getTheme: () => ChartTheme,
     { xKey, openKey, closeKey }: PriceSeriesKeys,
-    volumeKey: string | undefined
+    volumeKey: string | undefined,
+    suppressFieldDotNotation: boolean
 ) {
     if (volumeKey == null) return [];
+
+    const readOpen = datumKeyReader(openKey, suppressFieldDotNotation);
+    const readClose = datumKeyReader(closeKey, suppressFieldDotNotation);
 
     return [
         {
@@ -266,7 +273,9 @@ function createVolumeSeries(
             // @ts-expect-error undocumented option
             simpleItemStyler(datum: DatumDefault) {
                 const { up, down } = getTheme().palette;
-                return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
+                return {
+                    fill: readOpen(datum) < readClose(datum) ? up?.fill : down?.fill,
+                };
             },
             focusIndex: 1,
             highlight: { unhighlightedSeries: { opacity: 1 } },

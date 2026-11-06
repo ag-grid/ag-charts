@@ -49,7 +49,7 @@ import {
     fontOptionsDef,
     labelBoxOptionsDef,
     lineDashOptionsDef,
-    signedPadding,
+    padding,
     strokeOptionsDef,
     textAlign,
     textWrap,
@@ -93,8 +93,8 @@ import {
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
     text: string,
-    // Signed: label padding positions the label relative to the line, so negative values are meaningful.
-    padding: signedPadding,
+    padding,
+    spacing: number,
     border: borderOptionsDef,
     cornerRadius: positiveNumber,
     ...fontOptionsDef,

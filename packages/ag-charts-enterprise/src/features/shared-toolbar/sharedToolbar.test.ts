@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { NativeWidget } from 'ag-charts-core';
+
 import { SharedToolbar } from './sharedToolbar';
 
 // The width cache is exercised via the private helper directly: JSDOM reports offsetWidth as 0, so
@@ -14,12 +16,13 @@ interface SharedToolbarInternals {
 
 interface MeasuredToolbar {
     getBounds(): { width: number };
-    getElement(): HTMLElement;
+    clearWidth(): void;
 }
 
 function createMeasuredToolbar(width: number) {
-    const element = document.createElement('div');
-    return { element, getBounds: vi.fn(() => ({ width })), getElement: () => element };
+    const widget = new NativeWidget(document.createElement('div'));
+    const getBounds = vi.fn(() => ({ width }));
+    return { element: widget.getElement(), getBounds, clearWidth: () => widget.clearWidth() };
 }
 
 function createSharedToolbar(): SharedToolbarInternals {
@@ -131,11 +134,10 @@ describe('SharedToolbar layout pass', () => {
     }
 
     function createPass(isRtl: boolean) {
-        const element = document.createElement('div');
         let buttons: Array<{ buttonSize?: number }> = [];
         const sharedToolbar = {
             horizontalSpacing: 10,
-            getElement: () => element,
+            clearWidth: vi.fn(),
             // The natural column width is the widest button (34px unless sized).
             getBounds: () => ({ width: Math.max(0, ...buttons.map((b) => b.buttonSize ?? 34)) }),
             setBounds: vi.fn(),

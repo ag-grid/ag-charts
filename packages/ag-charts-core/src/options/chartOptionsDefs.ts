@@ -152,6 +152,7 @@ const zoomRatioDef = { start: ratio, end: ratio };
 export const cartesianChartThemeOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBaseThemeableChartOptions>> = {
     ...commonChartOptionsDefs,
     ...undocumentedDefs({
+        // Owned by AG Grid, which stores scatter paired mode in theme overrides.
         paired: boolean,
     }),
 };

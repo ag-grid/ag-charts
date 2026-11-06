@@ -12,12 +12,12 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import { CartesianChart } from '../cartesianChart';
+import { Chart } from '../chart';
+import { CartesianChartAxes } from '../chartAxes';
 import { AreaSeries } from '../series/cartesian/areaSeries';
 import { BarSeries } from '../series/cartesian/barSeries';
 import { LineSeries } from '../series/cartesian/lineSeries';
 import { PieSeries } from '../series/polar/pieSeries';
-import { StandaloneChart } from '../standaloneChart';
 import type { ChartOrProxy } from '../test/utils';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
@@ -194,7 +194,7 @@ describe('ChartTheme', () => {
         });
 
         it('Cartesian chart instance properties', () => {
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
 
             expect(chart.title?.enabled).toBe(true);
             expect(chart.title?.opts.fontSize).toBe(24);
@@ -291,7 +291,7 @@ describe('ChartTheme', () => {
         });
 
         it('Pie chart instance properties', () => {
-            if (!(chart instanceof StandaloneChart)) fail();
+            if (!(chart instanceof Chart && chart.getChartType() === 'standalone')) fail();
 
             expect(chart.title?.enabled).toBe(true);
             expect(chart.title?.opts.fontSize).toBe(24);
@@ -439,7 +439,7 @@ describe('ChartTheme', () => {
 
         it('Cartesian chart instance properties', async () => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
 
             await waitForChartStability(chart);
 
@@ -466,7 +466,7 @@ describe('ChartTheme', () => {
 
         it('Pie chart instance properties', async () => {
             chart = deproxy(AgCharts.create(pieChartOptions));
-            if (!(chart instanceof StandaloneChart)) fail();
+            if (!(chart instanceof Chart && chart.getChartType() === 'standalone')) fail();
 
             await waitForChartStability(chart);
 
@@ -792,7 +792,7 @@ describe('ChartTheme', () => {
                     ],
                 } as AgCartesianChartOptions)
             );
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
 
             const axisY = chart.axes.y;
@@ -842,7 +842,7 @@ describe('ChartTheme', () => {
                     ],
                 } as AgCartesianChartOptions)
             );
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
 
             const axisY = chart.axes.y;
@@ -902,7 +902,7 @@ describe('ChartTheme', () => {
                     ],
                 } as AgCartesianChartOptions)
             );
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
 
             const axisY = chart.axes.y;
@@ -979,7 +979,7 @@ describe('ChartTheme', () => {
                     ],
                 } as AgCartesianChartOptions)
             );
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
 
             const axisY = chart.axes.y;
@@ -1044,7 +1044,7 @@ describe('ChartTheme', () => {
 
         it('resolves a user `strokeWidth` without a notice', async () => {
             chart = await createChart({ strokeWidth: 5 });
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
 
             const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(5);
@@ -1053,7 +1053,7 @@ describe('ChartTheme', () => {
 
         it('defaults `strokeWidth` to 1 when unset', async () => {
             chart = await createChart(undefined);
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
 
             const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(1);
@@ -1120,7 +1120,7 @@ describe('ChartTheme', () => {
 
         it('Cartesian chart instance properties', async () => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
             const { series } = chart;
 

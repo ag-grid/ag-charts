@@ -24,6 +24,7 @@ import {
     Text,
     Transformable,
     configureColorScale,
+    datumKeyReader,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
@@ -192,9 +193,10 @@ export class MapLineSeries
         const { data, topology, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain } = this.options;
 
+        const readTopologyId = datumKeyReader(topologyIdKey, this.suppressFieldDotNotation);
         const featureById = new Map<string, Feature>();
         for (const feature of topology?.features.values() ?? []) {
-            const property = feature.properties?.[topologyIdKey];
+            const property = readTopologyId(feature.properties);
             if (property == null || !containsType(feature.geometry, GeometryType.LineString)) continue;
             featureById.set(property, feature);
         }
@@ -833,7 +835,7 @@ export class MapLineSeries
                 itemId: seriesId,
                 seriesId,
                 enabled: visible,
-                label: { text: legendItemName ?? title ?? idName ?? idKey },
+                label: { text: legendItemName ?? title ?? idName ?? this.keyName(idKey) },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: showInLegend === false,
@@ -896,7 +898,7 @@ export class MapLineSeries
                 domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
+            data.push({ label: labelName, fallbackLabel: this.keyName(labelKey), value: content ?? labelValue });
         }
         if (sizeValue != null && sizeKey != null) {
             const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
@@ -914,7 +916,7 @@ export class MapLineSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
+            data.push({ label: sizeName, fallbackLabel: this.keyName(sizeKey), value: content ?? String(sizeValue) });
         }
         if (colorValue != null && colorKey != null) {
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
@@ -938,7 +940,11 @@ export class MapLineSeries
                 colorValue,
                 formatValue
             );
-            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? binLabel ?? String(colorValue) });
+            data.push({
+                label: colorName,
+                fallbackLabel: this.keyName(colorKey),
+                value: content ?? binLabel ?? String(colorValue),
+            });
         }
 
         const format = this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);

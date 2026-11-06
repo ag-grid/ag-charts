@@ -235,6 +235,8 @@ export class LongTapInterpreter {
         const { candidate } = this;
         if (candidate == null) return;
         const { touch, target } = candidate;
+        // TODO: Phase 3 "Common Widget Ancestor" - the gesture listeners below need capture and non-passive options,
+        // which Widget listeners do not offer.
         const element = this.widget.getElement();
         this.disarm();
 

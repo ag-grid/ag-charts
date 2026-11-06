@@ -136,7 +136,7 @@ export abstract class DataModelSeries<
     public abstract getNodeData(): TDatum[] | undefined;
 
     override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum | undefined {
-        return findNodeDatumInArray(itemId, this.getNodeData(), this.data?.dataIdKey);
+        return findNodeDatumInArray(itemId, this.getNodeData(), this.data);
     }
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {

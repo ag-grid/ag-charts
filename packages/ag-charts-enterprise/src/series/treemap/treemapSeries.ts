@@ -36,6 +36,7 @@ import {
     Text,
     Transformable,
     cycledValue,
+    datumKeyReader,
     drawnLineHeight,
     findDiscreteColorBinLabel,
     findLargestFittingFontSize,
@@ -49,6 +50,7 @@ import {
     measureLabelText,
     mergeDefaults,
     mergeGlow,
+    readDatumKey,
     resolveMinimumFontSize,
     resolveTextAlign,
     toPlainText,
@@ -685,6 +687,10 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
         if (!seriesRect || !data) return;
 
+        const suppressFieldDotNotation = this.data?.suppressFieldDotNotation ?? false;
+        const readLabel = labelKey == null ? undefined : datumKeyReader(labelKey, suppressFieldDotNotation);
+        const readSecondaryLabel =
+            secondaryLabelKey == null ? undefined : datumKeyReader(secondaryLabelKey, suppressFieldDotNotation);
         this.rootNode?.walk((node) => {
             const { datum, depth, children } = node;
             const isLeaf = children.length === 0;
@@ -692,7 +698,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const labelStyle = isLeaf ? tile.label : group.label;
             let labelValue: NormalisedTextOrSegments | undefined;
             if (labelStyle.enabled && datum != null && depth != null && labelKey != null) {
-                const value = (datum as any)[labelKey];
+                const value = readLabel?.(datum);
                 labelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
                     value,
                     datum,
@@ -720,7 +726,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
             let secondaryLabelValue: NormalisedTextOrSegments | undefined;
             if (tile.secondaryLabel.enabled && isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
-                const value = (datum as any)[secondaryLabelKey];
+                const value = readSecondaryLabel?.(datum);
                 secondaryLabelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
                     value,
                     datum,
@@ -832,12 +838,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         return {
             childrenKey,
             colorKey,
-            colorName: colorName ?? colorKey,
+            colorName: colorName ?? this.optionalKeyName(colorKey),
             depth: node.depth ?? Number.NaN,
             labelKey,
             secondaryLabelKey,
             sizeKey,
-            sizeName: sizeName ?? sizeKey,
+            sizeName: sizeName ?? this.optionalKeyName(sizeKey),
         };
     }
 
@@ -1309,8 +1315,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const isLeaf = children.length === 0;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
+        const suppressFieldDotNotation = this.data?.suppressFieldDotNotation ?? false;
 
-        const datumSize = sizeKey == null ? undefined : datum[sizeKey];
+        const datumSize = sizeKey == null ? undefined : readDatumKey(datum, sizeKey, suppressFieldDotNotation);
         if (datumSize != null) {
             const sizeDomain = [0, this.rootNode?.sumSize ?? 0];
             const content = formatManager.format(this.callWithContext.bind(this), {
@@ -1327,10 +1334,14 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: sizeName, fallbackLabel: sizeKey!, value: content ?? formatValue(datumSize) });
+            data.push({
+                label: sizeName,
+                fallbackLabel: this.keyName(sizeKey!),
+                value: content ?? formatValue(datumSize),
+            });
         }
 
-        const datumColor = colorKey == null ? undefined : datum[colorKey];
+        const datumColor = colorKey == null ? undefined : readDatumKey(datum, colorKey, suppressFieldDotNotation);
         if (datumColor != null) {
             const { colorDomain } = this;
             const content = formatManager.format(this.callWithContext.bind(this), {
@@ -1355,7 +1366,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             );
             data.push({
                 label: colorName,
-                fallbackLabel: colorKey!,
+                fallbackLabel: this.keyName(colorKey!),
                 value: content ?? binLabel ?? formatValue(datumColor),
             });
         }
@@ -1387,7 +1398,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         return this.formatTooltipWithContext(
             tooltip,
             {
-                title: labelKey == null ? undefined : datum[labelKey],
+                title: labelKey == null ? undefined : readDatumKey(datum, labelKey, suppressFieldDotNotation),
                 symbol,
                 data,
             },

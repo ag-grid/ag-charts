@@ -1,8 +1,7 @@
-import { iterate } from 'ag-charts-core';
+import { createPathAccessor, getPathComponents, iterate } from 'ag-charts-core';
 
 import type { InternalDatumPropertyDefinition, PropertyId, PropertySelectors } from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
-import { createPathAccessor, getPathComponents } from './helpers';
 
 /**
  * ScopeCacheManager manages the scope cache for property definitions.

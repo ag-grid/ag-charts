@@ -23,7 +23,7 @@ interface OhlcSeriesTypes extends OhlcSeriesBaseTypes {
 }
 
 export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
-    static override readonly className = 'ohlc';
+    static override readonly className = 'OhlcSeries';
     static readonly type = 'ohlc' as const;
 
     protected override nodeFactory() {
