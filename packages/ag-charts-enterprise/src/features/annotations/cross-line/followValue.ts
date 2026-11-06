@@ -40,15 +40,16 @@ export function normaliseFollow(follow: AgAnnotationFollow | undefined): Normali
 }
 
 /**
- * The series a followed annotation reads from: the one named by `seriesId`, otherwise the first visible series bound
- * to the y-axis. `boundSeriesIds` is in the axis' series order.
+ * The series a followed annotation reads from: the one named by `seriesId`, otherwise the first visible series with
+ * data bound to the y-axis. A named series must be bound to the y-axis too, as its value is drawn on that axis, but it
+ * is followed even while hidden. `boundSeriesIds` is in the axis' series order.
  */
 export function findFollowedSeries<S extends FollowableSeries>(
     { seriesId }: NormalisedFollow,
     series: readonly S[],
     boundSeriesIds: readonly string[]
 ): S | undefined {
-    if (seriesId != null) return series.find((s) => s.id === seriesId);
+    if (seriesId != null) return boundSeriesIds.includes(seriesId) ? series.find((s) => s.id === seriesId) : undefined;
 
     for (const id of boundSeriesIds) {
         const candidate = series.find((s) => s.id === id);

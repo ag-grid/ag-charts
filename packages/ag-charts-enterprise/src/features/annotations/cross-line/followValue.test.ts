@@ -114,6 +114,14 @@ describe('followValue', () => {
             expect(findFollowedSeries({ follow: 'last', seriesId: 'b' }, series, ['a', 'b'])).toBe(b);
         });
 
+        it('follows a series named by seriesId while it is hidden', () => {
+            expect(findFollowedSeries({ follow: 'last', seriesId: 'hidden' }, series, ['a', 'hidden'])).toBe(hidden);
+        });
+
+        it('has no series for a seriesId that is not bound to the axis', () => {
+            expect(findFollowedSeries({ follow: 'last', seriesId: 'b' }, series, ['a'])).toBeUndefined();
+        });
+
         it('has no series for an unknown seriesId', () => {
             expect(findFollowedSeries({ follow: 'last', seriesId: 'missing' }, series, ['a'])).toBeUndefined();
         });

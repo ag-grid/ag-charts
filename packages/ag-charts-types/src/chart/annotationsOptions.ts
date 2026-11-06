@@ -225,7 +225,8 @@ export interface AgHorizontalLineAnnotation extends Omit<AgCrossLineAnnotation, 
      * followed annotation cannot be dragged and `value` is ignored.
      *
      * The series' value is its `yKey`, or its `closeKey` for financial series. Pass an object to choose the series
-     * with `seriesId`.
+     * with `seriesId`, which must be bound to the y-axis the annotation is on. A series chosen this way is followed
+     * even while it is hidden.
      */
     follow?: AgAnnotationFollow;
     /** Configuration for the line text. */
