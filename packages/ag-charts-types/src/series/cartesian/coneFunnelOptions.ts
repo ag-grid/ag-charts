@@ -74,7 +74,7 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = DatumDefault, TCont
     strokeWidth?: PixelSize;
     /** Configuration for the shadow used behind the drop-offs. */
     shadow?: AgDropShadowOptions;
-    /** Configuration for the glow around the drop-offs. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    /** Configuration for the glow around the drop-offs. Off unless set: `glow: {}` turns it on. */
     glow?: AgGlowOptions;
     /** Bar rendering direction. */
     direction?: 'horizontal' | 'vertical';

@@ -25,7 +25,8 @@ export interface AgGlowHighlightStyleOptions {
      * Configuration for the glow around the item while this highlight state applies. It is merged, field by field, over
      * the `glow` of the series (`marker.glow` for the series that glow on their markers), so a state only needs to set
      * what differs. A state with no `glow` has the glow of the series, on or off, and a state's `glow` with no `enabled`
-     * turns it on.
+     * turns it on. Where the series has a `glow` on more than one part (sankey and chord nodes and links, waterfall items,
+     * HLC and range area markers), a state with no `glow` leaves each part its own, and a state's `glow` applies to every part.
      *
      * Where a state has more than one `glow` to fall back to, the first applies: `highlightedItem` falls back to
      * `highlightedSeries`, then to the `glow` of the series. `unhighlightedItem` also falls back to `highlightedSeries`,

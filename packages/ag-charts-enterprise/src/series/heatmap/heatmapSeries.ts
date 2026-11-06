@@ -845,7 +845,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     private canBatchCells() {
         const { cornerRadius, shadow, glow } = this.options;
         // The batch paints no glow, which the cells cast in place: the series' own, and a highlight state's while one is active.
-        const glowsInPlace = this.hasAnyGlow() && (glow?.enabled === true || this.isHighlightActive());
+        const glowsInPlace = this.hasInPlaceGlow() && (glow?.enabled === true || this.isHighlightActive());
         return (
             this.unbatchableCells === 0 &&
             ((cornerRadius ?? 0) <= 0 || Number.isNaN(cornerRadius)) &&

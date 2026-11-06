@@ -1075,6 +1075,8 @@ describe('highlight glow (enterprise series)', () => {
             buckets: string[];
             glow: (options: any) => any[];
             highlight: (options: any) => any;
+            /** The series has a `glow` on several parts, so a bucket without a `glow` of its own has no `enabled` to follow. */
+            perPart?: boolean;
         }> = [
             {
                 name: 'treemap tile',
@@ -1130,6 +1132,7 @@ describe('highlight glow (enterprise series)', () => {
             },
             {
                 name: 'sankey',
+                perPart: true,
                 glow: (options) => [options.node.glow, options.link.glow],
                 data: FLOW_DATA,
                 series: { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' },
@@ -1138,7 +1141,7 @@ describe('highlight glow (enterprise series)', () => {
             },
         ];
 
-        describe.each(CASES)('$name', ({ series, data, buckets, glow: glowOf, highlight: highlightOf }) => {
+        describe.each(CASES)('$name', ({ series, data, buckets, glow: glowOf, highlight: highlightOf, perPart }) => {
             it.each([
                 ['light', 'ag-default', LIGHT_GLOW],
                 ['dark', 'ag-default-dark', DARK_GLOW],
@@ -1154,7 +1157,11 @@ describe('highlight glow (enterprise series)', () => {
             it('turns each bucket off with the series-level glow, and leaves its other glow options to it', async () => {
                 const styles = highlightOf(await resolvedOptions('ag-default', series, data));
 
-                for (const bucket of buckets) expect(styles[bucket].glow).toEqual({ enabled: false });
+                for (const bucket of buckets) {
+                    // Each part keeps its own `enabled` where there is no one value for the bucket to follow.
+                    if (perPart) expect(styles[bucket]?.glow?.enabled).toBeUndefined();
+                    else expect(styles[bucket].glow).toEqual({ enabled: false });
+                }
             });
         });
 

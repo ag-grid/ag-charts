@@ -356,7 +356,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return this.options.sparklineMode ? 'main' : undefined;
     }
 
-    protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
+    protected phantomGroup = this.contentGroup.appendChild(
+        new Group({ name: 'phantom', zIndex: -1, batchShadows: true })
+    );
     private phantomSelection: Selection<BarNodeDatum, BarShape<BarNodeDatum>> = Selection.select(
         this.phantomGroup,
         () => this.nodeFactory(),
@@ -364,7 +366,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     );
 
     readonly phantomHighlightGroup = this.highlightGroup.appendChild(
-        new Group({ name: `${this.internalId}-highlight-node` })
+        new Group({ name: `${this.internalId}-highlight-node`, batchShadows: true })
     );
     private phantomHighlightSelection: Selection<BarNodeDatum, BarShape<BarNodeDatum>> = Selection.select(
         this.phantomHighlightGroup,

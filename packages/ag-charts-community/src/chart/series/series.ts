@@ -425,6 +425,7 @@ export abstract class Series<
         this.glowCascades = undefined;
         this.highlightStyleByState = undefined;
         this.anyGlow = undefined;
+        this.inPlaceGlow = undefined;
         this.anySeriesGlow = undefined;
         this.redrawnPass = undefined;
         this.legendItemName =
@@ -973,7 +974,7 @@ export abstract class Series<
         // The hovered item's in-place copy casts no glow, as its highlight copy does (see `resolveItemGlow`), so this
         // series' in-place nodes redraw when the item its highlight layer redraws changes.
         const glowSwapped =
-            this.hasAnyGlow() &&
+            this.hasInPlaceGlow() &&
             this.getRedrawnDatumIndex(previousHighlightedDatum) !== this.getRedrawnDatumIndex(currentHighlightedDatum);
 
         if (!hasItemStylers && !glowSwapped && currentHighlightState === previousHighlightState) {
@@ -1059,41 +1060,37 @@ export abstract class Series<
         let glow = cascade.byState[highlightState];
         if (glow === undefined) {
             glow =
-                glowToShadow(mergeGlow({ glow: this.getPartHighlightGlow(highlightState) }, { glow: seriesGlow })) ??
-                null;
+                glowToShadow(mergeGlow({ glow: this.getHighlightGlow(highlightState) }, { glow: seriesGlow })) ?? null;
             cascade.byState[highlightState] = glow;
         }
         return glow ?? undefined;
-    }
-
-    /**
-     * The `glow` of a highlight state, for one part of a series whose `glow` is on several parts, such as the nodes and links
-     * of a flow, that share a highlight state. The theme gives the state an `enabled` that is on when any part is, so
-     * a state that still has that default leaves each part to its own `enabled`: a part that has its glow off is not
-     * turned on by another's. A state with any other `enabled` has been set, and applies to every part.
-     */
-    private getPartHighlightGlow(highlightState: HighlightState): DeepPartial<AgGlowOptions> | undefined {
-        const bucket = this.getHighlightGlow(highlightState);
-        if (bucket?.enabled == null || this.getSeriesGlows().length < 2 || bucket.enabled !== this.hasSeriesGlow()) {
-            return bucket;
-        }
-        const { enabled: _enabled, ...rest } = bucket;
-        return rest;
     }
 
     /** Whether any highlight state casts a glow, over any series-level `glow`; when none does, no glow is resolved per datum. */
     private anyGlow?: boolean;
 
     protected hasAnyGlow(): boolean {
-        this.anyGlow ??= this.getSeriesGlows().some(
-            (seriesGlow) =>
-                this.getCascadedGlow(seriesGlow, HighlightState.None) != null ||
-                this.getCascadedGlow(seriesGlow, HighlightState.Item) != null ||
-                this.getCascadedGlow(seriesGlow, HighlightState.Series) != null ||
-                this.getCascadedGlow(seriesGlow, HighlightState.OtherSeries) != null ||
-                this.getCascadedGlow(seriesGlow, HighlightState.OtherItem) != null
-        );
+        this.anyGlow ??= this.hasGlowIn(HighlightState.Item) || this.hasInPlaceGlow();
         return this.anyGlow;
+    }
+
+    /**
+     * Whether a state that casts in place has a glow: every state but `Item`, which only the highlight layer's copy of the
+     * hovered item casts. Only these change what the series' in-place nodes cast when the highlight moves.
+     */
+    private inPlaceGlow?: boolean;
+
+    protected hasInPlaceGlow(): boolean {
+        this.inPlaceGlow ??=
+            this.hasGlowIn(HighlightState.None) ||
+            this.hasGlowIn(HighlightState.Series) ||
+            this.hasGlowIn(HighlightState.OtherSeries) ||
+            this.hasGlowIn(HighlightState.OtherItem);
+        return this.inPlaceGlow;
+    }
+
+    private hasGlowIn(highlightState: HighlightState): boolean {
+        return this.getSeriesGlows().some((seriesGlow) => this.getCascadedGlow(seriesGlow, highlightState) != null);
     }
 
     /** Whether the series-level `glow` of any part of the series is on, which every highlight state may change. */

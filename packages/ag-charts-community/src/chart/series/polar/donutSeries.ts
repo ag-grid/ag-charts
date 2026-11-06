@@ -267,13 +267,17 @@ export class DonutSeries extends PolarSeries<
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
+    protected phantomGroup = this.contentGroup.appendChild(
+        new Group({ name: 'phantom', zIndex: -1, batchShadows: true })
+    );
     private readonly phantomSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomGroup,
         () => this.nodeFactory(),
         false
     );
-    protected phantomHighlightGroup = this.highlightGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
+    protected phantomHighlightGroup = this.highlightGroup.appendChild(
+        new Group({ name: 'phantom', zIndex: -1, batchShadows: true })
+    );
     private readonly phantomHighlightSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomHighlightGroup,
         () => this.nodeFactory(),

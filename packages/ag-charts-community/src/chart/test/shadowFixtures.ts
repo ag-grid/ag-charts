@@ -1,4 +1,4 @@
-import type { Group, Shape } from 'ag-charts-core';
+import { Group, Shape } from 'ag-charts-core';
 import type { AgDropShadowOptions, AgGlowOptions, AgMarkerShapeFn } from 'ag-charts-types';
 
 /** The shadow the marker shadow tests turn on. */
@@ -38,6 +38,25 @@ export function shapesOf<T extends Shape>(root: Group, kind: abstract new (...ar
         if (node instanceof kind) found.push(node);
     }
     return found;
+}
+
+/**
+ * What holds an enabled glow in a group under `root` that does not cast it, as a label for each: the shape and its group.
+ * Only a batching or shared group casts the glow of a shape, other than a cutout, which casts its own: a shape in any
+ * other group reads as glowing and draws nothing. Labels, as a failed assertion on the shapes would print the scene.
+ */
+export function uncastGlows(root: Group): string[] {
+    return shapesOf(root, Shape)
+        .filter(
+            (shape) =>
+                shape.fillGlow?.enabled === true &&
+                shape.__drawingMode !== 'cutout' &&
+                !(shape.parentNode instanceof Group && shape.parentNode.batchShadows !== false)
+        )
+        .map(
+            (shape) =>
+                `${shape.constructor.name} in ${shape.parentNode?.constructor.name} "${(shape.parentNode as Group | undefined)?.name}"`
+        );
 }
 
 /** A custom marker shape (a triangle), which the out-of-the-box marker shadow must not apply to. */

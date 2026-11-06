@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Rect, type Shape } from 'ag-charts-core';
+import { Rect, Shape } from 'ag-charts-core';
 import type { AgChartOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { getSeriesAt, getSeriesNodeData, getSeriesOptions } from '../test/seriesAccessors';
-import { SERIES_SHADOW, XY_DATA, customMarkerShape, glowShadow, shapesOf } from '../test/shadowFixtures';
+import { SERIES_SHADOW, XY_DATA, customMarkerShape, glowShadow, shapesOf, uncastGlows } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 /** The series-level glow, with every field set, so that a bucket's field shows through only where it overrides. */
@@ -276,6 +276,46 @@ describe.each(SERIES)('series-level glow ($name)', ({ series, kind }) => {
             const glow = getSeriesOptions<{ glow?: AgGlowOptions; marker?: { glow?: AgGlowOptions } }>(chart);
             expect((glow.glow ?? glow.marker?.glow)?.spread).toBe(THEME_GLOW.spread);
         });
+    });
+});
+
+describe('series-level glow on phantom nodes', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => chart?.destroy());
+
+    // The phantoms draw the filtered-out part of each item, one for each item.
+    const PHANTOM_DATA = DATA.map((datum) => ({ ...datum, f: datum.v / 2 }));
+
+    it.each([
+        ['bar', { type: 'bar', xKey: 'x', yKey: 'v', yFilterKey: 'f' }],
+        ['donut', { type: 'donut', angleKey: 'v', angleFilterKey: 'f' }],
+    ])('casts the glow of %s phantoms and of their highlight copies', async (_name, series) => {
+        chart = deproxy(
+            await createChart({
+                data: PHANTOM_DATA,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [{ ...series, glow: SERIES_GLOW, highlight: { highlightedItem: { glow: { blur: 9 } } } }],
+            } as AgChartOptions)
+        );
+        await waitForChartStability(chart);
+        const { contentGroup, highlightGroup } = getSeriesAt(chart);
+        const glowing = (root: typeof contentGroup) =>
+            shapesOf(root, Shape).filter((shape) => shape.visible && shape.fillGlow?.enabled === true);
+
+        // An item and its phantom each.
+        expect(glowing(contentGroup)).toHaveLength(PHANTOM_DATA.length * 2);
+        expect(uncastGlows(contentGroup)).toEqual([]);
+
+        chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
+        await waitForChartStability(chart);
+
+        expect(glowing(highlightGroup).length).toBeGreaterThan(0);
+        expect(uncastGlows(highlightGroup)).toEqual([]);
+        expect(uncastGlows(contentGroup)).toEqual([]);
     });
 });
 
