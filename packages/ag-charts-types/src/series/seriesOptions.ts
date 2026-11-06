@@ -54,8 +54,9 @@ export interface AgShadowHighlightStyleOptions {
      * Configuration for the shadow of the highlighted item, which replaces the `shadow` of the series (`marker.shadow` for
      * the series that cast a shadow from their markers, `node.shadow` or `link.shadow` on a sankey or chord series, by the
      * part that is highlighted) while the item is highlighted. It is merged, field by field, over that `shadow`, so only
-     * what differs needs setting. Setting a `shadow` without `enabled` turns it on, so `shadow: {}` is enough, and
-     * `shadow: { enabled: false }` removes the shadow of the series from the highlighted item.
+     * what differs needs setting, but a `fill` without a `fillOpacity` is opaque. Setting a `shadow` without `enabled`
+     * turns it on, so `shadow: {}` is enough, and `shadow: { enabled: false }` removes the shadow of the series from the
+     * highlighted item.
      *
      * The shadow is drawn at the same depth as the `shadow` of the series, behind every series. It is not available on
      * `highlightedSeries`, `unhighlightedItem` or `unhighlightedSeries`, and is ignored where an item cannot cast a shadow.

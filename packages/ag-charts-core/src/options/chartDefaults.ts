@@ -41,6 +41,7 @@ import {
     type ToolbarButton,
 } from 'ag-charts-types';
 
+import { without } from '../data/object';
 import { isValidNumberFormat } from '../format/numberFormat';
 import {
     borderOptionsDef,
@@ -692,20 +693,9 @@ export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
 };
 
 /** The `shadow` of a highlighted item, which has no deprecated `color`: a new option takes `fill`. */
-const highlightedItemShadowOptionsDefs: OptionsDefs<Omit<AgDropShadowOptions, 'color'>> = {
-    enabled: boolean,
-    xOffset: number,
-    yOffset: number,
-    blur: positiveNumber,
-    spread: positiveNumber,
-    fill: colorOrRef,
-    fillOpacity: ratio,
-};
+const highlightedItemShadowOptionsDefs = without(shadowOptionsDefs, ['color']);
 
-/**
- * Validation for the item buckets of a series whose items can cast a `glow`: the highlighted item can also cast a
- * `shadow`, and the unhighlighted items cannot.
- */
+/** The item buckets of a series that can cast a `glow`: only `highlightedItem` can also cast a `shadow`. */
 function glowItemHighlightDefs<I extends object>(itemHighlightOptionsDef: I) {
     const unhighlightedItem = { ...itemHighlightOptionsDef, glow: glowOptionsDefs };
     return { highlightedItem: { ...unhighlightedItem, shadow: highlightedItemShadowOptionsDefs }, unhighlightedItem };

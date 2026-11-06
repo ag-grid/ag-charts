@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Rect, Sector, Shape, Transformable, overrideTintableShadows } from 'ag-charts-core';
+import { ChartUpdateType, Rect, Sector, Shape, Transformable, overrideTintableShadows } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-types';
 
@@ -146,7 +146,8 @@ describe('highlight glow', () => {
             highlight: { drawingMode },
             series: [testCase.series(shadow, { highlight })],
         } as AgChartOptions;
-        chart = deproxy(await createChart(options));
+        const proxy = await createChart(options);
+        chart = deproxy(proxy);
 
         const series = getSeriesAt(chart);
         const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
@@ -154,6 +155,8 @@ describe('highlight glow', () => {
         await waitForChartStability(chart);
 
         return {
+            proxy,
+            options,
             series,
             inPlace: shapesOf(series.contentGroup, testCase.kind),
             // Some series keep an invisible highlight copy of every item, and show only the hovered one.
@@ -676,6 +679,60 @@ describe('highlight glow', () => {
                 );
                 expect(fills.length).toBeGreaterThan(0);
                 for (const fill of fills) expect(fill.fillShadow).toMatchObject(SERIES_SHADOW);
+            });
+
+            describe('on a bar series', () => {
+                const bar = SERIES[0];
+                const SHADOW_WITH_OPACITY = { ...SERIES_SHADOW, fillOpacity: 0.3 };
+
+                it('casts a fill that sets no fillOpacity opaque, and keeps the fillOpacity of the series otherwise', async () => {
+                    const filled = await hoverFirstItem(bar, SHADOW_WITH_OPACITY, {
+                        highlightedItem: { shadow: { fill: '#ff0000' } },
+                    });
+                    expect(filled.inPlace[0].fillShadow).toMatchObject({ fill: '#ff0000', fillOpacity: 1 });
+                    chart.destroy();
+
+                    const sized = await hoverFirstItem(bar, SHADOW_WITH_OPACITY, {
+                        highlightedItem: { shadow: { blur: 1 } },
+                    });
+                    expect(sized.inPlace[0].fillShadow).toMatchObject({ fill: '#112233', fillOpacity: 0.3, blur: 1 });
+                });
+
+                it('follows highlightedItem.shadow as it is changed and removed while an item is hovered', async () => {
+                    const { proxy, options, inPlace } = await hoverFirstItem(bar, SERIES_SHADOW, {
+                        highlightedItem: { shadow: HIGHLIGHT_SHADOW },
+                    });
+                    expect(inPlace[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+
+                    const withBucket = (shadow: object | undefined) =>
+                        ({
+                            ...options,
+                            series: [{ ...(options.series![0] as object), highlight: { highlightedItem: { shadow } } }],
+                        }) as AgChartOptions;
+                    const hovered = () => shapesOf(getSeriesAt(chart).contentGroup, bar.kind)[0];
+
+                    await proxy.update(withBucket({ ...HIGHLIGHT_SHADOW, blur: 11 }));
+                    await waitForChartStability(chart);
+                    expect(hovered().fillShadow).toMatchObject({ ...HIGHLIGHT_SHADOW, blur: 11 });
+
+                    await proxy.update(withBucket(undefined));
+                    await waitForChartStability(chart);
+                    expect(hovered().fillShadow).toMatchObject(SERIES_SHADOW);
+                });
+
+                it('leaves the shadow of the series on a hovered item when highlight is disabled', async () => {
+                    const { series } = await hoverFirstItem(bar, SERIES_SHADOW, {
+                        enabled: false,
+                        highlightedItem: { shadow: HIGHLIGHT_SHADOW },
+                    });
+                    // The highlight manager keeps the hovered datum, which a later redraw of the series still reads.
+                    chart.update(ChartUpdateType.FULL);
+                    await waitForChartStability(chart);
+
+                    for (const item of shapesOf(series.contentGroup, bar.kind)) {
+                        expect(item.fillShadow).toMatchObject(SERIES_SHADOW);
+                    }
+                });
             });
 
             describe.each(SERIES)('$name', (testCase) => {

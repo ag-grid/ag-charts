@@ -61,8 +61,7 @@ type Variants = BenchmarkConfig['testCases'][number]['variants'];
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
 // `many-markers` and `series-glow` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
 // `series-glow` sets the series-level `marker.glow`, which every highlight state inherits, so a hover recasts every series.
-// `item-shadow-bar` and `item-shadow-scatter` set `highlightedItem.shadow` only, so the option itself is what the second variant adds.
-// The bars cast a series shadow that the hovered bar swaps for the bucket's; the scatter casts none until a point is hovered.
+// `item-shadow-bar` and `item-shadow-scatter` set `highlightedItem.shadow` only, so the second variant adds the option itself.
 /** inScope */
 function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOptions {
     const shadow = <T extends AgDropShadowOptions>(value: T) => (shadowOn ? value : undefined);

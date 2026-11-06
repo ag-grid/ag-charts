@@ -640,6 +640,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return this.getHighlightState(activeHighlight, false) !== HighlightState.None;
     }
 
+    private isCellHovered() {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        return (
+            activeHighlight?.series === this &&
+            this.isDatumHighlight(activeHighlight) &&
+            this.getHighlightState(activeHighlight, false) !== HighlightState.None
+        );
+    }
+
     /**
      * Creates a skeleton HeatmapNodeDatum with minimal required fields.
      * The node will be populated by updateNodeDatum.
@@ -846,8 +855,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { cornerRadius, shadow, glow } = this.options;
         // The batch paints no glow, which the cells cast in place: the series' own, and a highlight state's while one is active.
         const glowsInPlace = this.hasInPlaceGlow() && (glow?.enabled === true || this.isHighlightActive());
-        // Nor does it paint the `shadow` of `highlightedItem`, which the hovered cell casts in place.
-        const highlightShadowsInPlace = this.getItemShadowBucket() != null && this.isHighlightActive();
+        // Nor the `shadow` of `highlightedItem`, which only a hovered cell of this series casts in place.
+        const highlightShadowsInPlace = this.getItemShadowBucket() != null && this.isCellHovered();
         return (
             this.unbatchableCells === 0 &&
             ((cornerRadius ?? 0) <= 0 || Number.isNaN(cornerRadius)) &&
