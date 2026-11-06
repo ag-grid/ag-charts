@@ -897,8 +897,8 @@ describe('ChartOptions', () => {
             Array.from({ length: count }, (_, i) => ({ type: 'scatter' as const, xKey: 'x', yKey: `y${i}` }));
         const pie = (count: number) => Array.from({ length: count }, () => ({ type: 'pie' as const, angleKey: 'v' }));
         const withModes = ({ tooltip, highlight }: Modes) => ({
-            ...(tooltip ? { tooltip: { mode: tooltip } } : {}),
-            ...(highlight ? { highlight: { mode: highlight } } : {}),
+            ...(tooltip == null ? {} : { tooltip: { mode: tooltip } }),
+            ...(highlight == null ? {} : { highlight: { mode: highlight } }),
         });
 
         it.each([
