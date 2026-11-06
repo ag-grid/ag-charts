@@ -40,7 +40,11 @@ import {
 import type { Path, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
-import { collectCrosshairSnapValues, resolveCrosshairSnapConfig } from '../../utils/crosshairSnap';
+import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
 import {
     type OhlcSeriesDataAggregationFilter,
     aggregateOhlcDataFromDataModel,
@@ -231,7 +235,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         return { ...super.createNodeParams(datum), xKey, highKey, lowKey, closeKey };
     }
 
-    getCrosshairSnapConfig(): _ModuleSupport.CrosshairSnapConfig {
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
         return resolveCrosshairSnapConfig(this.options, HLC_VALUE_KEYS);
     }
 

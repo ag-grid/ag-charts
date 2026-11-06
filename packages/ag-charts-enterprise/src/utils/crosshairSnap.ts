@@ -1,5 +1,9 @@
-import type { _ModuleSupport } from 'ag-charts-community';
 import { isFiniteNumericValue } from 'ag-charts-core';
+
+export interface CrosshairSnapConfig {
+    readonly snapTo: readonly string[] | undefined;
+    readonly mode: 'all' | 'nearest';
+}
 
 interface CrosshairSnapOptions {
     readonly crosshairSnapTo?: readonly string[];
@@ -10,7 +14,7 @@ interface CrosshairSnapOptions {
 export function resolveCrosshairSnapConfig(
     options: CrosshairSnapOptions,
     valueKeys: readonly string[]
-): _ModuleSupport.CrosshairSnapConfig {
+): CrosshairSnapConfig {
     const { crosshairSnapTo, crosshairSnapMode = 'all' } = options;
     if (crosshairSnapTo == null) return { snapTo: undefined, mode: crosshairSnapMode };
 

@@ -58,7 +58,11 @@ import {
 import type { BBox, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
-import { collectCrosshairSnapValues, resolveCrosshairSnapConfig } from '../../utils/crosshairSnap';
+import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
 import {
     type RangeBarSeriesDataAggregationFilter,
     aggregateRangeBarDataFromDataModel,
@@ -307,7 +311,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         };
     }
 
-    getCrosshairSnapConfig(): _ModuleSupport.CrosshairSnapConfig {
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
         return resolveCrosshairSnapConfig(this.options, RANGE_BAR_VALUE_KEYS);
     }
 

@@ -30,7 +30,11 @@ import {
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { collectCrosshairSnapValues, resolveCrosshairSnapConfig } from '../../utils/crosshairSnap';
+import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
@@ -143,7 +147,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         };
     }
 
-    getCrosshairSnapConfig(): _ModuleSupport.CrosshairSnapConfig {
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
         return resolveCrosshairSnapConfig(this.options, BOX_PLOT_VALUE_KEYS);
     }
 

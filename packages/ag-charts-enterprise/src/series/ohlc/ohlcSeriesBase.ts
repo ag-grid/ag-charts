@@ -33,7 +33,11 @@ import {
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { collectCrosshairSnapValues, resolveCrosshairSnapConfig } from '../../utils/crosshairSnap';
+import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
 import {
     type OhlcSeriesDataAggregationFilter,
     aggregateOhlcDataFromDataModel,
@@ -220,7 +224,7 @@ export abstract class OhlcSeriesBase<
         };
     }
 
-    getCrosshairSnapConfig(): _ModuleSupport.CrosshairSnapConfig {
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
         return resolveCrosshairSnapConfig(this.options, OHLC_VALUE_KEYS);
     }
 

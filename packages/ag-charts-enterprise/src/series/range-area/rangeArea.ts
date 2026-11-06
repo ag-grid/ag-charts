@@ -56,7 +56,11 @@ import {
 import type { BoxBounds, Path, Segment, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
-import { collectCrosshairSnapValues, resolveCrosshairSnapConfig } from '../../utils/crosshairSnap';
+import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
 import {
     type RangeAreaSeriesDataAggregationFilter,
     aggregateRangeAreaDataFromDataModel,
@@ -316,7 +320,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         };
     }
 
-    getCrosshairSnapConfig(): _ModuleSupport.CrosshairSnapConfig {
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
         return resolveCrosshairSnapConfig(this.options, RANGE_AREA_VALUE_KEYS);
     }
 
