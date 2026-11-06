@@ -358,12 +358,26 @@ describe('Annotation datum lifecycle', () => {
             await waitForChartStability(chart);
         }
 
-        async function press(title: string) {
+        function getButton(title: string) {
             const button = body().querySelector<HTMLElement>(`button[title="${title}"]`);
             expect(button).not.toBeNull();
-            button!.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
-            button!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
-            button!.click();
+            return button!;
+        }
+
+        function pointerDown(title: string, button = 0) {
+            const element = getButton(title);
+            element.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button }));
+            element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button }));
+        }
+
+        async function press(title: string) {
+            pointerDown(title);
+            getButton(title).click();
+            await waitForChartStability(chart);
+        }
+
+        async function pressEnter(title: string) {
+            getButton(title).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
             await waitForChartStability(chart);
         }
 
@@ -401,6 +415,21 @@ describe('Annotation datum lifecycle', () => {
             expect(isOpen(COLOR_PICKER)).toBe(true);
             await press('Fill Color');
             expect(isOpen(COLOR_PICKER)).toBe(false);
+        });
+
+        it.each([
+            ['a primary press released off the button', 0],
+            ['a secondary press', 2],
+        ])('opens a menu from the keyboard after %s closed it', async (_, mouseButton) => {
+            await select(LINE, MID);
+
+            await press('Line Stroke Width');
+            pointerDown('Line Stroke Width', mouseButton);
+            await waitForChartStability(chart);
+            expect(isOpen(MENU)).toBe(false);
+
+            await pressEnter('Line Stroke Width');
+            expect(isOpen(MENU)).toBe(true);
         });
 
         it('opens a menu again after it was closed by picking an item', async () => {

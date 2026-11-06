@@ -167,8 +167,8 @@ export class AnnotationOptionsToolbar {
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
             // Menus close on a window mousedown before the click lands, so capture what was open first.
-            attachListener(this.toolbar.getElement(), 'pointerdown', () => {
-                this.openOverlayAtPointerDown = this.getOpenOverlay();
+            attachListener(this.toolbar.getElement(), 'pointerdown', (event: PointerEvent) => {
+                this.openOverlayAtPointerDown = event.button === 0 ? this.getOpenOverlay() : undefined;
             }),
             () => {
                 this.colorPicker.destroy();
@@ -318,7 +318,9 @@ export class AnnotationOptionsToolbar {
         buttonWidget,
     }: _ModuleSupport.ToolbarEventMap<AnnotationOptionsButtonOptions>['button-pressed']) {
         const datum = this.getActiveDatum();
-        const wasOpen = (this.openOverlayAtPointerDown ?? this.getOpenOverlay()) === button.value;
+        // A pointer click is always preceded by its own pointerdown; a keyboard press must ignore a stale snapshot.
+        const atPointerDown = event.device === 'keyboard' ? undefined : this.openOverlayAtPointerDown;
+        const wasOpen = (atPointerDown ?? this.getOpenOverlay()) === button.value;
         this.openOverlayAtPointerDown = undefined;
         if (!datum) return;
 
