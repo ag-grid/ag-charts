@@ -40,6 +40,10 @@ function hasDraggableAxes(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): bo
     return !!(options?.zoom?.enabled && options.zoom.enableAxisDragging);
 }
 
+function needsTabStop(chartService: _ModuleSupport.ChartService, axisCtx: _ModuleSupport.AxisContext): boolean {
+    return hasAxisListener(chartService, axisCtx, false);
+}
+
 /**
  * The AxisInteraction module handles interactions with the axes. In most cases it does this via the dom events on proxy
  * axis elements. However, in circumstances where the axes overlap the series area, such as when using the `crossAt`
@@ -156,6 +160,8 @@ export class AxisInteraction extends AbstractModuleInstance {
         for (const newAxisCtx of added) {
             const { axisId, direction } = newAxisCtx;
             const proxyAxis = this.createAxisInteraction(axisId, direction);
+            const tabIndex = needsTabStop(chartService, newAxisCtx) ? 0 : -1;
+            proxyAxis.div.setTabIndex(tabIndex);
 
             this.axes.push(proxyAxis);
         }
