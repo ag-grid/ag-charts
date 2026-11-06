@@ -1,5 +1,12 @@
 import { type AgAnnotationLineStyleType, type AgAnnotationOptionsToolbar, _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, CleanupRegistry, Color, type DynamicContext, EventEmitter } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    CleanupRegistry,
+    Color,
+    type DynamicContext,
+    EventEmitter,
+    attachListener,
+} from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
@@ -145,6 +152,9 @@ export class AnnotationOptionsToolbar {
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
 
+    private openOverlay?: AnnotationOptions;
+    private openOverlayAtPointerDown?: AnnotationOptions;
+
     private textSizeMenuMinWidth?: number;
     private lineStyleTypeMenuMinWidth?: number;
     private lineStrokeWidthMenuMinWidth?: number;
@@ -156,6 +166,10 @@ export class AnnotationOptionsToolbar {
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
+            // Menus close on a window mousedown before the click lands, so capture what was open first.
+            attachListener(this.toolbar.getElement(), 'pointerdown', (event: PointerEvent) => {
+                this.openOverlayAtPointerDown = event.button === 0 ? this.getOpenOverlay() : undefined;
+            }),
             () => {
                 this.colorPicker.destroy();
                 this.toolbar.destroy();
@@ -214,6 +228,7 @@ export class AnnotationOptionsToolbar {
     }
 
     public hideOverlays() {
+        this.openOverlay = undefined;
         this.toolbar.clearActiveButton();
         this.colorPicker.hide({ lastFocus: null });
         this.textSizeMenu.hide();
@@ -223,7 +238,25 @@ export class AnnotationOptionsToolbar {
     }
 
     public clearActiveButton() {
+        this.openOverlay = undefined;
         this.toolbar.clearActiveButton();
+    }
+
+    private getOpenOverlay() {
+        switch (this.openOverlay) {
+            case AnnotationOptions.LineStyleType:
+                return this.lineStyleTypeMenu.isVisible() ? this.openOverlay : undefined;
+            case AnnotationOptions.LineStrokeWidth:
+                return this.lineStrokeWidthMenu.isVisible() ? this.openOverlay : undefined;
+            case AnnotationOptions.TextSize:
+                return this.textSizeMenu.isVisible() ? this.openOverlay : undefined;
+            case AnnotationOptions.LineColor:
+            case AnnotationOptions.FillColor:
+            case AnnotationOptions.TextColor:
+                return this.colorPicker.isVisible() ? this.openOverlay : undefined;
+            default:
+                return this.openOverlay;
+        }
     }
 
     private updateColors(datum: AnnotationDatum) {
@@ -285,13 +318,19 @@ export class AnnotationOptionsToolbar {
         buttonWidget,
     }: _ModuleSupport.ToolbarEventMap<AnnotationOptionsButtonOptions>['button-pressed']) {
         const datum = this.getActiveDatum();
+        // A pointer click is always preceded by its own pointerdown; a keyboard press must ignore a stale snapshot.
+        const atPointerDown = event.device === 'keyboard' ? undefined : this.openOverlayAtPointerDown;
+        const wasOpen = (atPointerDown ?? this.getOpenOverlay()) === button.value;
+        this.openOverlayAtPointerDown = undefined;
         if (!datum) return;
 
         this.hideOverlays();
+        if (wasOpen) return;
 
         switch (button.value) {
             case AnnotationOptions.LineStyleType: {
                 const lineStyle = hasLineStyle(datum) ? getLineStyle(datum.lineDash, datum.lineStyle) : undefined;
+                this.openOverlay = button.value;
                 this.lineStyleTypeMenu.show<AgAnnotationLineStyleType>(buttonWidget, {
                     items: LINE_STYLE_TYPE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyle'),
@@ -305,6 +344,7 @@ export class AnnotationOptionsToolbar {
 
             case AnnotationOptions.LineStrokeWidth: {
                 const strokeWidth = hasLineStyle(datum) ? datum.strokeWidth : undefined;
+                this.openOverlay = button.value;
                 this.lineStrokeWidthMenu.show<number>(buttonWidget, {
                     items: LINE_STROKE_WIDTH_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStrokeWidth'),
@@ -319,6 +359,7 @@ export class AnnotationOptionsToolbar {
             case AnnotationOptions.LineColor:
             case AnnotationOptions.FillColor:
             case AnnotationOptions.TextColor: {
+                this.openOverlay = button.value;
                 this.toolbar.toggleActiveButtonByIndex(button.index);
                 this.colorPicker.show({
                     color: getDefaultColor(datum, button.value),
@@ -340,6 +381,7 @@ export class AnnotationOptionsToolbar {
 
             case AnnotationOptions.TextSize: {
                 const fontSize = isTextType(datum) ? datum.fontSize : undefined;
+                this.openOverlay = button.value;
                 this.textSizeMenu.show<number>(buttonWidget, {
                     items: TEXT_SIZE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextSize'),
@@ -364,6 +406,7 @@ export class AnnotationOptionsToolbar {
             }
 
             case AnnotationOptions.Settings: {
+                this.openOverlay = button.value;
                 this.toolbar.toggleActiveButtonByIndex(button.index);
                 this.events.emit('pressed-settings', event);
                 break;
