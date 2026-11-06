@@ -72,10 +72,7 @@ jobs:
         if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         outputs:
             run_full_ci: ${{ steps.decide.outputs.run_full_ci }}
-            # Locale changes come from the filter on a PR event and from the PR's file list on a dispatch.
             locale: ${{ steps.filter.outputs.locale || steps.locale_dispatch.outputs.locale }}
-            # The PR this run acts for (see the pr-context action). The PR-only jobs and every
-            # setup-nx base_ref read these, so a dispatch given a pr_number behaves like the PR run.
             pr_present: ${{ steps.pr.outputs.present }}
             pr_same_repo: ${{ steps.pr.outputs.same_repo }}
             pr_number: ${{ steps.pr.outputs.number }}
@@ -129,8 +126,7 @@ jobs:
                       locale:
                         - 'packages/ag-charts-locale/src/**'
 
-            # The dispatch counterpart of the filter above, which reads the PR's file list from the
-            # event. Same source, so a dispatch and the PR run agree on whether locale files changed.
+            # paths-filter reads the PR's file list from the event, so a dispatch reads the same list itself.
             - name: Detect locale changes (dispatch with a PR)
               id: locale_dispatch
               if: github.event_name != 'pull_request' && steps.pr.outputs.present == 'true'
@@ -178,6 +174,7 @@ jobs:
         if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         permissions:
             contents: write
+            pull-requests: read
         env:
             AG_FORCE_ALL_TESTS: 1
             # Docs-example sweeps cover only the vanilla variant of the examples this branch did not
@@ -205,8 +202,7 @@ jobs:
               with:
                   fetch-depth: 1
 
-            # init does not wait for detect-changes (see above), so a dispatch resolves its own PR base here.
-            # Skipped on PR and push runs, which need no lookup; detect-changes' call has already warned.
+            # init doesn't wait for detect-changes, so a dispatch resolves its own PR base.
             - name: Resolve PR context (dispatch)
               id: pr
               if: github.event_name == 'workflow_dispatch'
@@ -660,9 +656,7 @@ jobs:
         needs: [detect-changes, build]
         # Same-repo PRs only — fork PRs get a read-only token from GitHub, so
         # the deploy-to-gh-pages and sticky-comment steps would fail. Mirrors
-        # the fork-PR gate used in pr-review.yml. Runs for a pull_request event and for a
-        # dispatch given a pr_number (pr-context resolves both, and checks the dispatch's PR
-        # is same-repo).
+        # the fork-PR gate used in pr-review.yml.
         if: |
             needs.detect-changes.outputs.pr_present == 'true' &&
             needs.detect-changes.outputs.pr_same_repo == 'true' &&
@@ -720,8 +714,15 @@ jobs:
                   node tools/ci/check-pr-preview.mjs "$PREVIEW_DIR"
                   echo "publish=true" >> "$GITHUB_OUTPUT"
 
+            - name: Check the PR head is current
+              id: head
+              uses: ./external/ag-shared/github/actions/pr-head-guard
+              with:
+                  pr-number: ${{ env.PR_NUMBER }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Publish PR preview to gh-pages
-              if: steps.stage.outputs.publish == 'true'
+              if: steps.stage.outputs.publish == 'true' && steps.head.outputs.current == 'true'
               uses: ./external/ag-shared/github/actions/pr-preview-publish
               with:
                   pr_number: ${{ env.PR_NUMBER }}
@@ -730,7 +731,7 @@ jobs:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Write live-test section
-              if: steps.stage.outputs.publish == 'true'
+              if: steps.stage.outputs.publish == 'true' && steps.head.outputs.current == 'true'
               shell: bash
               env:
                   IMPORTS: ${{ steps.stage.outputs.imports }}
@@ -756,7 +757,7 @@ jobs:
                   EOF
 
             - name: Upsert live-test section
-              if: steps.stage.outputs.publish == 'true'
+              if: steps.stage.outputs.publish == 'true' && steps.head.outputs.current == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
                   pr_number: ${{ env.PR_NUMBER }}
@@ -825,7 +826,15 @@ jobs:
                       printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
                   fi
 
+            - name: Check the PR head is current
+              id: head
+              uses: ./external/ag-shared/github/actions/pr-head-guard
+              with:
+                  pr-number: ${{ needs.detect-changes.outputs.pr_number }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Upsert L10n section
+              if: steps.head.outputs.current == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
                   pr_number: ${{ needs.detect-changes.outputs.pr_number }}
@@ -1916,11 +1925,21 @@ jobs:
             # Upsert or clear the snapshot-status section. When Snapshot Notify wrote a fragment
             # (snapshots regenerated) it is upserted; otherwise the section is removed so a stale
             # "snapshots regenerated" note from an earlier push can't linger after a fix.
+            - name: Check the PR head is current
+              id: head
+              uses: ./external/ag-shared/github/actions/pr-head-guard
+              with:
+                  pr-number: ${{ github.event.pull_request.number || needs.detect-changes.outputs.pr_number }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Upsert snapshot-status section
-              if: needs.detect-changes.outputs.pr_present == 'true' && needs.detect-changes.outputs.pr_same_repo == 'true'
+              if: |
+                  steps.head.outputs.current == 'true' &&
+                  ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+                  (github.event_name == 'workflow_dispatch' && needs.detect-changes.outputs.pr_present == 'true'))
               uses: ./.github/actions/pr-report-comment
               with:
-                  pr_number: ${{ needs.detect-changes.outputs.pr_number }}
+                  pr_number: ${{ github.event.pull_request.number || needs.detect-changes.outputs.pr_number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   # Clear snapshot-status when snapshots weren't regenerated, and clear snapshot-review
                   # when full CI (hence the snapshot_review job) didn't run — the report job is the
@@ -2562,7 +2581,15 @@ jobs:
 
             # Post the summary immediately (the report link is a "publishing…" placeholder at this
             # point). Also the GC point: clears a stale section when this build produced no report.
+            - name: Check the PR head is current
+              id: head
+              uses: ./external/ag-shared/github/actions/pr-head-guard
+              with:
+                  pr-number: ${{ needs.detect-changes.outputs.pr_number }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Upsert snapshot-review section (summary)
+              if: steps.head.outputs.current == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
                   pr_number: ${{ needs.detect-changes.outputs.pr_number }}
@@ -2600,7 +2627,7 @@ jobs:
             # pr-cleanup.yml, and swept by the daily janitor.
             - name: Publish reports to the snapshot-review branch
               id: publish
-              if: steps.review.outputs.produced == 'true'
+              if: steps.review.outputs.produced == 'true' && steps.head.outputs.current == 'true'
               uses: ./external/ag-shared/github/actions/pr-preview-publish
               with:
                   pr_number: ${{ needs.detect-changes.outputs.pr_number }}
@@ -2662,7 +2689,7 @@ jobs:
 
             # Re-upsert with the resolved report link (live or fallback) in place.
             - name: Upsert snapshot-review section (with report link)
-              if: always() && steps.review.outputs.produced == 'true'
+              if: always() && steps.review.outputs.produced == 'true' && steps.head.outputs.current == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
                   pr_number: ${{ needs.detect-changes.outputs.pr_number }}

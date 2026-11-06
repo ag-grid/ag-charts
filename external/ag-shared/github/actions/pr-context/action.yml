@@ -20,8 +20,9 @@ inputs:
         required: true
     quiet:
         description: >-
-            Set to `true` to suppress the `::warning::` lines, for a second call in the same
-            run whose warning would only repeat the first.
+            Set to `true` to suppress the warnings for a missing, invalid, closed, fork or
+            mismatched PR, for a second call in the same run that would only repeat the first.
+            A failed lookup always warns.
         required: false
         default: 'false'
 
@@ -75,8 +76,7 @@ runs:
 
               emit() { echo "$1=$2" >> "$GITHUB_OUTPUT"; }
               absent() {
-                  # Fail closed for PR-only jobs, open for everything else: warn and carry on.
-                  if [[ "${QUIET}" != "true" ]]; then
+                  if [[ "${QUIET}" != "true" || "${2:-}" == "always" ]]; then
                       echo "::warning title=PR context::$1 PR-only jobs (PR Preview, Snapshot Review, L10n Review, PR comments) will be skipped."
                   fi
                   emit present false
@@ -115,20 +115,18 @@ runs:
 
               if ! pull=$(gh api "repos/${REPO}/pulls/${pr}" 2>"${RUNNER_TEMP}/pr-context.err"); then
                   echo "gh api failed: $(head -c 300 "${RUNNER_TEMP}/pr-context.err")"
-                  absent "Could not read PR #${pr}."
+                  absent "Could not read PR #${pr}." always
               fi
 
               # `-` stands in for a null head repo (deleted fork): read would collapse an empty tab field.
               if ! fields=$(jq -r '[.number, .state, .head.repo.full_name // "-", .head.ref, .head.sha, .base.ref, .base.sha] | @tsv' <<< "${pull}"); then
-                  absent "Could not parse PR #${pr}."
+                  absent "Could not parse PR #${pr}." always
               fi
               IFS=$'\t' read -r number state head_repo head_ref pr_head_sha base_ref base_sha <<< "${fields}"
 
               [[ "${number}" == "${pr}" ]] || absent "PR #${pr} did not resolve."
               [[ "${state}" == "open" ]] || absent "PR #${pr} is not open."
               [[ "${head_repo}" == "${REPO}" ]] || absent "PR #${pr} is from a fork, not ${REPO}."
-              # The run must be building the PR's branch: a ref that merely shares the PR's
-              # number or name (another branch, a tag) must not publish under that PR.
               [[ "${REF}" == "refs/heads/${head_ref}" && "${REF_NAME}" == "${head_ref}" ]] \
                   || absent "PR #${pr} has head ref ${head_ref}, but this run is on ${REF_NAME}."
 
