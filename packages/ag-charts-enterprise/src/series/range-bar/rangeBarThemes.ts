@@ -23,6 +23,7 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
         direction: 'vertical' as const,
+        crosshairSnapTo: ['yLow', 'yHigh'],
         fill: fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },

@@ -28,7 +28,6 @@ export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
                 false,
             ],
         },
-        snap: true,
         stroke: { $ref: 'subtleTextColor' },
         strokeWidth: 1,
         strokeOpacity: 1,

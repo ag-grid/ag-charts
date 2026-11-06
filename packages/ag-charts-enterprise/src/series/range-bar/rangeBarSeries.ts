@@ -59,10 +59,17 @@ import type { BBox, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
+import {
     type RangeBarSeriesDataAggregationFilter,
     aggregateRangeBarDataFromDataModel,
     aggregateRangeBarDataFromDataModelPartial,
 } from './rangeBarAggregation';
+
+const RANGE_BAR_VALUE_KEYS = ['yLowKey', 'yHighKey'] as const;
 
 const {
     barLabelObstaclesFor,
@@ -239,6 +246,10 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
     style?: Required<NormalisedRangeBarSeriesStyle>;
 }
 
+function isRangeBarNodeDatum(nodeDatum: _ModuleSupport.SeriesNodeDatum): nodeDatum is RangeBarNodeDatum {
+    return 'yLowValue' in nodeDatum && 'yHighValue' in nodeDatum;
+}
+
 type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<RangeBarSeriesTypes>;
 
 interface RangeBarSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
@@ -298,6 +309,29 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowKey: this.options.yLowKey,
             yHighKey: this.options.yHighKey,
         };
+    }
+
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
+        return resolveCrosshairSnapConfig(this.options, RANGE_BAR_VALUE_KEYS);
+    }
+
+    getCrosshairSnapValues(nodeDatum: _ModuleSupport.SeriesNodeDatum): Partial<Record<string, unknown>> {
+        if (!isRangeBarNodeDatum(nodeDatum)) return {};
+
+        let { yLowValue, yHighValue } = nodeDatum;
+        const ctx = this.nodeDatumContext;
+        const filter = ctx?.dataAggregationFilter;
+        const bucketIndex = filter == null ? undefined : this.bucketLookup?.getBucketIndex(nodeDatum.datumIndex);
+        if (ctx != null && filter != null && bucketIndex != null && bucketIndex < filter.maxRange) {
+            const aggIndex = bucketIndex * AGGREGATION_SPAN;
+            yLowValue = ctx.yLowValues[filter.indexData[aggIndex + AGGREGATION_INDEX_Y_MIN]];
+            yHighValue = ctx.yHighValues[filter.indexData[aggIndex + AGGREGATION_INDEX_Y_MAX]];
+        }
+
+        return collectCrosshairSnapValues([
+            ['yLowKey', yLowValue],
+            ['yHighKey', yHighValue],
+        ]);
     }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
