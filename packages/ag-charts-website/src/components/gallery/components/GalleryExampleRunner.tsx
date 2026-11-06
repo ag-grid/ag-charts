@@ -1,6 +1,7 @@
 import { excludeHiddenFiles } from '@components/docs/utils/excludeHiddenFiles';
 import { ExampleRunner } from '@components/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@components/example-runner/components/ExternalLinks';
+import { getThemeName } from '@stores/themeStore';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { useTheme } from '@utils/hooks/useTheme';
 import { type ReactElement, useEffect, useMemo, useState } from 'react';
@@ -154,7 +155,7 @@ const GalleryExampleRunnerInner = ({
 
     const mainFileName: string | undefined = contents?.mainFileName;
     const themedExampleFiles = useMemo(() => {
-        const exportTheme = darkMode ? (`${theme}-dark` as const) : theme;
+        const exportTheme = getThemeName(theme, darkMode);
         if (exportTheme === 'ag-default' || exampleFiles == null || mainFileName == null) {
             return exampleFiles;
         }

@@ -29,19 +29,22 @@ const findOptionsBlock = (lines: string[], optionsName: string): OptionsBlock | 
 const setOptionsTheme = (lines: string[], { start, end, indent, quote }: OptionsBlock, theme: ThemeName) => {
     const nestedIndent = indent + indent;
     const themeValue = `${quote}${theme}${quote}`;
+
     const findLine = (regex: RegExp, from: number, to: number) =>
         lines.findIndex((line, index) => index > from && index < to && regex.test(line));
+    const setLine = (index: number, insertAfter: number, line: string) => {
+        if (index === -1) {
+            lines.splice(insertAfter + 1, 0, line);
+        } else {
+            lines[index] = line;
+        }
+    };
 
     const themeIndex = findLine(new RegExp(`^${indent}theme: `), start, end);
 
-    if (themeIndex === -1) {
+    if (themeIndex === -1 || new RegExp(`^${indent}theme: (['"])[^'"]*\\1,$`).test(lines[themeIndex])) {
         const containerIndex = findLine(new RegExp(`^${indent}container: .*,$`), start, end);
-        lines.splice((containerIndex === -1 ? start : containerIndex) + 1, 0, `${indent}theme: ${themeValue},`);
-        return;
-    }
-
-    if (new RegExp(`^${indent}theme: (['"])[^'"]*\\1,$`).test(lines[themeIndex])) {
-        lines[themeIndex] = `${indent}theme: ${themeValue},`;
+        setLine(themeIndex, containerIndex === -1 ? start : containerIndex, `${indent}theme: ${themeValue},`);
         return;
     }
 
@@ -49,11 +52,7 @@ const setOptionsTheme = (lines: string[], { start, end, indent, quote }: Options
 
     const themeEnd = findLine(new RegExp(`^${indent}\\},?$`), themeIndex, end);
     const baseThemeIndex = findLine(new RegExp(`^${nestedIndent}baseTheme: `), themeIndex, themeEnd);
-    if (baseThemeIndex === -1) {
-        lines.splice(themeIndex + 1, 0, `${nestedIndent}baseTheme: ${themeValue},`);
-    } else {
-        lines[baseThemeIndex] = `${nestedIndent}baseTheme: ${themeValue},`;
-    }
+    setLine(baseThemeIndex, themeIndex, `${nestedIndent}baseTheme: ${themeValue},`);
 };
 
 /**

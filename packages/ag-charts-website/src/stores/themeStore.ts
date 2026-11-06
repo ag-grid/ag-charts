@@ -6,6 +6,9 @@ export type BaseThemeName = (typeof BASE_THEME_NAMES)[number];
 
 export type ThemeName = BaseThemeName | `${BaseThemeName}-dark`;
 
+export const getThemeName = (baseThemeName: BaseThemeName, darkMode?: boolean): ThemeName =>
+    darkMode ? `${baseThemeName}-dark` : baseThemeName;
+
 const LOCALSTORAGE_PREFIX = 'documentation';
 const DEFAULT_INTERNAL_THEME: BaseThemeName = 'ag-default';
 

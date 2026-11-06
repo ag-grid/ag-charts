@@ -9,6 +9,11 @@ const GALLERY_EXAMPLES_DIR = path.resolve(__dirname, '../../../content/gallery/_
 
 const lines = (...source: string[]) => source.join('\n');
 
+const stripTypes = (source: string) =>
+    ts.transpileModule(source, {
+        compilerOptions: { target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext },
+    }).outputText;
+
 const getStringLiteral = (node: ts.Expression | undefined) =>
     node != null && ts.isStringLiteral(node) ? node.text : node?.getText();
 
@@ -220,10 +225,10 @@ describe('setExampleTheme', () => {
     });
 
     // The examples are authored in the repo's Prettier style, while the vanilla files the Plunker and
-    // CodeSandbox exports receive are reformatted with Prettier's defaults.
+    // CodeSandbox exports receive are stripped of types and reformatted with Prettier's defaults.
     describe.each([
         ['as authored', (source: string) => Promise.resolve(source)],
-        ['as exported', (source: string) => format(source, { parser: 'typescript' })],
+        ['as exported', (source: string) => format(stripTypes(source), { parser: 'babel' })],
     ])('%s', (_, toFormat) => {
         it.each(fs.readdirSync(GALLERY_EXAMPLES_DIR))('themes every chart in the %s gallery example', async (name) => {
             const source = await toFormat(fs.readFileSync(path.join(GALLERY_EXAMPLES_DIR, name, 'main.ts'), 'utf-8'));
