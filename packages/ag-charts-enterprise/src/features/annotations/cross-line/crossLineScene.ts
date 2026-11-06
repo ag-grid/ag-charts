@@ -186,6 +186,8 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     public dragStart(datum: CrossLineDatum, target: Point, context: AnnotationContext) {
+        if (!this.isMovable(datum)) return;
+
         const middle = horizontalLineDatum.is(datum)
             ? { x: target.x, y: convert(datum.value, context.yAxis) }
             : { x: convert(datum.value, context.xAxis), y: target.y };
