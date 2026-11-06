@@ -1124,9 +1124,8 @@ describe('series-level glow (enterprise series)', () => {
             expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
         });
 
-        // Only the copy in the highlight layer casts the glow of the hovered item, so a move between items redraws
-        // no in-place node, unless a state that casts in place has a glow.
-        // A heatmap redraws on every move: its cells have selection styling. Its batch is checked in its own tests.
+        // Only the highlight layer's copy casts the hovered item's glow, so a move redraws no in-place node.
+        // A heatmap is left out: its cells have selection styling, so it always redraws.
         describe.each(SERIES.filter((testCase) => testCase.hoverable && testCase.name !== 'heatmap'))(
             '$name, moving between items',
             (testCase) => {
