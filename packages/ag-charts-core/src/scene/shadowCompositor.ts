@@ -9,10 +9,8 @@ import {
     endShadowCasts,
     getBatchedShadow,
     getShadowClip,
-    isCutout,
     joinsShadowKey,
     renderShadowless,
-    sameLayer,
 } from './shadowEngine';
 
 /** The children that follow one another and cast the same slots, each slot with the shadow options and clip of the run. */
@@ -22,15 +20,16 @@ interface Run {
     readonly members: ShadowCaster[];
 }
 
-/** Whether `next` casts the slot as the run does: with a shadow and clip that join the run's key. */
+/** Whether `next` casts the slot as the run does: not at all, or with a shadow and clip that join the run's key. */
 function joinsSlot(
     key: ShadowKey | undefined,
     next: Node,
-    shadow: NormalisedDropShadowOptions,
+    shadow: NormalisedDropShadowOptions | undefined,
     clip: ShadowClip | undefined,
     scope: ShadowScope
 ): boolean {
-    return key != null && joinsShadowKey(key, next, shadow, clip, scope);
+    if (key == null || shadow == null) return key == null && shadow == null;
+    return joinsShadowKey(key, next, shadow, clip, scope);
 }
 
 /**
@@ -76,18 +75,16 @@ export function renderChildrenWithShadowBatches(
         const glow = getBatchedShadow(child, 'glow');
         const castsAny = shadow != null || glow != null;
         const clip = castsAny ? getShadowClip(child) : undefined;
-        // A child that casts in a slot must continue the run's key there. One that casts nothing in a slot stays in
-        // the run, as a member that is no caster of it: ending the run would draw the next run's shadow over its fills.
-        // A cutout, which casts for itself, ends it.
-        if (run != null) {
-            const joins =
-                (shadow == null || joinsSlot(run.shadow, child, shadow, clip, scope)) &&
-                (glow == null || joinsSlot(run.glow, child, glow, clip, scope)) &&
-                (scope !== 'layer' || sameLayer(run.members[0], child)) &&
-                !isCutout(child);
-            if (!joins) flush();
+        // A child that casts nothing, or one that does not continue the run in each slot, ends it.
+        if (
+            run != null &&
+            (!castsAny ||
+                !joinsSlot(run.shadow, child, shadow, clip, scope) ||
+                !joinsSlot(run.glow, child, glow, clip, scope))
+        ) {
+            flush();
         }
-        if (!castsAny && run == null) {
+        if (!castsAny) {
             child.isolatedRender(renderCtx);
             continue;
         }
@@ -97,8 +94,8 @@ export function renderChildrenWithShadowBatches(
             glow: glow == null ? undefined : { slot: 'glow', shadow: glow, clip, casters: [] },
             members: [],
         };
-        if (shadow != null) run.shadow?.casters.push(child as ShadowCaster);
-        if (glow != null) run.glow?.casters.push(child as ShadowCaster);
+        run.shadow?.casters.push(child as ShadowCaster);
+        run.glow?.casters.push(child as ShadowCaster);
         run.members.push(child as ShadowCaster);
     }
     flush();

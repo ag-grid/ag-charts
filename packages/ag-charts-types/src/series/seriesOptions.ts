@@ -30,9 +30,11 @@ export interface AgGlowHighlightStyleOptions {
      *
      * Where a state has more than one `glow` to fall back to, the first applies: `highlightedItem` falls back to
      * `highlightedSeries`, then to the `glow` of the series. `unhighlightedItem` also falls back to `highlightedSeries`,
-     * as its items are in the highlighted series, and `unhighlightedSeries` to the `glow` of the series. On treemap and
-     * sunburst, `highlightedBranch` and `unhighlightedBranch` take the place of the series states, and treemap groups have
-     * only the item states.
+     * as its items are in the highlighted series, and `unhighlightedSeries` to the `glow` of the series.
+     *
+     * Treemap and sunburst don't support a series-level `glow` yet. Their `highlightedBranch` and `unhighlightedBranch`
+     * states take the place of the series states, treemap groups have only the item states, and the `glow` of a state
+     * replaces the `shadow` of the item while it applies, rather than being cast alongside it.
      *
      * The glow of the hovered item (`highlightedItem`) is drawn centred on the item, with the item drawn over its own
      * glow. It sits above every series when `bringToFront` is on, and keeps its series' stacking order otherwise. The glow
@@ -41,7 +43,7 @@ export interface AgGlowHighlightStyleOptions {
      * Line, radar line and HLC series glow only on their markers (`marker.glow`), and area, radar area and range area
      * fills are not redrawn when highlighted, so only their markers glow. Cone funnel series do not have this option.
      *
-     * Default: the `glow` of the series
+     * Default: the `glow` of the series (none on treemap and sunburst)
      */
     glow?: AgGlowOptions;
 }

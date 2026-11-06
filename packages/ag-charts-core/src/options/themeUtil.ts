@@ -701,10 +701,22 @@ export const SERIES_GLOW_BUCKETS = ['highlightedSeries', 'unhighlightedSeries'] 
 /** The highlight states of a hierarchy series, where branch states take the place of the series states. */
 export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] as const;
 
+/**
+ * Adds the disabled {@link GLOW_THEME_DEFAULTS} to each of the `buckets` of a highlight theme, keeping what they hold. For
+ * a series with no series-level `glow` for its buckets to follow, such as treemap and sunburst.
+ */
+export function withDisabledGlowThemeDefaults<T extends object>(highlight: T, buckets: readonly string[]): T {
+    const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
+    for (const bucket of buckets) {
+        result[bucket] = { ...(result[bucket] as object | undefined), glow: GLOW_THEME_DEFAULTS };
+    }
+    return result as T;
+}
+
 /** Where the `glow` that a highlight falls back to, and the `highlight` that holds the buckets, are in the theme. */
 export interface GlowThemePaths {
     /**
-     * The series-level `glow`, such as `marker.glow` or `tile.glow`. A series with a `glow` on more than one part, such as
+     * The series-level `glow`, such as `marker.glow`. A series with a `glow` on more than one part, such as
      * the links and nodes of a flow, lists them all: a bucket's `enabled` is then left unset unless the user sets its `glow`.
      */
     readonly glow?: string | readonly string[];

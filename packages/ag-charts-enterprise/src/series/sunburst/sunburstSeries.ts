@@ -203,9 +203,7 @@ export class SunburstSeries extends HierarchySeries<
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>({ batchShadows: 'by-layer' }));
-    private readonly highlightSectorGroup = this.scalingGroup.appendChild(
-        new Group<SunburstNode>({ batchShadows: true })
-    );
+    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
     // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
     // is painted over. Inside `scalingGroup`, so it takes the series' entry animation.
     private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
@@ -320,24 +318,14 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     private readonly resolveGlow = (highlightState: HierarchyHighlightState) =>
-        this.getHierarchyHighlightGlow(highlightState, this.options.highlight, this.options.glow);
+        this.getHierarchyHighlightGlow(highlightState, this.options.highlight);
 
     /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
     private getNodeGlow(nodeDatum: SunburstNode, isHighlight: boolean, highlightedNode: SunburstNode | undefined) {
-        // With its highlight off the series casts its series-level glow alone, and has no highlight copy to redraw it.
-        if (!this.options.highlight.enabled) {
-            return isHighlight
-                ? undefined
-                : this.getHierarchyGlow(SUNBURST_SLOT, HierarchyHighlightState.None, this.resolveGlow);
-        }
+        if (!this.options.highlight.enabled) return;
 
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
-        return this.resolveNodeGlow(
-            this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow),
-            isHighlight,
-            highlightedNode,
-            nodeDatum
-        );
+        return this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow);
     }
 
     private itemStyle(index: number): ItemStyle {
@@ -557,8 +545,7 @@ export class SunburstSeries extends HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = this.resolveNodeShadow(shadow, highlighted);
-            sector.fillGlow = glow;
+            sector.fillShadow = this.resolveNodeShadow(shadow, glow, highlighted, highlightedNode, nodeDatum);
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
