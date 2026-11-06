@@ -177,7 +177,7 @@ class DragHandleWidget extends NativeWidget {
         icon.setAriaHidden(true);
         this.addChild(icon);
 
-        this.elem.title = title;
+        this.setTitle(title);
     }
 
     public setButtonSize(buttonSize: number | undefined, defaultButtonSize: number | undefined) {

@@ -27,6 +27,24 @@ The JIRA-on-merge workflows mention reviewers through a hand-maintained `GH_USER
 - [ ] ag-charts: none (no JIRA-on-merge workflow).
 - [ ] New people need a `Jira Account ID` in the Notion user directory (the account ID at the end of their Jira profile URL), or JIRA comments name them by GitHub login.
 
+## 2026-11-03 -- Optional spec list for E2E shard assignment
+
+**Branch:** `at/ci-e2e-path-scope` (ag-charts)
+
+### Changes
+
+- **[scripts]** `scripts/shard/assign-e2e-shards.js` takes an optional `--specs <file>` that limits the plan to the listed spec files. A limited plan keeps the full suite's per-shard budget, so it uses fewer shards. The count-based fallback also passes the list to Playwright. Output is unchanged without the option.
+
+### Migration Actions
+
+- [ ] None required: ag-grid and ag-studio can ignore the option.
+- [ ] Run `./external/ag-shared/scripts/setup-prompts/setup-prompts.sh`
+- [ ] Run `./external/ag-shared/scripts/setup-prompts/verify-rulesync.sh`
+
+### Notes
+
+Regenerate PR timings only from a pull request run that ran the whole suite: a limited run has no durations for the specs it left out.
+
 ## 2026-11-03 -- Per-repo PR Nx cache threshold and optional yarn cache save
 
 **Branch:** `at/ci-nx-cache-pr-threshold` (ag-charts)

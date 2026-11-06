@@ -647,7 +647,7 @@ export abstract class RadarSeries<
                 data: [
                     {
                         label: radiusName,
-                        fallbackLabel: radiusKey,
+                        fallbackLabel: this.keyName(radiusKey),
                         value: this.getAxisValueText(radiusAxis, 'tooltip', radiusValue, datum, radiusKey, undefined),
                         missing: _ModuleSupport.isTooltipValueMissing(radiusValue),
                     },
@@ -715,7 +715,7 @@ export abstract class RadarSeries<
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: radiusKey }) ?? true),
                 label: {
-                    text: legendItemName ?? radiusName ?? radiusKey,
+                    text: legendItemName ?? radiusName ?? this.keyName(radiusKey),
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,

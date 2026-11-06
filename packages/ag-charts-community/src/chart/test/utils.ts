@@ -1342,6 +1342,41 @@ export function keyDownAction(
     };
 }
 
+// Popup UI such as the context menu has no canvas position, so these actions target its elements directly.
+
+export function focusElementAction(element: Element): (chart: ChartOrProxy) => Promise<void> {
+    return async (chart) => {
+        expect(element).toBeInstanceOf(HTMLElement);
+        (element as HTMLElement).focus();
+        await waitForChartStability(chart);
+    };
+}
+
+/** Moves keyboard focus to a focusable element elsewhere in the page, as Tab past the chart's last stop does. */
+export function focusOutsideChartAction(): (chart: ChartOrProxy) => Promise<void> {
+    return async (chart) => {
+        const outside = document.createElement('button');
+        document.body.append(outside);
+        try {
+            outside.focus();
+            await waitForChartStability(chart);
+        } finally {
+            outside.remove();
+        }
+    };
+}
+
+/** Right-clicks `element`. Resolves to the event, so that a test can check whether the browser menu was suppressed. */
+export function contextMenuElementAction(element: Element): (chart: ChartOrProxy) => Promise<MouseEvent> {
+    return async (chart) => {
+        // `cancelable` is required, otherwise `defaultPrevented` stays false whatever the chart does.
+        const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+        element.dispatchEvent(event);
+        await waitForChartStability(chart);
+        return event;
+    };
+}
+
 // Tab lands on the swap-chain's active announcer, which initialises the series focus.
 export async function tabIntoChart(chart: ChartOrProxy) {
     const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[tabindex="0"]');

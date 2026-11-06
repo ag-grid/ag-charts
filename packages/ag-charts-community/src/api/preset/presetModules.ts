@@ -104,6 +104,7 @@ const commonSparklineOptionsDef: OptionsDefs<
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     },
+    suppressFieldDotNotation: boolean,
     xKey: string,
     yKey: string,
     ...undocumentedDefs({

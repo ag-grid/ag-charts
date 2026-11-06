@@ -1277,7 +1277,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             const { marker } = stylerStyle.item[type];
             return {
                 label,
-                fallbackLabel: key,
+                fallbackLabel: this.keyName(key),
                 value: this.getAxisValueText(yAxis, 'tooltip', value, datum, key, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(value),
                 symbol: {

@@ -16,10 +16,10 @@ interface ParallelChannelStateMachineContext extends Omit<AnnotationsCreateState
 }
 
 export class ParallelChannelStateMachine extends StateMachine<
-    'start' | 'waiting-first-render' | 'end' | 'height',
+    'start' | 'waiting-first-render' | 'waiting-create-render' | 'end' | 'height',
     Pick<
         AnnotationStateEvents,
-        'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset' | 'render'
+        'click' | 'create' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset' | 'render'
     >
 > {
     override debug = Debug.create(true, 'annotations');
@@ -38,6 +38,16 @@ export class ParallelChannelStateMachine extends StateMachine<
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = parallelChannelDatum.create();
             applyAnnotationOptions(datum, { start: point, end: point });
+            ctx.create(datum);
+        };
+
+        const actionCreateAll = ({ points: [start, end, heightPoint] }: { points: DataPoint[] }) => {
+            const datum = parallelChannelDatum.create();
+            applyAnnotationOptions(datum, { start, end });
+
+            const endY = getGroupingValue(end.y);
+            if (isNumber(endY) && isNumber(heightPoint.y)) datum.height = endY - heightPoint.y;
+
             ctx.create(datum);
         };
 
@@ -123,6 +133,13 @@ export class ParallelChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
+        const actionCreatedRender = () => {
+            this.node?.toggleActive(true);
+            ctx.recordAction(`Create ${AnnotationType.ParallelChannel} annotation`);
+            ctx.showAnnotationOptions();
+            ctx.update();
+        };
+
         const actionCancel = () => ctx.delete();
 
         super('start', {
@@ -135,12 +152,22 @@ export class ParallelChannelStateMachine extends StateMachine<
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
+                create: {
+                    target: 'waiting-create-render',
+                    action: actionCreateAll,
+                },
                 reset: StateMachine.parent,
             },
             'waiting-first-render': {
                 render: {
                     target: 'end',
                     action: actionFirstRender,
+                },
+            },
+            'waiting-create-render': {
+                render: {
+                    target: StateMachine.parent,
+                    action: actionCreatedRender,
                 },
             },
             end: {

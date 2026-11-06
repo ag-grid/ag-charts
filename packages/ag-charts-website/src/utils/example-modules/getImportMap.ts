@@ -94,8 +94,19 @@ const getPackageRoot = (packageName: string) =>
         ? `${NPM_CDN}/${packageName}@${agChartsVersion}`
         : pathJoin(import.meta.env?.PUBLIC_SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH, packageName);
 
+/** These packages publish their ESM one file per module; the browser loads the single-file bundle instead. */
+export const PER_MODULE_ESM_PACKAGES = new Set([
+    'ag-charts-core',
+    'ag-charts-community',
+    'ag-charts-enterprise',
+    'ag-charts-locale',
+]);
+
 const esmEntryPoint = (packageName: string, entryPoint = 'dist/package/main.esm.mjs') =>
     `${getPackageRoot(packageName)}/${entryPoint}`;
+
+const libraryEntryPoint = (packageName: string) =>
+    esmEntryPoint(packageName, PER_MODULE_ESM_PACKAGES.has(packageName) ? 'dist/package/main.esm.min.mjs' : undefined);
 
 /**
  * The library packages every example resolves, whichever framework it runs as. Enterprise is
@@ -103,11 +114,11 @@ const esmEntryPoint = (packageName: string, entryPoint = 'dist/package/main.esm.
  * community example never imports it, so the entry is unused rather than wrong.
  */
 const LIBRARY_IMPORTS = (): ImportMap => ({
-    'ag-charts-types': esmEntryPoint('ag-charts-types'),
-    'ag-charts-core': esmEntryPoint('ag-charts-core'),
-    'ag-charts-community': esmEntryPoint('ag-charts-community'),
-    'ag-charts-enterprise': esmEntryPoint('ag-charts-enterprise'),
-    'ag-charts-locale': esmEntryPoint('ag-charts-locale'),
+    'ag-charts-types': libraryEntryPoint('ag-charts-types'),
+    'ag-charts-core': libraryEntryPoint('ag-charts-core'),
+    'ag-charts-community': libraryEntryPoint('ag-charts-community'),
+    'ag-charts-enterprise': libraryEntryPoint('ag-charts-enterprise'),
+    'ag-charts-locale': libraryEntryPoint('ag-charts-locale'),
 });
 
 /** The framework wrapper's ES module entry point, which differs per package */

@@ -990,6 +990,21 @@ describe('Chart', () => {
             expect(chart.series[0].data).toEqual(chart.data);
             expect(chart.series[1].data).toEqual(chart.data);
         });
+
+        it('Series data follows the chart suppressFieldDotNotation', async () => {
+            const series = {
+                type: 'line' as const,
+                data: datasets.economy.data,
+                xKey: datasets.economy.categoryKey,
+                yKey: datasets.economy.valueKey,
+            };
+            const chartProxy = await createChart({ suppressFieldDotNotation: true, series: [series] });
+            chart = deproxy(chartProxy);
+            expect(chart.series[0].data?.suppressFieldDotNotation).toBe(true);
+
+            await updateChart(chartProxy, { suppressFieldDotNotation: false, series: [series] });
+            expect(chart.series[0].data?.suppressFieldDotNotation).toBe(false);
+        });
     });
 
     describe('preSeriesUpdate', () => {

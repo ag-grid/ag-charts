@@ -101,6 +101,7 @@ export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = Pick<
     | 'listeners'
     | 'formatter'
     | 'enableRtl'
+    | 'suppressFieldDotNotation'
 >;
 
 export type AgBaseSparklinePresetThemeOptions<TDatum = DatumDefault> = AgSparklineBaseThemeableOptions<TDatum> &
@@ -116,6 +117,7 @@ export type AgBaseSparklinePresetThemeOptions<TDatum = DatumDefault> = AgSparkli
         | 'padding'
         | 'width'
         | 'data'
+        | 'suppressFieldDotNotation'
     >;
 
 export type AgFinancialChartOptions<TDatum = DatumDefault> = AgBaseFinancialPresetOptions<TDatum> &
@@ -182,6 +184,7 @@ export type AgBaseQuadrantChartOptions<TDatum = DatumDefault, TContext = Context
     | 'title'
     | 'theme'
     | 'selection'
+    | 'suppressFieldDotNotation'
     | 'width'
 >;
 

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { testLogger } from 'ag-charts-test';
+
+import { DataSet } from '../data/dataSet';
 import type { PickedNode } from './pickManager';
 import { getItemId } from './pickManager';
 
@@ -13,25 +16,27 @@ function mockNode(overrides: Partial<PickedNode> & { datum?: unknown; datumIndex
     };
 }
 
+const ids = (dataIdKey: string) => DataSet.empty(testLogger, dataIdKey);
+
 describe('getItemId', () => {
     it('should return node.itemId when set, even if dataIdKey is provided', () => {
         const node = mockNode({ itemId: 'foo', datum: { myId: 'bar' } });
-        expect(getItemId(node, 'myId')).toBe('foo');
+        expect(getItemId(node, ids('myId'))).toBe('foo');
     });
 
     it('should return datum[dataIdKey] as string', () => {
         const node = mockNode({ datum: { myId: 'bar' } });
-        expect(getItemId(node, 'myId')).toBe('bar');
+        expect(getItemId(node, ids('myId'))).toBe('bar');
     });
 
     it('should return datum[dataIdKey] as number', () => {
         const node = mockNode({ datum: { myId: 42 } });
-        expect(getItemId(node, 'myId')).toBe(42);
+        expect(getItemId(node, ids('myId'))).toBe(42);
     });
 
     it('should coerce non-number datum[dataIdKey] to string', () => {
         const node = mockNode({ datum: { myId: true } });
-        expect(getItemId(node, 'myId')).toBe('true');
+        expect(getItemId(node, ids('myId'))).toBe('true');
     });
 
     it('should fall back to datumIndex when no dataIdKey', () => {
@@ -41,11 +46,11 @@ describe('getItemId', () => {
 
     it('should fall back to datumIndex when datum lacks dataIdKey field', () => {
         const node = mockNode({ datum: {}, datumIndex: 5 });
-        expect(getItemId(node, 'myId')).toBe(5);
+        expect(getItemId(node, ids('myId'))).toBe(5);
     });
 
     it('should fall back to datumIndex when datum[dataIdKey] is null', () => {
         const node = mockNode({ datum: { myId: null }, datumIndex: 3 });
-        expect(getItemId(node, 'myId')).toBe(3);
+        expect(getItemId(node, ids('myId'))).toBe(3);
     });
 });

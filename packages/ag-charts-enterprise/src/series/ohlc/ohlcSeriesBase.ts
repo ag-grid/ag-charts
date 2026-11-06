@@ -965,25 +965,25 @@ export abstract class OhlcSeriesBase<
                 data: [
                     {
                         label: openName,
-                        fallbackLabel: openKey,
+                        fallbackLabel: this.keyName(openKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', openValue, datum, openKey, legendItemName),
                         missing: _ModuleSupport.isTooltipValueMissing(openValue),
                     },
                     {
                         label: highName,
-                        fallbackLabel: highKey,
+                        fallbackLabel: this.keyName(highKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', highValue, datum, highKey, legendItemName),
                         missing: _ModuleSupport.isTooltipValueMissing(highValue),
                     },
                     {
                         label: lowName,
-                        fallbackLabel: lowKey,
+                        fallbackLabel: this.keyName(lowKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', lowValue, datum, lowKey, legendItemName),
                         missing: _ModuleSupport.isTooltipValueMissing(lowValue),
                     },
                     {
                         label: closeName,
-                        fallbackLabel: closeKey,
+                        fallbackLabel: this.keyName(closeKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', closeValue, datum, closeKey, legendItemName),
                         missing: _ModuleSupport.isTooltipValueMissing(closeValue),
                     },
