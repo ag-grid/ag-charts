@@ -318,7 +318,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const keep = this.keepsLabel;
         // Not themed, as the cross-line theme also reaches polar axes; outer labels sit outside the series area.
         const seriesArea = collision?.collideWith?.seriesArea === false;
-        const avoid = { ...resolveLabelAvoidance(collision ?? { alwaysShow: true }), seriesArea };
+        const axisLabel = collision?.collideWith?.axisLabels === false;
+        const avoid = { ...resolveLabelAvoidance(collision ?? { alwaysShow: true }), seriesArea, axisLabel };
         const { width, height } = box;
 
         // A re-layout settles the placement already chosen rather than choosing again.
