@@ -10,7 +10,6 @@ interface CrosshairSnapOptions {
     readonly crosshairSnapMode?: 'all' | 'nearest';
 }
 
-/** Maps the `crosshairSnapTo` value names to the series' key properties, dropping unknown names and duplicates. */
 export function resolveCrosshairSnapConfig(
     options: CrosshairSnapOptions,
     valueKeys: readonly string[]
@@ -26,7 +25,6 @@ export function resolveCrosshairSnapConfig(
     return { snapTo: Array.from(snapTo), mode: crosshairSnapMode };
 }
 
-/** Builds a snap-value record from `[keyProperty, value]` pairs, omitting values that are not finite numerics. */
 export function collectCrosshairSnapValues(
     entries: ReadonlyArray<readonly [string, unknown]>
 ): Partial<Record<string, unknown>> {
