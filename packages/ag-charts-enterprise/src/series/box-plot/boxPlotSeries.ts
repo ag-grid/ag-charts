@@ -151,9 +151,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const { datum } = nodeDatum;
         const suppressFieldDotNotation = this.suppressFieldDotNotation;
         return collectCrosshairSnapValues(
-            BOX_PLOT_VALUE_KEYS.map((keyProperty) => [
-                keyProperty,
-                readDatumKey(datum, this.options[keyProperty], suppressFieldDotNotation),
+            BOX_PLOT_VALUE_KEYS.map((valueKey) => [
+                valueKey,
+                readDatumKey(datum, this.options[valueKey], suppressFieldDotNotation),
             ])
         );
     }

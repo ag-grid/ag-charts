@@ -441,16 +441,11 @@ export class Crosshair
             if (!followedPointer) {
                 this.showPointer();
             }
+        } else if (event.highlightInViewport) {
+            this.updatePositions(this.getActiveHighlightData(this.activeHighlight));
+            crosshairGroup.visible = true;
         } else {
-            if (event.highlightInViewport) {
-                const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
-
-                this.updatePositions(activeHighlightData);
-
-                crosshairGroup.visible = true;
-            } else {
-                this.hideCrosshairs();
-            }
+            this.hideCrosshairs();
         }
 
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });

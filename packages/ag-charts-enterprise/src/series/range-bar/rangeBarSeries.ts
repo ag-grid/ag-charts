@@ -317,7 +317,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         let { yLowValue, yHighValue } = nodeDatum;
         const ctx = this.nodeDatumContext;
         const filter = ctx?.dataAggregationFilter;
-        const bucketIndex = filter != null ? this.bucketLookup?.getBucketIndex(nodeDatum.datumIndex) : undefined;
+        const bucketIndex = filter == null ? undefined : this.bucketLookup?.getBucketIndex(nodeDatum.datumIndex);
         if (ctx != null && filter != null && bucketIndex != null && bucketIndex < filter.maxRange) {
             const aggIndex = bucketIndex * AGGREGATION_SPAN;
             yLowValue = ctx.yLowValues[filter.indexData[aggIndex + AGGREGATION_INDEX_Y_MIN]];
