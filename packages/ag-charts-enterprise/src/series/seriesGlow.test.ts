@@ -412,6 +412,9 @@ const SERIES: SeriesCase[] = [
     },
 ];
 
+/** Series with no `highlightedSeries` or `unhighlightedSeries`. */
+const NO_SERIES_STATES = new Set(['funnel', 'pyramid']);
+
 describe('series-level glow (enterprise series)', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -565,6 +568,25 @@ describe('series-level glow (enterprise series)', () => {
             for (const shape of inPlace) expect(shape.fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
             // The highlight copy casts the glow the hovered item gave up.
             expect(glowing(testCase, 'highlightGroup')).toHaveLength(copies);
+        });
+    });
+
+    describe('hlc markers, hovered with a marker shadow', () => {
+        const hlc = SERIES.find((testCase) => testCase.name === 'hlc markers')!;
+
+        // Only the glow is cast by the highlight copy alone; the marker `shadow` is cast by it as before `glow`.
+        it.each([
+            ['no glow', undefined],
+            ['a series glow', SERIES_GLOW],
+        ])('casts the shadow from the highlight copy with %s', async (_name, glow) => {
+            await create(hlc, glow, SHADOW);
+            const { ctx, id } = deproxy(chart);
+            ctx.highlightManager.updateHighlight(id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
+            await waitForChartStability(chart);
+
+            const copies = collectShapes(getSeriesAt(chart).highlightGroup).filter((shape) => shape.visible);
+            expect(copies).toHaveLength(hlc.copies!);
+            for (const copy of copies) expect(copy.fillShadow).toMatchObject(SHADOW);
         });
     });
 
@@ -1148,6 +1170,16 @@ describe('series-level glow (enterprise series)', () => {
 
                     expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
                 });
+
+                // The state of the other series casts on no item of this one, so a move changes nothing it casts.
+                it.skipIf(NO_SERIES_STATES.has(testCase.name))(
+                    'stays cached where only the unhighlighted series glows',
+                    async () => {
+                        await moveHover({ unhighlightedSeries: { glow: {} } });
+
+                        expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
+                    }
+                );
 
                 it('redraws where the other items glow', async () => {
                     await moveHover({ unhighlightedItem: { glow: {} } });

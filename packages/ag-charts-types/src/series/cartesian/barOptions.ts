@@ -110,7 +110,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     crisp?: boolean;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
-    /** Configuration for the glow around the bars. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    /** Configuration for the glow around the bars. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. The faint bars that a cross-filter draws behind the filtered ones cast no glow. */
     glow?: AgGlowOptions;
     /** Configuration for the labels shown on bars. */
     label?: AgBarSeriesLabelOptions<TDatum, AgBarSeriesLabelFormatterParams<TDatum>, TContext>;

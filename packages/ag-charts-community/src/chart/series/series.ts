@@ -971,10 +971,10 @@ export abstract class Series<
         // Check if there are any itemStylers that might need to react to highlight changes
         const hasItemStylers = this.hasItemStylers();
 
-        // The hovered item's in-place copy casts no glow, as its highlight copy does (see `resolveItemGlow`), so this
-        // series' in-place nodes redraw when the item its highlight layer redraws changes.
+        // The hovered item's in-place copy casts no glow (see `resolveItemGlow`) while the others cast the `OtherItem`
+        // glow, so the in-place nodes redraw when the item the highlight layer redraws changes.
         const glowSwapped =
-            this.hasInPlaceGlow() &&
+            this.hasGlowIn(HighlightState.OtherItem) &&
             this.getRedrawnDatumIndex(previousHighlightedDatum) !== this.getRedrawnDatumIndex(currentHighlightedDatum);
 
         if (!hasItemStylers && !glowSwapped && currentHighlightState === previousHighlightState) {
@@ -1075,8 +1075,8 @@ export abstract class Series<
     }
 
     /**
-     * Whether a state that casts in place has a glow: every state but `Item`, which only the highlight layer's copy of the
-     * hovered item casts. Only these change what the series' in-place nodes cast when the highlight moves.
+     * Whether a state that always casts in place has a glow: every state but `Item`. The highlight layer's copy of the hovered
+     * item casts `Item`; only in `highlight.mode: 'shared'` do the matching items of other series cast it in place.
      */
     private inPlaceGlow?: boolean;
 

@@ -705,8 +705,7 @@ export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] 
 export interface GlowThemePaths {
     /**
      * The series-level `glow`, such as `marker.glow` or `tile.glow`. A series with a `glow` on more than one part, such as
-     * the links and nodes of a flow, lists them all: a bucket is on when any of them is, so that no part loses its own
-     * `glow` to a highlight state.
+     * the links and nodes of a flow, lists them all: a bucket's `enabled` is then left unset unless the user sets its `glow`.
      */
     readonly glow?: string | readonly string[];
     /** The `highlight` options of the series, or of the part of it with the `glow`. */

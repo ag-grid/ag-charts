@@ -154,7 +154,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     radiusMax?: number;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
-    /** Configuration for the glow around the sectors. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    /** Configuration for the glow around the sectors. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. The faint sectors that a cross-filter draws behind the filtered ones cast no glow. */
     glow?: AgGlowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams<TDatum, TContext>>;
