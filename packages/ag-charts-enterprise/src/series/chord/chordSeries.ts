@@ -597,7 +597,7 @@ export class ChordSeries extends FlowProportionSeries<
 
             sector.setStyleProperties(style, fillBBox);
             sector.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
-            sector.fillGlow = datum === focusedDatum ? undefined : this.resolveItemGlow(glow, isHighlight, datumIndex);
+            sector.fillGlow = focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datumIndex) : undefined;
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -746,7 +746,7 @@ export class ChordSeries extends FlowProportionSeries<
             link.setStyleProperties(style, fillBBox);
             link.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
             link.fillGlow =
-                datum === focusedDatum ? undefined : this.resolveItemGlow(glow, isHighlight, datum.datumIndex);
+                focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex) : undefined;
         });
     }
 

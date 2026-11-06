@@ -139,6 +139,18 @@ const CASES: Array<[string, object, object[], (options: any) => any, string[]]> 
     ],
 ];
 
+// The series with a `glow` on more than one part.
+const PER_PART = new Set([
+    'sankey node',
+    'sankey link',
+    'chord node',
+    'chord link',
+    'waterfall positive',
+    'waterfall total',
+    'hlc marker',
+    'range-area marker',
+]);
+
 describe('series glow theme', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -151,12 +163,58 @@ describe('series glow theme', () => {
             series: [series],
         } as AgChartOptions);
 
-    it.each(CASES)('%s turns on the buckets it falls back to', async (_name, series, data, highlightOf, buckets) => {
-        const chart: any = await create(series, data);
-        const highlight = highlightOf(getSeriesOptions<any>(chart));
-        expect(buckets.map((bucket) => [bucket, highlight[bucket].glow.enabled])).toEqual(
-            buckets.map((bucket) => [bucket, true])
+    const SINGLE_PART = CASES.filter(([name]) => !PER_PART.has(name));
+    const MULTI_PART = CASES.filter(([name]) => PER_PART.has(name));
+
+    it.each(SINGLE_PART)(
+        '%s turns on the buckets it falls back to',
+        async (_name, series, data, highlightOf, buckets) => {
+            const chart: any = await create(series, data);
+            const highlight = highlightOf(getSeriesOptions<any>(chart));
+            expect(buckets.map((bucket) => [bucket, highlight[bucket].glow.enabled])).toEqual(
+                buckets.map((bucket) => [bucket, true])
+            );
+            chart.destroy();
+        }
+    );
+
+    // A bucket that has no `glow` of its own has no one value to follow, so it leaves each part to its own `glow`.
+    it.each(MULTI_PART)(
+        '%s leaves a bucket with no glow to each part',
+        async (_name, series, data, highlightOf, buckets) => {
+            const chart: any = await create(series, data);
+            const highlight = highlightOf(getSeriesOptions<any>(chart));
+            expect(buckets.map((bucket) => [bucket, highlight[bucket]?.glow?.enabled])).toEqual(
+                buckets.map((bucket) => [bucket, undefined])
+            );
+            chart.destroy();
+        }
+    );
+
+    // The theme cannot tell a user's `enabled` from its own, so it is left to the options graph to enable a bucket that
+    // the user gave a `glow`, whatever the parts do.
+    it.each(MULTI_PART)(
+        '%s turns on a bucket that the user gives a glow, and only that one',
+        async (_name, series, data, highlightOf, buckets) => {
+            const chart: any = await create(
+                { ...series, highlight: { [buckets[0]]: { glow: { fill: 'red' } } } },
+                data
+            );
+            const highlight = highlightOf(getSeriesOptions<any>(chart));
+            expect(buckets.map((bucket) => [bucket, highlight[bucket]?.glow?.enabled])).toEqual(
+                buckets.map((bucket, index) => [bucket, index === 0 ? true : undefined])
+            );
+            chart.destroy();
+        }
+    );
+
+    it('keeps the explicit enabled of a bucket glow', async () => {
+        const [, series, data, highlightOf] = MULTI_PART[0];
+        const chart: any = await create(
+            { ...series, highlight: { highlightedItem: { glow: { enabled: false, fill: 'red' } } } },
+            data
         );
+        expect(highlightOf(getSeriesOptions<any>(chart)).highlightedItem.glow.enabled).toBe(false);
         chart.destroy();
     });
 
@@ -164,7 +222,7 @@ describe('series glow theme', () => {
         const base = { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' };
         const chart: any = await create(base, FLOW);
         const { highlight } = getSeriesOptions<any>(chart);
-        expect(ITEM.map((bucket) => highlight[bucket].glow.enabled)).toEqual([false, false]);
+        expect(ITEM.map((bucket) => highlight[bucket]?.glow?.enabled === true)).toEqual([false, false]);
         chart.destroy();
     });
 });

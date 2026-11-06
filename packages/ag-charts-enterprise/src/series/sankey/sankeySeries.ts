@@ -1163,7 +1163,7 @@ export class SankeySeries extends FlowProportionSeries<
 
             rect.setStyleProperties(style, fillBBox);
             rect.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
-            rect.fillGlow = datum === focusedDatum ? undefined : this.resolveItemGlow(glow, isHighlight, datumIndex);
+            rect.fillGlow = focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datumIndex) : undefined;
         });
     }
 
@@ -1273,7 +1273,7 @@ export class SankeySeries extends FlowProportionSeries<
             link.setStyleProperties(style, fillBBox);
             link.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
             link.fillGlow =
-                datum === focusedDatum ? undefined : this.resolveItemGlow(glow, isHighlight, datum.datumIndex);
+                focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex) : undefined;
 
             link.inset = link.strokeWidth / 2;
         });

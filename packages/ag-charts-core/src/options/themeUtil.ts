@@ -718,6 +718,9 @@ export interface GlowThemePaths {
  * come from the series-level `glow`. A bucket with a `glow` of its own is enabled by it alone, as a user's `enabled` is
  * declared at that path; and a bucket without one has the series, on or off.
  *
+ * A series with a `glow` on more than one part has no one value for a bucket without a `glow` of its own to follow, so
+ * its `enabled` is left unset there, and each part keeps its own.
+ *
  * The item buckets fall back to the series bucket, or the branch bucket of a hierarchy, that is among `buckets`, and
  * the others to the series-level `glow`. `buckets` are the states of the series that the item states fall back to.
  */
@@ -727,10 +730,14 @@ export function withGlowThemeDefaults<T extends object>(
     { glow = '/series/$index/glow', highlight: highlightPath = '/series/$index/highlight' }: GlowThemePaths = {}
 ): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
-    const follow = (bucket: string, enabled: object) => {
-        result[bucket] = { ...(result[bucket] as object | undefined), glow: { enabled } };
-    };
     const glowPaths = typeof glow === 'string' ? [glow] : glow;
+    const perPart = glowPaths.length > 1;
+    const follow = (bucket: string, enabled: object) => {
+        result[bucket] = {
+            ...(result[bucket] as object | undefined),
+            glow: { enabled: perPart ? { $isUserOption: ['./', enabled, undefined] } : enabled },
+        };
+    };
     const enabledPaths = glowPaths.map((path) => ({ $path: `${path}/enabled` }));
     const seriesEnabled = enabledPaths.length === 1 ? enabledPaths[0] : { $or: enabledPaths };
     for (const bucket of buckets) {
