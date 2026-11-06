@@ -86,7 +86,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Décalage',
     dialogInputCoordinatesStartOffset: 'Décalage de début',
     dialogInputCoordinatesEndOffset: 'Décalage de fin',
-    dialogInputCoordinatesEndRetracement: 'Fin du retrait',
+    dialogInputCoordinatesEndRetracement: 'Fin du retracement',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

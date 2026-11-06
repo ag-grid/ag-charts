@@ -86,7 +86,7 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Przesunięcie',
     dialogInputCoordinatesStartOffset: 'Przesunięcie początkowe',
     dialogInputCoordinatesEndOffset: 'Przesunięcie końcowe',
-    dialogInputCoordinatesEndRetracement: 'Koniec odbicia',
+    dialogInputCoordinatesEndRetracement: 'Koniec zniesienia',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

@@ -86,7 +86,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Отместване',
     dialogInputCoordinatesStartOffset: 'Начално отместване',
     dialogInputCoordinatesEndOffset: 'Крайно отместване',
-    dialogInputCoordinatesEndRetracement: 'Край на отклонението',
+    dialogInputCoordinatesEndRetracement: 'Край на корекцията',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

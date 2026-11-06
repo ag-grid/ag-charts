@@ -181,7 +181,7 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Nihe',
     dialogInputCoordinatesStartOffset: 'Algnihe',
     dialogInputCoordinatesEndOffset: 'Lõppnihe',
-    dialogInputCoordinatesEndRetracement: 'Taandumise lõpp',
+    dialogInputCoordinatesEndRetracement: 'Tagasikäigu lõpp',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

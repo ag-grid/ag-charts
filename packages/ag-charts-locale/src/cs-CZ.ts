@@ -86,7 +86,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Posun',
     dialogInputCoordinatesStartOffset: 'Počáteční posun',
     dialogInputCoordinatesEndOffset: 'Koncový posun',
-    dialogInputCoordinatesEndRetracement: 'Konec korekce',
+    dialogInputCoordinatesEndRetracement: 'Konec retracementu',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',

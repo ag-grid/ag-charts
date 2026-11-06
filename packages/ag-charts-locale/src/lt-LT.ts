@@ -181,7 +181,7 @@ export const AG_CHARTS_LOCALE_LT_LT: Record<string, string> = {
     dialogInputCoordinatesOffset: 'Poslinkis',
     dialogInputCoordinatesStartOffset: 'Pradžios poslinkis',
     dialogInputCoordinatesEndOffset: 'Pabaigos poslinkis',
-    dialogInputCoordinatesEndRetracement: 'Atšaukimo pabaiga',
+    dialogInputCoordinatesEndRetracement: 'Atsitraukimo pabaiga',
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label} ${axis}',
