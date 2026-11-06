@@ -12,6 +12,7 @@ import {
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
     getSeriesNodeData,
+    getSeriesOptions,
 } from '../test/seriesAccessors';
 import { HIGHLIGHT_GLOW, HIGHLIGHT_SHADOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
@@ -339,7 +340,7 @@ describe('highlightedItem.shadow with highlight.mode: shared', () => {
         { x: 2, v: 8, w: 4 },
     ];
 
-    const createShared = async () => {
+    const createShared = async (highlightedItem: object) => {
         chart = deproxy(
             await createChart({
                 data: CATEGORIES,
@@ -355,19 +356,19 @@ describe('highlightedItem.shadow with highlight.mode: shared', () => {
                     xKey: 'x',
                     yKey,
                     shadow: SERIES_SHADOW,
-                    highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
+                    highlight: { highlightedItem },
                 })),
             } as AgChartOptions)
         );
     };
-
-    /**
-     * Options cannot clear the opacity that the theme gives the dimmed items, so it is dropped from the resolved options,
-     * as a theme with none would leave them.
-     */
+    // Options cannot clear the opacity that the theme gives the dimmed items, so drop it from the resolved options.
     const dropDimming = () => {
-        for (const series of chart.series) {
-            const { unhighlightedItem, unhighlightedSeries } = (series as any).options.highlight;
+        for (const index of [0, 1]) {
+            type Dimming = Record<'unhighlightedItem' | 'unhighlightedSeries', { opacity?: number }>;
+            const { unhighlightedItem, unhighlightedSeries } = getSeriesOptions<{ highlight: Dimming }>(
+                chart,
+                index
+            ).highlight;
             delete unhighlightedItem.opacity;
             delete unhighlightedSeries.opacity;
         }
@@ -387,8 +388,16 @@ describe('highlightedItem.shadow with highlight.mode: shared', () => {
             )
         );
 
+    /** The glow that each bar of each series casts: the bucket's (`'item'`) or none. */
+    const glowsOf = () =>
+        [0, 1].map((seriesIndex) =>
+            shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Rect).map((rect) =>
+                rect.fillGlow?.fill === HIGHLIGHT_GLOW.fill ? 'item' : 'none'
+            )
+        );
+
     it('casts the shadow from the items that share the hovered category, and from them alone', async () => {
-        await createShared();
+        await createShared({ shadow: HIGHLIGHT_SHADOW });
         await hover(0);
 
         // Series 0 holds the hovered bar; series 1 holds the bar that shares its category.
@@ -410,7 +419,7 @@ describe('highlightedItem.shadow with highlight.mode: shared', () => {
     ])(
         'moves the shadow to the items of the next category, and takes it off when the hover ends, %s',
         async (_name, { clearDimming }) => {
-            await createShared();
+            await createShared({ shadow: HIGHLIGHT_SHADOW });
             if (clearDimming) dropDimming();
             await hover(0);
             await hover(1);
@@ -423,6 +432,35 @@ describe('highlightedItem.shadow with highlight.mode: shared', () => {
             expect(castsOf()).toEqual([
                 ['series', 'series'],
                 ['series', 'series'],
+            ]);
+        }
+    );
+
+    it.each([
+        ['with the theme dimming', { clearDimming: false }],
+        ['with the dimming cleared', { clearDimming: true }],
+    ])(
+        'moves the glow to the items of the next category, and takes it off when the hover ends, %s',
+        async (_name, { clearDimming }) => {
+            // The hovered bar casts no glow in place: its highlight copy does.
+            await createShared({ glow: HIGHLIGHT_GLOW });
+            if (clearDimming) dropDimming();
+            await hover(0);
+            expect(glowsOf()).toEqual([
+                ['none', 'none'],
+                ['item', 'none'],
+            ]);
+
+            await hover(1);
+            expect(glowsOf()).toEqual([
+                ['none', 'none'],
+                ['none', 'item'],
+            ]);
+
+            await hover();
+            expect(glowsOf()).toEqual([
+                ['none', 'none'],
+                ['none', 'none'],
             ]);
         }
     );

@@ -640,10 +640,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return this.getHighlightState(activeHighlight, false) !== HighlightState.None;
     }
 
-    /**
-     * Whether a cell casts `highlightedItem.shadow` in place: the hovered one. A heatmap has no category key, so in
-     * `highlight.mode: 'shared'` no other cell shares the hovered category, and no other series matches one of its cells.
-     */
+    /** Only the hovered cell casts it: a heatmap has no category, so `highlight.mode: 'shared'` lights no other cell. */
     private castsItemShadowInPlace() {
         const bucket = this.getItemShadowBucket();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();

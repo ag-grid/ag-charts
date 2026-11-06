@@ -1011,9 +1011,7 @@ export abstract class Series<
         // Check if there are any itemStylers that might need to react to highlight changes
         const hasItemStylers = this.hasItemStylers();
 
-        // The hovered item's in-place copy casts no glow (see `resolveItemGlow`) and the `highlightedItem.shadow` (see
-        // `resolveItemShadow`), so the in-place nodes redraw when the item the highlight layer redraws changes. So do an
-        // item that shares the hovered category, in `highlight.mode: 'shared'`, which casts the item state's glow and shadow.
+        // The in-place copies that cast the bucket or drop their glow change with the hovered item, or its shared category.
         const hasItemShadow = this.getItemShadowBucket() != null;
         const castSwapped =
             ((this.hasGlowIn(HighlightState.OtherItem) || hasItemShadow) &&
@@ -1177,10 +1175,7 @@ export abstract class Series<
     /** The shadow that the hovered item casts, cached by the series-level `shadow` it is merged over. */
     private shadowCascades?: Array<{ source: NormalisedDropShadowOptions; shadow: NormalisedDropShadowOptions }>;
 
-    /**
-     * Setting the bucket turns the shadow on, as with `glow`, unless the bucket turns it off itself. A `fill` with no
-     * `fillOpacity` is opaque, as for the series: the opacity of the theme's shadow goes with its fill alone.
-     */
+    /** A bucket `fill` with no `fillOpacity` is opaque, not the theme shadow's opacity. */
     private getCascadedShadow(
         seriesShadow: NormalisedDropShadowOptions,
         bucket: HighlightedItemShadow
@@ -1199,12 +1194,7 @@ export abstract class Series<
         return shadow;
     }
 
-    /**
-     * The highlight state of an in-place copy, or {@link HOVERED_IN_PLACE} for the hovered item's. The highlight layer
-     * owns `Item`, so the hovered item's in-place copy has the state of `OtherItem`: it is told by being the item that
-     * {@link getRedrawnDatumIndex} reports. Both `resolveItemShadow` and `resolveItemGlow` read it. It returns a
-     * scalar, as it runs per datum on every hover redraw.
-     */
+    /** The state of an in-place copy, or `HOVERED_IN_PLACE`: the hovered item's copy reads `OtherItem`. */
     private resolveInPlaceCopy(
         highlightedDatum: HighlightNodeDatum,
         datumIndex: DatumIndex | undefined,
@@ -1219,11 +1209,7 @@ export abstract class Series<
         return isHovered ? HOVERED_IN_PLACE : state;
     }
 
-    /**
-     * The shadow to draw on one copy of an item. The in-place copy of the hovered item, and of an item in the `Item` state
-     * (a category shared with it in `highlight.mode: 'shared'`), casts `highlightedItem.shadow` over the series `shadow`.
-     * The highlight layer's copy casts none.
-     */
+    /** The in-place copies of the hovered item and of `Item`-state items cast `highlightedItem.shadow`; the highlight copy none. */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean | undefined,
