@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Transformable } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
@@ -10,6 +10,7 @@ import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { XY_DATA, shapesOf } from '../test/shadowFixtures';
 import {
     MIN_UNHIGHLIGHT_DELAY,
+    clickAction,
     createChart,
     delay,
     deproxy,
@@ -328,6 +329,54 @@ describe('highlight marker size', () => {
                 expect(focusIndicatorContainsCanvasPoint(chart, { canvasX: centre.x, canvasY: centre.y })).toBe(true);
                 expect(focusIndicatorContainsCanvasPoint(chart, outside)).toBe(reachesOutside);
             });
+        });
+    });
+
+    describe('exact hit testing of an enlarged highlighted marker', () => {
+        const ENLARGED = 60;
+        // Inside the enlarged marker, outside the in-place copy of BASE_SIZE.
+        const OFFSET = 20;
+
+        const activeDatumIndex = () => chart.ctx.highlightManager.getActiveHighlight()?.datumIndex;
+
+        const pointAboveLastDatum = () => {
+            const marker = shapesOf(getSeriesAt(chart).contentGroup, Marker)[2];
+            const { x, y } = Transformable.toCanvas(marker).computeCenter();
+            return { x, y: y - OFFSET };
+        };
+
+        describe.each(SERIES)('$name', ({ series }) => {
+            it.each([
+                ['keeps the item highlighted inside the enlarged marker', { highlightedItem: { size: ENLARGED } }, 2],
+                ['drops the highlight at that point without a highlight size', {}, undefined],
+            ])('%s', async (_name, highlight, highlightedIndex) => {
+                await create([{ ...series('y', highlight), tooltip: { range: 'exact' } }]);
+                await hoverDatum(0, 2);
+                expect(activeDatumIndex()).toBe(2);
+
+                const { x, y } = pointAboveLastDatum();
+                await hoverAction(x, y)(chart);
+                await delay(MIN_UNHIGHLIGHT_DELAY);
+                await waitForChartStability(chart);
+
+                expect(activeDatumIndex()).toBe(highlightedIndex);
+            });
+        });
+
+        it.each([
+            ['fires a node click inside the enlarged marker', { highlightedItem: { size: ENLARGED } }, 1],
+            ['fires no node click at that point without a highlight size', {}, 0],
+        ])('%s', async (_name, highlight, clickCount) => {
+            const seriesNodeClick = vi.fn();
+            await create([{ ...SERIES[2].series('y', highlight), listeners: { seriesNodeClick } }]);
+            await hoverDatum(0, 2);
+
+            const { x, y } = pointAboveLastDatum();
+            await hoverAction(x, y)(chart);
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(clickCount);
         });
     });
 

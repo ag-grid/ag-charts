@@ -985,6 +985,11 @@ export abstract class Series<
         const currentHighlightState = this.getHighlightState(currentHighlightedDatum);
         const previousHighlightState = this.getHighlightState(previousHighlightedDatum);
 
+        // Exact picks include the highlight layer's copy when it is drawn at a highlight `size`.
+        if (this.hasHighlightedItemSize()) {
+            this._pickNodeCache.clear();
+        }
+
         // Force re-check of layer z-index
         this.setSeriesIndex(this.declarationOrder);
 
@@ -1300,7 +1305,28 @@ export abstract class Series<
                 picks.push({ datum, distance: 0, target: node });
             }
         }
+        // A highlight `size` can draw the hovered marker larger than its copy in `contentGroup`, so the
+        // highlight layer's copy is hit tested too, or the outer part of the visible marker would not pick.
+        if (this.hasHighlightedItemSize()) {
+            for (const node of this.highlightGroup.pickNodes(point.x, point.y)) {
+                const datum = node.unsafeClosestDatum();
+                if (
+                    typeof datum === 'object' &&
+                    datum != null &&
+                    datum.missing !== true &&
+                    !picks.some((pick) => pick.datum === datum)
+                ) {
+                    picks.push({ datum, distance: 0, target: node });
+                }
+            }
+        }
         return picks;
+    }
+
+    /** Whether the highlighted item is drawn at a highlight `size`, which only marker-based series accept. */
+    private hasHighlightedItemSize(): boolean {
+        const { size } = this.getHighlightStyle(true, undefined, HighlightState.Item) as { size?: number };
+        return size != null;
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
