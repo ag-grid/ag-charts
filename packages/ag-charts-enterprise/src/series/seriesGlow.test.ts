@@ -15,7 +15,7 @@ import {
     uncastGlows,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { Shape } from 'ag-charts-core';
+import { type Shape, Transformable } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
@@ -940,9 +940,9 @@ describe('series-level glow (enterprise series)', () => {
             return byName;
         };
 
-        const hoverNode = async (series: AnySeriesOptions, name: string) => {
+        const hoverNode = async (series: AnySeriesOptions, name: string, data: object[] = TREE) => {
             chart = await createEnterpriseChart({
-                data: TREE,
+                data,
                 animation: { enabled: false },
                 legend: { enabled: false },
                 series: [series],
@@ -1015,6 +1015,58 @@ describe('series-level glow (enterprise series)', () => {
             const inPlace = glowByName('datumSelection', isGroup);
             expect([...inPlace.keys()]).toEqual(['B']);
             expect(inPlace.get('B')).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 6 }));
+        });
+
+        // A glow sits behind the fills of its batch, so none shows inside a tile; it did on hover, when the hovered tile
+        // (which casts none in place) split its depth into runs, and a later run's glow fell on the tiles before it.
+        it('treemap draws no glow over the tiles of a depth when one in the middle is hovered', async () => {
+            const FLAT = [10, 8, 6, 5, 4].map((size, i) => ({ name: `L${i + 1}`, size }));
+            const render = async (glow: object | undefined) => {
+                await hoverNode(
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        tile: {
+                            glow,
+                            // The tiles that are not hovered keep their fills opaque, as a glow shows through a dimmed one.
+                            highlight: {
+                                highlightedItem: { glow: { enabled: false } },
+                                unhighlightedItem: { fillOpacity: 1 },
+                                unhighlightedBranch: { fillOpacity: 1 },
+                            },
+                        },
+                    } as AnySeriesOptions,
+                    'L3',
+                    FLAT
+                );
+                const { canvas } = deproxy(chart).ctx.scene;
+                const pixels = Array.from(canvasPixels());
+                // Inside each tile, clear of its edge, where only a glow drawn over the fill could differ.
+                const insides = getSeriesSelectionNodes<Shape>(chart, 'datumSelection')
+                    .filter((shape) => shape.visible && isTile(shape))
+                    .map((shape) => Transformable.toCanvas(shape));
+                chart.destroy();
+                return { pixels, insides, width: canvas.width, ratio: canvas.pixelRatio };
+            };
+
+            const withGlow = await render({});
+            const without = await render(undefined);
+            expect(withGlow.insides.length).toBeGreaterThan(2);
+            const { width, ratio } = withGlow;
+            for (const box of withGlow.insides) {
+                const inside = { ...box, x: box.x + 2, y: box.y + 2, width: box.width - 4, height: box.height - 4 };
+                let differ = 0;
+                for (let y = Math.ceil(inside.y * ratio); y < (inside.y + inside.height) * ratio; y++) {
+                    for (let x = Math.ceil(inside.x * ratio); x < (inside.x + inside.width) * ratio; x++) {
+                        const at = (y * width + x) * 4;
+                        for (let c = 0; c < 4; c++) {
+                            if (withGlow.pixels[at + c] !== without.pixels[at + c]) differ++;
+                        }
+                    }
+                }
+                expect(differ).toBe(0);
+            }
         });
 
         it('sunburst sectors read the branch buckets', async () => {
