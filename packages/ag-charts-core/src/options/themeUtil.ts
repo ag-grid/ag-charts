@@ -782,9 +782,8 @@ export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): Norm
 }
 
 /**
- * `style` without its `glow` and `shadow`, which the series casts from the slots of the item and no item is drawn or
- * styled by. A highlight style reaches item stylers and node styles through this, so neither the theme's disabled
- * `glow` nor a `highlightedItem.shadow` appears in either.
+ * `style` without its `glow` and `shadow`, which the series casts and no item style or styler takes, so that neither
+ * reaches them from a highlight style.
  */
 export function withoutCasts<T extends object>(style: T): T {
     if (!('glow' in style) && !('shadow' in style)) return style;

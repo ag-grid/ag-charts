@@ -1008,9 +1008,8 @@ export abstract class Series<
         // Check if there are any itemStylers that might need to react to highlight changes
         const hasItemStylers = this.hasItemStylers();
 
-        // The hovered item's in-place copy casts no glow (see `resolveItemGlow`) while the others cast the `OtherItem`
-        // glow, and casts the `shadow` of `highlightedItem` (see `resolveItemShadow`), so the in-place nodes redraw when
-        // the item the highlight layer redraws changes.
+        // The hovered item's in-place copy casts no glow (see `resolveItemGlow`) and the `highlightedItem.shadow` (see
+        // `resolveItemShadow`), so the in-place nodes redraw when the item the highlight layer redraws changes.
         const castSwapped =
             (this.hasGlowIn(HighlightState.OtherItem) || this.getItemShadowBucket() != null) &&
             this.getRedrawnDatumIndex(previousHighlightedDatum) !== this.getRedrawnDatumIndex(currentHighlightedDatum);
@@ -1155,10 +1154,7 @@ export abstract class Series<
         return this.anySeriesGlow;
     }
 
-    /**
-     * The `shadow` of `highlightedItem`, the only highlight bucket that has one, and only when the user sets it: it has no
-     * theme default, so that its presence says it changes the shadow of the hovered item.
-     */
+    /** The `highlightedItem.shadow`, unset by default so that its presence says it changes the hovered item's shadow. */
     private itemShadowBucket?: HighlightedItemShadow | null;
 
     protected getItemShadowBucket(): HighlightedItemShadow | null {
@@ -1169,23 +1165,18 @@ export abstract class Series<
         return this.itemShadowBucket;
     }
 
-    /**
-     * The `shadow` that the hovered item casts, by the series-level `shadow` that `highlightedItem.shadow` is merged over,
-     * which `applyOptions` drops.
-     */
+    /** The shadow that the hovered item casts, cached by the series-level `shadow` it is merged over. */
     private shadowCascades?: Array<{ source: NormalisedDropShadowOptions; shadow: NormalisedDropShadowOptions }>;
 
     /**
-     * The `shadow` of the series with the fields of `highlightedItem.shadow` over it. Setting the bucket turns the shadow
-     * on, as with `glow`, unless the bucket turns it off itself. A `fill` with no `fillOpacity` is as opaque as it is for
-     * the series: the opacity of the theme's default shadow goes with its fill alone.
+     * Setting the bucket turns the shadow on, as with `glow`, unless the bucket turns it off itself. A `fill` with no
+     * `fillOpacity` is opaque, as for the series: the opacity of the theme's shadow goes with its fill alone.
      */
     private getCascadedShadow(
         seriesShadow: NormalisedDropShadowOptions,
         bucket: HighlightedItemShadow
     ): NormalisedDropShadowOptions {
         const cascades = (this.shadowCascades ??= []);
-        // An indexed loop, as this runs per datum and a callback would allocate a closure each time.
         for (let i = 0; i < cascades.length; i++) {
             if (cascades[i].source === seriesShadow) return cascades[i].shadow;
         }
@@ -1200,12 +1191,9 @@ export abstract class Series<
     }
 
     /**
-     * The shadow to draw on one copy of an item. A hovered item is drawn twice: in place, and again by the highlight
-     * layer on top of it. Every in-place copy casts the item's own `shadow` in the base pass that keeps it behind every
-     * series, but the hovered item's, which casts the `shadow` of `highlightedItem` in that slot when it has one. The
-     * highlight layer owns `Item`, so that in-place copy has the state of `OtherItem`: it is told by being the item that
-     * {@link getRedrawnDatumIndex} reports. The highlight layer's copy casts none, only the glow of
-     * {@link resolveItemGlow}.
+     * The shadow to draw on one copy of an item. The hovered item's in-place copy casts `highlightedItem.shadow` over the
+     * series `shadow`; the highlight layer's copy casts none. The highlight layer owns `Item`, so that in-place copy has
+     * the state of `OtherItem`: it is told by being the item that {@link getRedrawnDatumIndex} reports.
      */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
@@ -1219,6 +1207,7 @@ export abstract class Series<
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         if (highlightedDatum == null || this.getRedrawnIndex(highlightedDatum) !== datumIndex) return shadow;
+        if (this.getHighlightState(highlightedDatum, false, datumIndex) !== HighlightState.OtherItem) return shadow;
 
         return this.getCascadedShadow(shadow, bucket);
     }

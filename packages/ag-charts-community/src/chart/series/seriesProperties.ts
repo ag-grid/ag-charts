@@ -140,9 +140,8 @@ type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
 /**
- * Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. The `glow` and the
- * `shadow` are left out, as the series casts them from the slots of the item and no item style or styler takes them;
- * {@link getHighlightGlow} reads the `glow`, and the series the `shadow` of `highlightedItem`.
+ * Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. The `glow` and
+ * `shadow` are left out, as the series casts them; {@link getHighlightGlow} reads the `glow`.
  */
 export function getHighlightStyle<TStyle extends object>(
     highlight: { [K in HighlightStyleOptionKey]?: TStyle } | undefined,
