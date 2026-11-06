@@ -461,9 +461,9 @@ body > #highlighter {
     min-width: 0;
 }
 
-/* Each switch's label text would otherwise sit as close to the next switch as to its own */
-.controls-row:has(input[role='switch']) {
-    column-gap: calc(var(--row-gap) * 3);
+/* Each switch's label text would otherwise sit as close to the next control as to its own switch */
+.controls-row > label:has(> input[role='switch']):not(:last-child) {
+    margin-right: calc(var(--row-gap) * 2);
 }
 
 .controls-row + .controls-row {
