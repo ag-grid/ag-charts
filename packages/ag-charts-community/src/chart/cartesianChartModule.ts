@@ -5,7 +5,7 @@ import {
     type ChartModuleDefinition,
     ValidationError,
     cartesianChartOptionsDefs,
-    cartesianChartThemeOptionsDefs,
+    commonChartOptionsDefs,
     commonChartThemeTemplate,
     isObject,
     validate,
@@ -28,7 +28,7 @@ export const CartesianChartModule: ChartModuleDefinition<CartesianChartDefOption
 
         options: cartesianChartOptionsDefs,
 
-        themeOptions: cartesianChartThemeOptionsDefs,
+        themeOptions: commonChartOptionsDefs,
 
         themeTemplate: commonChartThemeTemplate,
 
