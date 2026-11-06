@@ -1,4 +1,4 @@
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions, AgStandaloneChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -734,6 +734,31 @@ describe('Enterprise highlight defaults', () => {
             datumIndex: 1,
         },
     ];
+
+    it.each([
+        [2, 'shared'],
+        [4, 'single'],
+    ])('defaults highlight.mode to the tooltip mode on a polar chart with %i series', async (count, expected) => {
+        chart = deproxy(
+            await createEnterpriseChart({
+                data: [
+                    { angle: 'a', radius: 1 },
+                    { angle: 'b', radius: 2 },
+                    { angle: 'c', radius: 3 },
+                ],
+                series: Array.from({ length: count }, (_, i) => ({
+                    type: 'radar-line' as const,
+                    angleKey: 'angle',
+                    radiusKey: 'radius',
+                    radiusName: `series ${i}`,
+                })),
+            })
+        );
+
+        const { processedOptions } = chart.chartOptions;
+        expect(processedOptions.tooltip?.mode).toBe(expected);
+        expect(processedOptions.highlight?.mode).toBe(expected);
+    });
 
     describe('multi series', () => {
         for (const testCase of multiSeriesCases) {
