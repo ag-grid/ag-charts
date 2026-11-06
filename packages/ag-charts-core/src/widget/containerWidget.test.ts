@@ -18,4 +18,18 @@ describe('ContainerWidget', () => {
         container.addChild(label);
         expect(container.getElement().firstElementChild).toBe(label.getElement());
     });
+
+    it('setCentredThemeText centres its content inline in the theme font and text colour', () => {
+        const container = new ContainerWidget();
+        container.setCentredThemeText(8);
+        const { style } = container.getElement();
+        expect(style.display).toBe('flex');
+        expect(style.alignItems).toBe('center');
+        expect(style.justifyContent).toBe('center');
+        expect(style.boxSizing).toBe('border-box');
+        expect(style.height).toBe('100%');
+        expect(style.margin).toBe('8px');
+        expect(style.fontFamily).toBe('var(--ag-charts-font-family)');
+        // jsdom's CSSStyleDeclaration rejects var() for font-size, font-weight and color, so those are not observable here.
+    });
 });
