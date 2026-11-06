@@ -359,3 +359,5 @@ Learn more at [ag-grid.com](https://www.ag-grid.com/?utm_source=ag-charts-readme
 <a href="https://www.ag-grid.com/blog/"><img src="https://img.shields.io/badge/-Blog-grey?style=for-the-badge&logo=rss" alt="Blog Badge" height="36"></a>
 
 </div>
+
+<!-- manual CI verification -->
