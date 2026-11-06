@@ -76,14 +76,10 @@ export function getRootShadow(node: Node, slot: ShadowSlot = 'shadow'): Normalis
     return node instanceof Shape ? node.getBatchShadow(slot) : undefined;
 }
 
-/** Whether a node erases the layer beneath it, and so also what the engine's shadow or glow put there. It casts both for itself. */
-export function isCutout(node: Node): boolean {
-    return node instanceof Shape && node.__drawingMode === 'cutout';
-}
-
 /** The options that a node casts in a slot through the engine, or undefined if it casts none. */
 export function getBatchedShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
-    return isCutout(node) ? undefined : getRootShadow(node, slot);
+    // A cutout erases the layer beneath it, and so also what the engine's shadow or glow put there. It casts both for itself.
+    return node instanceof Shape && node.__drawingMode === 'cutout' ? undefined : getRootShadow(node, slot);
 }
 
 export function getShadowClip(node: Node): ShadowClip | undefined {
@@ -119,7 +115,7 @@ function sameRegions(a: readonly ShadowRegion[] | undefined, b: readonly ShadowR
     return a != null && b != null && arraysEqual(a, b);
 }
 
-export function sameLayer(a: Node, b: Node) {
+function sameLayer(a: Node, b: Node) {
     const aIndex = a.__zIndex;
     const bIndex = b.__zIndex;
     return aIndex === bIndex || compareZIndex(aIndex, bIndex) === 0;

@@ -604,13 +604,13 @@ export abstract class HierarchySeries<
         return (style as TStyle | null) ?? undefined;
     }
 
-    /** The merged `glow` of the highlight styles of a node, over the series-level `seriesGlow` that they fall back to. */
+    /** The merged `glow` of the highlight styles of a node. */
     protected getHierarchyHighlightGlow<TStyle extends { glow?: DeepPartial<AgGlowOptions> }>(
         highlightState: HierarchyHighlightState,
-        highlight: HierarchyHighlightBuckets<TStyle>,
-        seriesGlow: DeepPartial<AgGlowOptions> | undefined
+        highlight: HierarchyHighlightBuckets<TStyle>
     ): DeepPartial<AgGlowOptions> | undefined {
-        return mergeGlow(this.getHierarchyHighlightBuckets(highlightState, highlight), { glow: seriesGlow });
+        const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
+        return style && mergeGlow(style);
     }
 
     private getHierarchyHighlightBuckets<TStyle extends object>(
@@ -653,26 +653,21 @@ export abstract class HierarchySeries<
         return glow ?? undefined;
     }
 
-    /** The shadow to draw on one copy of a node: in place, its own. The highlight layer's copy casts only its glow. */
+    /**
+     * The shadow to draw on one copy of a node. The highlight layer's copy casts only its `glow`. An in-place copy casts
+     * the glow of its highlight state, in the base pass that keeps it behind every series, except for the hovered
+     * node's own in-place copy, which keeps its `shadow` beneath the highlight layer's copy.
+     */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,
-        isHighlight: boolean
-    ): NormalisedDropShadowOptions | undefined {
-        return isHighlight ? undefined : shadow;
-    }
-
-    /**
-     * The glow to cast in the glow slot of one copy of a node, `glow` being that of its highlight state. In place, that
-     * is in the base pass that keeps it behind every series, except for the hovered node's own in-place copy, as the
-     * highlight layer redraws that node with the glow of the item state, above every series.
-     */
-    protected resolveNodeGlow(
         glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
         highlightedNode: TNodeClass | undefined,
         nodeDatum: Pick<TNodeClass, 'datumIndex'>
     ): NormalisedDropShadowOptions | undefined {
-        return !isHighlight && highlightedNode?.datumIndex === nodeDatum.datumIndex ? undefined : glow;
+        if (isHighlight) return glow;
+        if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
+        return glow ?? shadow;
     }
 
     public override getHighlightStateString(

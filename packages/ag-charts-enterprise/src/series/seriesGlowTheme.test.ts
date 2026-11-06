@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { AgChartOptions } from 'ag-charts-community';
 import { getSeriesOptions, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
-import { HIERARCHY_SHADOW_DATA, createEnterpriseChart } from '../test/utils';
+import { createEnterpriseChart } from '../test/utils';
 
 const FLOW = [
     { from: 'A', to: 'C', size: 8 },
@@ -19,32 +19,10 @@ const ON = { enabled: true };
 const MARKER = { enabled: true, glow: ON };
 
 const ITEM = ['highlightedItem', 'unhighlightedItem'];
-const BRANCH = ['highlightedBranch', 'unhighlightedBranch'];
 const SERIES = ['highlightedSeries', 'unhighlightedSeries'];
 
 // Each series' buckets take their `enabled` from the series-level `glow`, wherever the series keeps it.
 const CASES: Array<[string, object, object[], (options: any) => any, string[]]> = [
-    [
-        'treemap tile',
-        { type: 'treemap', labelKey: 'name', sizeKey: 'size', tile: { glow: ON } },
-        HIERARCHY_SHADOW_DATA,
-        (o) => o.tile.highlight,
-        [...ITEM, ...BRANCH],
-    ],
-    [
-        'treemap group',
-        { type: 'treemap', labelKey: 'name', sizeKey: 'size', group: { glow: ON } },
-        HIERARCHY_SHADOW_DATA,
-        (o) => o.group.highlight,
-        ITEM,
-    ],
-    [
-        'sunburst',
-        { type: 'sunburst', labelKey: 'name', sizeKey: 'size', glow: ON },
-        HIERARCHY_SHADOW_DATA,
-        (o) => o.highlight,
-        [...ITEM, ...BRANCH],
-    ],
     [
         'sankey node',
         { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', node: { glow: ON } },

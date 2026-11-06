@@ -3,7 +3,6 @@ import {
     BRANCH_GLOW_BUCKETS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FONT_SIZE_RATIO,
-    GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
@@ -17,7 +16,7 @@ import {
     seriesLabelFontWeightOr,
     themeLineHeight,
     undocumentedThemeOptions,
-    withGlowThemeDefaults,
+    withDisabledGlowThemeDefaults,
 } from 'ag-charts-core';
 
 import { TreemapSeries } from './treemapSeries';
@@ -73,11 +72,10 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeOpacity: 1,
                 cornerRadius: 0,
                 shadow: SHADOW_THEME_DEFAULTS,
-                glow: GLOW_THEME_DEFAULTS,
                 padding: 4,
                 gap: 2,
                 interactive: true,
-                highlight: withGlowThemeDefaults(
+                highlight: withDisabledGlowThemeDefaults(
                     {
                         enabled: { $circular: { $path: '/highlight/enabled' } },
                         unhighlightedItem: {
@@ -86,8 +84,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                             strokeOpacity: 0.2,
                         },
                     },
-                    ITEM_GLOW_BUCKETS,
-                    { glow: '/series/$index/group/glow', highlight: '/series/$index/group/highlight' }
+                    ITEM_GLOW_BUCKETS
                 ),
             },
             tile: {
@@ -129,10 +126,9 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeOpacity: 1,
                 cornerRadius: 0,
                 shadow: SHADOW_THEME_DEFAULTS,
-                glow: GLOW_THEME_DEFAULTS,
                 padding: 3,
                 gap: 1,
-                highlight: withGlowThemeDefaults(
+                highlight: withDisabledGlowThemeDefaults(
                     {
                         enabled: { $circular: { $path: '/highlight/enabled' } },
                         unhighlightedItem: {
@@ -144,8 +140,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                             strokeOpacity: 0.2,
                         },
                     },
-                    BRANCH_GLOW_BUCKETS,
-                    { glow: '/series/$index/tile/glow', highlight: '/series/$index/tile/highlight' }
+                    BRANCH_GLOW_BUCKETS
                 ),
                 selection: SERIES_SELECTION_THEME,
             },
