@@ -1,10 +1,13 @@
 import { excludeHiddenFiles } from '@components/docs/utils/excludeHiddenFiles';
 import { ExampleRunner } from '@components/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@components/example-runner/components/ExternalLinks';
-import { type ReactElement, useEffect, useState } from 'react';
+import { useDarkmode } from '@utils/hooks/useDarkmode';
+import { useTheme } from '@utils/hooks/useTheme';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
 import { GALLERY_EXAMPLE_TYPE, GALLERY_INTERNAL_FRAMEWORK } from '../constants';
+import { setExampleTheme } from '../utils/setExampleTheme';
 import {
     getExampleCodeSandboxUrl,
     getExampleContentsUrl,
@@ -49,6 +52,8 @@ const GalleryExampleRunnerInner = ({
     const [exampleFiles, setExampleFiles] = useState<Record<string, string>>();
     const [exampleRunnerFiles, setExampleRunnerFiles] = useState<Record<string, string>>();
     const [packageJson, setPackageJson] = useState();
+    const [theme] = useTheme();
+    const [darkMode] = useDarkmode();
 
     const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
     const exampleType = GALLERY_EXAMPLE_TYPE;
@@ -147,11 +152,24 @@ const GalleryExampleRunnerInner = ({
         setPackageJson(contents.packageJson);
     }, [internalFramework, contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
+    const mainFileName: string | undefined = contents?.mainFileName;
+    const themedExampleFiles = useMemo(() => {
+        const exportTheme = darkMode ? (`${theme}-dark` as const) : theme;
+        if (exportTheme === 'ag-default' || exampleFiles == null || mainFileName == null) {
+            return exampleFiles;
+        }
+
+        const mainFile = exampleFiles[mainFileName];
+        return mainFile == null
+            ? exampleFiles
+            : { ...exampleFiles, [mainFileName]: setExampleTheme(mainFile, exportTheme) };
+    }, [exampleFiles, mainFileName, theme, darkMode]);
+
     const externalLinks = hideExternalLinks ? undefined : (
         <ExternalLinks
             title={title}
             internalFramework={internalFramework}
-            exampleFiles={exampleFiles}
+            exampleFiles={themedExampleFiles}
             packageJson={packageJson}
             initialSelectedFile={initialSelectedFile}
             plunkrHtmlUrl={plunkrHtmlUrl}
