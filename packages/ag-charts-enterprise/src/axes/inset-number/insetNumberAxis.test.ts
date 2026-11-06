@@ -8,6 +8,7 @@ import {
     dragAction,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
+    getActiveHighlight,
     hoverAction,
     isTooltipVisible,
     setupMockCanvas,
@@ -17,6 +18,13 @@ import {
 import type { Rect } from 'ag-charts-core';
 
 import { createEnterpriseChart, itemNodes } from '../../test/utils';
+
+interface CrosshairFormatterParams {
+    source: string;
+    property: string;
+    value: unknown;
+    boundSeries: { seriesId: string; key: string }[];
+}
 
 const DATA = [
     { year: '2001', price: 24, volume: 13, size: 3 },
@@ -183,6 +191,106 @@ describe('InsetNumberAxis', () => {
         await chart.updateDelta({ axes: { xProfile: { label: { enabled: true } } } });
         await waitForChartStability(chart);
         expect([...axisLabels].sort((a, b) => a.localeCompare(b))).toEqual(['x: price', 'y: price', 'y: profile']);
+    });
+
+    it('should show the crosshair value under the pointer inside the band', async () => {
+        const values: unknown[] = [];
+        chart = await createEnterpriseChart({
+            ...volumeOptions({ crosshair: { enabled: true, snap: false } }),
+            formatter: ({ source, boundSeries, value }: CrosshairFormatterParams) => {
+                if (source === 'crosshair' && boundSeries.some((s) => s.key === 'volume')) values.push(value);
+                return undefined;
+            },
+        } as AgCartesianChartOptions);
+        const internal = deproxy(chart);
+        const { scale } = internal.axes.find((a) => a.userKey === 'yVolume')!;
+        const { x, y, width } = internal.seriesRect!;
+        const pointerY = y + (scale.range[0] + scale.range[1]) / 2;
+        await hoverAction(x + width / 2, pointerY)(chart);
+
+        expect(values.length).toBeGreaterThan(0);
+        expect(Number(values.at(-1))).toBeCloseTo(scale.invert(pointerY - y), 1);
+    });
+
+    it('should render a histogram on an inset axis', async () => {
+        chart = await createEnterpriseChart({
+            data: DATA,
+            series: [{ type: 'histogram', xKey: 'price', yKey: 'volume' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'inset-number', position: 'left', lengthRatio: 0.5 },
+            },
+        });
+        expect(itemNodes<Rect>(chart).length).toBeGreaterThan(0);
+    });
+
+    describe('profile bars', () => {
+        const profileSeries = (overrides: object = {}) => ({
+            type: 'bar' as const,
+            direction: 'horizontal' as const,
+            data: [20, 22, 24, 26, 28, 30, 32, 34, 36].map((price, i) => ({ price, buy: 3 + i, sell: 4 + i })),
+            xKey: 'price',
+            yKey: 'buy',
+            yKeyAxis: 'xProfile',
+            ...overrides,
+        });
+        const profileOptions = (series: AgCartesianChartOptions['series'], extra: object = {}) =>
+            ({
+                data: DATA,
+                series,
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'right', nice: false, crosshair: { enabled: true } },
+                    xProfile: { type: 'inset-number', position: 'top', lengthRatio: 0.4, reverse: true },
+                },
+                ...extra,
+            }) as AgCartesianChartOptions;
+        const priceDomain = () => deproxy(chart!).axes.find((a) => a.userKey === 'y')!.scale.domain;
+
+        it('should leave the price axis domain to the price series while it is shown', async () => {
+            const options = (visible: boolean) =>
+                profileOptions([profileSeries(), { type: 'line', xKey: 'year', yKey: 'price', visible }]);
+            chart = await createEnterpriseChart(options(true));
+            expect(priceDomain()).toEqual([23, 31]);
+
+            await chart.update(options(false));
+            await waitForChartStability(chart);
+            expect(priceDomain()).toEqual([19, 37]);
+        });
+
+        it('should format the price axis crosshair for the price series', async () => {
+            const crosshairs: string[] = [];
+            chart = await createEnterpriseChart(
+                profileOptions([profileSeries(), { id: 'price', type: 'line', xKey: 'year', yKey: 'price' }], {
+                    formatter: ({ source, property, boundSeries }: CrosshairFormatterParams) => {
+                        if (source === 'crosshair')
+                            crosshairs.push(`${property}: ${boundSeries.map((s) => s.seriesId).join()}`);
+                        return undefined;
+                    },
+                })
+            );
+            const { x, y, width, height } = deproxy(chart).seriesRect!;
+            await hoverAction(x + width / 2, y + height / 2)(chart);
+
+            expect(new Set(crosshairs)).toEqual(new Set(['y: price']));
+        });
+
+        it('should draw only the stacked levels in the zoomed range', async () => {
+            chart = await createEnterpriseChart(
+                profileOptions(
+                    [
+                        profileSeries({ stacked: true }),
+                        profileSeries({ yKey: 'sell', stacked: true }),
+                        { type: 'line', xKey: 'year', yKey: 'price' },
+                    ],
+                    { zoom: { enabled: true }, initialState: { zoom: { ratioY: { start: 0.25, end: 0.75 } } } }
+                )
+            );
+            const { scale } = deproxy(chart).axes.find((a) => a.userKey === 'y')!;
+            const levels = itemNodes<Rect>(chart).map(({ y, height }) => Math.round(scale.invert(y + height / 2)));
+
+            expect(levels.toSorted((a, b) => a - b)).toEqual([26, 28]);
+        });
     });
 
     it('should tile profile bars edge to edge on a log price axis', async () => {
@@ -361,9 +469,11 @@ describe('InsetNumberAxis', () => {
 
             await hoverAction(barX, outside)(created);
             expect(isTooltipVisible(internal)).toBe(false);
+            expect(getActiveHighlight(created)).toBeUndefined();
 
             await hoverAction(barX, inside)(created);
             expect(isTooltipVisible(internal)).toBe(true);
+            expect(getActiveHighlight(created)?.datum).toMatchObject({ year: '2005' });
 
             await clickAction(barX, outside)(created);
             expect(clicked).toEqual([]);
