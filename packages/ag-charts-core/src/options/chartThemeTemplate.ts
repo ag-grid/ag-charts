@@ -1,4 +1,25 @@
-import { themeLineHeight } from './themeUtil';
+import { interactionModeThemeDefaults, themeLineHeight } from './themeUtil';
+
+const INTERACTION_MODE_DEFAULTS = interactionModeThemeDefaults({
+    $or: [
+        {
+            $and: [
+                { $isChartType: 'cartesian' },
+                { $not: { $hasSeriesType: 'bubble' } },
+                { $not: { $hasSeriesType: 'scatter' } },
+                { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
+                { $lessThan: [{ $size: { $path: '/series' } }, 4] },
+            ],
+        },
+        {
+            $and: [
+                { $isChartType: 'polar' },
+                { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
+                { $lessThan: [{ $size: { $path: '/series' } }, 4] },
+            ],
+        },
+    ],
+});
 
 const CAPTION_BOX_THEME_DEFAULTS = {
     cornerRadius: 4,
@@ -118,6 +139,7 @@ export const commonChartThemeTemplate = {
     },
     highlight: {
         enabled: true,
+        mode: INTERACTION_MODE_DEFAULTS.highlightMode,
         drawingMode: {
             $if: [
                 {
@@ -139,32 +161,7 @@ export const commonChartThemeTemplate = {
         enabled: true,
         delay: 0,
         pagination: false,
-        mode: {
-            $if: [
-                {
-                    $or: [
-                        {
-                            $and: [
-                                { $isChartType: 'cartesian' },
-                                { $not: { $hasSeriesType: 'bubble' } },
-                                { $not: { $hasSeriesType: 'scatter' } },
-                                { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                                { $lessThan: [{ $size: { $path: '/series' } }, 4] },
-                            ],
-                        },
-                        {
-                            $and: [
-                                { $isChartType: 'polar' },
-                                { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                                { $lessThan: [{ $size: { $path: '/series' } }, 4] },
-                            ],
-                        },
-                    ],
-                },
-                'shared',
-                'single',
-            ],
-        },
+        mode: INTERACTION_MODE_DEFAULTS.tooltipMode,
     },
     listeners: {},
 };

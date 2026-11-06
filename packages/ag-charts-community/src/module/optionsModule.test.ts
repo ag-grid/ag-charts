@@ -22,6 +22,7 @@ import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
     AgCartesianChartOptions,
+    AgChartHighlightMode,
     AgChartOptions,
     AgChartTheme,
     AgColorType,
@@ -29,6 +30,7 @@ import type {
     AgLineSeriesOptions,
     AgNumberAxisOptions,
     AgSparklineOptions,
+    AgTooltipMode,
     SeriesType,
 } from 'ag-charts-types';
 
@@ -860,7 +862,7 @@ describe('ChartOptions', () => {
             });
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect(optionAt(options, 'highlight.mode')).toBeUndefined();
+            expect(optionAt(options, 'highlight.mode')).toBe('single');
         });
 
         it('accepts highlight.mode: shared', () => {
@@ -882,8 +884,81 @@ describe('ChartOptions', () => {
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('Option `highlight.mode` cannot be set to `"invalid"`'))).toBe(true);
             expect(messages.some((m) => m.includes("expecting a keyword such as 'single' or 'shared'"))).toBe(true);
-            // The invalid value is dropped rather than substituted; consumers fall back to 'single'.
-            expect(optionAt(options, 'highlight.mode')).toBeUndefined();
+            // The invalid value is dropped and the theme default applies.
+            expect(optionAt(options, 'highlight.mode')).toBe('single');
+        });
+    });
+
+    describe('highlight.mode and tooltip.mode defaults', () => {
+        type Modes = { tooltip?: AgTooltipMode; highlight?: AgChartHighlightMode };
+        const bar = (count: number) =>
+            Array.from({ length: count }, (_, i) => ({ type: 'bar' as const, xKey: 'x', yKey: `y${i}` }));
+        const scatter = (count: number) =>
+            Array.from({ length: count }, (_, i) => ({ type: 'scatter' as const, xKey: 'x', yKey: `y${i}` }));
+        const pie = (count: number) => Array.from({ length: count }, () => ({ type: 'pie' as const, angleKey: 'v' }));
+        const withModes = ({ tooltip, highlight }: Modes) => ({
+            ...(tooltip ? { tooltip: { mode: tooltip } } : {}),
+            ...(highlight ? { highlight: { mode: highlight } } : {}),
+        });
+
+        it.each([
+            ['1 bar series', bar(1), 'single'],
+            ['2 bar series', bar(2), 'shared'],
+            ['3 bar series', bar(3), 'shared'],
+            ['4 bar series', bar(4), 'single'],
+            ['5 bar series', bar(5), 'single'],
+            ['2 scatter series', scatter(2), 'single'],
+            ['1 pie series', pie(1), 'single'],
+            ['2 pie series', pie(2), 'shared'],
+            ['4 pie series', pie(4), 'single'],
+        ])('resolves both modes from the series count when neither is set: %s', (_, series, expected) => {
+            const options = prepareOptions({ series } as AgChartOptions);
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(optionAt(options, 'tooltip.mode')).toBe(expected);
+            expect(optionAt(options, 'highlight.mode')).toBe(expected);
+        });
+
+        it.each([
+            [{ tooltip: 'shared' }, 2, { tooltip: 'shared', highlight: 'shared' }],
+            [{ tooltip: 'shared' }, 5, { tooltip: 'shared', highlight: 'shared' }],
+            [{ tooltip: 'single' }, 2, { tooltip: 'single', highlight: 'single' }],
+            [{ tooltip: 'single' }, 5, { tooltip: 'single', highlight: 'single' }],
+            [{ tooltip: 'compact' }, 2, { tooltip: 'compact', highlight: 'single' }],
+            [{ tooltip: 'compact' }, 5, { tooltip: 'compact', highlight: 'single' }],
+            [{ highlight: 'shared' }, 2, { tooltip: 'shared', highlight: 'shared' }],
+            [{ highlight: 'shared' }, 5, { tooltip: 'shared', highlight: 'shared' }],
+            [{ highlight: 'single' }, 2, { tooltip: 'single', highlight: 'single' }],
+            [{ highlight: 'single' }, 5, { tooltip: 'single', highlight: 'single' }],
+            [{ tooltip: 'shared', highlight: 'single' }, 2, { tooltip: 'shared', highlight: 'single' }],
+            [{ tooltip: 'shared', highlight: 'single' }, 5, { tooltip: 'shared', highlight: 'single' }],
+            [{ tooltip: 'single', highlight: 'shared' }, 2, { tooltip: 'single', highlight: 'shared' }],
+            [{ tooltip: 'single', highlight: 'shared' }, 5, { tooltip: 'single', highlight: 'shared' }],
+        ] as [Modes, number, Required<Modes>][])('resolves %o on %i bar series to %o', (modes, count, expected) => {
+            const options = prepareOptions({ series: bar(count), ...withModes(modes) } as AgChartOptions);
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(optionAt(options, 'tooltip.mode')).toBe(expected.tooltip);
+            expect(optionAt(options, 'highlight.mode')).toBe(expected.highlight);
+        });
+
+        it.each([
+            ['tooltip', { tooltip: 'single' }, 'single'],
+            ['highlight', { highlight: 'shared' }, 'shared'],
+        ] as [string, Modes, AgTooltipMode][])('follows a pie chart %s.mode set on its own', (_, modes, expected) => {
+            const options = prepareOptions({ series: pie(4), ...withModes(modes) } as AgChartOptions);
+
+            expect(optionAt(options, 'tooltip.mode')).toBe(expected);
+            expect(optionAt(options, 'highlight.mode')).toBe(expected);
+        });
+
+        it('follows an invalid tooltip.mode with the series-count default', () => {
+            const options = prepareOptions({
+                series: bar(2),
+                tooltip: { mode: invalidOption('invalid') },
+            } as AgChartOptions);
+
+            expect(optionAt(options, 'highlight.mode')).toBe('shared');
         });
     });
 

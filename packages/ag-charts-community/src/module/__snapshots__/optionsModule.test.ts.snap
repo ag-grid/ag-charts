@@ -198,6 +198,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "shared",
   },
   "keyboard": {
     "enabled": true,
@@ -956,6 +957,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "shared",
   },
   "keyboard": {
     "enabled": true,
@@ -1652,6 +1654,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -2864,6 +2867,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -4181,6 +4185,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -4634,6 +4639,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -5458,6 +5464,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -6463,6 +6470,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -6903,6 +6911,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -7355,6 +7364,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -7789,6 +7799,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -8225,6 +8236,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "shared",
   },
   "keyboard": {
     "enabled": true,
@@ -8786,6 +8798,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "shared",
   },
   "keyboard": {
     "enabled": true,
@@ -9354,6 +9367,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -10569,6 +10583,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -12928,6 +12943,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -13370,6 +13386,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -14709,6 +14726,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "shared",
   },
   "keyboard": {
     "enabled": true,
@@ -15406,6 +15424,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -16506,6 +16525,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -17370,6 +17390,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -17688,6 +17709,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -18294,6 +18316,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
+    "mode": "shared",
   },
   "keyboard": {
     "enabled": true,
@@ -18739,6 +18762,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -19276,6 +19300,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -19730,6 +19755,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -20910,6 +20936,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -21731,6 +21758,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -22712,6 +22740,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": false,
@@ -23196,6 +23225,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": false,
@@ -23680,6 +23710,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": false,
@@ -24162,6 +24193,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": false,
@@ -24645,6 +24677,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -25127,6 +25160,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": false,
@@ -25609,6 +25643,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
+    "mode": "single",
   },
   "keyboard": {
     "enabled": false,
