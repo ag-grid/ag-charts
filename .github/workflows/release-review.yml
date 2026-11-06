@@ -26,8 +26,10 @@ name: Release Review
 #     genuine `workflow_dispatch` call against the new branch — same
 #     self-dispatch pattern ci.yml uses for the canary auto-bump.
 #
-# Each job uploads the full report as an artifact and posts a concise summary +
-# the full report (as a file) to #charts_teamcity_status.
+# Each job uploads the full report as an artifact, publishes it as a secret GitHub
+# Gist (when RELEASE_REVIEW_GIST_TOKEN is set), and posts a concise summary to
+# #charts_teamcity_status linking the Gist (or, without one, the run) plus the
+# full report as a file.
 #
 # The heavy lifting (plugin load, branch resolution, claude-code-action,
 # artifact + Slack) lives in the shared `release-review` composite action under
@@ -36,10 +38,17 @@ name: Release Review
 # workflow is the thin per-repo stub: triggers, gating, and the consumer-local
 # bootstrap (token mint → setup-nx → install).
 #
-# Operator pre-requisites (all already present for the JIRA agent pipeline):
-#   Repository secrets:   ANTHROPIC_API_KEY, SLACK_BOT_OAUTH_TOKEN,
+# Operator pre-requisites:
+#   Repository secrets (already present for the JIRA agent pipeline):
+#                         ANTHROPIC_API_KEY, SLACK_BOT_OAUTH_TOKEN,
 #                         JIRA_AGENT_APP_PRIVATE_KEY
-#   Repository variables: JIRA_AGENT_APP_ID
+#   Repository variables (already present): JIRA_AGENT_APP_ID
+#   Repository secret to add (optional): RELEASE_REVIEW_GIST_TOKEN — a
+#                         fine-grained personal access token with only the account
+#                         permission "Gists: write", owned by a dedicated machine
+#                         user (a GitHub App token can't create Gists). Without it
+#                         the review skips publishing the Gist and Slack keeps the
+#                         run link.
 # ============================================================================
 
 on:
@@ -158,6 +167,7 @@ jobs:
                   current_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.current_branch || '' }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   slack_bot_oauth_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  gist_token: ${{ secrets.RELEASE_REVIEW_GIST_TOKEN }}
 
     options-review:
         name: Options (API) review
@@ -203,3 +213,4 @@ jobs:
                   current_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.current_branch || '' }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   slack_bot_oauth_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  gist_token: ${{ secrets.RELEASE_REVIEW_GIST_TOKEN }}
