@@ -46,8 +46,6 @@ import { getCrosshairLine, getCrosshairLines } from '../../test/featureAccessors
 import { createEnterpriseChart } from '../../test/utils';
 import { ZOOM_VALID_CHECK_DEBOUNCE } from '../zoom/zoomUtils';
 
-// JS callers can return null from a label renderer even though the type forbids it, so this is the one value the
-// options type cannot express.
 interface RangeBarNode {
     x: number;
     y: number;
@@ -56,6 +54,8 @@ interface RangeBarNode {
     yHighValue: number;
 }
 
+// JS callers can return null from a label renderer even though the type forbids it, so this is the one value the
+// options type cannot express.
 const RENDERS_NULL = (() => null) as unknown as () => undefined;
 
 function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: boolean): T {
