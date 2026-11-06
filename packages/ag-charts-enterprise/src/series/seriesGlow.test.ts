@@ -538,19 +538,26 @@ describe('series-level glow (enterprise series)', () => {
     describe('hlc markers, hovered with a marker shadow', () => {
         const hlc = SERIES.find((testCase) => testCase.name === 'hlc markers')!;
 
-        // Only the glow is cast by the highlight copy alone; the marker `shadow` is cast by it as before `glow`.
+        // The highlight copy casts only the glow; the marker `shadow` is cast in place, behind every series.
         it.each([
             ['no glow', undefined],
             ['a series glow', SERIES_GLOW],
-        ])('casts the shadow from the highlight copy with %s', async (_name, glow) => {
+        ])('casts the shadow in place and none from the highlight copy with %s', async (_name, glow) => {
             await create(hlc, glow, SHADOW);
             const { ctx, id } = deproxy(chart);
             ctx.highlightManager.updateHighlight(id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
             await waitForChartStability(chart);
 
-            const copies = collectShapes(getSeriesAt(chart).highlightGroup).filter((shape) => shape.visible);
+            const series = getSeriesAt(chart);
+            const copies = collectShapes(series.highlightGroup).filter((shape) => shape.visible);
             expect(copies).toHaveLength(hlc.copies!);
-            for (const copy of copies) expect(copy.fillShadow).toMatchObject(SHADOW);
+            for (const copy of copies) expect(copy.fillShadow?.enabled).not.toBe(true);
+
+            const inPlace = collectShapes(series.contentGroup).filter(
+                (shape) => shape.visible && shape.fillShadow != null
+            );
+            expect(inPlace.length).toBeGreaterThanOrEqual(hlc.copies!);
+            for (const shape of inPlace) expect(shape.fillShadow).toMatchObject(SHADOW);
         });
     });
 

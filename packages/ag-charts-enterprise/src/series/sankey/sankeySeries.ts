@@ -1162,7 +1162,8 @@ export class SankeySeries extends FlowProportionSeries<
             rect.cornerRadius = this.options.node.cornerRadius;
 
             rect.setStyleProperties(style, fillBBox);
-            rect.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
+            rect.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex);
             rect.fillGlow = focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datumIndex) : undefined;
         });
     }
@@ -1271,7 +1272,8 @@ export class SankeySeries extends FlowProportionSeries<
             link.endEdge = nodeEdge(datum.toNode, cornerRadius, 1);
 
             link.setStyleProperties(style, fillBBox);
-            link.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
+            link.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
             link.fillGlow =
                 focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex) : undefined;
 

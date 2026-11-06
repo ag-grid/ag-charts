@@ -470,7 +470,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
-                node.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
 
                 node.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
                 node.lineJoin = 'round';

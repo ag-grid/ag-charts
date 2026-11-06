@@ -1,5 +1,5 @@
 import type { AreExact, DeepPartial, NormalisedColorType } from 'ag-charts-core';
-import { mergeDefaults, mergeGlow, withoutGlow } from 'ag-charts-core';
+import { mergeDefaults, mergeGlow, withoutCasts } from 'ag-charts-core';
 import type {
     AgGlowOptions,
     HighlightState as PublicHighlightState,
@@ -140,8 +140,9 @@ type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
 /**
- * Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. The `glow` is left
- * out, as the highlight layer casts it and no item style or styler takes it; {@link getHighlightGlow} reads it.
+ * Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. The `glow` and the
+ * `shadow` are left out, as the series casts them from the slots of the item and no item style or styler takes them;
+ * {@link getHighlightGlow} reads the `glow`, and the series the `shadow` of `highlightedItem`.
  */
 export function getHighlightStyle<TStyle extends object>(
     highlight: { [K in HighlightStyleOptionKey]?: TStyle } | undefined,
@@ -149,7 +150,7 @@ export function getHighlightStyle<TStyle extends object>(
 ): TStyle {
     const keys = getHighlightStyleOptionKeys(highlightState);
     if (highlight == null || keys.length === 0) return {} as TStyle;
-    return withoutGlow(mergeDefaults<TStyle>(...keys.map((key) => highlight[key])));
+    return withoutCasts(mergeDefaults<TStyle>(...keys.map((key) => highlight[key])));
 }
 
 /** Merges the `glow` of the highlight-state buckets that apply to `highlightState`. */

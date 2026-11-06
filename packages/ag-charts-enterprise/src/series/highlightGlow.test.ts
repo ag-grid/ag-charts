@@ -1,9 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgCandlestickSeriesOptions, AgChartInstance, AgChartOptions, AgGlowOptions } from 'ag-charts-community';
+import type {
+    AgCandlestickSeriesOptions,
+    AgChartInstance,
+    AgChartOptions,
+    AgDropShadowOptions,
+    AgGlowOptions,
+} from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     HIGHLIGHT_GLOW,
+    HIGHLIGHT_SHADOW,
     deproxy,
     getSeriesAt,
     getSeriesNodeData,
@@ -40,7 +47,7 @@ type AnySeriesOptions = NonNullable<AgChartOptions['series']>[number];
 
 /** The `highlight` option of a series: the cases only ever set the glow of the highlight styles. */
 interface HighlightOptions {
-    highlightedItem?: { fill?: string; stroke?: string; glow?: AgGlowOptions };
+    highlightedItem?: { fill?: string; stroke?: string; glow?: AgGlowOptions; shadow?: AgDropShadowOptions };
     unhighlightedItem?: { fill?: string; stroke?: string; glow?: AgGlowOptions };
 }
 
@@ -511,6 +518,23 @@ const SERIES: SeriesCase[] = [
         series: (shadow, highlight) => ({ type: 'map-marker', idKey: 'name', shadow, highlight }),
     },
 ];
+
+/** `hlc` is not in {@link SERIES}: its options take neither an `itemStyler` nor a `fill`, which those blocks set. */
+const HLC_CASE: SeriesCase = {
+    name: 'hlc markers',
+    data: OHLC_DATA,
+    kind: _ModuleSupport.Marker,
+    hoveredCopies: 3,
+    series: (shadow, highlight) => ({
+        type: 'hlc',
+        xKey: 'x',
+        highKey: 'high',
+        lowKey: 'low',
+        closeKey: 'close',
+        marker: { enabled: true, shadow },
+        highlight,
+    }),
+};
 
 describe('highlight glow (enterprise series)', () => {
     setupMockConsole();
@@ -998,14 +1022,16 @@ describe('highlight glow (enterprise series)', () => {
         }
     );
 
-    describe('highlight shadow is rejected', () => {
+    describe('highlightedItem.shadow', () => {
         const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
 
-        /** The series options with `style` as the highlighted item, wherever this series reads its highlight from. */
+        const hierarchy = (name: string) => SERIES.find((testCase) => testCase.name === name)!;
+
+        /** The series that do not cast a shadow from `highlightedItem`: they warn about it, as before. */
         const REJECTING: Array<{ name: string; testCase: SeriesCase; build: (style: object) => object }> = [
             {
                 name: 'sunburst',
-                testCase: SERIES.find(({ name }) => name === 'sunburst')!,
+                testCase: hierarchy('sunburst'),
                 build: (style) => ({
                     type: 'sunburst',
                     labelKey: 'name',
@@ -1015,7 +1041,7 @@ describe('highlight glow (enterprise series)', () => {
             },
             {
                 name: 'treemap tile',
-                testCase: SERIES.find(({ name }) => name === 'treemap tiles')!,
+                testCase: hierarchy('treemap tiles'),
                 build: (style) => ({
                     type: 'treemap',
                     labelKey: 'name',
@@ -1025,7 +1051,7 @@ describe('highlight glow (enterprise series)', () => {
             },
             {
                 name: 'treemap group',
-                testCase: SERIES.find(({ name }) => name === 'treemap groups')!,
+                testCase: hierarchy('treemap groups'),
                 build: (style) => ({
                     type: 'treemap',
                     labelKey: 'name',
@@ -1033,11 +1059,6 @@ describe('highlight glow (enterprise series)', () => {
                     group: { highlight: { highlightedItem: style } },
                 }),
             },
-            ...SERIES.filter(({ name }) => !/^(sunburst|treemap)/.test(name)).map((testCase) => ({
-                name: testCase.name,
-                testCase,
-                build: (style: object) => testCase.series(undefined, { highlightedItem: style }),
-            })),
         ];
 
         it.each(REJECTING)('warns about and drops highlightedItem.shadow on $name', async ({ testCase, build }) => {
@@ -1059,6 +1080,152 @@ describe('highlight glow (enterprise series)', () => {
             await waitForChartStability(chart);
             expect(layersOf(testCase).highlighted.filter(casts)).toHaveLength(0);
         });
+
+        it.each(['unhighlightedItem', 'highlightedSeries', 'unhighlightedSeries'])(
+            'warns about and drops %s.shadow on a series that has the bucket',
+            async (bucket) => {
+                const testCase = hierarchy('radial-bar');
+                chart = await createEnterpriseChart({
+                    data: testCase.data,
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    series: [{ ...testCase.series(undefined, {}), highlight: { [bucket]: { shadow: SHADOW } } }],
+                } as AgChartOptions);
+
+                expect(warnings().filter((message) => message.includes(`${bucket}.shadow`))).toHaveLength(1);
+                expect(getSeriesOptions<any>(chart).highlight[bucket]).not.toHaveProperty('shadow');
+                vi.mocked(console.warn).mockClear();
+            }
+        );
+
+        // One `highlightedItem` bucket follows the part that is hovered: it is merged over `link.shadow` for a link, and
+        // over `node.shadow` for a node. The hovered item casts nothing from the focus layer, which only its linked items do.
+        describe.each(['sankey', 'chord'])('%s parts', (type) => {
+            const NODE_SHADOW = { ...SHADOW, fill: '#112233', blur: 11 };
+            const LINK_SHADOW = { ...SHADOW, fill: '#445566', blur: 22 };
+
+            const hoverPart = async (part: 'node' | 'link') => {
+                chart = await createEnterpriseChart({
+                    data: FLOW_DATA,
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            type,
+                            fromKey: 'from',
+                            toKey: 'to',
+                            sizeKey: 'size',
+                            node: { shadow: NODE_SHADOW },
+                            link: { shadow: LINK_SHADOW },
+                            highlight: { highlightedItem: { shadow: { blur: 1 } } },
+                        },
+                    ],
+                } as AgChartOptions);
+                raiseHighlight(part === 'node' ? FLOW_NODE(chart) : FLOW_LINK(chart));
+                await waitForChartStability(chart);
+
+                const shapes = (name: Parameters<typeof getSeriesGroup>[1]) =>
+                    collectShapes(getSeriesGroup(chart, name)).filter((s) => s.visible);
+                return {
+                    nodes: shapes('nodeGroup'),
+                    links: shapes('linkGroup'),
+                    focus: [...shapes('focusNodeGroup'), ...shapes('focusLinkGroup')],
+                };
+            };
+
+            it.each([
+                ['node', NODE_SHADOW, LINK_SHADOW],
+                ['link', LINK_SHADOW, NODE_SHADOW],
+            ] as const)('merges the bucket over the shadow of the hovered %s alone', async (part, own, other) => {
+                const layers = await hoverPart(part);
+                const [hovered, rest] = part === 'node' ? [layers.nodes, layers.links] : [layers.links, layers.nodes];
+
+                expect(warnings()).toEqual([]);
+                const merged = hovered.filter((shape) => shape.fillShadow?.blur === 1);
+                expect(merged).toHaveLength(1);
+                expect(merged[0].fillShadow).toMatchObject({ ...own, blur: 1, enabled: true });
+                for (const shape of hovered.filter((item) => item !== merged[0])) {
+                    expect(shape.fillShadow).toMatchObject(own);
+                }
+                for (const shape of rest) expect(shape.fillShadow).toMatchObject(other);
+                expect(layers.focus.length).toBeGreaterThan(0);
+                expect(layers.focus.filter((shape) => shape.fillShadow?.blur === 1)).toHaveLength(0);
+            });
+        });
+
+        describe.each([...SERIES.filter(({ name }) => !/^(sunburst|treemap)/.test(name)), HLC_CASE])(
+            '$name',
+            (testCase) => {
+                const copies = testCase.hoveredCopies ?? 1;
+                const isHighlightShadow = (shape: Shape) => shape.fillShadow?.fill === HIGHLIGHT_SHADOW.fill;
+
+                it('casts the shadow of the hovered item in place and none from its highlight copy', async () => {
+                    const { inPlace, highlighted } = await hoverItem(testCase, SHADOW, {
+                        highlightedItem: { shadow: HIGHLIGHT_SHADOW },
+                    });
+
+                    expect(warnings()).toEqual([]);
+                    const swapped = inPlace.filter(isHighlightShadow);
+                    expect(swapped).toHaveLength(copies);
+                    for (const shape of swapped) expect(shape.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+                    for (const shape of inPlace.filter((item) => !isHighlightShadow(item))) {
+                        expect(shape.fillShadow).toMatchObject(SHADOW);
+                    }
+                    expect(highlighted.length).toBeGreaterThan(0);
+                    expect(highlighted.filter((shape) => shape.fillShadow?.enabled === true)).toHaveLength(0);
+                });
+
+                it('takes the fields that it leaves unset from the shadow of the series', async () => {
+                    const { inPlace } = await hoverItem(testCase, SHADOW, { highlightedItem: { shadow: { blur: 1 } } });
+
+                    const swapped = inPlace.filter((shape) => shape.fillShadow?.blur === 1);
+                    expect(swapped).toHaveLength(copies);
+                    for (const shape of swapped) {
+                        expect(shape.fillShadow).toMatchObject({ ...SHADOW, blur: 1, enabled: true });
+                    }
+                });
+
+                it('turns the shadow of the series off for the hovered item alone with enabled false', async () => {
+                    const { inPlace } = await hoverItem(testCase, SHADOW, {
+                        highlightedItem: { shadow: { enabled: false } },
+                    });
+
+                    expect(inPlace.filter((shape) => shape.fillShadow?.enabled !== true)).toHaveLength(copies);
+                    expect(inPlace.filter((shape) => shape.fillShadow?.enabled === true).length).toBeGreaterThan(0);
+                });
+
+                it('casts a shadow from the hovered item alone where the series has none', async () => {
+                    const { inPlace } = await hoverItem(testCase, undefined, { highlightedItem: { shadow: {} } });
+
+                    expect(inPlace.filter((shape) => shape.fillShadow?.enabled === true)).toHaveLength(copies);
+                });
+
+                it('casts a shadow and a glow from the hovered item together', async () => {
+                    const { inPlace, highlighted } = await hoverItem(testCase, SHADOW, {
+                        highlightedItem: { shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW },
+                    });
+
+                    expect(inPlace.filter(isHighlightShadow)).toHaveLength(copies);
+                    expect(highlighted.filter((shape) => shape.fillGlow?.enabled === true)).toHaveLength(copies);
+                });
+
+                it('moves the shadow from one hovered item to the next and ends it with the hover', async () => {
+                    await hoverItem(testCase, SHADOW, { highlightedItem: { shadow: HIGHLIGHT_SHADOW } });
+                    const next =
+                        testCase.hoverNext?.(chart) ??
+                        getSeriesNodeData<HighlightNodeDatum>(chart).find(
+                            (datum) => datum.datumIndex !== getSeriesNodeData<HighlightNodeDatum>(chart)[0].datumIndex
+                        );
+                    raiseHighlight(next);
+                    await waitForChartStability(chart);
+                    expect(layersOf(testCase).inPlace.filter(isHighlightShadow)).toHaveLength(copies);
+
+                    raiseHighlight();
+                    await waitForChartStability(chart);
+                    expect(layersOf(testCase).inPlace.filter(isHighlightShadow)).toHaveLength(0);
+                });
+            }
+        );
     });
 
     describe('theme defaults', () => {
