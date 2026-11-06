@@ -1866,7 +1866,7 @@ describe('BubbleSeries', () => {
         });
 
         it('labels the markers from an empty sizeKey the data does carry', async () => {
-            await createBubble({ sizeKey: '', label: { enabled: true } }, withEmptyColumn);
+            await createBubble({ sizeKey: '', labelKey: '' }, withEmptyColumn);
 
             expect(nodeData(chart).map((d) => d.label.text)).toEqual(['10', '20', '30']);
             expectWarningsCalls().toEqual([]);

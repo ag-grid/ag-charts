@@ -448,7 +448,9 @@ describe('label collision avoidance', () => {
                         type,
                         xKey: 'x',
                         yKey: 'y',
-                        ...(type === 'scatter' ? { size: 100 } : { marker: { enabled: true, size: 100 } }),
+                        ...(type === 'scatter'
+                            ? { labelKey: 'y', size: 100 }
+                            : { marker: { enabled: true, size: 100 } }),
                         label: {
                             enabled: true,
                             placement: 'inside',
@@ -1080,6 +1082,7 @@ describe('label collision avoidance', () => {
                         xKey: 'x',
                         yKey: 'y',
                         sizeKey: 'y',
+                        labelKey: 'y',
                         minSize: 6,
                         maxSize: 6,
                         label: {
@@ -2638,6 +2641,7 @@ describe('label collision avoidance', () => {
                         xKey: 'x',
                         yKey: 'y',
                         sizeKey: 'size',
+                        labelKey: 'size',
                         maxSize: 14,
                         label: bubbleLabel(['bottom', 'top']),
                     },
@@ -2648,6 +2652,7 @@ describe('label collision avoidance', () => {
                         yKey: 'y',
                         yName: 'onY',
                         sizeKey: 'size',
+                        labelKey: 'size',
                         maxSize: 14,
                         label: bubbleLabel(['left', 'right']),
                     },

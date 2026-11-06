@@ -1135,6 +1135,7 @@ describe('ErrorBars', () => {
                         ],
                         xKey: 'x',
                         yKey: 'y',
+                        labelKey: 'y',
                         label: { placement: 'right', spacing: SPACING },
                         errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', cap: { length: 40 } },
                     },
@@ -1180,7 +1181,7 @@ describe('ErrorBars', () => {
                         label: { placement: 'top', spacing: SPACING },
                         errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
                     },
-                    { ...SERIES_BOYLESLAW, label: { placement: 'right', spacing: SPACING } },
+                    { ...SERIES_BOYLESLAW, labelKey: 'pressure', label: { placement: 'right', spacing: SPACING } },
                 ],
                 axes: {
                     x: { type: 'number', position: 'bottom' },
@@ -1215,6 +1216,7 @@ describe('ErrorBars', () => {
                         ],
                         xKey: 'x',
                         yKey: 'y',
+                        labelKey: 'y',
                         shape: 'pin',
                         size: 30,
                         label: { placement: 'bottom', spacing: SPACING },
@@ -1275,6 +1277,7 @@ describe('ErrorBars', () => {
                 series: [
                     {
                         ...SERIES_BOYLESLAW,
+                        labelKey: 'pressure',
                         errorBar,
                         size: 30,
                         label: {
@@ -1409,6 +1412,7 @@ describe('ErrorBars', () => {
                             ],
                             xKey: 'x',
                             yKey: 'y',
+                            labelKey: 'y',
                             label: { spacing: SPACING, ...label },
                             errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', offsetLabels: false },
                         } as AgScatterSeriesOptions,

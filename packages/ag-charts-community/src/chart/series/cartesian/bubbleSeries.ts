@@ -303,7 +303,6 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     /** The marker outline the label's text is bounded by, rather than the rect inscribed in it. */
     readonly labelInsideMask: FitRegionMask | undefined;
     readonly labelInsideSize: { width: number; height: number } | undefined;
-    readonly labelTextDomain: any[];
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
     readonly labelFit: LabelFit | undefined;
@@ -709,13 +708,6 @@ export abstract class BubbleScatterSeries<
         const canIncrementallyUpdate =
             processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
 
-        let labelTextDomain: any[];
-        if (labelKey == null && sizeKey != null) {
-            labelTextDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
-        } else {
-            labelTextDomain = [];
-        }
-
         const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'object');
 
         this.nodeDatumContext = {
@@ -763,7 +755,7 @@ export abstract class BubbleScatterSeries<
             legendItemName,
 
             // Label properties
-            labelsEnabled: label.enabled,
+            labelsEnabled: this.isLabelEnabled(),
             labelPlacement: placements[0],
             labelAnchor: Marker.anchor(marker.shape),
             labelInsideOffset: insideRect ? { x: insideRect.cx, y: insideRect.cy } : undefined,
@@ -773,7 +765,6 @@ export abstract class BubbleScatterSeries<
             labelInsideMask: insideOnly ? markerRowSpans(marker.shape) : undefined,
             labelInsideSize:
                 !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
-            labelTextDomain,
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit,
@@ -948,7 +939,7 @@ export abstract class BubbleScatterSeries<
         // Compute label (skip expensive formatting if labels disabled)
         if (ctx.labelsEnabled) {
             const markerPixelSize = ctx.labelPlacement === 'inside' ? Math.sqrt(scratch.dilation) * markerSize : 0;
-            this.computeLabel(ctx, scratch, datum, yDatum, sizeValue, datumIndex, markerPixelSize);
+            this.computeLabel(ctx, scratch, datum, datumIndex, markerPixelSize);
         } else {
             scratch.nodeLabel = { text: '', width: 0, height: 0 };
             scratch.nodeLabelFit = undefined;
@@ -977,35 +968,16 @@ export abstract class BubbleScatterSeries<
         ctx: BubbleSeriesNodeDatumContext,
         scratch: PreparedBubbleNodeDatumState,
         datum: any,
-        yDatum: any,
-        sizeValue: number | undefined,
         datumIndex: number,
         markerSize: number
     ): void {
-        let labelTextValue: any;
-        let labelTextKey: string;
-        let labelTextProperty: FormatterPropertyType;
-
-        if (ctx.labelKey != null && ctx.labelDataValues) {
-            labelTextValue = ctx.labelDataValues[datumIndex];
-            labelTextKey = ctx.labelKey;
-            labelTextProperty = 'label';
-        } else if (ctx.sizeKey == null) {
-            labelTextValue = yDatum;
-            labelTextKey = ctx.yKey;
-            labelTextProperty = 'y';
-        } else {
-            labelTextValue = sizeValue;
-            labelTextKey = ctx.sizeKey;
-            labelTextProperty = 'size';
-        }
-
+        const labelTextValue = ctx.labelDataValues?.[datumIndex];
         const labelText = this.getLabelText<AgBubbleSeriesLabelFormatterParams>(
             labelTextValue,
             datum,
-            labelTextKey,
-            labelTextProperty,
-            ctx.labelTextDomain,
+            ctx.labelKey!,
+            'label',
+            [],
             this.options.label,
             {
                 value: labelTextValue,
@@ -1869,7 +1841,7 @@ export abstract class BubbleScatterSeries<
     }
 
     protected isLabelEnabled() {
-        return this.options.label.enabled;
+        return this.options.label.enabled && this.options.labelKey != null;
     }
 
     protected nodeFactory() {
