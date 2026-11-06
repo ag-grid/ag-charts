@@ -13,7 +13,7 @@ import {
     getSeriesHasChangesOnHighlight,
     getSeriesNodeData,
 } from '../test/seriesAccessors';
-import { HIGHLIGHT_GLOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
+import { HIGHLIGHT_GLOW, HIGHLIGHT_SHADOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
     createChart,
     deproxy,
@@ -309,4 +309,61 @@ describe('glow on rings linked through legendItemKey', () => {
             }
         }
     );
+
+    it("casts highlightedItem.shadow from the linked ring's matching sector, as the glow follows it", async () => {
+        await hoverFirstLegendItem({ highlightedItem: { shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW } });
+
+        for (const seriesIndex of [0, 1]) {
+            // The in-place sector that the highlight layer redraws swaps its shadow, and gives up its glow to the copy.
+            expect(sector(seriesIndex, 'contentGroup', 0)?.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+            expect(sector(seriesIndex, 'contentGroup', 0)?.fillGlow?.enabled).not.toBe(true);
+            expect(sector(seriesIndex, 'highlightNodeGroup', 0)?.fillGlow).toMatchObject(GLOW_SHADOW);
+            for (const datumIndex of [1, 2]) {
+                expect(sector(seriesIndex, 'contentGroup', datumIndex)?.fillShadow).toMatchObject(SERIES_SHADOW);
+            }
+        }
+    });
+});
+
+describe('highlightedItem.shadow with highlight.mode: shared', () => {
+    setupMockConsole();
+    setupMockCanvas();
+    let chart: Chart;
+    afterEach(() => chart?.destroy());
+
+    const CATEGORIES = [
+        { x: 1, v: 5, w: 7 },
+        { x: 2, v: 8, w: 4 },
+    ];
+
+    it('casts the shadow from the items that share the hovered category, and from them alone', async () => {
+        chart = deproxy(
+            await createChart({
+                data: CATEGORIES,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                highlight: { mode: 'shared' },
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: (['v', 'w'] as const).map((yKey) => ({
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey,
+                    shadow: SERIES_SHADOW,
+                    highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
+                })),
+            } as AgChartOptions)
+        );
+        chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart, 0)[0]);
+        await waitForChartStability(chart);
+
+        // Series 0 holds the hovered bar; series 1 holds the bar that shares its category.
+        for (const seriesIndex of [0, 1]) {
+            const [first, second] = shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Rect);
+            expect(first.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+            expect(second.fillShadow).toMatchObject(SERIES_SHADOW);
+        }
+    });
 });

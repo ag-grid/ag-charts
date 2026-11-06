@@ -1210,6 +1210,12 @@ describe('highlight glow (enterprise series)', () => {
                 await waitForChartStability(chart);
                 expect(batched()).toBe(false);
             });
+
+            it('keeps the cells batched for a hovered cell when the bucket turns the shadow off', async () => {
+                await hoverItem(heatmap, undefined, { highlightedItem: { shadow: { enabled: false } } });
+
+                expect(batched()).toBe(true);
+            });
         });
 
         describe.each([...SERIES.filter(({ name }) => !/^(sunburst|treemap)/.test(name)), HLC_CASE])(

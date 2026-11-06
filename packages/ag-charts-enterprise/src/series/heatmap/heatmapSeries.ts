@@ -640,12 +640,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return this.getHighlightState(activeHighlight, false) !== HighlightState.None;
     }
 
-    private isCellHovered() {
+    /** Whether a cell casts `highlightedItem.shadow` in place: the hovered one, or one sharing its category. */
+    private castsItemShadowInPlace() {
+        const bucket = this.getItemShadowBucket();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        if (bucket == null || bucket.enabled === false || activeHighlight == null) return false;
+        if (this.getHighlightState(activeHighlight, false) === HighlightState.None) return false;
+
         return (
-            activeHighlight?.series === this &&
-            this.isDatumHighlight(activeHighlight) &&
-            this.getHighlightState(activeHighlight, false) !== HighlightState.None
+            (activeHighlight.series === this && this.isDatumHighlight(activeHighlight)) ||
+            this.getSharedCategoryMatch(activeHighlight) != null
         );
     }
 
@@ -855,8 +859,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { cornerRadius, shadow, glow } = this.options;
         // The batch paints no glow, which the cells cast in place: the series' own, and a highlight state's while one is active.
         const glowsInPlace = this.hasInPlaceGlow() && (glow?.enabled === true || this.isHighlightActive());
-        // Nor the `shadow` of `highlightedItem`, which only a hovered cell of this series casts in place.
-        const highlightShadowsInPlace = this.getItemShadowBucket() != null && this.isCellHovered();
+        const highlightShadowsInPlace = this.castsItemShadowInPlace();
         return (
             this.unbatchableCells === 0 &&
             ((cornerRadius ?? 0) <= 0 || Number.isNaN(cornerRadius)) &&

@@ -876,7 +876,7 @@ export abstract class Series<
      * In `highlight.mode: 'shared'`, the index of this series' item sharing the highlighted datum's category.
      * `undefined` when there is none, for series-level highlights, and for the hovered series itself.
      */
-    private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
+    protected getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
         if (highlightedDatum?.series == null || !this.isDatumHighlight(highlightedDatum)) return;
         // The hovered series is styled as in `'single'` mode, so a match of its own would only repaint it.
         if (highlightedDatum.series === this) return;
@@ -1145,14 +1145,35 @@ export abstract class Series<
     }
 
     /**
-     * The shadow to draw on one copy of an item. The hovered item's in-place copy casts `highlightedItem.shadow` over the
-     * series `shadow`; the highlight layer's copy casts none. The highlight layer owns `Item`, so that in-place copy has
-     * the state of `OtherItem`: it is told by being the item that {@link getRedrawnDatumIndex} reports.
+     * The highlight state of an in-place copy, and whether it is the hovered item's. The highlight layer owns `Item`, so
+     * the hovered item's in-place copy has the state of `OtherItem`: it is told by being the item that
+     * {@link getRedrawnDatumIndex} reports. Both `resolveItemShadow` and `resolveItemGlow` read it.
+     */
+    private resolveInPlaceCopy(
+        highlightedDatum: HighlightNodeDatum,
+        datumIndex: DatumIndex | undefined,
+        highlightState: HighlightState | undefined,
+        legendItemValues: string[] | undefined
+    ) {
+        const state = highlightState ?? this.getHighlightState(highlightedDatum, false, datumIndex, legendItemValues);
+        const isHovered =
+            datumIndex != null &&
+            state === HighlightState.OtherItem &&
+            this.getRedrawnIndex(highlightedDatum) === datumIndex;
+        return { state, isHovered };
+    }
+
+    /**
+     * The shadow to draw on one copy of an item. The in-place copy of the hovered item, and of an item in the `Item` state
+     * (a category shared with it in `highlight.mode: 'shared'`), casts `highlightedItem.shadow` over the series `shadow`.
+     * The highlight layer's copy casts none.
      */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean | undefined,
-        datumIndex?: DatumIndex
+        datumIndex?: DatumIndex,
+        highlightState?: HighlightState,
+        legendItemValues?: string[]
     ): NormalisedDropShadowOptions | undefined {
         if (isHighlight) return;
 
@@ -1160,19 +1181,22 @@ export abstract class Series<
         if (bucket == null || shadow == null || datumIndex == null) return shadow;
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        if (highlightedDatum == null || this.getRedrawnIndex(highlightedDatum) !== datumIndex) return shadow;
-        if (this.getHighlightState(highlightedDatum, false, datumIndex) !== HighlightState.OtherItem) return shadow;
+        if (highlightedDatum == null) return shadow;
 
-        return this.getCascadedShadow(shadow, bucket);
+        const { state, isHovered } = this.resolveInPlaceCopy(
+            highlightedDatum,
+            datumIndex,
+            highlightState,
+            legendItemValues
+        );
+        return isHovered || state === HighlightState.Item ? this.getCascadedShadow(shadow, bucket) : shadow;
     }
 
     /**
      * The glow to cast in the glow slot of one copy of an item, from the `glow` of its highlight state over the
      * series-level `seriesGlow`. In place, that is the glow in the base pass, which keeps it behind every series: of an item
      * in no highlight the series' own, else of its state. The highlight layer's copy of the hovered item casts the glow of
-     * the item state, centred on it and above every series, so the in-place copy of that item casts none. The highlight
-     * layer owns `Item`, so that in-place copy has the state of `OtherItem`: it is told by being the item that
-     * {@link getRedrawnDatumIndex} reports.
+     * the item state, centred on it and above every series, so the in-place copy of that item casts none.
      */
     protected resolveItemGlow(
         seriesGlow: DeepPartial<AgGlowOptions> | undefined,
@@ -1187,16 +1211,13 @@ export abstract class Series<
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         if (highlightedDatum == null) return this.getCascadedGlow(seriesGlow, HighlightState.None);
 
-        highlightState ??= this.getHighlightState(highlightedDatum, false, datumIndex, legendItemValues);
-        if (
-            datumIndex != null &&
-            highlightState === HighlightState.OtherItem &&
-            this.getRedrawnIndex(highlightedDatum) === datumIndex
-        ) {
-            return;
-        }
-
-        return this.getCascadedGlow(seriesGlow, highlightState);
+        const { state, isHovered } = this.resolveInPlaceCopy(
+            highlightedDatum,
+            datumIndex,
+            highlightState,
+            legendItemValues
+        );
+        return isHovered ? undefined : this.getCascadedGlow(seriesGlow, state);
     }
 
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */
@@ -1933,7 +1954,7 @@ export abstract class Series<
     ) {
         const { shape, size = 0, strokeWidth = 0 } = style;
         const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
-        const shadow = this.resolveItemShadow(opts.shadow, opts.isHighlight, opts.datumIndex);
+        const shadow = this.resolveItemShadow(opts.shadow, opts.isHighlight, opts.datumIndex, opts.highlightState);
         const glow = this.resolveItemGlow(opts.glow, opts.isHighlight, opts.datumIndex, opts.highlightState);
         const visible =
             this.visible &&
