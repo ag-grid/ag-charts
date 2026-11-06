@@ -1,5 +1,4 @@
 import {
-    AgBoxPlotCrosshairSnapValue,
     AgBoxPlotSeriesOptions,
     AgCartesianChartOptions,
     AgCharts,
@@ -59,19 +58,17 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setSnapTo(values: AgBoxPlotCrosshairSnapValue[]) {
-    series.crosshairSnapTo = values;
+function snapToMedian() {
+    (options.series![0] as AgBoxPlotSeriesOptions).crosshairSnapTo = ['median'];
     chart.update(options);
 }
 
-function snapToMedian() {
-    setSnapTo(['median']);
-}
-
 function snapToQuartiles() {
-    setSnapTo(['q1', 'q3']);
+    (options.series![0] as AgBoxPlotSeriesOptions).crosshairSnapTo = ['q1', 'q3'];
+    chart.update(options);
 }
 
 function snapToNone() {
-    setSnapTo([]);
+    (options.series![0] as AgBoxPlotSeriesOptions).crosshairSnapTo = [];
+    chart.update(options);
 }
