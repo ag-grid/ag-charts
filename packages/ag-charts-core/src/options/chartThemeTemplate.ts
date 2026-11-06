@@ -1,6 +1,8 @@
+import type { Operation } from 'ag-charts-types';
+
 import { interactionModeThemeDefaults, themeLineHeight } from './themeUtil';
 
-const INTERACTION_MODE_DEFAULTS = interactionModeThemeDefaults({
+const SHARED_INTERACTION_MODE_CONDITION: Operation = {
     $or: [
         {
             $and: [
@@ -19,7 +21,9 @@ const INTERACTION_MODE_DEFAULTS = interactionModeThemeDefaults({
             ],
         },
     ],
-});
+};
+
+const INTERACTION_MODE_DEFAULTS = interactionModeThemeDefaults(SHARED_INTERACTION_MODE_CONDITION);
 
 const CAPTION_BOX_THEME_DEFAULTS = {
     cornerRadius: 4,
