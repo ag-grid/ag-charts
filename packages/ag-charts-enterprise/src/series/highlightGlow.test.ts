@@ -1081,6 +1081,26 @@ describe('highlight glow (enterprise series)', () => {
             expect(layersOf(testCase).highlighted.filter(casts)).toHaveLength(0);
         });
 
+        it('warns about and drops highlightedItem.shadow on a cone funnel, which has no item shadow to swap', async () => {
+            chart = await createEnterpriseChart({
+                data: STAGE_DATA,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'cone-funnel',
+                        stageKey: 'stage',
+                        valueKey: 'value',
+                        highlight: { highlightedItem: { shadow: SHADOW } },
+                    },
+                ],
+            } as unknown as AgChartOptions);
+
+            expect(warnings().filter((message) => message.includes('highlightedItem.shadow'))).toHaveLength(1);
+            expect(getSeriesOptions<any>(chart).highlight?.highlightedItem ?? {}).not.toHaveProperty('shadow');
+            vi.mocked(console.warn).mockClear();
+        });
+
         it.each(['unhighlightedItem', 'highlightedSeries', 'unhighlightedSeries'])(
             'warns about and drops %s.shadow on a series that has the bucket',
             async (bucket) => {
@@ -1224,6 +1244,104 @@ describe('highlight glow (enterprise series)', () => {
                     await waitForChartStability(chart);
                     expect(layersOf(testCase).inPlace.filter(isHighlightShadow)).toHaveLength(0);
                 });
+            }
+        );
+    });
+
+    // The one `highlightedItem` bucket reads `link.*` for a hovered link and `node.*` for a node, so configuring one part
+    // must neither strip the other of its effect on a hover nor give it a default one.
+    describe.each(['sankey', 'chord'])('%s: the highlightedItem bucket follows the hovered part', (type) => {
+        const NODE_GLOW: AgGlowOptions = { enabled: true, fill: '#00aa00', fillOpacity: 1, blur: 3, spread: 2 };
+        const LINK_GLOW: AgGlowOptions = { enabled: true, fill: '#aa0000', fillOpacity: 1, blur: 7, spread: 5 };
+        const NODE_SHADOW: AgDropShadowOptions = { ...SHADOW, fill: '#112233', blur: 11 };
+        const LINK_SHADOW: AgDropShadowOptions = { ...SHADOW, fill: '#445566', blur: 22 };
+
+        const EFFECTS = {
+            glow: {
+                node: NODE_GLOW,
+                link: LINK_GLOW,
+                of: (shape: Shape) => shape.fillGlow,
+                resolved: (options: AgGlowOptions): object => ({ ...options, xOffset: 0, yOffset: 0 }),
+            },
+            shadow: {
+                node: NODE_SHADOW,
+                link: LINK_SHADOW,
+                of: (shape: Shape) => shape.fillShadow,
+                resolved: (options: AgDropShadowOptions): object => options,
+            },
+        } as const;
+
+        const hover = async (series: object, part: 'node' | 'link') => {
+            chart = await createEnterpriseChart({
+                data: FLOW_DATA,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size', ...series }],
+            } as AgChartOptions);
+            raiseHighlight(part === 'node' ? FLOW_NODE(chart) : FLOW_LINK(chart));
+            await waitForChartStability(chart);
+
+            const shapes = (name: Parameters<typeof getSeriesGroup>[1]) =>
+                collectShapes(getSeriesGroup(chart, name)).filter((shape) => shape.visible);
+            return {
+                nodes: shapes('nodeGroup'),
+                links: shapes('linkGroup'),
+                focusNodes: shapes('focusNodeGroup'),
+                focusLinks: shapes('focusLinkGroup'),
+                highlightNodes: shapes('highlightNodeGroup'),
+                highlightLinks: shapes('highlightLinkGroup'),
+            };
+        };
+
+        describe.each(['glow', 'shadow'] as const)('%s', (effect) => {
+            const { node, link, of, resolved } = EFFECTS[effect];
+            const casting = (shapes: Shape[]) => shapes.filter((shape) => of(shape)?.enabled === true);
+
+            describe.each(['node', 'link'] as const)('hovering a %s', (part) => {
+                it('keeps every link casting its own effect when only link is configured, and gives no node one', async () => {
+                    const layers = await hover({ link: { [effect]: link } }, part);
+
+                    // The hovered link casts from its highlight copy for a glow, and in place for a shadow.
+                    const links = casting([...layers.links, ...layers.highlightLinks]);
+                    expect(links).toHaveLength(4);
+                    for (const shape of links) expect(of(shape)).toMatchObject(resolved(link as never));
+                    expect(casting([...layers.nodes, ...layers.focusNodes, ...layers.highlightNodes])).toHaveLength(0);
+                });
+
+                it('keeps every node casting its own effect when only node is configured, and gives no link one', async () => {
+                    const layers = await hover({ node: { [effect]: node } }, part);
+
+                    const nodes = casting([...layers.nodes, ...layers.highlightNodes]);
+                    expect(nodes).toHaveLength(4);
+                    for (const shape of nodes) expect(of(shape)).toMatchObject(resolved(node as never));
+                    expect(casting([...layers.links, ...layers.focusLinks, ...layers.highlightLinks])).toHaveLength(0);
+                });
+            });
+        });
+
+        it.each(['node', 'link'] as const)(
+            'merges highlightedItem.glow over the glow of the hovered %s alone',
+            async (part) => {
+                const layers = await hover(
+                    {
+                        node: { glow: NODE_GLOW },
+                        link: { glow: LINK_GLOW },
+                        highlight: { highlightedItem: { glow: { blur: 1 } } },
+                    },
+                    part
+                );
+                const own = part === 'node' ? NODE_GLOW : LINK_GLOW;
+                const hovered = part === 'node' ? layers.highlightNodes : layers.highlightLinks;
+
+                expect(hovered).toHaveLength(1);
+                expect(hovered[0].fillGlow).toMatchObject(EFFECTS.glow.resolved({ ...own, blur: 1 }));
+                // Nothing else is told by the bucket: the other items keep the glow of their part.
+                const rest = [...layers.nodes, ...layers.links].filter((shape) => shape.fillGlow?.enabled === true);
+                expect(rest.length).toBeGreaterThan(0);
+                for (const shape of rest) {
+                    expect(shape.fillGlow?.blur).not.toBe(1);
+                    expect(shape.fillGlow?.blur).toBe(layers.nodes.includes(shape) ? NODE_GLOW.blur : LINK_GLOW.blur);
+                }
             }
         );
     });

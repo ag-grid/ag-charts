@@ -647,6 +647,37 @@ describe('highlight glow', () => {
                 }
             );
 
+            it('swaps the shadow of the markers of an area, and leaves the shadow of its fill alone', async () => {
+                chart = deproxy(
+                    await createChart({
+                        data: XY_DATA,
+                        animation: { enabled: false },
+                        legend: { enabled: false },
+                        series: [
+                            {
+                                type: 'area',
+                                xKey: 'x',
+                                yKey: 'y',
+                                shadow: SERIES_SHADOW,
+                                marker: { enabled: true, shadow: SERIES_SHADOW },
+                                highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
+                            },
+                        ],
+                    } as AgChartOptions)
+                );
+                const series = getSeriesAt(chart);
+                chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
+                await waitForChartStability(chart);
+
+                const markers = shapesOf(series.contentGroup, Marker);
+                expect(markers[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+                const fills = shapesOf(chart.seriesRoot, Shape).filter(
+                    (shape) => !(shape instanceof Marker) && shape.fillShadow?.enabled === true
+                );
+                expect(fills.length).toBeGreaterThan(0);
+                for (const fill of fills) expect(fill.fillShadow).toMatchObject(SERIES_SHADOW);
+            });
+
             describe.each(SERIES)('$name', (testCase) => {
                 const shadow = (highlightedItem: object) =>
                     hoverFirstItem(testCase, SERIES_SHADOW, { highlightedItem });
