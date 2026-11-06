@@ -7,14 +7,24 @@ import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { getSeriesAt, getSeriesNodeData, getSeriesOptions } from '../test/seriesAccessors';
-import { SERIES_SHADOW, XY_DATA, customMarkerShape, glowShadow, shapesOf, uncastGlows } from '../test/shadowFixtures';
-import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
-
-/** The series-level glow, with every field set, so that a bucket's field shows through only where it overrides. */
-const SERIES_GLOW: AgGlowOptions = { enabled: true, fill: '#aa0000', fillOpacity: 0.5, blur: 5, spread: 3 };
-
-/** What a glow with no fields of its own casts, from the glow theme defaults. */
-const THEME_GLOW = { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 };
+import {
+    SERIES_GLOW,
+    SERIES_SHADOW,
+    THEME_GLOW,
+    XY_DATA,
+    customMarkerShape,
+    glowShadow,
+    shapesOf,
+    uncastGlows,
+} from '../test/shadowFixtures';
+import {
+    createChart,
+    deproxy,
+    expectWarningMessages,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 
 const DATA = XY_DATA.map(({ x, y }, i) => ({ x, v: y, w: i + 2 }));
 
@@ -49,8 +59,6 @@ const SERIES: SeriesCase[] = [
         }),
     },
 ];
-
-const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
 
 describe.each(SERIES)('series-level glow ($name)', ({ series, kind }) => {
     setupMockConsole();
@@ -263,16 +271,14 @@ describe.each(SERIES)('series-level glow ($name)', ({ series, kind }) => {
         it('warns about a glow offset, which a glow does not have, and still casts the glow', async () => {
             const { inPlace } = await create([series('v', { ...SERIES_GLOW, xOffset: 4 })]);
 
-            expect(warnings().filter((message) => message.includes('glow.xOffset'))).toHaveLength(1);
-            vi.mocked(console.warn).mockClear();
+            expectWarningMessages([expect.stringContaining('glow.xOffset')]);
             for (const shape of inPlace()) expect(shape.fillGlow?.enabled).toBe(true);
         });
 
         it('warns about a negative spread and drops it, leaving the theme spread', async () => {
             await create([series('v', { ...SERIES_GLOW, spread: -3 })]);
 
-            expect(warnings().filter((message) => message.includes('glow.spread'))).toHaveLength(1);
-            vi.mocked(console.warn).mockClear();
+            expectWarningMessages([expect.stringContaining('glow.spread')]);
             const glow = getSeriesOptions<{ glow?: AgGlowOptions; marker?: { glow?: AgGlowOptions } }>(chart);
             expect((glow.glow ?? glow.marker?.glow)?.spread).toBe(THEME_GLOW.spread);
         });

@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance, AgChartOptions, AgGlowOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
+    SERIES_GLOW,
+    THEME_GLOW,
     deproxy,
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
@@ -24,11 +26,6 @@ import ukTopology from './map-test/ukTopology.json';
 
 type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
 type AnySeriesOptions = NonNullable<AgChartOptions['series']>[number];
-
-/** The series-level glow, with every field set, so that a bucket's field shows through only where it overrides. */
-const GLOW: AgGlowOptions = { enabled: true, fill: '#aa0000', fillOpacity: 0.5, blur: 5, spread: 3 };
-/** What a glow with no fields of its own casts, from the glow theme defaults. */
-const THEME_GLOW = { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 };
 
 const FLOW = [
     { from: 'A', to: 'C', size: 8 },
@@ -460,19 +457,19 @@ describe('series-level glow (enterprise series)', () => {
 
     describe.each(SERIES)('$name', (testCase) => {
         it('casts the glow from its shapes, in the glow slot', async () => {
-            await create(testCase, GLOW);
+            await create(testCase, SERIES_GLOW);
 
             const shapes = glowing(testCase);
             expect(shapes.length).toBeGreaterThan(0);
             if (testCase.count != null) expect(shapes).toHaveLength(testCase.count);
             for (const shape of shapes) {
-                expect(shape.fillGlow).toMatchObject(glowShadow(GLOW));
+                expect(shape.fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
                 expect(shape.fillShadow?.enabled).not.toBe(true);
             }
         });
 
         it('puts every glowing shape in a group that casts it', async () => {
-            await create(testCase, GLOW);
+            await create(testCase, SERIES_GLOW);
 
             expect(uncastGlows(getSeriesAt(chart).contentGroup)).toEqual([]);
         });
@@ -486,7 +483,7 @@ describe('series-level glow (enterprise series)', () => {
         });
 
         it.each([
-            ['is disabled', { ...GLOW, enabled: false }],
+            ['is disabled', { ...SERIES_GLOW, enabled: false }],
             ['is not set', undefined],
         ])('casts no glow where the glow %s', async (_name, glow) => {
             await create(testCase, glow);
@@ -497,12 +494,12 @@ describe('series-level glow (enterprise series)', () => {
         it.skipIf(testCase.noShadow)(
             'casts the shadow and the glow of a shape together, each in its own slot',
             async () => {
-                await create(testCase, GLOW, SHADOW);
+                await create(testCase, SERIES_GLOW, SHADOW);
 
                 const shapes = glowing(testCase);
                 expect(shapes.length).toBeGreaterThan(0);
                 for (const shape of shapes) {
-                    expect(shape.fillGlow).toMatchObject(glowShadow(GLOW));
+                    expect(shape.fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
                     expect(shape.fillShadow).toMatchObject(SHADOW);
                 }
             }
@@ -519,12 +516,12 @@ describe('series-level glow (enterprise series)', () => {
         };
 
         it('casts the highlight copy from highlightedItem over the series glow, field by field', async () => {
-            await hover(GLOW, { highlightedItem: { glow: { blur: 9 } } });
+            await hover(SERIES_GLOW, { highlightedItem: { glow: { blur: 9 } } });
 
             const drawn = glowing(testCase, 'highlightGroup');
             expect(drawn).toHaveLength(copies);
             for (const copy of drawn) {
-                expect(copy.fillGlow).toMatchObject(glowShadow({ ...GLOW, blur: 9 }));
+                expect(copy.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 9 }));
                 expect(copy.fillShadow?.enabled).not.toBe(true);
             }
         });
@@ -532,7 +529,10 @@ describe('series-level glow (enterprise series)', () => {
         // What the highlight layer draws is not what is read from the scene: a copy in a group that casts no glow reads
         // as glowing and draws nothing.
         it('puts every glowing shape of both layers in a group that casts it', async () => {
-            await hover(GLOW, { highlightedItem: { glow: { blur: 9 } }, unhighlightedItem: { glow: { blur: 6 } } });
+            await hover(SERIES_GLOW, {
+                highlightedItem: { glow: { blur: 9 } },
+                unhighlightedItem: { glow: { blur: 6 } },
+            });
 
             const { contentGroup, highlightGroup } = getSeriesAt(chart);
             expect(glowing(testCase, 'highlightGroup').length).toBeGreaterThan(0);
@@ -552,7 +552,7 @@ describe('series-level glow (enterprise series)', () => {
         });
 
         it('keeps the series glow on the items that are not hovered, and takes it off the hovered one in place', async () => {
-            await create(testCase, GLOW);
+            await create(testCase, SERIES_GLOW);
             const before = glowing(testCase).length;
             expect(before).toBeGreaterThan(copies);
 
@@ -562,7 +562,7 @@ describe('series-level glow (enterprise series)', () => {
 
             const inPlace = glowing(testCase);
             expect(inPlace).toHaveLength(before - copies);
-            for (const shape of inPlace) expect(shape.fillGlow).toMatchObject(glowShadow(GLOW));
+            for (const shape of inPlace) expect(shape.fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
             // The highlight copy casts the glow the hovered item gave up.
             expect(glowing(testCase, 'highlightGroup')).toHaveLength(copies);
         });
@@ -798,7 +798,7 @@ describe('series-level glow (enterprise series)', () => {
                 animation: { enabled: false },
                 legend: { enabled: false },
                 series: [
-                    testCase.series(GLOW, {
+                    testCase.series(SERIES_GLOW, {
                         highlightedItem: { glow: { blur: 9 } },
                         unhighlightedItem: { glow: { blur: 6 } },
                     }),
@@ -846,7 +846,7 @@ describe('series-level glow (enterprise series)', () => {
                 animation: { enabled: false },
                 legend: { enabled: false },
                 series: [
-                    testCase.series(GLOW, {
+                    testCase.series(SERIES_GLOW, {
                         highlightedItem: { glow: { blur: 9 } },
                         unhighlightedItem: { glow: { blur: 6 } },
                     }),
@@ -865,12 +865,12 @@ describe('series-level glow (enterprise series)', () => {
             const drawn = glowShapes('highlightGroup');
             expect(drawn).toHaveLength(1);
             expect(testCase.partOf(drawn[0])).toBe(testCase.part);
-            expect(drawn[0].fillGlow).toMatchObject(glowShadow({ ...GLOW, blur: 9 }));
+            expect(drawn[0].fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 9 }));
 
             // The hovered item gave its glow up to the copy, and every other item takes the unhighlighted one.
             const inPlace = glowShapes('contentGroup');
             expect(inPlace).toHaveLength(before - 1);
-            for (const shape of inPlace) expect(shape.fillGlow).toMatchObject(glowShadow({ ...GLOW, blur: 6 }));
+            for (const shape of inPlace) expect(shape.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 6 }));
         });
     });
 
@@ -942,15 +942,16 @@ describe('series-level glow (enterprise series)', () => {
             otherBranch: string[]
         ) => {
             expect(glowByName('highlightSelection', keep)).toEqual(
-                new Map([[hovered, expect.objectContaining(glowShadow({ ...GLOW, blur: 9, spread: 7 }))]])
+                new Map([[hovered, expect.objectContaining(glowShadow({ ...SERIES_GLOW, blur: 9, spread: 7 }))]])
             );
             const inPlace = glowByName('datumSelection', keep);
             expect([...inPlace.keys()].sort((a, b) => a.localeCompare(b))).toEqual(
                 [...branch, ...otherBranch].sort((a, b) => a.localeCompare(b))
             );
             for (const name of branch)
-                expect(inPlace.get(name)).toMatchObject(glowShadow({ ...GLOW, blur: 6, spread: 7 }));
-            for (const name of otherBranch) expect(inPlace.get(name)).toMatchObject(glowShadow({ ...GLOW, blur: 4 }));
+                expect(inPlace.get(name)).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 6, spread: 7 }));
+            for (const name of otherBranch)
+                expect(inPlace.get(name)).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 4 }));
         };
 
         it('treemap tiles read the branch buckets', async () => {
@@ -959,7 +960,7 @@ describe('series-level glow (enterprise series)', () => {
                     type: 'treemap',
                     labelKey: 'name',
                     sizeKey: 'size',
-                    tile: { glow: GLOW, highlight: BUCKETS },
+                    tile: { glow: SERIES_GLOW, highlight: BUCKETS },
                 } as AnySeriesOptions,
                 'A1'
             );
@@ -974,7 +975,7 @@ describe('series-level glow (enterprise series)', () => {
                     labelKey: 'name',
                     sizeKey: 'size',
                     group: {
-                        glow: GLOW,
+                        glow: SERIES_GLOW,
                         highlight: { highlightedItem: { glow: { blur: 9 } }, unhighlightedItem: { glow: { blur: 6 } } },
                     },
                 } as AnySeriesOptions,
@@ -982,11 +983,11 @@ describe('series-level glow (enterprise series)', () => {
             );
 
             expect(glowByName('highlightSelection', isGroup)).toEqual(
-                new Map([['A', expect.objectContaining(glowShadow({ ...GLOW, blur: 9 }))]])
+                new Map([['A', expect.objectContaining(glowShadow({ ...SERIES_GLOW, blur: 9 }))]])
             );
             const inPlace = glowByName('datumSelection', isGroup);
             expect([...inPlace.keys()]).toEqual(['B']);
-            expect(inPlace.get('B')).toMatchObject(glowShadow({ ...GLOW, blur: 6 }));
+            expect(inPlace.get('B')).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 6 }));
         });
 
         it('sunburst sectors read the branch buckets', async () => {
@@ -995,7 +996,7 @@ describe('series-level glow (enterprise series)', () => {
                     type: 'sunburst',
                     labelKey: 'name',
                     sizeKey: 'size',
-                    glow: GLOW,
+                    glow: SERIES_GLOW,
                     highlight: BUCKETS,
                 } as AnySeriesOptions,
                 'A1'

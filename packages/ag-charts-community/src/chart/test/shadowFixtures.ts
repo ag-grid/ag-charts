@@ -16,6 +16,12 @@ export const SERIES_SHADOW: AgDropShadowOptions = {
 /** The glow the highlight tests turn on, distinct from `SERIES_SHADOW` in every field. */
 export const HIGHLIGHT_GLOW: AgGlowOptions = { enabled: true, fill: '#00aa00', fillOpacity: 1, blur: 3, spread: 2 };
 
+/** The series-level glow, with every field set, so that a bucket's field shows through only where it overrides. */
+export const SERIES_GLOW: AgGlowOptions = { enabled: true, fill: '#aa0000', fillOpacity: 0.5, blur: 5, spread: 3 };
+
+/** What a glow with no fields of its own casts, from the glow theme defaults. */
+export const THEME_GLOW = { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 };
+
 /** The shadow a glow casts: the same blurred silhouette as a shadow, centred on the item. */
 export const glowShadow = (glow: AgGlowOptions) => ({ ...glow, xOffset: 0, yOffset: 0 });
 
