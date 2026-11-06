@@ -951,6 +951,11 @@ describe('series-level glow (enterprise series)', () => {
             const { ctx, id } = deproxy(chart);
             ctx.highlightManager.updateHighlight(id, findNode(name));
             await waitForChartStability(chart);
+
+            // A highlight copy in a group that casts no glow reads as glowing and draws nothing.
+            const { contentGroup, highlightGroup } = getSeriesAt(chart);
+            expect(uncastGlows(contentGroup)).toEqual([]);
+            expect(uncastGlows(highlightGroup)).toEqual([]);
         };
 
         /**
