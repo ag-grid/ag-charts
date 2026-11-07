@@ -1284,7 +1284,10 @@ export abstract class Series<
         const interns = (this.itemCastInterns ??= new WeakMap());
         const baseKey = base ?? NO_ITEM_CAST_BASE;
         let merged = interns.get(baseKey);
-        if (merged == null) interns.set(baseKey, (merged = new Map()));
+        if (merged == null) {
+            merged = new Map();
+            interns.set(baseKey, merged);
+        }
         let cast = merged.get(key);
         if (cast === undefined) {
             cast = merge() ?? null;
