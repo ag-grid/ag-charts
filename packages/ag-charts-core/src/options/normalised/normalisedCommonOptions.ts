@@ -11,6 +11,7 @@ import type {
     FillOptions,
     ImageSegment,
     PaddingOptions,
+    PixelSize,
     StrokeOptions,
     TextOptions,
     TextSegment,
@@ -84,6 +85,8 @@ export type NormalisedDropShadowOptions = Normalised<
     glow?: true;
     /** A glow cast beneath the items of its series, not by the shadow root beneath every series. */
     inGroup?: true;
+    /** The `gap` of a glow: how far the shadow's silhouette is cut out of it, or undefined to cast it like a shadow. */
+    gap?: PixelSize;
 };
 
 /** A shadow with the `fill` that it casts in. */

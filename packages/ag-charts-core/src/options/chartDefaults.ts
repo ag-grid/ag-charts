@@ -692,6 +692,7 @@ export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
     enabled: boolean,
     blur: positiveNumber,
     spread: positiveNumber,
+    gap: positiveNumber,
     fill: colorOrRef,
     fillOpacity: ratio,
 };

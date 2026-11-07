@@ -67,4 +67,12 @@ export interface AgGlowOptions {
      * Default: `4`
      */
     spread?: PixelSize;
+    /**
+     * How far, in pixels, the glow starts from the item. Set `gap` to keep the item clear of the glow: unset, the glow is cast
+     * like a shadow, so it shows through an item that is translucent. At `0` the item's own footprint is cut out of the glow,
+     * and larger values move where the glow starts outwards. Negative values are not supported: they are ignored with a warning.
+     *
+     * Default: unset
+     */
+    gap?: PixelSize;
 }
