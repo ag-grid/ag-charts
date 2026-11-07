@@ -181,10 +181,7 @@ function setSpreadRegion(): boolean {
 /** The region of the layer that the spread shadow being drawn can land on, which a glow's gap is cut out of. */
 const gapRegion = { x: 0, y: 0, width: 0, height: 0, maxWidth: 0, maxHeight: 0 };
 
-/**
- * Sets the region of the layer that the shadow of the {@link spreadRegion} can land on, past its offset and blur, and on the
- * canvas. Returns false when none of it does.
- */
+/** Sets the part of the canvas that the shadow of the {@link spreadRegion} lands on. Returns false when none of it does. */
 function setGapRegion(): boolean {
     const { canvasWidth, canvasHeight, shadowX, shadowY, blur } = spreadBounds;
     const blurReach = Math.ceil(blur * 1.5);
@@ -985,19 +982,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } else if (drawsFill && spread > 0 && path != null) {
             this.dilateFill(ctx, path);
         }
-        // The footprint of an item has its extras at any dilation, and whatever the mode that casts its shadow.
-        if (footprint || (this.getShadowMode(slot) !== 'fill' && spread > 0)) {
+        // A set gap casts the extras at any dilation, as the real paint of an ungapped glow does. A footprint has them always.
+        const shadow = this.getSlot(slot);
+        if (footprint || (this.getShadowMode(slot) !== 'fill' && shadow != null && dilatesShadow(shadow))) {
             this.dilateSilhouetteExtras(ctx, spread * 2);
         }
     }
 
-    /**
-     * Erases the footprint of the item, dilated by a glow's `gap`, from `ctx`: its geometry whatever its paint, so that a
-     * translucent or fill-less item clears its whole footprint, with its stroke and extras such as wicks and whiskers. It is
-     * drawn solid at full alpha, as `destination-out` erases in proportion to the alpha that it is drawn at. A shape with
-     * no Path2D, such as a `Line`, has no fill to dilate: its stroke is widened by the gap and its fill is not erased. One that
-     * strokes only, as `ShapeShadowMode` `stroke` does, has no interior to erase either.
-     */
+    /** Erases the geometry of the item, dilated by a glow's `gap`, from `ctx`, whatever its paint. A `Line` has no fill to erase. */
     private eraseFootprint(slot: ShadowSlot, ctx: CanvasContext, path: Path2D | undefined, gap: number) {
         if (ctx.globalAlpha <= 0 || (this.__opacity ?? 1) <= 0) return;
 
@@ -1231,11 +1223,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.restore();
     }
 
-    /**
-     * Casts the dilated silhouette of {@link castSpreadShadow} onto a canvas of its own that covers where its shadow can land,
-     * then erases the footprint of the item from it, dilated by `gap`, before it is drawn on the layer. The layer holds other
-     * things that the erasing would also remove, so it is not erased on directly.
-     */
+    /** Casts the silhouette onto a canvas of its own, cuts the footprint out of it, then draws that on the layer. */
     private castGappedShadow(
         slot: ShadowSlot,
         ctx: CanvasContext,

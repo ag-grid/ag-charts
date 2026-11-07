@@ -157,7 +157,7 @@ function fitMask(maskWidth: number, maskHeight: number): number {
 interface ScratchPool {
     readonly users: Set<object>;
     scratch: SpreadCanvas | undefined;
-    /** The canvas that a glow with a `gap` is blurred onto and cut out of, as large as the layer, once a cast needs it. */
+    /** The canvas that a glow with a `gap` is blurred onto and cut out of, once a cast needs it. */
     gapCanvas: SpreadCanvas | undefined;
     /** The pixels of the canvases that the scene's caches hold. */
     cachedArea: number;
@@ -190,18 +190,22 @@ function freeScratch(pool: ScratchPool) {
     pool.scratch = undefined;
 }
 
-/**
- * The scene's canvas that a glow's `gap` is cut out of, which holds the glow of one key at a time, or undefined if the
- * layer is more than a canvas can be or the browser can't allocate it. It is the size of the layer, and only grows.
- */
+/** The scene's canvas that a glow's `gap` is cut out of, which holds one key's glow at a time. It only grows. */
 function acquireGapCanvas(scene: object | undefined, width: number, height: number): SpreadCanvas | undefined {
-    if (width * height > MAX_MASK_AREA) return;
-
     const pool = getPool(scene);
     let { gapCanvas } = pool;
     if (gapCanvas == null || gapCanvas.canvas.width < width || gapCanvas.canvas.height < height) {
+        const largestWidth = gapCanvas?.canvas.width ?? 0;
+        const largestHeight = gapCanvas?.canvas.height ?? 0;
         if (gapCanvas != null) disposeCanvas(gapCanvas.canvas);
-        gapCanvas = allocateCanvas(width, height);
+
+        let canvasWidth = Math.max(width, largestWidth);
+        let canvasHeight = Math.max(height, largestHeight);
+        if (canvasWidth * canvasHeight > MAX_MASK_AREA) {
+            canvasWidth = width;
+            canvasHeight = height;
+        }
+        gapCanvas = allocateCanvas(canvasWidth, canvasHeight);
         pool.gapCanvas = gapCanvas;
     }
     return gapCanvas;
@@ -693,12 +697,11 @@ function castPlan(
     renderCtx: RenderContext,
     originX: number,
     originY: number,
-    holes?: SpreadCanvas
+    scene: object | undefined
 ): boolean {
     const { ctx } = renderCtx;
     let rendered: boolean;
-    const { key, blur, offsetX, offsetY, padLeft, padTop, maskWidth, maskHeight, canvasWidth, canvasHeight } = plan;
-    const { scaleX, scaleY, colour, opaque, tinted, alpha } = plan;
+    const { key, padLeft, padTop, canvasWidth, canvasHeight, scaleX, scaleY, opaque, tinted } = plan;
     const { canvas, context } = scratch;
 
     context.save();
@@ -756,122 +759,178 @@ function castPlan(
         context.restore();
     }
 
-    // The mask is drawn this far to the left, so that none of it is on the layer. The shadow offset brings its shadow back.
-    const distance = maskWidth;
-    const { clip, clips } = key;
-    // A path clips its shadow as well as its silhouette, so the shadow is clipped to what the path was drawn into.
-    const clipTo = (dest: Ctx) => {
-        if (clips != null) {
-            dest.setTransform(1, 0, 0, 1, -originX, -originY);
-            clipToRegions(dest, clips);
-        } else if (clip != null) {
-            dest.setTransform(
-                transform.a,
-                transform.b,
-                transform.c,
-                transform.d,
-                transform.e - originX,
-                transform.f - originY
-            );
-            dest.beginPath();
-            dest.moveTo(clip[0], clip[1]);
-            for (let i = 2; i < clip.length; i += 2) dest.lineTo(clip[i], clip[i + 1]);
-            dest.closePath();
-            dest.clip();
-        }
-    };
-    const blurOnto = (dest: Ctx) => {
-        dest.resetTransform();
-        dest.translate(-originX, -originY);
-        if (tinted) {
-            // The mask holds each silhouette in its own colour, which a shadow can't take, so the canvas blurs the mask itself.
-            dest.globalAlpha = alpha;
-            dest.filter = blur > 0 ? `blur(${blur / 2}px)` : 'none';
-            dest.drawImage(
-                canvas,
-                0,
-                0,
-                canvasWidth,
-                canvasHeight,
-                offsetX - padLeft,
-                offsetY - padTop,
-                maskWidth,
-                maskHeight
-            );
-        } else {
-            dest.globalAlpha = 1;
-            dest.shadowColor = colour;
-            dest.shadowOffsetX = offsetX + distance;
-            dest.shadowOffsetY = offsetY;
-            dest.shadowBlur = blur;
-            dest.drawImage(
-                canvas,
-                0,
-                0,
-                canvasWidth,
-                canvasHeight,
-                -padLeft - distance,
-                -padTop,
-                maskWidth,
-                maskHeight
-            );
-        }
-    };
-
     const { gap } = key.shadow;
-    if (gap != null && holes != null) {
-        // A gap erases the footprint of the casters, dilated by the gap, from the glow once it is blurred. That is done on a
-        // canvas of the key's own, because the target holds what the layer has drawn, and the glows of other keys.
-        const { canvas: hole, context: erase } = holes;
-        const width = target.canvas.width;
-        const height = target.canvas.height;
-        erase.setTransform(1, 0, 0, 1, 0, 0);
-        erase.clearRect(0, 0, width, height);
-        erase.save();
-        try {
-            blurOnto(erase);
-        } finally {
-            erase.restore();
-        }
-        rendered = eraseFootprints(key, erase, transform, renderCtx, originX, originY, gap) && rendered;
+    if (gap != null) {
+        const region = getGapRegion(key, transform, renderCtx, target, originX, originY);
+        if (region == null) return rendered;
 
-        target.save();
-        try {
-            clipTo(target);
-            target.resetTransform();
-            target.globalAlpha = 1;
-            target.drawImage(hole, 0, 0, width, height, 0, 0, width, height);
-        } finally {
-            target.restore();
+        // A glow that can't have a canvas to be cut on is cast without the cut, rather than not at all.
+        const resolution = fitMask(region.width, region.height);
+        const gapWidth = Math.max(1, Math.floor(region.width * resolution));
+        const gapHeight = Math.max(1, Math.floor(region.height * resolution));
+        const holes = acquireGapCanvas(scene, gapWidth, gapHeight);
+        if (holes != null) {
+            const { canvas: holeCanvas, context: erase } = holes;
+            const holeScaleX = gapWidth / region.width;
+            const holeScaleY = gapHeight / region.height;
+            erase.setTransform(1, 0, 0, 1, 0, 0);
+            erase.clearRect(0, 0, gapWidth, gapHeight);
+            erase.save();
+            try {
+                blurMask(plan, canvas, erase, region.x, region.y, holeScaleX, holeScaleY);
+            } finally {
+                erase.restore();
+            }
+            const resolutionOfHole = { x: holeScaleX, y: holeScaleY };
+            rendered = eraseFootprints(key, erase, transform, renderCtx, region, resolutionOfHole, gap) && rendered;
+
+            // The target holds what the layer has drawn and the glows of other keys, so only the cut glow is drawn onto it.
+            target.save();
+            try {
+                clipToKey(key, target, transform, originX, originY);
+                target.resetTransform();
+                target.globalAlpha = 1;
+                target.drawImage(
+                    holeCanvas,
+                    0,
+                    0,
+                    gapWidth,
+                    gapHeight,
+                    region.x - originX,
+                    region.y - originY,
+                    region.width,
+                    region.height
+                );
+            } finally {
+                target.restore();
+            }
+            return rendered;
         }
-        return rendered;
     }
 
     target.save();
     try {
-        clipTo(target);
-        blurOnto(target);
+        clipToKey(key, target, transform, originX, originY);
+        blurMask(plan, canvas, target, originX, originY);
     } finally {
         target.restore();
     }
     return rendered;
 }
 
+/** Clips `dest`, whose top left is `origin` on the layer, to what the path that the key's casters were drawn into clips. */
+function clipToKey({ clip, clips }: ShadowKey, dest: Ctx, transform: DOMMatrix, originX: number, originY: number) {
+    if (clips != null) {
+        dest.setTransform(1, 0, 0, 1, -originX, -originY);
+        clipToRegions(dest, clips);
+    } else if (clip != null) {
+        dest.setTransform(
+            transform.a,
+            transform.b,
+            transform.c,
+            transform.d,
+            transform.e - originX,
+            transform.f - originY
+        );
+        dest.beginPath();
+        dest.moveTo(clip[0], clip[1]);
+        for (let i = 2; i < clip.length; i += 2) dest.lineTo(clip[i], clip[i + 1]);
+        dest.closePath();
+        dest.clip();
+    }
+}
+
 /**
- * Erases the footprint of the casters of a key, dilated by `gap`, from `erase`, a canvas that has the glow of the key blurred
- * onto it and whose top left is `origin` on the layer. Returns whether every caster drew.
+ * Blurs the mask of `plan`, drawn in `canvas`, onto `dest`, whose top left is (`left`, `top`) on the layer and which holds the
+ * layer at `scaleX` by `scaleY` of its resolution.
+ */
+function blurMask(
+    plan: KeyPlan,
+    canvas: SpreadCanvas['canvas'],
+    dest: Ctx,
+    left: number,
+    top: number,
+    scaleX: number = 1,
+    scaleY: number = 1
+) {
+    const { offsetX, offsetY, padLeft, padTop, maskWidth, maskHeight, canvasWidth, canvasHeight, colour, tinted } =
+        plan;
+    const blur = plan.blur * scaleX;
+    dest.setTransform(scaleX, 0, 0, scaleY, -left * scaleX, -top * scaleY);
+    if (tinted) {
+        // The mask holds each silhouette in its own colour, which a shadow can't take, so the canvas blurs the mask itself.
+        dest.globalAlpha = plan.alpha;
+        dest.filter = blur > 0 ? `blur(${blur / 2}px)` : 'none';
+        dest.drawImage(
+            canvas,
+            0,
+            0,
+            canvasWidth,
+            canvasHeight,
+            offsetX - padLeft,
+            offsetY - padTop,
+            maskWidth,
+            maskHeight
+        );
+    } else {
+        // The mask is drawn this far to the left, so that none of it is on the layer. The shadow offset brings its shadow back.
+        const distance = maskWidth;
+        dest.globalAlpha = 1;
+        dest.shadowColor = colour;
+        dest.shadowOffsetX = (offsetX + distance) * scaleX;
+        dest.shadowOffsetY = offsetY * scaleY;
+        dest.shadowBlur = blur;
+        dest.drawImage(canvas, 0, 0, canvasWidth, canvasHeight, -padLeft - distance, -padTop, maskWidth, maskHeight);
+    }
+}
+
+/** The part of `target` that the glow of the key can land on, in layer pixels, or undefined if none of it does. */
+function getGapRegion(
+    key: ShadowKey,
+    transform: DOMMatrix,
+    renderCtx: RenderContext,
+    target: Ctx,
+    originX: number,
+    originY: number
+): Extent | undefined {
+    const { canvas } = renderCtx.ctx;
+    const extent = getShadowExtent(
+        [key],
+        transform,
+        renderCtx.devicePixelRatio,
+        Math.ceil(canvas.width),
+        Math.ceil(canvas.height)
+    );
+    const x = Math.max(extent.x, originX);
+    const y = Math.max(extent.y, originY);
+    const right = Math.min(extent.x + extent.width, originX + target.canvas.width);
+    const bottom = Math.min(extent.y + extent.height, originY + target.canvas.height);
+    return right > x && bottom > y ? { x, y, width: right - x, height: bottom - y } : undefined;
+}
+
+/**
+ * Erases the footprint of the casters of a key, dilated by `gap`, from `erase`, which has the glow of the key blurred onto it
+ * and whose top left is `region` on the layer, at `resolution`. Returns whether every caster drew.
  */
 function eraseFootprints(
     key: ShadowKey,
     erase: Ctx,
     transform: DOMMatrix,
     renderCtx: RenderContext,
-    originX: number,
-    originY: number,
+    region: Extent,
+    resolution: { x: number; y: number },
     gap: number
 ): boolean {
     const { frames } = key;
-    const place = ([a, b, c, d, e, f]: readonly number[]) => erase.setTransform(a, b, c, d, e - originX, f - originY);
+    const place = ([a, b, c, d, e, f]: readonly number[]) =>
+        erase.setTransform(
+            a * resolution.x,
+            b * resolution.y,
+            c * resolution.x,
+            d * resolution.y,
+            (e - region.x) * resolution.x,
+            (f - region.y) * resolution.y
+        );
     let placed: ShadowFrame | undefined;
     erase.save();
     try {
@@ -897,7 +956,7 @@ function eraseFootprints(
             key.slot,
             false,
             false,
-            FULL_RESOLUTION,
+            resolution,
             frames == null
                 ? undefined
                 : (i: number) => {
@@ -997,13 +1056,6 @@ export function castShadows({ scene, user, keys, index, unchanged }: ShadowCast,
     const scratch = acquireShadowScratch(scene, user, scratchWidth, scratchHeight);
     if (scratch == null) return false;
 
-    // A gap is cut out of the glow on a canvas as large as the layer. A cast that can't have one is left to its casters.
-    let holes: SpreadCanvas | undefined;
-    if (plans.some((plan) => plan.key.shadow.gap != null)) {
-        holes = acquireGapCanvas(scene, width, height);
-        if (holes == null) return false;
-    }
-
     let kept: SpreadCanvas | undefined;
     if (cache != null && repeated && !isDeclined(cache, scene)) {
         const extent = getShadowExtent(keys, transform, renderCtx.devicePixelRatio, width, height);
@@ -1013,13 +1065,13 @@ export function castShadows({ scene, user, keys, index, unchanged }: ShadowCast,
         kept.context.clearRect(0, 0, kept.canvas.width, kept.canvas.height);
         let rendered = true;
         for (const plan of plans) {
-            rendered = castPlan(plan, scratch, kept.context, transform, renderCtx, cache.x, cache.y, holes) && rendered;
+            rendered = castPlan(plan, scratch, kept.context, transform, renderCtx, cache.x, cache.y, scene) && rendered;
         }
         // A caster that failed to draw is drawn again by the next cast, rather than left out of the shadows for good.
         cache.valid = rendered;
         blitCache(ctx, cache);
     } else {
-        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, holes);
+        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene);
     }
     return true;
 }
