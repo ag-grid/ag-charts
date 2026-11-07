@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import type { Logger } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { Chart } from './chart';
-import { getItemCastBase } from './optionsGraphService';
+import { OptionsGraphService, getItemCastBase } from './optionsGraphService';
 import { CATEGORY_DATA, SERIES_SHADOW, themeShadow } from './test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole } from './test/utils';
 
@@ -45,4 +46,20 @@ describe('OptionsGraphService item casts', () => {
 
         expect(getItemCastBase(cast!)).toMatchObject({ ...SERIES_SHADOW, blur: 8 });
     });
+
+    it.each(['shadow', 'glow'] as const)(
+        'restores the %s onto the result of the graph, with no copy of the result',
+        (key) => {
+            const filled = { enabled: true, blur: 8, spread: 3 };
+            const resolved = { [key]: filled, fill: 'red' };
+            const service = new OptionsGraphService({} as Logger);
+            service.updateCallback(() => resolved as never);
+
+            const result = service.resolvePartial(['series', '0'], { [key]: { blur: 8 }, fill: 'red' });
+
+            expect(result).toBe(resolved);
+            expect(result?.[key]).toEqual({ blur: 8 });
+            expect(getItemCastBase(result?.[key] as object)).toBe(filled);
+        }
+    );
 });

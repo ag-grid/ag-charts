@@ -112,6 +112,10 @@ interface TreemapLabelCandidate extends PositionedLabelCandidate {
 /** The highlight cache slots (see `HierarchySeries.getHierarchyGlow`), as tiles and groups resolve a state to different options. */
 const TILE_SLOT = 0;
 const GROUP_SLOT = 1;
+/** Where a tile that casts no highlight glow of its own keeps the merges of an item styler's `glow`. */
+const STYLER_ONLY_TILE_SLOT = 2;
+
+const noGlow = () => undefined;
 
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -589,12 +593,11 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             return this.getHierarchyGlow(GROUP_SLOT, groupState, this.resolveGroupGlow, itemGlow);
         }
 
-        // With a group highlighted, a tile inherits only the group's opacities (see `getTileHighlightStyle`).
-        if (
-            itemGlow == null &&
-            (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0)
-        ) {
-            return;
+        // With a group highlighted, a tile inherits only the group's opacities (see `getTileHighlightStyle`), and it has
+        // no highlight glow with its tile highlight off. A glow from an item styler is then merged over the theme's alone.
+        if (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0) {
+            if (itemGlow == null) return;
+            return this.getHierarchyGlow(STYLER_ONLY_TILE_SLOT, HierarchyHighlightState.None, noGlow, itemGlow);
         }
 
         const tileState = this.getHierarchyHighlightState(isHighlight, highlightedNode, node);

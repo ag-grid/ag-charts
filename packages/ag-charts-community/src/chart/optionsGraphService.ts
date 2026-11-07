@@ -70,10 +70,12 @@ export function getItemCastBase(restored: object): PlainObject | undefined {
  * the rest; the resolved cast stays on as {@link getItemCastBase}, the bottom layer.
  */
 function restoreItemCasts<T extends PlainObject>(partial: T, resolved: Resolved<Partial<T>>): Resolved<Partial<T>> {
-    let result: PlainObject | undefined;
+    // `resolved` is the caller's own top level object (the graph builds it afresh, and its partial cache copies on
+    // both read and write), so the restored casts are assigned onto it without another copy.
+    const target = resolved as PlainObject;
     for (const key of ITEM_CAST_KEYS) {
         const given = (partial as PlainObject)[key];
-        const filled = (resolved as PlainObject)[key];
+        const filled = target[key];
         if (!isPlainObject(given) || !isPlainObject(filled)) continue;
 
         let own = restoredCasts.get(filled);
@@ -85,8 +87,7 @@ function restoreItemCasts<T extends PlainObject>(partial: T, resolved: Resolved<
             restoredCasts.set(filled, own);
             castBases.set(own, filled);
         }
-        result ??= { ...(resolved as PlainObject) };
-        result[key] = own;
+        target[key] = own;
     }
-    return (result ?? resolved) as Resolved<Partial<T>>;
+    return resolved;
 }

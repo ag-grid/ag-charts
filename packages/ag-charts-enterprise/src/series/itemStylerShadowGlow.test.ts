@@ -503,6 +503,38 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
         expect(glowing[0].fillShadow).toMatchObject(glowShadow(ITEM_GLOW));
     });
 
+    it('merges the glow of the styler for a treemap tile over the theme alone while a group is hovered', async () => {
+        chart = await createEnterpriseChart({
+            data: HIERARCHY_SHADOW_DATA,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    tile: { highlight: { highlightedBranch: { glow: HIGHLIGHT_GLOW } } },
+                    itemStyler: (params: any) => (params.datum.name === 'A1' ? { glow: { blur: 7 } } : {}),
+                },
+            ],
+        } as AgChartOptions);
+
+        // A tile in a hovered group inherits only the group's opacities, so no highlight glow is under the styler's.
+        const { ctx, id } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(
+            id,
+            [...hierarchyRoot(chart)].find((node) => node.datum?.name === 'A')
+        );
+        await waitForChartStability(chart);
+
+        const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).find(
+            (shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name === 'A1'
+        );
+
+        expect(tile?.fillShadow).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+        expect(tile?.fillShadow?.fill).not.toBe(HIGHLIGHT_GLOW.fill);
+    });
+
     describe('heatmap', () => {
         const create = async (cell: object, hoveredCell: object = {}) => {
             chart = await createEnterpriseChart({
