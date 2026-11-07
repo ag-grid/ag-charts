@@ -449,6 +449,15 @@ describe('series-level glow (enterprise series)', () => {
             for (const shape of shapes) expect(shape.fillGlow).toMatchObject(glowShadow(THEME_GLOW));
         });
 
+        // The markers of HLC and range area read the glow through a theme path for each of its options, `gap` among them.
+        it.each([undefined, 0, 4])('casts a gap of %s from every shape that glows', async (gap) => {
+            await create(testCase, { ...SERIES_GLOW, gap });
+
+            const shapes = glowing();
+            expect(shapes.length).toBeGreaterThan(0);
+            for (const shape of shapes) expect(shape.fillGlow?.gap).toBe(gap);
+        });
+
         it.each([
             ['is disabled', { ...SERIES_GLOW, enabled: false }],
             ['is not set', undefined],

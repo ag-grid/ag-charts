@@ -110,6 +110,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
             fillOpacity: { $path: '/series/$index/marker/glow/fillOpacity' },
             blur: { $path: '/series/$index/marker/glow/blur' },
             spread: { $path: '/series/$index/marker/glow/spread' },
+            gap: { $path: '/series/$index/marker/glow/gap' },
         },
         shape: {
             $path: '/series/$index/marker/shape',

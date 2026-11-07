@@ -13,6 +13,11 @@ const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 14 };
 const ITEM_SHADOW: AgDropShadowOptions = { fill: '#000', fillOpacity: 0.5, xOffset: 2, yOffset: 2, blur: 6 };
 const GLOW: AgGlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35, blur: 6, spread: 14 };
 const SERIES_GLOW: AgGlowOptions = { fillOpacity: 0.35, blur: 6, spread: 4 };
+const GAP_GLOW: AgGlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35, blur: 6, spread: 8 };
+
+/** The `glow.gap` of a gap scenario: left unset, or set to a number of pixels. */
+type Gap = number | 'unset';
+const GAPS: Gap[] = ['unset', 0, 5];
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -38,7 +43,9 @@ type Scenario =
     | 'series-glow'
     | 'item-shadow-bar'
     | 'item-shadow-scatter'
-    | 'item-shadow-heatmap';
+    | 'item-shadow-heatmap'
+    | 'glow-gap-bar'
+    | 'glow-gap-scatter';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
@@ -46,9 +53,41 @@ type Variants = BenchmarkConfig['testCases'][number]['variants'];
 // `series-glow` sets the series-level `marker.glow`, which every highlight state inherits, so a hover recasts every series.
 // `item-shadow-bar`, `item-shadow-scatter` and `item-shadow-heatmap` set `highlightedItem.shadow` only, so the second variant adds
 // the option itself. A hovered heatmap with the option set unbatches every cell, so it is measured at 100 x 100 cells.
+// `glow-gap-bar` and `glow-gap-scatter` set the series-level `glow`, which every highlight state inherits, and vary its `gap`
+// (unset, 0 or 5) instead of switching it on and off. Older builds ignore the option.
 /** inScope */
-function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOptions {
+function buildOptions(scenario: Scenario, shadowOn: boolean, gap: Gap = 'unset'): AgCartesianChartOptions {
     const shadow = <T extends AgDropShadowOptions>(value: T) => (shadowOn ? value : undefined);
+    const gapGlow: AgGlowOptions = { ...GAP_GLOW, ...(gap === 'unset' ? {} : { gap }) };
+
+    if (scenario === 'glow-gap-bar') {
+        return {
+            data: getRows(20, 4, true),
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+            series: Array.from({ length: 4 }, (_, i) => ({
+                type: 'bar' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                glow: gapGlow,
+            })),
+        };
+    }
+
+    if (scenario === 'glow-gap-scatter') {
+        return {
+            width: 1400,
+            height: 600,
+            data: getRows(5000, 10, false),
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 10 }, (_, i) => ({
+                type: 'scatter' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                size: 6,
+                glow: gapGlow,
+            })),
+        };
+    }
 
     if (scenario === 'bars') {
         return {
@@ -161,19 +200,24 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
 const chartRef: ChartRef = { current: AgCharts.create(options) };
 const container = document.getElementById('myChart')!;
 
-let current: { scenario: Scenario; shadowOn: boolean; options: AgCartesianChartOptions } | undefined;
+let current: { scenario: Scenario; shadowOn: boolean; gap: Gap; options: AgCartesianChartOptions } | undefined;
 
-// Rebuilds the chart for a scenario and shadow setting, outside the timing, so that each variant starts afresh.
+// Rebuilds the chart for a scenario and shadow or gap setting, outside the timing, so that each variant starts afresh.
 /** inScope */
-async function prepare(scenario: Scenario, shadowOn: boolean): Promise<AgCartesianChartOptions> {
-    if (current?.scenario === scenario && current.shadowOn === shadowOn && chartRef.current != null) {
+async function prepare(scenario: Scenario, shadowOn: boolean, gap: Gap = 'unset'): Promise<AgCartesianChartOptions> {
+    if (
+        current?.scenario === scenario &&
+        current.shadowOn === shadowOn &&
+        current.gap === gap &&
+        chartRef.current != null
+    ) {
         return current.options;
     }
 
     chartRef.current?.destroy();
     chartRef.current = null;
-    const next: AgCartesianChartOptions = { ...buildOptions(scenario, shadowOn), container };
-    current = { scenario, shadowOn, options: next };
+    const next: AgCartesianChartOptions = { ...buildOptions(scenario, shadowOn, gap), container };
+    current = { scenario, shadowOn, gap, options: next };
     chartRef.current = AgCharts.create(next);
     await chartRef.current.waitForUpdate();
     return next;
@@ -212,6 +256,24 @@ function variantsOf(
             variants.push({
                 params: { Operation: operation, [optionName]: shadowOn ? 'On' : 'Off' },
                 run: async () => run(await prepare(scenario, shadowOn)),
+            });
+        }
+    }
+    return variants;
+}
+
+/** The variants of a gap scenario: every operation, with the glow's `gap` unset, 0 and 5. */
+/** inScope */
+function gapVariantsOf(
+    scenario: Scenario,
+    operations: Record<string, (o: AgCartesianChartOptions) => Promise<number>>
+) {
+    const variants: Variants = [];
+    for (const gap of GAPS) {
+        for (const [operation, run] of Object.entries(operations)) {
+            variants.push({
+                params: { Operation: operation, Gap: String(gap) },
+                run: async () => run(await prepare(scenario, true, gap)),
             });
         }
     }
@@ -291,6 +353,22 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     { 'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10) },
                     'Item Shadow'
                 ),
+            },
+            {
+                id: 'glow-gap-bar',
+                label: '4 bar series x 20 categories, glow.gap',
+                variants: gapVariantsOf('glow-gap-bar', {
+                    'Chart Create': create,
+                    'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10),
+                }),
+            },
+            {
+                id: 'glow-gap-scatter',
+                label: '10 scatter series x 5,000 points, glow.gap',
+                variants: gapVariantsOf('glow-gap-scatter', {
+                    'Chart Create': create,
+                    'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10),
+                }),
             },
         ],
         config: {

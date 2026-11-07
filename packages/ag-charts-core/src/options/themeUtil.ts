@@ -763,10 +763,10 @@ export function withGlowThemeDefaults<T extends object>(
 export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
     if (glow?.enabled !== true) return;
 
-    const { fill, fillOpacity, blur, spread } = glow;
+    const { fill, fillOpacity, blur, spread, gap } = glow;
     if (blur == null) return;
 
-    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread, glow: true };
+    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread, gap, glow: true };
 }
 
 /**

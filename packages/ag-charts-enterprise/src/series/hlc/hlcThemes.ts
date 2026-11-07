@@ -95,6 +95,7 @@ const HLC_ITEM_MARKER: WithThemeParams<HlcItemMarkerOptions> = {
         fillOpacity: { $path: '/series/$index/marker/glow/fillOpacity' },
         blur: { $path: '/series/$index/marker/glow/blur' },
         spread: { $path: '/series/$index/marker/glow/spread' },
+        gap: { $path: '/series/$index/marker/glow/gap' },
     },
     shape: { $path: '/series/$index/marker/shape' },
     size: { $path: ['/series/$index/marker/size', 6] },
