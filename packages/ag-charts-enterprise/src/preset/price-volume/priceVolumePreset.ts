@@ -129,6 +129,8 @@ export function priceVolume(
             ...createVolumeProfileAxis(volumeProfile),
         },
         tooltip: { enabled: true, mode: 'shared' },
+        // Set alongside the shared tooltip, which would otherwise make the highlight shared too.
+        highlight: { mode: 'single' },
         data,
         formatter,
         ...createAnnotationsOptions(toolbar, themeOverrides, data, dateKey, shownVolumeKey),

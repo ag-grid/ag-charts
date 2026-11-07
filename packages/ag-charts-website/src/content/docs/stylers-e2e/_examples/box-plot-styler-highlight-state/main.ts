@@ -47,6 +47,7 @@ const itemStyler = (params: AgBoxPlotSeriesItemStylerParams<unknown, unknown>): 
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
+    highlight: { mode: 'single' },
     data: getData(),
     tooltip: { enabled: false },
     series: [

@@ -14,6 +14,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockNightingaleStyler,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     type SceneFrameInvariant,
     type SceneGeometrySample,
     clickAction,
@@ -739,6 +740,7 @@ describe('NightingaleSeries', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart<O>({
                     data,
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     series: [
                         {
                             type: 'nightingale',

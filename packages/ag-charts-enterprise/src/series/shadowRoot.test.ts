@@ -319,7 +319,8 @@ describe('series that cast their shadows through the shadow root', () => {
             const dimmed = (shadow: AgDropShadowOptions): AgChartOptions =>
                 ({
                     data: RADAR_DATA,
-                    highlight: { drawingMode: 'cutout' },
+                    highlight: { mode: 'single', drawingMode: 'cutout' },
+                    tooltip: { mode: 'shared' },
                     series: [
                         {
                             type: 'radar-area',

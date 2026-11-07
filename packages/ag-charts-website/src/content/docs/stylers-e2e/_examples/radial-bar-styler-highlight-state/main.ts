@@ -47,6 +47,8 @@ const itemStyler = (params: AgRadialSeriesItemStylerParams<unknown, unknown>): A
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
+    highlight: { mode: 'single' },
+    tooltip: { mode: 'shared' },
     data: getData(),
     legend: { position: 'left' },
     series: [

@@ -483,6 +483,7 @@ describe('HlcSeries', () => {
     describe('mixed chart', () => {
         const MIXED_OPTIONS: AgCartesianChartOptions = {
             data: DATA.map((d) => ({ ...d, volume: d.high - d.low, mean: (d.high + d.low) / 2 })),
+            highlight: { mode: 'single' },
             tooltip: { mode: 'shared' },
             legend: { enabled: true },
             series: [

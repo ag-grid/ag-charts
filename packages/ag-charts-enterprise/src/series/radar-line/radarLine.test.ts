@@ -16,6 +16,7 @@ import {
     type MockRadarLineStyler,
     type PhasedPropertyExpectation,
     type PhasedTrajectory,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     type SceneGeometrySample,
     clickAction,
     compareImageSnapshot,
@@ -669,6 +670,7 @@ describe('RadarLineSeries', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart<O>({
                     data,
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     series: [
                         {
                             type: 'radar-line',
@@ -762,6 +764,7 @@ describe('RadarLineSeries', () => {
 
     it('should dim non-highlight markers with cutout in multi-series radar line', async () => {
         const options: AgPolarChartOptions = {
+            ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
             data: [
                 { subject: 'Maths', gradeA: 7, gradeB: 4.2 },
                 { subject: 'Physics', gradeA: 4.3, gradeB: 8.5 },

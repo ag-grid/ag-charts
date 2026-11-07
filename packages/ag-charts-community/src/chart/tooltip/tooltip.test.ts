@@ -4,6 +4,7 @@ import type { AgChartOptions, AgTooltipAnchorTo, AgTooltipPositionOptions } from
 
 import type { AgChartProxy, Chart } from '../test/utils';
 import {
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     compareImageSnapshot,
     createChart,
     delay,
@@ -176,6 +177,7 @@ describe('Tooltip', () => {
 
         it('should use the same default behaviour as v9', async () => {
             chart = await createChart({
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: [
                     { x: 'Q1', a: 22, b: 25, L: 3.4 },
                     { x: 'Q2', a: 18, b: 13, L: 4 },
@@ -209,6 +211,7 @@ describe('Tooltip', () => {
 
         it('should use series tooltip.range as default', async () => {
             chart = await createChart({
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: [{ x: 'Q1', a: 22, b: 25 }],
                 series: [
                     { type: 'bar', xKey: 'x', yKey: 'a' },

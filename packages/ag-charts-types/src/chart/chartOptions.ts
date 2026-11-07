@@ -176,7 +176,9 @@ export interface AgChartHighlightOptions {
      * - `'single'` highlights the hovered item only.
      * - `'shared'` also highlights the item of every other series that shares the hovered item's category, using the same grouping as `tooltip.mode: 'shared'`. Series with no item at that category - including series with no category concept, such as scatter and bubble - are unhighlighted as a whole series.
      *
-     * Default: `'single'`
+     * When only `tooltip.mode` is set, this follows it, with `'compact'` giving `'single'`. When neither is set, this matches the `tooltip.mode` default: `'shared'` for 2 or 3 series, except on scatter and bubble charts, and `'single'` otherwise.
+     *
+     * To keep single highlighting on a chart whose tooltip defaults to `'shared'`, set both `highlight.mode: 'single'` and `tooltip.mode: 'shared'`.
      */
     mode?: AgChartHighlightMode;
     /**
