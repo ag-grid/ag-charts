@@ -21,12 +21,12 @@ import {
     undocumentedDefs,
 } from 'ag-charts-core';
 
-import { radialSeriesStylerDef } from '../radial-column/radialColumnSeriesOptionsDef';
+import { radialSeriesItemStylerDef, radialSeriesStylerDef } from '../radial-column/radialColumnSeriesOptionsDef';
 
 export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeriesThemeableOptions> = {
     cornerRadius: positiveNumber,
     styler: radialSeriesStylerDef,
-    itemStyler: radialSeriesStylerDef,
+    itemStyler: radialSeriesItemStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,

@@ -63,6 +63,7 @@ import type {
     AgBarSeriesLabelPlacement,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
+    AgItemShadowStyle,
     AgNumericValue,
     PaddingOptions,
 } from 'ag-charts-types';
@@ -309,7 +310,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly clipBBox: BBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
-    style?: Required<NormalisedBarSeriesStyle>;
+    style?: Required<NormalisedBarSeriesStyle> & AgItemShadowStyle;
 }
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
@@ -1776,7 +1777,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         highlightState: HighlightState | undefined,
         selectionState: SelectionState | undefined,
         candidateState: SelectionState | undefined
-    ): Required<NormalisedBarSeriesStyle> {
+    ): Required<NormalisedBarSeriesStyle> & AgItemShadowStyle {
         const { options, dataModel, processedData } = this;
         const { itemStyler, simpleItemStyler } = options;
 
@@ -1901,8 +1902,22 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 datum.bottomLeftCornerRadius ? cornerRadius : 0,
                 visible,
                 datum.crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState),
-                series.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState),
+                series.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    datum.style?.shadow
+                ),
+                series.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    datum.style?.glow
+                ),
                 direction,
                 datum.featherRatio,
                 crispCentreDirection

@@ -9,6 +9,7 @@ import {
     constant,
     fillOptionsDef,
     glowOptionsDefs,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelOrientationDef,
@@ -31,20 +32,26 @@ import type {
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
     AgHistogramSeriesThemeableOptions,
+    AgItemShadowStyle,
 } from 'ag-charts-types';
 
-const histogramStyler = callbackDefs<AgHistogramSeriesStyle>({
+const histogramStylerDefs = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     cornerRadius: positiveNumber,
+};
+const histogramStyler = callbackDefs<AgHistogramSeriesStyle>(histogramStylerDefs);
+const histogramItemStyler = callbackDefs<AgHistogramSeriesStyle & AgItemShadowStyle>({
+    ...histogramStylerDefs,
+    ...itemStylerCastDefs,
 });
 
 export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
     styler: histogramStyler,
-    itemStyler: histogramStyler,
+    itemStyler: histogramItemStyler,
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,

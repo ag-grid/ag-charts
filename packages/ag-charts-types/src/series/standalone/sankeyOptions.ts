@@ -1,5 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -106,7 +106,10 @@ export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> ex
     /** Configuration for the glow around the links. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
     glow?: AgGlowOptions;
     /** Function used to return formatting for individual links, based on the given parameters.*/
-    itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<TDatum, TContext>, AgSankeySeriesLinkStyle>;
+    itemStyler?: Styler<
+        AgSankeySeriesLinkItemStylerParams<TDatum, TContext>,
+        AgSankeySeriesLinkStyle & AgItemShadowStyle
+    >;
 }
 
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -159,7 +162,10 @@ export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> ex
      */
     sort?: 'data' | 'ascending' | 'descending' | 'auto';
     /** Function used to return formatting for individual nodes, based on the given parameters.*/
-    itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<TDatum, TContext>, AgSankeySeriesNodeStyle>;
+    itemStyler?: Styler<
+        AgSankeySeriesNodeItemStylerParams<TDatum, TContext>,
+        AgSankeySeriesNodeStyle & AgItemShadowStyle
+    >;
 }
 
 export interface AgSankeySeriesOptionsKeys<TDatum = DatumDefault> {

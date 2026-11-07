@@ -3,6 +3,7 @@ import type {
     AgCandlestickSeriesItemOptions,
     AgCandlestickSeriesOptions,
     AgCandlestickSeriesThemeableOptions,
+    AgItemShadowStyle,
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
@@ -13,6 +14,7 @@ import {
     constant,
     fillOptionsDef,
     glowOptionsDefs,
+    itemStylerCastDefs,
     lineDashOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
     positiveNumber,
@@ -46,7 +48,8 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
         up: candlestickSeriesItemOptionsDef,
         down: candlestickSeriesItemOptionsDef,
     },
-    itemStyler: callbackDefs<AgCandlestickSeriesItemOptions>({
+    itemStyler: callbackDefs<AgCandlestickSeriesItemOptions & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,

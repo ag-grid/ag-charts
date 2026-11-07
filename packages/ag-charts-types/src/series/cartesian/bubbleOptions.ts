@@ -8,7 +8,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -132,7 +132,7 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgBubbleSeriesStylerParams<TDatum, TContext>, AgBubbleSeriesStylerResult>;
     /** Function used to return formatting for individual markers, based on the supplied information.*/
-    itemStyler?: Styler<AgBubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
+    itemStyler?: Styler<AgBubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle & AgItemShadowStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
     /** Configuration for colour scale with fills, domain, and mode. */

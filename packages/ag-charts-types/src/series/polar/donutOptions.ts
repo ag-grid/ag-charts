@@ -1,5 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelFitOptions,
@@ -169,7 +169,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     /** Whether items with a value of 0 should be hidden in the legend. */
     hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the Donut sectors. */
-    itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum, TContext>, AgDonutSeriesStyle>;
+    itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum, TContext>, AgDonutSeriesStyle & AgItemShadowStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }

@@ -1,4 +1,9 @@
-import type { AgOhlcSeriesItemOptions, AgOhlcSeriesOptions, AgOhlcSeriesThemeableOptions } from 'ag-charts-community';
+import type {
+    AgItemShadowStyle,
+    AgOhlcSeriesItemOptions,
+    AgOhlcSeriesOptions,
+    AgOhlcSeriesThemeableOptions,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
@@ -7,6 +12,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     glowOptionsDefs,
+    itemStylerCastDefs,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
@@ -20,7 +26,8 @@ import {
 
 export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOptions> = {
     showInMiniChart: boolean,
-    itemStyler: callbackDefs<AgOhlcSeriesItemOptions>({
+    itemStyler: callbackDefs<AgOhlcSeriesItemOptions & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     }),
