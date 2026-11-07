@@ -1989,6 +1989,35 @@ describe('Group shadow compositor', () => {
             expect(at(106, 60)[3]).toBeGreaterThan(0);
         });
 
+        it('should keep the shadow of another item showing through an item with a gap of 0, from what it kept', () => {
+            const GREEN = { ...RED_HALF, fill: 'rgba(0, 255, 0, 1)', xOffset: 50 };
+            const translucent = { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined };
+            const make = (fillGlow?: Rect['fillGlow']) => () =>
+                createGroup([
+                    caster(20, { fill: 'black', fillShadow: GREEN }),
+                    caster(60, { ...translucent, fillGlow }),
+                    box(220, 40, 40, 40),
+                ]);
+            redraw(make()());
+            const expected = at(85, 60);
+            expect(expected[1]).toBeGreaterThan(100);
+
+            const group = make(GAPPED_GLOW)();
+            const first = redraw(group);
+            const second = redraw(group);
+            const third = redraw(group);
+
+            expect(first.masked).toContain(60);
+            expect(second.masked).toContain(60);
+            expect(third.masked).toEqual([]);
+            expectSamePixels(third.pixels, first.pixels);
+            for (const draw of [first, second, third]) {
+                const pixel = draw.pixels.slice((60 * WIDTH + 85) * 4, (60 * WIDTH + 85) * 4 + 4);
+                expect(pixel.every((value, i) => Math.abs(value - expected[i]) <= 1)).toBe(true);
+            }
+            expect(at(80, 36)[3]).toBeGreaterThan(0);
+        });
+
         it('should free its canvas when the shadows changed, and keep the shadows again once the cast repeats', () => {
             const before = offscreenCanvases();
             const group = kept();
