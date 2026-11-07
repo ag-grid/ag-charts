@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -6,6 +6,7 @@ import {
     HIGHLIGHT_GLOW,
     THEME_GLOW,
     deproxy,
+    expectWarningMessages,
     getSeriesAt,
     getSeriesSelectionNodes,
     glowShadow,
@@ -242,6 +243,26 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             }
         );
 
+        it('keeps the theme glow for the fields that a partial glow leaves unset, with no series glow', async () => {
+            const { inPlace } = await create({ first: { glow: { blur: 7 } } });
+
+            expect(glowOf(inPlace[0])).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+            for (const shape of inPlace.slice(1)) expect(isOn(glowOf(shape))).toBe(false);
+        });
+
+        it.each([
+            ['no series shadow', undefined],
+            ['a disabled series shadow, which keeps none of its fields', { ...SHADOW, enabled: false }],
+        ])(
+            'keeps the theme shadow for the fields that a partial shadow leaves unset, over %s',
+            async (_name, shadow) => {
+                const { inPlace } = await create({ shadow, first: { shadow: { blur: 12 } } });
+
+                expect(inPlace[0].fillShadow).toMatchObject({ enabled: true, xOffset: 3, yOffset: 3, blur: 12 });
+                for (const shape of inPlace.slice(1)) expect(isOn(shape.fillShadow)).toBe(false);
+            }
+        );
+
         it('casts a shadow and a glow together from a series that has a slot for each', async () => {
             const { inPlace } = await create({ first: { shadow: ITEM_SHADOW, glow: ITEM_GLOW } });
 
@@ -279,6 +300,77 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
                 for (const shape of inPlace.slice(1)) expect(glowOf(shape)).toMatchObject(glowShadow(SERIES_GLOW));
             }
         );
+    });
+
+    describe('invalid values', () => {
+        it('casts nothing for an invalid shadow over a disabled series shadow, whatever else the shadow holds', async () => {
+            const { inPlace } = await create({
+                shadow: { ...SHADOW, enabled: false },
+                first: { shadow: { blur: 'wide', fill: '#00ff00' } } as unknown as ItemCast,
+            });
+
+            expectWarningMessages([expect.stringContaining('shadow')]);
+            for (const shape of inPlace) expect(isOn(shape.fillShadow)).toBe(false);
+        });
+
+        it('casts nothing for an invalid glow over a disabled series glow, whatever else the glow holds', async () => {
+            const { inPlace } = await create({
+                // A series with no series-level `glow` has no cast to disable.
+                glow: testCase.seriesGlow ? { ...SERIES_GLOW, enabled: false } : undefined,
+                first: { glow: { blur: 'wide' } } as unknown as ItemCast,
+            });
+
+            expectWarningMessages([expect.stringContaining('glow')]);
+            for (const shape of inPlace) expect(isOn(glowOf(shape))).toBe(false);
+        });
+
+        it('casts the series shadow, not the valid fields of an invalid one, for that item', async () => {
+            const { inPlace } = await create({
+                shadow: SHADOW,
+                first: { shadow: { blur: 'wide', fill: '#00ff00' } } as unknown as ItemCast,
+            });
+
+            expectWarningMessages([expect.stringContaining('shadow')]);
+            expect(inPlace[0].fillShadow).toMatchObject(SHADOW);
+        });
+
+        it.runIf(testCase.seriesGlow)(
+            'casts the series glow, not the valid fields of an invalid one, for that item',
+            async () => {
+                const { inPlace } = await create({
+                    glow: SERIES_GLOW,
+                    first: { glow: { blur: 'wide', fill: '#00ff00' } } as unknown as ItemCast,
+                });
+
+                expectWarningMessages([expect.stringContaining('glow')]);
+                expect(glowOf(inPlace[0])).toMatchObject(glowShadow(SERIES_GLOW));
+            }
+        );
+    });
+
+    describe('the merged casts', () => {
+        it('does not serialise the casts again when the items update in a state that they were merged in', async () => {
+            const cast: ItemCast = { shadow: { ...ITEM_SHADOW }, glow: { ...ITEM_GLOW } };
+            const { inPlace } = await create({ shadow: SHADOW, styler: () => cast });
+            const merged = [inPlace[0].fillShadow, glowOf(inPlace[0])];
+
+            // Hovering then leaving makes the items update in each state once, and leaving returns to the first.
+            const { ctx, id } = deproxy(chart);
+            ctx.highlightManager.updateHighlight(id, testCase.hover(chart));
+            await waitForChartStability(chart);
+            const stringify = vi.spyOn(JSON, 'stringify');
+            ctx.highlightManager.updateHighlight(id);
+            await waitForChartStability(chart);
+
+            const castsSerialised = stringify.mock.calls.filter(
+                ([value]) => value != null && typeof value === 'object' && 'blur' in value
+            );
+            stringify.mockRestore();
+            expect(castsSerialised).toHaveLength(0);
+            const after = testCase.layers(chart).inPlace[0];
+            expect(after.fillShadow).toBe(merged[0]);
+            expect(glowOf(after)).toBe(merged[1]);
+        });
     });
 
     describe('the hovered item', () => {

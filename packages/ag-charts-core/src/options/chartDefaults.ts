@@ -43,6 +43,7 @@ import {
 } from 'ag-charts-types';
 
 import { without } from '../data/object';
+import { isObject } from '../data/typeGuards';
 import { isValidNumberFormat } from '../format/numberFormat';
 import {
     borderOptionsDef,
@@ -701,10 +702,25 @@ export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
 /** The `shadow` of a highlighted item, which has no deprecated `color`: a new option takes `fill`. */
 const highlightedItemShadowOptionsDefs = without(shadowOptionsDefs, ['color']);
 
+/**
+ * Validates a `shadow` or `glow` that an item styler returned against `defs`, and drops the whole object when any field of it
+ * is invalid or unknown, leaving it `null` for the item to read as none. Clearing the field alone would leave a partial cast, which the item then merges as an override and
+ * so turns on, or recolours, the cascade's cast that the styler never meant to change.
+ */
+const itemCastOf = <T>(defs: OptionsDefs<T>): Validator => {
+    const validator: Validator = (value, context) => {
+        if (!isObject(value)) return false;
+
+        const { cleared, invalid } = validate(value, defs, context.path, context.params);
+        return { valid: true, cleared: invalid.length === 0 ? cleared : null, invalid };
+    };
+    return attachDescription(validator, 'an object');
+};
+
 /** What an item styler may return beyond the style of an item: the `shadow` and `glow` that the item casts. */
 export const itemStylerCastDefs = {
-    shadow: highlightedItemShadowOptionsDefs,
-    glow: glowOptionsDefs,
+    shadow: itemCastOf(highlightedItemShadowOptionsDefs),
+    glow: itemCastOf(glowOptionsDefs),
 } as const satisfies OptionsDefs<AgItemShadowStyle>;
 
 /** The item buckets of a series that can cast a `glow`: only `highlightedItem` can also cast a `shadow`. */

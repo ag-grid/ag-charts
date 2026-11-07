@@ -231,6 +231,26 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             for (const shape of inPlace.slice(1)) expect(isOn(shape.fillGlow)).toBe(false);
         });
 
+        it('keeps the theme glow for the fields that a partial glow leaves unset, with no series glow', async () => {
+            const { inPlace } = await create({ first: { glow: { blur: 7 } } });
+
+            expect(inPlace[0].fillGlow).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+            for (const shape of inPlace.slice(1)) expect(isOn(shape.fillGlow)).toBe(false);
+        });
+
+        it.each([
+            ['no series shadow', undefined],
+            ['a disabled series shadow, which keeps none of its fields', { ...SERIES_SHADOW, enabled: false }],
+        ])(
+            'keeps the theme shadow for the fields that a partial shadow leaves unset, over %s',
+            async (_name, shadow) => {
+                const { inPlace } = await create({ shadow, first: { shadow: { blur: 12 } } });
+
+                expect(inPlace[0].fillShadow).toMatchObject({ enabled: true, xOffset: 3, yOffset: 3, blur: 12 });
+                for (const shape of inPlace.slice(1)) expect(isOn(shape.fillShadow)).toBe(false);
+            }
+        );
+
         it('casts a shadow and a glow together from one item', async () => {
             const { inPlace } = await create({ first: { shadow: ITEM_SHADOW, glow: ITEM_GLOW } });
 
@@ -451,6 +471,29 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect(inPlace[2].fillGlow).toMatchObject({ blur: 13 });
         });
 
+        it('does not serialise the casts again when the items update in a state that they were merged in', async () => {
+            const cast: ItemCast = { shadow: { ...ITEM_SHADOW }, glow: { ...ITEM_GLOW } };
+            const { inPlace } = await create({ shadow: SERIES_SHADOW, glow: SERIES_GLOW, styler: () => cast });
+            const merged = [inPlace[0].fillShadow, inPlace[0].fillGlow];
+
+            // Hovering then leaving makes the items update in each state once, and leaving returns to the first.
+            const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
+            chart.ctx.highlightManager.updateHighlight(chart.id, datum);
+            await waitForChartStability(chart);
+            const stringify = vi.spyOn(JSON, 'stringify');
+            chart.ctx.highlightManager.updateHighlight(chart.id);
+            await waitForChartStability(chart);
+
+            const castsSerialised = stringify.mock.calls.filter(
+                ([value]) => value != null && typeof value === 'object' && 'blur' in value
+            );
+            expect(castsSerialised).toHaveLength(0);
+            const after = shapesOf(getSeriesAt(chart).contentGroup, testCase.kind);
+            expect([after[0].fillShadow, after[0].fillGlow]).toEqual(merged);
+            expect(after[0].fillShadow).toBe(merged[0]);
+            expect(after[0].fillGlow).toBe(merged[1]);
+        });
+
         it('shares the series shadow and glow between the items of a series with no styler', async () => {
             const { inPlace } = await create({ shadow: SERIES_SHADOW, glow: SERIES_GLOW });
 
@@ -501,6 +544,40 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
 
             expectWarningMessages([expect.stringContaining('glow')]);
+            expect(inPlace[0].fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
+        });
+
+        it('casts nothing for an invalid shadow over a disabled series shadow, whatever else the shadow holds', async () => {
+            const { inPlace } = await create({
+                shadow: { ...SERIES_SHADOW, enabled: false },
+                first: { shadow: { blur: 'wide', fill: '#00ff00' } } as unknown as ItemCast,
+            });
+
+            expectWarningMessages([expect.stringContaining('shadow')]);
+            for (const shape of inPlace) expect(isOn(shape.fillShadow)).toBe(false);
+        });
+
+        it('casts nothing for an invalid glow over a disabled series glow, whatever else the glow holds', async () => {
+            const { inPlace } = await create({
+                glow: { ...SERIES_GLOW, enabled: false },
+                first: { glow: { blur: 'wide' } } as unknown as ItemCast,
+            });
+
+            expectWarningMessages([expect.stringContaining('glow')]);
+            for (const shape of inPlace) expect(isOn(shape.fillGlow)).toBe(false);
+        });
+
+        it('casts the series cast, not the valid fields of an invalid one, for that item', async () => {
+            const { inPlace } = await create({
+                shadow: SERIES_SHADOW,
+                glow: SERIES_GLOW,
+                first: {
+                    shadow: { blur: 'wide', fill: '#00ff00' },
+                    glow: { blur: 'wide', fill: '#00ff00' },
+                } as unknown as ItemCast,
+            });
+
+            expect(inPlace[0].fillShadow).toMatchObject(SERIES_SHADOW);
             expect(inPlace[0].fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
         });
 

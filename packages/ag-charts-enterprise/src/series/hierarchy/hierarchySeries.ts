@@ -15,6 +15,7 @@ import type {
 import {
     type BoxBounds,
     ColorScale,
+    GLOW_THEME_DEFAULTS,
     type Point,
     PointerEvents,
     StateMachine,
@@ -56,6 +57,10 @@ export enum HierarchyHighlightState {
     Branch,
     OtherBranch,
 }
+
+/** Where the merges of an item styler's `glow` start among those a cast object keeps, clear of the series' own (see `Series.internItemCast`). */
+const HIERARCHY_GLOW_INDEX = 100;
+const HIERARCHY_STATE_COUNT = 8;
 
 export function toHierarchyHighlightString(
     state: HierarchyHighlightState
@@ -658,8 +663,24 @@ export abstract class HierarchySeries<
         }
         if (itemGlow == null) return glow ?? undefined;
         // An item styler's `glow` merges over the glow of the highlight state, and equal results share one object.
-        return this.internItemCast(glow ?? undefined, `h${slot}:${highlightState}:${JSON.stringify(itemGlow)}`, () =>
-            glowToShadow(mergeGlow({ glow: { enabled: true, ...itemGlow } }, { glow: resolveGlow(highlightState) }))
+        const base = glow ?? undefined;
+        const index = HIERARCHY_GLOW_INDEX + slot * HIERARCHY_STATE_COUNT + highlightState;
+        const recalled = this.recallItemCast(base, itemGlow, index);
+        if (recalled !== undefined) return recalled ?? undefined;
+
+        return this.internItemCast(
+            base,
+            itemGlow,
+            index,
+            `h${slot}:${highlightState}:${JSON.stringify(itemGlow)}`,
+            () =>
+                glowToShadow(
+                    mergeGlow(
+                        { glow: { enabled: true, ...itemGlow } },
+                        { glow: resolveGlow(highlightState) },
+                        { glow: GLOW_THEME_DEFAULTS }
+                    )
+                )
         );
     }
 
