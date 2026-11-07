@@ -520,12 +520,10 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
                         xKey: 'x',
                         yKey: 'y',
                         colorKey: 'c',
-                        itemStyler: (params: any) =>
-                            params.datum.c !== 1
-                                ? {}
-                                : params.highlightState === 'highlighted-item'
-                                  ? hoveredCell
-                                  : cell,
+                        itemStyler: (params: any) => {
+                            if (params.datum.c !== 1) return {};
+                            return params.highlightState === 'highlighted-item' ? hoveredCell : cell;
+                        },
                     },
                 ],
             } as AgChartOptions);
