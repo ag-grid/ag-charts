@@ -4,6 +4,7 @@ import { Group, Scene, TranslatableGroup } from 'ag-charts-core';
 import type { NormalisedDropShadowOptions, Shape } from 'ag-charts-core';
 
 import { setupMockConsole } from '../../util/test/mockConsole';
+import type { Pixel } from '../../util/test/shadowPixels';
 
 /** The size of the canvas that {@link useGlowScenes} draws on, which a test sets the mock canvas up with. */
 export const GLOW_SCENE_SIZE = { width: 400, height: 220 };
@@ -34,7 +35,11 @@ export const TRANSLUCENT_BLUE = 'rgba(0, 0, 255, 0.5)';
 /** Distances from the right edge of an item, in pixels, along the line across its centre, for a glow with a spread of 10. */
 export const GLOW_PROBES = { inside: -15, near: 2, middle: 7, outer: 13, past: 20 };
 
-export type GlowPixel = number[];
+/** What a pixel that nothing was drawn on reads as. */
+export const CLEAR: Pixel = [0, 0, 0, 0];
+
+/** The red, green and blue of {@link TRANSLUCENT_BLUE} drawn on a clear layer, as it is where no glow shows through it. */
+export const BLUE_RGB = [0, 0, 255];
 
 /**
  * Draws items as a route casts their glow on a canvas of {@link GLOW_SCENE_SIZE}, and reads pixels from it. Call it in the body
@@ -63,7 +68,7 @@ export function useGlowScenes() {
         scenes.push(scene);
         scene.render();
 
-        const pixelAt = (x: number, y: number): GlowPixel =>
+        const pixelAt = (x: number, y: number): Pixel =>
             Array.from(scene.canvas.context.getImageData(x, y, 1, 1).data as ArrayLike<number>);
         return {
             pixelAt,

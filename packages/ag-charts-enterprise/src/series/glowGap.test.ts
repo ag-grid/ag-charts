@@ -1,101 +1,103 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    BLUE_RGB,
+    CLEAR,
     GLOW_CENTRE,
     GLOW_ROUTES,
     GLOW_SCENE_SIZE,
-    TRANSLUCENT_BLUE,
     redGlow,
     setupMockCanvas,
     useGlowScenes,
 } from 'ag-charts-community-test';
+import type { Shape } from 'ag-charts-core';
 
-import { CandlestickNode } from './candlestick/candlestickNode';
-import { SankeyLink } from './sankey/sankeyLink';
+import { boxPlot, candlestick, sankeyLink } from '../test/glowGapItems';
+
+type Point = readonly [number, number];
+
+interface Probes {
+    /** Points in the footprint of the item, where its body, link or wick is. */
+    inside: Point[];
+    /** A point in the glow just outside the footprint, which a gap of 5 clears and a gap of 0 doesn't. */
+    near: Point;
+    /** A point in the 5px past the footprint, which a gap of 5 leaves clear. */
+    band: Point;
+    /** A point in the glow of a gap of 5, and one past where it ends. */
+    far: Point;
+    past: Point;
+}
 
 const { x: CENTRE_X, y: CENTRE_Y } = GLOW_CENTRE;
-const CLEAR = [0, 0, 0, 0];
-const BLUE = [0, 0, 255];
 
-// A glow with a spread of 10 and no blur: a pixel is in it or out of it.
+// A glow with a spread of 10 and no blur: a pixel is in it or out of it. A wick ends 2px from its centre, so a gap of 5
+// starts the glow at 7 and ends it at 17.
+const ITEMS: Record<string, { build: (gap?: number) => Shape; probes: Probes }> = {
+    'sankey link': {
+        build: (gap) => sankeyLink(redGlow(gap)),
+        probes: {
+            inside: [[CENTRE_X, CENTRE_Y]],
+            near: [CENTRE_X, 85],
+            band: [CENTRE_X, 87],
+            far: [CENTRE_X, 80],
+            past: [CENTRE_X, 70],
+        },
+    },
+    'candlestick wick': {
+        build: (gap) => candlestick(redGlow(gap), CENTRE_X),
+        probes: {
+            inside: [
+                [CENTRE_X, 60],
+                [CENTRE_X, CENTRE_Y],
+            ],
+            near: [CENTRE_X + 7, 60],
+            band: [CENTRE_X + 4, 60],
+            far: [CENTRE_X + 12, 60],
+            past: [CENTRE_X + 20, 60],
+        },
+    },
+    'box plot whisker': {
+        build: (gap) => boxPlot(redGlow(gap)),
+        probes: {
+            inside: [
+                [80, CENTRE_Y],
+                [200, CENTRE_Y - 10],
+            ],
+            near: [80, CENTRE_Y - 6],
+            band: [80, CENTRE_Y - 4],
+            far: [80, CENTRE_Y - 12],
+            past: [80, CENTRE_Y - 20],
+        },
+    },
+};
+
 describe('glow gap of items that are not a simple path', () => {
     setupMockCanvas(GLOW_SCENE_SIZE);
     const draw = useGlowScenes();
 
     describe.each(GLOW_ROUTES)('cast by the %s', (route) => {
-        describe('sankey link', () => {
-            // A link of 40 across, from y 90 to y 130, whose extent is the whole layer, as its arcs are not bounded.
-            const link = (gap?: number) =>
-                Object.assign(new SankeyLink(), {
-                    x1: 60,
-                    x2: 340,
-                    y1: 90,
-                    y2: 90,
-                    height: 40,
-                    fill: TRANSLUCENT_BLUE,
-                    strokeWidth: 0,
-                    fillGlow: redGlow(gap),
-                });
+        describe.each(Object.entries(ITEMS))('around a %s', (_name, { build, probes }) => {
+            it('should show the glow through the item with no gap', () => {
+                const { pixelAt } = draw(route, build());
 
-            it('should show the glow through the link with no gap', () => {
-                const { pixelAt } = draw(route, link());
-
-                expect(pixelAt(CENTRE_X, 85)[3]).toBeGreaterThan(0);
-                expect(pixelAt(CENTRE_X, CENTRE_Y)[0]).toBeGreaterThan(0);
+                for (const point of probes.inside) expect(pixelAt(...point)[0]).toBeGreaterThan(0);
+                expect(pixelAt(...probes.near)[3]).toBeGreaterThan(0);
             });
 
-            it('should cut the link out of the glow with a gap of 0', () => {
-                const { pixelAt } = draw(route, link(0));
+            it('should cut the item out of the glow with a gap of 0', () => {
+                const { pixelAt } = draw(route, build(0));
 
-                expect(pixelAt(CENTRE_X, 85)[3]).toBeGreaterThan(0);
-                expect(pixelAt(CENTRE_X, CENTRE_Y).slice(0, 3)).toEqual(BLUE);
+                for (const point of probes.inside) expect(pixelAt(...point).slice(0, 3)).toEqual(BLUE_RGB);
+                expect(pixelAt(...probes.near)[3]).toBeGreaterThan(0);
             });
 
-            it('should start the glow further out with a larger gap', () => {
-                const { pixelAt } = draw(route, link(5));
+            it('should start the glow a gap past the item with a larger gap', () => {
+                const { pixelAt } = draw(route, build(5));
 
-                expect(pixelAt(CENTRE_X, CENTRE_Y).slice(0, 3)).toEqual(BLUE);
-                expect(pixelAt(CENTRE_X, 87)).toEqual(CLEAR);
-                expect(pixelAt(CENTRE_X, 80)[3]).toBeGreaterThan(0);
-                expect(pixelAt(CENTRE_X, 70)).toEqual(CLEAR);
-            });
-        });
-
-        describe('candlestick wicks', () => {
-            // The body is 30 across from y 80 to 140, with a wick of 4 above it from y 40, which is a path of its own.
-            const candle = (gap?: number) => {
-                const node = new CandlestickNode();
-                node.setStaticProperties(CENTRE_X, 30, 40, 140, 80, 140, false, undefined, redGlow(gap));
-                node.fill = TRANSLUCENT_BLUE;
-                node.stroke = TRANSLUCENT_BLUE;
-                node.strokeWidth = 1;
-                node.setWickProperties('rgba(0, 0, 255, 0.5)', 4, undefined, undefined, undefined);
-                node.fillGlow = redGlow(gap);
-                return node;
-            };
-
-            it('should show the glow through the wick with no gap', () => {
-                const { pixelAt } = draw(route, candle());
-
-                expect(pixelAt(CENTRE_X, 60)[0]).toBeGreaterThan(0);
-                expect(pixelAt(CENTRE_X + 7, 60)[3]).toBeGreaterThan(0);
-            });
-
-            it('should cut the wick out of the glow with a gap of 0, as it cuts the body', () => {
-                const { pixelAt } = draw(route, candle(0));
-
-                expect(pixelAt(CENTRE_X, 60).slice(0, 3)).toEqual(BLUE);
-                expect(pixelAt(CENTRE_X + 7, 60)[3]).toBeGreaterThan(0);
-            });
-
-            it('should start the glow a gap past the wick', () => {
-                const { pixelAt } = draw(route, candle(5));
-
-                expect(pixelAt(CENTRE_X, 60).slice(0, 3)).toEqual(BLUE);
-                // The wick ends 2px from its centre, so the glow starts at 7 and ends at 17.
-                expect(pixelAt(CENTRE_X + 4, 60)).toEqual(CLEAR);
-                expect(pixelAt(CENTRE_X + 12, 60)[3]).toBeGreaterThan(0);
-                expect(pixelAt(CENTRE_X + 20, 60)).toEqual(CLEAR);
+                for (const point of probes.inside) expect(pixelAt(...point).slice(0, 3)).toEqual(BLUE_RGB);
+                expect(pixelAt(...probes.band)).toEqual(CLEAR);
+                expect(pixelAt(...probes.far)[3]).toBeGreaterThan(0);
+                expect(pixelAt(...probes.past)).toEqual(CLEAR);
             });
         });
     });

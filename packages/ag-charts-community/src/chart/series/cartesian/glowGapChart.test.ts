@@ -23,7 +23,7 @@ const glow = (gap?: number) => ({ blur: 0, spread: 10, fill: 'red', fillOpacity:
 // The item is half-opaque blue on a white chart, and a glow is cast at the strength of its item, so it is pink beside it. Where
 // the glow is beneath the item, the item is purple over it, with less green than the lavender of the item over white.
 const WHITE = [255, 255, 255, 255];
-const TRANSLUCENT_BLUE = { fill: 'blue', fillOpacity: 0.5, strokeWidth: 0 };
+const TRANSLUCENT_ITEM = { fill: 'blue', fillOpacity: 0.5, strokeWidth: 0 };
 const LAVENDER_GREEN = 128;
 
 /** Whether the pixel is pink: a glow is cast on it. */
@@ -73,33 +73,50 @@ describe('glow gap in a chart', () => {
 
     const bars = (options: object): AgCartesianChartOptions => ({
         data: [{ category: 'A', value: 8 }],
-        series: [{ type: 'bar', xKey: 'category', yKey: 'value', ...TRANSLUCENT_BLUE, ...options }],
+        series: [{ type: 'bar', xKey: 'category', yKey: 'value', ...TRANSLUCENT_ITEM, ...options }],
     });
 
     const markers = (options: object): AgCartesianChartOptions => ({
         data: [{ x: 5, y: 5 }],
-        series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 40, shape: 'square', ...TRANSLUCENT_BLUE, ...options }],
+        series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 40, shape: 'square', ...TRANSLUCENT_ITEM, ...options }],
     });
 
+    // The glow is cast by the series on every item, or by the highlight copy of the hovered one, which is drawn the same.
     describe.each([
-        { name: 'bar', build: bars },
-        { name: 'scatter marker', build: markers },
-    ])('around a $name', ({ build }) => {
+        { name: 'bar', build: (gap?: number) => bars({ glow: glow(gap) }), hovered: false },
+        { name: 'scatter marker', build: (gap?: number) => markers({ glow: glow(gap) }), hovered: false },
+        {
+            name: 'bar, hovered and cast by its highlight copy',
+            build: (gap?: number) => bars({ highlight: { highlightedItem: { glow: glow(gap) } } }),
+            hovered: true,
+        },
+    ])('around a $name', ({ build, hovered }) => {
+        const createAndHover = async (gap?: number) => {
+            await create(build(gap));
+            if (hovered) await hoverFirst();
+            return rightOfFirstItem();
+        };
+
+        if (hovered) {
+            it('should cast no glow until the item is hovered', async () => {
+                await create(build(0));
+
+                expect(rightOfFirstItem()(3)).toEqual(WHITE);
+            });
+        }
+
         it('should show a glow with no gap through the translucent item, like a shadow', async () => {
-            await create(build({ glow: glow() }));
-            const at = rightOfFirstItem();
+            const at = await createAndHover();
 
             expect(isGlowing(at(3))).toBe(true);
             expect(showsGlow(at(-10))).toBe(true);
         });
 
         it('should keep the glow out of the item with a gap of 0, and cast it as far out as with no gap', async () => {
-            await create(build({ glow: glow() }));
-            const unset = rightOfFirstItem();
+            const unset = await createAndHover();
             const [near, far] = [unset(3), unset(8)];
 
-            await create(build({ glow: glow(0) }));
-            const at = rightOfFirstItem();
+            const at = await createAndHover(0);
 
             expect(isClear(at(-10))).toBe(true);
             expect(at(3)).toEqual(near);
@@ -109,8 +126,7 @@ describe('glow gap in a chart', () => {
         });
 
         it('should start the glow a gap past the item and end it a spread further out', async () => {
-            await create(build({ glow: glow(5) }));
-            const at = rightOfFirstItem();
+            const at = await createAndHover(5);
 
             expect(isClear(at(-10))).toBe(true);
             expect(at(2)).toEqual(WHITE);
@@ -121,44 +137,6 @@ describe('glow gap in a chart', () => {
     });
 
     describe('around the hovered item, cast by its highlight copy', () => {
-        const highlighted = (gap?: number): AgCartesianChartOptions =>
-            bars({ highlight: { highlightedItem: { glow: glow(gap) } } });
-
-        it('should cast a glow with no gap that shows through the item', async () => {
-            await create(highlighted());
-            expect(rightOfFirstItem()(3)).toEqual(WHITE);
-
-            await hoverFirst();
-            const at = rightOfFirstItem();
-
-            expect(isGlowing(at(3))).toBe(true);
-            expect(isGlowing(at(8))).toBe(true);
-            expect(at(18)).toEqual(WHITE);
-            expect(showsGlow(at(-10))).toBe(true);
-        });
-
-        it('should keep the glow of a gap of 0 out of the item', async () => {
-            await create(highlighted(0));
-            await hoverFirst();
-            const at = rightOfFirstItem();
-
-            expect(isGlowing(at(3))).toBe(true);
-            expect(isGlowing(at(8))).toBe(true);
-            expect(at(18)).toEqual(WHITE);
-            expect(isClear(at(-10))).toBe(true);
-        });
-
-        it('should start the glow a gap past the hovered item', async () => {
-            await create(highlighted(5));
-            await hoverFirst();
-            const at = rightOfFirstItem();
-
-            expect(isClear(at(-10))).toBe(true);
-            expect(at(2)).toEqual(WHITE);
-            expect(isGlowing(at(8))).toBe(true);
-            expect(at(18)).toEqual(WHITE);
-        });
-
         it('should let a highlight gap of 0 clear a series gap, and inherit it where the bucket sets none', async () => {
             await create(bars({ glow: glow(5), highlight: { highlightedItem: { glow: { gap: 0 } } } }));
             await hoverFirst();
