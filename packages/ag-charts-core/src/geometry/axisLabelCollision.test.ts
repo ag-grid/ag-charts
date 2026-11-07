@@ -39,9 +39,12 @@ describe('axisLabelsOverlap', () => {
 });
 
 describe('thinTickLabels', () => {
-    function candidates(...sets: { overlaps: boolean[] }[]) {
+    function candidates(...sets: { overlaps: boolean[]; pinned?: boolean }[]) {
         let index = 0;
-        const next = () => sets[index++];
+        const next = () => {
+            const set = sets[index++];
+            return set == null ? undefined : { candidate: set, pinned: set.pinned ?? false };
+        };
         // `overlaps[0]` is the unrotated answer, `overlaps[1]` the auto-rotated one.
         const overlaps = (set: { overlaps: boolean[] }, rotation: number) => set.overlaps[rotation === 0 ? 0 : 1];
         return { next, overlaps, sets };
@@ -59,6 +62,11 @@ describe('thinTickLabels', () => {
 
     it('auto-rotates a candidate that only fits rotated', () => {
         const { next, overlaps, sets } = candidates({ overlaps: [true, false] }, { overlaps: [false, false] });
+        expect(thinTickLabels(next, overlaps, true, 335)).toEqual({ candidate: sets[0], autoRotation: 335 });
+    });
+
+    it('stops at a pinned candidate even when its labels overlap', () => {
+        const { next, overlaps, sets } = candidates({ overlaps: [true, true], pinned: true }, { overlaps: [false] });
         expect(thinTickLabels(next, overlaps, true, 335)).toEqual({ candidate: sets[0], autoRotation: 335 });
     });
 

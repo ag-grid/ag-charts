@@ -145,11 +145,16 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         rawFirstTickIndex: 0,
     };
 
+    // A configured step or explicit values pin the ticks, so thinning cannot reduce label overlap.
+    const fixedInterval = options.interval?.step != null || options.interval?.values != null;
+
     const { autoRotation } = thinTickLabels(
         () => {
             if (index > maxIterations) return;
-            ({ tickData, index } = buildTickData(options, tickGenerationType, tickData, index));
-            return tickData;
+            let intervalIgnored: boolean | undefined;
+            ({ tickData, index, intervalIgnored } = buildTickData(options, tickGenerationType, tickData, index));
+            // A step the scale rejected leaves automatic ticks, which the search can still thin.
+            return { candidate: tickData, pinned: fixedInterval && !intervalIgnored };
         },
         checkLabelOverlap,
         avoidCollisions,
@@ -228,6 +233,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
 ): {
     index: number;
     tickData: TickData<TDatum>;
+    intervalIgnored: boolean | undefined;
 } {
     const { step, values } = options.interval ?? {};
 
@@ -272,6 +278,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
         alignment,
         fractionDigits,
         timeInterval,
+        intervalIgnored,
     } = nextTicks;
 
     return {
@@ -295,7 +302,68 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
             }),
         },
         index: index + 1,
+        intervalIgnored,
     };
+}
+
+// Explicit values leave no tick count to nice against: take the tightest enclosing candidate. Time scales skip
+// the even spacing fit, which would hand `TimeScale.niceDomain` a gap the user never configured as an interval.
+function calculateNiceDomain<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+    scale: TScale,
+    domainParams: ScaleTickParams<any>,
+    domain: TDatum[],
+    { tickCount, minTickCount }: CountParams,
+    tickGenerationType: TickGenerationType,
+    values: unknown[] | undefined
+): TDatum[] {
+    let niceDomain = scale.niceDomain(domainParams, domain);
+    if (tickGenerationType !== TickGenerationType.VALUES) return niceDomain;
+
+    const spacing =
+        domainParams.interval == null && values != null && !TimeScale.is(scale) ? evenValueSpacing(values) : undefined;
+    const candidates: ScaleTickParams<any>[] = [];
+    if (minTickCount < tickCount) {
+        candidates.push({ ...domainParams, tickCount: minTickCount });
+    }
+    if (spacing != null) {
+        candidates.push({ ...domainParams, interval: spacing });
+    }
+
+    for (const params of candidates) {
+        const candidate = scale.niceDomain(params, domain);
+        if (contains(candidate, domain) && domainExtent(candidate) < domainExtent(niceDomain)) {
+            niceDomain = candidate;
+        }
+    }
+    return niceDomain;
+}
+
+function domainExtent(domain: unknown[]): number {
+    const [d0, d1] = findMinMax(domain.map(Number));
+    return Number.isFinite(d0) && Number.isFinite(d1) ? d1 - d0 : Infinity;
+}
+
+function contains(outer: unknown[], inner: unknown[]): boolean {
+    const [o0, o1] = findMinMax(outer.map(Number));
+    const [i0, i1] = findMinMax(inner.map(Number));
+    return o0 <= i0 && o1 >= i1;
+}
+
+function evenValueSpacing(values: unknown[]): number | undefined {
+    if (values.length < 2 || !values.every((value) => typeof value === 'number' && Number.isFinite(value))) {
+        return;
+    }
+
+    const sorted = (values as number[]).toSorted((a, b) => a - b);
+    const spacing = (sorted.at(-1)! - sorted[0]) / (sorted.length - 1);
+    if (spacing <= 0) return;
+
+    // Compare each value with its expected position, as adjacent decimal differences round unevenly.
+    const tolerance = spacing * 1e-6;
+    for (let i = 1; i < sorted.length - 1; i += 1) {
+        if (Math.abs(sorted[i] - (sorted[0] + i * spacing)) > tolerance) return;
+    }
+    return spacing;
 }
 
 function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
@@ -337,7 +405,8 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     }
 
     const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
-        ? (secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain))
+        ? (secondaryAxisTicks?.domain ??
+          calculateNiceDomain(scale, domainParams, domain, countParams, tickGenerationType, interval?.values))
         : domain;
     let tickDomain: TDatum[] = niceDomain;
     let rawTicks: any[] | undefined;
@@ -346,6 +415,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     let timeInterval: AnyTimeInterval | undefined;
     let primaryTicksIndices: Set<number> | undefined;
     let alignment: ScaleAlignment | undefined;
+    let intervalIgnored: boolean | undefined;
 
     const generatePrimaryTicks = primaryLabel?.enabled === true && tickParams.interval == null;
 
@@ -376,6 +446,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     const tickGeneration = scale.ticks(tickParams, niceDomain, visibleRange);
                     rawTicks = tickGeneration?.ticks;
                     rawTickCount = tickGeneration?.count;
+                    intervalIgnored = tickGeneration?.intervalIgnored;
                 }
                 break;
 
@@ -437,6 +508,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     rawTicks = tickGeneration?.ticks;
                     rawTickCount = tickGeneration?.count;
                     rawFirstTickIndex = tickGeneration?.firstTickIndex;
+                    intervalIgnored = tickGeneration?.intervalIgnored;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
                         const paramsInterval =
                             typeof tickParams.interval === 'number'
@@ -475,6 +547,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         alignment,
         fractionDigits,
         timeInterval,
+        intervalIgnored,
     };
 }
 
