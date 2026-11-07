@@ -1299,31 +1299,39 @@ export abstract class Series<
     }
 
     /**
-     * The merge of an item styler's `itemCast` over `base`, kept by `index` so that the same cast object is not
-     * serialised again, and by `key` so that equal casts share one merged object.
+     * The merge already made of `itemCast` over `base` at `index`: `undefined` if there is none, `null` if it cast
+     * nothing. Callers look here before building the key or the merge, so that a recalled cast allocates nothing.
+     */
+    protected recallItemCast(
+        base: object | undefined,
+        itemCast: object,
+        index: number
+    ): NormalisedDropShadowOptions | null | undefined {
+        return this.itemCastRecalls?.get(base ?? NO_ITEM_CAST_BASE)?.get(itemCast)?.[index];
+    }
+
+    /**
+     * The merge of an item styler's `itemCast` over `base` that {@link recallItemCast} did not find, kept by `index`
+     * so that the same cast object is not serialised again, and by `key` so that equal casts share one merged object.
      */
     protected mergeItemCast(
         base: object | undefined,
         itemCast: object,
         index: number,
-        key: () => string,
+        key: string,
         merge: () => NormalisedDropShadowOptions | undefined
     ): NormalisedDropShadowOptions | undefined {
         const baseKey = base ?? NO_ITEM_CAST_BASE;
-        const recalled = this.itemCastRecalls?.get(baseKey)?.get(itemCast)?.[index];
-        if (recalled !== undefined) return recalled ?? undefined;
-
         const interns = (this.itemCastInterns ??= new WeakMap());
         let merged = interns.get(baseKey);
         if (merged == null) {
             merged = new Map();
             interns.set(baseKey, merged);
         }
-        const castKey = key();
-        let cast = merged.get(castKey);
+        let cast = merged.get(key);
         if (cast === undefined) {
             cast = merge() ?? null;
-            merged.set(castKey, cast);
+            merged.set(key, cast);
         }
 
         const recalls = (this.itemCastRecalls ??= new WeakMap());
@@ -1346,28 +1354,28 @@ export abstract class Series<
         cascaded: NormalisedDropShadowOptions | undefined,
         itemShadow: NonNullable<AgItemShadowStyle['shadow']>
     ): NormalisedDropShadowOptions | undefined {
-        return this.mergeItemCast(
-            cascaded,
-            itemShadow,
-            ITEM_SHADOW_INDEX,
-            () => `s${JSON.stringify(itemShadow)}`,
-            () => {
-                const overrides = {
-                    fillOpacity: itemShadow.fill == null ? undefined : 1,
-                    ...itemShadow,
-                    enabled: itemShadow.enabled ?? true,
-                };
-                const merged = mergeDefaults(
-                    overrides,
-                    cascaded,
-                    getItemCastBase(itemShadow)
-                ) as NormalisedDropShadowOptions;
-                return merged.enabled ? merged : undefined;
-            }
-        );
+        const recalled = this.recallItemCast(cascaded, itemShadow, ITEM_SHADOW_INDEX);
+        if (recalled !== undefined) return recalled ?? undefined;
+
+        return this.mergeItemCast(cascaded, itemShadow, ITEM_SHADOW_INDEX, `s${JSON.stringify(itemShadow)}`, () => {
+            const overrides = {
+                fillOpacity: itemShadow.fill == null ? undefined : 1,
+                ...itemShadow,
+                enabled: itemShadow.enabled ?? true,
+            };
+            const merged = mergeDefaults(
+                overrides,
+                cascaded,
+                getItemCastBase(itemShadow)
+            ) as NormalisedDropShadowOptions;
+            return merged.enabled ? merged : undefined;
+        });
     }
 
-    /** A styler's `glow` over `under`, the glows of the highlight state and the series, over the theme's, which is fixed. */
+    /**
+     * A styler's `glow` over `under`, the glows of the highlight state and the series, over the theme's, which is fixed.
+     * Call it only once {@link recallItemCast} has missed, as `under` and `keyPrefix` are built for each call.
+     */
     protected mergeItemGlow(
         base: object | undefined,
         index: number,
@@ -1375,17 +1383,12 @@ export abstract class Series<
         itemGlow: AgGlowOptions,
         under: () => Array<DeepPartial<AgGlowOptions> | undefined>
     ): NormalisedDropShadowOptions | undefined {
-        return this.mergeItemCast(
-            base,
-            itemGlow,
-            index,
-            () => `${keyPrefix}${JSON.stringify(itemGlow)}`,
-            () =>
-                glowToShadow(
-                    mergeGlow({ glow: { enabled: true, ...itemGlow } }, ...under().map((glow) => ({ glow })), {
-                        glow: GLOW_THEME_DEFAULTS,
-                    })
-                )
+        return this.mergeItemCast(base, itemGlow, index, `${keyPrefix}${JSON.stringify(itemGlow)}`, () =>
+            glowToShadow(
+                mergeGlow({ glow: { enabled: true, ...itemGlow } }, ...under().map((glow) => ({ glow })), {
+                    glow: GLOW_THEME_DEFAULTS,
+                })
+            )
         );
     }
 
@@ -1416,12 +1419,16 @@ export abstract class Series<
         highlightState: HighlightState,
         itemGlow: AgGlowOptions | undefined
     ): NormalisedDropShadowOptions | undefined {
-        return itemGlow == null
-            ? this.getCascadedGlow(seriesGlow, highlightState)
-            : this.mergeItemGlow(seriesGlow, ITEM_GLOW_INDEX + highlightState, `g${highlightState}`, itemGlow, () => [
-                  this.getHighlightGlow(highlightState),
-                  seriesGlow,
-              ]);
+        if (itemGlow == null) return this.getCascadedGlow(seriesGlow, highlightState);
+
+        const index = ITEM_GLOW_INDEX + highlightState;
+        const recalled = this.recallItemCast(seriesGlow, itemGlow, index);
+        if (recalled !== undefined) return recalled ?? undefined;
+
+        return this.mergeItemGlow(seriesGlow, index, `g${highlightState}`, itemGlow, () => [
+            this.getHighlightGlow(highlightState),
+            seriesGlow,
+        ]);
     }
 
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */

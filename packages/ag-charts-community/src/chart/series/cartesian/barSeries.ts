@@ -1875,12 +1875,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return style;
     }
 
-    private getHoveredItemShadow(datumIndex: number): AgItemShadowStyle['shadow'] {
-        const selectionState = this.getDataSelectionState(datumIndex);
-        const candidateState = this.getDataCandidacyState(datumIndex);
-        return this.getItemStyle(datumIndex, true, HighlightState.Item, selectionState, candidateState).shadow;
-    }
-
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<BarNodeDatum, BarShape>;
         isHighlight: boolean;
@@ -1958,7 +1952,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     highlightState,
                     undefined,
                     series.isHoveredInPlace(datum.datumIndex, highlightState)
-                        ? series.getHoveredItemShadow(datum.datumIndex)
+                        ? series.getHoveredItemShadow(datum.datumIndex, (...args) => series.getItemStyle(...args))
                         : datum.style?.shadow
                 ),
                 series.resolveItemGlow(

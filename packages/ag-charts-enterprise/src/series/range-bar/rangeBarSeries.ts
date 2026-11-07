@@ -1379,12 +1379,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         });
     }
 
-    private getHoveredItemShadow(datumIndex: number) {
-        const selectionState = this.getDataSelectionState(datumIndex);
-        const candidateState = this.getDataCandidacyState(datumIndex);
-        return this.getItemStyle(datumIndex, true, HighlightState.Item, selectionState, candidateState).shadow;
-    }
-
     protected override updateDatumNodes({
         datumSelection,
         isHighlight,
@@ -1426,7 +1420,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     highlightState,
                     undefined,
                     !isHighlight && series.isHoveredInPlace(datum.datumIndex)
-                        ? series.getHoveredItemShadow(datum.datumIndex)
+                        ? series.getHoveredItemShadow(datum.datumIndex, (...args) => series.getItemStyle(...args))
                         : datum.style?.shadow
                 ),
                 series.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState, undefined, datum.style?.glow)

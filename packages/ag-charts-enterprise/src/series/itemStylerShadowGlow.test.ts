@@ -9,10 +9,12 @@ import {
     type ItemCast,
     SERIES_GLOW,
     THEME_GLOW,
+    countCastMerges,
     countCastSerialisations,
     deproxy,
     expectWarningMessages,
     getSeriesAt,
+    getSeriesNodeData,
     getSeriesSelectionNodes,
     glowShadow,
     isOn,
@@ -358,6 +360,24 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
         });
     });
 
+    describe('the recalled casts', () => {
+        it('builds no merge when the items update in a state that they were merged in', async () => {
+            const cast: ItemCast = { shadow: { ...ITEM_SHADOW }, glow: { ...ITEM_GLOW } };
+            await create({ shadow: SHADOW, styler: () => cast });
+
+            const { ctx, id } = deproxy(chart);
+            const hoverAndLeave = async () => {
+                ctx.highlightManager.updateHighlight(id, testCase.hover(chart));
+                await waitForChartStability(chart);
+                ctx.highlightManager.updateHighlight(id);
+                await waitForChartStability(chart);
+            };
+            await hoverAndLeave();
+
+            expect(await countCastMerges(getSeriesAt(chart), hoverAndLeave)).toBe(0);
+        });
+    });
+
     describe('the hovered item', () => {
         it('casts the shadow of the styler from the hovered item in place when it branches on the highlightState', async () => {
             const { inPlace } = await create({
@@ -484,7 +504,7 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
     });
 
     describe('heatmap', () => {
-        const create = async (cell: object) => {
+        const create = async (cell: object, hoveredCell: object = {}) => {
             chart = await createEnterpriseChart({
                 data: [
                     { x: 'a', y: 'p', c: 1 },
@@ -500,7 +520,12 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
                         xKey: 'x',
                         yKey: 'y',
                         colorKey: 'c',
-                        itemStyler: (params: any) => (params.datum.c === 1 ? cell : {}),
+                        itemStyler: (params: any) =>
+                            params.datum.c !== 1
+                                ? {}
+                                : params.highlightState === 'highlighted-item'
+                                  ? hoveredCell
+                                  : cell,
                     },
                 ],
             } as AgChartOptions);
@@ -509,6 +534,22 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
 
         it('paints the cells of a series whose styler returns no cast in one batch, with no node of their own', async () => {
             expect(await create({ fill: '#ff0000' })).toHaveLength(0);
+        });
+
+        it('casts the shadow that the styler returns for the hovered cell in place, though no other state returns one', async () => {
+            const cells = await create({}, { shadow: ITEM_SHADOW });
+            expect(cells).toHaveLength(0);
+
+            const { ctx, id } = deproxy(chart);
+            ctx.highlightManager.updateHighlight(id, getSeriesNodeData<HighlightNodeDatum & { datum: any }>(chart)[0]);
+            await waitForChartStability(chart);
+
+            const nodes = getSeriesSelectionNodes<Shape<{ datum: { c: number } }>>(chart, 'datumSelection');
+            expect(nodes).toHaveLength(4);
+            const hovered = nodes.filter((node) => node.datum?.datum.c === 1);
+            expect(hovered).toHaveLength(1);
+            expect(hovered[0].fillShadow).toMatchObject(ITEM_SHADOW);
+            expect(nodes.filter((node) => isOn(node.fillShadow))).toHaveLength(1);
         });
 
         it.each([{ shadow: ITEM_SHADOW }, { glow: ITEM_GLOW }])(

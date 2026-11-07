@@ -62,6 +62,20 @@ export async function countCastSerialisations(action: () => Promise<void>): Prom
     }
 }
 
+/**
+ * How many merges `series` builds during `action`. A merge that it recalls is built by nothing: no key, no closure,
+ * so a recalled cast costs a datum no allocation.
+ */
+export async function countCastMerges(series: object, action: () => Promise<void>): Promise<number> {
+    const merge = vi.spyOn(series as { mergeItemCast: () => void }, 'mergeItemCast');
+    try {
+        await action();
+        return merge.mock.calls.length;
+    } finally {
+        merge.mockRestore();
+    }
+}
+
 /** What a glow with no fields of its own casts, from the glow theme defaults. */
 export const THEME_GLOW = { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 };
 

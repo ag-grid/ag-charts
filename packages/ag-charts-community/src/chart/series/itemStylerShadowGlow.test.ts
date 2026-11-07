@@ -18,6 +18,7 @@ import {
     SERIES_SHADOW,
     THEME_GLOW,
     XY_DATA,
+    countCastMerges,
     countCastSerialisations,
     glowShadow,
     isOn,
@@ -540,6 +541,22 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect([after[0].fillShadow, after[0].fillGlow]).toEqual(merged);
             expect(after[0].fillShadow).toBe(merged[0]);
             expect(after[0].fillGlow).toBe(merged[1]);
+        });
+
+        it('builds no merge when the items update in a state that they were merged in', async () => {
+            const cast: ItemCast = { shadow: { ...ITEM_SHADOW }, glow: { ...ITEM_GLOW } };
+            await create({ shadow: SERIES_SHADOW, glow: SERIES_GLOW, styler: () => cast });
+
+            const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
+            const hoverAndLeave = async () => {
+                chart.ctx.highlightManager.updateHighlight(chart.id, datum);
+                await waitForChartStability(chart);
+                chart.ctx.highlightManager.updateHighlight(chart.id);
+                await waitForChartStability(chart);
+            };
+            await hoverAndLeave();
+
+            expect(await countCastMerges(getSeriesAt(chart), hoverAndLeave)).toBe(0);
         });
 
         it('shares the series shadow and glow between the items of a series with no styler', async () => {
