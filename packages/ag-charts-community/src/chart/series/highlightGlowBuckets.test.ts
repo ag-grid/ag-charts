@@ -12,8 +12,9 @@ import {
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
     getSeriesNodeData,
+    getSeriesOptions,
 } from '../test/seriesAccessors';
-import { HIGHLIGHT_GLOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
+import { HIGHLIGHT_GLOW, HIGHLIGHT_SHADOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
     createChart,
     deproxy,
@@ -307,6 +308,157 @@ describe('glow on rings linked through legendItemKey', () => {
                     expect(copy?.fillGlow?.enabled).not.toBe(true);
                 }
             }
+        }
+    );
+
+    it("casts highlightedItem.shadow from the linked ring's matching sector, as the glow follows it", async () => {
+        await hoverFirstLegendItem({ highlightedItem: { shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW } });
+
+        for (const seriesIndex of [0, 1]) {
+            // The in-place sector that the highlight layer redraws swaps its shadow, and gives up its glow to the copy.
+            expect(sector(seriesIndex, 'contentGroup', 0)?.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+            expect(sector(seriesIndex, 'contentGroup', 0)?.fillGlow?.enabled).not.toBe(true);
+            expect(sector(seriesIndex, 'highlightNodeGroup', 0)?.fillGlow).toMatchObject(GLOW_SHADOW);
+            for (const datumIndex of [1, 2]) {
+                expect(sector(seriesIndex, 'contentGroup', datumIndex)?.fillShadow).toMatchObject(SERIES_SHADOW);
+            }
+        }
+    });
+});
+
+describe('highlightedItem.shadow with highlight.mode: shared', () => {
+    setupMockConsole();
+    setupMockCanvas();
+    let chart: Chart;
+    afterEach(() => chart?.destroy());
+
+    const CATEGORIES = [
+        { x: 1, v: 5, w: 7 },
+        { x: 2, v: 8, w: 4 },
+    ];
+
+    const createShared = async (highlightedItem: object) => {
+        chart = deproxy(
+            await createChart({
+                data: CATEGORIES,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                highlight: { mode: 'shared' },
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: (['v', 'w'] as const).map((yKey) => ({
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey,
+                    shadow: SERIES_SHADOW,
+                    highlight: { highlightedItem },
+                })),
+            } as AgChartOptions)
+        );
+    };
+    // Options cannot clear the opacity that the theme gives the dimmed items, so drop it from the resolved options.
+    const dropDimming = () => {
+        for (const index of [0, 1]) {
+            type Dimming = Record<'unhighlightedItem' | 'unhighlightedSeries', { opacity?: number }>;
+            const { unhighlightedItem, unhighlightedSeries } = getSeriesOptions<{ highlight: Dimming }>(
+                chart,
+                index
+            ).highlight;
+            delete unhighlightedItem.opacity;
+            delete unhighlightedSeries.opacity;
+        }
+    };
+
+    const hover = async (datumIndex?: number) => {
+        const datum = datumIndex == null ? undefined : getSeriesNodeData<HighlightNodeDatum>(chart, 0)[datumIndex];
+        chart.ctx.highlightManager.updateHighlight(chart.id, datum);
+        await waitForChartStability(chart);
+    };
+
+    /** The shadow that each bar of each series casts: the bucket's (`'item'`) or the series' own (`'series'`). */
+    const castsOf = () =>
+        [0, 1].map((seriesIndex) =>
+            shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Rect).map((rect) =>
+                rect.fillShadow?.fill === HIGHLIGHT_SHADOW.fill ? 'item' : 'series'
+            )
+        );
+
+    /** The glow that each bar of each series casts: the bucket's (`'item'`) or none. */
+    const glowsOf = () =>
+        [0, 1].map((seriesIndex) =>
+            shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Rect).map((rect) =>
+                rect.fillGlow?.fill === HIGHLIGHT_GLOW.fill ? 'item' : 'none'
+            )
+        );
+
+    it('casts the shadow from the items that share the hovered category, and from them alone', async () => {
+        await createShared({ shadow: HIGHLIGHT_SHADOW });
+        await hover(0);
+
+        // Series 0 holds the hovered bar; series 1 holds the bar that shares its category.
+        expect(castsOf()).toEqual([
+            ['item', 'series'],
+            ['item', 'series'],
+        ]);
+        for (const seriesIndex of [0, 1]) {
+            const [first, second] = shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Rect);
+            expect(first.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+            expect(second.fillShadow).toMatchObject(SERIES_SHADOW);
+        }
+    });
+
+    // With no state style on the dimmed items, only the cast itself tells the in-place nodes to redraw.
+    it.each([
+        ['with the theme dimming', { clearDimming: false }],
+        ['with the dimming cleared', { clearDimming: true }],
+    ])(
+        'moves the shadow to the items of the next category, and takes it off when the hover ends, %s',
+        async (_name, { clearDimming }) => {
+            await createShared({ shadow: HIGHLIGHT_SHADOW });
+            if (clearDimming) dropDimming();
+            await hover(0);
+            await hover(1);
+            expect(castsOf()).toEqual([
+                ['series', 'item'],
+                ['series', 'item'],
+            ]);
+
+            await hover();
+            expect(castsOf()).toEqual([
+                ['series', 'series'],
+                ['series', 'series'],
+            ]);
+        }
+    );
+
+    it.each([
+        ['with the theme dimming', { clearDimming: false }],
+        ['with the dimming cleared', { clearDimming: true }],
+    ])(
+        'moves the glow to the items of the next category, and takes it off when the hover ends, %s',
+        async (_name, { clearDimming }) => {
+            // The hovered bar casts no glow in place: its highlight copy does.
+            await createShared({ glow: HIGHLIGHT_GLOW });
+            if (clearDimming) dropDimming();
+            await hover(0);
+            expect(glowsOf()).toEqual([
+                ['none', 'none'],
+                ['item', 'none'],
+            ]);
+
+            await hover(1);
+            expect(glowsOf()).toEqual([
+                ['none', 'none'],
+                ['none', 'item'],
+            ]);
+
+            await hover();
+            expect(glowsOf()).toEqual([
+                ['none', 'none'],
+                ['none', 'none'],
+            ]);
         }
     );
 });

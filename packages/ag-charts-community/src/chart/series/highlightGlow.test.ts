@@ -1,16 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Rect, Sector, Shape, Transformable, overrideTintableShadows } from 'ag-charts-core';
+import { ChartUpdateType, Rect, Sector, Shape, Transformable, overrideTintableShadows } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
-import { getSeriesAt, getSeriesNodeData, getSeriesOptions, getSeriesSelectionNodes } from '../test/seriesAccessors';
+import {
+    getSeriesAt,
+    getSeriesHasChangesOnHighlight,
+    getSeriesNodeData,
+    getSeriesOptions,
+    getSeriesSelectionNodes,
+} from '../test/seriesAccessors';
 import {
     CATEGORY_DATA,
     HIGHLIGHT_GLOW,
+    HIGHLIGHT_SHADOW,
     HISTOGRAM_DATA,
     SERIES_SHADOW,
     XY_DATA,
@@ -139,7 +146,8 @@ describe('highlight glow', () => {
             highlight: { drawingMode },
             series: [testCase.series(shadow, { highlight })],
         } as AgChartOptions;
-        chart = deproxy(await createChart(options));
+        const proxy = await createChart(options);
+        chart = deproxy(proxy);
 
         const series = getSeriesAt(chart);
         const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
@@ -147,6 +155,8 @@ describe('highlight glow', () => {
         await waitForChartStability(chart);
 
         return {
+            proxy,
+            options,
             series,
             inPlace: shapesOf(series.contentGroup, testCase.kind),
             // Some series keep an invisible highlight copy of every item, and show only the hovered one.
@@ -561,7 +571,7 @@ describe('highlight glow', () => {
         });
     });
 
-    describe('highlight shadow is rejected', () => {
+    describe('highlight option validation', () => {
         const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
 
         const createWith = async (series: object) => {
@@ -576,39 +586,279 @@ describe('highlight glow', () => {
             await waitForChartStability(chart);
         };
 
-        it.each(BUCKETS)('warns about an unknown option for highlight.%s.shadow', async (bucket) => {
-            await createWith({
-                type: 'bar',
-                xKey: 'category',
-                yKey: 'value',
-                highlight: { [bucket]: { shadow: SERIES_SHADOW } },
+        describe('highlightedItem.shadow', () => {
+            const OTHER_BUCKETS = ['unhighlightedItem', 'highlightedSeries', 'unhighlightedSeries'] as const;
+
+            it.each(OTHER_BUCKETS)(
+                'warns about an unknown option for highlight.%s.shadow and drops it',
+                async (bucket) => {
+                    await createWith({
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'value',
+                        highlight: { [bucket]: { shadow: SERIES_SHADOW } },
+                    });
+
+                    const messages = warnings().filter((message) => message.includes(`highlight.${bucket}.shadow`));
+                    expect(messages).toHaveLength(1);
+                    expect(messages[0]).toMatch(/unknown|not supported|invalid/i);
+                    expect(getSeriesOptions<AgBarSeriesOptions>(chart).highlight?.[bucket]).not.toHaveProperty(
+                        'shadow'
+                    );
+                    vi.mocked(console.warn).mockClear();
+                }
+            );
+
+            it('accepts highlightedItem.shadow, and keeps only the fields that it sets', async () => {
+                await createWith({
+                    type: 'bar',
+                    xKey: 'category',
+                    yKey: 'value',
+                    highlight: { highlightedItem: { shadow: { blur: 1 } } },
+                });
+
+                expect(warnings()).toEqual([]);
+                expect(getSeriesOptions<AgBarSeriesOptions>(chart).highlight?.highlightedItem?.shadow).toEqual({
+                    blur: 1,
+                });
             });
 
-            const messages = warnings().filter((message) => message.includes(`highlight.${bucket}.shadow`));
-            expect(messages).toHaveLength(1);
-            expect(messages[0]).toMatch(/unknown|not supported|invalid/i);
-            vi.mocked(console.warn).mockClear();
-        });
+            it('rejects a shadow colour, which a new option does not take', async () => {
+                await createWith({
+                    type: 'bar',
+                    xKey: 'category',
+                    yKey: 'value',
+                    highlight: { highlightedItem: { shadow: { color: '#ff00ff' } } },
+                });
 
-        it.each(BUCKETS)('drops highlight.%s.shadow from the resolved options', async (bucket) => {
-            await createWith({
-                type: 'bar',
-                xKey: 'category',
-                yKey: 'value',
-                highlight: { [bucket]: { shadow: SERIES_SHADOW } },
+                expect(warnings().filter((message) => message.includes('shadow.color'))).toHaveLength(1);
+                vi.mocked(console.warn).mockClear();
             });
 
-            expect(getSeriesOptions<AgBarSeriesOptions>(chart).highlight?.[bucket]).not.toHaveProperty('shadow');
-            vi.mocked(console.warn).mockClear();
-        });
+            it.each([
+                [false, undefined],
+                [true, { shadow: HIGHLIGHT_SHADOW }],
+            ])(
+                'redraws the series when the hover moves between its items: %s with highlightedItem %j',
+                async (redraws, highlightedItem) => {
+                    await hoverFirstItem(SERIES[0], SERIES_SHADOW, { highlightedItem });
+                    const [, next] = getSeriesNodeData<HighlightNodeDatum>(chart);
+                    chart.ctx.highlightManager.updateHighlight(chart.id, next);
+                    await waitForChartStability(chart);
 
-        it('casts nothing from the highlight copy for a rejected highlightedItem.shadow', async () => {
-            const { highlighted } = await hoverFirstItem(SERIES[0], undefined, {
-                highlightedItem: { shadow: SERIES_SHADOW },
+                    expect(getSeriesHasChangesOnHighlight(chart)).toBe(redraws);
+                }
+            );
+
+            it('swaps the shadow of the markers of an area, and leaves the shadow of its fill alone', async () => {
+                chart = deproxy(
+                    await createChart({
+                        data: XY_DATA,
+                        animation: { enabled: false },
+                        legend: { enabled: false },
+                        series: [
+                            {
+                                type: 'area',
+                                xKey: 'x',
+                                yKey: 'y',
+                                shadow: SERIES_SHADOW,
+                                marker: { enabled: true, shadow: SERIES_SHADOW },
+                                highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
+                            },
+                        ],
+                    } as AgChartOptions)
+                );
+                const series = getSeriesAt(chart);
+                chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
+                await waitForChartStability(chart);
+
+                const markers = shapesOf(series.contentGroup, Marker);
+                expect(markers[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+                const fills = shapesOf(chart.seriesRoot, Shape).filter(
+                    (shape) => !(shape instanceof Marker) && shape.fillShadow?.enabled === true
+                );
+                expect(fills.length).toBeGreaterThan(0);
+                for (const fill of fills) expect(fill.fillShadow).toMatchObject(SERIES_SHADOW);
             });
 
-            expect(highlighted.filter(casts)).toHaveLength(0);
-            vi.mocked(console.warn).mockClear();
+            describe.each([
+                ['an area with its default markers', { type: 'area' }, XY_DATA],
+                [
+                    'a dense line whose markers are dropped',
+                    { type: 'line', marker: { enabled: true } },
+                    Array.from({ length: 5000 }, (_, i) => ({ x: i, y: i % 17 })),
+                ],
+            ])('on %s', (_name, series, data) => {
+                it('draws no marker on hover, so there is none to cast the shadow', async () => {
+                    chart = deproxy(
+                        await createChart({
+                            data,
+                            animation: { enabled: false },
+                            legend: { enabled: false },
+                            series: [
+                                {
+                                    ...series,
+                                    xKey: 'x',
+                                    yKey: 'y',
+                                    highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
+                                },
+                            ],
+                        } as AgChartOptions)
+                    );
+                    expect(shapesOf(chart.seriesRoot, Marker)).toEqual([]);
+                    chart.ctx.highlightManager.updateHighlight(
+                        chart.id,
+                        getSeriesNodeData<HighlightNodeDatum>(chart)[0]
+                    );
+                    await waitForChartStability(chart);
+
+                    expect(getSeriesAt(chart).highlightGroup.visible).toBe(true);
+                    // A marker that starts being drawn on hover must be given the bucket's shadow, and this must change.
+                    expect(shapesOf(chart.seriesRoot, Marker)).toEqual([]);
+                });
+            });
+
+            describe('on a bar series', () => {
+                const bar = SERIES[0];
+                const SHADOW_WITH_OPACITY = { ...SERIES_SHADOW, fillOpacity: 0.3 };
+
+                it('casts a fill that sets no fillOpacity opaque, and keeps the fillOpacity of the series otherwise', async () => {
+                    const filled = await hoverFirstItem(bar, SHADOW_WITH_OPACITY, {
+                        highlightedItem: { shadow: { fill: '#ff0000' } },
+                    });
+                    expect(filled.inPlace[0].fillShadow).toMatchObject({ fill: '#ff0000', fillOpacity: 1 });
+                    chart.destroy();
+
+                    const sized = await hoverFirstItem(bar, SHADOW_WITH_OPACITY, {
+                        highlightedItem: { shadow: { blur: 1 } },
+                    });
+                    expect(sized.inPlace[0].fillShadow).toMatchObject({ fill: '#112233', fillOpacity: 0.3, blur: 1 });
+                });
+
+                it('follows highlightedItem.shadow as it is changed and removed while an item is hovered', async () => {
+                    const { proxy, options, inPlace } = await hoverFirstItem(bar, SERIES_SHADOW, {
+                        highlightedItem: { shadow: HIGHLIGHT_SHADOW },
+                    });
+                    expect(inPlace[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+
+                    const withBucket = (shadow: object | undefined) =>
+                        ({
+                            ...options,
+                            series: [{ ...(options.series![0] as object), highlight: { highlightedItem: { shadow } } }],
+                        }) as AgChartOptions;
+                    const hovered = () => shapesOf(getSeriesAt(chart).contentGroup, bar.kind)[0];
+
+                    await proxy.update(withBucket({ ...HIGHLIGHT_SHADOW, blur: 11 }));
+                    await waitForChartStability(chart);
+                    expect(hovered().fillShadow).toMatchObject({ ...HIGHLIGHT_SHADOW, blur: 11 });
+
+                    await proxy.update(withBucket(undefined));
+                    await waitForChartStability(chart);
+                    expect(hovered().fillShadow).toMatchObject(SERIES_SHADOW);
+                });
+
+                it('leaves the shadow of the series on a hovered item when highlight is disabled', async () => {
+                    const { series } = await hoverFirstItem(bar, SERIES_SHADOW, {
+                        enabled: false,
+                        highlightedItem: { shadow: HIGHLIGHT_SHADOW },
+                    });
+                    // The highlight manager keeps the hovered datum, which a later redraw of the series still reads.
+                    chart.update(ChartUpdateType.FULL);
+                    await waitForChartStability(chart);
+
+                    for (const item of shapesOf(series.contentGroup, bar.kind)) {
+                        expect(item.fillShadow).toMatchObject(SERIES_SHADOW);
+                    }
+                });
+            });
+
+            describe.each(SERIES)('$name', (testCase) => {
+                const shadow = (highlightedItem: object) =>
+                    hoverFirstItem(testCase, SERIES_SHADOW, { highlightedItem });
+                const withoutSeriesShadow = (highlightedItem: object) =>
+                    hoverFirstItem(testCase, undefined, { highlightedItem });
+
+                it('casts the shadow of the hovered item, in place, and none from its highlight copy', async () => {
+                    const { inPlace, highlighted } = await shadow({ shadow: HIGHLIGHT_SHADOW });
+
+                    expect(inPlace.length).toBeGreaterThan(1);
+                    expect(inPlace[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+                    for (const other of inPlace.slice(1)) expect(other.fillShadow).toMatchObject(SERIES_SHADOW);
+                    expect(highlighted).toHaveLength(1);
+                    expect(highlighted.filter(casts)).toHaveLength(0);
+                });
+
+                it('takes the fields that it leaves unset from the shadow of the series', async () => {
+                    const { inPlace } = await shadow({ shadow: { blur: 1 } });
+
+                    expect(inPlace[0].fillShadow).toMatchObject({ ...SERIES_SHADOW, blur: 1, enabled: true });
+                });
+
+                it('turns the shadow of the series off for the hovered item alone with enabled false', async () => {
+                    const { inPlace } = await shadow({ shadow: { enabled: false } });
+
+                    expect(inPlace[0].fillShadow?.enabled).not.toBe(true);
+                    for (const other of inPlace.slice(1)) expect(other.fillShadow).toMatchObject(SERIES_SHADOW);
+                });
+
+                it('casts a shadow from the hovered item alone where the series has none', async () => {
+                    const { inPlace } = await withoutSeriesShadow({ shadow: {} });
+
+                    expect(inPlace[0].fillShadow).toMatchObject({ enabled: true, xOffset: 3, yOffset: 3, blur: 5 });
+                    for (const other of inPlace.slice(1)) expect(other.fillShadow?.enabled).not.toBe(true);
+                });
+
+                it('leaves a shadow that it does not set to the series, and a series with none uncast', async () => {
+                    const { inPlace } = await withoutSeriesShadow({ glow: HIGHLIGHT_GLOW });
+
+                    for (const item of inPlace) expect(item.fillShadow?.enabled).not.toBe(true);
+                });
+
+                it('casts a shadow and a glow from the hovered item together', async () => {
+                    const { inPlace, highlighted } = await shadow({ shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW });
+
+                    expect(inPlace[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+                    expect(highlighted[0].fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                    expect(highlighted[0].fillShadow?.enabled).not.toBe(true);
+                });
+
+                it('moves the shadow from one hovered item to the next and ends it with the hover', async () => {
+                    const { series } = await shadow({ shadow: HIGHLIGHT_SHADOW });
+                    const [, next] = getSeriesNodeData<HighlightNodeDatum>(chart);
+
+                    chart.ctx.highlightManager.updateHighlight(chart.id, next);
+                    await waitForChartStability(chart);
+                    const moved = shapesOf(series.contentGroup, testCase.kind);
+                    expect(moved[0].fillShadow).toMatchObject(SERIES_SHADOW);
+                    expect(moved[1].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+
+                    chart.ctx.highlightManager.updateHighlight(chart.id);
+                    await waitForChartStability(chart);
+                    for (const item of shapesOf(series.contentGroup, testCase.kind)) {
+                        expect(item.fillShadow).toMatchObject(SERIES_SHADOW);
+                    }
+                });
+
+                it('gives the itemStyler params no shadow', async () => {
+                    const params: object[] = [];
+                    const itemStyler = (itemParams: object) => {
+                        params.push(itemParams);
+                        return {};
+                    };
+                    const styled: SeriesCase = {
+                        ...testCase,
+                        series: (seriesShadow, extra) => {
+                            const options = testCase.series(seriesShadow, extra) as Record<string, any>;
+                            if ('marker' in options) return { ...options, marker: { ...options.marker, itemStyler } };
+                            return { ...options, itemStyler };
+                        },
+                    };
+                    await hoverFirstItem(styled, SERIES_SHADOW, { highlightedItem: { shadow: HIGHLIGHT_SHADOW } });
+
+                    expect(params.length).toBeGreaterThan(0);
+                    for (const itemParams of params) expect(itemParams).not.toHaveProperty('shadow');
+                });
+            });
         });
 
         it('still accepts glow on the same bucket without a warning', async () => {

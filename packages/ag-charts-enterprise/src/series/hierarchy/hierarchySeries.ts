@@ -27,7 +27,7 @@ import {
     mergeDefaults,
     mergeGlow,
     toNumber,
-    withoutGlow,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { AgActiveItemState, AgGlowOptions, FillOptions, StrokeOptions } from 'ag-charts-types';
 
@@ -580,7 +580,7 @@ export abstract class HierarchySeries<
     ): TStyle | undefined {
         return this.getCachedHighlightStyle(slot, highlightState, () => {
             const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
-            return style && withoutGlow(style);
+            return style && withoutCasts(style);
         });
     }
 

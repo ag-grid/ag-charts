@@ -1,4 +1,4 @@
-import type { AgGlowOptions } from '../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
@@ -48,10 +48,32 @@ export interface AgGlowHighlightStyleOptions {
     glow?: AgGlowOptions;
 }
 
-/** Highlight options for a series whose items can cast a `glow`. */
+/** Highlight style options for the highlighted item of a series whose items can cast a `shadow`. */
+export interface AgShadowHighlightStyleOptions {
+    /**
+     * Configuration for the shadow of the highlighted item, which replaces the `shadow` of the series (`marker.shadow` for
+     * the series that cast a shadow from their markers, `node.shadow` or `link.shadow` on a sankey or chord series, by the
+     * part that is highlighted) while the item is highlighted. It is merged, field by field, over that `shadow`, so only
+     * what differs needs setting, but a `fill` without a `fillOpacity` is opaque. Setting a `shadow` without `enabled`
+     * turns it on, so `shadow: {}` is enough, and `shadow: { enabled: false }` removes the shadow of the series from the
+     * highlighted item.
+     *
+     * With `highlight.mode: 'shared'`, the items that share the highlighted category cast it too. The shadow is drawn at
+     * the same depth as the `shadow` of the series, behind every series. It is not available on `highlightedSeries`,
+     * `unhighlightedItem` or `unhighlightedSeries`, and is ignored where an item cannot cast a shadow.
+     *
+     * Default: the `shadow` of the series
+     */
+    shadow?: Omit<AgDropShadowOptions, 'color'>;
+}
+
+/** Highlight options for a series whose items can cast a `glow`, and whose highlighted item can cast a `shadow`. */
 export interface AgGlowHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> extends AgHighlightOptions<
     ItemHighlightStyleOptions & AgGlowHighlightStyleOptions
-> {}
+> {
+    /** Options for the highlighted item. */
+    highlightedItem?: ItemHighlightStyleOptions & AgGlowHighlightStyleOptions & AgShadowHighlightStyleOptions;
+}
 
 /** Highlight options for a series whose items can cast a `glow`, with separate options for the highlighted series. */
 export interface AgMultiSeriesGlowHighlightOptions<
@@ -60,7 +82,10 @@ export interface AgMultiSeriesGlowHighlightOptions<
 > extends AgMultiSeriesHighlightOptions<
     ItemHighlightStyleOptions & AgGlowHighlightStyleOptions,
     SeriesHighlightStyleOptions & AgGlowHighlightStyleOptions
-> {}
+> {
+    /** Options for the highlighted item. */
+    highlightedItem?: ItemHighlightStyleOptions & AgGlowHighlightStyleOptions & AgShadowHighlightStyleOptions;
+}
 
 export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {
     /** Set to `false` to disable highlighting. */

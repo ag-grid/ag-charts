@@ -851,7 +851,7 @@ export class MapShapeSeries
             // Style is resolved by getItemStyle; colour refs are gone by render.
             geoGeometry.setStyleProperties(nodeDatum.style as NormalisedMapShapeSeriesStyle, fillBBox);
 
-            geoGeometry.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+            geoGeometry.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
 
             geoGeometry.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
             geoGeometry.drawingMode = drawingMode;

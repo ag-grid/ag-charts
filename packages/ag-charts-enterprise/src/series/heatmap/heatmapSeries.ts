@@ -640,6 +640,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return this.getHighlightState(activeHighlight, false) !== HighlightState.None;
     }
 
+    /** Only the hovered cell casts it: a heatmap has no category, so `highlight.mode: 'shared'` lights no other cell. */
+    private castsItemShadowInPlace() {
+        const bucket = this.getItemShadowBucket();
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        if (bucket == null || bucket.enabled === false || activeHighlight == null) return false;
+        if (this.getHighlightState(activeHighlight, false) === HighlightState.None) return false;
+
+        return activeHighlight.series === this && this.isDatumHighlight(activeHighlight);
+    }
+
     /**
      * Creates a skeleton HeatmapNodeDatum with minimal required fields.
      * The node will be populated by updateNodeDatum.
@@ -846,11 +856,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { cornerRadius, shadow, glow } = this.options;
         // The batch paints no glow, which the cells cast in place: the series' own, and a highlight state's while one is active.
         const glowsInPlace = this.hasInPlaceGlow() && (glow?.enabled === true || this.isHighlightActive());
+        const highlightShadowsInPlace = this.castsItemShadowInPlace();
         return (
             this.unbatchableCells === 0 &&
             ((cornerRadius ?? 0) <= 0 || Number.isNaN(cornerRadius)) &&
             shadow?.enabled !== true &&
-            !glowsInPlace
+            !glowsInPlace &&
+            !highlightShadowsInPlace
         );
     }
 
@@ -1024,7 +1036,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
             rect.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
 
             rect.crisp = crisp;

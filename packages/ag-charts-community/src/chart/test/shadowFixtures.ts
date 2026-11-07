@@ -13,6 +13,17 @@ export const SERIES_SHADOW: AgDropShadowOptions = {
     blur: 6,
 };
 
+/** The shadow a highlighted item casts in the highlight tests, distinct from `SERIES_SHADOW` in every field. */
+export const HIGHLIGHT_SHADOW: AgDropShadowOptions = {
+    enabled: true,
+    fill: '#aa5500',
+    fillOpacity: 1,
+    xOffset: 9,
+    yOffset: 7,
+    blur: 2,
+    spread: 1,
+};
+
 /** The glow the highlight tests turn on, distinct from `SERIES_SHADOW` in every field. */
 export const HIGHLIGHT_GLOW: AgGlowOptions = { enabled: true, fill: '#00aa00', fillOpacity: 1, blur: 3, spread: 2 };
 

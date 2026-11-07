@@ -1169,7 +1169,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
             rect.cornerRadius = style.cornerRadius ?? 0;
             const { shadow, glow } = this.getItemConfig(datum.itemType);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
             rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex);
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
