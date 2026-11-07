@@ -8,7 +8,6 @@ import {
     type ElementSize,
     type PerWindowEntry,
     SizeMonitor,
-    StateTracker,
     type StrictHTMLElement,
     createElement,
     createId,
@@ -174,9 +173,8 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
     private attachObserver?: MutationObserver;
     private attachIntersectionObserver?: IntersectionObserver;
     private readonly sizeMonitor: SizeMonitor;
-    private readonly cursorState = new StateTracker('default');
-    private _lastCursor: string = 'default';
-    private _cursorLocked = false;
+    private cursorCallerId?: string;
+    private cursorStyle: string = 'default';
     private _lastCenterSize: { visibility: string; width: string; height: string } | undefined = undefined;
 
     private readonly deferredProxies = new Map<string, DOMElementProxy>();
@@ -914,37 +912,15 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         this.removeChild('styles', id);
     }
 
+    /** The most recent cursor request wins; omitting `style` resets the cursor if `callerId` set it. */
     updateCursor(callerId: string, style?: string) {
-        this.cursorState.set(callerId, style);
-        this.applyCursor();
-    }
+        if (style === undefined && callerId !== this.cursorCallerId) return;
 
-    /**
-     * Pins the cursor for the duration of an interaction the caller owns, such as a drag: other
-     * regions the pointer passes over cannot change it until {@link unlockCursor}. Their updates are
-     * still recorded, so releasing resumes whatever the pointer is over by then.
-     */
-    lockCursor(callerId: string, style: string) {
-        this.cursorState.lock(callerId, style);
-        this.applyCursor();
-    }
-
-    unlockCursor(callerId: string) {
-        this.cursorState.unlock(callerId);
-        this.applyCursor();
-    }
-
-    private applyCursor() {
-        const cursor = this.cursorState.stateValue()!;
-        if (cursor !== this._lastCursor) {
-            this._lastCursor = cursor;
+        this.cursorCallerId = style === undefined ? undefined : callerId;
+        const cursor = style ?? 'default';
+        if (cursor !== this.cursorStyle) {
+            this.cursorStyle = cursor;
             this.element.style.cursor = cursor;
-        }
-        // Descendants styling their own cursor must defer to the pinned one; see container.css.
-        const locked = this.cursorState.isLocked();
-        if (locked !== this._cursorLocked) {
-            this._cursorLocked = locked;
-            this.element.classList.toggle('ag-charts-wrapper--cursor-locked', locked);
         }
     }
 

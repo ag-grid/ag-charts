@@ -378,7 +378,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (this.getHoverDevice() !== 'setState') {
-            this.chart.ctx.tooltipManager.removeTooltip(this.id);
+            this.chart.ctx.tooltipManager.removeTooltip();
             this.chart.ctx.widgets.seriesWidget.focusIndicator?.clear();
         }
     }
@@ -496,7 +496,7 @@ export class SeriesAreaManager extends BaseManager {
             const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'context-menu');
             if (pick) {
                 this.pickManager.maybeActivate(undefined, (): void => {
-                    this.chart.ctx.highlightManager.updateHighlight(this.id);
+                    this.chart.ctx.highlightManager.updateHighlight();
                 });
                 pickedNodes = pick.matches;
                 directNodeHit = pick.distance === 0;
@@ -823,7 +823,7 @@ export class SeriesAreaManager extends BaseManager {
             this.getHoverDevice() !== 'keyboard' ||
             !this.getFocusIndicator()?.isFocusVisible() ||
             !this.isTooltipEnabled(series) ||
-            !this.chart.ctx.tooltipManager.isTooltipActive(this.id)
+            !this.chart.ctx.tooltipManager.isTooltipActive()
         ) {
             return;
         }
@@ -1232,9 +1232,9 @@ export class SeriesAreaManager extends BaseManager {
                 this.pickManager.maybeActivate(
                     datum,
                     ({ series }): void => {
-                        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
+                        this.chart.ctx.highlightManager.updateHighlight(datum);
                         if (!tooltipDismissed && this.isTooltipEnabled(series)) {
-                            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
+                            this.chart.ctx.tooltipManager.updateTooltip(meta, tooltipContent);
                         }
                     },
                     { defaultCbArg: { series: focus.series } }
@@ -1353,12 +1353,12 @@ export class SeriesAreaManager extends BaseManager {
         this.pickManager.maybeActivate(undefined, (): void => {
             this.highlight.pendingHoverEvent = undefined;
             this.highlight.appliedHoverEvent = undefined;
-            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, delayed);
+            this.chart.ctx.highlightManager.updateHighlight(undefined, delayed);
         });
     }
 
     private clearTooltip(delayed: boolean = false) {
-        this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined, delayed);
+        this.chart.ctx.tooltipManager.removeTooltip(delayed);
         this.tooltip.lastHover = undefined;
     }
 
@@ -1376,8 +1376,8 @@ export class SeriesAreaManager extends BaseManager {
         // Clear tooltip/highlight state, but without broadcasting an AgActiveChangeEvent.
         if (this.getHoverDevice() === 'setState') {
             this.clearCachedEvents();
-            this.chart.ctx.highlightManager.updateHighlight(this.id);
-            this.chart.ctx.tooltipManager.removeTooltip(this.id);
+            this.chart.ctx.highlightManager.updateHighlight();
+            this.chart.ctx.tooltipManager.removeTooltip();
         }
     }
 
@@ -1439,7 +1439,7 @@ export class SeriesAreaManager extends BaseManager {
                 } else if (refPoint) {
                     const { canvasX, canvasY } = refPoint;
                     const inViewport = this.activeState.highlightInViewport;
-                    this.chart.ctx.highlightManager.updateHighlight(this.id, active, false, inViewport);
+                    this.chart.ctx.highlightManager.updateHighlight(active, false, inViewport);
                     if (inViewport) {
                         this.showTooltip(active, canvasX, canvasY, paginationState);
                     } else {
@@ -1475,7 +1475,7 @@ export class SeriesAreaManager extends BaseManager {
 
         if (active === undefined) {
             this.pickManager.maybeActivate(undefined, () => {
-                this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
+                this.chart.ctx.highlightManager.updateHighlight(undefined, true); // true = delayed
                 opts?.defaultCb();
             });
         } else {
@@ -1483,7 +1483,7 @@ export class SeriesAreaManager extends BaseManager {
             // must name the part here for the highlight to carry it.
             const highlightPart = active.series.getHighlightPart(opts?.target ?? pickedNodes?.target);
             this.pickManager.maybeActivate(active, () => {
-                this.chart.ctx.highlightManager.updateHighlight(this.id, active, false, undefined, highlightPart);
+                this.chart.ctx.highlightManager.updateHighlight(active, false, undefined, highlightPart);
                 opts?.defaultCb();
             });
         }
@@ -1535,9 +1535,9 @@ export class SeriesAreaManager extends BaseManager {
                 datum,
                 undefined
             );
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent, pagination);
+            this.chart.ctx.tooltipManager.updateTooltip(meta, tooltipContent, pagination);
         } else {
-            this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
+            this.chart.ctx.tooltipManager.removeTooltip(true); // true = delayed
         }
     }
 
@@ -1545,8 +1545,8 @@ export class SeriesAreaManager extends BaseManager {
         return this.chart.tooltip.maybeEnterInteractiveTooltip(event, () => {
             this.pickManager.maybeActivate(undefined, (): void => {
                 this.tooltip.lastHover = undefined;
-                this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
-                this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
+                this.chart.ctx.tooltipManager.removeTooltip(true); // true = delayed
+                this.chart.ctx.highlightManager.updateHighlight(undefined, true); // true = delayed
             });
         });
     }
@@ -1713,8 +1713,8 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Hoverable)) return;
         this.setHoverDevice('pointer');
         this.clearCachedEvents();
-        this.chart.ctx.highlightManager.updateHighlight(this.id);
-        this.chart.ctx.tooltipManager.removeTooltip(this.id);
+        this.chart.ctx.highlightManager.updateHighlight();
+        this.chart.ctx.tooltipManager.removeTooltip();
     }
 
     private onActiveLoadMemento(event: ActiveLoadMementoEvent) {
@@ -1755,8 +1755,8 @@ export class SeriesAreaManager extends BaseManager {
                     this.pickManager.maybeActivate(undefined, () => {
                         this.activeState.lastActive = undefined;
                         this.clearCachedEvents();
-                        this.chart.ctx.highlightManager.updateHighlight(this.id);
-                        this.chart.ctx.tooltipManager.removeTooltip(this.id);
+                        this.chart.ctx.highlightManager.updateHighlight();
+                        this.chart.ctx.tooltipManager.removeTooltip();
                     });
                 }
             } else {

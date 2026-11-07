@@ -142,7 +142,7 @@ describe('highlight glow', () => {
 
         const series = getSeriesAt(chart);
         const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
-        chart.ctx.highlightManager.updateHighlight(chart.id, datum);
+        chart.ctx.highlightManager.updateHighlight(datum);
         await waitForChartStability(chart);
 
         return {
@@ -283,13 +283,13 @@ describe('highlight glow', () => {
             const [first, next] = getSeriesNodeData<HighlightNodeDatum>(chart);
             expect(next.datumIndex).not.toBe(first.datumIndex);
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, next);
+            chart.ctx.highlightManager.updateHighlight(next);
             await waitForChartStability(chart);
             const moved = shapesOf(series.highlightNodeGroup, testCase.kind).filter((shape) => shape.visible);
             expect(moved).toHaveLength(1);
             expect(moved[0].fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
 
-            chart.ctx.highlightManager.updateHighlight(chart.id);
+            chart.ctx.highlightManager.updateHighlight();
             await waitForChartStability(chart);
             // The highlight layer is hidden, so nothing it holds is drawn.
             expect(series.highlightGroup.visible).toBe(false);
@@ -350,7 +350,7 @@ describe('highlight glow', () => {
         ];
 
         const hoverSecond = async () => {
-            chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart, 1)[0]);
+            chart.ctx.highlightManager.updateHighlight(getSeriesNodeData<HighlightNodeDatum>(chart, 1)[0]);
             await waitForChartStability(chart);
         };
 
@@ -1201,7 +1201,7 @@ describe('highlight glow', () => {
             const nodeData = getSeriesNodeData<HighlightNodeDatum>(chart);
 
             for (const datum of nodeData) {
-                chart.ctx.highlightManager.updateHighlight(chart.id, datum);
+                chart.ctx.highlightManager.updateHighlight(datum);
                 await waitForChartStability(chart);
                 const [shape] = shapesOf(series.highlightNodeGroup, Rect).filter((node) => node.visible);
                 expect(shape.getCastShadow()?.fill).toBe(shape.fill);

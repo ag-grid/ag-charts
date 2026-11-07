@@ -103,7 +103,7 @@ describe('SunburstSeries', () => {
             }
 
             const highlightManager = deproxy(chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            highlightManager.updateHighlight(node);
             await compare();
         });
     });
@@ -140,7 +140,7 @@ describe('SunburstSeries', () => {
 
         const highlightLeafFill = async (): Promise<unknown> => {
             const leaf = getHierarchyRootNode(chart)!.children[0].children[0];
-            deproxy(chart).ctx.highlightManager.updateHighlight(chart.id, leaf);
+            deproxy(chart).ctx.highlightManager.updateHighlight(leaf);
             await waitForChartStability(chart);
             return getSeriesSelectionNodes<Sector>(chart, 'highlightSelection')[0]?.fill;
         };
@@ -1208,7 +1208,7 @@ describe('SunburstSeries', () => {
             const series = await renderSeries(shadow);
 
             const leaf = series.rootNode!.children[0].children[0];
-            deproxy(chart).ctx.highlightManager.updateHighlight(chart.id, leaf);
+            deproxy(chart).ctx.highlightManager.updateHighlight(leaf);
             await compare();
         });
 
@@ -1434,7 +1434,7 @@ describe('SunburstSeries', () => {
             await waitForChartStability(chart);
             const highlightManager = deproxy(chart).ctx.highlightManager;
 
-            highlightManager.updateHighlight(chart.id, findSectorNode('A2'));
+            highlightManager.updateHighlight(findSectorNode('A2'));
             await waitForChartStability(chart);
             expect(highlightSector()?.datum?.datum?.name).toBe('A2');
 
@@ -1442,7 +1442,7 @@ describe('SunburstSeries', () => {
             await waitForChartStability(chart);
 
             const b1 = findSectorNode('B1');
-            highlightManager.updateHighlight(chart.id, b1);
+            highlightManager.updateHighlight(b1);
             await waitForChartStability(chart);
             const highlighted = highlightSector();
             expect(highlighted?.datum).toBe(b1);
@@ -1452,7 +1452,7 @@ describe('SunburstSeries', () => {
             expect(highlighted?.endAngle).toBeCloseTo(base.endAngle, 5);
             expect(highlighted?.outerRadius).toBeCloseTo(base.outerRadius, 5);
 
-            highlightManager.updateHighlight(chart.id);
+            highlightManager.updateHighlight();
             await waitForChartStability(chart);
             expect(getSeriesSelectionNodes(chart, 'highlightSelection')).toHaveLength(0);
         });

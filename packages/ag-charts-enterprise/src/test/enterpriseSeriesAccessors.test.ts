@@ -55,7 +55,6 @@ import {
     getHlcAggregationFilter,
     getHlcBandEdgeData,
     getHlcHighlightData,
-    getLegendHighlightCallerIds,
     getLegendItemSuppressHighlight,
     getLegendItemTranslationX,
     getLinearGaugeRects,
@@ -672,10 +671,10 @@ describe('enterprise series test accessors', () => {
             ['link', getFlowLinkData],
         ] as const)('returns the highlight-layer copy of the highlighted %s', async (kind, getDatums) => {
             chart = await createEnterpriseChart(sankeyOptions());
-            const { ctx, id } = deproxy(chart);
+            const { ctx } = deproxy(chart);
             const datum = getDatums(chart)[0];
 
-            ctx.highlightManager.updateHighlight(id, datum);
+            ctx.highlightManager.updateHighlight(datum);
             await waitForChartStability(chart);
 
             const highlighted = getFlowHighlightNode(chart);
@@ -687,10 +686,10 @@ describe('enterprise series test accessors', () => {
 
         it('works for a chord series', async () => {
             chart = await createEnterpriseChart(chordOptions());
-            const { ctx, id } = deproxy(chart);
+            const { ctx } = deproxy(chart);
             const [node] = getFlowNodeData(chart);
 
-            ctx.highlightManager.updateHighlight(id, node);
+            ctx.highlightManager.updateHighlight(node);
             await waitForChartStability(chart);
 
             expect(getFlowHighlightNode(chart)?.datum).toMatchObject({ itemId: node.itemId });
@@ -737,10 +736,10 @@ describe('funnel, pyramid and heatmap test accessors', () => {
             'returns the highlight-layer copy of the highlighted %s stage',
             async (type) => {
                 chart = await createEnterpriseChart(stageOptions[type]);
-                const { ctx, id } = deproxy(chart);
+                const { ctx } = deproxy(chart);
                 const datum = getSeriesContextNodeData(chart).nodeData[1];
 
-                ctx.highlightManager.updateHighlight(id, datum);
+                ctx.highlightManager.updateHighlight(datum);
                 await waitForChartStability(chart);
 
                 const highlighted = getStageHighlightNode(chart);
@@ -751,10 +750,10 @@ describe('funnel, pyramid and heatmap test accessors', () => {
 
         it('picks the copy of the stage that is highlighted, not another', async () => {
             chart = await createEnterpriseChart(stageOptions.funnel);
-            const { ctx, id } = deproxy(chart);
+            const { ctx } = deproxy(chart);
             const { nodeData } = getSeriesContextNodeData(chart);
 
-            ctx.highlightManager.updateHighlight(id, nodeData[2]);
+            ctx.highlightManager.updateHighlight(nodeData[2]);
             await waitForChartStability(chart);
 
             expect(getStageHighlightNode(chart)?.datum).toMatchObject({ datumIndex: nodeData[2].datumIndex });
@@ -762,11 +761,11 @@ describe('funnel, pyramid and heatmap test accessors', () => {
 
         it('fails when the highlighted datum has no datumIndex to match on', async () => {
             chart = await createEnterpriseChart(stageOptions.funnel);
-            const { ctx, id } = deproxy(chart);
+            const { ctx } = deproxy(chart);
             // `datumIndex` is required by the type; the cast builds the datum a series that omits it would highlight.
             const unindexed = { ...getSeriesContextNodeData(chart).nodeData[0], datumIndex: undefined as never };
 
-            ctx.highlightManager.updateHighlight(id, unindexed);
+            ctx.highlightManager.updateHighlight(unindexed);
             await waitForChartStability(chart);
 
             expect(errorFrom(() => getStageHighlightNode(chart!))?.name).toBe('AssertionError');
@@ -774,10 +773,10 @@ describe('funnel, pyramid and heatmap test accessors', () => {
 
         it('returns undefined while the series has drawn no copy of the highlight', async () => {
             chart = await createEnterpriseChart(stageOptions.funnel);
-            const { ctx, id } = deproxy(chart);
+            const { ctx } = deproxy(chart);
 
             // The highlight layer is redrawn on the next frame.
-            ctx.highlightManager.updateHighlight(id, getSeriesContextNodeData(chart).nodeData[0]);
+            ctx.highlightManager.updateHighlight(getSeriesContextNodeData(chart).nodeData[0]);
 
             expect(getStageHighlightNode(chart)).toBeUndefined();
         });
@@ -930,9 +929,9 @@ describe('enterprise series test accessors (label and shadow tests)', () => {
             chart = await createEnterpriseChart(flowOptions('sankey'));
             expect(getEnterpriseSelectionNodes(chart, 'highlightNodeSelection')).toEqual([]);
 
-            const { ctx, id } = deproxy(chart);
+            const { ctx } = deproxy(chart);
             const [hovered] = getFlowNodeData(chart);
-            ctx.highlightManager.updateHighlight(id, hovered);
+            ctx.highlightManager.updateHighlight(hovered);
             await waitForChartStability(chart);
 
             const highlighted = getEnterpriseSelectionNodes(chart, 'highlightNodeSelection');
@@ -1321,16 +1320,6 @@ describe('series, legend and navigator test accessors', () => {
     });
 
     describe('legend', () => {
-        it('getLegendHighlightCallerIds lists the id of each legend, the category legend first', async () => {
-            chart = await createEnterpriseChart(barOptions({ legend: { enabled: true } }));
-
-            const ids = getLegendHighlightCallerIds(chart);
-            expect(ids).toHaveLength(2);
-            expect(new Set(ids).size).toBe(2);
-            expect(ids[0]).toMatch(/^Legend-/);
-            expect(ids[1]).toMatch(/^GradientLegend-/);
-        });
-
         it('getLegendItemTranslationX gives each item its own offset along the legend', async () => {
             chart = await createEnterpriseChart(barOptions({ legend: { enabled: true, position: 'bottom' } }));
 

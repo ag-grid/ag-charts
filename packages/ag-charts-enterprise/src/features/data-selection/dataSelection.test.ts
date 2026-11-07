@@ -1375,7 +1375,6 @@ describe('DataSelection', () => {
                 const { nodeData } = getSeriesContextNodeData(chart);
                 expect(nodeData.length).toBeGreaterThan(0);
                 chartInstance.ctx.highlightManager.updateHighlight(
-                    chartInstance.id,
                     datumIndex === undefined ? undefined : nodeData[datumIndex]
                 );
                 await waitForChartStability(chart);
@@ -5673,10 +5672,7 @@ describe('DataSelection', () => {
                     chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
                     await waitForChartStability(chart);
 
-                    chartInstance.ctx.highlightManager.updateHighlight(
-                        chartInstance.id,
-                        getSeriesContextNodeData(chart).nodeData[2]
-                    );
+                    chartInstance.ctx.highlightManager.updateHighlight(getSeriesContextNodeData(chart).nodeData[2]);
                     await waitForChartStability(chart);
 
                     const [node] = getSeriesSelectionNodes<Shape & { datum: { datumIndex: number } }>(

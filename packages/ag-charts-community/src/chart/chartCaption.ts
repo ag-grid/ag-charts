@@ -268,7 +268,7 @@ export class ChartCaption implements CaptionLike {
         const content = this.getTooltipContent(moduleCtx);
         if (content == null) return;
 
-        moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
+        moduleCtx.tooltipManager.updateTooltip({ canvasX, canvasY, showArrow: false }, [content]);
     }
 
     private handleMouseMove(moduleCtx: DynamicContext<ChartRegistry>, event?: MouseWidgetEvent<'mousemove'>) {
@@ -282,7 +282,7 @@ export class ChartCaption implements CaptionLike {
     }
 
     private handleTooltipHide(moduleCtx: DynamicContext<ChartRegistry>) {
-        moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true);
+        moduleCtx.tooltipManager.removeTooltip(true);
     }
 
     private handleContextMenu(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'contextmenu'>) {

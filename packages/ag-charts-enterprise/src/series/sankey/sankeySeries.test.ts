@@ -544,7 +544,7 @@ describe('SankeySeries', () => {
             const node = getFlowNodeData(chart)[0];
 
             const highlightManager = deproxy(chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            highlightManager.updateHighlight(node);
             await compare();
         });
     });
@@ -567,7 +567,7 @@ describe('SankeySeries', () => {
             const node = getFlowNodeData(chart)[0];
 
             const highlightManager = deproxy(chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            highlightManager.updateHighlight(node);
             await compare();
         });
 
@@ -578,7 +578,7 @@ describe('SankeySeries', () => {
             const node = getFlowLinkData(chart)[0];
 
             const highlightManager = deproxy(chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            highlightManager.updateHighlight(node);
             await compare();
         });
     });
@@ -1130,7 +1130,7 @@ describe('SankeySeries', () => {
         chart = deproxy(await createEnterpriseChart(options));
 
         const linkNode = getFlowLinkData(chart)[0];
-        deproxy(chart).ctx.highlightManager.updateHighlight(chart.id, linkNode);
+        deproxy(chart).ctx.highlightManager.updateHighlight(linkNode);
         // A leaked (circular) scene datum never settles, so cap the wait: this must fail by assertion, not hang.
         await Promise.race([waitForChartStability(chart), new Promise((resolve) => setTimeout(resolve, 500))]);
 

@@ -448,13 +448,6 @@ export function getSeriesAreaFocusDatum(chartOrProxy: ChartOrProxy<any>): unknow
         .accessNullableProperty('datum').value;
 }
 
-/** The ids the chart's legends update the highlight manager by, in legend order. */
-export function getLegendHighlightCallerIds(chartOrProxy: ChartOrProxy<any>): string[] {
-    return Array.from(deproxy(chartOrProxy).modulesManager.legends(), ({ legend }) => {
-        return String(new Caster(legend).accessProperty('id').assertNonNullish().value);
-    });
-}
-
 /** How far a legend item is translated from its legend's left edge, in pixels. */
 export function getLegendItemTranslationX(item: Node): number {
     return Number(new Caster(item).accessProperty('translationX').assertNonNullish().value);

@@ -55,9 +55,6 @@ const { userInteraction, InteractionState } = _ModuleSupport;
 const round = (value: number) => roundTo(value, 10);
 
 const CURSOR_ID = 'zoom-cursor';
-// Separate from CURSOR_ID so the hover updates that keep flowing during a drag cannot disturb the lock.
-const DRAG_CURSOR_ID = 'zoom-drag-cursor';
-const TOOLTIP_ID = 'zoom-tooltip';
 
 enum DragState {
     None,
@@ -261,7 +258,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private teardown() {
         this.ctx.zoomManager.setZoomModuleEnabled(false);
-        this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
+        this.ctx.domManager.updateCursor(CURSOR_ID);
         this.buttons.destroy();
         this.destroyContextMenuActions?.();
     }
@@ -325,7 +322,7 @@ export class Zoom extends AbstractModuleInstance {
         const modifierlessDragInUse = enableSelecting || hasDataSelection;
         // Allow panning if either selection is disabled or the panning key is pressed.
         if (enablePanning && (!modifierlessDragInUse || panKeyPressed)) {
-            domManager.lockCursor(DRAG_CURSOR_ID, 'grabbing');
+            domManager.updateCursor(CURSOR_ID, 'grabbing');
             newDragState = DragState.Pan;
             this.panner.start();
         } else if (enableSelecting && !panKeyPressed) {
@@ -373,7 +370,7 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
-            tooltipManager.updateTooltip(TOOLTIP_ID);
+            tooltipManager.updateTooltip();
         }
         eventsHub.emit('chart:request-update', {
             type: this.dragUpdateType,
@@ -383,9 +380,8 @@ export class Zoom extends AbstractModuleInstance {
 
     private onSeriesAreaDragEnd() {
         this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
-        // Released before the early returns below: any path that leaves the cursor pinned would strand
-        // it for the rest of the session.
-        this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
+        // Reset before the early returns below: any path that skips it would strand the drag cursor.
+        this.ctx.domManager.updateCursor(CURSOR_ID);
 
         if (!this.opts.enabled || this.dragState === DragState.None) return;
 
@@ -417,7 +413,7 @@ export class Zoom extends AbstractModuleInstance {
     private resetDragState(): void {
         this.dragState = DragState.None;
         this.ctx.domManager.updateCursor(CURSOR_ID);
-        this.ctx.tooltipManager.removeTooltip(TOOLTIP_ID);
+        this.ctx.tooltipManager.removeTooltip();
     }
 
     private onAxisMouseEnter(event: _ModuleSupport.ZoomInteractionAxisMouseEvent<'mouseenter'>) {
@@ -505,7 +501,7 @@ export class Zoom extends AbstractModuleInstance {
         panner.stopInteractions();
 
         if (axisDraggingMode === 'pan') {
-            this.ctx.domManager.lockCursor(DRAG_CURSOR_ID, 'grabbing');
+            this.ctx.domManager.updateCursor(CURSOR_ID, 'grabbing');
 
             this.dragState = DragState.Pan;
             this.panner.start(direction);
@@ -513,7 +509,7 @@ export class Zoom extends AbstractModuleInstance {
             zoomManager.fireZoomPanStartEvent('zoom');
         } else {
             const resizeCursor = direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize';
-            this.ctx.domManager.lockCursor(DRAG_CURSOR_ID, resizeCursor);
+            this.ctx.domManager.updateCursor(CURSOR_ID, resizeCursor);
 
             this.dragState = DragState.Axis;
         }
@@ -552,7 +548,7 @@ export class Zoom extends AbstractModuleInstance {
             );
         }
 
-        tooltipManager.updateTooltip(TOOLTIP_ID);
+        tooltipManager.updateTooltip();
         eventsHub.emit('chart:request-update', {
             type: ChartUpdateType.PERFORM_LAYOUT,
             opts: { skipAnimations: true },
@@ -568,7 +564,7 @@ export class Zoom extends AbstractModuleInstance {
         } = this;
 
         interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
-        domManager.unlockCursor(DRAG_CURSOR_ID);
+        domManager.updateCursor(CURSOR_ID);
 
         // Stop single clicks from triggering drag end and resetting the zoom
         if (!enabled || !enableAxisDragging || dragState === DragState.None) return;
@@ -583,10 +579,8 @@ export class Zoom extends AbstractModuleInstance {
         // No `mouseenter` re-fires here, so restore the hover cursor manually when still on the axis.
         if (this.hoveredAxisId != null && this.hoveredAxisDirection != null) {
             this.updateAxisCursor(this.hoveredAxisDirection);
-        } else {
-            domManager.updateCursor(CURSOR_ID);
         }
-        tooltipManager.removeTooltip(TOOLTIP_ID);
+        tooltipManager.removeTooltip();
     }
 
     private onNavZoom(event: _ModuleSupport.SeriesKeyNavZoomEvent) {
@@ -823,7 +817,7 @@ export class Zoom extends AbstractModuleInstance {
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
         this.updateChanges(userInteraction('zoom-seriesarea-panner'), newZooms);
         if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
-            tooltipManager.updateTooltip(TOOLTIP_ID);
+            tooltipManager.updateTooltip();
         }
     }
 

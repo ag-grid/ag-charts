@@ -1589,8 +1589,8 @@ describe('WaterfallSeries', () => {
             const total = getNodeData().find((n) => n.itemType === 'total')!;
 
             calls.length = 0;
-            const { ctx: chartCtx, id } = deproxy(chart);
-            chartCtx.highlightManager.updateHighlight(id, total);
+            const { ctx: chartCtx } = deproxy(chart);
+            chartCtx.highlightManager.updateHighlight(total);
             await waitForChartStability(chart);
 
             const totalStates = new Set(calls.filter((c) => c.itemType === 'total').map((c) => c.highlightState));

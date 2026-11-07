@@ -12,8 +12,6 @@ import {
     waitForAllChartUpdates,
 } from './util';
 
-const LOCKED = /ag-charts-wrapper--cursor-locked/;
-
 type Point = { x: number; y: number };
 
 /** Intermediate mouse moves per drag — enough for the drag interpreter to see real movement. */
@@ -49,7 +47,7 @@ async function findResizeBandY(page: Page, wrapper: Locator, width: number, heig
  * behind for the next test.
  *
  * The travel must stay well above `DRAG_THRESHOLD_PX` (3px, `dragInterpreter.ts`) or the gesture is
- * interpreted as a click and no cursor lock is taken — do not shrink the distance or the step count.
+ * interpreted as a click and no drag cursor is set — do not shrink the distance or the step count.
  */
 async function withCanvasDragHeld(page: Page, start: Point, end: Point, assertions: () => Promise<void>) {
     await waitForAllChartUpdates(page);
@@ -96,7 +94,7 @@ async function withElementDragHeld(page: Page, locator: Locator, delta: Point, a
     }
 }
 
-test.describe('cursor lock during drag', () => {
+test.describe('cursor during drag', () => {
     setupIntrinsicAssertions(test);
 
     test.describe('zoom-crosshairs', () => {
@@ -105,10 +103,8 @@ test.describe('cursor lock during drag', () => {
             await gotoExample(page, url);
         });
 
-        test('axis drag locks the wrapper cursor to the resize cursor', async ({ page }) => {
+        test('axis drag keeps the resize cursor', async ({ page }) => {
             const { wrapper, width, height } = await locateCanvas(page);
-
-            await expect(wrapper).not.toHaveClass(LOCKED);
 
             const axisY = await findResizeBandY(page, wrapper, width, height);
             expect(axisY, 'x-axis band with an ew-resize hover cursor').toBeGreaterThan(0);
@@ -118,12 +114,9 @@ test.describe('cursor lock during drag', () => {
                 { x: Math.round(width * 0.7), y: axisY },
                 { x: Math.round(width * 0.4), y: axisY },
                 async () => {
-                    await expect(wrapper).toHaveClass(LOCKED);
                     await expect(wrapper).toHaveCSS('cursor', 'ew-resize');
                 }
             );
-
-            await expect(wrapper).not.toHaveClass(LOCKED);
         });
     });
 
@@ -142,89 +135,23 @@ test.describe('cursor lock during drag', () => {
             await waitForAllChartUpdates(page);
         }
 
-        test('series-area pan locks the wrapper cursor to grabbing', async ({ page }) => {
+        test('series-area pan shows the grabbing cursor until release', async ({ page }) => {
             const { wrapper, width, height } = await locateCanvas(page);
 
             await zoomIn(page, height);
-            await expect(wrapper).not.toHaveClass(LOCKED);
 
             await withCanvasDragHeld(
                 page,
                 { x: Math.round(width * 0.35), y: Math.round(height * 0.4) },
                 { x: Math.round(width * 0.65), y: Math.round(height * 0.4) },
                 async () => {
-                    await expect(wrapper).toHaveClass(LOCKED);
                     await expect(wrapper).toHaveCSS('cursor', 'grabbing');
                 }
             );
 
             // `expect` polls, so there is no need to wait for the pan's zoom updates to settle
             // first — and waiting for them is a flake source while the chart is still animating.
-            await expect(wrapper).not.toHaveClass(LOCKED);
-        });
-
-        test('navigator proxy element defers to the pinned cursor', async ({ page }) => {
-            const { wrapper, width, height } = await locateCanvas(page);
-
-            // The fixture ships `navigator: false`, so the navigator proxy elements only exist once
-            // the example's own control has been clicked.
-            await page.locator('.example-controls button').getByText('Toggle Navigator').click();
-            await waitForAllChartUpdates(page);
-
-            // Resolve the pan slider by its inline cursor rather than by index — the `domIndex`
-            // ordering in navigatorDOMProxy.ts is an implementation detail.
-            const proxyElements = page.locator('.ag-charts-proxy-navigator-toolbar .ag-charts-proxy-elem');
-            const proxyCount = await proxyElements.count();
-            expect(proxyCount, 'navigator toolbar proxy elements').toBeGreaterThan(0);
-
-            let panIndex = -1;
-            for (let i = 0; i < proxyCount; i++) {
-                const inlineCursor = await proxyElements.nth(i).evaluate((el) => (el as HTMLElement).style.cursor);
-                if (inlineCursor === 'grab') {
-                    expect(panIndex, 'exactly one navigator proxy element has an inline grab cursor').toBe(-1);
-                    panIndex = i;
-                }
-            }
-            expect(panIndex, 'navigator pan slider (inline cursor: grab)').toBeGreaterThanOrEqual(0);
-            const panSlider = proxyElements.nth(panIndex);
-
-            // Control assertion: while nothing is locked the slider shows its own cursor. Without
-            // this the locked assertion below would prove nothing.
-            await expect(panSlider).toHaveCSS('cursor', 'grab');
-
-            await zoomIn(page, height);
-            await waitForAllChartUpdates(page);
-
-            const box = await panSlider.boundingBox();
-            expect(box, 'navigator pan slider bounding box').not.toBeNull();
-            expect(box!.width, 'navigator pan slider width').toBeGreaterThan(0);
-            expect(box!.height, 'navigator pan slider height').toBeGreaterThan(0);
-            const sliderCentre = { x: Math.round(box!.x + box!.width / 2), y: Math.round(box!.y + box!.height / 2) };
-
-            // A layout change that moves the slider out of the pointer's path must fail the test
-            // rather than silently degrade it.
-            const sliderIsUnderPoint = await panSlider.evaluate(
-                (el, { x, y }) => document.elementFromPoint(x, y)?.closest('.ag-charts-proxy-elem') === el,
-                sliderCentre
-            );
-            expect(sliderIsUnderPoint, 'the pan slider sits under the pass-over point').toBe(true);
-
-            await withCanvasDragHeld(
-                page,
-                { x: Math.round(width * 0.35), y: Math.round(height * 0.4) },
-                { x: Math.round(width * 0.65), y: Math.round(height * 0.4) },
-                async () => {
-                    await expect(wrapper).toHaveClass(LOCKED);
-
-                    // Still held while crossing the pan slider: the cursor-locked `!important` rule in
-                    // `container.css` must beat the slider's own inline `grab`.
-                    await page.mouse.move(sliderCentre.x, sliderCentre.y);
-                    await expect(panSlider).toHaveCSS('cursor', 'grabbing');
-                }
-            );
-
-            await expect(wrapper).not.toHaveClass(LOCKED);
-            await expect(panSlider).toHaveCSS('cursor', 'grab');
+            await expect(wrapper).not.toHaveCSS('cursor', 'grabbing');
         });
     });
 
@@ -239,49 +166,20 @@ test.describe('cursor lock during drag', () => {
             const toPage = await canvasToPageTransformer(page);
 
             // Control: this fixture enables axis dragging, so the axis band genuinely restyles the
-            // wrapper cursor on hover. That is what the scrollbar's lock has to defeat.
+            // wrapper cursor on hover. That is what the scrollbar drag must not pick up.
             const axisY = await findResizeBandY(page, wrapper, width, height);
             expect(axisY, 'axis band with an ew-resize hover cursor').toBeGreaterThan(0);
             const axisPoint = toPage(Math.round(width * 0.7), axisY);
 
             const slider = page.locator('.ag-charts-proxy-scrollbar-horizontal .ag-charts-proxy-scrollbar-slider');
-            await expect(wrapper).not.toHaveClass(LOCKED);
-
             await withElementDragHeld(page, slider, { x: 40, y: 0 }, async () => {
-                await expect(wrapper).toHaveClass(LOCKED);
                 await expect(wrapper).toHaveCSS('cursor', 'default');
 
-                // Still held, cross onto the axis band. Without the lock this becomes `ew-resize`,
-                // so this — unlike the `default` value on its own — is genuinely falsifiable.
+                // Still held, cross onto the axis band. Without pointer capture this becomes
+                // `ew-resize`, so this — unlike the `default` value on its own — is genuinely falsifiable.
                 await page.mouse.move(Math.round(axisPoint.x), Math.round(axisPoint.y));
                 await expect(wrapper).toHaveCSS('cursor', 'default');
-                await expect(wrapper).toHaveClass(LOCKED);
             });
-
-            await expect(wrapper).not.toHaveClass(LOCKED);
-        });
-    });
-
-    test.describe('scrollbar-visibility', () => {
-        test.beforeEach(async ({ page }) => {
-            const { url } = toExamplePageUrl('scrollbar', 'scrollbar-visibility', 'vanilla');
-            await gotoExample(page, url);
-        });
-
-        test('scrollbar drag marks the wrapper cursor-locked for the drag duration', async ({ page }) => {
-            const { wrapper } = await locateCanvas(page);
-            const slider = page.locator('.ag-charts-proxy-scrollbar-horizontal .ag-charts-proxy-scrollbar-slider');
-
-            await expect(wrapper).not.toHaveClass(LOCKED);
-
-            await withElementDragHeld(page, slider, { x: 40, y: 0 }, async () => {
-                await expect(wrapper).toHaveClass(LOCKED);
-                // Corroborative only — the wrapper's idle cursor is already `default`; the class
-                // assertion above is the actual pin.
-                await expect(wrapper).toHaveCSS('cursor', 'default');
-            });
-
-            await expect(wrapper).not.toHaveClass(LOCKED);
         });
     });
 });

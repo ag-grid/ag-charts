@@ -42,7 +42,7 @@ import {
 } from 'ag-charts-community-test';
 import type { Sector } from 'ag-charts-core';
 
-import { destroyChart, getLegendHighlightCallerIds } from '../../test/enterpriseSeriesAccessors';
+import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 
@@ -235,9 +235,7 @@ describe('NightingaleSeries', () => {
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await clickAction(x, y)(chart);
                     const { highlightManager } = deproxy(chart).ctx;
-                    for (const id of getLegendHighlightCallerIds(chart)) {
-                        highlightManager.updateHighlight(id);
-                    }
+                    highlightManager.updateHighlight();
                     await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
@@ -249,9 +247,7 @@ describe('NightingaleSeries', () => {
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await tapAction(x, y)(chart);
                     const { highlightManager } = deproxy(chart).ctx;
-                    for (const id of getLegendHighlightCallerIds(chart)) {
-                        highlightManager.updateHighlight(id);
-                    }
+                    highlightManager.updateHighlight();
                     await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });

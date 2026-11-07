@@ -3042,7 +3042,7 @@ describe('LineSeries', () => {
                 const chartInstance = deproxy(chart);
                 const { nodeData } = getSeriesContextNodeData(chart, 1);
                 expect(nodeData.length).toBeGreaterThan(0);
-                chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, nodeData[0]);
+                chartInstance.ctx.highlightManager.updateHighlight(nodeData[0]);
                 await waitForChartStability(chart);
 
                 // Precondition: highlighting must be active for series 0 to be dimmed
@@ -3172,7 +3172,7 @@ describe('LineSeries', () => {
                 const chartInstance = deproxy(chart);
                 const { nodeData } = getSeriesContextNodeData(chart, 1);
                 expect(nodeData.length).toBeGreaterThan(0);
-                chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, nodeData[0]);
+                chartInstance.ctx.highlightManager.updateHighlight(nodeData[0]);
                 await waitForChartStability(chart);
 
                 expect(chartInstance.ctx.highlightManager.getActiveHighlight()).toBeDefined();

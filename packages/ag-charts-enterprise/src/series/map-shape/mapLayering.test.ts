@@ -15,11 +15,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import {
-    destroyChart,
-    getLegendHighlightCallerIds,
-    getLegendItemTranslationX,
-} from '../../test/enterpriseSeriesAccessors';
+import { destroyChart, getLegendItemTranslationX } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart } from '../../test/utils';
 import { data as heatmapData } from './map-layering-fixtures/heatmap-floating/data';
 import { topology as heatmapTopology } from './map-layering-fixtures/heatmap-floating/topology';
@@ -152,9 +148,7 @@ describe('Map layering', () => {
     // Re-enabling a layer via a legend click leaves a highlight on the item; clear it so the
     // restored render matches the pristine composed layout.
     const clearLegendHighlight = async () => {
-        for (const legendId of getLegendHighlightCallerIds(chart)) {
-            chart.ctx.highlightManager.updateHighlight(legendId);
-        }
+        chart.ctx.highlightManager.updateHighlight();
         await waitForChartStability(chart);
     };
 

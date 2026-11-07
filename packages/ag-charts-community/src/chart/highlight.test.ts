@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { Rect } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgStandaloneChartOptions } from 'ag-charts-types';
@@ -103,7 +103,7 @@ describe('Chart highlighting', () => {
         if (highlightDatum == null) {
             throw new Error(`No highlight datum found for test case: ${testCase.name}`);
         }
-        chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+        chart.ctx.highlightManager.updateHighlight(highlightDatum);
         await compare();
     };
 
@@ -466,7 +466,7 @@ describe('Chart highlighting', () => {
                 seriesIndex: 0,
                 datumIndex: 0,
             });
-            chart.ctx.highlightManager.updateHighlight(chart.id, disabledDatum);
+            chart.ctx.highlightManager.updateHighlight(disabledDatum);
             await waitForChartStability(chart);
 
             // Now transition to an enabled series (oranges) — bananas should dehighlight
@@ -476,7 +476,7 @@ describe('Chart highlighting', () => {
                 seriesIndex: 1,
                 datumIndex: 0,
             });
-            chart.ctx.highlightManager.updateHighlight(chart.id, enabledDatum);
+            chart.ctx.highlightManager.updateHighlight(enabledDatum);
             await compare();
         });
 
@@ -527,7 +527,7 @@ describe('Chart highlighting', () => {
                 seriesIndex: 1,
                 datumIndex: 0,
             });
-            chart.ctx.highlightManager.updateHighlight(chart.id, enabledDatum);
+            chart.ctx.highlightManager.updateHighlight(enabledDatum);
             await waitForChartStability(chart);
 
             // Now transition to the disabled series (apples) — all series should clear dehighlight
@@ -537,7 +537,7 @@ describe('Chart highlighting', () => {
                 seriesIndex: 0,
                 datumIndex: 0,
             });
-            chart.ctx.highlightManager.updateHighlight(chart.id, disabledDatum);
+            chart.ctx.highlightManager.updateHighlight(disabledDatum);
             await compare();
         });
 
@@ -725,14 +725,14 @@ describe('Chart highlighting', () => {
             expect(datumHighlight).toBeDefined();
 
             // Datum-level highlight, as produced by hovering or arrow-key focusing a bar.
-            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            chart.ctx.highlightManager.updateHighlight(datumHighlight);
             await waitForChartStability(chart);
             for (const fillOpacity of baseLayerFillOpacities(chart, 0)) {
                 expect(fillOpacity).toBeLessThan(1);
             }
 
             // Series-level highlight of the same series, as when focus moves into a legend item.
-            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            chart.ctx.highlightManager.updateHighlight(legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
 
             expect(baseLayerFillOpacities(chart, 0)).toEqual([1, 1, 1, 1]);
@@ -742,7 +742,7 @@ describe('Chart highlighting', () => {
             const options = twoSeriesOptions();
             chart = deproxy(await createChart(options));
 
-            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            chart.ctx.highlightManager.updateHighlight(legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
             expect(baseLayerFillOpacities(chart, 0)).toEqual([1, 1, 1, 1]);
 
@@ -754,7 +754,7 @@ describe('Chart highlighting', () => {
             });
             expect(datumHighlight).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            chart.ctx.highlightManager.updateHighlight(datumHighlight);
             await waitForChartStability(chart);
             for (const fillOpacity of baseLayerFillOpacities(chart, 0)) {
                 expect(fillOpacity).toBeLessThan(1);
@@ -772,13 +772,13 @@ describe('Chart highlighting', () => {
                 datumIndex: 1,
             });
 
-            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            chart.ctx.highlightManager.updateHighlight(datumHighlight);
             await waitForChartStability(chart);
             for (const fillOpacity of baseLayerFillOpacities(chart, 1)) {
                 expect(fillOpacity).toBeLessThan(1);
             }
 
-            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            chart.ctx.highlightManager.updateHighlight(legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
             for (const fillOpacity of baseLayerFillOpacities(chart, 1)) {
                 expect(fillOpacity).toBeLessThan(1);
@@ -796,11 +796,11 @@ describe('Chart highlighting', () => {
                 datumIndex: 1,
             });
 
-            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            chart.ctx.highlightManager.updateHighlight(datumHighlight);
             await waitForChartStability(chart);
             expect(chart.series[0].highlightGroup.visible).toBe(true);
 
-            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            chart.ctx.highlightManager.updateHighlight(legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
             expect(chart.series[0].highlightGroup.visible).toBe(false);
         });
@@ -845,7 +845,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             // The hovered node itself.
@@ -905,7 +905,7 @@ describe('Chart highlighting', () => {
                 });
                 expect(hoveredDatum).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                chart.ctx.highlightManager.updateHighlight(hoveredDatum);
                 await waitForChartStability(chart);
 
                 expect(stateAt(chart, 2, 1, true)).toBe('highlighted-item');
@@ -956,7 +956,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             for (let datumIndex = 0; datumIndex < 3; datumIndex += 1) {
@@ -995,7 +995,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             expect(stateAt(chart, 1, 1)).toBe('highlighted-item');
@@ -1028,7 +1028,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             for (let datumIndex = 0; datumIndex < cartesianSeriesData.length; datumIndex += 1) {
@@ -1047,7 +1047,7 @@ describe('Chart highlighting', () => {
                 datumIndex: Number.NaN,
             };
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, legendHighlight);
+            chart.ctx.highlightManager.updateHighlight(legendHighlight);
             await waitForChartStability(chart);
 
             for (let datumIndex = 0; datumIndex < 4; datumIndex += 1) {
@@ -1076,7 +1076,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             expect(stateAt(chart, 1, 1)).toBe(expected);
@@ -1091,7 +1091,7 @@ describe('Chart highlighting', () => {
             expect(datumQ2).toBeDefined();
             expect(datumQ3).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+            chart.ctx.highlightManager.updateHighlight(datumQ2);
             await waitForChartStability(chart);
 
             const afterQ2 = baseLayerFillOpacities(chart, 1);
@@ -1099,7 +1099,7 @@ describe('Chart highlighting', () => {
             expect(afterQ2[0]).toBe(afterQ2[2]);
             expect(afterQ2[2]).toBe(afterQ2[3]);
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+            chart.ctx.highlightManager.updateHighlight(datumQ3);
             await waitForChartStability(chart);
 
             const afterQ3 = baseLayerFillOpacities(chart, 1);
@@ -1167,14 +1167,14 @@ describe('Chart highlighting', () => {
             expect(datumQ2).toBeDefined();
             expect(datumQ3).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+            chart.ctx.highlightManager.updateHighlight(datumQ2);
             await waitForChartStability(chart);
 
             const afterQ2 = baseLayerFillOpacities(chart, 2);
             expect(afterQ2[1]).toBeGreaterThan(afterQ2[0]);
 
             // Shared mode widens the update beyond the hovered series, so the third series repaints too.
-            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+            chart.ctx.highlightManager.updateHighlight(datumQ3);
             await waitForChartStability(chart);
 
             const afterQ3 = baseLayerFillOpacities(chart, 2);
@@ -1192,12 +1192,12 @@ describe('Chart highlighting', () => {
                 expect(datumQ2).toBeDefined();
                 expect(datumQ3).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+                chart.ctx.highlightManager.updateHighlight(datumQ2);
                 await waitForChartStability(chart);
                 await compare();
 
                 // The lit pair must move with the hover, leaving nothing lit at the previous category.
-                chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+                chart.ctx.highlightManager.updateHighlight(datumQ3);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -1237,7 +1237,7 @@ describe('Chart highlighting', () => {
                 });
                 expect(hoveredDatum).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                chart.ctx.highlightManager.updateHighlight(hoveredDatum);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -1272,7 +1272,7 @@ describe('Chart highlighting', () => {
                 });
                 expect(hoveredDatum).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                chart.ctx.highlightManager.updateHighlight(hoveredDatum);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -1289,457 +1289,10 @@ describe('Chart highlighting', () => {
                 });
                 expect(hoveredDatum).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                chart.ctx.highlightManager.updateHighlight(hoveredDatum);
                 await waitForChartStability(chart);
                 await compare();
             });
-        });
-    });
-
-    describe('Delayed unhighlight', () => {
-        afterEach(() => {
-            vi.useRealTimers();
-        });
-
-        it('highlighting is immediate with no delay', async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
-                data: categoryData,
-                axes: {
-                    x: { position: 'bottom', type: 'category' },
-                    y: { position: 'left', type: 'number' },
-                },
-                legend: { enabled: false },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
-            });
-
-            chart = deproxy(await createChart(options));
-
-            // Enable fake timers
-            vi.useFakeTimers();
-
-            const highlightManager = chart.ctx.highlightManager;
-            const callerId = chart.id;
-            const datum = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 0,
-            });
-            expect(datum).toBeDefined();
-
-            // Highlight directly (should be immediate, no delay)
-            highlightManager.updateHighlight(callerId, datum);
-
-            // Verify highlight is active immediately (no timer advancement needed)
-            const highlightedNode = highlightManager.getActiveHighlight();
-            expect(highlightedNode).toBeDefined();
-            expect(highlightedNode).toBe(datum);
-        });
-
-        it('unhighlighting is delayed by 100ms', async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
-                data: categoryData,
-                axes: {
-                    x: { position: 'bottom', type: 'category' },
-                    y: { position: 'left', type: 'number' },
-                },
-                legend: { enabled: false },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
-            });
-
-            chart = deproxy(await createChart(options));
-
-            // Enable fake timers
-            vi.useFakeTimers();
-
-            const highlightManager = chart.ctx.highlightManager;
-            const callerId = chart.id;
-            const datum = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 0,
-            });
-            expect(datum).toBeDefined();
-
-            // Highlight a bar
-            highlightManager.updateHighlight(callerId, datum);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            // Unhighlight with delayed=true (schedules delayed unhighlight)
-            highlightManager.updateHighlight(callerId, undefined, true);
-
-            // Immediately check - should still be highlighted
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            // Advance timer by 50ms - still highlighted (delay is 100ms)
-            vi.advanceTimersByTime(50);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            // Advance timer by another 60ms (total 110ms) - now unhighlighted
-            vi.advanceTimersByTime(60);
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-        });
-
-        it('highlighting new item cancels pending unhighlight for same caller', async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
-                data: categoryData,
-                axes: {
-                    x: { position: 'bottom', type: 'category' },
-                    y: { position: 'left', type: 'number' },
-                },
-                legend: { enabled: false },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
-            });
-
-            chart = deproxy(await createChart(options));
-
-            // Enable fake timers after chart creation
-            vi.useFakeTimers();
-
-            const highlightManager = chart.ctx.highlightManager;
-            const callerId = chart.id;
-
-            // Get a datum to highlight
-            const datum = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 0,
-            });
-            expect(datum).toBeDefined();
-
-            // Highlight bar 1
-            highlightManager.updateHighlight(callerId, datum);
-            const firstHighlight = highlightManager.getActiveHighlight();
-            expect(firstHighlight).toBeDefined();
-
-            // Unhighlight with delayed=true (triggers pending unhighlight)
-            highlightManager.updateHighlight(callerId, undefined, true);
-
-            // Advance timer by 30ms (less than 100ms delay)
-            vi.advanceTimersByTime(30);
-
-            // Re-highlight before unhighlight completes - should cancel pending unhighlight
-            highlightManager.updateHighlight(callerId, datum);
-            const secondHighlight = highlightManager.getActiveHighlight();
-
-            // Should immediately switch to highlighted state
-            expect(secondHighlight).toBeDefined();
-            expect(secondHighlight).toBe(datum);
-
-            // Advance timer by remaining 70ms (total 100ms) - should still be highlighted
-            vi.advanceTimersByTime(70);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-            expect(highlightManager.getActiveHighlight()).toBe(datum);
-        });
-
-        it('multiple callers can have independent pending unhighlights', async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
-                data: categoryData,
-                axes: {
-                    x: { position: 'bottom', type: 'category' },
-                    y: { position: 'left', type: 'number' },
-                },
-                legend: { enabled: false },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
-            });
-
-            chart = deproxy(await createChart(options));
-
-            // Enable fake timers after chart creation
-            vi.useFakeTimers();
-
-            const highlightManager = chart.ctx.highlightManager;
-            const callerA = 'callerA';
-            const callerB = 'callerB';
-
-            // Get data to highlight
-            const datumA = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 0,
-            });
-            const datumB = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 1,
-            });
-            expect(datumA).toBeDefined();
-            expect(datumB).toBeDefined();
-
-            // Caller A highlights
-            highlightManager.updateHighlight(callerA, datumA);
-            expect(highlightManager.getActiveHighlight()).toBe(datumA);
-
-            // Caller B highlights (should override A)
-            highlightManager.updateHighlight(callerB, datumB);
-            expect(highlightManager.getActiveHighlight()).toBe(datumB);
-
-            // Caller A unhighlights with delayed=true (schedules delayed unhighlight for A)
-            highlightManager.updateHighlight(callerA, undefined, true);
-            // B should still be active (A's entry is still in StateTracker until delay fires)
-            expect(highlightManager.getActiveHighlight()).toBe(datumB);
-
-            // Advance timer by 100ms - A's unhighlight fires, clearing A's entry
-            vi.advanceTimersByTime(100);
-            // B should still be active (only A's entry was cleared)
-            expect(highlightManager.getActiveHighlight()).toBe(datumB);
-
-            // Now caller B unhighlights with delayed=true (schedules delayed unhighlight for B)
-            highlightManager.updateHighlight(callerB, undefined, true);
-            // Should still show B (delay pending)
-            expect(highlightManager.getActiveHighlight()).toBe(datumB);
-
-            // Advance timer by 100ms - B's unhighlight fires
-            vi.advanceTimersByTime(100);
-            // Now should be unhighlighted
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-        });
-
-        it("highlighting from one caller does not cancel another caller's pending unhighlight", async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
-                data: categoryData,
-                axes: {
-                    x: { position: 'bottom', type: 'category' },
-                    y: { position: 'left', type: 'number' },
-                },
-                legend: { enabled: false },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
-            });
-
-            chart = deproxy(await createChart(options));
-
-            // Enable fake timers after chart creation
-            vi.useFakeTimers();
-
-            const highlightManager = chart.ctx.highlightManager;
-            const callerA = 'callerA';
-            const callerB = 'callerB';
-
-            // Get data to highlight
-            const datumA = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 0,
-            });
-            const datumB = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 1,
-            });
-            expect(datumA).toBeDefined();
-            expect(datumB).toBeDefined();
-
-            // Caller A highlights
-            highlightManager.updateHighlight(callerA, datumA);
-            expect(highlightManager.getActiveHighlight()).toBe(datumA);
-
-            // Caller A unhighlights with delayed=true (schedules delayed unhighlight)
-            highlightManager.updateHighlight(callerA, undefined, true);
-            expect(highlightManager.getActiveHighlight()).toBe(datumA); // Still active due to delay
-
-            // Advance timer by 30ms
-            vi.advanceTimersByTime(30);
-
-            // Caller B highlights (should NOT cancel A's pending unhighlight)
-            highlightManager.updateHighlight(callerB, datumB);
-            expect(highlightManager.getActiveHighlight()).toBe(datumB);
-
-            // Advance timer by 70ms (total 100ms) - A's unhighlight should fire
-            vi.advanceTimersByTime(70);
-            // B should still be active (A's entry cleared, but B remains)
-            expect(highlightManager.getActiveHighlight()).toBe(datumB);
-        });
-
-        it('unhighlighting is immediate when delayed=false', async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
-                data: categoryData,
-                axes: {
-                    x: { position: 'bottom', type: 'category' },
-                    y: { position: 'left', type: 'number' },
-                },
-                legend: { enabled: false },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
-            });
-
-            chart = deproxy(await createChart(options));
-
-            // Enable fake timers
-            vi.useFakeTimers();
-
-            const highlightManager = chart.ctx.highlightManager;
-            const callerId = chart.id;
-            const datum = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 0,
-            });
-            expect(datum).toBeDefined();
-
-            // Highlight a bar
-            highlightManager.updateHighlight(callerId, datum);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            // Unhighlight with delayed=false (immediate unhighlight)
-            highlightManager.updateHighlight(callerId, undefined, false);
-
-            // Should be immediately unhighlighted (no wait needed)
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-        });
-
-        it('immediate unhighlight cancels pending delayed unhighlight', async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
-                data: categoryData,
-                axes: {
-                    x: { position: 'bottom', type: 'category' },
-                    y: { position: 'left', type: 'number' },
-                },
-                legend: { enabled: false },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
-            });
-
-            chart = deproxy(await createChart(options));
-
-            // Enable fake timers
-            vi.useFakeTimers();
-
-            const highlightManager = chart.ctx.highlightManager;
-            const callerId = chart.id;
-            const datum = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 0,
-            });
-            expect(datum).toBeDefined();
-
-            // Highlight a bar
-            highlightManager.updateHighlight(callerId, datum);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            // Trigger delayed unhighlight
-            highlightManager.updateHighlight(callerId, undefined, true);
-
-            // Wait 50ms
-            vi.advanceTimersByTime(50);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            // Trigger immediate unhighlight before delay completes
-            highlightManager.updateHighlight(callerId, undefined, false);
-
-            // Should be immediately unhighlighted
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-
-            // Wait for original delay period
-            vi.advanceTimersByTime(100);
-
-            // Should still be unhighlighted (no double-unhighlight)
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-        });
-
-        it('repeated delayed unhighlight calls do not reset countdown', async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
-                data: categoryData,
-                axes: {
-                    x: { position: 'bottom', type: 'category' },
-                    y: { position: 'left', type: 'number' },
-                },
-                legend: { enabled: false },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
-            });
-
-            chart = deproxy(await createChart(options));
-
-            // Enable fake timers
-            vi.useFakeTimers();
-
-            const highlightManager = chart.ctx.highlightManager;
-            const callerId = chart.id;
-            const datum = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 0,
-            });
-            expect(datum).toBeDefined();
-
-            // Highlight a bar
-            highlightManager.updateHighlight(callerId, datum);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            // First delayed unhighlight call - starts countdown
-            highlightManager.updateHighlight(callerId, undefined, true);
-
-            // Wait 50ms (halfway through 100ms countdown)
-            vi.advanceTimersByTime(50);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            // Second delayed unhighlight call - should NOT reset countdown
-            highlightManager.updateHighlight(callerId, undefined, true);
-
-            // Wait another 30ms (total 80ms from first call, 30ms from second call)
-            vi.advanceTimersByTime(30);
-
-            // Third delayed unhighlight call - should still NOT reset countdown
-            highlightManager.updateHighlight(callerId, undefined, true);
-
-            // Wait another 25ms (total 105ms from first call, 55ms from second, 25ms from third)
-            vi.advanceTimersByTime(25);
-
-            // Should be unhighlighted now (100ms from FIRST call has elapsed)
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-        });
-
-        it('multiple rapid highlight/unhighlight cycles work correctly', async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
-                data: categoryData,
-                axes: {
-                    x: { position: 'bottom', type: 'category' },
-                    y: { position: 'left', type: 'number' },
-                },
-                legend: { enabled: false },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
-            });
-
-            chart = deproxy(await createChart(options));
-
-            // Enable fake timers after chart creation
-            vi.useFakeTimers();
-
-            const highlightManager = chart.ctx.highlightManager;
-            const callerId = chart.id;
-            const datum = defaultHighlightDatum(chart, {
-                name: 'test',
-                options,
-                seriesIndex: 0,
-                datumIndex: 0,
-            });
-            expect(datum).toBeDefined();
-
-            // Rapidly hover and unhover multiple times
-            highlightManager.updateHighlight(callerId, datum);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            highlightManager.updateHighlight(callerId, undefined, true); // Unhighlight with delayed=true
-            vi.advanceTimersByTime(50);
-            highlightManager.updateHighlight(callerId, datum); // Re-hover before delay completes
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            highlightManager.updateHighlight(callerId, undefined, true); // Unhover again with delayed=true
-            vi.advanceTimersByTime(50);
-            highlightManager.updateHighlight(callerId, datum); // Re-hover again
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            // Final unhover with delayed=true and advance timer
-            highlightManager.updateHighlight(callerId, undefined, true);
-            vi.advanceTimersByTime(150);
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
     });
 });

@@ -148,7 +148,7 @@ describe('TreemapSeries', () => {
             }
 
             const highlightManager = deproxy(chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            highlightManager.updateHighlight(node);
             await compare();
         });
     });
@@ -191,7 +191,7 @@ describe('TreemapSeries', () => {
 
         const highlightNodeAndReadFill = async (path: number[]): Promise<unknown> => {
             const node = nodeAtPath(path);
-            deproxy(chart).ctx.highlightManager.updateHighlight(chart.id, node);
+            deproxy(chart).ctx.highlightManager.updateHighlight(node);
             await waitForChartStability(chart);
             return highlightFill();
         };
@@ -2309,7 +2309,7 @@ describe('TreemapSeries', () => {
             chart = deproxy(proxy);
             const highlightManager = deproxy(chart).ctx.highlightManager;
 
-            highlightManager.updateHighlight(chart.id, findTileNode('A2'));
+            highlightManager.updateHighlight(findTileNode('A2'));
             await waitForChartStability(chart);
             expect(highlightTile()?.datum?.datum?.title).toBe('A2');
 
@@ -2317,7 +2317,7 @@ describe('TreemapSeries', () => {
             await waitForChartStability(chart);
 
             const b1 = findTileNode('B1');
-            highlightManager.updateHighlight(chart.id, b1);
+            highlightManager.updateHighlight(b1);
             await waitForChartStability(chart);
             const highlighted = highlightTile();
             expect(highlighted?.datum).toBe(b1);
@@ -2328,7 +2328,7 @@ describe('TreemapSeries', () => {
             expect(highlighted?.width).toBeCloseTo(base.width, 5);
             expect(highlighted?.height).toBeCloseTo(base.height, 5);
 
-            highlightManager.updateHighlight(chart.id);
+            highlightManager.updateHighlight();
             await waitForChartStability(chart);
             expect(getSeriesSelectionNodes(chart, 'highlightSelection')).toHaveLength(0);
         });

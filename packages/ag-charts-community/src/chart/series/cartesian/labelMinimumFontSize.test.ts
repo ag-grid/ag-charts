@@ -4,7 +4,7 @@ import type { Text } from 'ag-charts-core';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { getVisibleLabelTextNodes } from '../../test/communitySeriesAccessors';
-import { getSeriesAt, getSeriesContextNodeData } from '../../test/seriesAccessors';
+import { getSeriesContextNodeData } from '../../test/seriesAccessors';
 import {
     compareImageSnapshot,
     createChart,
@@ -476,7 +476,7 @@ describe('label minimumFontSize', () => {
             await render(bubbleChart({ minimumFontSize: 4 }));
             const placed = fontSizes();
             const [datum] = getSeriesContextNodeData(chart).labelData;
-            deproxy(chart).ctx.highlightManager.updateHighlight(getSeriesAt(chart).id, datum);
+            deproxy(chart).ctx.highlightManager.updateHighlight(datum);
             await waitForChartStability(chart);
             const highlighted = drawnLabels(getVisibleLabelTextNodes(chart, 0, 'highlightLabelSelection')).map(
                 (node) => node.fontSize

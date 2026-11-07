@@ -114,8 +114,8 @@ describe('MapMarkerSeries', () => {
 
             const node = getSeriesContextNodeData<UkNodeDatum>(chart, 1).nodeData[i];
 
-            const { ctx: chartCtx, id } = deproxy(chart);
-            chartCtx.highlightManager.updateHighlight(id, node);
+            const { ctx: chartCtx } = deproxy(chart);
+            chartCtx.highlightManager.updateHighlight(node);
             await compare();
         });
     });
@@ -497,8 +497,8 @@ describe('MapMarkerSeries', () => {
             const targetNode = getSeriesContextNodeData<UkNodeDatum>(chart, 1).nodeData[0];
             expect(targetNode).toBeDefined();
 
-            const { ctx: chartCtx, id } = deproxy(chart);
-            chartCtx.highlightManager.updateHighlight(id, targetNode);
+            const { ctx: chartCtx } = deproxy(chart);
+            chartCtx.highlightManager.updateHighlight(targetNode);
             await compare();
         });
 
@@ -533,8 +533,8 @@ describe('MapMarkerSeries', () => {
             );
             expect(missingNode).toBeDefined();
 
-            const { ctx: chartCtx, id } = deproxy(chart);
-            chartCtx.highlightManager.updateHighlight(id, missingNode);
+            const { ctx: chartCtx } = deproxy(chart);
+            chartCtx.highlightManager.updateHighlight(missingNode);
             await compare();
         });
     });

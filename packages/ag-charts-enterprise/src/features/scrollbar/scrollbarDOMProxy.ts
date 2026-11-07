@@ -13,7 +13,7 @@ import type {
 const STEP_REPEAT_DELAY_MS = 400;
 const STEP_REPEAT_INTERVAL_MS = 50;
 
-const DRAG_CURSOR_ID = 'scrollbar-drag-cursor';
+const CURSOR_ID = 'scrollbar-cursor';
 
 type PointerLikeEvent = ClickWidgetEvent | MouseWidgetEvent<'mouseenter' | 'mousemove'> | DragWidgetEvent;
 
@@ -216,7 +216,7 @@ export class ScrollbarDOMProxy {
     destroy() {
         this.interactionBounds = undefined;
 
-        this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
+        this.ctx.domManager.updateCursor(CURSOR_ID);
         this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
         this.repeater.stop();
         this.container.destroy();
@@ -316,7 +316,7 @@ export class ScrollbarDOMProxy {
     }
 
     private onDragEnd() {
-        this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
+        this.ctx.domManager.updateCursor(CURSOR_ID);
         this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
         this.interactionBounds = undefined;
         this.setInteraction('none');
@@ -331,9 +331,9 @@ export class ScrollbarDOMProxy {
 
         if (!click?.inBounds) return;
 
-        // Scrolling shows no special cursor of its own, so pin the default: regions the pointer
-        // crosses while the mouse is held must not restyle it.
-        this.ctx.domManager.lockCursor(DRAG_CURSOR_ID, 'default');
+        // Scrolling shows no special cursor of its own, so replace any hover cursor the pointer brought
+        // onto the slider, such as an axis band's resize cursor.
+        this.ctx.domManager.updateCursor(CURSOR_ID, 'default');
         this.ctx.interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
 
         if (click.inThumb) {

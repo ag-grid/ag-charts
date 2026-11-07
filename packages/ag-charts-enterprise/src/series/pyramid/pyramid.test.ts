@@ -93,7 +93,7 @@ describe('PyramidSeries', () => {
 
             const node = getSeriesContextNodeData(target).nodeData[0];
 
-            target.ctx.highlightManager.updateHighlight(target.id, node);
+            target.ctx.highlightManager.updateHighlight(node);
             await compare();
         });
     });

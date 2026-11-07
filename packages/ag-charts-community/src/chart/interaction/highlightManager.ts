@@ -1,26 +1,24 @@
-import { type DynamicContext, type Point, StateTracker, debouncedCallback, objectsEqual } from 'ag-charts-core';
+import { type DynamicContext, type Point, debouncedCallback, objectsEqual } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ErrorBoundSeriesNodeDatum } from '../series/seriesTypes';
 
 /**
- * Manages the actively highlighted series/datum for a chart. Tracks the requested highlights from
- * distinct dependents and handles conflicting highlight requests.
+ * Manages the actively highlighted series/datum for a chart. The most recent highlight request wins.
  */
 export class HighlightManager {
-    private readonly highlightStates = new StateTracker<HighlightNodeDatum>();
+    private activeHighlight?: HighlightNodeDatum;
 
     /**
-     * Part of the highlighted node under the pointer, per caller (see `Series.getHighlightPart`). Kept
-     * beside the highlight rather than on it: the highlighted datum rolls up unchanged, so consumers
-     * that don't care about parts are unaffected, and only a caller supplying a part makes the
-     * highlight sensitive to it.
+     * Part of the highlighted node under the pointer (see `Series.getHighlightPart`). Kept beside the
+     * highlight rather than on it: the highlighted datum rolls up unchanged, so consumers that don't
+     * care about parts are unaffected, and only a caller supplying a part makes the highlight
+     * sensitive to it.
      */
-    private readonly highlightParts = new Map<string, string>();
+    private activeHighlightPart?: string;
 
-    // Track pending unhighlights per caller
-    private readonly pendingUnhighlights = new Map<string, { scheduler: ReturnType<typeof debouncedCallback> }>();
+    private pendingUnhighlight?: ReturnType<typeof debouncedCallback>;
 
     // Configurable delay (hardcoded for POC, will be user-configurable later)
     public unhighlightDelay: number = 100; // milliseconds
@@ -31,63 +29,43 @@ export class HighlightManager {
 
     private highlightInViewport: boolean = true;
 
+    /** `synced` marks a highlight mirrored from another chart, so sync does not echo it back. */
     public updateHighlight(
-        callerId: string,
         highlightedDatum?: HighlightNodeDatum,
         delayed: boolean = false,
         inViewport?: boolean,
-        highlightPart?: string
+        highlightPart?: string,
+        synced: boolean = false
     ): void {
-        const previousHighlight = this.getActiveHighlight();
-        const previousHighlightPart = this.getActiveHighlightPart();
-
         if (highlightedDatum == null && delayed && this.unhighlightDelay > 0) {
-            // Only schedule if we don't already have a pending unhighlight for this caller
-            // This prevents resetting the countdown on repeated calls during continuous mouse movement
-            if (!this.pendingUnhighlights.has(callerId)) {
-                // First call for this caller - start the countdown
-                const scheduler = debouncedCallback(() => {
-                    this.applyPendingUnhighlight(callerId);
-                });
+            // A repeat call must not restart the countdown during continuous mouse movement.
+            if (this.pendingUnhighlight) return;
 
-                // Schedule the unhighlight after a delay
-                this.pendingUnhighlights.set(callerId, { scheduler });
-                scheduler.schedule(this.unhighlightDelay);
-            }
-            // If already pending for same caller, do nothing - let the countdown continue
+            this.pendingUnhighlight = debouncedCallback(() => {
+                this.pendingUnhighlight = undefined;
+                this.setHighlight(undefined, true, undefined, synced);
+            });
+            this.pendingUnhighlight.schedule(this.unhighlightDelay);
             return;
         }
 
-        // Cancel any pending delayed unhighlight for THIS caller only - we're highlighting something new
-        const pending = this.pendingUnhighlights.get(callerId);
-        if (pending) {
-            pending.scheduler.cancel();
-            this.pendingUnhighlights.delete(callerId);
-        }
-
-        if (highlightedDatum) {
-            this.highlightStates.set(callerId, highlightedDatum);
-        } else {
-            this.highlightStates.delete(callerId);
-        }
-
-        if (highlightedDatum && highlightPart != null) {
-            this.highlightParts.set(callerId, highlightPart);
-        } else {
-            this.highlightParts.delete(callerId);
-        }
-
-        this.maybeEmitChange(callerId, previousHighlight, inViewport, previousHighlightPart);
+        this.cancelPendingUnhighlight();
+        this.setHighlight(highlightedDatum, inViewport, highlightPart, synced);
     }
 
-    private maybeEmitChange(
-        callerId: string,
-        previousHighlight: HighlightNodeDatum | undefined,
-        inViewport?: boolean,
-        previousHighlightPart?: string
+    private setHighlight(
+        highlightedDatum: HighlightNodeDatum | undefined,
+        inViewport: boolean | undefined,
+        highlightPart: string | undefined,
+        highlightSynced: boolean
     ): void {
-        const currentHighlight = this.getActiveHighlight();
-        const currentHighlightPart = this.getActiveHighlightPart();
+        const previousHighlight = this.activeHighlight;
+        const previousHighlightPart = this.activeHighlightPart;
+        this.activeHighlight = highlightedDatum;
+        this.activeHighlightPart = highlightedDatum ? highlightPart : undefined;
+
+        const currentHighlight = this.activeHighlight;
+        const currentHighlightPart = this.activeHighlightPart;
         const highlightChanged =
             !this.isEqual(currentHighlight, previousHighlight) || currentHighlightPart !== previousHighlightPart;
         // Callers that don't know the viewport state omit `inViewport`; resetting the flag to `true`
@@ -99,53 +77,33 @@ export class HighlightManager {
             this.highlightInViewport = highlightInViewport;
             this.ctx.chartState.setValue('highlight', currentHighlight);
             this.ctx.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
-                callerId,
                 currentHighlight,
                 previousHighlight,
                 currentHighlightPart,
                 previousHighlightPart,
                 highlightSuppressed,
                 highlightInViewport,
+                highlightSynced,
             });
         }
     }
 
-    private applyPendingUnhighlight(callerId: string): void {
-        // Check if this caller still has a pending unhighlight (might have been cancelled)
-        if (!this.pendingUnhighlights.has(callerId)) {
-            return; // No pending unhighlight for this caller
-        }
-
-        // Remove from pending map before clearing state
-        this.pendingUnhighlights.delete(callerId);
-
-        const previousHighlight = this.getActiveHighlight();
-        const previousHighlightPart = this.getActiveHighlightPart();
-
-        // Actually clear the highlight for this caller
-        this.highlightStates.delete(callerId);
-        this.highlightParts.delete(callerId);
-
-        this.maybeEmitChange(callerId, previousHighlight, true, previousHighlightPart);
+    private cancelPendingUnhighlight(): void {
+        this.pendingUnhighlight?.cancel();
+        this.pendingUnhighlight = undefined;
     }
 
     public getActiveHighlight(): HighlightNodeDatum | undefined {
-        return this.highlightStates.stateValue();
+        return this.activeHighlight;
     }
 
-    /** Part of the active highlight, as reported by the caller that owns it. */
+    /** Part of the active highlight, as reported by the caller that set it. */
     public getActiveHighlightPart(): string | undefined {
-        const callerId = this.highlightStates.stateId();
-        return callerId == null ? undefined : this.highlightParts.get(callerId);
+        return this.activeHighlightPart;
     }
 
     public destroy(): void {
-        // Cancel all pending unhighlights when manager is destroyed
-        for (const { scheduler } of this.pendingUnhighlights.values()) {
-            scheduler.cancel();
-        }
-        this.pendingUnhighlights.clear();
-        this.highlightParts.clear();
+        this.cancelPendingUnhighlight();
     }
 
     private isEqual(a?: HighlightNodeDatum, b?: HighlightNodeDatum): boolean {

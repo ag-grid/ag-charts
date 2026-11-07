@@ -78,16 +78,13 @@ describe.each(SERIES)(
                     series: [series('v', shadow, highlight), series('w', shadow, highlight)],
                 } as AgChartOptions)
             );
-            chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
+            chart.ctx.highlightManager.updateHighlight(getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
             await waitForChartStability(chart);
             const inPlace = (i: number) => shapesOf(getSeriesAt(chart, i).contentGroup, kind);
             const highlighted = (i: number) =>
                 shapesOf(getSeriesAt(chart, i).highlightNodeGroup, kind).filter((r) => r.visible);
             const moveTo = async (datumIndex: number) => {
-                chart.ctx.highlightManager.updateHighlight(
-                    chart.id,
-                    getSeriesNodeData<HighlightNodeDatum>(chart)[datumIndex]
-                );
+                chart.ctx.highlightManager.updateHighlight(getSeriesNodeData<HighlightNodeDatum>(chart)[datumIndex]);
                 await waitForChartStability(chart);
             };
             return { inPlace, highlighted, moveTo };
@@ -197,7 +194,6 @@ describe('glow when the hover moves between series', () => {
 
     const hoverDatum = async (seriesIndex: number, datumIndex: number) => {
         chart.ctx.highlightManager.updateHighlight(
-            chart.id,
             getSeriesNodeData<HighlightNodeDatum>(chart, seriesIndex)[datumIndex]
         );
         await waitForChartStability(chart);
