@@ -62,9 +62,6 @@ export interface AgShadowHighlightStyleOptions {
      * the same depth as the `shadow` of the series, behind every series. It is not available on `highlightedSeries`,
      * `unhighlightedItem` or `unhighlightedSeries`, and is ignored where an item cannot cast a shadow.
      *
-     * It applies only to markers drawn in place. A marker drawn only on hover, such as the default marker of an area
-     * series or a marker that a dense line drops, casts no shadow.
-     *
      * Default: the `shadow` of the series
      */
     shadow?: Omit<AgDropShadowOptions, 'color'>;

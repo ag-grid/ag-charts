@@ -689,7 +689,7 @@ describe('highlight glow', () => {
                     Array.from({ length: 5000 }, (_, i) => ({ x: i, y: i % 17 })),
                 ],
             ])('on %s', (_name, series, data) => {
-                it('casts no highlightedItem.shadow from any marker of the series', async () => {
+                it('draws no marker on hover, so there is none to cast the shadow', async () => {
                     chart = deproxy(
                         await createChart({
                             data,
@@ -700,25 +700,21 @@ describe('highlight glow', () => {
                                     ...series,
                                     xKey: 'x',
                                     yKey: 'y',
-                                    highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW } },
+                                    highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
                                 },
                             ],
                         } as AgChartOptions)
                     );
-                    const hovered = getSeriesAt(chart);
-                    // No marker is drawn in place, which is what leaves nothing for the bucket to reach.
-                    expect(shapesOf(hovered.contentGroup, Marker)).toEqual([]);
+                    expect(shapesOf(chart.seriesRoot, Marker)).toEqual([]);
                     chart.ctx.highlightManager.updateHighlight(
                         chart.id,
                         getSeriesNodeData<HighlightNodeDatum>(chart)[0]
                     );
                     await waitForChartStability(chart);
 
-                    expect(hovered.highlightGroup.visible).toBe(true);
-                    // Whatever the highlight layer draws for the hover, it casts none of the bucket's shadow.
-                    for (const marker of shapesOf(chart.seriesRoot, Marker)) {
-                        expect(marker.fillShadow?.enabled).not.toBe(true);
-                    }
+                    expect(getSeriesAt(chart).highlightGroup.visible).toBe(true);
+                    // A marker that starts being drawn on hover must be given the bucket's shadow, and this must change.
+                    expect(shapesOf(chart.seriesRoot, Marker)).toEqual([]);
                 });
             });
 
