@@ -30,7 +30,7 @@ import {
     toNumber,
     withoutCasts,
 } from 'ag-charts-core';
-import type { AgActiveItemState, AgGlowOptions, FillOptions, StrokeOptions } from 'ag-charts-types';
+import type { AgActiveItemState, AgGlowOptions, AgItemShadowStyle, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 
@@ -647,7 +647,8 @@ export abstract class HierarchySeries<
     protected getHierarchyGlow(
         slot: number,
         highlightState: HierarchyHighlightState,
-        resolveGlow: (highlightState: HierarchyHighlightState) => Parameters<typeof glowToShadow>[0]
+        resolveGlow: (highlightState: HierarchyHighlightState) => Parameters<typeof glowToShadow>[0],
+        itemGlow?: AgGlowOptions
     ): NormalisedDropShadowOptions | undefined {
         const glowByState = (this.glowBySlot[slot] ??= []);
         let glow = glowByState[highlightState];
@@ -655,7 +656,11 @@ export abstract class HierarchySeries<
             glow = glowToShadow(resolveGlow(highlightState)) ?? null;
             glowByState[highlightState] = glow;
         }
-        return glow ?? undefined;
+        if (itemGlow == null) return glow ?? undefined;
+        // An item styler's `glow` merges over the glow of the highlight state, and equal results share one object.
+        return this.internItemCast(glow ?? undefined, `h${slot}:${highlightState}:${JSON.stringify(itemGlow)}`, () =>
+            glowToShadow(mergeGlow({ glow: { enabled: true, ...itemGlow } }, { glow: resolveGlow(highlightState) }))
+        );
     }
 
     /**
@@ -668,8 +673,10 @@ export abstract class HierarchySeries<
         glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
         highlightedNode: TNodeClass | undefined,
-        nodeDatum: Pick<TNodeClass, 'datumIndex'>
+        nodeDatum: Pick<TNodeClass, 'datumIndex'>,
+        itemShadow?: AgItemShadowStyle['shadow']
     ): NormalisedDropShadowOptions | undefined {
+        if (itemShadow != null) shadow = this.mergeItemShadow(shadow, itemShadow);
         if (isHighlight) return glow;
         if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
         return glow ?? shadow;

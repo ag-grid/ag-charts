@@ -1,4 +1,4 @@
-import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgItemShadowStyle, type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type BoxBounds,
     type CallbackParamRules,
@@ -34,6 +34,7 @@ import {
     resolveLabelFit,
     resolveSeriesLabelDefaults,
     toArray,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { BBox } from 'ag-charts-core';
 import {
@@ -82,7 +83,7 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
     readonly sizeValue: number | undefined;
     readonly legendItemName: string | undefined;
     readonly point: Readonly<SizedPoint>;
-    style: AgMapMarkerSeriesStyle;
+    style: AgMapMarkerSeriesStyle & AgItemShadowStyle;
 }
 
 interface MapMarkerNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -821,7 +822,7 @@ export class MapMarkerSeries
     protected getMarkerItemStyle(
         { datumIndex, datum, colorValue, sizeValue }: Partial<MapMarkerNodeDatum>,
         isHighlight: boolean
-    ): Required<NormalisedMapMarkerSeriesStyle> {
+    ): Required<NormalisedMapMarkerSeriesStyle> & AgItemShadowStyle {
         const { options, colorScale } = this;
         const { colorKey, colorScale: colorScaleProps, itemStyler } = options;
         const { missingDataFill } = colorScaleProps;
@@ -859,7 +860,7 @@ export class MapMarkerSeries
             baseStyle.size = this.scaleMarkerSize(sizeValue);
         }
 
-        let style = baseStyle;
+        let style: typeof baseStyle & AgItemShadowStyle = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -878,7 +879,7 @@ export class MapMarkerSeries
             }
         }
         // fill/stroke refs are resolved during theme-merge before reaching here.
-        return style as Required<NormalisedMapMarkerSeriesStyle>;
+        return style as Required<NormalisedMapMarkerSeriesStyle> & AgItemShadowStyle;
     }
 
     private makeLabelFormatterParams() {
@@ -952,8 +953,22 @@ export class MapMarkerSeries
 
             marker.setStyleProperties(style, fillBBox);
             const castState = this.getItemCastState(activeHighlight, isHighlight, markerDatum.datumIndex);
-            const shadow = this.resolveItemShadow(this.options.shadow, isHighlight, markerDatum.datumIndex, castState);
-            const glow = this.resolveItemGlow(this.options.glow, isHighlight, markerDatum.datumIndex, castState);
+            const shadow = this.resolveItemShadow(
+                this.options.shadow,
+                isHighlight,
+                markerDatum.datumIndex,
+                castState,
+                undefined,
+                style.shadow
+            );
+            const glow = this.resolveItemGlow(
+                this.options.glow,
+                isHighlight,
+                markerDatum.datumIndex,
+                castState,
+                undefined,
+                style.glow
+            );
             const supported = isSupportedMarkerShape(style.shape);
             marker.fillShadow = shadow?.enabled && supported ? shadow : undefined;
             marker.fillGlow = glow?.enabled && supported ? glow : undefined;
@@ -1257,7 +1272,7 @@ export class MapMarkerSeries
                 sizeName,
                 labelKey,
                 labelName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

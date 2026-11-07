@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgItemShadowStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     BBox,
     type CallbackParamRules,
@@ -543,7 +543,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         style.opacity = 1;
 
-        return style;
+        return style as typeof style & AgItemShadowStyle;
     }
 
     private makeItemStylerParams(
@@ -603,9 +603,13 @@ export class ChordSeries extends FlowProportionSeries<
             sector.setStyleProperties(style, fillBBox);
             const castState = this.getItemCastState(highlightedDatum, isHighlight, datumIndex);
             sector.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState);
+                datum === focusedDatum
+                    ? undefined
+                    : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState, undefined, style.shadow);
             sector.fillGlow =
-                focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datumIndex, castState) : undefined;
+                focusedDatum == null
+                    ? this.resolveItemGlow(glow, isHighlight, datumIndex, castState, undefined, style.glow)
+                    : undefined;
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -678,7 +682,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         style.opacity = 1;
 
-        return style;
+        return style as typeof style & AgItemShadowStyle;
     }
 
     /**
@@ -757,9 +761,11 @@ export class ChordSeries extends FlowProportionSeries<
             link.fillShadow =
                 datum === focusedDatum
                     ? undefined
-                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState);
+                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState, undefined, style.shadow);
             link.fillGlow =
-                focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState) : undefined;
+                focusedDatum == null
+                    ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState, undefined, style.glow)
+                    : undefined;
         });
     }
 

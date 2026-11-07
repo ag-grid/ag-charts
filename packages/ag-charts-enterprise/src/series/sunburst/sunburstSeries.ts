@@ -1,4 +1,5 @@
 import {
+    type AgItemShadowStyle,
     type AgSunburstHighlightState,
     type AgSunburstSeriesLabelFormatterParams,
     _ModuleSupport,
@@ -39,9 +40,16 @@ import {
     mergeDefaults,
     normalizeAngle360,
     readDatumKey,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { Path } from 'ag-charts-core';
-import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight, PaddingOptions } from 'ag-charts-types';
+import type {
+    AgGlowOptions,
+    AgSunburstSeriesItemStylerParams,
+    FontStyle,
+    FontWeight,
+    PaddingOptions,
+} from 'ag-charts-types';
 
 import {
     HierarchyHighlightState,
@@ -291,7 +299,7 @@ export class SunburstSeries extends HierarchySeries<
             baseStyle.fill = missingDataFill;
         }
 
-        let style = baseStyle;
+        let style: typeof baseStyle & AgItemShadowStyle = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
@@ -321,11 +329,17 @@ export class SunburstSeries extends HierarchySeries<
         this.getHierarchyHighlightGlow(highlightState, this.options.highlight);
 
     /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
-    private getNodeGlow(nodeDatum: SunburstNode, isHighlight: boolean, highlightedNode: SunburstNode | undefined) {
-        if (!this.options.highlight.enabled) return;
+    private getNodeGlow(
+        nodeDatum: SunburstNode,
+        isHighlight: boolean,
+        highlightedNode: SunburstNode | undefined,
+        itemGlow?: AgGlowOptions
+    ) {
+        // A glow from an item styler casts whether or not the highlight is on, over the highlight state's.
+        if (!this.options.highlight.enabled && itemGlow == null) return;
 
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
-        return this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow);
+        return this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow, itemGlow);
     }
 
     private itemStyle(index: number): ItemStyle {
@@ -538,14 +552,21 @@ export class SunburstSeries extends HierarchySeries<
             sector.visible = true;
 
             const style = this.getItemStyle(nodeDatum, highlighted);
-            const glow = this.getNodeGlow(nodeDatum, highlighted, highlightedNode);
+            const glow = this.getNodeGlow(nodeDatum, highlighted, highlightedNode, style.glow);
 
             const fill = style.fill;
             const strokeWidth = style.strokeWidth;
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = this.resolveNodeShadow(shadow, glow, highlighted, highlightedNode, nodeDatum);
+            sector.fillShadow = this.resolveNodeShadow(
+                shadow,
+                glow,
+                highlighted,
+                highlightedNode,
+                nodeDatum,
+                style.shadow
+            );
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
@@ -1046,7 +1067,7 @@ export class SunburstSeries extends HierarchySeries<
                 sizeName,
                 colorKey,
                 colorName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }
