@@ -62,6 +62,7 @@ import type {
     AgDrawingMode,
     AgGlowOptions,
     AgInitialStateLegendOptions,
+    AgItemShadowStyle,
     AgMatchedParams,
     AgNodeClickEvent,
     AgNodeClickParams,
@@ -134,6 +135,12 @@ import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, isDatumHighlight, resolveMarkerDrawingMode } from './util';
 
 /** The `shadow` that `highlightedItem` sets. */
+/** The key of what an item styler's `shadow` or `glow` is merged over, when there is nothing to merge it over. */
+const NO_ITEM_CAST_BASE = {};
+
+/** What an item styler's `shadow` is merged over where the series has none: the theme's, without its fill. */
+const ITEM_SHADOW_FALLBACK = { enabled: false, xOffset: 3, yOffset: 3, blur: 5 };
+
 type HighlightedItemShadow = NonNullable<AgShadowHighlightStyleOptions['shadow']>;
 
 type NodeEventType = 'seriesNodeClick' | 'seriesNodeDoubleClick' | 'nodeContextMenuAction';
@@ -434,6 +441,7 @@ export abstract class Series<
         this.options = options;
         this.glowCascades = undefined;
         this.shadowCascades = undefined;
+        this.itemCastInterns = undefined;
         this.itemShadowBucket = undefined;
         this.highlightStyleByState = undefined;
         this.anyGlow = undefined;
@@ -1224,16 +1232,31 @@ export abstract class Series<
         return isHovered ? HOVERED_IN_PLACE : state;
     }
 
-    /** The in-place copies of the hovered item and of `Item`-state items cast `highlightedItem.shadow`; the highlight copy none. */
+    /**
+     * The `shadow` to cast in the shadow slot of one copy of an item. The in-place copies of the hovered item and of
+     * `Item`-state items cast `highlightedItem.shadow`; the highlight layer's copy casts none. An `itemShadow`, which is
+     * what an item styler returned, is merged over that, field by field.
+     */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean | undefined,
         datumIndex?: DatumIndex,
         highlightState?: HighlightState,
-        legendItemValues?: string[]
+        legendItemValues?: string[],
+        itemShadow?: AgItemShadowStyle['shadow']
     ): NormalisedDropShadowOptions | undefined {
         if (isHighlight) return;
 
+        const cascaded = this.resolveCascadedShadow(shadow, datumIndex, highlightState, legendItemValues);
+        return itemShadow == null ? cascaded : this.mergeItemShadow(cascaded, itemShadow);
+    }
+
+    private resolveCascadedShadow(
+        shadow: NormalisedDropShadowOptions | undefined,
+        datumIndex: DatumIndex | undefined,
+        highlightState: HighlightState | undefined,
+        legendItemValues: string[] | undefined
+    ): NormalisedDropShadowOptions | undefined {
         const bucket = this.getItemShadowBucket();
         if (bucket == null || shadow == null || datumIndex == null) return shadow;
 
@@ -1247,6 +1270,63 @@ export abstract class Series<
     }
 
     /**
+     * What an item styler's `shadow` and `glow` merge to, by what they are merged over, so that items that return equal
+     * values share one object: each distinct object is a key of its own in the shadow pass, with a full mask and blur,
+     * and the pass finds a key by a linear search. Dropped with the options, which the objects are merged from.
+     */
+    private itemCastInterns?: WeakMap<object, Map<string, NormalisedDropShadowOptions | null>>;
+
+    private internItemCast(
+        base: object | undefined,
+        key: string,
+        merge: () => NormalisedDropShadowOptions | undefined
+    ): NormalisedDropShadowOptions | undefined {
+        const interns = (this.itemCastInterns ??= new WeakMap());
+        const baseKey = base ?? NO_ITEM_CAST_BASE;
+        let merged = interns.get(baseKey);
+        if (merged == null) interns.set(baseKey, (merged = new Map()));
+        let cast = merged.get(key);
+        if (cast === undefined) {
+            cast = merge() ?? null;
+            merged.set(key, cast);
+        }
+        return cast ?? undefined;
+    }
+
+    /** As with `highlightedItem.shadow`, a `fill` with no `fillOpacity` is opaque, not the theme shadow's opacity. */
+    private mergeItemShadow(
+        cascaded: NormalisedDropShadowOptions | undefined,
+        itemShadow: NonNullable<AgItemShadowStyle['shadow']>
+    ): NormalisedDropShadowOptions | undefined {
+        return this.internItemCast(cascaded, `s${JSON.stringify(itemShadow)}`, () => {
+            const overrides = {
+                fillOpacity: itemShadow.fill == null ? undefined : 1,
+                ...itemShadow,
+                enabled: itemShadow.enabled ?? true,
+            };
+            const merged = mergeDefaults(overrides, cascaded ?? ITEM_SHADOW_FALLBACK) as NormalisedDropShadowOptions;
+            return merged.enabled ? merged : undefined;
+        });
+    }
+
+    /** The `glow` of an item styler, over the `glow` of the item's highlight state, over the series-level `glow`. */
+    private mergeItemGlow(
+        seriesGlow: DeepPartial<AgGlowOptions> | undefined,
+        highlightState: HighlightState,
+        itemGlow: AgGlowOptions
+    ): NormalisedDropShadowOptions | undefined {
+        return this.internItemCast(seriesGlow, `g${highlightState}${JSON.stringify(itemGlow)}`, () =>
+            glowToShadow(
+                mergeGlow(
+                    { glow: { enabled: true, ...itemGlow } },
+                    { glow: this.getHighlightGlow(highlightState) },
+                    { glow: seriesGlow }
+                )
+            )
+        );
+    }
+
+    /**
      * The glow one copy of an item casts: its highlight state's `glow` over `seriesGlow`. The in-place copy of the
      * hovered item reads as `OtherItem`, so it is told by {@link getRedrawnDatumIndex} and casts none.
      */
@@ -1255,16 +1335,27 @@ export abstract class Series<
         isHighlight: boolean | undefined,
         datumIndex?: DatumIndex,
         highlightState?: HighlightState,
-        legendItemValues?: string[]
+        legendItemValues?: string[],
+        itemGlow?: AgGlowOptions
     ): NormalisedDropShadowOptions | undefined {
-        if (!this.hasAnyGlow()) return;
-        if (isHighlight) return this.getCascadedGlow(seriesGlow, HighlightState.Item);
+        if (itemGlow == null && !this.hasAnyGlow()) return;
+        if (isHighlight) return this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        if (highlightedDatum == null) return this.getCascadedGlow(seriesGlow, HighlightState.None);
+        if (highlightedDatum == null) return this.castGlow(seriesGlow, HighlightState.None, itemGlow);
 
         const copy = this.resolveInPlaceCopy(highlightedDatum, datumIndex, highlightState, legendItemValues);
-        return copy === HOVERED_IN_PLACE ? undefined : this.getCascadedGlow(seriesGlow, copy);
+        return copy === HOVERED_IN_PLACE ? undefined : this.castGlow(seriesGlow, copy, itemGlow);
+    }
+
+    private castGlow(
+        seriesGlow: DeepPartial<AgGlowOptions> | undefined,
+        highlightState: HighlightState,
+        itemGlow: AgGlowOptions | undefined
+    ): NormalisedDropShadowOptions | undefined {
+        return itemGlow == null
+            ? this.getCascadedGlow(seriesGlow, highlightState)
+            : this.mergeItemGlow(seriesGlow, highlightState, itemGlow);
     }
 
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */
@@ -2040,7 +2131,7 @@ export abstract class Series<
             hideWithSize0: boolean;
             /** Floor for `Marker.pickInflation`, from `maxMarkerStrokePickInflation` (AG-8173). */
             pickInflation?: number;
-            /** The marker's `shadow` option; not part of the per-datum style, as nothing can vary it per datum. */
+            /** The marker's `shadow` option, which the `shadow` that an item styler returned is merged over. */
             shadow?: NormalisedDropShadowOptions;
             /** The marker's `glow` option, which its highlight state's `glow` is merged over. */
             glow?: DeepPartial<AgGlowOptions>;
@@ -2054,8 +2145,23 @@ export abstract class Series<
     ) {
         const { shape, size = 0, strokeWidth = 0 } = style;
         const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
-        const shadow = this.resolveItemShadow(opts.shadow, opts.isHighlight, opts.datumIndex, opts.highlightState);
-        const glow = this.resolveItemGlow(opts.glow, opts.isHighlight, opts.datumIndex, opts.highlightState);
+        const { shadow: itemShadow, glow: itemGlow } = style as AgItemShadowStyle;
+        const shadow = this.resolveItemShadow(
+            opts.shadow,
+            opts.isHighlight,
+            opts.datumIndex,
+            opts.highlightState,
+            undefined,
+            itemShadow
+        );
+        const glow = this.resolveItemGlow(
+            opts.glow,
+            opts.isHighlight,
+            opts.datumIndex,
+            opts.highlightState,
+            undefined,
+            itemGlow
+        );
         const visible =
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));

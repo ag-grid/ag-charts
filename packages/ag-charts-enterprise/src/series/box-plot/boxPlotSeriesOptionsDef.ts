@@ -3,6 +3,7 @@ import type {
     AgBoxPlotSeriesOptions,
     AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesThemeableOptions,
+    AgItemShadowStyle,
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
@@ -14,6 +15,7 @@ import {
     crosshairSnapToValidator,
     fillOptionsDef,
     glowOptionsDefs,
+    itemStylerCastDefs,
     lineDashOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
     positiveNumber,
@@ -47,7 +49,7 @@ const boxPlotHighlightStyleOptionsDef: OptionsDefs<AgBoxPlotHighlightStyleOption
     opacity: ratio,
 };
 
-const boxPlotStyler = callbackDefs<AgBoxPlotSeriesStyle>({
+const boxPlotStylerDefs = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -59,6 +61,11 @@ const boxPlotStyler = callbackDefs<AgBoxPlotSeriesStyle>({
     cap: {
         lengthRatio: ratio,
     },
+};
+const boxPlotStyler = callbackDefs<AgBoxPlotSeriesStyle>(boxPlotStylerDefs);
+const boxPlotItemStyler = callbackDefs<AgBoxPlotSeriesStyle & AgItemShadowStyle>({
+    ...boxPlotStylerDefs,
+    ...itemStylerCastDefs,
 });
 
 export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemeableOptions> = {
@@ -67,7 +74,7 @@ export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemea
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
     styler: boxPlotStyler,
-    itemStyler: boxPlotStyler,
+    itemStyler: boxPlotItemStyler,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     glow: glowOptionsDefs,

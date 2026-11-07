@@ -7,7 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgBarSeriesLabelPlacement, AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
@@ -119,7 +119,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgBarSeriesStylerParams<TDatum, TContext>, AgBarSeriesStyle>;
     /** Function used to return formatting for individual bars, based on the given parameters.*/
-    itemStyler?: Styler<AgBarSeriesItemStylerParams<TDatum, TContext>, AgBarSeriesStyle>;
+    itemStyler?: Styler<AgBarSeriesItemStylerParams<TDatum, TContext>, AgBarSeriesStyle & AgItemShadowStyle>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */

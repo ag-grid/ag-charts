@@ -60,6 +60,7 @@ import type {
     AgHistogramSeriesItemStylerParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesStylerParams,
+    AgItemShadowStyle,
     AgNumericValue,
 } from 'ag-charts-types';
 
@@ -1031,8 +1032,23 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
             rect.crisp = datum.crisp;
-            rect.fillShadow = this.resolveItemShadow(shadow, opts.isHighlight, datum.datumIndex, highlightState);
-            rect.fillGlow = this.resolveItemGlow(glow, opts.isHighlight, datum.datumIndex, highlightState);
+            const { shadow: itemShadow, glow: itemGlow } = style as AgItemShadowStyle;
+            rect.fillShadow = this.resolveItemShadow(
+                shadow,
+                opts.isHighlight,
+                datum.datumIndex,
+                highlightState,
+                undefined,
+                itemShadow
+            );
+            rect.fillGlow = this.resolveItemGlow(
+                glow,
+                opts.isHighlight,
+                datum.datumIndex,
+                highlightState,
+                undefined,
+                itemGlow
+            );
         });
     }
 

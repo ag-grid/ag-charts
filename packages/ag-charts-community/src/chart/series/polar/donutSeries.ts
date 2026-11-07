@@ -66,6 +66,7 @@ import {
     toNumber,
     toPlainText,
     toRadians,
+    withoutCasts,
     wrapTextOrSegments,
     writePlacedPolarLabels,
 } from 'ag-charts-core';
@@ -76,6 +77,7 @@ import type {
     AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
     AgDrawingMode,
+    AgItemShadowStyle,
     AgNumericValue,
     AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
@@ -885,7 +887,7 @@ export class DonutSeries extends PolarSeries<
             opacity,
         } = mergeDefaults(selectionStyle, highlightStyle, defaultStyle);
 
-        let overrides: PieDonutSeriesStyle | undefined;
+        let overrides: (PieDonutSeriesStyle & AgItemShadowStyle) | undefined;
         if (itemStyler) {
             overrides = this.cachedDatumCallback(
                 this.getDatumId(datumIndex) + (isHighlight ? '-highlight' : '-hide'),
@@ -909,7 +911,7 @@ export class DonutSeries extends PolarSeries<
             );
         }
 
-        return {
+        const base = {
             fill: overrides?.fill ?? fill,
             fillOpacity: overrides?.fillOpacity ?? fillOpacity,
             stroke: overrides?.stroke ?? stroke,
@@ -920,6 +922,11 @@ export class DonutSeries extends PolarSeries<
             cornerRadius: overrides?.cornerRadius ?? cornerRadius,
             opacity,
         };
+        const style: typeof base & AgItemShadowStyle = base;
+        // Set only by a styler, as the style is spread into the tooltip params, which carry neither.
+        if (overrides?.shadow != null) style.shadow = overrides.shadow;
+        if (overrides?.glow != null) style.glow = overrides.glow;
+        return style;
     }
 
     private getSeriesStyle() {
@@ -1330,15 +1337,17 @@ export class DonutSeries extends PolarSeries<
                 this.options.shadow,
                 isDatumHighlighted,
                 datum.datumIndex,
-                castState,
-                legendItemValues
+                undefined,
+                legendItemValues,
+                format.shadow
             );
             sector.fillGlow = this.resolveItemGlow(
                 this.options.glow,
                 isDatumHighlighted,
                 datum.datumIndex,
-                castState,
-                legendItemValues
+                undefined,
+                legendItemValues,
+                format.glow
             );
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
@@ -2481,7 +2490,7 @@ export class DonutSeries extends PolarSeries<
                 angleName,
                 radiusKey,
                 radiusName,
-                ...this.getItemStyle({ datum, datumIndex }, false, false),
+                ...withoutCasts(this.getItemStyle({ datum, datumIndex }, false, false)),
             }
         );
     }

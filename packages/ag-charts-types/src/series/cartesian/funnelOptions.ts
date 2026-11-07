@@ -1,7 +1,7 @@
 import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgFunnelSeriesLabelPlacement } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -101,7 +101,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual bars, based on the given parameters.*/
-    itemStyler?: Styler<AgFunnelSeriesItemStylerParams<TDatum, TContext>, AgFunnelSeriesStyle>;
+    itemStyler?: Styler<AgFunnelSeriesItemStylerParams<TDatum, TContext>, AgFunnelSeriesStyle & AgItemShadowStyle>;
 }
 
 export interface AgFunnelSeriesOptionsKeys<TDatum = DatumDefault> {

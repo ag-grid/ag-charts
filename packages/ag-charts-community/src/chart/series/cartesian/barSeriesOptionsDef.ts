@@ -11,6 +11,7 @@ import {
     errorBarThemeableOptionsDefs,
     fillOptionsDef,
     glowOptionsDefs,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelOrientationDef,
@@ -32,23 +33,30 @@ import {
     union,
     unionOrArray,
 } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgBarSeriesStyle, AgBarSeriesThemeableOptions } from 'ag-charts-types';
+import type {
+    AgBarSeriesOptions,
+    AgBarSeriesStyle,
+    AgBarSeriesThemeableOptions,
+    AgItemShadowStyle,
+} from 'ag-charts-types';
 
 const highlight = multiSeriesGlowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
 
-const barStyler = callbackDefs<AgBarSeriesStyle>({
+const barStylerDefs = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     cornerRadius: positiveNumber,
-});
+};
+const barStyler = callbackDefs<AgBarSeriesStyle>(barStylerDefs);
+const barItemStyler = callbackDefs<AgBarSeriesStyle & AgItemShadowStyle>({ ...barStylerDefs, ...itemStylerCastDefs });
 
 export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
     styler: barStyler,
-    itemStyler: barStyler,
+    itemStyler: barItemStyler,
     crisp: boolean,
     label: {
         ...seriesLabelOptionsDefs,
