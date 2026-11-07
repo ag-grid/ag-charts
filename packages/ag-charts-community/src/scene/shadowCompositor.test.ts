@@ -1601,6 +1601,67 @@ describe('Group shadow compositor', () => {
                 expect([alpha(7120, 65), alpha(7120, 45), alpha(7120, 85)]).toEqual([255, 255, 255]);
                 expect(alpha(7220, 65)).toBe(0);
             });
+
+            describe('a glow with a gap', () => {
+                const GLOW = { ...IN_PLACE, spread: 8, gap: 0, glow: true as const };
+                const pixelOf = (layer: OffscreenCanvas, x: number, y: number) =>
+                    Array.from(
+                        (layer.getContext('2d')! as unknown as CanvasRenderingContext2D).getImageData(x, y, 1, 1).data
+                    );
+
+                // The footprint of the item is cut out of the glow on a canvas that fits the glow, not the layer. The large item's
+                // glow is itself too large for a canvas, so it is cut at a lower resolution.
+                it.each([
+                    ['a small item', [20, 40, 40, 50], [40, 65], [64, 65], [80, 65]],
+                    ['an item as large as the layer', [20, 20, 4150, 4050], [2000, 2000], [4174, 2000], [4190, 2000]],
+                ])(
+                    'should cast the glow around %s with the footprint cut out of it',
+                    (_name, [x, y, width, height], inside, glow, far) => {
+                        const group = createGroup([
+                            box(x, y, width, height, { fill: 'rgba(0, 0, 255, 0.5)', fillGlow: GLOW }),
+                            box(20, 4000, 40, 50, { fillShadow: RED_HALF }),
+                        ]);
+
+                        const { layer } = renderLayer(4200, 4100, group);
+
+                        expect(pixelOf(layer, inside[0], inside[1]).slice(0, 3)).toEqual([0, 0, 255]);
+                        expect(pixelOf(layer, glow[0], glow[1])[3]).toBeGreaterThan(0);
+                        expect(pixelOf(layer, far[0], far[1])[3]).toBe(0);
+                        // The shadow of the other item is cast in the same run.
+                        expect(pixelOf(layer, 140, 4025)[3]).toBeGreaterThan(0);
+                    }
+                );
+
+                it('should cast the glow without the cut, and the shadows beside it, when no canvas can cut it', () => {
+                    const group = createGroup([
+                        box(20, 40, 40, 50, { fill: 'rgba(0, 0, 255, 0.5)', fillGlow: GLOW }),
+                        box(20, 130, 40, 50, { fillShadow: RED_HALF }),
+                    ]);
+                    const layer = new OffscreenCanvas(WIDTH, HEIGHT);
+
+                    // The glow's cast makes its scratch canvas, then the canvas that the gap is cut on, which is refused.
+                    const getContext = OffscreenCanvas.prototype.getContext;
+                    const canvases: OffscreenCanvas[] = [];
+                    const refuseGapCanvas = vi
+                        .spyOn(OffscreenCanvas.prototype, 'getContext')
+                        .mockImplementation(function (this: OffscreenCanvas, ...args: Parameters<typeof getContext>) {
+                            if (!canvases.includes(this)) canvases.push(this);
+                            return canvases.indexOf(this) === 1 ? null : getContext.apply(this, args);
+                        } as typeof getContext);
+                    try {
+                        drawOnLayer(group, layer);
+                    } finally {
+                        refuseGapCanvas.mockRestore();
+                    }
+
+                    expect(canvases.length).toBeGreaterThan(1);
+                    const inside = pixelOf(layer, 40, 65);
+                    expect(inside[0]).toBeGreaterThan(0);
+                    expect(inside[2]).toBeGreaterThan(0);
+                    expect(pixelOf(layer, 64, 65)[3]).toBeGreaterThan(0);
+                    expect(pixelOf(layer, 140, 155)[3]).toBeGreaterThan(0);
+                });
+            });
         });
 
         it('should share one scratch canvas between the groups of a scene', () => {
