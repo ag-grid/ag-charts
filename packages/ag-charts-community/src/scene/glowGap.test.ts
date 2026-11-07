@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { Line, Sector } from 'ag-charts-core';
-import type { Shape } from 'ag-charts-core';
+import type { NormalisedDropShadowOptions, Shape } from 'ag-charts-core';
 
 import { Marker } from '../chart/marker/marker';
 import {
@@ -191,6 +191,52 @@ describe('glow gap', () => {
                 const { pixelAt } = draw(route, other(), gapped());
 
                 expect(pixelAt(probe[0], probe[1])).toEqual(expected);
+            });
+        });
+
+        describe('around the sharp point of a stroked star', () => {
+            const OPAQUE_BLUE = 'rgb(0, 0, 255)';
+            const star = (paint: Partial<Shape>, glow?: NormalisedDropShadowOptions) => {
+                const marker = Object.assign(new Marker(), {
+                    fill: OPAQUE_BLUE,
+                    stroke: OPAQUE_BLUE,
+                    strokeWidth: 1,
+                    ...paint,
+                    fillGlow: glow,
+                });
+                marker.setVisibilityAndPosition(true, 'star', 80, { x: CENTRE_X, y: CENTRE_Y });
+                return marker;
+            };
+            /** The y of the top point of the star: the first pixel above the centre that is not opaque. */
+            const tipOf = (pixelAt: (x: number, y: number) => number[]) => {
+                let y = CENTRE_Y;
+                while (pixelAt(CENTRE_X, y)[2] > 200) y -= 1;
+                return y;
+            };
+
+            it('should start the glow a gap past the point, not past where the join of the stroke spikes', () => {
+                const gap = 3;
+                const { pixelAt } = draw(route, star({}, { ...redGlow(gap), spread: 4, blur: 8 }));
+                const tip = tipOf(pixelAt);
+                const alphaAbove = (distance: number) => pixelAt(CENTRE_X, tip - distance)[3];
+
+                // The point is cut away to within a gap of it, and the glow is strong again a pixel past that, as it is
+                // where a round join dilates the point by exactly the gap.
+                expect(alphaAbove(1)).toBe(0);
+                expect(alphaAbove(gap + 1)).toBeGreaterThan(40);
+                expect(alphaAbove(gap + 3)).toBeGreaterThan(40);
+            });
+
+            it('should cut the whole point of a translucent star out of the glow with a gap of 0', () => {
+                // A stroke of 6 with a miter join spikes well past the round join that dilates it, and the item paints that spike.
+                const stroke = { fill: TRANSLUCENT_BLUE, stroke: TRANSLUCENT_BLUE, strokeWidth: 6, miterLimit: 10 };
+                const tip = tipOf(draw(route, star(stroke)).pixelAt);
+                const { pixelAt } = draw(route, star(stroke, redGlow(0)));
+
+                // A few pixels inside the spike that the stroke paints, where the glow would show through as red.
+                const inSpike = pixelAt(CENTRE_X, tip + 4);
+                expect(inSpike[3]).toBeGreaterThan(0);
+                expect(inSpike[0]).toBe(0);
             });
         });
 
