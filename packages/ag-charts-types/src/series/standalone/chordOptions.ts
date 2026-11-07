@@ -1,5 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
@@ -103,7 +103,10 @@ export interface AgChordSeriesLinkOptions<TDatum, TContext = ContextDefault> ext
     /** Configuration for the glow around the links. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
     glow?: AgGlowOptions;
     /** Function used to return formatting for individual links, based on the given parameters.*/
-    itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum, TContext>, AgChordSeriesLinkStyle>;
+    itemStyler?: Styler<
+        AgChordSeriesLinkItemStylerParams<TDatum, TContext>,
+        AgChordSeriesLinkStyle & AgItemShadowStyle
+    >;
 }
 
 export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -125,7 +128,10 @@ export interface AgChordSeriesNodeOptions<TDatum, TContext = ContextDefault> ext
     /** Width of the nodes. */
     width?: PixelSize;
     /** Function used to return formatting for individual nodes, based on the given parameters.*/
-    itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<TDatum, TContext>, AgChordSeriesNodeStyle>;
+    itemStyler?: Styler<
+        AgChordSeriesNodeItemStylerParams<TDatum, TContext>,
+        AgChordSeriesNodeStyle & AgItemShadowStyle
+    >;
 }
 
 export interface AgChordSeriesOptionsKeys<TDatum = DatumDefault> {

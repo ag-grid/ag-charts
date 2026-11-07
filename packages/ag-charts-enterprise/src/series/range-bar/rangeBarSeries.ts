@@ -1,4 +1,5 @@
 import {
+    type AgItemShadowStyle,
     type AgRangeBarSeriesItemStylerParams,
     type AgRangeBarSeriesLabelFormatterParams,
     type AgRangeBarSeriesStyle,
@@ -54,6 +55,7 @@ import {
     toArray,
     toNumber,
     upsertNodeDatum,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { BBox, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
@@ -236,7 +238,7 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
 
     readonly clipBBox?: BBox;
     readonly opacity?: number;
-    style?: Required<NormalisedRangeBarSeriesStyle>;
+    style?: Required<NormalisedRangeBarSeriesStyle> & AgItemShadowStyle;
 }
 
 type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<RangeBarSeriesTypes>;
@@ -1260,13 +1262,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         highlightState: _ModuleSupport.HighlightState | undefined,
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
-    ): Required<NormalisedRangeBarSeriesStyle> {
+    ): Required<NormalisedRangeBarSeriesStyle> & AgItemShadowStyle {
         const { options, dataModel, processedData } = this;
         const { itemStyler } = options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex, selectionState, candidateState);
-        let style = mergeDefaults(
+        let style: Required<NormalisedRangeBarSeriesStyle> & AgItemShadowStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
             this.getStyle(datumIndex === undefined, highlightState, selectionState, candidateState)
@@ -1378,8 +1380,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 style.cornerRadius ?? 0,
                 categoryAlongX ? datum.width > 0 : datum.height > 0,
                 datum.crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex),
-                series.resolveItemGlow(glow, isHighlight, datum.datumIndex)
+                series.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    datum.datumIndex,
+                    undefined,
+                    undefined,
+                    datum.style?.shadow
+                ),
+                series.resolveItemGlow(glow, isHighlight, datum.datumIndex, undefined, undefined, datum.style?.glow)
             );
             rect.crispCentreDirection = crispCentreDirection;
         });
@@ -1607,7 +1616,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 yLowName,
                 yHighName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

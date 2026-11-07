@@ -1,4 +1,9 @@
-import { type AgRadialSeriesLabelFormatterParams, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgItemShadowStyle,
+    type AgRadialSeriesLabelFormatterParams,
+    type AgRadialSeriesStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     CategoryScale,
     ChartAxisDirection,
@@ -20,6 +25,7 @@ import {
     placedPolarLabel,
     polarLabelData,
     polarSectorObstacles,
+    withoutCasts,
     writePlacedPolarLabels,
     zeroLike,
 } from 'ag-charts-core';
@@ -66,7 +72,7 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly clipSector: SectorBox;
     readonly reversed: boolean;
     readonly index: number;
-    style?: Required<AgRadialSeriesStyle>;
+    style?: Required<AgRadialSeriesStyle> & AgItemShadowStyle;
 }
 
 export interface RadialBarSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -470,9 +476,23 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
-                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+                node.fillShadow = this.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    nodeDatum.datumIndex,
+                    undefined,
+                    undefined,
+                    nodeDatum.style?.shadow
+                );
 
-                node.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+                node.fillGlow = this.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    nodeDatum.datumIndex,
+                    undefined,
+                    undefined,
+                    nodeDatum.style?.glow
+                );
                 node.lineJoin = 'round';
                 node.inset = node.stroke == null ? 0 : node.strokeWidth / 2;
 
@@ -634,7 +654,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 radiusKey,
                 radiusName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

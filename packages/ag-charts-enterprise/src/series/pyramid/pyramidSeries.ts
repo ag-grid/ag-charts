@@ -1,4 +1,5 @@
 import {
+    type AgItemShadowStyle,
     type AgPyramidSeriesItemStylerParams,
     type AgPyramidSeriesLabelFormatterParams,
     _ModuleSupport,
@@ -46,6 +47,7 @@ import {
     trapezoidFitRegion,
     trapezoidOverlapsBox,
     withFitRegion,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { Node, Path } from 'ag-charts-core';
 import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-types';
@@ -144,7 +146,7 @@ interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Read
     readonly bottom: number;
     readonly left: number;
     readonly label: PyramidNodeLabelDatum | undefined;
-    style: NormalisedPyramidSeriesStyle;
+    style: NormalisedPyramidSeriesStyle & AgItemShadowStyle;
 }
 
 interface PyramidNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -866,13 +868,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     protected getItemStyle(
         { datumIndex, datum }: Partial<PyramidNodeDatum>,
         isHighlight: boolean
-    ): Required<NormalisedPyramidSeriesStyle> {
+    ): Required<NormalisedPyramidSeriesStyle> & AgItemShadowStyle {
         const { itemStyler } = this.options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.itemStyle(datumIndex));
-        let style = baseStyle;
+        let style: typeof baseStyle & AgItemShadowStyle = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -953,9 +955,23 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             applyPyramidDatum(connector, nodeDatum);
 
-            connector.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+            connector.fillShadow = this.resolveItemShadow(
+                shadow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                undefined,
+                undefined,
+                nodeDatum.style.shadow
+            );
 
-            connector.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+            connector.fillGlow = this.resolveItemGlow(
+                glow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                undefined,
+                undefined,
+                nodeDatum.style.glow
+            );
         });
     }
 
@@ -1108,7 +1124,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 title: undefined,
                 stageKey,
                 valueKey,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

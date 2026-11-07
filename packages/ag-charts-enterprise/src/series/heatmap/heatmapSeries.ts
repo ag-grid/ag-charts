@@ -1,6 +1,7 @@
 import type {
     AgHeatmapSeriesItemStylerParams,
     AgHeatmapSeriesLabelFormatterParams,
+    AgItemShadowStyle,
     FontStyle,
     FontWeight,
     TextAlign,
@@ -47,6 +48,7 @@ import {
     resolveLabelAvoidance,
     resolveTextAlign,
     upsertNodeDatum,
+    withoutCasts,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type { PlainObject, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
@@ -74,7 +76,7 @@ const {
     updateLabelNode,
 } = _ModuleSupport;
 
-type HeatmapCellStyle = NormalisedHeatmapSeriesStyle & { opacity?: number };
+type HeatmapCellStyle = NormalisedHeatmapSeriesStyle & AgItemShadowStyle & { opacity?: number };
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
@@ -214,9 +216,15 @@ interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
 
 const NO_OVERRIDES: PlainObject = Object.freeze({});
 
-/** Whether `HeatmapCellBatch` paints a cell with this style as a plain `Rect` would: one string fill and no stroke. */
-function isBatchableStyle({ fill, strokeWidth }: HeatmapCellStyle) {
-    return typeof fill === 'string' && ((strokeWidth ?? 0) <= 0 || Number.isNaN(strokeWidth));
+/** Whether `HeatmapCellBatch` paints a cell with this style as a plain `Rect` would: one string fill, no stroke and no cast. */
+function isBatchableStyle({ fill, strokeWidth, shadow, glow }: HeatmapCellStyle) {
+    // The batch casts neither of the slots a styler can set for a cell.
+    return (
+        typeof fill === 'string' &&
+        ((strokeWidth ?? 0) <= 0 || Number.isNaN(strokeWidth)) &&
+        shadow == null &&
+        glow == null
+    );
 }
 
 function itemStylerCacheKey(datumIndex: number, isHighlight: boolean) {
@@ -884,7 +892,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         { datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>,
         isHighlight: boolean,
         itemStyleContext: HeatmapItemStyleContext = this.createItemStyleContext()
-    ): NormalisedHeatmapSeriesStyle {
+    ): HeatmapCellStyle {
         const { options } = this;
         const { itemStyler, colorKey } = options;
         const { missingDataFill } = options.colorScale;
@@ -1036,8 +1044,22 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
-            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(
+                shadow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                undefined,
+                undefined,
+                style.shadow
+            );
+            rect.fillGlow = this.resolveItemGlow(
+                glow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                undefined,
+                undefined,
+                style.glow
+            );
 
             rect.crisp = crisp;
             rect.cornerRadius = cornerRadius;
@@ -1388,7 +1410,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 yName,
                 colorKey,
                 colorName,
-                ...(format as any as Required<ItemStyle>),
+                ...(withoutCasts(format) as any as Required<ItemStyle>),
             }
         );
     }
@@ -1483,8 +1505,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 /** Equivalent to `mergeDefaults(overrides, style)`, writing into the cell's own `style` unless both sides hold an object. */
 function applyOverrides(
     style: Required<NormalisedHeatmapSeriesStyle>,
-    overrides: Partial<NormalisedHeatmapSeriesStyle>
-): Required<NormalisedHeatmapSeriesStyle> {
+    overrides: Partial<NormalisedHeatmapSeriesStyle> & AgItemShadowStyle
+): Required<NormalisedHeatmapSeriesStyle> & AgItemShadowStyle {
     const target = style as Record<string, unknown>;
     for (const key of Object.keys(overrides)) {
         const value = (overrides as Record<string, unknown>)[key];

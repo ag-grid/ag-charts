@@ -1,4 +1,5 @@
 import {
+    type AgItemShadowStyle,
     type AgTreemapHighlightState,
     type AgTreemapSeriesItemStylerParams,
     type AgTreemapSeriesLabelFormatterParams,
@@ -535,7 +536,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             baseStyle.fill = missingDataFill;
         }
 
-        let style = baseStyle;
+        let style: typeof baseStyle & AgItemShadowStyle = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
@@ -575,20 +576,27 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         node: Pick<TreemapNode, 'path' | 'datumIndex' | 'depth' | 'children'>,
         isLeaf: boolean,
         isHighlight: boolean,
-        highlightedNode: TreemapNode | undefined
+        highlightedNode: TreemapNode | undefined,
+        itemGlow?: AgGlowOptions
     ) {
         if (!isLeaf) {
-            if (!this.options.group.highlight.enabled) return;
+            // A glow from an item styler casts whether or not the group highlight is on, over the highlight state's.
+            if (!this.options.group.highlight.enabled && itemGlow == null) return;
 
             const groupState = this.getGroupHighlightState(isHighlight, highlightedNode, node);
-            return this.getHierarchyGlow(GROUP_SLOT, groupState, this.resolveGroupGlow);
+            return this.getHierarchyGlow(GROUP_SLOT, groupState, this.resolveGroupGlow, itemGlow);
         }
 
         // With a group highlighted, a tile inherits only the group's opacities (see `getTileHighlightStyle`).
-        if (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0) return;
+        if (
+            itemGlow == null &&
+            (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0)
+        ) {
+            return;
+        }
 
         const tileState = this.getHierarchyHighlightState(isHighlight, highlightedNode, node);
-        return this.getHierarchyGlow(TILE_SLOT, tileState, this.resolveTileGlow);
+        return this.getHierarchyGlow(TILE_SLOT, tileState, this.resolveTileGlow, itemGlow);
     }
 
     private itemStyle(
@@ -782,7 +790,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const isLeaf = node.children.length === 0;
 
             const style = this.getItemStyle(node, isLeaf, isHighlight);
-            const glow = this.getNodeGlow(node, isLeaf, isHighlight, highlightedNode);
+            const glow = this.getNodeGlow(node, isLeaf, isHighlight, highlightedNode, style.glow);
 
             rect.crisp = true;
 
@@ -793,7 +801,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 glow,
                 isHighlight,
                 highlightedNode,
-                node
+                node,
+                style.shadow
             );
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
@@ -1403,7 +1412,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 sizeName,
                 colorKey,
                 colorName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

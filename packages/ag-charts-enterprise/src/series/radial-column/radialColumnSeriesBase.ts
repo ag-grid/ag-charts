@@ -1,4 +1,4 @@
-import type { AgRadialSeriesLabelFormatterParams, AgRadialSeriesStyle } from 'ag-charts-community';
+import type { AgItemShadowStyle, AgRadialSeriesLabelFormatterParams, AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type BBox,
@@ -23,6 +23,7 @@ import {
     normalizeAngle360,
     placedPolarLabel,
     polarLabelData,
+    withoutCasts,
     writePlacedPolarLabels,
     zeroLike,
 } from 'ag-charts-core';
@@ -71,7 +72,7 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     readonly axisOuterRadius: number;
     readonly columnWidth: number;
     readonly index: number;
-    style?: AgRadialSeriesStyle;
+    style?: AgRadialSeriesStyle & AgItemShadowStyle;
 }
 
 interface RadialColumnSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -518,8 +519,22 @@ export abstract class RadialColumnSeriesBase<
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
-                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
-                node.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+                node.fillShadow = this.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    nodeDatum.datumIndex,
+                    undefined,
+                    undefined,
+                    nodeDatum.style?.shadow
+                );
+                node.fillGlow = this.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    nodeDatum.datumIndex,
+                    undefined,
+                    undefined,
+                    nodeDatum.style?.glow
+                );
                 node.cornerRadius = style.cornerRadius ?? 0;
                 node.lineJoin = 'round';
             });
@@ -649,7 +664,7 @@ export abstract class RadialColumnSeriesBase<
                 radiusKey,
                 radiusName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

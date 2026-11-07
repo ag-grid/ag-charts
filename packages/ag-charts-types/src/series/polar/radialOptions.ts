@@ -6,6 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
@@ -21,7 +22,7 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = DatumDefault, TCont
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgRadialSeriesStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
     /** A styler function for adjusting the styling of the radial columns. */
-    itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
+    itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum, TContext>, AgRadialSeriesStyle & AgItemShadowStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgRadialHighlightStyleOptions, AgRadialHighlightStyleOptions>;
 }

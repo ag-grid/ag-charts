@@ -1,4 +1,5 @@
 import type {
+    AgItemShadowStyle,
     AgWaterfallSeriesItemStylerParams,
     AgWaterfallSeriesItemType,
     AgWaterfallSeriesLabelFormatterParams,
@@ -54,6 +55,7 @@ import {
     subtractValues,
     toArray,
     upsertNodeDatum,
+    withoutCasts,
     zeroLike,
 } from 'ag-charts-core';
 import type { BBox, Path, Selection, Text } from 'ag-charts-core';
@@ -138,7 +140,7 @@ export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDa
     readonly crisp: boolean;
     readonly clipBBox?: BBox;
     readonly opacity?: number;
-    style?: Required<AgWaterfallSeriesStyle>;
+    style?: Required<AgWaterfallSeriesStyle> & AgItemShadowStyle;
 }
 
 interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
@@ -1024,7 +1026,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         highlightState?: _ModuleSupport.HighlightState,
         itemType: AgWaterfallSeriesItemType = 'total',
         selectionState?: _ModuleSupport.SelectionState
-    ): Required<AgWaterfallSeriesStyle> {
+    ): Required<AgWaterfallSeriesStyle> & AgItemShadowStyle {
         const { datumIndex = 0, datum, totalValue } = nodeDatum ?? {};
 
         const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
@@ -1036,7 +1038,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const { itemStyler } = item;
 
-        let style = baseStyle;
+        let style: Required<AgWaterfallSeriesStyle> & AgItemShadowStyle = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
             const itemId = getItemId(nodeDatum, this.data?.dataIdKey);
@@ -1113,7 +1115,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         if (!hasItemStyler) {
             // No itemStyler: style is a pure function of (itemType, highlightState, selectionState).
-            const styleByState = new Map<string, Required<AgWaterfallSeriesStyle>>();
+            const styleByState = new Map<string, Required<AgWaterfallSeriesStyle> & AgItemShadowStyle>();
             const thisSeries = this;
 
             datumSelection.each(function updateDatumSelectionStyles(_, datum) {
@@ -1169,8 +1171,22 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
             rect.cornerRadius = style.cornerRadius ?? 0;
             const { shadow, glow } = this.getItemConfig(datum.itemType);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
-            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(
+                shadow,
+                isHighlight,
+                datum.datumIndex,
+                undefined,
+                undefined,
+                datum.style?.shadow
+            );
+            rect.fillGlow = this.resolveItemGlow(
+                glow,
+                isHighlight,
+                datum.datumIndex,
+                undefined,
+                undefined,
+                datum.style?.glow
+            );
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
@@ -1476,7 +1492,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 xName,
                 yKey,
                 yName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }
