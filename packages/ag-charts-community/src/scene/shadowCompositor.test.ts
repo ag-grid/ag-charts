@@ -1632,6 +1632,56 @@ describe('Group shadow compositor', () => {
                     }
                 );
 
+                // A glow with no fill takes the colour of its item, and a canvas that can tint casts it from one mask of every colour.
+                // The cut is made on a canvas that fits the glow, or a lower resolution of it, and is the same either way.
+                describe('with no fill', () => {
+                    afterEach(() => overrideTintableShadows());
+
+                    it.each([
+                        ['a small item', [20, 40, 40, 50], [40, 65], [64, 65], [80, 65]],
+                        [
+                            'an item as large as the layer',
+                            [20, 20, 4150, 4050],
+                            [2000, 2000],
+                            [4174, 2000],
+                            [4190, 2000],
+                        ],
+                    ])(
+                        'should cast the glow of the colour of %s with the footprint cut out, whether or not the canvas can tint',
+                        (_name, [x, y, width, height], inside, glow, far) => {
+                            const probes = (canTint: boolean) => {
+                                overrideTintableShadows(canTint);
+                                const group = createGroup([
+                                    box(x, y, width, height, {
+                                        fill: 'rgba(0, 0, 255, 0.5)',
+                                        fillGlow: { ...GAPPED_GLOW, fill: undefined, fillOpacity: 1 },
+                                    }),
+                                ]);
+                                const { layer } = renderLayer(4200, 4100, group);
+                                return [inside, glow, far].map(([px, py]) => pixelOf(layer, px, py));
+                            };
+
+                            const tinted = probes(true);
+                            const perColour = probes(false);
+
+                            for (const [cut, ring, beyond] of [tinted, perColour]) {
+                                // Only the item, at half strength, where the glow is cut out of it.
+                                expect(cut.slice(0, 3)).toEqual([0, 0, 255]);
+                                expect(Math.abs(cut[3] - 128)).toBeLessThanOrEqual(1);
+                                // The alpha of the colour applies to the glow once in its colour and once in its strength.
+                                expect(ring.slice(0, 3)).toEqual([0, 0, 255]);
+                                expect(Math.abs(ring[3] - 64)).toBeLessThanOrEqual(2);
+                                expect(beyond[3]).toBe(0);
+                            }
+                            for (let i = 0; i < tinted.length; i++) {
+                                for (let c = 0; c < 4; c++) {
+                                    expect(Math.abs(tinted[i][c] - perColour[i][c])).toBeLessThanOrEqual(1);
+                                }
+                            }
+                        }
+                    );
+                });
+
                 it('should cast the glow without the cut, and the shadows beside it, when no canvas can cut it', () => {
                     const group = createGroup([
                         box(20, 40, 40, 50, { fill: 'rgba(0, 0, 255, 0.5)', fillGlow: GAPPED_GLOW }),
@@ -2844,6 +2894,72 @@ describe('Group shadow compositor', () => {
                         for (let i = 0; i < 4; i++) expect(Math.abs(tinted[i] - perColour[i])).toBeLessThanOrEqual(1);
                     }
                 );
+            });
+
+            describe('translucent items with a gap', () => {
+                afterEach(() => overrideTintableShadows());
+
+                // The item is red at half strength, and sits clear of the layer's origin, so the cut is made on a canvas offset from it.
+                const GAPPED = { ...GLOW, gap: 0 };
+                const render = (fillShadow: Shape['fillShadow'], canTint: boolean) => {
+                    overrideTintableShadows(canTint);
+                    renderNodes([box(20, 60, 40, 40, { fill: 'rgba(255, 0, 0, 0.5)', fillShadow })]);
+                    return pixels();
+                };
+                const pixelAtOf = (data: number[], x: number, y: number) =>
+                    data.slice((y * WIDTH + x) * 4, (y * WIDTH + x) * 4 + 4);
+
+                it.each([true, false])(
+                    'should cut the item out of its own glow, and cast the rest as with no gap, where tinting is %s',
+                    (canTint) => {
+                        const ungapped = render(GLOW, canTint);
+                        const gapped = render(GAPPED, canTint);
+
+                        // Where the item is, the glow of the ungapped one shows through it, and the gapped one is the item alone.
+                        expect(pixelAtOf(ungapped, 40, 80)[3]).toBeGreaterThan(140);
+                        const [red, green, blue, alpha] = pixelAtOf(gapped, 40, 80);
+                        expect([red, green, blue]).toEqual([255, 0, 0]);
+                        expect(Math.abs(alpha - 128)).toBeLessThanOrEqual(1);
+                        // Around it, beyond the footprint, the glow is as strong as the ungapped glow, and ends where it does.
+                        for (const [x, y] of [
+                            [40, 56],
+                            [16, 80],
+                            [64, 80],
+                            [40, 104],
+                        ]) {
+                            const [, , , outside] = pixelAtOf(gapped, x, y);
+                            expect(Math.abs(outside - 64)).toBeLessThanOrEqual(2);
+                            expect(outside).toBe(pixelAtOf(ungapped, x, y)[3]);
+                        }
+                        expect(pixelAtOf(gapped, 40, 40)[3]).toBe(0);
+                    }
+                );
+
+                // A canvas that blurs a mask with a filter and one that blurs it with a shadow differ a little in the tail of the blur,
+                // with or without a gap, so a gap may not widen that difference.
+                const tintingDifference = (shadow: Shape['fillShadow']) => {
+                    const [tinted, perColour] = [true, false].map((canTint) => render(shadow, canTint));
+                    let worst = 0;
+                    for (let i = 0; i < tinted.length; i += 4) {
+                        worst = Math.max(worst, Math.abs(tinted[i + 3] - perColour[i + 3]));
+                        // The colour of a pixel that is almost clear is not meaningful.
+                        if (tinted[i + 3] > 16 && perColour[i + 3] > 16) {
+                            for (let c = 0; c < 3; c++)
+                                worst = Math.max(worst, Math.abs(tinted[i + c] - perColour[i + c]));
+                        }
+                    }
+                    return { worst, tinted };
+                };
+
+                it('should cast a blurred glow in the same place, as strong, whether or not the canvas can tint', () => {
+                    const ungapped = tintingDifference({ ...GLOW, blur: 6 });
+                    const gapped = tintingDifference({ ...GAPPED, blur: 6 });
+
+                    expect(maxAlphaOf(gapped.tinted)).toBeGreaterThan(0);
+                    expect(gapped.worst).toBeLessThanOrEqual(ungapped.worst + 2);
+                    // The cut is where the item is.
+                    expect(Math.abs(pixelAtOf(gapped.tinted, 40, 80)[3] - 128)).toBeLessThanOrEqual(1);
+                });
             });
 
             describe('where the canvas cannot blur a mask of many colours', () => {
