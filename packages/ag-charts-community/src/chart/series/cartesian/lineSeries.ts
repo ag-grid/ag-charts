@@ -29,6 +29,7 @@ import {
     mergeDefaults,
     placedLabelFit,
     toNumber,
+    withoutCasts,
 } from 'ag-charts-core';
 import {
     type AgDrawingMode,
@@ -1225,7 +1226,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 xName,
                 yKey,
                 yName,
-                ...format,
+                ...withoutCasts(format),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

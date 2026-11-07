@@ -963,7 +963,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 nodeDatum.datumIndex,
                 castState,
                 undefined,
-                nodeDatum.style.shadow
+                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex)
+                    ? this.getItemStyle(nodeDatum, true).shadow
+                    : nodeDatum.style.shadow
             );
 
             connector.fillGlow = this.resolveItemGlow(

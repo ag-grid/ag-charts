@@ -808,7 +808,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 isHighlight,
                 highlightedNode,
                 node,
-                style.shadow
+                !isHighlight && highlightedNode?.datumIndex === node.datumIndex
+                    ? this.getItemStyle(node, isLeaf, true).shadow
+                    : style.shadow
             );
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];

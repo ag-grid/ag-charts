@@ -51,21 +51,23 @@ export class OptionsGraphService {
     }
 }
 
-/** The options of an item styler's result that are the item's own `shadow` and `glow`, to be merged over the cascade later. */
+/** The `shadow` and `glow` of an item styler's result. */
 const ITEM_CAST_KEYS = ['shadow', 'glow'] as const;
 
-/**
- * What {@link restoreItemCasts} made of each resolved `shadow` or `glow`. The partial cache hands out a copy of a result whose
- * nested objects are shared, so this returns the same object for an equal cast, which lets the series recognise a cast
- * it has already merged.
- */
+/** The cast that {@link restoreItemCasts} made of each resolved `shadow` or `glow`, so that an equal cast is the same object. */
 const restoredCasts = new WeakMap<object, PlainObject>();
 
+/** For each restored cast, the resolved `shadow` or `glow` it came from, which is the series' and the theme's under it. */
+const castBases = new WeakMap<object, PlainObject>();
+
+/** What a restored `shadow` or `glow` of an item styler is merged over last: the series' own and the theme's values. */
+export function getItemCastBase(restored: object): PlainObject | undefined {
+    return castBases.get(restored);
+}
+
 /**
- * Resolving a partial fills each of its nested objects from the series options and theme. For the `shadow` and `glow`
- * that an item styler returns, that would settle the fields it left unset to the series and theme values before the
- * highlight state's `shadow` and `glow` get to supply them, so these keep only the fields that the styler set, in
- * their resolved form. Only a styler that returns them pays for the copy.
+ * Keeps only the fields that an item styler set in its `shadow` and `glow`, so that the highlight state's get to supply
+ * the rest; the resolved cast stays on as {@link getItemCastBase}, the bottom layer.
  */
 function restoreItemCasts<T extends PlainObject>(partial: T, resolved: Resolved<Partial<T>>): Resolved<Partial<T>> {
     let result: PlainObject | undefined;
@@ -81,6 +83,7 @@ function restoreItemCasts<T extends PlainObject>(partial: T, resolved: Resolved<
                 if (given[field] !== undefined && field in filled) own[field] = filled[field];
             }
             restoredCasts.set(filled, own);
+            castBases.set(own, filled);
         }
         result ??= { ...(resolved as PlainObject) };
         result[key] = own;

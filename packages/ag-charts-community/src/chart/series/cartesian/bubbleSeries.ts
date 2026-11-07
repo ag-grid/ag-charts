@@ -55,6 +55,7 @@ import {
     toPlainText,
     upsertNodeDatum,
     withFitRegion,
+    withoutCasts,
 } from 'ag-charts-core';
 import {
     type AgBubbleSeriesLabelFormatterParams,
@@ -1754,7 +1755,7 @@ export abstract class BubbleScatterSeries<
                 colorKey,
                 colorName,
                 legendItemName,
-                ...(activeStyle as RequireOptional<FillOptions & StrokeOptions & LineDashOptions>),
+                ...withoutCasts(activeStyle as RequireOptional<FillOptions & StrokeOptions & LineDashOptions>),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

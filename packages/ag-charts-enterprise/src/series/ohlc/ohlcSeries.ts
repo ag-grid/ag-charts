@@ -79,7 +79,9 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
                     datum.datumIndex,
                     highlightState,
                     undefined,
-                    datum.style?.shadow
+                    !isHighlight && series.isHoveredInPlace(datum.datumIndex)
+                        ? series.getItemStyle(datum.datumIndex, true, undefined, datum.itemType).shadow
+                        : datum.style?.shadow
                 ),
                 series.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState, undefined, datum.style?.glow)
             );

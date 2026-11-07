@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Rect, Sector, Shape } from 'ag-charts-core';
-import type { AgChartOptions, AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from 'ag-charts-types';
+import type { AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
@@ -11,12 +11,18 @@ import {
     CATEGORY_DATA,
     HIGHLIGHT_GLOW,
     HIGHLIGHT_SHADOW,
+    ITEM_GLOW,
+    ITEM_SHADOW,
+    type ItemCast,
     SERIES_GLOW,
     SERIES_SHADOW,
     THEME_GLOW,
     XY_DATA,
+    countCastSerialisations,
     glowShadow,
+    isOn,
     shapesOf,
+    themeShadow,
 } from '../test/shadowFixtures';
 import {
     createChart,
@@ -26,22 +32,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-
-/** What the styler of one item returns beyond its style; both fields are optional. */
-type ItemCast = AgItemShadowStyle;
-
-/** The shadow the styler returns, distinct from `SERIES_SHADOW` in every field. */
-const ITEM_SHADOW: AgDropShadowOptions = {
-    enabled: true,
-    fill: '#445566',
-    fillOpacity: 1,
-    xOffset: 1,
-    yOffset: 2,
-    blur: 9,
-};
-
-/** The glow the styler returns, distinct from `SERIES_GLOW` and `HIGHLIGHT_GLOW` in every field. */
-const ITEM_GLOW: AgGlowOptions = { enabled: true, fill: '#ff00ff', fillOpacity: 0.9, blur: 11, spread: 6 };
 
 interface SeriesCase {
     name: string;
@@ -126,8 +116,6 @@ const indexByKey = (data: object[], datum: Record<string, unknown>, key: string)
     data.findIndex((row) => (row as Record<string, unknown>)[key] === datum[key]);
 
 /** Whether a shape casts a shadow or glow in the given slot. */
-const isOn = (cast: { enabled?: boolean } | undefined) => cast?.enabled === true;
-
 describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
     setupMockConsole();
     setupMockCanvas();
@@ -149,9 +137,11 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             glow?: AgGlowOptions;
             highlight?: object;
             hover?: boolean;
+            theme?: string;
             first?: ItemCast | ((highlightState: string | undefined) => ItemCast);
             others?: ItemCast;
             styler?: (params: any) => object;
+            tooltipRenderer?: (params: any) => object;
         } = {}
     ) => {
         const { first, others, styler } = opts;
@@ -167,9 +157,15 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
                   });
         const options = {
             data: testCase.data,
+            theme: opts.theme,
             animation: { enabled: false },
             legend: { enabled: false },
-            series: [testCase.series({ shadow: opts.shadow, glow: opts.glow, highlight: opts.highlight, itemStyler })],
+            series: [
+                {
+                    ...testCase.series({ shadow: opts.shadow, glow: opts.glow, highlight: opts.highlight, itemStyler }),
+                    tooltip: opts.tooltipRenderer && { renderer: opts.tooltipRenderer },
+                },
+            ],
         } as AgChartOptions;
         chart = deproxy(await createChart(options));
         const series = getSeriesAt(chart);
@@ -195,19 +191,19 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             for (const shape of inPlace.slice(1)) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
         });
 
-        it('merges the shadow of the styler over the series shadow, field by field', async () => {
-            const { inPlace } = await create({ shadow: SERIES_SHADOW, first: { shadow: { blur: 12 } } });
+        it.each([
+            { key: 'shadow', series: SERIES_SHADOW, expected: (cast: AgDropShadowOptions) => cast },
+            { key: 'glow', series: SERIES_GLOW, expected: glowShadow },
+        ] as const)(
+            'merges the $key of the styler over the series $key, field by field',
+            async ({ key, series, expected }) => {
+                const { inPlace } = await create({ [key]: series, first: { [key]: { blur: 12 } } });
+                const cast = (shape: Shape) => (key === 'shadow' ? shape.fillShadow : shape.fillGlow);
 
-            expect(inPlace[0].fillShadow).toMatchObject({ ...SERIES_SHADOW, blur: 12 });
-            expect(inPlace[1].fillShadow).toMatchObject(SERIES_SHADOW);
-        });
-
-        it('merges the glow of the styler over the series glow, field by field', async () => {
-            const { inPlace } = await create({ glow: SERIES_GLOW, first: { glow: { blur: 9 } } });
-
-            expect(inPlace[0].fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 9 }));
-            expect(inPlace[1].fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
-        });
+                expect(cast(inPlace[0])).toMatchObject(expected({ ...series, blur: 12 }));
+                expect(cast(inPlace[1])).toMatchObject(expected(series));
+            }
+        );
 
         it('casts the glow that the styler returns for an item that has none from the series', async () => {
             const { inPlace } = await create({ first: { glow: ITEM_GLOW } });
@@ -244,10 +240,16 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
         ])(
             'keeps the theme shadow for the fields that a partial shadow leaves unset, over %s',
             async (_name, shadow) => {
-                const { inPlace } = await create({ shadow, first: { shadow: { blur: 12 } } });
+                for (const [theme, opacity] of [
+                    [undefined, 0.5],
+                    ['ag-default-dark', 1],
+                ] as const) {
+                    chart?.destroy();
+                    const { inPlace } = await create({ shadow, theme, first: { shadow: { blur: 12 } } });
 
-                expect(inPlace[0].fillShadow).toMatchObject({ enabled: true, xOffset: 3, yOffset: 3, blur: 12 });
-                for (const shape of inPlace.slice(1)) expect(isOn(shape.fillShadow)).toBe(false);
+                    expect(inPlace[0].fillShadow).toEqual({ ...themeShadow(opacity), blur: 12 });
+                    for (const shape of inPlace.slice(1)) expect(isOn(shape.fillShadow)).toBe(false);
+                }
             }
         );
 
@@ -270,20 +272,29 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
         });
     });
 
+    describe('theme', () => {
+        it('fills the fields that neither the styler nor the series set from the theme shadow', async () => {
+            const { inPlace } = await create({ first: { shadow: { blur: 8 } } });
+
+            expect(inPlace[0].fillShadow).toMatchObject({ ...themeShadow(0.5), blur: 8 });
+            for (const shape of inPlace.slice(1)) expect(isOn(shape.fillShadow)).toBe(false);
+        });
+    });
+
     describe('disable', () => {
-        it('turns the shadow off for the item that returns enabled: false, and not for the others', async () => {
-            const { inPlace } = await create({ shadow: SERIES_SHADOW, first: { shadow: { enabled: false } } });
+        it.each([
+            { key: 'shadow', series: SERIES_SHADOW, expected: (cast: AgDropShadowOptions) => cast },
+            { key: 'glow', series: SERIES_GLOW, expected: glowShadow },
+        ] as const)(
+            'turns the $key off for the item that returns enabled: false, and not for the others',
+            async ({ key, series, expected }) => {
+                const { inPlace } = await create({ [key]: series, first: { [key]: { enabled: false } } });
+                const cast = (shape: Shape) => (key === 'shadow' ? shape.fillShadow : shape.fillGlow);
 
-            expect(isOn(inPlace[0].fillShadow)).toBe(false);
-            for (const shape of inPlace.slice(1)) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
-        });
-
-        it('turns the glow off for the item that returns enabled: false, and not for the others', async () => {
-            const { inPlace } = await create({ glow: SERIES_GLOW, first: { glow: { enabled: false } } });
-
-            expect(isOn(inPlace[0].fillGlow)).toBe(false);
-            for (const shape of inPlace.slice(1)) expect(shape.fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
-        });
+                expect(isOn(cast(inPlace[0]))).toBe(false);
+                for (const shape of inPlace.slice(1)) expect(cast(shape)).toMatchObject(expected(series));
+            }
+        );
 
         it('turns off the glow and keeps the shadow of an item that returns only the glow disabled', async () => {
             const { inPlace } = await create({
@@ -399,6 +410,28 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect(isOn(highlighted[0].fillShadow)).toBe(false);
         });
 
+        it('casts the shadow of the styler from the hovered item in place when it branches on the highlightState', async () => {
+            const { inPlace } = await create({
+                hover: true,
+                first: (highlightState) => (highlightState === 'highlighted-item' ? { shadow: ITEM_SHADOW } : {}),
+            });
+
+            expect(inPlace[0].fillShadow).toMatchObject(ITEM_SHADOW);
+            for (const shape of inPlace.slice(1)) expect(isOn(shape.fillShadow)).toBe(false);
+        });
+
+        it('keeps the shadow of the highlightedItem on the hovered item when the styler disables it for the others', async () => {
+            const { inPlace } = await create({
+                shadow: SERIES_SHADOW,
+                highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
+                hover: true,
+                first: (highlightState) =>
+                    highlightState === 'unhighlighted-item' ? { shadow: { enabled: false } } : {},
+            });
+
+            expect(inPlace[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
+        });
+
         it('can cast a glow in one state only, by branching on the highlightState', async () => {
             const { inPlace, highlighted } = await create({
                 hover: true,
@@ -454,6 +487,24 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             }
         });
 
+        it('gives the tooltip params neither a shadow nor a glow', async () => {
+            const params: object[] = [];
+            await create({
+                shadow: SERIES_SHADOW,
+                glow: SERIES_GLOW,
+                styler: () => ({ shadow: ITEM_SHADOW, glow: ITEM_GLOW }),
+                tooltipRenderer: (tooltipParams) => {
+                    params.push(tooltipParams);
+                    return {};
+                },
+            });
+            getSeriesAt(chart).getTooltipContent(0, undefined);
+
+            expect(params).toHaveLength(1);
+            expect(params[0]).not.toHaveProperty('shadow');
+            expect(params[0]).not.toHaveProperty('glow');
+        });
+
         it('shares one object between the items that return equal values, and not with those that return another', async () => {
             const { inPlace } = await create({
                 styler: (params) => {
@@ -480,14 +531,11 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
             chart.ctx.highlightManager.updateHighlight(chart.id, datum);
             await waitForChartStability(chart);
-            const stringify = vi.spyOn(JSON, 'stringify');
-            chart.ctx.highlightManager.updateHighlight(chart.id);
-            await waitForChartStability(chart);
-
-            const castsSerialised = stringify.mock.calls.filter(
-                ([value]) => value != null && typeof value === 'object' && 'blur' in value
-            );
-            expect(castsSerialised).toHaveLength(0);
+            const castsSerialised = await countCastSerialisations(async () => {
+                chart.ctx.highlightManager.updateHighlight(chart.id);
+                await waitForChartStability(chart);
+            });
+            expect(castsSerialised).toBe(0);
             const after = shapesOf(getSeriesAt(chart).contentGroup, testCase.kind);
             expect([after[0].fillShadow, after[0].fillGlow]).toEqual(merged);
             expect(after[0].fillShadow).toBe(merged[0]);
@@ -527,45 +575,34 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
     });
 
     describe('invalid values', () => {
-        it('warns about an invalid shadow and casts the series shadow for that item', async () => {
+        const INVALID_CASTS = [
+            { key: 'shadow', series: SERIES_SHADOW, expected: (cast: AgDropShadowOptions) => cast },
+            { key: 'glow', series: SERIES_GLOW, expected: glowShadow },
+        ] as const;
+        const castOf = (key: 'shadow' | 'glow', shape: Shape) => (key === 'shadow' ? shape.fillShadow : shape.fillGlow);
+
+        it.each(INVALID_CASTS)('warns about an invalid $key and casts the series $key for that item', async (c) => {
             const { inPlace } = await create({
-                shadow: SERIES_SHADOW,
-                first: { shadow: { blur: 'wide' } } as unknown as ItemCast,
+                [c.key]: c.series,
+                first: { [c.key]: { blur: 'wide' } } as unknown as ItemCast,
             });
 
-            expectWarningMessages([expect.stringContaining('shadow')]);
-            expect(inPlace[0].fillShadow).toMatchObject(SERIES_SHADOW);
+            expectWarningMessages([expect.stringContaining(c.key)]);
+            expect(castOf(c.key, inPlace[0])).toMatchObject(c.expected(c.series));
         });
 
-        it('warns about an invalid glow and casts the series glow for that item', async () => {
-            const { inPlace } = await create({
-                glow: SERIES_GLOW,
-                first: { glow: { blur: 'wide' } } as unknown as ItemCast,
-            });
+        it.each(INVALID_CASTS)(
+            'casts nothing for an invalid $key over a disabled series $key, whatever else it holds',
+            async (c) => {
+                const { inPlace } = await create({
+                    [c.key]: { ...c.series, enabled: false },
+                    first: { [c.key]: { blur: 'wide', fill: '#00ff00' } } as unknown as ItemCast,
+                });
 
-            expectWarningMessages([expect.stringContaining('glow')]);
-            expect(inPlace[0].fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
-        });
-
-        it('casts nothing for an invalid shadow over a disabled series shadow, whatever else the shadow holds', async () => {
-            const { inPlace } = await create({
-                shadow: { ...SERIES_SHADOW, enabled: false },
-                first: { shadow: { blur: 'wide', fill: '#00ff00' } } as unknown as ItemCast,
-            });
-
-            expectWarningMessages([expect.stringContaining('shadow')]);
-            for (const shape of inPlace) expect(isOn(shape.fillShadow)).toBe(false);
-        });
-
-        it('casts nothing for an invalid glow over a disabled series glow, whatever else the glow holds', async () => {
-            const { inPlace } = await create({
-                glow: { ...SERIES_GLOW, enabled: false },
-                first: { glow: { blur: 'wide' } } as unknown as ItemCast,
-            });
-
-            expectWarningMessages([expect.stringContaining('glow')]);
-            for (const shape of inPlace) expect(isOn(shape.fillGlow)).toBe(false);
-        });
+                expectWarningMessages([expect.stringContaining(c.key)]);
+                for (const shape of inPlace) expect(isOn(castOf(c.key, shape))).toBe(false);
+            }
+        );
 
         it('casts the series cast, not the valid fields of an invalid one, for that item', async () => {
             const { inPlace } = await create({

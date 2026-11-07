@@ -973,6 +973,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         });
     }
 
+    private getHoveredItemShadow(datumIndex: number) {
+        const selectionState = this.getDataSelectionState(datumIndex);
+        const candidateState = this.getDataCandidacyState(datumIndex);
+        return this.getItemStyle(datumIndex, true, HighlightState.Item, selectionState, candidateState).shadow;
+    }
+
     protected override updateDatumNodes({
         datumSelection,
         isHighlight,
@@ -1024,7 +1030,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 nodeDatum.datumIndex,
                 highlightState,
                 undefined,
-                nodeDatum.style?.shadow
+                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex)
+                    ? this.getHoveredItemShadow(nodeDatum.datumIndex)
+                    : nodeDatum.style?.shadow
             );
             boxPlotNode.fillGlow = this.resolveItemGlow(
                 glow,

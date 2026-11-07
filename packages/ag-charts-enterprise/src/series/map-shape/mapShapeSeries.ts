@@ -866,7 +866,9 @@ export class MapShapeSeries
                 nodeDatum.datumIndex,
                 castState,
                 undefined,
-                nodeDatum.style.shadow
+                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex)
+                    ? this.getItemStyle(nodeDatum, true).shadow
+                    : nodeDatum.style.shadow
             );
 
             geoGeometry.fillGlow = this.resolveItemGlow(

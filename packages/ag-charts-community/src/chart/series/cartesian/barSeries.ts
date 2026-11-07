@@ -55,6 +55,7 @@ import {
     resolveLabelFit,
     toArray,
     toNumber,
+    withoutCasts,
     zeroLike,
 } from 'ag-charts-core';
 import type {
@@ -1874,6 +1875,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return style;
     }
 
+    private getHoveredItemShadow(datumIndex: number): AgItemShadowStyle['shadow'] {
+        const selectionState = this.getDataSelectionState(datumIndex);
+        const candidateState = this.getDataCandidacyState(datumIndex);
+        return this.getItemStyle(datumIndex, true, HighlightState.Item, selectionState, candidateState).shadow;
+    }
+
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<BarNodeDatum, BarShape>;
         isHighlight: boolean;
@@ -1950,7 +1957,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     datum.datumIndex,
                     highlightState,
                     undefined,
-                    datum.style?.shadow
+                    series.isHoveredInPlace(datum.datumIndex, highlightState)
+                        ? series.getHoveredItemShadow(datum.datumIndex)
+                        : datum.style?.shadow
                 ),
                 series.resolveItemGlow(
                     glow,
@@ -2152,7 +2161,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 yName,
                 legendItemName,
                 stackGroup,
-                ...format,
+                ...withoutCasts(format),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

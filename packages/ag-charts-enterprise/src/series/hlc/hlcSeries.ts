@@ -36,6 +36,7 @@ import {
     mergeDefaults,
     minValue,
     toNumber,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { Path, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -1356,7 +1357,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
                 closeKey,
                 closeName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

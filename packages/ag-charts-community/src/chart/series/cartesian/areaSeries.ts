@@ -35,6 +35,7 @@ import {
     minValue,
     placedLabelFit,
     toNumber,
+    withoutCasts,
 } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
@@ -1788,7 +1789,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 xName,
                 yKey,
                 yName,
-                ...format,
+                ...withoutCasts(format),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

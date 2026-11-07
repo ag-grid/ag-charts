@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 
 import { Group, Shape } from 'ag-charts-core';
-import type { AgDropShadowOptions, AgGlowOptions, AgMarkerShapeFn } from 'ag-charts-types';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle, AgMarkerShapeFn } from 'ag-charts-types';
 
 /** The shadow the marker shadow tests turn on. */
 export const MARKER_SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000000', xOffset: 4, yOffset: 4, blur: 6 };
@@ -32,8 +32,48 @@ export const HIGHLIGHT_GLOW: AgGlowOptions = { enabled: true, fill: '#00aa00', f
 /** The series-level glow, with every field set, so that a bucket's field shows through only where it overrides. */
 export const SERIES_GLOW: AgGlowOptions = { enabled: true, fill: '#aa0000', fillOpacity: 0.5, blur: 5, spread: 3 };
 
+/** The shadow an item styler returns in the item styler tests, distinct from `SERIES_SHADOW` in every field. */
+export const ITEM_SHADOW: AgDropShadowOptions = {
+    enabled: true,
+    fill: '#445566',
+    fillOpacity: 1,
+    xOffset: 1,
+    yOffset: 2,
+    blur: 9,
+};
+
+/** The glow an item styler returns in the item styler tests, distinct from `SERIES_GLOW` and `HIGHLIGHT_GLOW` in every field. */
+export const ITEM_GLOW: AgGlowOptions = { enabled: true, fill: '#ff00ff', fillOpacity: 0.9, blur: 11, spread: 6 };
+
+/** What the item styler of one item returns beyond its style. */
+export type ItemCast = AgItemShadowStyle;
+
+export const isOn = (cast: { enabled?: boolean } | undefined) => cast?.enabled === true;
+
+/** How many casts `JSON.stringify` serialises while `action` runs. */
+export async function countCastSerialisations(action: () => Promise<void>): Promise<number> {
+    const stringify = vi.spyOn(JSON, 'stringify');
+    try {
+        await action();
+        return stringify.mock.calls.filter(([value]) => value != null && typeof value === 'object' && 'blur' in value)
+            .length;
+    } finally {
+        stringify.mockRestore();
+    }
+}
+
 /** What a glow with no fields of its own casts, from the glow theme defaults. */
 export const THEME_GLOW = { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 };
+
+/** What a shadow with no fields of its own casts: black, at the theme's opacity (0.5, or 1 in the dark theme). */
+export const themeShadow = (opacity: number) => ({
+    enabled: true,
+    fill: '#000',
+    fillOpacity: opacity,
+    xOffset: 3,
+    yOffset: 3,
+    blur: 5,
+});
 
 /** The shadow a glow casts: the same blurred silhouette as a shadow, centred on the item. */
 export const glowShadow = (glow: AgGlowOptions) => ({ ...glow, xOffset: 0, yOffset: 0 });

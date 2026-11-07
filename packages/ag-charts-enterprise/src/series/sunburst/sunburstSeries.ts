@@ -565,7 +565,9 @@ export class SunburstSeries extends HierarchySeries<
                 highlighted,
                 highlightedNode,
                 nodeDatum,
-                style.shadow
+                !highlighted && highlightedNode?.datumIndex === nodeDatum.datumIndex
+                    ? this.getItemStyle(nodeDatum, true).shadow
+                    : style.shadow
             );
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.

@@ -54,6 +54,7 @@ import {
     toArray,
     toNumber,
     upsertNodeDatum,
+    withoutCasts,
 } from 'ag-charts-core';
 import type {
     AgHistogramSeriesBinParams,
@@ -970,7 +971,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState
-    ): RequireOptional<NormalisedHistogramSeriesStyle> {
+    ): RequireOptional<NormalisedHistogramSeriesStyle> & AgItemShadowStyle {
         let style = this.getStyle(datumIndex === undefined, isHighlight, datumIndex, highlightState);
 
         const { itemStyler } = this.options;
@@ -1039,7 +1040,9 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 datum.datumIndex,
                 highlightState,
                 undefined,
-                itemShadow
+                this.isHoveredInPlace(datum.datumIndex)
+                    ? this.getItemStyle(datum.datumIndex, true, HighlightState.Item).shadow
+                    : itemShadow
             );
             rect.fillGlow = this.resolveItemGlow(
                 glow,
@@ -1297,7 +1300,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 yKey: yKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 yName,
                 ...this.binParams(bin),
-                ...this.getItemStyle(datumIndex, false),
+                ...withoutCasts(this.getItemStyle(datumIndex, false)),
             }
         );
     }

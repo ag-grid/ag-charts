@@ -52,6 +52,7 @@ import {
     resolveSeriesLabelDefaults,
     toArray,
     toNumber,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { BoxBounds, Path, Segment, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -1719,7 +1720,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 yHighKey,
                 yHighName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

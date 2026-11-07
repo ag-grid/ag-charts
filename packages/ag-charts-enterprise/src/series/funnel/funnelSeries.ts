@@ -176,7 +176,9 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
                 datum.datumIndex,
                 castState,
                 undefined,
-                style.shadow
+                !isHighlight && this.isHoveredInPlace(datum.datumIndex)
+                    ? this.getItemStyle(datum, true).shadow
+                    : style.shadow
             );
             rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState, undefined, style.glow);
             rect.cornerRadius = cornerRadius;

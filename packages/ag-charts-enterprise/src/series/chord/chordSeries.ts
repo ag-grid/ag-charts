@@ -602,10 +602,14 @@ export class ChordSeries extends FlowProportionSeries<
 
             sector.setStyleProperties(style, fillBBox);
             const castState = this.getItemCastState(highlightedDatum, isHighlight, datumIndex);
+            const itemShadow =
+                !isHighlight && this.isHoveredInPlace(datumIndex)
+                    ? this.getNodeStyle(datum, datumIndex, true).shadow
+                    : style.shadow;
             sector.fillShadow =
                 datum === focusedDatum
                     ? undefined
-                    : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState, undefined, style.shadow);
+                    : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState, undefined, itemShadow);
             sector.fillGlow =
                 focusedDatum == null
                     ? this.resolveItemGlow(glow, isHighlight, datumIndex, castState, undefined, style.glow)
@@ -758,10 +762,14 @@ export class ChordSeries extends FlowProportionSeries<
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);
             const castState = this.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
+            const itemShadow =
+                !isHighlight && this.isHoveredInPlace(datum.datumIndex)
+                    ? this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, true).shadow
+                    : style.shadow;
             link.fillShadow =
                 datum === focusedDatum
                     ? undefined
-                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState, undefined, style.shadow);
+                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState, undefined, itemShadow);
             link.fillGlow =
                 focusedDatum == null
                     ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState, undefined, style.glow)

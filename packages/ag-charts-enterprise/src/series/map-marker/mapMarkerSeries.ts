@@ -959,7 +959,9 @@ export class MapMarkerSeries
                 markerDatum.datumIndex,
                 castState,
                 undefined,
-                style.shadow
+                !isHighlight && this.isHoveredInPlace(markerDatum.datumIndex)
+                    ? this.getMarkerItemStyle(markerDatum, true).shadow
+                    : style.shadow
             );
             const glow = this.resolveItemGlow(
                 this.options.glow,

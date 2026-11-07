@@ -34,6 +34,7 @@ import {
     polarLabelData,
     polarLabelsBBox,
     resolveLabelFitDescriptors,
+    withoutCasts,
     writePlacedPolarLabels,
 } from 'ag-charts-core';
 
@@ -672,7 +673,7 @@ export abstract class RadarSeries<
                 angleName,
                 radiusName,
                 legendItemName,
-                ...(activeStyle as RequireOptional<AgSeriesMarkerStyle>),
+                ...withoutCasts(activeStyle as RequireOptional<AgSeriesMarkerStyle>),
             }
         );
     }

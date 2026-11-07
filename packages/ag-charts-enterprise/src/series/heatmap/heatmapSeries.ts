@@ -1052,7 +1052,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 nodeDatum.datumIndex,
                 castState,
                 undefined,
-                style.shadow
+                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex)
+                    ? this.getItemStyle(nodeDatum, true).shadow
+                    : style.shadow
             );
             rect.fillGlow = this.resolveItemGlow(
                 glow,

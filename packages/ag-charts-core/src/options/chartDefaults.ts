@@ -702,11 +702,7 @@ export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
 /** The `shadow` of a highlighted item, which has no deprecated `color`: a new option takes `fill`. */
 const highlightedItemShadowOptionsDefs = without(shadowOptionsDefs, ['color']);
 
-/**
- * Validates a `shadow` or `glow` that an item styler returned against `defs`, and drops the whole object when any field of it
- * is invalid or unknown, leaving it `null` for the item to read as none. Clearing the field alone would leave a partial cast, which the item then merges as an override and
- * so turns on, or recolours, the cascade's cast that the styler never meant to change.
- */
+/** Validates an item styler's `shadow` or `glow` against `defs`, dropping the whole object if any field is invalid. */
 const itemCastOf = <T>(defs: OptionsDefs<T>): Validator => {
     const validator: Validator = (value, context) => {
         if (!isObject(value)) return false;

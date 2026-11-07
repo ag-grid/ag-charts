@@ -111,7 +111,7 @@ import { type SeriesNodePickMatch, SeriesNodePickMode } from '../pickTypes';
 import type { SeriesAreaLayout, UnknownSeries } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import { isUnselected } from '../seriesProperties';
-import type { HighlightState } from '../seriesTypes';
+import { HighlightState } from '../seriesTypes';
 import {
     pickByMatchingAngle,
     pickSectorsInBBoxPredicate,
@@ -1339,7 +1339,9 @@ export class DonutSeries extends PolarSeries<
                 datum.datumIndex,
                 undefined,
                 legendItemValues,
-                format.shadow
+                this.isHoveredInPlace(datum.datumIndex, undefined, legendItemValues)
+                    ? this.getItemStyle(datum, true, true, HighlightState.Item, legendItemValues).shadow
+                    : format.shadow
             );
             sector.fillGlow = this.resolveItemGlow(
                 this.options.glow,
