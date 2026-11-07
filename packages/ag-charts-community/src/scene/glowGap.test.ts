@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { Line, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
@@ -167,6 +167,32 @@ describe('glow gap', () => {
 
             expect(pixelAt(90, CENTRE_Y)[0]).toBeGreaterThan(0);
             expect(pixelAt(310, CENTRE_Y).slice(0, 3)).toEqual(BLUE_RGB);
+        });
+
+        // The shape's own cast makes its silhouette canvas, then the canvas that the gap is cut on, which the browser can refuse.
+        it.runIf(route === 'cutout')('should cast the glow without the cut when no canvas can cut it', () => {
+            const getContext = OffscreenCanvas.prototype.getContext;
+            const canvases: OffscreenCanvas[] = [];
+            const refuseGapCanvas = vi.spyOn(OffscreenCanvas.prototype, 'getContext').mockImplementation(function (
+                this: OffscreenCanvas,
+                ...args: Parameters<typeof getContext>
+            ) {
+                if (!canvases.includes(this)) canvases.push(this);
+                return canvases.indexOf(this) === 1 ? null : getContext.apply(this, args);
+            } as typeof getContext);
+            let at: ReturnType<typeof draw>['at'];
+            try {
+                ({ at } = draw(route, SHAPES.rect({ fill: TRANSLUCENT_BLUE, fillGlow: redGlow(0) })));
+            } finally {
+                refuseGapCanvas.mockRestore();
+            }
+
+            expect(canvases.length).toBeGreaterThan(1);
+            // The glow is cast as it is with no gap, so it shows through the translucent item.
+            expect(at(near)[3]).toBeGreaterThan(0);
+            expect(at(middle)[3]).toBeGreaterThan(0);
+            expect(at(past)).toEqual(CLEAR);
+            expect(at(inside)[0]).toBeGreaterThan(0);
         });
 
         it.each([Number.NaN, Number.POSITIVE_INFINITY])('should cast no glow with a gap of %s', (gap) => {
