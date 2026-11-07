@@ -11,6 +11,7 @@ import type {
     FillOptions,
     ImageSegment,
     PaddingOptions,
+    PixelSize,
     StrokeOptions,
     TextOptions,
     TextSegment,
@@ -82,6 +83,8 @@ export type NormalisedDropShadowOptions = Normalised<
     'enabled' | 'xOffset' | 'yOffset' | 'blur'
 > & {
     glow?: true;
+    /** The `gap` of a glow: how far the shadow's silhouette is cut out of it, or undefined to cast it like a shadow. */
+    gap?: PixelSize;
 };
 
 /** A shadow with the `fill` that it casts in. */
