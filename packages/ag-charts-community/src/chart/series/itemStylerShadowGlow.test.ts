@@ -10,6 +10,7 @@ import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import {
     CATEGORY_DATA,
     HIGHLIGHT_GLOW,
+    HIGHLIGHT_SHADOW,
     SERIES_GLOW,
     SERIES_SHADOW,
     THEME_GLOW,
@@ -222,6 +223,14 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             for (const shape of inPlace.slice(1)) expect(isOn(shape.fillGlow)).toBe(false);
         });
 
+        it('turns on a bare glow: {} over a disabled series glow, which keeps none of its fields', async () => {
+            // Option normalisation strips every field of an option object that has `enabled: false`.
+            const { inPlace } = await create({ glow: { ...SERIES_GLOW, enabled: false }, first: { glow: {} } });
+
+            expect(inPlace[0].fillGlow).toMatchObject(glowShadow(THEME_GLOW));
+            for (const shape of inPlace.slice(1)) expect(isOn(shape.fillGlow)).toBe(false);
+        });
+
         it('casts a shadow and a glow together from one item', async () => {
             const { inPlace } = await create({ first: { shadow: ITEM_SHADOW, glow: ITEM_GLOW } });
 
@@ -293,6 +302,51 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
 
             expect(highlighted).toHaveLength(1);
             expect(highlighted[0].fillGlow).toMatchObject(glowShadow(ITEM_GLOW));
+        });
+
+        it('casts the glow of the styler from its highlight copy, over the highlightedItem glow', async () => {
+            const { highlighted } = await create({
+                highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } },
+                hover: true,
+                first: { glow: { fill: '#ff00ff', blur: 20 } },
+            });
+
+            expect(highlighted).toHaveLength(1);
+            expect(highlighted[0].fillGlow).toMatchObject(glowShadow({ ...HIGHLIGHT_GLOW, fill: '#ff00ff', blur: 20 }));
+        });
+
+        it('casts a bare glow: {} from the copy, with the highlightedItem glow for the fields it leaves unset', async () => {
+            const { highlighted } = await create({
+                highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } },
+                hover: true,
+                first: { glow: {} },
+            });
+
+            expect(highlighted[0].fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+        });
+
+        it('casts the glow in place of the unhovered items too, when the styler returns it for them', async () => {
+            const { inPlace } = await create({
+                highlight: { unhighlightedItem: { glow: HIGHLIGHT_GLOW } },
+                hover: true,
+                others: { glow: { fill: '#ff00ff' } },
+            });
+
+            // The `unhighlightedItem` glow is the base of the styler's glow for every other item.
+            for (const shape of inPlace.slice(1)) {
+                expect(shape.fillGlow).toMatchObject(glowShadow({ ...HIGHLIGHT_GLOW, fill: '#ff00ff' }));
+            }
+        });
+
+        it('merges the shadow of the styler over the highlightedItem shadow, field by field, in place', async () => {
+            const { inPlace } = await create({
+                shadow: SERIES_SHADOW,
+                highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
+                hover: true,
+                first: { shadow: { blur: 12 } },
+            });
+
+            expect(inPlace[0].fillShadow).toMatchObject({ ...HIGHLIGHT_SHADOW, blur: 12 });
         });
 
         it('casts the glow of the highlightedItem from the copy of an item whose styler returns none', async () => {

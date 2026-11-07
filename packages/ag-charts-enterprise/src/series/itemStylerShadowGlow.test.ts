@@ -4,6 +4,7 @@ import type { AgChartInstance, AgChartOptions, AgDropShadowOptions, AgGlowOption
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     HIGHLIGHT_GLOW,
+    THEME_GLOW,
     deproxy,
     getSeriesAt,
     getSeriesSelectionNodes,
@@ -227,6 +228,17 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
 
                 expect(glowOf(inPlace[0])).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 9 }));
                 for (const shape of inPlace.slice(1)) expect(glowOf(shape)).toMatchObject(glowShadow(SERIES_GLOW));
+            }
+        );
+
+        it.runIf(testCase.seriesGlow)(
+            'turns on a bare glow: {} over a disabled series glow, which keeps none of its fields',
+            async () => {
+                // Option normalisation strips every field of an option object that has `enabled: false`.
+                const { inPlace } = await create({ glow: { ...SERIES_GLOW, enabled: false }, first: { glow: {} } });
+
+                expect(glowOf(inPlace[0])).toMatchObject(glowShadow(THEME_GLOW));
+                for (const shape of inPlace.slice(1)) expect(isOn(glowOf(shape))).toBe(false);
             }
         );
 
