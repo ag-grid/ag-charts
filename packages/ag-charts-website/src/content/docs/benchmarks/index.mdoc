@@ -166,6 +166,16 @@ Exercise:
 
 {% chartExampleRunner title="Heatmap Glow" name="shadow-glow-heatmap" type="generated" initialLoadDeferred=true /%}
 
+## Item Styler Shadow and Glow Test
+
+Exercise:
+
+- Initial load and hover redraw time of bar and scatter series whose `itemStyler` returns a `shadow` and a `glow`.
+- 1,000 items are timed with no `itemStyler`, with one that returns neither, and with one that returns the same `shadow` and `glow` for every item.
+- 100 items are timed with no `itemStyler`, with the same `shadow` and `glow` for every item, and with a different `blur` for each item, which costs a blur for each item and so takes far longer.
+
+{% chartExampleRunner title="Item Styler Shadow and Glow" name="item-styler-shadow-glow" type="generated" initialLoadDeferred=true /%}
+
 ## Data Selection at Scale
 
 Exercises the per-datum styling pipeline when `selection.enabled` is on across every series type that supports data selection. Two scenarios per series: zoom with no selection (cold path) and zoom with ~50% of datums selected (warm path). Each series family runs as a separate example to keep a benchmark run within a single page session's memory budget.
