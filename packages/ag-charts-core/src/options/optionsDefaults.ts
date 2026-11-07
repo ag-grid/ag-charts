@@ -75,6 +75,8 @@ const themeParams = [
     'borderRadius',
     'cardShadow',
     'chartBackgroundColor',
+    'chartBorder',
+    'chartBorderRadius',
     'chartPadding',
     'focusShadow',
     'foregroundColor',

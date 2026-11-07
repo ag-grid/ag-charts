@@ -67,6 +67,7 @@ export const sparklineThemeTemplate: ExtensibleTheme = {
         contextMenu: { enabled: false },
         keyboard: { enabled: false },
         background: { visible: false },
+        border: { enabled: false },
         navigator: { enabled: false },
         padding: { $applyPadding: 0 },
         axes: {
