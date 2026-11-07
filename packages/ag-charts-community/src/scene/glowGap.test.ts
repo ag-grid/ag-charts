@@ -169,6 +169,31 @@ describe('glow gap', () => {
             expect(pixelAt(310, CENTRE_Y).slice(0, 3)).toEqual(BLUE_RGB);
         });
 
+        // The cutout route erases beneath the item by design, so it is left out.
+        describe.skipIf(route === 'cutout')('beneath a translucent item with a gap of 0', () => {
+            const gapped = () =>
+                box(CENTRE_X - 30, CENTRE_Y - 30, 60, 60, { fill: TRANSLUCENT_BLUE, fillGlow: redGlow(0) });
+            const bare = () => box(CENTRE_X - 30, CENTRE_Y - 30, 60, 60, { fill: TRANSLUCENT_BLUE });
+            const GREEN = { enabled: true, fill: 'rgba(0, 255, 0, 1)', xOffset: 140, yOffset: 0, blur: 0 };
+            // Its shadow falls inside the footprint of the gapped item.
+            const shadowCaster = () => box(60, CENTRE_Y - 10, 20, 20, { fill: 'black', fillShadow: GREEN });
+            // Its glow reaches 20px past its right edge, into the footprint of the gapped item.
+            const glowCaster = () =>
+                box(120, CENTRE_Y - 15, 30, 30, { fill: 'black', fillGlow: { ...redGlow(), spread: 30 } });
+
+            it.each([
+                ['the shadow of another item', shadowCaster, [215, CENTRE_Y], 1],
+                ['the glow of another item', glowCaster, [175, CENTRE_Y], 0],
+            ] as const)('should leave %s showing through the item', (_name, other, probe, channel) => {
+                const expected = draw(route, other(), bare()).pixelAt(probe[0], probe[1]);
+                expect(expected[channel]).toBeGreaterThan(100);
+
+                const { pixelAt } = draw(route, other(), gapped());
+
+                expect(pixelAt(probe[0], probe[1])).toEqual(expected);
+            });
+        });
+
         // The shape's own cast makes its silhouette canvas, then the canvas that the gap is cut on, which the browser can refuse.
         it.runIf(route === 'cutout')('should cast the glow without the cut when no canvas can cut it', () => {
             const getContext = OffscreenCanvas.prototype.getContext;
