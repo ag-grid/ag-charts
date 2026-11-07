@@ -34,7 +34,7 @@ import { parseSvg } from '../../rendering/svg';
 import { setSvgLineDashAttributes, setSvgStrokeAttributes } from '../../rendering/svgUtil';
 import type { SerializedNodeState, SerializedShapeProps } from '../../types/scene';
 import type { BBox } from '../bbox';
-import { getSpreadCanvas } from '../canvas/spreadCanvas';
+import { getSpreadCanvas, tryGetSpreadCanvas } from '../canvas/spreadCanvas';
 import { ConicGradient } from '../gradient/conicGradient';
 import { Gradient, type GradientParams } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
@@ -1211,10 +1211,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         scratch.restore();
 
         const { gap } = this.getSlot(slot)!;
-        if (gap != null) {
-            this.castGappedShadow(slot, ctx, path, matrix, gap, distance, strength, canvas);
-            return;
-        }
+        if (gap != null && this.castGappedShadow(slot, ctx, path, matrix, gap, distance, strength, canvas)) return;
 
         ctx.save();
         ctx.resetTransform();
@@ -1225,7 +1222,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.restore();
     }
 
-    /** Casts the silhouette onto a canvas of its own, cuts the footprint out of it, then draws that on the layer. */
+    /**
+     * Casts the silhouette onto a canvas of its own, cuts the footprint out of it, then draws that on the layer.
+     * Returns false, having drawn nothing, when the browser refuses that canvas, for the caller to cast the glow uncut.
+     */
     private castGappedShadow(
         slot: ShadowSlot,
         ctx: CanvasContext,
@@ -1235,12 +1235,15 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         distance: number,
         strength: number,
         silhouette: OffscreenCanvas
-    ) {
+    ): boolean {
         const { x, y, width, height } = spreadRegion;
-        if (!setGapRegion()) return;
+        if (!setGapRegion()) return true;
 
         const { x: left, y: top, width: landWidth, height: landHeight, maxWidth, maxHeight } = gapRegion;
-        const { canvas, context: land } = getSpreadCanvas(ctx, landWidth, landHeight, maxWidth, maxHeight, 'gap');
+        const gapCanvas = tryGetSpreadCanvas(ctx, landWidth, landHeight, maxWidth, maxHeight, 'gap');
+        if (gapCanvas == null) return false;
+
+        const { canvas, context: land } = gapCanvas;
         land.setTransform(1, 0, 0, 1, 0, 0);
         land.clearRect(0, 0, landWidth, landHeight);
 
@@ -1261,6 +1264,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.globalAlpha = 1;
         ctx.drawImage(canvas, 0, 0, landWidth, landHeight, left, top, landWidth, landHeight);
         ctx.restore();
+        return true;
     }
 
     /** Strokes the filled geometry as a solid line, to dilate it. Open subpaths the fill does not paint are skipped. */

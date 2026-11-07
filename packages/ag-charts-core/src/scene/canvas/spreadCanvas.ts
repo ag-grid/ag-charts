@@ -33,6 +33,30 @@ export function getSpreadCanvas(
     maxHeight: number,
     kind: SpreadCanvasKind = 'silhouette'
 ): SpreadCanvas {
+    return getSpreadCanvasOrUndefined(ctx, width, height, maxWidth, maxHeight, kind, true)!;
+}
+
+/** As {@link getSpreadCanvas}, but undefined when the browser refuses the canvas's context. Nothing is cached then. */
+export function tryGetSpreadCanvas(
+    ctx: object,
+    width: number,
+    height: number,
+    maxWidth: number,
+    maxHeight: number,
+    kind: SpreadCanvasKind = 'silhouette'
+): SpreadCanvas | undefined {
+    return getSpreadCanvasOrUndefined(ctx, width, height, maxWidth, maxHeight, kind, false);
+}
+
+function getSpreadCanvasOrUndefined(
+    ctx: object,
+    width: number,
+    height: number,
+    maxWidth: number,
+    maxHeight: number,
+    kind: SpreadCanvasKind,
+    assertContext: boolean
+): SpreadCanvas | undefined {
     const store = spreadCanvases[kind];
     let sizes = store.get(ctx);
     if (sizes == null) {
@@ -45,9 +69,14 @@ export function getSpreadCanvas(
     const key = canvasWidth * 0x10000 + canvasHeight;
     let spreadCanvas = sizes.get(key);
     if (spreadCanvas == null) {
-        const OffscreenCanvasCtor = getOffscreenCanvas();
-        const canvas = new OffscreenCanvasCtor(canvasWidth, canvasHeight);
-        spreadCanvas = { canvas, context: canvas.getContext('2d')! };
+        if (assertContext) {
+            const OffscreenCanvasCtor = getOffscreenCanvas();
+            const canvas = new OffscreenCanvasCtor(canvasWidth, canvasHeight);
+            spreadCanvas = { canvas, context: canvas.getContext('2d')! };
+        } else {
+            spreadCanvas = allocateCanvas(canvasWidth, canvasHeight);
+            if (spreadCanvas == null) return;
+        }
         sizes.set(key, spreadCanvas);
     }
     return spreadCanvas;
