@@ -681,6 +681,47 @@ describe('highlight glow', () => {
                 for (const fill of fills) expect(fill.fillShadow).toMatchObject(SERIES_SHADOW);
             });
 
+            describe.each([
+                ['an area with its default markers', { type: 'area' }, XY_DATA],
+                [
+                    'a dense line whose markers are dropped',
+                    { type: 'line', marker: { enabled: true } },
+                    Array.from({ length: 5000 }, (_, i) => ({ x: i, y: i % 17 })),
+                ],
+            ])('on %s', (_name, series, data) => {
+                it('casts no highlightedItem.shadow from any marker of the series', async () => {
+                    chart = deproxy(
+                        await createChart({
+                            data,
+                            animation: { enabled: false },
+                            legend: { enabled: false },
+                            series: [
+                                {
+                                    ...series,
+                                    xKey: 'x',
+                                    yKey: 'y',
+                                    highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW } },
+                                },
+                            ],
+                        } as AgChartOptions)
+                    );
+                    const hovered = getSeriesAt(chart);
+                    // No marker is drawn in place, which is what leaves nothing for the bucket to reach.
+                    expect(shapesOf(hovered.contentGroup, Marker)).toEqual([]);
+                    chart.ctx.highlightManager.updateHighlight(
+                        chart.id,
+                        getSeriesNodeData<HighlightNodeDatum>(chart)[0]
+                    );
+                    await waitForChartStability(chart);
+
+                    expect(hovered.highlightGroup.visible).toBe(true);
+                    // Whatever the highlight layer draws for the hover, it casts none of the bucket's shadow.
+                    for (const marker of shapesOf(chart.seriesRoot, Marker)) {
+                        expect(marker.fillShadow?.enabled).not.toBe(true);
+                    }
+                });
+            });
+
             describe('on a bar series', () => {
                 const bar = SERIES[0];
                 const SHADOW_WITH_OPACITY = { ...SERIES_SHADOW, fillOpacity: 0.3 };
