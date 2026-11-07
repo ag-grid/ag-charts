@@ -1,5 +1,6 @@
 import {
     type AgCandlestickSeriesItemOptions,
+    type AgItemShadowStyle,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesItemType,
     type FillOptions,
@@ -30,6 +31,7 @@ import {
     type Text,
     mergeDefaults,
     toNumber,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -88,7 +90,7 @@ export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDa
 
     readonly crisp: boolean;
 
-    style?: Required<NormalisedOhlcCandleStickSeriesStyle>;
+    style?: Required<NormalisedOhlcCandleStickSeriesStyle> & AgItemShadowStyle;
 }
 
 /**
@@ -843,7 +845,7 @@ export abstract class OhlcSeriesBase<
             this.itemStyle(itemType)
         ) as Required<NormalisedOhlcCandleStickSeriesStyle> & { opacity: number };
 
-        let style = baseStyle;
+        let style: typeof baseStyle & AgItemShadowStyle = baseStyle;
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -1006,7 +1008,7 @@ export abstract class OhlcSeriesBase<
                 lowName,
                 closeKey,
                 closeName,
-                ...format,
+                ...withoutCasts(format),
             } as const
         );
     }

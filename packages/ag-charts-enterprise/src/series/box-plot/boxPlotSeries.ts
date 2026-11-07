@@ -4,6 +4,7 @@ import {
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
     type AgBoxPlotWhiskerOptions,
+    type AgItemShadowStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type {
@@ -26,6 +27,7 @@ import {
     mergeDefaults,
     toNumber,
     upsertNodeDatum,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -643,7 +645,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 minName,
                 maxKey,
                 maxName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }
@@ -820,12 +822,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         highlightState: _ModuleSupport.HighlightState | undefined,
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
-    ): Required<NormalisedBoxPlotSeriesStyle> {
+    ): Required<NormalisedBoxPlotSeriesStyle> & AgItemShadowStyle {
         const { itemStyler } = this.options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex, selectionState, candidateState);
-        let style = mergeDefaults(
+        let style: Required<NormalisedBoxPlotSeriesStyle> & AgItemShadowStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
             this.getStyle(datumIndex === undefined, highlightState, selectionState, candidateState)
@@ -994,8 +996,22 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             boxPlotNode.cornerRadius = style.cornerRadius;
 
             boxPlotNode.crisp = true;
-            boxPlotNode.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
-            boxPlotNode.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+            boxPlotNode.fillShadow = this.resolveItemShadow(
+                shadow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                undefined,
+                undefined,
+                nodeDatum.style?.shadow
+            );
+            boxPlotNode.fillGlow = this.resolveItemGlow(
+                glow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                undefined,
+                undefined,
+                nodeDatum.style?.glow
+            );
 
             boxPlotNode.horizontal = !isVertical;
             boxPlotNode.center = nodeDatum.scaledValues.xValue;

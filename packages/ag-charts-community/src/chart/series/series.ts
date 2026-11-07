@@ -1215,7 +1215,7 @@ export abstract class Series<
      */
     private itemCastInterns?: WeakMap<object, Map<string, NormalisedDropShadowOptions | null>>;
 
-    private internItemCast(
+    protected internItemCast(
         base: object | undefined,
         key: string,
         merge: () => NormalisedDropShadowOptions | undefined
@@ -1233,7 +1233,7 @@ export abstract class Series<
     }
 
     /** As with `highlightedItem.shadow`, a `fill` with no `fillOpacity` is opaque, not the theme shadow's opacity. */
-    private mergeItemShadow(
+    protected mergeItemShadow(
         cascaded: NormalisedDropShadowOptions | undefined,
         itemShadow: NonNullable<AgItemShadowStyle['shadow']>
     ): NormalisedDropShadowOptions | undefined {

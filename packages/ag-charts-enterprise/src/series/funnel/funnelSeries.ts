@@ -1,6 +1,11 @@
-import { type AgFunnelSeriesLabelPlacement, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgFunnelSeriesLabelPlacement,
+    type AgFunnelSeriesStyle,
+    type AgItemShadowStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type { DynamicContext, NormalisedFunnelSeriesOwnOptions, RequireOptional, Selection } from 'ag-charts-core';
-import { ChartAxisDirection, Rect, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, Rect, mergeDefaults, withoutCasts } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -106,7 +111,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.itemStyle(datumIndex));
-        let style = baseStyle;
+        let style: typeof baseStyle & AgItemShadowStyle = baseStyle;
 
         if (itemStyler != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -163,14 +168,21 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
-            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(
+                shadow,
+                isHighlight,
+                datum.datumIndex,
+                undefined,
+                undefined,
+                style.shadow
+            );
+            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex, undefined, undefined, style.glow);
             rect.cornerRadius = cornerRadius;
         });
     }
 
     protected tooltipStyle(datum: unknown, datumIndex: number) {
-        return this.getItemStyle({ datum, datumIndex }, false);
+        return withoutCasts(this.getItemStyle({ datum, datumIndex }, false));
     }
 
     override animateEmptyUpdateReady(params: FunnelAnimationData<Rect<FunnelNodeDatum>>) {

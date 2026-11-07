@@ -84,8 +84,22 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
                 yOpen,
                 yClose,
                 crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState),
-                series.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState)
+                series.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    datum.style?.shadow
+                ),
+                series.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    datum.style?.glow
+                )
             );
 
             node.setStyleProperties(style, fillBBox);
