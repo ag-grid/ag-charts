@@ -940,14 +940,26 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return true;
     }
 
-    /** Sets how the stroke that dilates the shape by a `spread` is drawn: solid, and capped so that open ends spread too. */
-    private setDilationStyle(slot: ShadowSlot, ctx: CanvasContext, spread: number, drawsStroke: boolean) {
+    /**
+     * Sets how the stroke that dilates the shape by a `spread` is drawn: solid, and capped so that open ends spread too.
+     * A `footprint` is joined round, which dilates every vertex by exactly the `spread`. The join of the item would spike
+     * at its sharp vertices, and cut the glow away well past the `gap`.
+     */
+    private setDilationStyle(
+        slot: ShadowSlot,
+        ctx: CanvasContext,
+        spread: number,
+        drawsStroke: boolean,
+        footprint: boolean = false
+    ) {
         const lineCap = this.__lineCap;
         let dilationCap: ShapeLineCap = lineCap == null || lineCap === 'butt' ? 'square' : lineCap;
         if (this.getShadowMode(slot) === 'fill') dilationCap = 'round';
         ctx.lineCap = dilationCap;
-        ctx.lineJoin = drawsStroke ? (this.__lineJoin ?? 'miter') : 'miter';
-        ctx.miterLimit = drawsStroke ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
+        const ownJoin = drawsStroke && !footprint;
+        ctx.lineJoin = ownJoin ? (this.__lineJoin ?? 'miter') : 'miter';
+        if (footprint) ctx.lineJoin = 'round';
+        ctx.miterLimit = ownJoin ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
         ctx.lineWidth = (drawsStroke ? this.__strokeWidth : 0) + spread * 2;
     }
 
@@ -967,7 +979,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
         ctx.fillStyle = tint;
         ctx.strokeStyle = tint;
-        this.setDilationStyle(slot, ctx, spread, drawsStroke);
+        this.setDilationStyle(slot, ctx, spread, drawsStroke, footprint);
 
         if (drawsFill) {
             this.executeFill(ctx, path);
@@ -979,6 +991,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             } finally {
                 this.shadowStrokeGrowth = 0;
             }
+            // The round join leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
+            if (footprint) this.executeOwnStroke(ctx, path);
         } else if (drawsFill && spread > 0 && path != null) {
             this.dilateFill(ctx, path);
         }
@@ -987,6 +1001,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (footprint || (this.getShadowMode(slot) !== 'fill' && shadow != null && dilatesShadow(shadow))) {
             this.dilateSilhouetteExtras(ctx, spread * 2);
         }
+    }
+
+    /** Strokes the path as the item paints it, with its own width and join. */
+    private executeOwnStroke(ctx: CanvasContext, path: Path2D | undefined) {
+        ctx.lineJoin = this.__lineJoin ?? 'miter';
+        ctx.miterLimit = this.__miterLimit ?? 10;
+        ctx.lineWidth = this.__strokeWidth;
+        this.executeStroke(ctx, path);
     }
 
     /** Erases the geometry of the item, dilated by a glow's `gap`, from `ctx`, whatever its paint. A `Line` has no fill to erase. */
