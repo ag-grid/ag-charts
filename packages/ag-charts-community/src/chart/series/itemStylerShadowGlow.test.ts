@@ -621,6 +621,62 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             }
         );
 
+        describe.each([
+            ['with a series cast', true],
+            ['with no series cast', false],
+        ])('on the hovered item, %s', (_name, hasSeriesCast) => {
+            const hovered = {
+                ...(hasSeriesCast ? { shadow: SERIES_SHADOW, glow: SERIES_GLOW } : {}),
+                highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW } },
+                hover: true,
+            };
+            const castsOf = (shapes: { inPlace: Shape[]; highlighted: Shape[] }) => [
+                ...shapes.inPlace.map((shape) => shape.fillShadow),
+                ...shapes.highlighted.map((shape) => shape.fillShadow),
+                ...shapes.inPlace.map((shape) => shape.fillGlow),
+                ...shapes.highlighted.map((shape) => shape.fillGlow),
+            ];
+
+            it.each(INVALID_CASTS)(
+                'casts what the styler returning no $key does, not the series $key or the valid fields of an invalid one',
+                async (c) => {
+                    const plain = await create({ ...hovered, first: {} });
+                    const expected = castsOf(plain);
+                    chart.destroy();
+
+                    const styled = await create({
+                        ...hovered,
+                        first: { [c.key]: { blur: 'wide', fill: '#00ff00' } } as unknown as ItemCast,
+                    });
+
+                    expectWarningMessages([expect.stringContaining(c.key)]);
+                    expect(styled.highlighted).toHaveLength(1);
+                    expect(castsOf(styled)).toEqual(expected);
+                    // The hovered item casts the highlight cast, which is not the series one.
+                    const hoveredCast =
+                        c.key === 'shadow' ? styled.inPlace[0].fillShadow : styled.highlighted[0].fillGlow;
+                    expect(hoveredCast).toMatchObject(
+                        c.expected(c.key === 'shadow' ? HIGHLIGHT_SHADOW : HIGHLIGHT_GLOW)
+                    );
+                }
+            );
+
+            it.each(INVALID_CASTS)('keeps the other cast, when it is valid, beside an invalid $key', async (c) => {
+                const other = c.key === 'shadow' ? 'glow' : 'shadow';
+                const valid = other === 'glow' ? ITEM_GLOW : ITEM_SHADOW;
+                const plain = await create({ ...hovered, first: { [other]: valid } });
+                const expected = castsOf(plain);
+                chart.destroy();
+
+                const styled = await create({
+                    ...hovered,
+                    first: { [c.key]: { blur: 'wide' }, [other]: valid } as unknown as ItemCast,
+                });
+
+                expect(castsOf(styled)).toEqual(expected);
+            });
+        });
+
         it('casts the series cast, not the valid fields of an invalid one, for that item', async () => {
             const { inPlace } = await create({
                 shadow: SERIES_SHADOW,

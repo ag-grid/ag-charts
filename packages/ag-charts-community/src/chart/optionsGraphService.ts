@@ -43,7 +43,8 @@ export class OptionsGraphService {
 
             const noProxies = { ...resolveOptions, proxyPaths: undefined };
             const resolvedCasts = resolve(this.logger, path, casts, noProxies, cssVariables);
-            return restoreItemCasts(casts, { ...resolvedRest, ...resolvedCasts }) as Resolved<Partial<T>>;
+            const merged = { ...resolvedRest, ...resolvedCasts } as Resolved<Partial<T>>;
+            return restoreItemCasts(partialOptions, merged);
         }
 
         const resolved = resolve(this.logger, path, partialOptions, resolveOptions, cssVariables);
@@ -76,6 +77,12 @@ function restoreItemCasts<T extends PlainObject>(partial: T, resolved: Resolved<
     for (const key of ITEM_CAST_KEYS) {
         const given = (partial as PlainObject)[key];
         const filled = target[key];
+        if (given === null) {
+            // Validation sets a cast it dropped as invalid to `null`. The resolved value under it is the series' and
+            // the theme's, which the item must not take as its own, so that it casts what its state's cascade does.
+            delete target[key];
+            continue;
+        }
         if (!isPlainObject(given) || !isPlainObject(filled)) continue;
 
         let own = restoredCasts.get(filled);

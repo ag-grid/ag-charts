@@ -4,6 +4,7 @@ import type { AgChartInstance, AgChartOptions, AgDropShadowOptions, AgGlowOption
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     HIGHLIGHT_GLOW,
+    HIGHLIGHT_SHADOW,
     ITEM_GLOW,
     ITEM_SHADOW,
     type ItemCast,
@@ -18,6 +19,7 @@ import {
     getSeriesSelectionNodes,
     glowShadow,
     isOn,
+    resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
     themeShadow,
@@ -433,6 +435,29 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect(highlighted).toHaveLength(1);
             expect(isOn(glowOf(highlighted[0]))).toBe(false);
         });
+
+        it.each(['shadow', 'glow'] as const)(
+            'casts what a styler returning no %s casts, for an item that is hovered and has an invalid one',
+            async (key) => {
+                const hovered = {
+                    highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW, shadow: HIGHLIGHT_SHADOW } },
+                    hover: true,
+                };
+                const castsOf = ({ inPlace, highlighted }: Layers) =>
+                    [...inPlace, ...highlighted].flatMap((shape) => [shape.fillShadow, glowOf(shape)]);
+                const expected = castsOf(await create({ ...hovered, first: {} }));
+                chart.destroy();
+
+                const styled = await create({
+                    ...hovered,
+                    first: { [key]: { blur: 'wide', fill: '#00ff00' } } as unknown as ItemCast,
+                });
+
+                // The invalid cast warns once per call of the styler, which varies by series; the warning is asserted above.
+                resetMockConsole();
+                expect(castsOf(styled)).toEqual(expected);
+            }
+        );
 
         it('keeps the shadow of the styler on the hovered item in place', async () => {
             const { inPlace } = await create({
