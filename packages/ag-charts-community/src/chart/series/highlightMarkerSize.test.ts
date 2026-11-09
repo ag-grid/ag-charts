@@ -10,6 +10,7 @@ import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { XY_DATA, shapesOf } from '../test/shadowFixtures';
 import {
     MIN_UNHIGHLIGHT_DELAY,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     clickAction,
     createChart,
     delay,
@@ -113,6 +114,7 @@ describe('highlight marker size', () => {
                 data: DATA,
                 animation: { enabled: false },
                 legend: { enabled: false },
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 series,
                 ...extra,
             } as AgChartOptions)
