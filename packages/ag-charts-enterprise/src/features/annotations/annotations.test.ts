@@ -8,6 +8,7 @@ import {
     getAxisLayoutState,
     getSeriesRect,
     hoverAction,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -1135,6 +1136,30 @@ describe('Annotations', () => {
             expect(lockSwitch()?.querySelector('.ag-charts-icon-unlocked')).not.toBeNull();
             expect(lockSwitch()?.title).toBe('Lock');
             expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
+        });
+    });
+
+    describe('settings dialog coordinates', () => {
+        it('edits the selected annotation and follows an undo', async () => {
+            await prepareChart({ annotations: [{ type: 'horizontal-line', value: 50 }] });
+            const { x, y, width, height } = getSeriesRect(chart);
+            await hoverAction(x + width / 2, y + height / 2)(chart);
+            await clickAction(x + width / 2, y + height / 2)(chart);
+            await waitForChartStability(chart);
+
+            const { body } = deproxy(chart).ctx.agDocument;
+            body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
+            await waitForChartStability(chart);
+
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value Y"]')!;
+            input.value = '60';
+            input.dispatchEvent(new Event('change'));
+            await waitForChartStability(chart);
+            expect(chart.getState().annotations).toMatchObject([{ type: 'horizontal-line', value: 60 }]);
+
+            await pressKey(chart, 'z', { ctrlKey: true });
+            expect(chart.getState().annotations).toMatchObject([{ type: 'horizontal-line', value: 50 }]);
+            expect(input.value).toBe('50');
         });
     });
 

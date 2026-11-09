@@ -1361,10 +1361,10 @@ export function getSwapChainText() {
 }
 
 // The series-area widget handles keyboard navigation.
-export async function pressKey(chart: ChartOrProxy, key: string) {
+export async function pressKey(chart: ChartOrProxy, key: string, modifiers: KeyboardEventInit = {}) {
     const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
     expect(seriesArea).not.toBeNull();
-    seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+    seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true, ...modifiers }));
     await waitForChartStability(chart);
 }
 
