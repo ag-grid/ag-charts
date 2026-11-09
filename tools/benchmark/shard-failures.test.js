@@ -3,7 +3,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const { collectExcluded, formatExcluded, remainingExamples, timedOutExamples } = require('./shard-failures');
+const {
+    collectExcluded,
+    formatExcluded,
+    isBaseOnly,
+    remainingExamples,
+    timedOutExamples,
+} = require('./shard-failures');
 const { node, shardReport, withFiles } = require('./memory-fixtures');
 
 const SHARD_FAILURES = path.join(__dirname, 'shard-failures.js');
@@ -196,4 +202,214 @@ test('collectExcluded treats a missing shards directory as no shards, and the CL
         assert.equal(out.status, 0, out.stderr);
         assert.deepEqual(JSON.parse(fs.readFileSync(output, 'utf8')), []);
     });
+});
+
+// --- base-only: an example that failed only on the base is shown as a head-only row ---
+
+const NOT_FOUND = { status: 'error', error: 'HTTP 404 for https://example.test/benchmarks/examples/new-one' };
+const BROKEN = { status: 'error', error: 'page.goto: net::ERR_FAILED' };
+
+test('collectExcluded marks an example that 404ed on the base in every pass as base-only: not on base', () => {
+    withShards(
+        {
+            'head-0.r1': { 'new-one': 'success' },
+            'base-0.r1': { 'new-one': NOT_FOUND },
+            'head-0.r2': { 'new-one': 'success' },
+            'base-0.r2': { 'new-one': NOT_FOUND },
+        },
+        (dir) => {
+            const [entry, ...rest] = collectExcluded(dir);
+            assert.equal(rest.length, 0);
+            assert.equal(entry.example, 'new-one');
+            assert.equal(entry.baseOnly, true);
+            assert.equal(entry.reason, 'not on base');
+            assert.deepEqual(
+                entry.failed.map(({ side, pass, status }) => `${side} ${pass} ${status}`),
+                ['base r1 error', 'base r2 error']
+            );
+            assert.equal(isBaseOnly(entry), true);
+            assert.deepEqual(formatExcluded([entry]), [
+                'new-one: base r1 error, base r2 error [base-only: not on base; shown as a head-only row]',
+            ]);
+        }
+    );
+});
+
+test('collectExcluded gives a base error that is not an HTTP 404 the reason base failed', () => {
+    withShards({ 'head-0.r1': { a: 'success' }, 'base-0.r1': { a: BROKEN } }, (dir) => {
+        const [entry] = collectExcluded(dir);
+        assert.equal(entry.baseOnly, true);
+        assert.equal(entry.reason, 'base failed');
+        assert.match(formatExcluded([entry])[0], /\[base-only: base failed/);
+    });
+});
+
+test('collectExcluded gives a mix of 404 and other base errors the reason base failed', () => {
+    withShards(
+        {
+            'head-0.r1': { a: 'success' },
+            'base-0.r1': { a: NOT_FOUND },
+            'head-0.r2': { a: 'success' },
+            'base-0.r2': { a: BROKEN },
+        },
+        (dir) => {
+            assert.equal(collectExcluded(dir)[0].reason, 'base failed');
+        }
+    );
+});
+
+test('collectExcluded keeps a base error in a single pass base-only when the head succeeded in all passes', () => {
+    withShards(
+        {
+            'head-0.r1': { a: 'success' },
+            'base-0.r1': { a: 'success' },
+            'head-0.r2': { a: 'success' },
+            'base-0.r2': { a: BROKEN },
+        },
+        (dir) => {
+            assert.equal(collectExcluded(dir)[0].baseOnly, true);
+        }
+    );
+});
+
+test('collectExcluded is not base-only when the head also failed, in the same or another pass', () => {
+    withShards({ 'head-0.r1': { a: BROKEN }, 'base-0.r1': { a: BROKEN } }, (dir) => {
+        const [entry] = collectExcluded(dir);
+        assert.equal(entry.baseOnly, undefined);
+        assert.equal(isBaseOnly(entry), false);
+    });
+    withShards(
+        {
+            'head-0.r1': { a: 'success' },
+            'base-0.r1': { a: NOT_FOUND },
+            'head-0.r2': { a: 'error' },
+            'base-0.r2': { a: 'success' },
+        },
+        (dir) => {
+            assert.equal(collectExcluded(dir)[0].baseOnly, undefined);
+        }
+    );
+});
+
+test('collectExcluded is not base-only for a head error or a head timeout alone', () => {
+    for (const status of ['error', 'timeout']) {
+        withShards({ 'head-0.r1': { a: status }, 'base-0.r1': { a: 'success' } }, (dir) => {
+            assert.equal(collectExcluded(dir)[0].baseOnly, undefined, `head ${status}`);
+        });
+    }
+});
+
+test('collectExcluded is not base-only for a base timeout, which the head passes then skip', () => {
+    withShards(
+        {
+            'head-0.r1': { a: 'success' },
+            'base-0.r1': { a: 'timeout' },
+            // `remaining` drops a timed-out example from later passes on both sides.
+            'head-0.r2': { other: 'success' },
+            'base-0.r2': { other: 'success' },
+        },
+        (dir) => {
+            const [entry] = collectExcluded(dir);
+            assert.equal(entry.example, 'a');
+            assert.equal(entry.baseOnly, undefined);
+        }
+    );
+});
+
+test('collectExcluded is not base-only when a base error comes with a base timeout', () => {
+    withShards(
+        {
+            'head-0.r1': { a: 'success' },
+            'base-0.r1': { a: NOT_FOUND },
+            'head-0.r2': { a: 'success' },
+            'base-0.r2': { a: 'timeout' },
+        },
+        (dir) => {
+            assert.equal(collectExcluded(dir)[0].baseOnly, undefined);
+        }
+    );
+});
+
+test('collectExcluded is not base-only when a head pass of the shard lacks the example', () => {
+    withShards(
+        {
+            'head-0.r1': { a: 'success' },
+            'base-0.r1': { a: BROKEN },
+            // The head's second pass has other examples but no `a`, so the head did not succeed in every pass.
+            'head-0.r2': { other: 'success' },
+            'base-0.r2': { a: 'success', other: 'success' },
+        },
+        (dir) => {
+            assert.equal(collectExcluded(dir)[0].baseOnly, undefined);
+        }
+    );
+});
+
+test('collectExcluded classifies each example on its own', () => {
+    withShards(
+        {
+            'head-0.r1': { onlyBase: 'success', both: 'error', hung: 'timeout' },
+            'base-0.r1': { onlyBase: NOT_FOUND, both: 'error' },
+        },
+        (dir) => {
+            assert.deepEqual(
+                collectExcluded(dir).map(({ example, baseOnly }) => [example, baseOnly === true]),
+                [
+                    ['both', false],
+                    ['hung', false],
+                    ['onlyBase', true],
+                ]
+            );
+        }
+    );
+});
+
+test('isBaseOnly accepts only baseOnly === true, so a missing or malformed field fails closed', () => {
+    assert.equal(isBaseOnly({ example: 'a', baseOnly: true }), true);
+    for (const entry of [
+        { example: 'a' },
+        { baseOnly: 'true' },
+        { baseOnly: 1 },
+        { baseOnly: false },
+        null,
+        undefined,
+    ]) {
+        assert.equal(isBaseOnly(entry), false, JSON.stringify(entry));
+    }
+});
+
+test('formatExcluded marks only the base-only entries and falls back to base failed without a reason', () => {
+    const failed = [{ side: 'base', pass: 'r1', status: 'error' }];
+    const [plain, marked, noReason] = formatExcluded([
+        { example: 'x', failed, skipped: [] },
+        { example: 'y', failed, skipped: [], baseOnly: true, reason: 'not on base' },
+        { example: 'z', failed, skipped: [], baseOnly: true },
+    ]);
+    assert.equal(plain, 'x: base r1 error');
+    assert.equal(marked, 'y: base r1 error [base-only: not on base; shown as a head-only row]');
+    assert.match(noReason, /\[base-only: base failed;/);
+});
+
+test('CLI excluded writes baseOnly and reason to the JSON and marks the printed line', () => {
+    withShards(
+        { 'head-0.r1': { 'new-one': 'success', hung: 'timeout' }, 'base-0.r1': { 'new-one': NOT_FOUND } },
+        (dir) => {
+            const output = path.join(dir, 'excluded.out');
+            const out = node(SHARD_FAILURES, ['excluded', '--shards-dir', dir, '--output', output]);
+            assert.equal(out.status, 0, out.stderr);
+            const lines = out.stdout.trimEnd().split('\n');
+            assert.equal(lines.length, 2);
+            assert.match(lines[0], /^hung: head r1 timeout/);
+            assert.doesNotMatch(lines[0], /base-only/);
+            assert.match(lines[1], /^new-one: base r1 error \[base-only: not on base/);
+            const written = JSON.parse(fs.readFileSync(output, 'utf8'));
+            assert.deepEqual(
+                written.map(({ example, baseOnly, reason }) => [example, baseOnly, reason]),
+                [
+                    ['hung', undefined, undefined],
+                    ['new-one', true, 'not on base'],
+                ]
+            );
+        }
+    );
 });

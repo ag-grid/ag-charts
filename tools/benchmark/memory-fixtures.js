@@ -44,17 +44,19 @@ function report(examples, { memory = false } = {}) {
     };
 }
 
-/** A shard report with the given `{ name: status }` examples; a non-success example carries an error. */
+/**
+ * A shard report with the given `{ name: status }` examples; a non-success example carries an error.
+ * A status may also be `{ status, error }` to set the error text, e.g. an `HTTP 404` for an example missing from a site.
+ */
 function shardReport(statuses, { memory = false } = {}) {
     return {
         ...report({}, { memory }),
         examples: Object.fromEntries(
-            Object.entries(statuses).map(([name, status]) => [
-                name,
-                status === 'success'
-                    ? exampleEntry([result('t')])
-                    : { status, error: `${status} in ${name}\nstack line`, durationMs: 1 },
-            ])
+            Object.entries(statuses).map(([name, value]) => {
+                const { status, error = `${status} in ${name}\nstack line` } =
+                    typeof value === 'string' ? { status: value } : value;
+                return [name, status === 'success' ? exampleEntry([result('t')]) : { status, error, durationMs: 1 }];
+            })
         ),
         summary: { total: Object.keys(statuses).length },
     };

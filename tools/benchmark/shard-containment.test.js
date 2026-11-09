@@ -580,6 +580,349 @@ test('report job: when every example was excluded nothing is compared and the jo
     });
 });
 
+// --- Examples that fail only on the base are reported as head-only "New" rows ---
+
+const NOT_FOUND = { status: 'error', error: 'HTTP 404 for https://example.test/benchmarks/examples/new-one' };
+const BROKEN_BASE = { status: 'error', error: 'page.goto: net::ERR_FAILED' };
+const reportJson = (dir) => JSON.parse(fs.readFileSync(path.join(dir, 'reports/browser-benchmark.json'), 'utf8'));
+const reportLog = (dir) => fs.readFileSync(path.join(dir, 'reports/browser-benchmark.log'), 'utf8');
+
+test('report job: a brand-new example that 404s on the base passes and is listed as New (head only)', () => {
+    const notOnBase = (side) => ({ 'new-one': side === 'base' ? NOT_FOUND : 'success' });
+    withReportJob({ shards: 1, statuses: notOnBase }, ({ merge, compare, read, dir }) => {
+        const merged = merge();
+        assert.equal(merged.status, 0, merged.stderr + merged.stdout);
+        assert.match(merged.stdout, /::warning::Excluded from the comparison: new-one: .*\[base-only: not on base/);
+        for (const run of [1, 2, 3]) {
+            assert.deepEqual(Object.keys(read(`head.r${run}.json`).examples), ['new-one']);
+            assert.deepEqual(Object.keys(read(`base.r${run}.json`).examples), []);
+        }
+
+        const compared = compare();
+        assert.equal(compared.status, 0, compared.stderr + compared.stdout);
+        const json = reportJson(dir);
+        assert.deepEqual(json.rankedByTime, []);
+        assert.deepEqual(json.excluded, []);
+        assert.deepEqual(
+            json.newHeadOnly.map(({ test: name, reason }) => [name, reason]),
+            [['new-one / t', 'not on base']]
+        );
+
+        const log = reportLog(dir);
+        assert.match(log, /New \(head only\)/);
+        assert.match(log, /new-one \/ t/);
+        assert.match(log, /base-only: not on base/);
+        assert.doesNotMatch(log, /No example could be compared/);
+    });
+});
+
+test('report job: a base error that is not a 404 among matched examples is a New row with reason base failed', () => {
+    const baseErroredOnce = (side, shard, run) =>
+        shard === 0
+            ? { healthy: 'success', flaky: side === 'base' && run === 2 ? BROKEN_BASE : 'success' }
+            : { other: 'success' };
+    withReportJob({ statuses: baseErroredOnce }, ({ merge, compare, dir }) => {
+        assert.equal(merge().status, 0);
+        const compared = compare();
+        assert.equal(compared.status, 0, compared.stderr + compared.stdout);
+
+        const json = reportJson(dir);
+        assert.deepEqual(json.rankedByTime.map((r) => r.test).sort(), ['healthy / t', 'other / t']);
+        assert.deepEqual(
+            json.newHeadOnly.map(({ test: name, reason }) => [name, reason]),
+            [['flaky / t', 'base failed']]
+        );
+        assert.deepEqual(json.excluded, []);
+        // The matched table and the New section stay apart: the new row is never in the ranked comparison.
+        assert.doesNotMatch(JSON.stringify(json.rankedByTime), /flaky/);
+        assert.match(reportLog(dir), /base-only: base failed/);
+    });
+});
+
+test('report job: a new head-only row is never gated, however slow it is', () => {
+    const notOnBase = (side, shard) =>
+        shard === 0 ? { healthy: 'success', slow: side === 'base' ? NOT_FOUND : 'success' } : {};
+    withReportJob({ statuses: notOnBase }, ({ merge, compare, dir }) => {
+        assert.equal(merge().status, 0);
+        const compared = compare();
+        assert.equal(compared.status, 0, compared.stderr + compared.stdout);
+        assert.deepEqual(
+            reportJson(dir).newHeadOnly.map((r) => r.test),
+            ['slow / t']
+        );
+    });
+});
+
+test('report job: a head error on the only example still fails the job', () => {
+    const headErrors = (side) => ({ only: side === 'head' ? 'error' : 'success' });
+    withReportJob({ shards: 1, statuses: headErrors }, ({ merge, compare }) => {
+        assert.equal(merge().status, 0);
+        const proc = compare();
+        assert.notEqual(proc.status, 0);
+        assert.match(proc.stderr, /No example could be compared/);
+        assert.match(proc.stderr, /! only: head r1 error/);
+    });
+});
+
+test('report job: a head error on one run of an example that also 404s on the base is excluded from both sides', () => {
+    const notOnBaseAndHeadErrs = (side, shard, run) =>
+        shard === 0
+            ? { healthy: 'success', mixed: side === 'base' ? NOT_FOUND : run === 2 ? 'error' : 'success' }
+            : { other: 'success' };
+    withReportJob({ statuses: notOnBaseAndHeadErrs }, ({ merge, compare, read, dir }) => {
+        assert.equal(merge().status, 0);
+        for (const side of ['head', 'base']) {
+            assert.deepEqual(Object.keys(read(`${side}.r1.json`).examples).sort(), ['healthy', 'other']);
+        }
+        assert.equal(compare().status, 0);
+        const json = reportJson(dir);
+        assert.deepEqual(json.newHeadOnly, []);
+        assert.equal(json.excluded.length, 1);
+        assert.match(json.excluded[0], /^mixed: /);
+        assert.doesNotMatch(json.excluded[0], /base-only/);
+    });
+});
+
+test('report job: a base timeout on the only example still fails the job and drops it from both sides', () => {
+    // The base hangs in r1; `remaining` then drops the example from the later passes on both sides.
+    const baseHangs = (side, shard, run) => (run === 1 ? { only: side === 'base' ? 'timeout' : 'success' } : {});
+    withReportJob({ shards: 1, statuses: baseHangs }, ({ merge, compare, read }) => {
+        const merged = merge();
+        assert.equal(merged.status, 0, merged.stderr + merged.stdout);
+        assert.doesNotMatch(merged.stdout, /base-only/);
+        assert.deepEqual(Object.keys(read('head.r1.json').examples), []);
+        assert.deepEqual(Object.keys(read('base.r1.json').examples), []);
+
+        const proc = compare();
+        assert.notEqual(proc.status, 0);
+        assert.match(proc.stderr, /No example could be compared/);
+        assert.match(proc.stderr, /! only: base r1 timeout/);
+    });
+});
+
+test('report job: an example failing on both sides is excluded from both, as before', () => {
+    const bothFail = (side, shard) => (shard === 0 ? { healthy: 'success', broken: 'error' } : { other: 'success' });
+    withReportJob({ statuses: bothFail }, ({ merge, compare, read, dir }) => {
+        const merged = merge();
+        assert.equal(merged.status, 0, merged.stderr + merged.stdout);
+        assert.doesNotMatch(merged.stdout, /base-only/);
+        for (const side of ['head', 'base']) {
+            assert.deepEqual(Object.keys(read(`${side}.r1.json`).examples).sort(), ['healthy', 'other']);
+        }
+        assert.equal(compare().status, 0);
+        const json = reportJson(dir);
+        assert.deepEqual(json.newHeadOnly, []);
+        assert.match(json.excluded[0], /^broken: base r1 error, base r2 error, base r3 error, head r1 error/);
+    });
+});
+
+test('report job: a wholly missing shard file still fails closed when a base-only example exists', () => {
+    const lostShard = (side, shard, run) =>
+        side === 'head' && shard === 1 && run > 1
+            ? null
+            : { [`ex${shard}`]: side === 'base' && shard === 0 ? NOT_FOUND : 'success' };
+    withReportJob({ statuses: lostShard }, ({ merge }) => {
+        const proc = merge();
+        assert.notEqual(proc.status, 0);
+        assert.match(proc.stdout, /::error::Need >=2 complete runs/);
+    });
+});
+
+test('merge step: memory reports keep a base-only example on the head and drop it from the base', () => {
+    const notOnBase = (side, shard) =>
+        shard === 0 ? { healthy: 'success', 'new-one': side === 'base' ? NOT_FOUND : 'success' } : {};
+    withReportJob({ statuses: notOnBase }, ({ dir, merge, read }) => {
+        const shardDir = path.join(dir, 'reports/browser-benchmarks/shards');
+        for (const side of ['head', 'base']) {
+            fs.writeFileSync(
+                path.join(shardDir, `${side}-0.mem.json`),
+                JSON.stringify(shardReport({ healthy: 'success', 'new-one': 'success' }, { memory: true }))
+            );
+        }
+        const proc = merge();
+        assert.equal(proc.status, 0, proc.stderr + proc.stdout);
+        assert.deepEqual(Object.keys(read('head.mem.json').examples).sort(), ['healthy', 'new-one']);
+        assert.deepEqual(Object.keys(read('base.mem.json').examples), ['healthy']);
+    });
+});
+
+test('merge --side: base-only entries are kept only for head, and anything else is dropped from every side', () => {
+    const entries = [
+        { example: 'b', baseOnly: true, reason: 'not on base' },
+        { example: 'plain' },
+        { example: 'stringly', baseOnly: 'true' },
+        { example: 'falsy', baseOnly: false },
+    ];
+    withFiles(
+        {
+            s0: shardReport({ a: 'success', b: 'success', plain: 'success', stringly: 'success', falsy: 'success' }),
+            excluded: entries,
+        },
+        (p) => {
+            const kept = (side) => {
+                const output = path.join(p.dir, `${side ?? 'none'}.json`);
+                const proc = node(MERGE, [
+                    '--exclude',
+                    p.excluded,
+                    ...(side ? ['--side', side] : []),
+                    '--output',
+                    output,
+                    p.s0,
+                ]);
+                assert.equal(proc.status, 0, proc.stderr);
+                return Object.keys(JSON.parse(fs.readFileSync(output, 'utf8')).examples).sort();
+            };
+            assert.deepEqual(kept('head'), ['a', 'b']);
+            assert.deepEqual(kept('base'), ['a']);
+            assert.deepEqual(kept(undefined), ['a']);
+        }
+    );
+});
+
+test('merge --side rejects a value other than head or base', () => {
+    withFiles({ s0: shardReport({ a: 'success' }), excluded: [] }, (p) => {
+        const proc = node(MERGE, [
+            '--exclude',
+            p.excluded,
+            '--side',
+            'both',
+            '--output',
+            path.join(p.dir, 'o.json'),
+            p.s0,
+        ]);
+        assert.notEqual(proc.status, 0);
+    });
+});
+
+test('compare: a head-only row carries the head median, min, sample count and cross-run CV', () => {
+    const head1 = report({ shared: [result('t')], fresh: [result('t', { timings: [10, 12, 14] })] });
+    const head2 = report({ shared: [result('t')], fresh: [result('t', { timings: [20, 22, 24] })] });
+    const base = report({ shared: [result('t')] });
+    withFiles(
+        {
+            head1,
+            head2,
+            base1: base,
+            base2: base,
+            excluded: [{ ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'not on base' }],
+        },
+        (p) => {
+            const out = node(COMPARE, [
+                '--base',
+                p.base1,
+                p.base2,
+                '--compare',
+                p.head1,
+                p.head2,
+                '--excluded',
+                p.excluded,
+                '--format',
+                'json',
+            ]);
+            assert.equal(out.status, 0, out.stderr);
+            const json = JSON.parse(out.stdout);
+            assert.equal(json.newHeadOnly.length, 1);
+            const [row] = json.newHeadOnly;
+            assert.equal(row.test, 'fresh / t');
+            assert.equal(row.reason, 'not on base');
+            assert.equal(row.runCount, 2);
+            assert.equal(row.samples, 3);
+            assert.ok(row.medianMs != null && row.minMs != null);
+            assert.ok(row.crossRunCvPct > 0, 'two different run medians give a non-zero cross-run CV');
+            // Medians across runs: run 1 median 12, run 2 median 22. Min is the smallest min, 10.
+            assert.equal(Number(row.minMs), 10);
+            assert.deepEqual(
+                json.rankedByTime.map((r) => r.test),
+                ['shared / t']
+            );
+            assert.deepEqual(json.excluded, []);
+        }
+    );
+});
+
+test('compare: New (head only) is its own table section, apart from the matched table', () => {
+    const head = report({ shared: [result('t')], fresh: [result('t')] });
+    const base = report({ shared: [result('t')] });
+    withFiles(
+        { head, base, excluded: [{ ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'base failed' }] },
+        (p) => {
+            const out = node(COMPARE, [
+                '--base',
+                p.base,
+                '--compare',
+                p.head,
+                '--excluded',
+                p.excluded,
+                '--format',
+                'table',
+            ]);
+            assert.equal(out.status, 0, out.stderr);
+            const at = out.stdout.indexOf('New (head only)');
+            assert.ok(at >= 0, 'has a New (head only) section');
+            assert.doesNotMatch(out.stdout.slice(0, at), /fresh/);
+            assert.match(out.stdout.slice(at), /fresh \/ t/);
+            assert.match(out.stdout.slice(at), /base-only: base failed/);
+            assert.doesNotMatch(out.stdout, /Excluded/);
+        }
+    );
+});
+
+test('compare: an example that is new on the head without any excluded entry is still a New row, with no reason', () => {
+    const head = report({ shared: [result('t')], fresh: [result('t')] });
+    const base = report({ shared: [result('t')] });
+    withFiles({ head, base }, (p) => {
+        const { status, json } = runCompare({ base: p.base, compare: p.head }, { format: 'json' });
+        assert.equal(status, 0);
+        assert.deepEqual(
+            json.newHeadOnly.map((r) => [r.test, r.reason]),
+            [['fresh / t', null]]
+        );
+    });
+});
+
+test('compare: only new examples (nothing matched) passes, and nothing at all with everything excluded fails', () => {
+    const head = report({ fresh: [result('t')] });
+    const base = report({});
+    withFiles(
+        {
+            head,
+            base,
+            excluded: [{ ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'not on base' }],
+            hung: [EXCLUDED_ENTRY],
+        },
+        (p) => {
+            assert.equal(node(COMPARE, ['--base', p.base, '--compare', p.head, '--excluded', p.excluded]).status, 0);
+            const failing = node(COMPARE, ['--base', p.base, '--compare', p.base, '--excluded', p.hung]);
+            assert.equal(failing.status, 1);
+        }
+    );
+});
+
+test('compare: nothing matched but one new row passes even while another example is excluded', () => {
+    const head = report({ fresh: [result('t')] });
+    const base = report({});
+    const baseOnly = { ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'not on base' };
+    withFiles({ head, base, excluded: [baseOnly, EXCLUDED_ENTRY] }, (p) => {
+        const out = node(COMPARE, [
+            '--base',
+            p.base,
+            '--compare',
+            p.head,
+            '--excluded',
+            p.excluded,
+            '--format',
+            'json',
+        ]);
+        assert.equal(out.status, 0, out.stderr);
+        const json = JSON.parse(out.stdout);
+        assert.deepEqual(
+            json.newHeadOnly.map((r) => r.test),
+            ['fresh / t']
+        );
+        assert.deepEqual(json.excluded, ['hung: head r1 timeout; skipped: base r1']);
+    });
+});
+
 test('compare: an empty comparison with nothing excluded still succeeds, as before', () => {
     withFiles({ run: report({}), none: [] }, (p) => {
         const out = node(COMPARE, ['--base', p.run, '--compare', p.run, '--excluded', p.none]);

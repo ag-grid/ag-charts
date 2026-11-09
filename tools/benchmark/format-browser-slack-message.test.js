@@ -84,3 +84,72 @@ test('compare output with excluded examples feeds the slack message end to end',
         assert.match(JSON.stringify(message), /healthy/);
     });
 });
+
+const newRow = (name, reason = null) => ({
+    test: name,
+    reason,
+    runCount: 3,
+    medianMs: '10.0',
+    minMs: '9.0',
+    samples: 5,
+});
+
+test('slack message lists the new head-only examples by name in its notes', () => {
+    const message = format(
+        comparison({
+            added: ['new-one / t', 'flaky / t'],
+            newHeadOnly: [newRow('new-one / t', 'not on base'), newRow('flaky / t', 'base failed')],
+        })
+    );
+    assert.equal(notesOf(message), '2 new (head only: new-one / t, flaky / t)');
+});
+
+test('slack message does not count a new head-only example twice as added', () => {
+    const message = format(comparison({ added: ['a / t'], newHeadOnly: [newRow('a / t')] }));
+    assert.doesNotMatch(notesOf(message), /added/);
+    assert.match(notesOf(message), /1 new \(head only: a \/ t\)/);
+});
+
+test('slack message joins the new note with the other notes and keeps the healthy comparison', () => {
+    const message = format(
+        comparison({
+            added: ['a / t'],
+            newHeadOnly: [newRow('a / t')],
+            errors: ['e1'],
+            excluded: ['hung: head r1 timeout'],
+        })
+    );
+    assert.equal(notesOf(message), '1 new (head only: a / t) | 1 errors | 1 excluded (failed or timed out: hung)');
+    assert.match(JSON.stringify(message), /healthy\/case/);
+});
+
+test('slack message has no new note for an empty or absent newHeadOnly list', () => {
+    assert.equal(notesOf(format(comparison({ newHeadOnly: [] }))), undefined);
+    assert.equal(notesOf(format(comparison())), undefined);
+});
+
+test('compare output with a base-only example feeds the slack message end to end', () => {
+    const entry = { ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'not on base' };
+    withFiles(
+        {
+            head: report({ healthy: [result('t')], fresh: [result('t')] }),
+            base: report({ healthy: [result('t')] }),
+            excluded: [entry],
+        },
+        (p) => {
+            const proc = node(COMPARE, [
+                '--base',
+                p.base,
+                '--compare',
+                p.head,
+                '--excluded',
+                p.excluded,
+                '--format',
+                'json',
+            ]);
+            assert.equal(proc.status, 0, proc.stderr);
+            const message = format(JSON.parse(proc.stdout));
+            assert.equal(notesOf(message), '1 new (head only: fresh / t)');
+        }
+    );
+});
