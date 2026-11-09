@@ -297,7 +297,6 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             create: (type: AnnotationType, datum: AnnotationDatum) => {
-                this.toolbar.releasePendingTool();
                 this.createAnnotation(type, datum);
             },
 
@@ -520,7 +519,9 @@ export class Annotations extends AbstractModuleInstance {
 
             // Toolbar
             toolbar.events.on('cancel-create-annotation', () => {
-                this.cancelCreate();
+                this.cancel();
+                this.reset();
+                this.update();
             }),
             toolbar.events.on('pressed-create-annotation', ({ annotation }) => {
                 this.cancel();
@@ -529,8 +530,8 @@ export class Annotations extends AbstractModuleInstance {
                 this.state.transition(annotation);
                 this.update();
             }),
-            toolbar.events.on('pressed-place-annotation', ({ sourceEvent }) => {
-                this.createPendingAnnotation(sourceEvent);
+            toolbar.events.on('pressed-place-annotation', ({ annotation, sourceEvent }) => {
+                this.createAnnotationAtCentre(annotation, sourceEvent);
             }),
             toolbar.events.on('pressed-clear', () => {
                 this.clear();
@@ -1068,15 +1069,6 @@ export class Annotations extends AbstractModuleInstance {
         this.update();
     }
 
-    /** Abandon the chosen tool and put focus back on its button, where the user chose it. */
-    private cancelCreate() {
-        // Must run first: cancelling releases the pending tool.
-        if (this.toolbar.getPendingAnnotation() != null) this.toolbar.focusPendingToolButton();
-        this.cancel();
-        this.reset();
-        this.update();
-    }
-
     private onResize() {
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
@@ -1124,29 +1116,22 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('dragEnd');
     }
 
-    private onCancel({ sourceEvent }: ClickWidgetEvent) {
-        if (sourceEvent.currentTarget !== sourceEvent.target) return;
+    private onCancel(widgetEvent?: ClickWidgetEvent) {
+        const { sourceEvent } = widgetEvent ?? {};
+        if (sourceEvent?.currentTarget !== sourceEvent?.target) return;
         this.cancel();
         this.reset();
     }
 
-    /** Place the annotation of the chosen tool at once, without a pointer. */
-    private createPendingAnnotation(sourceEvent: KeyboardEvent) {
-        const type = this.toolbar.getPendingAnnotation();
+    /** Create the annotation at the centre of the chart at once, without a pointer. */
+    private createAnnotationAtCentre(type: AnnotationType, sourceEvent: KeyboardEvent) {
         const context = this.getAnnotationContext();
-        if (type == null || !context) return;
+        if (!context) return;
 
         sourceEvent.preventDefault();
 
         const { width, height } = context.seriesRect;
         const points = getKeyboardCreateOffsets(type, { width, height }).map((offset) => invertCoords(offset, context));
-
-        this.state.transition('create', { points });
-        // The machine releases the pending tool when it takes the event; if it did not, leave focus on the button.
-        if (this.toolbar.getPendingAnnotation() != null) {
-            this.toolbar.releasePendingTool();
-            return;
-        }
 
         // The tool's button can be a menu item that is gone, so focus must land where the arrow keys work.
         const { seriesWidget } = this.ctx.widgets;
@@ -1154,6 +1139,7 @@ export class Annotations extends AbstractModuleInstance {
         const label = getAnnotationLabel(type);
         if (label != null) seriesWidget.swapChain.update(this.ctx.localeManager.t(label));
 
+        this.state.transition('create', { points });
         this.update();
     }
 
@@ -1210,14 +1196,8 @@ export class Annotations extends AbstractModuleInstance {
                 translation.x = xStep;
                 break;
             case 'Escape':
-                this.cancelCreate();
+                this.onCancel();
                 return;
-            case 'Enter':
-                if (this.toolbar.getPendingAnnotation() != null) {
-                    this.createPendingAnnotation(sourceEvent);
-                    return;
-                }
-                break;
             case 'Backspace':
             case 'Delete':
                 this.onDelete();
