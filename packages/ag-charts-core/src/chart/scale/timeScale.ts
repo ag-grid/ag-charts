@@ -70,20 +70,24 @@ export class TimeScale extends ContinuousScale<Date, TimeTickInterval> {
 
         if (interval != null) {
             const availableRange = this.getPixelRange();
-            return {
+            const intervalTicks = getDateTicksForInterval({
+                start,
+                stop,
+                interval,
+                availableRange,
+                visibleRange,
+                extend,
+                logger: this.logger,
+            });
+            const intervalIgnored = intervalTicks == null;
+            const result: ScaleTickResult<Date> = {
                 ticks:
-                    getDateTicksForInterval({
-                        start,
-                        stop,
-                        interval,
-                        availableRange,
-                        visibleRange,
-                        extend,
-                        logger: this.logger,
-                    }) ??
+                    intervalTicks ??
                     getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
                 count: undefined,
             };
+            if (intervalIgnored) result.intervalIgnored = true;
+            return result;
         } else if (nice.every(Boolean) && tickCount === 2) {
             return { ticks: domain, count: undefined };
         } else if (nice.every(Boolean) && tickCount === 1) {

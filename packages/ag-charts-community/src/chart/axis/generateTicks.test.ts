@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    type AxisPrimaryTickCount,
     CategoryScale,
     EllipsisChar,
     LinearScale,
@@ -790,5 +791,86 @@ describe('tick label lineHeight', () => {
         const primaryLabel = tickLabelOptions({ lineHeight: 60, format: '%b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 2, 10)];
         expect(timeIntervalMaxLabelSize(label, primaryLabel, domain, 'day').height).toBe(60);
+    });
+});
+
+describe('generateTicks with a configured interval', () => {
+    setupMockCanvas();
+
+    interface RunOptions {
+        interval: GenerateTicksOptions<LinearScale, AgNumericValue>['interval'];
+        domain?: number[];
+        pixels?: number;
+    }
+
+    // Weekly dates over a year: a day interval is denser than one tick per pixel of a 300px range.
+    const weeks = Array.from({ length: 52 }, (_, i) => new Date(2024, 0, i * 7 + 1));
+
+    // `tickFormatter` is asked once per pass of the label thinning search, so its calls count the passes.
+    function countPasses<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+        params: Parameters<typeof tickGenerationParams<TScale, TDatum>>[0]
+    ) {
+        let passes = 0;
+        const { tickData } = generateTicks(
+            tickGenerationParams<TScale, TDatum>({
+                niceMode: [NiceMode.TickAndDomain, NiceMode.TickAndDomain],
+                label: tickLabelOptions(),
+                ...params,
+                tickFormatter: () => {
+                    passes++;
+                    return (value: unknown) => `a rather long label for ${String(value)}`;
+                },
+            })
+        );
+        return { passes, tickData };
+    }
+
+    function run({ interval, domain = [0, 100], pixels = 300 }: RunOptions) {
+        const scale = new LinearScale();
+        scale.domain = domain;
+        scale.range = [0, pixels];
+
+        const { passes, tickData } = countPasses<LinearScale, AgNumericValue>({
+            scale,
+            domain,
+            range: [0, pixels],
+            interval,
+        });
+        return { passes, niceDomain: tickData.niceDomain.map(Number) };
+    }
+
+    function passesOnWeeklyDates(primaryTickCount: AxisPrimaryTickCount | undefined) {
+        const scale = new OrdinalTimeScale();
+        scale.domain = weeks;
+        scale.range = [0, 300];
+
+        return countPasses({ scale, domain: weeks, range: [0, 300], interval: { step: 'day' }, primaryTickCount })
+            .passes;
+    }
+
+    const everyHundred = Array.from({ length: 116 }, (_, i) => -500 + i * 100);
+
+    // The labels overlap at every density tried, but only automatic ticks can be thinned to clear them.
+    describe('label thinning', () => {
+        it.each([
+            { name: 'step', interval: { step: 100 }, expected: [-500, 11500] },
+            { name: 'values', interval: { values: everyHundred }, expected: [-5000, 15000] },
+        ])('keeps the first domain for a $name whose labels overlap at every domain', ({ interval, expected }) => {
+            expect(run({ interval, domain: [-500, 11500] }).niceDomain).toEqual(expected);
+        });
+
+        it.each([
+            { name: 'a step too dense for the scale to honour', interval: { step: 0.1 } },
+            { name: 'no interval', interval: undefined },
+        ])('keeps thinning for $name', ({ interval }) => {
+            expect(run({ interval, domain: [0, 1000] }).passes).toBeGreaterThan(1);
+        });
+
+        it.each([
+            { name: 'automatic ticks', primaryTickCount: undefined },
+            { name: 'secondary axis ticks', primaryTickCount: { unzoomed: 5, zoomed: 5 } },
+        ])('keeps thinning a rejected time step on $name', ({ primaryTickCount }) => {
+            expect(passesOnWeeklyDates(primaryTickCount)).toBeGreaterThan(1);
+        });
     });
 });
