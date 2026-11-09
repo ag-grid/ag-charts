@@ -82,7 +82,7 @@ export interface AgChartThemePalette {
     /** The array of strokes to be used. */
     strokes?: CssColor[];
     /**
-     * The array of marker shapes to be used. Each series without an explicit marker shape takes the shape at its series index, wrapping around when there are more series than shapes.
+     * The array of marker shapes to be used. Each series without an explicit marker shape takes the shape at its series index, wrapping around when there are more series than shapes. Bubble series do not use the palette and keep the `circle` shape unless `shape` is set on the series.
      *
      * Default: `['circle']`
      */
