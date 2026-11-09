@@ -167,7 +167,7 @@ export class AnnotationSettingsDialog extends Dialog {
         panel.addChild(groupTwo);
 
         if (horizontalLineDatum.is(datum)) {
-            panel.append(
+            panel.addChild(
                 this.createFollowSelect(normaliseFollow(datum.follow)?.follow ?? 'none', (follow) =>
                     options.onChangeLine({ follow })
                 )
