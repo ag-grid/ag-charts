@@ -21,6 +21,11 @@ export function convertPoint(point: DataPoint, context: AnnotationContext) {
     return { x, y };
 }
 
+/** The points in series area coordinates, skipping any that are not set. */
+export function convertPoints(points: DataPoint[], context: AnnotationContext): Point[] {
+    return points.filter((point) => point.x != null && point.y != null).map((point) => convertPoint(point, context));
+}
+
 export function convert(
     p: DataPoint['x' | 'y'],
     context: Pick<AnnotationAxisContext, 'scale' | 'snapToGroup'>

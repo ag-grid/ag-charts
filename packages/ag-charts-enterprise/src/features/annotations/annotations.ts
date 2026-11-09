@@ -55,7 +55,7 @@ import { findFollowedSeries, isFollowing, normaliseFollow, readFollowedValue } f
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
-import { calculateAxisLabelPadding } from './utils/axis';
+import { calculateAxisLabelPadding, calculateAxisThickness } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { getGroupingValue } from './utils/scale';
@@ -252,6 +252,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (previousNode === selectedNode && selectedNode != null) return;
 
                 previousNode?.toggleActive(false);
+                previousNode?.toggleSelected(false);
 
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
@@ -259,6 +260,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
+                    selectedNode.toggleSelected(true);
                     if (!isEphemeralType(selectedDatum)) {
                         optionsToolbar.updateButtons(this.annotationData.at(index!)!);
                         this.postUpdateFns.push(() => {
@@ -819,18 +821,14 @@ export class Annotations extends AbstractModuleInstance {
                 annotations.each((sceneNode) => {
                     const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = value;
-                    if ('setAxisLabelOpacity' in node) {
-                        node.setAxisLabelOpacity(value);
-                    }
+                    node.setAxisLabelOpacity(value);
                 });
             },
             onStop() {
                 annotations.each((sceneNode) => {
                     const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = to;
-                    if ('setAxisLabelOpacity' in node) {
-                        node.setAxisLabelOpacity(to);
-                    }
+                    node.setAxisLabelOpacity(to);
                 });
             },
         });
@@ -950,15 +948,11 @@ export class Annotations extends AbstractModuleInstance {
                 const node = sceneNode as AnnotationSceneUnion;
                 if (!showAnnotations) {
                     node.visible = false;
-                    if ('setAxisLabelVisible' in node) {
-                        node.setAxisLabelVisible(false);
-                    }
+                    node.setAxisLabelVisible(false);
                     return;
                 }
 
-                if ('setAxisLabelVisible' in node) {
-                    node.setAxisLabelVisible(true);
-                }
+                node.setAxisLabelVisible(true);
                 updateAnnotation(node, datum, context);
             });
 
@@ -984,12 +978,14 @@ export class Annotations extends AbstractModuleInstance {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(xAxis.layout),
+                thickness: calculateAxisThickness(xAxis.layout),
                 snapToGroup: snap,
             },
             yAxis: {
                 ...yAxis.context,
                 bounds: yAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(yAxis.layout),
+                thickness: calculateAxisThickness(yAxis.layout),
                 snapToGroup: snap,
             },
         };

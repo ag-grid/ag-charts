@@ -40,6 +40,14 @@ export abstract class Handle extends Group {
         };
     }
 
+    /** The centre of the handle, relative to the annotation. */
+    public getCenter(): Point {
+        const { handle } = this;
+        return handle instanceof Rect
+            ? { x: handle.x + handle.width / 2, y: handle.y + handle.height / 2 }
+            : { x: handle.x, y: handle.y };
+    }
+
     public toggleActive(active: boolean) {
         this.active = active;
         if (!active) {

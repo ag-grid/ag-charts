@@ -76,6 +76,22 @@ export interface AxisLabelDatum extends StrokeFields, LineStyleFields, FillField
     padding?: Padding;
 }
 
+export interface AxisShadingDatum extends FillFields {
+    enabled?: boolean;
+}
+
+/** The axis labels and shading shown while an annotation with two or more points is selected. */
+export interface SelectionAxesFields {
+    axisLabel: AxisLabelDatum;
+    axisShading: AxisShadingDatum;
+}
+
+/** Whether a datum carries the selection axes, which only the annotations with two or more points do. */
+export function hasSelectionAxes<T extends object>(datum: T): datum is T & SelectionAxesFields {
+    const { axisLabel, axisShading } = datum as Partial<SelectionAxesFields>;
+    return isObject(axisLabel) && isObject(axisShading);
+}
+
 export interface LineTextDatum extends FontFields {
     label: string;
     position?: LineTextPosition;
@@ -168,6 +184,10 @@ export function createChannelMiddleDatum(): ChannelMiddleDatum {
 
 export function createAxisLabelDatum(): AxisLabelDatum {
     return { ...createFontFields(), cornerRadius: 2, textAlign: 'center' };
+}
+
+export function createSelectionAxesFields(): SelectionAxesFields {
+    return { axisLabel: createAxisLabelDatum(), axisShading: {} };
 }
 
 export function createLineTextDatum(): LineTextDatum {

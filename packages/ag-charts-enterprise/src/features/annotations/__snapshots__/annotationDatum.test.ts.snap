@@ -63,6 +63,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a comment an
 exports[`Annotation datum lifecycle > serialised state > serialises a date-price-range annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "background": {
       "fill": "#464646",
       "fillOpacity": 0.075,
@@ -118,6 +132,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a date-price
 exports[`Annotation datum lifecycle > serialised state > serialises a date-range annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "background": {
       "fill": "#464646",
       "fillOpacity": 0.075,
@@ -173,6 +201,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a date-range
 exports[`Annotation datum lifecycle > serialised state > serialises a disjoint-channel annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "background": {
       "fill": "#464646",
       "fillOpacity": 0.075,
@@ -217,6 +259,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a disjoint-c
 exports[`Annotation datum lifecycle > serialised state > serialises a fibonacci-retracement annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "bands": 10,
     "end": {
       "x": {
@@ -277,6 +333,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a fibonacci-
 exports[`Annotation datum lifecycle > serialised state > serialises a fibonacci-retracement-trend-based annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "bands": 10,
     "end": {
       "x": {
@@ -378,6 +448,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a horizontal
 exports[`Annotation datum lifecycle > serialised state > serialises a line annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "end": {
       "x": {
         "__type": "date",
@@ -447,6 +531,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a note annot
 exports[`Annotation datum lifecycle > serialised state > serialises a parallel-channel annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "background": {
       "fill": "#464646",
       "fillOpacity": 0.075,
@@ -497,6 +595,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a parallel-c
 exports[`Annotation datum lifecycle > serialised state > serialises a price-range annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "background": {
       "fill": "#464646",
       "fillOpacity": 0.075,
@@ -552,6 +664,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a price-rang
 exports[`Annotation datum lifecycle > serialised state > serialises a quick-date-price-range annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "background": {},
     "down": {
       "fill": "#e35c5c",
@@ -698,6 +824,20 @@ exports[`Annotation datum lifecycle > serialised state > serialises a vertical-l
 exports[`Annotation datum lifecycle > serialised state > serialises an arrow annotation created from minimal options 1`] = `
 [
   {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "axisShading": {
+      "enabled": true,
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
     "end": {
       "x": {
         "__type": "date",

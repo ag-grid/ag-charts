@@ -35,6 +35,7 @@ import {
 
 // The name of the group the annotations module draws an annotation's label on its axis into.
 const ANNOTATION_AXIS_LABEL_GROUP = 'AnnotationAxisLabelGroup';
+const SELECTION_AXIS_SHADING = 'AnnotationSelectionAxisShading';
 
 describe('Annotations', () => {
     setupMockConsole();
@@ -1160,6 +1161,341 @@ describe('Annotations', () => {
             await pressKey(chart, 'z', { ctrlKey: true });
             expect(chart.getState().annotations).toMatchObject([{ type: 'horizontal-line', value: 50 }]);
             expect(input.value).toBe('50');
+        });
+    });
+
+    describe('selected annotation axes', () => {
+        // Both axes span 100 units (the x axis, 100 days from 2024-01-01), so a datum offset is also the fraction of the
+        // way along its axis.
+        const day = (offset: number) => ({
+            __type: 'date' as const,
+            value: new Date(Date.UTC(2024, 0, 1 + offset)).toISOString().slice(0, 10),
+        });
+
+        const withAxes = (xPosition: 'top' | 'bottom' = 'bottom', yPosition: 'left' | 'right' = 'left') =>
+            ({
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                data: [
+                    { x: new Date('2024-01-01'), y: 0 },
+                    { x: new Date('2024-04-10'), y: 100 },
+                ],
+                axes: {
+                    x: {
+                        type: 'time',
+                        position: xPosition,
+                        min: new Date('2024-01-01'),
+                        max: new Date('2024-04-10'),
+                        nice: false,
+                    },
+                    y: { type: 'number', position: yPosition, min: 0, max: 100, nice: false },
+                },
+            }) satisfies AgCartesianChartOptions;
+
+        const clickDatum = async (x: number, y: number) => {
+            const { x: left, y: top, width, height } = getSeriesRect(chart);
+            const canvasX = left + (width * x) / 100;
+            const canvasY = top + (height * (100 - y)) / 100;
+            await hoverAction(canvasX, canvasY)(chart);
+            await clickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+        };
+
+        const visibleAxisLabels = () =>
+            findSceneNodes(chart, (node) => node.name === ANNOTATION_AXIS_LABEL_GROUP && node.visible);
+        const visibleShading = () =>
+            findSceneNodes(chart, (node) => node.name === SELECTION_AXIS_SHADING && node.visible);
+
+        // Each annotation with a point on its body to click it by, and the text of the axis labels it shows when selected:
+        // the exact datum values, x as the plain date.
+        interface Selectable {
+            name: string;
+            annotation: AgAnnotation;
+            body: { x: number; y: number };
+            texts: string[];
+        }
+        const [START, END] = [
+            { x: day(20), y: 25 },
+            { x: day(80), y: 75 },
+        ];
+        const SELECTABLE: Selectable[] = [
+            {
+                name: 'line',
+                annotation: { type: 'line', start: START, end: END },
+                body: { x: 50, y: 50 },
+                texts: ['Jan 21 2024', 'Mar 21 2024', '25', '75'],
+            },
+            {
+                name: 'arrow',
+                annotation: { type: 'arrow', start: START, end: END },
+                body: { x: 50, y: 50 },
+                texts: ['Jan 21 2024', 'Mar 21 2024', '25', '75'],
+            },
+            {
+                name: 'fibonacci-retracement',
+                annotation: { type: 'fibonacci-retracement', start: START, end: END },
+                // On the 0.5 level, which is drawn between the two x positions.
+                body: { x: 50, y: 50 },
+                texts: ['Jan 21 2024', 'Mar 21 2024', '25', '75'],
+            },
+            {
+                name: 'fibonacci-retracement-trend-based',
+                annotation: {
+                    type: 'fibonacci-retracement-trend-based',
+                    start: START,
+                    end: { x: day(50), y: 75 },
+                    endRetracement: { x: day(80), y: 50 },
+                },
+                // On the trend line between the start and the end.
+                body: { x: 35, y: 50 },
+                texts: ['Jan 21 2024', 'Feb 20 2024', 'Mar 21 2024', '25', '50', '75'],
+            },
+            {
+                name: 'parallel-channel',
+                annotation: {
+                    type: 'parallel-channel',
+                    start: { x: day(20), y: 30 },
+                    end: { x: day(80), y: 60 },
+                    height: 20,
+                },
+                body: { x: 50, y: 45 },
+                // Its four corners, not the middle handles that only move an edge.
+                texts: ['Jan 21 2024', 'Mar 21 2024', '10', '30', '40', '60'],
+            },
+            {
+                name: 'disjoint-channel',
+                annotation: {
+                    type: 'disjoint-channel',
+                    start: { x: day(20), y: 30 },
+                    end: { x: day(80), y: 60 },
+                    startHeight: 10,
+                    endHeight: 20,
+                },
+                body: { x: 50, y: 45 },
+                // All four handles, including the univariant one at the end of the bottom line.
+                texts: ['Jan 21 2024', 'Mar 21 2024', '20', '30', '40', '60'],
+            },
+            ...(['date-range', 'price-range', 'date-price-range', 'quick-date-price-range'] as const).map(
+                (type): Selectable => ({
+                    name: type,
+                    annotation: { type, start: START, end: END },
+                    body: { x: 50, y: 50 },
+                    texts: ['Jan 21 2024', 'Mar 21 2024', '25', '75'],
+                })
+            ),
+        ];
+        const SNAPSHOTTED = SELECTABLE.filter(({ name }) => ['line', 'parallel-channel'].includes(name));
+        const { annotation: LINE, body: LINE_BODY } = SELECTABLE[0];
+        // Away from every annotation above, so that clicking it deselects.
+        const EMPTY = { x: 10, y: 95 };
+
+        const byText = (a: string, b: string) => a.localeCompare(b);
+        const axisLabelTexts = () =>
+            visibleAxisLabels()
+                .flatMap((label) => (label instanceof Group ? Array.from(label.descendants()) : []))
+                .filter((node): node is Text => node instanceof Text)
+                .map((text) => String(text.text));
+
+        it.each(SELECTABLE)(
+            'labels the axes with the exact values of a selected $name',
+            async ({ annotation, body, texts }) => {
+                await prepareChart({ annotations: [annotation] }, withAxes());
+
+                await clickDatum(body.x, body.y);
+
+                // Unrounded values read as plain dates and the values as given; rounded ones would carry a time of day.
+                expect(axisLabelTexts().sort(byText)).toEqual([...texts].sort(byText));
+            }
+        );
+
+        it.each(SNAPSHOTTED)(
+            'shows axis labels and shading on both axes for a selected $name',
+            async ({ annotation, body }) => {
+                await prepareChart({ annotations: [annotation] }, withAxes());
+                expect(visibleAxisLabels()).toHaveLength(0);
+
+                await clickDatum(body.x, body.y);
+
+                expect(visibleAxisLabels().length).toBeGreaterThan(0);
+                await compare();
+            }
+        );
+
+        it('removes the axis labels and shading when the annotation is deselected', async () => {
+            await prepareChart({ annotations: [LINE] }, withAxes());
+            // The pointer highlights the series datum nearest it, so rest it where it will be after deselecting.
+            await clickDatum(EMPTY.x, EMPTY.y);
+            const unselected = ctx.snapshot();
+
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
+            expect(visibleAxisLabels()).toHaveLength(4);
+            expect(ctx.snapshot()).not.toMatchImage(unselected, { writeDiff: false });
+
+            await clickDatum(EMPTY.x, EMPTY.y);
+            expect(visibleAxisLabels()).toHaveLength(0);
+            expect(ctx.snapshot()).toMatchImage(unselected);
+        });
+
+        it.each([
+            ['horizontal-line', { type: 'horizontal-line', value: 60 }, { x: 50, y: 60 }],
+            ['vertical-line', { type: 'vertical-line', value: day(60) }, { x: 60, y: 50 }],
+        ] as [string, AgAnnotation, { x: number; y: number }][])(
+            'keeps the single axis label of a selected %s and adds no shading',
+            async (_, annotation, body) => {
+                await prepareChart({ annotations: [annotation] }, withAxes());
+                expect(visibleAxisLabels()).toHaveLength(1);
+
+                await clickDatum(body.x, body.y);
+
+                expect(visibleAxisLabels()).toHaveLength(1);
+                expect(visibleShading()).toHaveLength(0);
+            }
+        );
+
+        it.each([
+            ['both', {}, 4, 2],
+            ['labels only', { axisShading: { enabled: false } }, 4, 0],
+            ['shading only', { axisLabel: { enabled: false } }, 0, 2],
+            ['neither', { axisLabel: { enabled: false }, axisShading: { enabled: false } }, 0, 0],
+        ])('draws the shading and the labels independently of each other: %s', async (_, styles, labels, shading) => {
+            await prepareChart({ annotations: [{ ...LINE, ...styles }] }, withAxes());
+
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
+
+            // One label for each end of the line on each axis, and one band of shading on each axis.
+            expect(visibleAxisLabels()).toHaveLength(labels);
+            expect(visibleShading()).toHaveLength(shading);
+        });
+
+        it('places the labels and shading beside a top x axis and a right y axis', async () => {
+            await prepareChart({ annotations: [LINE] }, withAxes('top', 'right'));
+
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
+
+            expect(visibleAxisLabels()).toHaveLength(4);
+            await compare();
+        });
+
+        // A log axis cannot show 0, so its data stays above it.
+        const withYAxis = (type: 'number' | 'log') => ({
+            ...withAxes(),
+            data: [
+                { x: new Date('2024-01-01'), y: 1 },
+                { x: new Date('2024-04-10'), y: 1000 },
+            ],
+            axes: { ...withAxes().axes, y: { type, min: 1, max: 1000, nice: false } },
+        });
+
+        // Changing the type of an axis replaces it, and the labels and shading have to follow it to the new one.
+        it('keeps the labels and shading on the axes when the chart replaces them while the annotation is selected', async () => {
+            await prepareChart(
+                { annotations: [{ type: 'line', start: { x: day(20), y: 100 }, end: { x: day(80), y: 900 } }] },
+                withYAxis('number')
+            );
+            await clickDatum(50, 50);
+            expect(visibleAxisLabels()).toHaveLength(4);
+            expect(visibleShading()).toHaveLength(2);
+
+            await chart.update(prepareEnterpriseTestOptions({ ...withYAxis('log'), initialState: undefined }) as never);
+            await waitForChartStability(chart);
+
+            // Nodes left on a detached axis layer are not part of the chart, so they are not found.
+            expect(visibleAxisLabels()).toHaveLength(4);
+            expect(visibleShading()).toHaveLength(2);
+            expect(axisLabelTexts().sort(byText)).toEqual(['100', '900', 'Jan 21 2024', 'Mar 21 2024'].sort(byText));
+        });
+
+        // Where an axis is not linear and continuous, the value of a position is read differently.
+        it.each<{
+            name: string;
+            options: AgCartesianChartOptions;
+            annotation: AgAnnotation;
+            click: number[];
+            texts: string[];
+        }>([
+            {
+                name: 'a log y axis',
+                options: withYAxis('log'),
+                annotation: { type: 'line', start: { x: day(20), y: 10 }, end: { x: day(80), y: 100 } },
+                // A third and two thirds of the way up the log axis, so the middle of the line is in the middle.
+                click: [50, 50],
+                texts: ['10', '100', 'Jan 21 2024', 'Mar 21 2024'],
+            },
+            {
+                name: 'a category x axis',
+                options: {
+                    ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                    data: ['Q1', 'Q2', 'Q3', 'Q4'].map((category, i) => ({ category, value: 20 * (i + 1) })),
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left', min: 0, max: 100, nice: false },
+                    },
+                },
+                annotation: { type: 'line', start: { x: 'Q1', y: 85 }, end: { x: 'Q4', y: 95 } },
+                // Above the bars, and a category sits at the start of its band, so the line's middle is left of centre.
+                click: [41, 90],
+                texts: ['85', '95', 'Q1', 'Q4'],
+            },
+        ])('labels a selected line with the values of $name', async ({ options, annotation, click, texts }) => {
+            await prepareChart({ annotations: [annotation] }, options);
+
+            await clickDatum(click[0], click[1]);
+
+            expect(axisLabelTexts().sort(byText)).toEqual([...texts].sort(byText));
+        });
+
+        // The band of shading along each axis, the wider of the two being the one along the x axis.
+        const shadingBands = () => {
+            const [horizontal, vertical] = visibleShading()
+                .map((node) => node.getBBox())
+                .sort((a, b) => b.width - a.width);
+            return { horizontal, vertical };
+        };
+
+        it('labels only the points inside the axes but shades up to the edge of the series area', async () => {
+            // The end is past both the right and the top of the chart.
+            await prepareChart(
+                { annotations: [{ type: 'line', start: START, end: { x: day(120), y: 150 } }] },
+                withAxes()
+            );
+
+            await clickDatum(50, 62.5);
+
+            expect(axisLabelTexts().sort(byText)).toEqual(['25', 'Jan 21 2024']);
+            const { x, y, width, height } = getSeriesRect(chart);
+            const { horizontal, vertical } = shadingBands();
+            expect(horizontal.x + horizontal.width).toBeCloseTo(x + width, 0);
+            expect(vertical.y).toBeCloseTo(y, 0);
+            expect(vertical.height).toBeLessThanOrEqual(height + 1);
+        });
+
+        it('labels the points inside a zoomed chart and shades across the rest', async () => {
+            // Both ends of the line are outside the zoomed range of the x axis, the y axis is not zoomed.
+            await prepareChart(
+                { annotations: [LINE], zoom: { ratioX: { start: 0.25, end: 0.75 } } },
+                { ...withAxes(), zoom: { enabled: true } }
+            );
+
+            await clickDatum(50, 50);
+
+            expect(axisLabelTexts().sort(byText)).toEqual(['25', '75']);
+            const { x, width } = getSeriesRect(chart);
+            const { horizontal } = shadingBands();
+            expect(horizontal.x).toBeCloseTo(x, 0);
+            expect(horizontal.width).toBeCloseTo(width, 0);
+        });
+
+        it.each([
+            ['line', LINE],
+            ['parallel-channel', SELECTABLE.find(({ name }) => name === 'parallel-channel')!.annotation],
+        ])('writes the state of a selected %s back so that it restores unchanged', async (_, annotation) => {
+            await prepareChart({ annotations: [annotation] }, withAxes());
+            const saved = chart.getState().annotations;
+
+            chart.destroy();
+            await prepareChart({ annotations: saved }, withAxes());
+
+            expect(chart.getState().annotations).toEqual(saved);
         });
     });
 

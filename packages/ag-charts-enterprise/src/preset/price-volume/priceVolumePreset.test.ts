@@ -19,6 +19,7 @@ import {
 import type { Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type {
+    AgAnnotation,
     AgAnnotationsToolbarButton,
     AgCartesianChartOptions,
     AgChartInstance,
@@ -784,6 +785,37 @@ describe('priceVolumePreset', () => {
             const continuous = await hoverLabels({});
             expect(snapped.map((l) => l.date)).toEqual(continuous.map((l) => l.date));
             expect(snapped.every((l) => l.date != null)).toBe(true);
+        });
+    });
+
+    describe('selected annotation axes (AG-12118)', () => {
+        const data = getStockData().slice(0, 40);
+        const [start, end] = [
+            { x: { __type: 'date' as const, value: data[5].date.toISOString() }, y: 140 },
+            { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 150 },
+        ];
+
+        // The labels and shading take the annotation's own colour, as a horizontal line's label does.
+        it.each<AgAnnotation>([
+            { type: 'line', start, end },
+            { type: 'arrow', start, end },
+            { type: 'parallel-channel', start, end, height: 5 },
+            { type: 'disjoint-channel', start, end, startHeight: 4, endHeight: 8 },
+            { type: 'fibonacci-retracement', start, end },
+            { type: 'date-price-range', start, end },
+        ])('themes the axis labels and shading of a $type with the annotation colour', async (annotation) => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ data, initialState: { annotations: [annotation] } })
+            );
+            await waitForChartStability(chart);
+
+            const state = chart.getState().annotations![0] as AgAnnotation & { stroke?: string };
+            expect(state).toMatchObject({
+                axisLabel: { enabled: true, fill: state.stroke, color: 'white' },
+                axisShading: { enabled: true, fill: state.stroke, fillOpacity: 0.2 },
+            });
+            // The colour is the theme's annotation colour, not the foreground colour of the default theme.
+            expect(state.stroke).not.toBe('#181d1f');
         });
     });
 

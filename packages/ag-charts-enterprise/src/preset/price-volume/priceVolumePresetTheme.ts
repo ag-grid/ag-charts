@@ -42,8 +42,16 @@ const font: WithThemeParams<TextOptions> = {
 
 const background = { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 } as const;
 
+// A selected annotation's axis labels match a horizontal line's, and its shading matches a channel's background.
+const selectionAxes = () =>
+    ({
+        axisLabel: { ...axisLabel },
+        axisShading: { enabled: true, ...background },
+    }) as const;
+
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
+    ...selectionAxes(),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'annotationColor' },
     handle: { ...handle },
@@ -58,6 +66,7 @@ const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
 
 const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     ...stroke,
+    ...selectionAxes(),
     background: { ...background },
     handle: { ...handle },
     text: { ...lineText },
@@ -68,6 +77,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Lines
     line: {
         ...stroke,
+        ...selectionAxes(),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -87,12 +97,14 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Channels
     'disjoint-channel': {
         ...stroke,
+        ...selectionAxes(),
         background: { ...background },
         handle: { ...handle },
         text: { ...lineText },
     },
     'parallel-channel': {
         ...stroke,
+        ...selectionAxes(),
         background: { ...background },
         handle: { ...handle },
         text: { ...lineText },
@@ -141,6 +153,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Shapes
     arrow: {
         ...stroke,
+        ...selectionAxes(),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -164,6 +177,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...measurer,
     },
     'quick-date-price-range': {
+        ...selectionAxes(),
         up: {
             ...stroke,
             fill: { $ref: 'annotationColor' },

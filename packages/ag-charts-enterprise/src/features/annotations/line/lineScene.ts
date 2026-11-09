@@ -11,7 +11,7 @@ import { StartEndScene } from '../scenes/startEndScene';
 import { applySceneNodeTopCenterAnchor } from '../utils/coords';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
-import { convertLine } from '../utils/values';
+import { convertLine, convertPoints } from '../utils/values';
 import { type LineTypeDatum, arrowDatum } from './lineDatum';
 
 export class LineScene extends StartEndScene<LineTypeDatum> {
@@ -98,6 +98,10 @@ export class LineScene extends StartEndScene<LineTypeDatum> {
             strokeWidth,
             strokeOpacity,
         });
+    }
+
+    protected override getSelectionPoints(datum: LineTypeDatum, context: AnnotationContext) {
+        return convertPoints([datum.start, datum.end], context);
     }
 
     override updateAnchor(_datum: LineTypeDatum, coords: Bounds4, _context: AnnotationContext, _bbox?: BoxBounds) {
