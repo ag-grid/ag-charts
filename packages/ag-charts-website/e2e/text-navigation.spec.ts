@@ -75,7 +75,8 @@ test.describe('text-navigation', () => {
         await expectChartScreenshot(page, page, 'settings-text-arrowdown.png', { animations: 'disabled' });
     });
 
-    test('settings-coordinates-date', async ({ page }) => {
+    test('settings-coordinates-date', async ({ page, browserName }) => {
+        test.skip(browserName !== 'chromium', 'Only Chromium commits a date after each edited segment');
         await gotoExample(page, url);
 
         await page.getByTitle('Trend Lines').click();
