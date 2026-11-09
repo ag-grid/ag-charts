@@ -52,7 +52,8 @@ const argv = yargs(hideBin(process.argv))
         type: 'string',
         describe:
             'JSON file from shard-failures.js listing examples left out of the merged reports because they ' +
-            'errored or timed out in a pass. They are listed in the output; the rest compare as usual.',
+            'errored or timed out in a pass. They are listed in the output; the rest compare as usual. ' +
+            'An entry marked baseOnly is shown as a head-only row when the head reports hold its results.',
     })
     .option('min-pct', {
         type: 'number',
@@ -351,16 +352,9 @@ for (const key of baseKeys) {
     }
 }
 
-// Examples the CI merge left out (failed or hung in a pass) are not comparable, but must not pass silently.
-// One that failed only on the base is the exception: the head side kept its results, so it appears below as a
-// head-only row carrying the reason; everything else is excluded from both sides.
-const excludedEntries = argv.excluded ? loadReport(argv.excluded) : [];
-const baseOnlyReasons = new Map(
-    excludedEntries.filter(isBaseOnly).map(({ example, reason }) => [example, reason ?? 'base failed'])
-);
-const excluded = formatExcluded(excludedEntries.filter((entry) => !isBaseOnly(entry)));
-
 // New (head only): in compare but not in base. Never regression-gated, since there is nothing to compare to.
+const excludedEntries = argv.excluded ? loadReport(argv.excluded) : [];
+const baseOnlyReasons = new Map(excludedEntries.filter(isBaseOnly).map(({ example, reason }) => [example, reason]));
 const added = [];
 const newHeadOnly = [];
 for (const key of compareKeys) {
@@ -369,6 +363,7 @@ for (const key of compareKeys) {
         added.push(c.displayName);
         newHeadOnly.push({
             test: c.displayName,
+            exampleName: c.exampleName,
             reason: baseOnlyReasons.get(c.exampleName) ?? null,
             runCount: c.runCount,
             crossRunCvPct: c.crossRunCv == null ? null : c.crossRunCv * 100,
@@ -395,6 +390,13 @@ for (const err of base.errors) {
 for (const err of compare.errors) {
     errors.push(`${err.example}: ${err.status} (compare)${err.error ? ' - ' + err.error.split('\n')[0] : ''}`);
 }
+
+// Every excluded entry is either a head-only row above or listed here; a base-only entry with no head results
+// (e.g. merged without --side head) must not vanish.
+const shownAsNew = new Set(newHeadOnly.map((row) => row.exampleName));
+const excluded = formatExcluded(
+    excludedEntries.filter((entry) => !(isBaseOnly(entry) && shownAsNew.has(entry.example)))
+);
 
 // A comparison that holds nothing, and nothing new, because every example was excluded must not pass as a clean run
 if (matched.length === 0 && newHeadOnly.length === 0 && excluded.length > 0) {

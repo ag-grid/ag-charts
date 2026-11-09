@@ -44,10 +44,7 @@ function report(examples, { memory = false } = {}) {
     };
 }
 
-/**
- * A shard report with the given `{ name: status }` examples; a non-success example carries an error.
- * A status may also be `{ status, error }` to set the error text, e.g. an `HTTP 404` for an example missing from a site.
- */
+/** A shard report with the given `{ name: status | { status, error } }` examples; a non-success example carries an error. */
 function shardReport(statuses, { memory = false } = {}) {
     return {
         ...report({}, { memory }),

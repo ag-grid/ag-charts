@@ -12,9 +12,7 @@
  *
  * `--exclude excluded.json` (the file written by `shard-failures.js excluded`) drops the listed examples,
  * so an example that failed in any pass is left out of every run rather than compared on fewer runs.
- * Exclusion is per side: with `--side head`, an entry marked `baseOnly` (it failed only on the base) stays in
- * the report so it can be shown as a head-only row. Without `--side`, or with `--side base`, everything listed
- * is dropped.
+ * With `--side head`, entries marked `baseOnly` (failed only on the base) are kept; otherwise all are dropped.
  *
  * Usage:
  *   node merge-browser-results.js --output merged.json [--exclude excluded.json [--side head|base]] shard1.json shard2.json ...

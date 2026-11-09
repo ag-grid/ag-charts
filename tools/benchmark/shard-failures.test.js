@@ -229,7 +229,7 @@ test('collectExcluded marks an example that 404ed on the base in every pass as b
             );
             assert.equal(isBaseOnly(entry), true);
             assert.deepEqual(formatExcluded([entry]), [
-                'new-one: base r1 error, base r2 error [base-only: not on base; shown as a head-only row]',
+                'new-one: base r1 error, base r2 error [base-only: not on base]',
             ]);
         }
     );
@@ -386,8 +386,8 @@ test('formatExcluded marks only the base-only entries and falls back to base fai
         { example: 'z', failed, skipped: [], baseOnly: true },
     ]);
     assert.equal(plain, 'x: base r1 error');
-    assert.equal(marked, 'y: base r1 error [base-only: not on base; shown as a head-only row]');
-    assert.match(noReason, /\[base-only: base failed;/);
+    assert.equal(marked, 'y: base r1 error [base-only: not on base]');
+    assert.match(noReason, /\[base-only: base failed\]/);
 });
 
 test('CLI excluded writes baseOnly and reason to the JSON and marks the printed line', () => {

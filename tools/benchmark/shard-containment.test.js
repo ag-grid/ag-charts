@@ -484,7 +484,7 @@ test('merge step: an example that errored only on the base in one run is dropped
             assert.deepEqual(Object.keys(read(`head.r${run}.json`).examples).sort(), ['flaky', 'healthy', 'other']);
             assert.deepEqual(Object.keys(read(`base.r${run}.json`).examples).sort(), ['healthy', 'other']);
         }
-        assert.match(proc.stdout, /flaky: base r2 error \[base-only: base failed; shown as a head-only row\]/);
+        assert.match(proc.stdout, /flaky: base r2 error \[base-only: base failed\]/);
     });
 });
 
