@@ -709,13 +709,6 @@ export abstract class BubbleScatterSeries<
         const canIncrementallyUpdate =
             processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
 
-        let labelTextDomain: any[];
-        if (labelKey == null && sizeKey != null) {
-            labelTextDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
-        } else {
-            labelTextDomain = [];
-        }
-
         const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'object');
 
         this.nodeDatumContext = {
@@ -763,7 +756,7 @@ export abstract class BubbleScatterSeries<
             legendItemName,
 
             // Label properties
-            labelsEnabled: label.enabled,
+            labelsEnabled: this.isLabelEnabled(),
             labelPlacement: placements[0],
             labelAnchor: Marker.anchor(marker.shape),
             labelInsideOffset: insideRect ? { x: insideRect.cx, y: insideRect.cy } : undefined,
@@ -773,7 +766,7 @@ export abstract class BubbleScatterSeries<
             labelInsideMask: insideOnly ? markerRowSpans(marker.shape) : undefined,
             labelInsideSize:
                 !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
-            labelTextDomain,
+            labelTextDomain: [],
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit,
@@ -948,7 +941,7 @@ export abstract class BubbleScatterSeries<
         // Compute label (skip expensive formatting if labels disabled)
         if (ctx.labelsEnabled) {
             const markerPixelSize = ctx.labelPlacement === 'inside' ? Math.sqrt(scratch.dilation) * markerSize : 0;
-            this.computeLabel(ctx, scratch, datum, yDatum, sizeValue, datumIndex, markerPixelSize);
+            this.computeLabel(ctx, scratch, datum, datumIndex, markerPixelSize);
         } else {
             scratch.nodeLabel = { text: '', width: 0, height: 0 };
             scratch.nodeLabelFit = undefined;
@@ -977,34 +970,15 @@ export abstract class BubbleScatterSeries<
         ctx: BubbleSeriesNodeDatumContext,
         scratch: PreparedBubbleNodeDatumState,
         datum: any,
-        yDatum: any,
-        sizeValue: number | undefined,
         datumIndex: number,
         markerSize: number
     ): void {
-        let labelTextValue: any;
-        let labelTextKey: string;
-        let labelTextProperty: FormatterPropertyType;
-
-        if (ctx.labelKey != null && ctx.labelDataValues) {
-            labelTextValue = ctx.labelDataValues[datumIndex];
-            labelTextKey = ctx.labelKey;
-            labelTextProperty = 'label';
-        } else if (ctx.sizeKey == null) {
-            labelTextValue = yDatum;
-            labelTextKey = ctx.yKey;
-            labelTextProperty = 'y';
-        } else {
-            labelTextValue = sizeValue;
-            labelTextKey = ctx.sizeKey;
-            labelTextProperty = 'size';
-        }
-
+        const labelTextValue = ctx.labelDataValues?.[datumIndex];
         const labelText = this.getLabelText<AgBubbleSeriesLabelFormatterParams>(
             labelTextValue,
             datum,
-            labelTextKey,
-            labelTextProperty,
+            ctx.labelKey!,
+            'label',
             ctx.labelTextDomain,
             this.options.label,
             {
@@ -1643,38 +1617,21 @@ export abstract class BubbleScatterSeries<
 
         const data: TooltipContentDataRow[] = [];
 
-        if (this.isLabelEnabled() && labelKey != null) {
-            const value = dataModel.resolveColumnById<string | number | Date>(
-                this,
-                `labelValue`,
-                processedData,
-                'object'
-            )[datumIndex];
-            const content = formatManager.format(this.callWithContext.bind(this), {
-                type: 'category',
-                value,
-                datum,
-                seriesId,
-                legendItemName,
-                key: labelKey,
-                source: 'tooltip',
-                property: 'label',
-                domain: [],
-                boundSeries: this.getFormatterContext('label'),
-            });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+        const labelRow = this.getTooltipLabelRow(dataModel, processedData, datumIndex, datum);
+        if (labelRow != null) {
+            data.push(labelRow);
         }
 
         data.push(
             {
                 label: xName,
-                fallbackLabel: xKey,
+                fallbackLabel: this.keyName(xKey),
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
                 missing: isTooltipValueMissing(xValue, allowNullKeys),
             },
             {
                 label: yName,
-                fallbackLabel: yKey,
+                fallbackLabel: this.keyName(yKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName, allowNullKeys),
                 missing: isTooltipValueMissing(yValue, allowNullKeys),
             }
@@ -1703,7 +1660,7 @@ export abstract class BubbleScatterSeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: name, fallbackLabel: key, value: content ?? formatValue(value) });
+            data.push({ label: name, fallbackLabel: this.keyName(key), value: content ?? formatValue(value) });
             return value;
         };
 
@@ -1767,6 +1724,35 @@ export abstract class BubbleScatterSeries<
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
+    }
+
+    private getTooltipLabelRow(
+        dataModel: DataModel<any, any, true>,
+        processedData: ProcessedData<any>,
+        datumIndex: number,
+        datum: unknown
+    ): TooltipContentDataRow | undefined {
+        const { labelKey, labelName, legendItemName } = this.options;
+        if (!this.isLabelEnabled() || labelKey == null) return undefined;
+
+        const value = dataModel.resolveColumnById<string | number | Date>(this, `labelValue`, processedData, 'object')[
+            datumIndex
+        ];
+        if (value == null) return undefined;
+
+        const content = this.ctx.formatManager.format(this.callWithContext.bind(this), {
+            type: 'category',
+            value,
+            datum,
+            seriesId: this.id,
+            legendItemName,
+            key: labelKey,
+            source: 'tooltip',
+            property: 'label',
+            domain: [],
+            boundSeries: this.getFormatterContext('label'),
+        });
+        return { label: labelName, fallbackLabel: this.keyName(labelKey), value: content ?? formatValue(value) };
     }
 
     private legendItemSymbol(styleOverride?: Partial<NormalisedSeriesMarkerStyle>): LegendSymbolOptions {
@@ -1837,7 +1823,7 @@ export abstract class BubbleScatterSeries<
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: legendItemName ?? title ?? yName ?? itemId,
+                    text: legendItemName ?? title ?? yName ?? this.keyName(itemId),
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
@@ -1857,7 +1843,7 @@ export abstract class BubbleScatterSeries<
     }
 
     protected isLabelEnabled() {
-        return this.options.label.enabled;
+        return this.options.label.enabled && this.options.labelKey != null;
     }
 
     protected nodeFactory() {

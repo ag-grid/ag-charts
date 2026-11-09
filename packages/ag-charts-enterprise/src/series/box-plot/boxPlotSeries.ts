@@ -24,11 +24,17 @@ import {
     deepClone,
     isNumericValue,
     mergeDefaults,
+    readDatumKey,
     toNumber,
     upsertNodeDatum,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
@@ -123,6 +129,8 @@ interface BoxPlotNodeDatumParams {
     scaledValues: ScaledBoxPlotValues;
 }
 
+const BOX_PLOT_VALUE_KEYS = ['minKey', 'q1Key', 'medianKey', 'q3Key', 'maxKey'] as const;
+
 export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSeriesTypes> {
     static override readonly className = 'BoxPlotSeries';
     static readonly type = 'box-plot' as const;
@@ -137,6 +145,21 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             q3Key: this.options.q3Key,
             maxKey: this.options.maxKey,
         };
+    }
+
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
+        return resolveCrosshairSnapConfig(this.options, BOX_PLOT_VALUE_KEYS);
+    }
+
+    getCrosshairSnapValues(nodeDatum: _ModuleSupport.SeriesNodeDatum): Partial<Record<string, unknown>> {
+        const { datum } = nodeDatum;
+        const suppressFieldDotNotation = this.suppressFieldDotNotation;
+        return collectCrosshairSnapValues(
+            BOX_PLOT_VALUE_KEYS.map((valueKey) => [
+                valueKey,
+                readDatumKey(datum, this.options[valueKey], suppressFieldDotNotation),
+            ])
+        );
     }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -588,31 +611,31 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const data: _ModuleSupport.TooltipContentDataRow[] = [
             {
                 label: minName,
-                fallbackLabel: minKey,
+                fallbackLabel: this.keyName(minKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', minValue, datum, minKey, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(minValue),
             },
             {
                 label: q1Name,
-                fallbackLabel: q1Key,
+                fallbackLabel: this.keyName(q1Key),
                 value: this.getAxisValueText(yAxis, 'tooltip', q1Value, datum, q1Key, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(q1Value),
             },
             {
                 label: medianName,
-                fallbackLabel: medianKey,
+                fallbackLabel: this.keyName(medianKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', medianValue, datum, medianKey, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(medianValue),
             },
             {
                 label: q3Name,
-                fallbackLabel: q3Key,
+                fallbackLabel: this.keyName(q3Key),
                 value: this.getAxisValueText(yAxis, 'tooltip', q3Value, datum, q3Key, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(q3Value),
             },
             {
                 label: maxName,
-                fallbackLabel: maxKey,
+                fallbackLabel: this.keyName(maxKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', maxValue, datum, maxKey, legendItemName),
                 missing: _ModuleSupport.isTooltipValueMissing(maxValue),
             },
@@ -738,15 +761,15 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             lineDash,
             lineDashOffset,
             maxKey,
-            maxName: maxName ?? maxKey,
+            maxName: maxName ?? this.keyName(maxKey),
             medianKey,
-            medianName: medianName ?? medianKey,
+            medianName: medianName ?? this.keyName(medianKey),
             minKey,
-            minName: minName ?? minKey,
+            minName: minName ?? this.keyName(minKey),
             q1Key,
-            q1Name: q1Name ?? q1Key,
+            q1Name: q1Name ?? this.keyName(q1Key),
             q3Key,
-            q3Name: q3Name ?? q3Key,
+            q3Name: q3Name ?? this.keyName(q3Key),
             seriesId,
             stroke,
             strokeOpacity,
@@ -759,7 +782,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 strokeWidth: whiskerStrokeWidth ?? strokeWidth,
             },
             xKey,
-            xName: xName ?? xKey,
+            xName: xName ?? this.keyName(xKey),
             yName,
         } satisfies Rules;
     }

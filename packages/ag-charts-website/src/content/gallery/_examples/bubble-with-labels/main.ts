@@ -28,6 +28,7 @@ const options: AgChartOptions<DataType> = {
         yName: `${genre[0].toUpperCase()}${genre.slice(1)}`,
         sizeKey: 'boxOffice',
         sizeName: 'Box Office',
+        labelKey: 'boxOffice',
         minSize: 20,
         maxSize: 60,
         sizeDomain: [2000000, 1200000000],

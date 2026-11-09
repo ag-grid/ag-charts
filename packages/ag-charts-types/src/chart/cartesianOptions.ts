@@ -24,7 +24,6 @@ import type { AgBaseThemeableChartOptions, AgSeriesAreaOptions } from './chartOp
 import type { AgChartLabelCollisionOptions } from './collisionAvoidanceOptions';
 import type {
     AgBaseCrossLineLabelOptions,
-    AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
     AgLineCrossLineOptions,
     AgRangeCrossLineOptions,
@@ -66,6 +65,12 @@ export interface AgBaseCartesianAxisOptions<
      * Default: `0.3`
      */
     maxThicknessRatio?: Ratio;
+    /**
+     * The space between this axis and the next axis further out at the same `position`.
+     *
+     * Default: `15`
+     */
+    spacing?: PixelSize;
     /** Configuration for the title shown next to the axis. */
     title?: AgCartesianAxisCaptionOptions;
     /** Configuration for the axis crosshair. */
@@ -86,7 +91,7 @@ export interface AgCartesianAxisCrossAt {
     /**
      * Whether the axis title is placed at the crossing point, or at the axis' `position` edge.
      *
-     * Default: `'crossing'`
+     * Default: `'edge'`
      */
     titlePlacement?: AgCartesianAxisCrossAtPlacement;
     /**
@@ -506,10 +511,34 @@ export interface AgLogAxisOptions<TContext = ContextDefault>
     crossLines?: AgCartesianCrossLineOptions<AgNumericValue, TContext>[];
 }
 
+/**
+ * A number axis drawn along part of the series area, for series that share the chart with others, such as volume bars below a price line. It does not zoom.
+ */
+export interface AgInsetNumberAxisOptions<TContext = ContextDefault>
+    extends
+        Omit<
+            AgBaseCartesianAxisOptions<
+                AgCartesianAxisLabelOptions<TContext>,
+                AgCrosshairLabel<string, TContext>,
+                TContext
+            >,
+            'interval'
+        >,
+        AgContinuousAxisOptions<AgNumericValue, AgNumericValue> {
+    type: 'inset-number';
+    /** Add cross-lines or regions corresponding to data values. */
+    crossLines?: AgCartesianCrossLineOptions<AgNumericValue, TContext>[];
+    /**
+     * The length of the axis, as a ratio of the series area. The axis starts at the end where its minimum value sits, or at the opposite end when `reverse` is `true`.
+     */
+    lengthRatio: Ratio;
+}
+
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
 export type AgCartesianAxisOptions<TContext = ContextDefault> =
     | AgNumberAxisOptions<TContext>
+    | AgInsetNumberAxisOptions<TContext>
     | AgLogAxisOptions<TContext>
     | AgCategoryAxisOptions<TContext>
     | AgOrdinalTimeAxisOptions<TContext>
@@ -562,6 +591,8 @@ export interface AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType = AgBas
 export interface AgCartesianAxesTheme<TContext = ContextDefault> {
     /** This extends the common axis configuration with options specific to number axes. */
     number?: AgNumberAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
+    /** This extends the common axis configuration with options specific to inset number axes. */
+    'inset-number'?: AgInsetNumberAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to number axes. */
     log?: AgLogAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to category axes. */
@@ -587,6 +618,15 @@ export interface AgNumberAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLa
     extends
         Omit<AgNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgNumberAxisOptions<TContext>>,
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
+
+export interface AgInsetNumberAxisThemeOptions<
+    CrossLineLabelType = AgBaseCrossLineLabelOptions,
+    TContext = ContextDefault,
+>
+    extends
+        Omit<AgInsetNumberAxisOptions<TContext>, ThemeOmittedAxisOptions | 'lengthRatio'>,
+        AgCartesianAxisThemeOptions<Omit<AgInsetNumberAxisOptions<TContext>, 'lengthRatio'>>,
         AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
 export interface AgLogAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
@@ -702,12 +742,6 @@ export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDe
 
 export interface AgCartesianCrossLineLabelOptions
     extends AgBaseCrossLineLabelOptions, AgChartLabelFitOptions, AgChartLabelAutoFontSizeOptions {
-    /**
-     * The position of the Cross Line label.
-     *
-     * @deprecated v14.3.0 Use `placement` instead.
-     */
-    position?: AgCrossLineLabelPosition;
     /**
      * Where to place the label. An array is tried in order, and the first placement that fits is used.
      *

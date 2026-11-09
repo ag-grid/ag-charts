@@ -142,7 +142,7 @@ export abstract class FlowProportionSeries<
     private readonly focusNodeGroup = this.highlightGroup.appendChild(
         new Group({ name: 'nodeGroup', batchShadows: true })
     );
-    // The hovered link's shadow is cast by the focus layer, so this copy of it casts none and has nothing to batch.
+    // This copy of the hovered link casts only its `glow`, never its `shadow`, and holds one link: nothing to batch.
     private readonly highlightLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
 
     protected labelSelection: Selection<TLabel, TransformableText<TLabel>> = Selection.select(
@@ -347,7 +347,7 @@ export abstract class FlowProportionSeries<
     }
 
     override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum<TNodeDatum, TLinkDatum> | undefined {
-        return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData, this.data?.dataIdKey);
+        return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData, this.data);
     }
 
     protected abstract getNodeStyle(
@@ -850,7 +850,7 @@ export abstract class FlowProportionSeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(size) });
+            data.push({ label: sizeName, fallbackLabel: this.keyName(sizeKey), value: content ?? String(size) });
         }
 
         return this.formatTooltipWithContext(
@@ -882,7 +882,7 @@ export abstract class FlowProportionSeries<
     }
 
     private readDataIdKey(datum: unknown, info: { dataIdKey?: string }): string | undefined {
-        return info.dataIdKey == null ? undefined : (datum as any)?.[info.dataIdKey];
+        return info.dataIdKey == null ? undefined : (this.data?.readDataId(datum) as string | undefined);
     }
 
     private toFlowNodeItemId(

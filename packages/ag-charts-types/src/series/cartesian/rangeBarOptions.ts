@@ -7,6 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
+import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
@@ -19,7 +20,7 @@ import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio 
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesGlowHighlightOptions,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
@@ -78,8 +79,23 @@ export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault>
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
+/** The values of a datum that the crosshair can snap to. */
+export type AgRangeBarCrosshairSnapValue = 'yLow' | 'yHigh';
+
 export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeableOptions<TDatum, TContext>, AgRangeBarSeriesStyle {
+    /**
+     * The values of the highlighted datum that the value-axis crosshair snaps to.
+     *
+     * Default: `['yLow', 'yHigh']`
+     */
+    crosshairSnapTo?: AgRangeBarCrosshairSnapValue[];
+    /**
+     * Whether the crosshair snaps to every value in `crosshairSnapTo`, or only the one nearest the pointer.
+     *
+     * Default: `'all'`
+     */
+    crosshairSnapMode?: AgCrosshairSnapMode;
     /**
      * Bar rendering direction.
      *
@@ -97,7 +113,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters.*/
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions, AgRangeBarHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgRangeBarHighlightStyleOptions, AgRangeBarHighlightStyleOptions>;
     /** Whether to group together (adjacently) separate bars. */
     grouped?: boolean;
     /** Configuration for styling series as separate segments. */

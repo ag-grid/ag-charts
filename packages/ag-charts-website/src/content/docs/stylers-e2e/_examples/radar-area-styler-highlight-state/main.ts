@@ -30,6 +30,8 @@ function recordStyler(
 
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
+    highlight: { mode: 'single' },
+    tooltip: { mode: 'shared' },
     data: getData(),
     series: [
         {

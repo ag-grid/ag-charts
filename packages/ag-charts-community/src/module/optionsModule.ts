@@ -680,10 +680,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.soloSeriesIntegrity(options);
 
-        const seriesParams = presetDef?.reportsSeriesAdvisories
-            ? { ...this.validateParams, silentAdvisories: true }
-            : this.validateParams;
-        const missingSeriesModules = this.validateSeriesOptions(options, seriesParams);
+        const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
 
         const chartType = detectChartType(options, this.moduleRegistry);
 
@@ -1173,7 +1170,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 seriesType,
                 directions,
                 this.predictionSeriesOptions(primarySeriesOptions),
-                options.data
+                options.data,
+                options.suppressFieldDotNotation ?? false
             ) ?? this.cloneDefaultAxes(seriesType);
 
         const isPrimarySeriesFlipped =
@@ -1549,8 +1547,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private predictAxes(
         seriesType: SeriesType | undefined,
         directions: ChartAxisDirection[],
-        userSeriesOptions?: any,
-        data?: DatumDefault[]
+        userSeriesOptions: any,
+        data: DatumDefault[] | undefined,
+        suppressFieldDotNotation: boolean
     ): Record<string, PlainObject> | undefined {
         if (!userSeriesOptions || seriesType == null) return;
 
@@ -1566,7 +1565,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (const index of indices) {
             const datum = seriesData[index];
             for (const direction of directions) {
-                const axis = predictAxis(direction, datum, userSeriesOptions);
+                const axis = predictAxis(direction, datum, userSeriesOptions, suppressFieldDotNotation);
                 if (!axes.has(direction)) {
                     axes.set(direction, axis);
                     continue;
@@ -2032,7 +2031,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 this.optionsType(options),
                 ChartOptions.axisDirections(chartType),
                 this.predictionSeriesOptions(options.series?.[0]),
-                data
+                data,
+                options.suppressFieldDotNotation ?? false
             )
         );
     }

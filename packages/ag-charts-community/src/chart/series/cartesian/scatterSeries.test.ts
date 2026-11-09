@@ -40,6 +40,7 @@ import {
     expectWarningsCalls,
     getAggregatedMarkerXValues,
     getSeriesAggregationInternals,
+    getVisibleLabelNodes,
     hoverAction,
     looserSnapshotDefaults,
     prepareTestOptions,
@@ -1299,6 +1300,60 @@ describe('ScatterSeries', () => {
             // Proof of the overlap: hasData is false here, so gating rendering on it would have
             // dropped the renderable row along with the two unresolvable ones.
             expect(deproxy(chart).series[0].hasData).toBe(false);
+        });
+    });
+
+    describe('default label visibility', () => {
+        const data = [
+            { x: 1, y: 10, size: 5, name: 'a' },
+            { x: 2, y: 20, size: 8, name: 'b' },
+        ];
+        const options = (type: 'scatter' | 'bubble', overrides: object) =>
+            ({
+                data,
+                series: [
+                    { type, xKey: 'x', yKey: 'y', ...(type === 'bubble' ? { sizeKey: 'size' } : {}), ...overrides },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 3 },
+                    y: { type: 'number', position: 'left', min: 0, max: 30 },
+                },
+            }) as AgCartesianChartOptions;
+        const valueKey = { scatter: 'y', bubble: 'size' };
+        const values = { scatter: ['10', '20'], bubble: ['5', '8'] };
+
+        describe.each(['scatter', 'bubble'] as const)('%s', (type) => {
+            it.each([
+                ['labelKey alone shows labels', { labelKey: 'name' }, ['a', 'b']],
+                ['no labelKey keeps labels hidden', {}, []],
+                ['explicit enabled: false wins over labelKey', { labelKey: 'name', label: { enabled: false } }, []],
+                ['explicit enabled: true without labelKey shows no labels', { label: { enabled: true } }, []],
+                [
+                    'a formatter without labelKey shows no labels',
+                    { label: { formatter: ({ datum }: { datum: { name: string } }) => datum.name } },
+                    [],
+                ],
+                [
+                    'a formatter with labelKey receives the datum',
+                    {
+                        labelKey: 'name',
+                        label: {
+                            formatter: ({ datum }: { datum: { name: string; y: number } }) =>
+                                `${datum.name}:${datum.y}`,
+                        },
+                    },
+                    ['a:10', 'b:20'],
+                ],
+                ['labelKey set to the value key shows the values', { labelKey: valueKey[type] }, values[type]],
+            ] as [string, object, string[]][])('%s', async (_name, overrides, expected) => {
+                chart = await createChart(options(type, overrides));
+
+                expect(
+                    getVisibleLabelNodes(chart)
+                        .map((n) => n.text)
+                        .sort((a, b) => a.localeCompare(b))
+                ).toEqual(expected);
+            });
         });
     });
 });

@@ -1,7 +1,7 @@
 import {
     type CartesianAxisDirection,
     Logger,
-    type WithInternalShadow,
+    datumKeyReader,
     isFiniteNumericValue,
     mergeDefaults,
     pick,
@@ -9,7 +9,6 @@ import {
 import type {
     AgBubbleSeriesOptions,
     AgCartesianChartOptions,
-    AgChartCallbackParams,
     AgChartLabelFormatterParams,
     AgChartLabelStylerParams,
     AgContextMenuGetItemsParams,
@@ -25,7 +24,6 @@ import type {
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
-    AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
     AgSeriesAreaBackgroundRegion,
     AgSeriesAreaBackgroundRegionLabel,
@@ -119,14 +117,6 @@ function createRegionLabel(
     };
 }
 
-function getRegionMeta(
-    params: AgChartCallbackParams<any, any> & AgScatterSeriesOptionsKeys,
-    pivotX: AgNumericValue,
-    pivotY: AgNumericValue
-) {
-    return getRegionMetaForValues(params.datum[params.xKey], params.datum[params.yKey], pivotX, pivotY);
-}
-
 function getRegionMetaForValues(
     xValue: AgNumericValue,
     yValue: AgNumericValue,
@@ -179,6 +169,7 @@ export function createQuadrant(
         'padding',
         'selection',
         'subtitle',
+        'suppressFieldDotNotation',
         'title',
         'theme',
         'width',
@@ -218,6 +209,10 @@ export function createQuadrant(
 
     const pivotX = pivot?.x ?? 0;
     const pivotY = pivot?.y ?? 0;
+    const suppressFieldDotNotation = options.suppressFieldDotNotation ?? false;
+    const readX = datumKeyReader(options.xKey, suppressFieldDotNotation);
+    const readY = datumKeyReader(options.yKey, suppressFieldDotNotation);
+    const getRegionMeta = (datum: unknown) => getRegionMetaForValues(readX(datum), readY(datum), pivotX, pivotY);
 
     const { marker: topLeftMarker, ...topLeft } = regions?.topLeft ?? {};
     const { marker: topRightMarker, ...topRight } = regions?.topRight ?? {};
@@ -252,7 +247,7 @@ export function createQuadrant(
     };
 
     const composedItemStyler = (params: AgScatterSeriesItemStylerParams): AgSeriesMarkerStyle => {
-        const { regionName, index } = getRegionMeta(params, pivotX, pivotY);
+        const { regionName, index } = getRegionMeta(params.datum);
 
         let defaultMarker = bottomLeftMarker;
         if (regionName === 'top-right') {
@@ -310,20 +305,20 @@ export function createQuadrant(
     };
 
     const composedTooltipRenderer = (params: AgScatterSeriesTooltipRendererParams) => {
-        const { regionName } = getRegionMeta(params, pivotX, pivotY);
+        const { regionName } = getRegionMeta(params.datum);
         return options.tooltip?.renderer?.({ ...params, region: regionName });
     };
 
     const composedLabelFormatter = options.label?.formatter
         ? (params: AgChartLabelFormatterParams<any, any> & AgScatterSeriesLabelFormatterParams) => {
-              const { regionName } = getRegionMeta(params, pivotX, pivotY);
+              const { regionName } = getRegionMeta(params.datum);
               return options.label?.formatter?.({ ...params, region: regionName });
           }
         : undefined;
 
     const composedLabelItemStyler = options.label?.itemStyler
         ? (params: AgChartLabelStylerParams<any, any> & AgScatterSeriesLabelFormatterParams) => {
-              const { regionName } = getRegionMeta(params, pivotX, pivotY);
+              const { regionName } = getRegionMeta(params.datum);
               return options.label?.itemStyler?.({ ...params, region: regionName });
           }
         : undefined;
@@ -345,7 +340,7 @@ export function createQuadrant(
         coordinates: AgCoordinates | undefined
     ): AgQuadrantRegion | undefined => {
         if (scope.showOn === 'series-node') {
-            return regionForValues(scope.datum?.[options.xKey], scope.datum?.[options.yKey]);
+            return regionForValues(readX(scope.datum), readY(scope.datum));
         }
         if (scope.showOn === 'series-area') {
             return regionForValues(coordinates?.x?.value, coordinates?.y?.value);
@@ -373,7 +368,7 @@ export function createQuadrant(
 
     if (options.sizeKey == null) {
         series.push({
-            ...pick(options as typeof options & WithInternalShadow, scatterSeriesKeys),
+            ...pick(options, scatterSeriesKeys),
             id: options.id ?? DEFAULT_SERIES_ID,
             type: 'scatter',
             context,
@@ -392,7 +387,7 @@ export function createQuadrant(
     } else {
         series.push({
             minSize: options.size, // Default minSize to size
-            ...pick(options as typeof options & WithInternalShadow, bubbleSeriesKeys),
+            ...pick(options, bubbleSeriesKeys),
             sizeKey: options.sizeKey, // Tell typescript that sizeKey is not undefined
             id: options.id ?? DEFAULT_SERIES_ID,
             type: 'bubble',

@@ -307,7 +307,7 @@ export interface AgContextMenuOptions<TDatum = DatumDefault, TContext = ContextD
      *
      * This is mainly useful for reaching the browser developer tools, for example to inspect the chart.
      *
-     * Default: `false`
+     * Default: `true`
      */
     allowBrowserMenuWithModifierKey?: boolean;
     /**

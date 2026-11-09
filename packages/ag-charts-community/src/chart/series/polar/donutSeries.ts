@@ -41,6 +41,7 @@ import {
     canRenderTextOffscreen,
     clockwiseAngles,
     cycledValue,
+    datumKeyReader,
     extractDomain,
     fitCircleToLabels,
     fitLabelTextAutoSize,
@@ -969,18 +970,18 @@ export class DonutSeries extends PolarSeries<
             const candidateState = this.getCandidateStateString(nodeDatum.datumIndex);
             const params: RequireOptional<Omit<AgDonutCalloutLineItemStylerParams<unknown, unknown>, 'context'>> = {
                 angleKey: options.angleKey,
-                angleName: options.angleName ?? options.angleKey,
+                angleName: options.angleName ?? this.keyName(options.angleKey),
                 calloutLabelKey: options.calloutLabelKey,
-                calloutLabelName: options.calloutLabelName ?? options.calloutLabelKey,
+                calloutLabelName: options.calloutLabelName ?? this.optionalKeyName(options.calloutLabelKey),
                 datum: nodeDatum.datum,
                 highlightState,
                 selectionState,
                 candidateState,
                 legendItemKey: options.legendItemKey,
                 radiusKey: options.radiusKey,
-                radiusName: options.radiusName ?? options.radiusKey,
+                radiusName: options.radiusName ?? this.optionalKeyName(options.radiusKey),
                 sectorLabelKey: options.sectorLabelKey,
-                sectorLabelName: options.sectorLabelName ?? options.sectorLabelKey,
+                sectorLabelName: options.sectorLabelName ?? this.optionalKeyName(options.sectorLabelKey),
                 seriesId: this.id,
             };
             itemStylerResult = this.cachedCallWithContext(options.calloutLine.itemStyler, params) ?? {};
@@ -2446,7 +2447,7 @@ export class DonutSeries extends PolarSeries<
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label: toPlainText(label), fallbackLabel: angleKey, value: angleContent }],
+                data: [{ label: toPlainText(label), fallbackLabel: this.keyName(angleKey), value: angleContent }],
             },
             {
                 seriesId,
@@ -2521,6 +2522,8 @@ export class DonutSeries extends PolarSeries<
         const legendData: CategoryLegendDatum[] = [];
 
         const hideZeros = this.options.hideZeroValueSectorsInLegend;
+        const readLegendItemName =
+            legendItemKey == null ? undefined : datumKeyReader(legendItemKey, dataModel.suppressFieldDotNotation);
         const rawData = processedData.dataSources.get(this.id)?.data;
         const invalidData = processedData.invalidData?.get(this.id);
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
@@ -2569,7 +2572,7 @@ export class DonutSeries extends PolarSeries<
                     text: labelParts.map((s) => toPlainText(s)).join(' - '),
                 },
                 symbol: this.legendItemSymbol(datumIndex),
-                legendItemName: legendItemKey == null ? undefined : datum[legendItemKey],
+                legendItemName: readLegendItemName?.(datum),
                 hideInLegend: showInLegend === false,
             });
         }

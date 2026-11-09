@@ -284,6 +284,7 @@ function updateUpdateCountDisplay() {
     }
 }
 
+/** inScope */
 async function dispatchUpdate(itemsToUpdate: OhlcDatum[]) {
     const start = performance.now();
 
@@ -301,6 +302,7 @@ async function dispatchUpdate(itemsToUpdate: OhlcDatum[]) {
     recordCpuUsage(elapsed);
 }
 
+/** inScope */
 async function updateRandomSubset() {
     const indicesToUpdate = new Set<number>();
     while (indicesToUpdate.size < UPDATE_COUNT && indicesToUpdate.size < data.length) {
@@ -317,6 +319,7 @@ async function updateRandomSubset() {
     await dispatchUpdate(itemsToUpdate);
 }
 
+/** inScope */
 async function runAutoUpdate() {
     if (updateInFlight) {
         return;
@@ -337,6 +340,7 @@ async function runAutoUpdate() {
     }
 }
 
+/** inScope */
 function startUpdates() {
     if (isRunning) {
         return;
@@ -379,6 +383,7 @@ function stopUpdates() {
     }
 }
 
+/** inScope */
 function handleToggleUpdates() {
     if (isRunning) {
         stopUpdates();
@@ -400,6 +405,7 @@ function setUpdateMethod(method: string) {
     resetCpuIndicator();
 }
 
+/** inScope */
 function setUpdateFrequency(frequency: string) {
     const wasRunning = isRunning;
 

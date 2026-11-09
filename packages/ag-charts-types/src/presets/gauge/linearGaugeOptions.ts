@@ -113,12 +113,6 @@ export interface AgLinearGaugeLabelOptions
     /** Distance between the shape edges and the text. */
     spacing?: PixelSize;
     /**
-     * Avoid label collisions with the bar and/or scale.
-     *
-     * @deprecated v14.3.0 Use `collision.alwaysShow` instead.
-     */
-    avoidCollisions?: boolean;
-    /**
      * Placement of the label. Either a single placement or an ordered fallback list tried in turn until one fits.
      *
      * Default: `'inside-start'`

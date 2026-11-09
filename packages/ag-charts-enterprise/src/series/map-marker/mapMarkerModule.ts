@@ -40,7 +40,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
         series: {
             ...COMMON_SERIES_THEME_DEFAULTS,
             ...undocumentedThemeOptions({ topologyIdKey: 'name' }),
-            shape: 'circle',
+            shape: { $mapPalette: 'markerShape' },
             size: 7,
             maxSize: 30,
             sizeMode: 'diameter',
@@ -50,7 +50,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
             fillOpacity: 0.5,
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
-            ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+            shadow: SHADOW_THEME_DEFAULTS,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,

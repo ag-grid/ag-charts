@@ -179,7 +179,7 @@ describe('label formatter', () => {
                     fontSize: 12,
                     lineHeight: 30,
                     wrapping: 'on-space',
-                    overflowStrategy: 'ellipsis',
+                    truncate: true,
                 },
                 { padding: 0 },
                 () => ({ width: 50, height: 1000, meta: undefined })

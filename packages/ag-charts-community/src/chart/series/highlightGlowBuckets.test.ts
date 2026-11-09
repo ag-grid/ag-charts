@@ -15,6 +15,7 @@ import {
 } from '../test/seriesAccessors';
 import { HIGHLIGHT_GLOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     createChart,
     deproxy,
     hoverAction,
@@ -73,6 +74,7 @@ describe.each(SERIES)(
                     data: DATA,
                     animation: { enabled: false },
                     legend: { enabled: false },
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     series: [series('v', shadow, highlight), series('w', shadow, highlight)],
                 } as AgChartOptions)
             );
@@ -152,8 +154,7 @@ describe.each(SERIES)(
                 for (const rect of inPlace(0)) expect(rect.fillShadow).toMatchObject(SERIES_SHADOW);
             });
 
-            // AG-9003: 14.2.0 rendering restored for this release
-            it.skip('keeps the base shadow where the state glow is disabled', async () => {
+            it('keeps the base shadow where the state glow is disabled', async () => {
                 const { inPlace, highlighted } = await hover(
                     { highlightedSeries: { glow: { ...HIGHLIGHT_GLOW, enabled: false } } },
                     SERIES_SHADOW
@@ -188,6 +189,7 @@ describe('glow when the hover moves between series', () => {
                 data: DATA,
                 animation: { enabled: false },
                 legend: { enabled: false },
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 series: seriesOptions,
             } as AgChartOptions)
         );

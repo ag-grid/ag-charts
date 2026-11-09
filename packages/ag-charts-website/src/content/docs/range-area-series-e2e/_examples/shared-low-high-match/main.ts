@@ -99,6 +99,7 @@ let options: AgChartOptions = {
 
 let chart: ReturnType<typeof AgCharts.create>;
 
+// eslint-disable-next-line aglint/require-inscope-helper -- reassigns `chart`; this example is pinned to vanilla
 function toggleLowHigh(lowHigh: boolean): void {
     function lowAndHigh(p: ItemStyle) {
         return { item: { low: p, high: p } };

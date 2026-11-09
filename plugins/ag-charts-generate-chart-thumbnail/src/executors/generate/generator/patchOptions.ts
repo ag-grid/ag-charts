@@ -8,7 +8,7 @@ export function patchOptions(
     options: AgChartOptions,
     theme: AgChartThemeName,
     multiple: boolean,
-    api: 'create' | 'createGauge' | 'createFinancialChart'
+    api: 'create' | 'createGauge' | 'createFinancialChart' | 'createQuadrantChart'
 ): AgChartOptions {
     delete options.subtitle;
     delete options.footnote;
@@ -60,6 +60,10 @@ export function patchOptions(
 
     if (api === 'createGauge') {
         delete options.title;
+        delete options.legend;
+    }
+
+    if (api === 'createQuadrantChart') {
         delete options.legend;
     }
 

@@ -701,6 +701,25 @@ describe('OptionsGraph', () => {
                     series: expect.any(Array),
                 });
             });
+
+            it('should resolve `$palette` markerShape by index and wrap', () => {
+                const themeConfig = {
+                    line: {
+                        items: [
+                            { shape: { $palette: 'markerShape' } },
+                            { shape: { $palette: 'markerShape' } },
+                            { shape: { $palette: 'markerShape' } },
+                        ],
+                    },
+                };
+                const palette = { markerShapes: ['square', 'triangle'] };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve(testLogger);
+                expect(options).toStrictEqual({
+                    items: [{ shape: 'square' }, { shape: 'triangle' }, { shape: 'square' }],
+                    axes: expect.any(Object),
+                    series: expect.any(Array),
+                });
+            });
         });
 
         describe('$path', () => {

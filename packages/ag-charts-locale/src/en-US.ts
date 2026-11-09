@@ -393,6 +393,16 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputFibonacciBands: 'Bands',
     // Text for the annotation dialog's Fibonacci bands label
     dialogInputFibonacciBandsAltText: 'Fibonacci Bands',
+    // Text for the annotation dialog's follow select box label; makes a horizontal line follow a datum of a series
+    dialogInputFollow: 'Follow',
+    // Text for the annotation dialog's follow select box alt text
+    dialogInputFollowAltText: 'Follow a series value',
+    // Text for the annotation dialog's follow select box option that leaves the line at a fixed value
+    dialogInputFollowNone: 'None',
+    // Text for the annotation dialog's follow select box option that makes the line follow the first datum of the series
+    dialogInputFollowFirst: 'First value',
+    // Text for the annotation dialog's follow select box option that makes the line follow the last datum of the series
+    dialogInputFollowLast: 'Last value',
     // Text for text area input placeholders
     inputTextareaPlaceholder: 'Add Text',
     // Text for the measurer statistics date range bars value

@@ -748,6 +748,8 @@ function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
             return graph.palette.fillsFallback;
         case 'stroke':
             return graph.palette.strokes;
+        case 'markerShape':
+            return graph.palette.markerShapes;
         case 'gradient':
             return graph.palette.sequentialColors;
     }

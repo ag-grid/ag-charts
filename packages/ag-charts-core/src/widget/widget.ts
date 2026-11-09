@@ -1,9 +1,10 @@
 import type { BaseAttributeTypeMap, BaseStyleTypeMap } from '../dom/attributeUtil';
 import { getAttribute, setAttribute, setElementStyle, setElementStyles } from '../dom/attributeUtil';
-import { getElementBBox, setElementBBox } from '../dom/domUtil';
+import { getElementBBox, isFocused, setElementBBox } from '../dom/domUtil';
 import { isNode } from '../dom/globalsProxy';
 import type { BoxBounds } from '../geometry/boxBounds';
 import type { ElementID } from '../identity/idBranding';
+import type { Point } from '../types/scene';
 import type { CanvasOrigin, WidgetEvent, WidgetEventMap, WidgetEventMap_Internal } from './widgetEvents';
 import { WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
@@ -32,6 +33,11 @@ abstract class WidgetBounds<TElement extends HTMLElement> {
 
     getBounds(): BoxBounds {
         return getElementBBox(this.elemContainer ?? this.elem);
+    }
+
+    /** Removes the inline width that `setBounds()` wrote, so `getBounds()` reports the rendered width. */
+    clearWidth(): void {
+        setElementStyle(this.elemContainer ?? this.elem, 'width', undefined);
     }
 
     protected static setElementContainer(widget: WidgetBounds<HTMLElement>, elemContainer: HTMLDivElement) {
@@ -102,6 +108,14 @@ export abstract class Widget<
         return this.elem.clientHeight;
     }
 
+    get offsetWidth(): number {
+        return this.elem.offsetWidth;
+    }
+
+    get offsetHeight(): number {
+        return this.elem.offsetHeight;
+    }
+
     destroy(): void {
         this.destroyListener?.();
         this.destroyListener = undefined;
@@ -139,6 +153,10 @@ export abstract class Widget<
         this.elem.textContent = textContent ?? null;
     }
 
+    getTextContent(): string {
+        return this.elem.textContent ?? '';
+    }
+
     setAriaRole(role: BaseAttributeTypeMap['role'] | undefined) {
         setAttribute(this.elem, 'role', role);
     }
@@ -167,8 +185,61 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
     }
 
+    /** Sets the `title` attribute (the native tooltip), or removes it when `undefined` or empty. */
+    setTitle(title: BaseAttributeTypeMap['title'] | undefined) {
+        setAttribute(this.elem, 'title', title);
+    }
+
+    /**
+     * Sets a `data-*` attribute through `dataset`, or removes it when `value` is `undefined`.
+     * @param name - The camelCase `dataset` key, e.g. `popoverId` for `data-popover-id`.
+     */
+    setData(name: string, value: string | undefined) {
+        if (value === undefined) {
+            delete this.elem.dataset[name];
+        } else {
+            this.elem.dataset[name] = value;
+        }
+    }
+
+    /** Positions the element with a CSS `translate()` transform, in CSS pixels, replacing any existing transform. */
+    setTranslate(x: number, y: number) {
+        this.elem.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    /** Sets the CSS `border-radius` in CSS pixels, or removes it when `undefined`. */
+    setBorderRadius(radius: number | undefined) {
+        this.elem.style.borderRadius = radius == null ? '' : `${radius}px`;
+    }
+
+    /**
+     * Moves the element through its inline `left`/`top`, in CSS pixels. An omitted coordinate keeps its current value.
+     * Inline `right`/`bottom` are set to `unset` so they cannot pull against the new position.
+     */
+    setCssOffset(position: Partial<Point>) {
+        const { style } = this.elem;
+        style.setProperty('right', 'unset');
+        style.setProperty('bottom', 'unset');
+        if (position.x != null) style.setProperty('left', `${position.x}px`);
+        if (position.y != null) style.setProperty('top', `${position.y}px`);
+    }
+
+    /** Sets the inline `min-width` in CSS pixels, or removes it when `undefined`. */
+    setMinWidth(minWidth: number | undefined) {
+        if (minWidth == null) {
+            this.elem.style.removeProperty('min-width');
+        } else {
+            this.elem.style.setProperty('min-width', `${minWidth}px`);
+        }
+    }
+
     setInnerHTML(html: string) {
         this.elem.innerHTML = html;
+    }
+
+    /** Sets the CSS `position` property, or removes it when `undefined`. */
+    setCSSPosition(position: BaseStyleTypeMap['position'] | undefined) {
+        setElementStyle(this.elem, 'position', position);
     }
 
     setPointerEvents(pointerEvents: BaseStyleTypeMap['pointer-events'] | undefined) {
@@ -194,6 +265,39 @@ export abstract class Widget<
 
     containsTarget(event: Pick<WidgetEvent, 'sourceEvent'>) {
         return isNode(event.sourceEvent.target) && this.elem.contains(event.sourceEvent.target);
+    }
+
+    /** Whether the event was dispatched to this widget's own element, excluding its descendants. */
+    isEventTarget(event: Pick<WidgetEvent, 'sourceEvent'>): boolean {
+        return event.sourceEvent.target === this.elem;
+    }
+
+    /** Whether the event is being handled by a listener on this widget's own element. */
+    isEventCurrentTarget(event: Pick<WidgetEvent, 'sourceEvent'>): boolean {
+        return event.sourceEvent.currentTarget === this.elem;
+    }
+
+    /**
+     * Whether `other`'s element is this widget's element or one of its DOM descendants. This checks the DOM, not the
+     * widget tree.
+     */
+    contains(other: Pick<Widget, 'getElement'>): boolean {
+        return this.elem.contains(other.getElement());
+    }
+
+    /** Whether this widget's element is the active element of its document or shadow root. */
+    isFocused(): boolean {
+        return isFocused(this.elem);
+    }
+
+    /** Whether the pointer is over this widget's element (the CSS `:hover` state). */
+    isHovered(): boolean {
+        return this.elem.matches(':hover');
+    }
+
+    /** Whether this widget's element has keyboard-visible focus (the CSS `:focus-visible` state). */
+    isFocusVisible(): boolean {
+        return this.elem.matches(':focus-visible');
     }
 
     hasPopup(): boolean {
@@ -243,6 +347,8 @@ export abstract class Widget<
 
     removeChildWidget(child: TChildWidget) {
         const i = this.children.indexOf(child);
+        // `remove()` reaches here again for a child that was already removed, since `parent` is left set.
+        if (i < 0) return;
         this.children.splice(i, 1);
         this.removeChildFromDOM(child);
         this.onChildRemoved(child);
@@ -266,6 +372,14 @@ export abstract class Widget<
 
     toggleClass(token: string, force?: boolean) {
         this.elem.classList.toggle(token, force);
+    }
+
+    /**
+     * Moves `sibling`'s element into the DOM immediately after this widget's element. Only the DOM changes: the widget
+     * tree is not updated, so `sibling` keeps its current `parent` (if any).
+     */
+    insertSiblingAfter(sibling: Pick<Widget, 'getElement'>): void {
+        this.elem.insertAdjacentElement('afterend', sibling.getElement());
     }
 
     protected appendOrInsert(child: HTMLElement, before: TChildWidget | undefined) {

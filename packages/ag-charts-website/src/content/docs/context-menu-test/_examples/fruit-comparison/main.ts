@@ -134,6 +134,7 @@ const options: BarChartOptions = {
 
 const chart = AgCharts.create(options);
 
+/** inScope */
 function updateMarking(changedDatum: DatumType, yKey: string, marked: boolean) {
     const newData = getPersistentMutableData();
     for (const datum of newData) {
@@ -146,6 +147,7 @@ function updateMarking(changedDatum: DatumType, yKey: string, marked: boolean) {
     chart.updateDelta(options);
 }
 
+/** inScope */
 function updateVisibility(seriesId: string, visible: boolean) {
     for (const series of options.series!) {
         if (series.id === seriesId) {
@@ -155,6 +157,7 @@ function updateVisibility(seriesId: string, visible: boolean) {
     chart.updateDelta(options);
 }
 
+/** inScope */
 function createDiffSeries(baseSeriesId: string, compareToId: string) {
     const data = getPersistentMutableData();
     const baseSeries = options.series?.find((s) => s.id === baseSeriesId);
@@ -188,6 +191,7 @@ function createDiffSeries(baseSeriesId: string, compareToId: string) {
     chart.updateDelta(options);
 }
 
+/** inScope */
 function removeDiffSeries() {
     const before = options.series!.length;
     options.series = options.series!.filter((s) => s.id !== DIFF_SERIES_ID);

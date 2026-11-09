@@ -25,6 +25,7 @@ const options: AgCartesianChartOptions<DataType> = {
             sizeName: 'Population',
             labelKey: 'city',
             labelName: 'City',
+            label: { enabled: false },
             maxSize: 50,
             tooltip: {
                 renderer: ({ datum }) => ({ title: datum.city }),

@@ -1,7 +1,6 @@
 // Documented APIs.
 export { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
 export * from 'ag-charts-types';
-export { time } from 'ag-charts-core';
 export { AgCharts } from './api/agCharts';
 export { VERSION } from './version';
 export { ModuleRegistry } from 'ag-charts-core';
@@ -37,10 +36,6 @@ export { GroupedCategoryAxisModule } from './module/axis-modules/groupedCategory
 export { UnitTimeAxisModule } from './module/axis-modules/unitTimeAxisModule';
 
 export { AllCommunityModule } from './module-bundles/all';
-export { AllCartesianModule } from './module-bundles/cartesian';
-export { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
-export { AllCartesianSeriesModule } from './module-bundles/cartesian-series';
-export { AllPolarModule } from './module-bundles/polar';
 
 // Undocumented APIs used by Integrated Charts.
 export { AgChartsCommunityModule } from './module-bundles/integrated';

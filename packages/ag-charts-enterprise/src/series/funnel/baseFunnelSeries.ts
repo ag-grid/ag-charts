@@ -224,7 +224,7 @@ export abstract class BaseFunnelSeries<
         new Group({
             name: `${this.id}-series-connectorNodes`,
             zIndex: SeriesZIndexMap.BACKGROUND,
-            batchShadows: false,
+            batchShadows: 'shared',
         })
     );
     protected connectorSelection = Selection.select<FunnelConnector<FunnelConnectorDatum>>(
@@ -562,7 +562,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected resolveItemId(datum: unknown, datumIndex: number) {
-        return getItemId({ series: this, datum, datumIndex }, this.data?.dataIdKey);
+        return getItemId({ series: this, datum, datumIndex }, this.data);
     }
 
     protected abstract getItemStyle(

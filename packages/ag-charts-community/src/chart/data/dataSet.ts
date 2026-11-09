@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { type DatumKeyReader, Logger, datumKeyReader } from 'ag-charts-core';
 
 import {
     DataChangeDescription,
@@ -69,8 +69,12 @@ interface TransactionEffects<T> {
  * Manages transactional updates to an array of data with optimized batch processing.
  * Transactions are queued and can be applied in batch for efficient data transformations.
  */
+/** What reads a datum's `dataIdKey` value. */
+export type DataIdReader = Pick<DataSet, 'dataIdKey' | 'readDataId'>;
+
 export class DataSet<T = unknown> {
     private pendingTransactions: DataSetTransaction<T>[] = [];
+    private dataIdReader?: DatumKeyReader;
     private cachedChangeDescription: DataChangeDescription | undefined;
     private cachedPendingReplacements: Map<string | number, T> | undefined;
     private itemToIndexCache: Map<T, number> | undefined;
@@ -80,21 +84,27 @@ export class DataSet<T = unknown> {
     constructor(
         public data: T[],
         protected readonly logger: Logger,
-        public readonly dataIdKey?: string
+        public readonly dataIdKey?: string,
+        public readonly suppressFieldDotNotation = false
     ) {}
 
     /**
      * Creates an empty DataSet.
      */
-    static empty<U = unknown>(logger: Logger, dataIdKey?: string): DataSet<U> {
-        return new DataSet<U>([], logger, dataIdKey);
+    static empty<U = unknown>(logger: Logger, dataIdKey?: string, suppressFieldDotNotation?: boolean): DataSet<U> {
+        return new DataSet<U>([], logger, dataIdKey, suppressFieldDotNotation);
     }
 
     /**
      * Wraps existing data in a DataSet.
      */
-    static wrap<U = unknown>(data: U[], logger: Logger, dataIdKey?: string): DataSet<U> {
-        return new DataSet<U>(data, logger, dataIdKey);
+    static wrap<U = unknown>(
+        data: U[],
+        logger: Logger,
+        dataIdKey?: string,
+        suppressFieldDotNotation?: boolean
+    ): DataSet<U> {
+        return new DataSet<U>(data, logger, dataIdKey, suppressFieldDotNotation);
     }
 
     /**
@@ -836,10 +846,17 @@ export class DataSet<T = unknown> {
         return this.itemToIndexCache;
     }
 
+    /** The raw `dataIdKey` value of a datum, read as a dot path unless dot notation is suppressed. */
+    readDataId(datum: unknown): unknown {
+        if (this.dataIdKey == null) return undefined;
+        this.dataIdReader ??= datumKeyReader(this.dataIdKey, this.suppressFieldDotNotation);
+        return this.dataIdReader(datum);
+    }
+
     /** Extracts the ID value from a datum; returns `undefined` if missing or not a string/number. */
     protected getIdValue(item: T): DataIdValue {
-        if (this.dataIdKey == null || item == null || typeof item !== 'object') return undefined;
-        const value = (item as any)[this.dataIdKey];
+        if (item == null || typeof item !== 'object') return undefined;
+        const value = this.readDataId(item);
         if (typeof value === 'string' || (typeof value === 'number' && !Number.isNaN(value))) return value;
         return undefined;
     }

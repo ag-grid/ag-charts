@@ -92,20 +92,12 @@ function setMinimumFontSize(value: string) {
     refresh();
 }
 
-function toggleCalloutLabel() {
-    calloutLabelEnabled = !calloutLabelEnabled;
-    (document.getElementById('calloutLabelToggle') as HTMLButtonElement).setAttribute(
-        'aria-pressed',
-        String(calloutLabelEnabled)
-    );
+function toggleCalloutLabel(enabled: boolean) {
+    calloutLabelEnabled = enabled;
     refresh();
 }
 
-function toggleSectorLabel() {
-    sectorLabelEnabled = !sectorLabelEnabled;
-    (document.getElementById('sectorLabelToggle') as HTMLButtonElement).setAttribute(
-        'aria-pressed',
-        String(sectorLabelEnabled)
-    );
+function toggleSectorLabel(enabled: boolean) {
+    sectorLabelEnabled = enabled;
     refresh();
 }

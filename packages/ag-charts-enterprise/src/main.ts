@@ -19,6 +19,7 @@ export {
     TimeAxisModule,
     UnitTimeAxisModule,
 } from './axes/cartesian/cartesianAxisModules';
+export { InsetNumberAxisModule } from './axes/inset-number/insetNumberAxisModule';
 export { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 export { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryAxisModule';
 export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
@@ -71,13 +72,6 @@ export { TreemapSeriesModule } from './series/treemap/treemapModule';
 export { WaterfallSeriesModule } from './series/waterfall/waterfallModule';
 
 export { AllEnterpriseModule } from './module-bundles/all';
-export { AxisInteractionModule } from './module-bundles/axis-interaction';
-export { AllCartesianModule } from './module-bundles/cartesian';
-export { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
-export { AllCartesianSeriesModule } from './module-bundles/cartesian-series';
-export { AllGaugeModule } from './module-bundles/gauge';
-export { AllPolarModule } from './module-bundles/polar';
-export { AllMapSeriesModule } from './module-bundles/topology';
 export { FinancialChartModule } from './module-bundles/financial';
 export { LicenseManager, AgChartsEnterpriseModule } from './module-bundles/integrated';
 export { QuadrantChartModule } from './module-bundles/quadrant';

@@ -89,8 +89,7 @@ describe('FunnelSeries', () => {
     };
 
     describe('shadow layering', () => {
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should cast the shadows of its stages through the shadow root, as it does those of its connectors', async () => {
+        it('should cast the shadows of its stages through the shadow root, as it does those of its connectors', async () => {
             chart = deproxy(await createEnterpriseChart({ ...FUNNEL_EXAMPLE, animation: { enabled: false } }));
 
             expect(getSeriesDataNodeGroup(chart).batchShadows).toBe('shared');

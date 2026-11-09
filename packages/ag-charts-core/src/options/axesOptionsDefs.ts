@@ -49,7 +49,7 @@ import {
     fontOptionsDef,
     labelBoxOptionsDef,
     lineDashOptionsDef,
-    signedPadding,
+    padding,
     strokeOptionsDef,
     textAlign,
     textWrap,
@@ -71,7 +71,6 @@ import {
     constant,
     date,
     defined,
-    deprecated,
     greaterThan,
     lessThan,
     lessThanOrEqual,
@@ -94,8 +93,8 @@ import {
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
     text: string,
-    // Signed: label padding positions the label relative to the line, so negative values are meaningful.
-    padding: signedPadding,
+    padding,
+    spacing: number,
     border: borderOptionsDef,
     cornerRadius: positiveNumber,
     ...fontOptionsDef,
@@ -278,7 +277,6 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     label: commonAxisLabelOptionsDefs,
     line: {
         enabled: boolean,
-        width: deprecated(positiveNumber, 'Use `strokeWidth` instead.'),
         stroke: colorOrRef,
         strokeWidth: positiveNumber,
         strokeOpacity: ratio,
@@ -286,16 +284,6 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     },
     tick: cartesianAxisTick,
     context: () => true,
-    ...undocumentedDefs({
-        layoutConstraints: {
-            stacked: required(boolean),
-            align: required(union('start', 'end')),
-            unit: required(union('percent', 'px')),
-            width: required(positiveNumber),
-        },
-        ignoreZoom: boolean,
-        linkZoom: string,
-    }),
 };
 
 export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
@@ -331,6 +319,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     position: union('top', 'right', 'bottom', 'left'),
     thickness: positiveNumber,
     maxThicknessRatio: ratio,
+    spacing: positiveNumber,
     listeners: {
         click: callback,
         doubleClick: callback,
@@ -436,6 +425,26 @@ export const discreteTimeAxisIntervalOptionsDefs: OptionsDefs<AgAxisDiscreteTime
     placement: union('on', 'between'),
 };
 
+// Set by the Volume Profile presets for the enterprise `axisInsetValue` plugin, which draws a column of
+// per-level values between the axis and the series area.
+const axisInsetValueOptionsDefs = {
+    enabled: boolean,
+    position: union('left', 'right', 'top', 'bottom'),
+    width: positiveNumber,
+    minWidth: positiveNumber,
+    gap: positiveNumber,
+    fill: colorOrRef,
+    fillOpacity: ratio,
+    categoryKey: string,
+    valueKey: string,
+    label: {
+        enabled: boolean,
+        ...fontOptionsDef,
+        padding: positiveNumber,
+        formatter: callback,
+    },
+};
+
 export const categoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgCategoryAxisOptions>> = {
     ...cartesianAxisOptionsDefs,
     type: constant('category'),
@@ -451,26 +460,8 @@ export const categoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgCate
         placement: union('on', 'between'),
     },
     skipNullBars: boolean,
-    // Set by the Volume Profile presets for the enterprise `axisInsetValue` plugin, which draws a column of
-    // per-category values between the axis and the series area.
     ...undocumentedDefs({
-        axisInsetValue: {
-            enabled: boolean,
-            position: union('left', 'right', 'top', 'bottom'),
-            width: positiveNumber,
-            minWidth: positiveNumber,
-            gap: positiveNumber,
-            fill: colorOrRef,
-            fillOpacity: ratio,
-            categoryKey: string,
-            valueKey: string,
-            label: {
-                enabled: boolean,
-                ...fontOptionsDef,
-                padding: positiveNumber,
-                formatter: callback,
-            },
-        },
+        axisInsetValue: axisInsetValueOptionsDefs,
         axisSelectedBand: {
             enabled: boolean,
             fill: colorOrRef,
@@ -519,6 +510,7 @@ export const numberAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgNumber
     type: constant('number'),
     label: cartesianNumericAxisLabel,
     crosshair: cartesianAxisCrosshairOptions(true),
+    ...undocumentedDefs({ axisInsetValue: axisInsetValueOptionsDefs }),
 };
 
 export const logAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgLogAxisOptions>> = {

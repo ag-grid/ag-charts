@@ -52,6 +52,7 @@ export class TextInput {
         anchor?: { x: number; y: number };
         text?: string;
         placeholderText?: string;
+        ariaLabel?: string;
         styles?: NormalisedTextOptions & { placeholderColor?: string };
         layout?: TextInputLayout;
         onChange?: (text: string, bbox: BBox) => void;
@@ -62,6 +63,7 @@ export class TextInput {
         const textArea = this.element.firstElementChild! as HTMLDivElement;
         setAttributes(textArea, {
             role: 'textbox', // AG-15233
+            'aria-label': opts.ariaLabel,
             'data-preventdefault': false, // AG-13715
         });
 

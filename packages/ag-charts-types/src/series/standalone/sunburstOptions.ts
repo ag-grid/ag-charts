@@ -5,17 +5,10 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type {
-    ContextDefault,
-    CssColor,
-    DatumDefault,
-    Opacity,
-    PixelSize,
-    Ratio,
-    ResolvedDatumKey,
-} from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type {
     AgColorScale,
     AgColorType,
@@ -24,7 +17,7 @@ import type {
     TextOptions,
     TextOrSegments,
 } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgGlowHighlightStyleOptions } from '../seriesOptions';
 
 export type AgSunburstHighlightState = HierarchyHighlightState;
 
@@ -38,7 +31,7 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum, TContext = Contex
     depth: number;
 }
 
-export interface AgSunburstSeriesHighlightStyle extends AgSunburstSeriesStyle {
+export interface AgSunburstSeriesHighlightStyle extends AgSunburstSeriesStyle, AgGlowHighlightStyleOptions {
     /** Opacity to apply to the sector its labels. */
     opacity?: Opacity;
 }
@@ -102,6 +95,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     secondaryLabel?: AgSunburstSeriesSecondaryLabelOptions<TDatum, TContext>;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
+    /** Configuration for the shadow used behind the sectors. */
+    shadow?: AgDropShadowOptions;
     /** The ratio of the inner radius of the series. Carves a hole at the centre of the series. */
     innerRadiusRatio?: Ratio;
     /** The size in pixels of the hole carved at the centre of the series, measured outwards from the centre. Must be greater than zero, and is added to any hole `innerRadiusRatio` carves. It is not capped: a value that reaches the series radius leaves the sectors no room, so nothing is rendered. */
@@ -151,15 +146,15 @@ export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = Conte
 
 export interface AgSunburstSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the label. */
-    labelKey?: ResolvedDatumKey<TDatum>;
+    labelKey?: DatumKey<TDatum>;
     /** The name of the node key containing a secondary label. */
-    secondaryLabelKey?: ResolvedDatumKey<TDatum>;
+    secondaryLabelKey?: DatumKey<TDatum>;
     /** The name of the node key containing the children. Defaults to `children`. */
-    childrenKey?: ResolvedDatumKey<TDatum>;
+    childrenKey?: DatumKey<TDatum>;
     /** The name of the node key containing the size value. */
-    sizeKey?: ResolvedDatumKey<TDatum>;
+    sizeKey?: DatumKey<TDatum>;
     /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the segment colour. */
-    colorKey?: ResolvedDatumKey<TDatum>;
+    colorKey?: DatumKey<TDatum>;
 }
 
 export interface AgSunburstSeriesOptionsNames {

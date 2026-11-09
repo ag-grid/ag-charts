@@ -294,7 +294,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                     sourceDetail: 'unspecified',
                 });
             }),
-            ctx.eventsHub.on('update:complete', ({ wasShortcut }) => {
+            ctx.eventsHub.on('update:settled', ({ wasShortcut }) => {
                 if (wasShortcut) return;
                 if (this.pendingZoomEventSource != null) {
                     const source = this.pendingZoomEventSource;

@@ -195,6 +195,7 @@ describe('Format Manager', () => {
                     xKey: 'product',
                     yKey: 'value',
                     sizeKey: 'growth',
+                    labelKey: 'growth',
                     yName: 'iPhone',
                     label: {
                         enabled: true,
@@ -209,6 +210,7 @@ describe('Format Manager', () => {
                 x: () => 'x',
                 y: () => 'y',
                 size: () => 'size',
+                label: () => 'size',
             },
         };
 

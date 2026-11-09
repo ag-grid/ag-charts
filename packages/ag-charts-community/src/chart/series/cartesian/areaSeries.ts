@@ -49,8 +49,6 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import { LogAxis } from '../../axis/logAxis';
-import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { addAccumulated } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
@@ -273,7 +271,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
         zIndex: SeriesZIndexMap.BACKGROUND,
-        batchShadows: false,
+        batchShadows: 'shared',
     });
 
     override get pickModeAxis() {
@@ -316,6 +314,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
         seriesContentNode.appendChild(this.backgroundGroup);
+    }
+
+    override getRenderGroups() {
+        return [...super.getRenderGroups(), this.backgroundGroup];
     }
 
     override detachSeries(
@@ -479,7 +481,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             'xValue'
         );
 
-        if (yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
+        if (yAxis?.scale.type === 'number') {
             return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };
@@ -1763,7 +1765,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: yKey,
+                        fallbackLabel: this.keyName(yKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                         missing: isTooltipValueMissing(yValue),
                     },
@@ -1839,7 +1841,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: legendItemName ?? yName ?? itemId,
+                    text: legendItemName ?? yName ?? this.keyName(itemId),
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: showInLegend === false,
@@ -2014,7 +2016,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         );
     }
 
-    public override isPointInArea(x: number, y: number): boolean {
+    protected override isPointInFill(x: number, y: number): boolean {
         let fillPath: Path | undefined;
         for (const child of this.backgroundGroup.children()) {
             if (child instanceof Path) {

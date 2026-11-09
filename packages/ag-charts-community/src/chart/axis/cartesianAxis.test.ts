@@ -21,13 +21,14 @@ import {
     getAxisLabelNodes,
     getAxisLinePosition,
     getAxisSizeLimit,
+    getAxisTitleRotation,
     getAxisTitleText,
     getLabelSegmentAlignments,
     getLabelText,
     getSeriesRect,
     pickAxisValue,
 } from '../test/axisAccessors';
-import { BIG, expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
+import { BIG, expectPixelIdenticalAcrossUpdate, expectPixelsChangeAcrossUpdate } from '../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -901,7 +902,11 @@ describe('CartesianAxis', () => {
             const data = [...dataNeg, { x: 0, y: null }, ...dataPos];
 
             const optionsFactory =
-                (crossAt: AgCartesianAxisCrossAt): OptionsFactory =>
+                (
+                    crossAt: AgCartesianAxisCrossAt,
+                    xPosition: 'bottom' | 'top' = 'bottom',
+                    yPosition: 'left' | 'right' = 'left'
+                ): OptionsFactory =>
                 () => ({
                     title: { text: 'Axes crossing at 0', fontWeight: 'bold' },
                     data,
@@ -909,7 +914,7 @@ describe('CartesianAxis', () => {
                     axes: {
                         x: {
                             type: 'number',
-                            position: 'bottom',
+                            position: xPosition,
                             min: -6,
                             max: 6,
                             title: { text: 'X Axis Title' },
@@ -918,7 +923,7 @@ describe('CartesianAxis', () => {
                         },
                         y: {
                             type: 'number',
-                            position: 'left',
+                            position: yPosition,
                             min: -6,
                             max: 6,
                             title: { text: 'Y Axis Title' },
@@ -938,7 +943,7 @@ describe('CartesianAxis', () => {
 
             it('should render the labels at the edge', async () => {
                 await renderAndSnapshot(
-                    optionsFactory({ value: 0, labelPlacement: 'edge' }),
+                    optionsFactory({ value: 0, titlePlacement: 'crossing', labelPlacement: 'edge' }),
                     'cartesian-axes-cross-at-0-labels-at-edge'
                 );
             });
@@ -948,6 +953,54 @@ describe('CartesianAxis', () => {
                     optionsFactory({ value: 0, titlePlacement: 'edge', labelPlacement: 'edge' }),
                     'cartesian-axes-cross-at-0-title-and-labels-at-edge'
                 );
+            });
+
+            it('should render the title at the crossing point', async () => {
+                await renderAndSnapshot(
+                    optionsFactory({ value: 0, titlePlacement: 'crossing' }),
+                    'cartesian-axes-cross-at-0-title-at-crossing'
+                );
+            });
+
+            it('should render the title at the top and right edges by default', async () => {
+                await renderAndSnapshot(
+                    optionsFactory({ value: 0 }, 'top', 'right'),
+                    'cartesian-axes-cross-at-0-title-default-top-right'
+                );
+            });
+
+            describe.each([
+                { name: 'bottom and left', x: 'bottom', y: 'left' },
+                { name: 'top and right', x: 'top', y: 'right' },
+            ] as const)('on $name axes', ({ x, y }) => {
+                const options = (crossAt: AgCartesianAxisCrossAt) => optionsFactory(crossAt, x, y)();
+
+                it('should default the title placement to the edge', async () => {
+                    await expectPixelIdenticalAcrossUpdate(
+                        ctx,
+                        createChart,
+                        options({ value: 0 }),
+                        options({ value: 0, titlePlacement: 'edge' })
+                    );
+                });
+
+                it('should render the default title placement differently from the crossing point', async () => {
+                    await expectPixelsChangeAcrossUpdate(
+                        ctx,
+                        createChart,
+                        options({ value: 0 }),
+                        options({ value: 0, titlePlacement: 'crossing' })
+                    );
+                });
+
+                it('should default the label placement to the crossing point', async () => {
+                    await expectPixelIdenticalAcrossUpdate(
+                        ctx,
+                        createChart,
+                        options({ value: 0, titlePlacement: 'edge' }),
+                        options({ value: 0, titlePlacement: 'edge', labelPlacement: 'crossing' })
+                    );
+                });
             });
         });
 
@@ -1037,6 +1090,38 @@ describe('CartesianAxis', () => {
                 await expectPixelIdenticalAcrossUpdate(ctx, createChart, options({ value: 1n }), options());
                 expectWarningsCalls().toHaveLength(0);
             });
+        });
+    });
+
+    describe('spacing', () => {
+        const leftAxesOptions = (inner: object, outer: object): AgCartesianChartOptions => ({
+            data: [
+                { x: 1, a: 1, b: 10 },
+                { x: 2, a: 2, b: 20 },
+            ],
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'a', yKeyAxis: 'inner' },
+                { type: 'line', xKey: 'x', yKey: 'b', yKeyAxis: 'outer' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                inner: { type: 'number', position: 'left', thickness: 40, ...inner },
+                outer: { type: 'number', position: 'left', thickness: 40, ...outer },
+            },
+        });
+
+        const seriesLeft = async (options: AgCartesianChartOptions) => {
+            chart?.destroy();
+            chart = await createChart(options);
+            return getSeriesRect(chart).x;
+        };
+
+        it('should space stacked axes by the inner axis spacing, not from the series area', async () => {
+            const defaultLeft = await seriesLeft(leftAxesOptions({}, {}));
+
+            expect(await seriesLeft(leftAxesOptions({ spacing: 40 }, {}))).toBe(defaultLeft + 25);
+            expect(await seriesLeft(leftAxesOptions({ spacing: 0 }, {}))).toBe(defaultLeft - 15);
+            expect(await seriesLeft(leftAxesOptions({}, { spacing: 40 }))).toBe(defaultLeft);
         });
     });
 
@@ -1930,7 +2015,7 @@ describe('CartesianAxis', () => {
             },
             {
                 // The right y-axis title flipped from its default vertical direction.
-                name: 'title-orientation-vertical-right',
+                name: 'title-orientation-vertical-reversed-right',
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     axes: {
@@ -1938,7 +2023,7 @@ describe('CartesianAxis', () => {
                         y: {
                             type: 'number',
                             position: 'right',
-                            title: { enabled: true, text: 'Temperature', orientation: 'vertical' },
+                            title: { enabled: true, text: 'Temperature', orientation: 'vertical-reversed' },
                         },
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -1993,6 +2078,27 @@ describe('CartesianAxis', () => {
 
         it.each(orientationScenarios)('$name', async ({ name, optionsFactory }) => {
             await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+        });
+
+        it('reads left and right y-axis titles in the same direction by default', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 0, y: 1, y2: 10 },
+                    { x: 1, y: 2, y2: 20 },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', title: { text: 'Left' } },
+                    y2: { type: 'number', position: 'right', title: { text: 'Right' } },
+                },
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2' },
+                ],
+            });
+
+            expect(getAxisTitleRotation(chart, 'left')).toBe(-Math.PI / 2);
+            expect(getAxisTitleRotation(chart, 'right')).toBe(-Math.PI / 2);
         });
     });
 

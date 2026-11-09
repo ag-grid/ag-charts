@@ -15,6 +15,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     type SceneFrameInvariant,
     type SceneGeometrySample,
     compareImageSnapshot,
@@ -28,7 +29,6 @@ import {
     getSeriesContextNodeData,
     getSeriesOptions,
     hoverAction,
-    internalOptions,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
@@ -37,7 +37,6 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import type { WithInternalShadow } from 'ag-charts-core';
 
 import { destroyChart, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -666,6 +665,7 @@ describe('RadialBarSeries', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart<O>({
                     data,
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     legend: { position: 'left' },
                     series: [
                         {
@@ -1056,19 +1056,16 @@ describe('RadialBarSeries', () => {
             { quarter: 'Q3', value: 5 },
             { quarter: 'Q4', value: 9 },
         ];
-        const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions =>
-            internalOptions<AgChartOptions>({
-                data: shadowData,
-                series: [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter', shadow: seriesShadow }],
-                legend: { enabled: false },
-            });
+        const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
+            data: shadowData,
+            series: [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter', shadow: seriesShadow }],
+            legend: { enabled: false },
+        });
 
         it('defaults to a disabled shadow', async () => {
             chart = await createEnterpriseChart(shadowOptions());
 
-            expect(getSeriesOptions<AgRadialBarSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
-                DEFAULT_DISABLED_SHADOW
-            );
+            expect(getSeriesOptions<AgRadialBarSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {

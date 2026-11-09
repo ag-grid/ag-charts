@@ -19,14 +19,17 @@ HTMLCollection [
         tabindex="0"
       >
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__icon"
         />
         <div
           class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          role="presentation"
         >
           Download
         </div>
         <div
+          aria-hidden="true"
           class="ag-charts-context-menu__cell"
         />
       </div>

@@ -158,7 +158,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         text: 'Market Threshold',
                         placement: 'top',
-                        padding: 10,
+                        spacing: 10,
                     },
                 },
             ],
@@ -195,7 +195,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         text: 'Industry Average',
                         placement: 'right',
-                        padding: 5,
+                        spacing: 5,
                     },
                 },
             ],

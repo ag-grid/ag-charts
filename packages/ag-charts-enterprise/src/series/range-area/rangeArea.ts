@@ -57,6 +57,11 @@ import type { BoxBounds, Path, Segment, SegmentedPath, Selection, Text } from 'a
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
+import {
     type RangeAreaSeriesDataAggregationFilter,
     aggregateRangeAreaDataFromDataModel,
     aggregateRangeAreaDataFromDataModelPartial,
@@ -276,6 +281,12 @@ type RangeAreaStylerApply = _ModuleSupport.MarkerStyleApply<
     StylerResult
 >;
 
+const RANGE_AREA_VALUE_KEYS = ['yLowKey', 'yHighKey'] as const;
+
+function isRangeAreaMarkerDatum(nodeDatum: _ModuleSupport.SeriesNodeDatum): nodeDatum is RangeAreaMarkerDatum {
+    return 'yLowValue' in nodeDatum && 'yHighValue' in nodeDatum;
+}
+
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSeriesTypes> {
     static override readonly className = 'RangeAreaSeries';
     static readonly type = 'range-area' as const;
@@ -307,6 +318,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             yLowKey: this.options.yLowKey,
             yHighKey: this.options.yHighKey,
         };
+    }
+
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
+        return resolveCrosshairSnapConfig(this.options, RANGE_AREA_VALUE_KEYS);
+    }
+
+    getCrosshairSnapValues(nodeDatum: _ModuleSupport.SeriesNodeDatum): Partial<Record<string, unknown>> {
+        if (!isRangeAreaMarkerDatum(nodeDatum)) return {};
+        return collectCrosshairSnapValues([
+            ['yLowKey', nodeDatum.yLowValue],
+            ['yHighKey', nodeDatum.yHighValue],
+        ]);
     }
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
@@ -341,8 +364,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             clipFocusBox: false,
             usesPlacedLabels: true,
         });
-        // AG-9003: shadows are not batched for this release, so each item casts its own shadow, as in 14.2.0.
-        this.contentGroup.batchShadows = false;
+        // The fill is the only caster among the paths, so the group casts it through the chart-wide shadow root.
+        this.contentGroup.batchShadows = 'shared';
     }
 
     override renderToOffscreenCanvas(): boolean {
@@ -1377,12 +1400,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { xKey, xName, yName, yLowKey, yLowName, yHighKey, yHighName, legendItemName } = this.options;
         return {
             xKey,
-            xName: xName ?? xKey,
+            xName: xName ?? this.keyName(xKey),
             yName,
             yLowKey,
-            yLowName: yLowName ?? yLowKey,
+            yLowName: yLowName ?? this.keyName(yLowKey),
             yHighKey,
-            yHighName: yHighName ?? yHighKey,
+            yHighName: yHighName ?? this.keyName(yHighKey),
             legendItemName,
         };
     }
@@ -1666,7 +1689,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
+                        fallbackLabel: `${yLowName ?? this.keyName(yLowKey)} - ${yHighName ?? this.keyName(yHighKey)}`,
                         value,
                         missing:
                             _ModuleSupport.isTooltipValueMissing(yHighValue) &&
@@ -1727,7 +1750,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { id: seriesId, visible } = this;
 
         const { yLowKey, yHighKey, yName, yLowName, yHighName, legendItemName, showInLegend } = this.options;
-        const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const legendItemText =
+            legendItemName ?? yName ?? `${yLowName ?? this.keyName(yLowKey)} - ${yHighName ?? this.keyName(yHighKey)}`;
         const itemId: RangeAreaItemId = `${yLowKey}-${yHighKey}`;
         return [
             {

@@ -1,7 +1,7 @@
 import { fail } from 'assert';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type WithInternalShadow, cycledValue } from 'ag-charts-core';
+import { cycledValue } from 'ag-charts-core';
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
 import type {
     AgBarSeriesOptions,
@@ -12,12 +12,13 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import { CartesianChart } from '../cartesianChart';
+import { Chart } from '../chart';
+import { CartesianChartAxes } from '../chartAxes';
 import { AreaSeries } from '../series/cartesian/areaSeries';
 import { BarSeries } from '../series/cartesian/barSeries';
 import { LineSeries } from '../series/cartesian/lineSeries';
 import { PieSeries } from '../series/polar/pieSeries';
-import { StandaloneChart } from '../standaloneChart';
+import { getLegendItemNodes, getSeriesOptions } from '../test/seriesAccessors';
 import type { ChartOrProxy } from '../test/utils';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
@@ -194,7 +195,7 @@ describe('ChartTheme', () => {
         });
 
         it('Cartesian chart instance properties', () => {
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
 
             expect(chart.title?.enabled).toBe(true);
             expect(chart.title?.opts.fontSize).toBe(24);
@@ -291,7 +292,7 @@ describe('ChartTheme', () => {
         });
 
         it('Pie chart instance properties', () => {
-            if (!(chart instanceof StandaloneChart)) fail();
+            if (!(chart instanceof Chart && chart.getChartType() === 'standalone')) fail();
 
             expect(chart.title?.enabled).toBe(true);
             expect(chart.title?.opts.fontSize).toBe(24);
@@ -439,7 +440,7 @@ describe('ChartTheme', () => {
 
         it('Cartesian chart instance properties', async () => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
 
             await waitForChartStability(chart);
 
@@ -466,7 +467,7 @@ describe('ChartTheme', () => {
 
         it('Pie chart instance properties', async () => {
             chart = deproxy(AgCharts.create(pieChartOptions));
-            if (!(chart instanceof StandaloneChart)) fail();
+            if (!(chart instanceof Chart && chart.getChartType() === 'standalone')) fail();
 
             await waitForChartStability(chart);
 
@@ -540,7 +541,7 @@ describe('ChartTheme', () => {
     });
 
     describe('default shadow colour', () => {
-        const create = async (theme: object | string, series: object = {}) => {
+        const create = async (theme: AgChartTheme | string, series: Partial<AgBarSeriesOptions> = {}) => {
             chart = deproxy(
                 AgCharts.create({
                     width: 600,
@@ -555,24 +556,20 @@ describe('ChartTheme', () => {
             );
             await waitForChartStability(chart);
             const [bar, line] = (chart.chartOptions.processedOptions as AgCartesianChartOptions).series ?? [];
-            return {
-                bar: bar as AgBarSeriesOptions,
-                line: line as AgLineSeriesOptions & { marker?: WithInternalShadow },
-            };
+            return { bar: bar as AgBarSeriesOptions, line: line as AgLineSeriesOptions };
         };
 
         it.each([
             ['ag-default', 0.5],
-            ['ag-default-dark', 0.5],
-            ['ag-polychroma-dark', 0.5],
+            ['ag-default-dark', 1],
+            ['ag-polychroma-dark', 1],
             ['ag-financial', 0.5],
-            ['ag-financial-dark', 0.5],
+            ['ag-financial-dark', 1],
         ])('resolves the series and marker shadow fill for %s', async (theme, expected) => {
             const { bar, line } = await create(theme);
 
-            const color = 'rgba(0, 0, 0, 0.5)';
-            expect(bar.shadow).toMatchObject({ fill: '#000', fillOpacity: expected, color });
-            expect(line.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity: expected, color });
+            expect(bar.shadow).toMatchObject({ fill: '#000', fillOpacity: expected });
+            expect(line.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity: expected });
         });
 
         it('keeps a shadow fill set on the series or by a theme override on a dark theme', async () => {
@@ -584,19 +581,23 @@ describe('ChartTheme', () => {
                 { shadow: { enabled: true, fill: 'blue' } }
             );
 
-            expect(bar.shadow).toMatchObject({ fill: 'blue', fillOpacity: 1, color: 'blue' });
-            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1, color: 'red' });
+            expect(bar.shadow).toMatchObject({ fill: 'blue', fillOpacity: 1 });
+            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
         });
 
-        it('treats the shadow colour as the fill, cast as it is written, without a deprecation warning', async () => {
+        it('treats the deprecated shadow colour as the fill, cast as it is written', async () => {
             const { bar, line } = await create(
                 { overrides: { line: { series: { marker: { shadow: { color: 'red' } } } } } },
                 { shadow: { enabled: true, color: '#0000ff80' } }
             );
 
-            expect(bar.shadow).toMatchObject({ fill: '#0000ff80', fillOpacity: 1, color: '#0000ff80' });
-            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1, color: 'red' });
-            expect(vi.mocked(console.warn).mock.calls.map(([message]) => String(message))).toEqual([]);
+            expect(bar.shadow).toMatchObject({ fill: '#0000ff80', fillOpacity: 1 });
+            expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
+            expect(vi.mocked(console.warn).mock.calls.map(([message]) => String(message))).toEqual([
+                expect.stringContaining('`theme.overrides.line.series.marker.shadow.color` is deprecated'),
+                expect.stringContaining('`series[0].shadow.color` is deprecated'),
+            ]);
+            vi.mocked(console.warn).mockClear();
         });
     });
 
@@ -792,7 +793,7 @@ describe('ChartTheme', () => {
                     ],
                 } as AgCartesianChartOptions)
             );
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
 
             const axisY = chart.axes.y;
@@ -842,7 +843,7 @@ describe('ChartTheme', () => {
                     ],
                 } as AgCartesianChartOptions)
             );
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
 
             const axisY = chart.axes.y;
@@ -902,7 +903,7 @@ describe('ChartTheme', () => {
                     ],
                 } as AgCartesianChartOptions)
             );
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
 
             const axisY = chart.axes.y;
@@ -939,7 +940,7 @@ describe('ChartTheme', () => {
                             type: 'category',
                             position: 'bottom',
                             line: {
-                                width: 5,
+                                strokeWidth: 5,
                             },
                             label: {
                                 fontWeight: 'bold',
@@ -979,7 +980,7 @@ describe('ChartTheme', () => {
                     ],
                 } as AgCartesianChartOptions)
             );
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
 
             const axisY = chart.axes.y;
@@ -998,13 +999,6 @@ describe('ChartTheme', () => {
             expect(axisX.position).toBe('bottom');
             expect(axisX.options.line.stroke).toBe('blue');
             expect(axisX.options.line.strokeWidth).toBe(5);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
             expect(axisX.options?.label?.fontSize).toBe(18);
             expect(axisX.options?.label?.fontStyle).toBe(undefined);
             expect(axisX.options?.label?.fontFamily).toBe(
@@ -1020,14 +1014,10 @@ describe('ChartTheme', () => {
         });
     });
 
-    describe('line width alias precedence', () => {
-        async function createChart(
-            axisLine: Record<string, unknown> | undefined,
-            theme?: AgChartTheme
-        ): Promise<ChartOrProxy> {
+    describe('axis line strokeWidth', () => {
+        async function createChart(axisLine: Record<string, unknown> | undefined): Promise<ChartOrProxy> {
             const created = deproxy(
                 AgCharts.create({
-                    theme,
                     data,
                     axes: {
                         x: {
@@ -1053,138 +1043,22 @@ describe('ChartTheme', () => {
             return created;
         }
 
-        it('`width` only resolves `strokeWidth` and warns', async () => {
-            chart = await createChart({ width: 5 });
-            if (!(chart instanceof CartesianChart)) fail();
-
-            const axisX = chart.axes.x;
-            expect(axisX.options.line.strokeWidth).toBe(5);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
-        });
-
-        it('`strokeWidth` only resolves without a notice', async () => {
+        it('resolves a user `strokeWidth` without a notice', async () => {
             chart = await createChart({ strokeWidth: 5 });
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
 
             const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(5);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
-        it('both set: `strokeWidth` wins over `width`, and `width` still warns', async () => {
-            chart = await createChart({ width: 5, strokeWidth: 3 });
-            if (!(chart instanceof CartesianChart)) fail();
-
-            const axisX = chart.axes.x;
-            expect(axisX.options.line.strokeWidth).toBe(3);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
-        });
-
-        it('neither set: `strokeWidth` defaults to 1', async () => {
+        it('defaults `strokeWidth` to 1 when unset', async () => {
             chart = await createChart(undefined);
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
 
             const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(1);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
-        });
-
-        it('`width` set via a theme override resolves `strokeWidth` and warns', async () => {
-            const theme: AgChartTheme = {
-                baseTheme: 'ag-default',
-                overrides: {
-                    common: {
-                        axes: {
-                            category: {
-                                line: {
-                                    width: 7,
-                                },
-                            },
-                        },
-                    },
-                },
-            };
-            chart = await createChart(undefined, theme);
-            if (!(chart instanceof CartesianChart)) fail();
-
-            const axisX = chart.axes.x;
-            expect(axisX.options.line.strokeWidth).toBe(7);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`theme.overrides.common.axes.category.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
-        });
-
-        it('`width` set via a positional theme override resolves `strokeWidth` and warns', async () => {
-            const theme: AgChartTheme = {
-                baseTheme: 'ag-default',
-                overrides: {
-                    common: {
-                        axes: {
-                            number: {
-                                bottom: {
-                                    line: {
-                                        width: 9,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            };
-            chart = deproxy(
-                AgCharts.create({
-                    theme,
-                    data,
-                    axes: {
-                        x: {
-                            type: 'number',
-                            position: 'bottom',
-                        },
-                        y: {
-                            type: 'number',
-                            position: 'left',
-                        },
-                    },
-                    series: [
-                        {
-                            type: 'line',
-                            xKey: 'v1',
-                            yKey: 'v2',
-                        },
-                    ],
-                } as AgCartesianChartOptions)
-            );
-            await waitForChartStability(chart);
-            if (!(chart instanceof CartesianChart)) fail();
-
-            const axisX = chart.axes.x;
-            // Pins the merge-order the plan flagged as the row most likely to diverge:
-            // a positional (`number.bottom`) theme override satisfies `$isUserOption` the
-            // same way a type-level override does.
-            expect(axisX.options.line.strokeWidth).toBe(9);
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - Option \`theme.overrides.common.axes.number.bottom.line.width\` is deprecated. Use \`strokeWidth\` instead.",
-                ],
-              ]
-            `);
         });
     });
 
@@ -1247,7 +1121,7 @@ describe('ChartTheme', () => {
 
         it('Cartesian chart instance properties', async () => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
-            if (!(chart instanceof CartesianChart)) fail();
+            if (!(chart instanceof Chart && chart.axes instanceof CartesianChartAxes)) fail();
             await waitForChartStability(chart);
             const { series } = chart;
 
@@ -1259,6 +1133,124 @@ describe('ChartTheme', () => {
             expect(classCast(series[1], BarSeries).options.strokeWidth).toEqual(16);
             expect(classCast(series[2], LineSeries).options.strokeWidth).toEqual(17);
             expect(classCast(series[3], AreaSeries).options.strokeWidth).toEqual(18);
+        });
+    });
+
+    describe('palette.markerShapes', () => {
+        type ShapeHolder = { marker?: { shape?: unknown }; shape?: unknown };
+        const customShapeFn = () => ({});
+
+        const cases = [
+            { type: 'line', setShape: (shape: unknown) => ({ marker: { shape } }) },
+            { type: 'area', setShape: (shape: unknown) => ({ marker: { shape } }) },
+            { type: 'scatter', setShape: (shape: unknown) => ({ shape }) },
+            { type: 'bubble', setShape: (shape: unknown) => ({ shape }) },
+        ] as const;
+
+        const prepareOptions = () => ({
+            width: 800,
+            height: 600,
+            animation: { enabled: false },
+            data: [
+                { x: 1, y0: 2, y1: 3, y2: 4, s: 3 },
+                { x: 2, y0: 4, y1: 5, y2: 6, s: 5 },
+            ],
+        });
+
+        const createShapeChart = (
+            type: (typeof cases)[number]['type'],
+            theme: AgChartTheme,
+            seriesOverrides: Record<string, unknown>[] = [{}, {}, {}]
+        ) =>
+            AgCharts.create({
+                ...prepareOptions(),
+                theme,
+                series: seriesOverrides.map((extra, i) => ({
+                    type,
+                    xKey: 'x',
+                    yKey: `y${i}`,
+                    ...(type === 'bubble' ? { sizeKey: 's' } : {}),
+                    ...extra,
+                })),
+            } as AgCartesianChartOptions);
+
+        const resolvedShapes = (count = 3) =>
+            Array.from({ length: count }, (_, i) => {
+                const { marker, shape } = getSeriesOptions<ShapeHolder>(chart, i);
+                return marker?.shape ?? shape;
+            });
+
+        describe.each(cases)('$type', ({ type, setShape }) => {
+            it('rotates through the palette by series index', async () => {
+                chart = createShapeChart(type, { palette: { markerShapes: ['square', customShapeFn] } });
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['square', customShapeFn, 'square']);
+            });
+
+            it('prefers an explicit series shape', async () => {
+                chart = createShapeChart(type, { palette: { markerShapes: ['square', 'triangle'] } }, [
+                    {},
+                    setShape('diamond'),
+                    {},
+                ]);
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['square', 'diamond', 'square']);
+            });
+
+            it('replaces rather than merges with the base theme palette', async () => {
+                chart = createShapeChart(type, {
+                    baseTheme: {
+                        baseTheme: 'ag-default',
+                        palette: { markerShapes: ['square', 'triangle', 'diamond'] },
+                    },
+                    palette: { markerShapes: ['cross'] },
+                } as unknown as AgChartTheme);
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['cross', 'cross', 'cross']);
+            });
+
+            it('keeps circle when the palette sets only fills', async () => {
+                chart = createShapeChart(type, { palette: { fills: ['red', 'green'] } });
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['circle', 'circle', 'circle']);
+            });
+
+            it('shows the palette shapes in the legend', async () => {
+                chart = createShapeChart(
+                    type,
+                    { palette: { markerShapes: ['square', customShapeFn] } },
+                    [{}, {}, {}].map(() => (type === 'area' ? { marker: { enabled: true } } : {}))
+                );
+                await waitForChartStability(chart);
+
+                const legendShapes = getLegendItemNodes(chart).map((node) => node.marker?.shape);
+                expect(legendShapes).toEqual(resolvedShapes());
+                expect(legendShapes).toEqual(['square', customShapeFn, 'square']);
+            });
+        });
+
+        it('lets a theme override beat the palette', async () => {
+            chart = createShapeChart('line', {
+                palette: { markerShapes: ['square', 'triangle'] },
+                overrides: { line: { series: { marker: { shape: 'star' } } } },
+            });
+            await waitForChartStability(chart);
+
+            expect(resolvedShapes()).toEqual(['star', 'star', 'star']);
+        });
+
+        it('shows the palette shape in the legend of an area series without markers or stroke', async () => {
+            chart = createShapeChart('area', { palette: { markerShapes: ['square', 'triangle'] } }, [
+                { strokeWidth: 0 },
+                { strokeWidth: 0 },
+            ]);
+            await waitForChartStability(chart);
+
+            expect(getLegendItemNodes(chart).map((node) => node.marker?.shape)).toEqual(['square', 'triangle']);
         });
     });
 });

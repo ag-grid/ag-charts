@@ -185,6 +185,7 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
             type: 'scatter',
             xKey: 'value1',
             yKey: 'value2',
+            labelKey: 'value2',
             yName: 'Scatter Series 1',
             itemStyler: createItemStyler('scatter1'),
             label: {
@@ -203,6 +204,7 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
             type: 'scatter',
             xKey: 'value2',
             yKey: 'value1',
+            labelKey: 'value1',
             yName: 'Scatter Series 2',
             itemStyler: createItemStyler('scatter2'),
             label: {
@@ -215,6 +217,7 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
             xKey: 'value1',
             yKey: 'value2',
             sizeKey: 'size',
+            labelKey: 'size',
             yName: 'Bubble Series',
             itemStyler: createItemStyler('bubble'),
             label: {
@@ -807,6 +810,7 @@ const mapOptions: AgTopologyChartOptions = {
 
 let chart: any;
 
+// eslint-disable-next-line aglint/require-inscope-helper -- multi-chart createChart; this example is pinned to vanilla
 function createChart(newOptions: AgChartOptions, chartType: string) {
     if (chart) {
         chart.destroy();

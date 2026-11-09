@@ -32,14 +32,10 @@ let alignAxesToPivot = true;
 
 updatePlacementSelects();
 
-function toggleAlignAxesToPivot() {
-    alignAxesToPivot = !alignAxesToPivot;
-    options.alignAxesToPivot = alignAxesToPivot;
+function toggleAlignAxesToPivot(enabled: boolean) {
+    alignAxesToPivot = enabled;
+    options.alignAxesToPivot = enabled;
     chart.update(options);
-    (document.getElementById('alignAxesToPivotToggle') as HTMLButtonElement).setAttribute(
-        'aria-pressed',
-        String(alignAxesToPivot)
-    );
     updatePlacementSelects();
 }
 

@@ -1,10 +1,12 @@
 import type { Styler } from '../../chart/callbackOptions';
+import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
 import type {
@@ -19,6 +21,7 @@ import type {
     AgOhlcSeriesBaseOptions,
     AgOhlcSeriesBaseTooltipRendererParams,
 } from './ohlcBaseOptions';
+import type { AgOhlcCrosshairSnapValue } from './ohlcOptions';
 
 export type AgCandlestickWickOptions = StrokeOptions & LineDashOptions;
 
@@ -47,12 +50,27 @@ export interface AgCandlestickSeriesStyles {
 
 export interface AgCandlestickSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>, AgCandlestickSeriesStyles {
+    /**
+     * The values of the highlighted datum that the value-axis crosshair snaps to.
+     */
+    crosshairSnapTo?: AgOhlcCrosshairSnapValue[];
+    /**
+     * Whether the crosshair snaps to every value in `crosshairSnapTo`, or only the one nearest the pointer.
+     *
+     * Default: `'all'`
+     */
+    crosshairSnapMode?: AgCrosshairSnapMode;
+    /** Configuration for the shadow used behind the series items, including the wicks. */
+    shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters.*/
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum, TContext>, AgCandlestickSeriesItemOptions>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgCandlestickHighlightStyleOptions, AgCandlestickHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<
+        AgCandlestickHighlightStyleOptions,
+        AgCandlestickHighlightStyleOptions
+    >;
 }
 export interface AgCandlestickHighlightStyleOptions extends AgCandlestickSeriesItemOptions {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

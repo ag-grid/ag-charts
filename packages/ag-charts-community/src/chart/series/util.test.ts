@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { testLogger } from 'ag-charts-test';
+
+import { DataSet } from '../data/dataSet';
 import type { SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray, visibleRangeIndices } from './util';
 
@@ -14,6 +17,8 @@ function mockNode(overrides: Partial<TestNode> & { datum?: unknown; datumIndex?:
         ...overrides,
     };
 }
+
+const ids = (dataIdKey: string) => DataSet.empty(testLogger, dataIdKey);
 
 describe('findNodeDatumInArray', () => {
     it('should find by node.itemId (string)', () => {
@@ -30,17 +35,17 @@ describe('findNodeDatumInArray', () => {
 
     it('should find by datum[dataIdKey] (string)', () => {
         const target = mockNode({ datum: { id: 'x' }, datumIndex: 0 });
-        expect(findNodeDatumInArray('x', [target], 'id')).toBe(target);
+        expect(findNodeDatumInArray('x', [target], ids('id'))).toBe(target);
     });
 
     it('should find by datum[dataIdKey] (number)', () => {
         const target = mockNode({ datum: { id: 42 }, datumIndex: 0 });
-        expect(findNodeDatumInArray(42, [target], 'id')).toBe(target);
+        expect(findNodeDatumInArray(42, [target], ids('id'))).toBe(target);
     });
 
     it('should coerce string to match numeric datum[dataIdKey]', () => {
         const target = mockNode({ datum: { id: 42 }, datumIndex: 0 });
-        expect(findNodeDatumInArray('42', [target], 'id')).toBe(target);
+        expect(findNodeDatumInArray('42', [target], ids('id'))).toBe(target);
     });
 
     it('should return undefined when no match', () => {
@@ -51,12 +56,12 @@ describe('findNodeDatumInArray', () => {
     it('should prefer node.itemId over dataIdKey', () => {
         const withItemId = mockNode({ itemId: 'x', datum: { id: 'y' }, datumIndex: 0 });
         const withDataId = mockNode({ datum: { id: 'x' }, datumIndex: 1 });
-        expect(findNodeDatumInArray('x', [withItemId, withDataId], 'id')).toBe(withItemId);
+        expect(findNodeDatumInArray('x', [withItemId, withDataId], ids('id'))).toBe(withItemId);
     });
 
     it('should skip dataIdKey lookup when node.itemId is set', () => {
         const node = mockNode({ itemId: 'a', datum: { id: 'b' }, datumIndex: 0 });
-        expect(findNodeDatumInArray('b', [node], 'id')).toBeUndefined();
+        expect(findNodeDatumInArray('b', [node], ids('id'))).toBeUndefined();
     });
 
     it('should return undefined for empty nodeData', () => {

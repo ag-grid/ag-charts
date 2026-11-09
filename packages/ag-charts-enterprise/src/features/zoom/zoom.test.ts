@@ -309,6 +309,78 @@ describe('Zoom', () => {
         });
     });
 
+    describe('inset axes', () => {
+        const insetOptions = (yInset: object = {}): AgCartesianChartOptions => ({
+            ...EXAMPLE_OPTIONS,
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y' },
+                { type: 'line', xKey: 'x', yKey: 'y', yName: 'Inset', yKeyAxis: 'yInset' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+                yInset: { type: 'inset-number', position: 'right', lengthRatio: 0.5, ...yInset },
+            },
+        });
+
+        it('should keep the whole domain of an inset axis in view when zoomed', async () => {
+            await prepareChart(
+                undefined,
+                { ratioX: { start: 0.25, end: 0.75 }, ratioY: { start: 0.25, end: 0.75 } },
+                insetOptions(),
+                false
+            );
+
+            const { axes, seriesRect } = deproxy(chart);
+            const insetAxis = axes.find((axis) => axis.userKey === 'yInset');
+            expect(insetAxis).toBeDefined();
+            expect(seriesRect).toBeDefined();
+            const { scale } = insetAxis!;
+            const [min, max] = scale.domain as number[];
+
+            expect(scale.convert(min)).toBeCloseTo(seriesRect!.height);
+            expect(scale.convert(max)).toBeCloseTo(seriesRect!.height * 0.5);
+        });
+
+        describe('axis gestures', () => {
+            async function prepareInsetChart(zoomOptions: AgChartOptions['zoom']) {
+                await prepareChart(
+                    { axes: 'xy', ...zoomOptions },
+                    { ratioX: { start: 0.25, end: 0.75 }, ratioY: { start: 0.25, end: 0.75 } },
+                    insetOptions({ label: { enabled: true } })
+                );
+                const { seriesRect } = deproxy(chart);
+                return { x: seriesRect!.x + seriesRect!.width + 10, y: seriesRect!.y + seriesRect!.height * 0.75 };
+            }
+
+            it('should not zoom when dragging an inset axis', async () => {
+                const from = await prepareInsetChart({ enableAxisDragging: true });
+                const before = chart.getState().zoom;
+
+                await hoverAction(from.x, from.y)(chart);
+                await dragAction(from, { x: from.x, y: from.y - 50 })(chart);
+                await waitForChartStability(chart);
+
+                expect(chart.getState().zoom).toEqual(before);
+            });
+
+            it('should not zoom when scrolling over an inset axis', async () => {
+                const at = await prepareInsetChart({ enableAxisScrolling: true });
+                const before = chart.getState().zoom;
+
+                const target = findChartTarget(deproxy(chart), at.x, at.y);
+                dispatchEvent(
+                    target,
+                    wheelEvent(target, { deltaX: 0, deltaY: -100, deltaMode: WheelDeltaMode.Pixels })
+                );
+                await delay(50);
+                await waitForChartStability(chart);
+
+                expect(chart.getState().zoom).toEqual(before);
+            });
+        });
+    });
+
     describe('scrolling', () => {
         it('should zoom in', async () => {
             await prepareChart();
@@ -1883,6 +1955,45 @@ describe('Zoom', () => {
             expect(start).toBeGreaterThan(0);
             expect(end).toBeGreaterThan(0.25);
             expect(end - start).toBeCloseTo(0.25, 10);
+        });
+
+        it('fires the zoom event after activeChange when panning a map to the focused shape', async () => {
+            const square = (lon: number, lat: number) => [
+                [
+                    [lon, lat],
+                    [lon + 1, lat],
+                    [lon + 1, lat + 1],
+                    [lon, lat + 1],
+                    [lon, lat],
+                ],
+            ];
+            const events: string[] = [];
+            chart = await createEnterpriseChart({
+                animation: { enabled: false },
+                data: [{ name: 'a' }, { name: 'b' }],
+                topology: {
+                    type: 'FeatureCollection',
+                    features: ['a', 'b'].map((name, index) => ({
+                        type: 'Feature',
+                        properties: { name },
+                        geometry: { type: 'Polygon', coordinates: square(index * 10, 0) },
+                    })),
+                },
+                zoom: { enabled: true },
+                initialState: { zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } } },
+                series: [{ type: 'map-shape', idKey: 'name' }],
+                listeners: {
+                    activeChange: () => events.push('activeChange'),
+                    zoom: () => events.push('zoom'),
+                },
+            });
+
+            await tabIntoChart(chart);
+            events.length = 0;
+            await pressKey(chart, 'ArrowRight');
+            await waitForChartStability(chart);
+
+            expect(events).toEqual(['activeChange', 'zoom']);
         });
 
         describe('AG-14101 ArrowDown into a series whose datum is outside the viewport', () => {

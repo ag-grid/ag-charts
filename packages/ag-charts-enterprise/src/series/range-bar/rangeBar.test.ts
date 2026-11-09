@@ -21,6 +21,7 @@ import {
     type MockRangeBarStyler,
     NEG_BIG,
     type PhasedPropertyExpectation,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     STRIPPED_NUMBER_AXES,
     STRIPPED_UNIT_TIME_AXES,
     type SceneFrameInvariant,
@@ -45,7 +46,6 @@ import {
     getSeriesRect,
     getSeriesSelectionNodes,
     hoverAction,
-    internalOptions,
     isoEpochPair,
     magnitudePair,
     newFreezableMock,
@@ -307,7 +307,7 @@ describe('RangeBarSeries', () => {
     });
 
     it(`should render a range-bar chart with a shadow`, async () => {
-        const options = internalOptions<AgChartOptions>({
+        const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             series: [
                 {
@@ -315,7 +315,7 @@ describe('RangeBarSeries', () => {
                     shadow: { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 },
                 },
             ],
-        });
+        };
 
         chart = await createEnterpriseChart(options);
         await compare();
@@ -1429,6 +1429,7 @@ describe('RangeBarSeries', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart({
                     data,
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     series: [
                         {
                             type: 'range-bar',

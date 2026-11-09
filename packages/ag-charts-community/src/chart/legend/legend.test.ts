@@ -29,7 +29,9 @@ import {
     createChart,
     deproxy,
     doubleClickAction,
+    doubleClickLegendItem,
     doubleTapAction,
+    expectWarningsCalls,
     getLegendModule,
     getTooltipElement,
     hoverAction,
@@ -1009,6 +1011,25 @@ describe('Legend', () => {
         test('left-bottom', async () => {
             await testPosition('left-bottom');
         });
+
+        const invalidPosition = 'middle' as AgChartLegendPosition;
+        it.each([
+            { path: 'legend.position', options: { legend: { position: invalidPosition } } },
+            {
+                path: 'theme.overrides.common.legend.position',
+                options: { theme: { overrides: { common: { legend: { position: invalidPosition } } } } },
+            },
+        ])('warns once for an invalid $path string', async ({ path, options }) => {
+            chart = deproxy(
+                await createChart({ data, series: [{ type: 'bar', xKey: 'quarter', yKey: 'coal' }], ...options })
+            );
+
+            expectWarningsCalls().toEqual([
+                [
+                    `AG Charts - Option \`${path}\` cannot be set to \`"middle"\`; expecting a legend placement string: ["top", "top-right", "top-left", "bottom", "bottom-right", "bottom-left", "right", "right-top", "right-bottom", "left", "left-top", "left-bottom"], ignoring.`,
+                ],
+            ]);
+        });
     });
 
     describe('AG-15363 legend.floating', () => {
@@ -1193,9 +1214,7 @@ describe('Legend', () => {
                 await waitForChartStability(chart);
                 expect(hiddenItems()).toEqual(['inner:1', 'outer:2']);
 
-                const { x, y, width, height } = Transformable.toCanvas(getLegendModule(chart).itemSelection.nodes()[5]);
-                await doubleClickAction(x + width / 2, y + height / 2)(chart);
-                await waitForChartStability(chart);
+                await doubleClickLegendItem(chart, 5);
 
                 expect(hiddenItems()).toEqual([]);
             });

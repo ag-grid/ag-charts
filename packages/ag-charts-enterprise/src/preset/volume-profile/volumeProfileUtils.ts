@@ -1,4 +1,4 @@
-import { type Logger, isFiniteNumber, stripFloatNoise } from 'ag-charts-core';
+import { type Logger, datumKeyReader, isFiniteNumber, stripFloatNoise } from 'ag-charts-core';
 import type { DatumDefault } from 'ag-charts-types';
 
 export interface VolumeProfileKeys {
@@ -8,23 +8,39 @@ export interface VolumeProfileKeys {
 }
 
 /** The series read the grouped levels, so the data model cannot see a key the rows lack. */
-export function warnMissingVolumeProfileKeys(data: DatumDefault[], keys: VolumeProfileKeys, logger: Logger) {
+export function warnMissingVolumeProfileKeys(
+    data: DatumDefault[],
+    keys: VolumeProfileKeys,
+    suppressFieldDotNotation: boolean,
+    logger: Logger
+) {
     if (data.length === 0) return;
 
     for (const key of new Set([keys.priceKey, keys.upKey, keys.downKey])) {
-        if (data.some((d) => d?.[key] !== undefined)) continue;
+        const read = datumKeyReader(key, suppressFieldDotNotation);
+        if (data.some((d) => read(d) !== undefined)) continue;
         logger.warnOnce(`the key '${key}' was not found in any data element.`);
     }
 }
 
 /** Whether neither volume key is in the data, so every level would be drawn empty. */
-export function lacksVolumeProfileVolumes(data: DatumDefault[], { upKey, downKey }: VolumeProfileKeys) {
-    return data.length > 0 && !data.some((d) => d?.[upKey] !== undefined || d?.[downKey] !== undefined);
+export function lacksVolumeProfileVolumes(
+    data: DatumDefault[],
+    { upKey, downKey }: VolumeProfileKeys,
+    suppressFieldDotNotation: boolean
+) {
+    const readUp = datumKeyReader(upKey, suppressFieldDotNotation);
+    const readDown = datumKeyReader(downKey, suppressFieldDotNotation);
+    return data.length > 0 && !data.some((d) => readUp(d) !== undefined || readDown(d) !== undefined);
 }
 
-export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: string): number | undefined {
+export function inferVolumeProfileTickSize(
+    data: DatumDefault[],
+    priceKey: string,
+    suppressFieldDotNotation: boolean
+): number | undefined {
     const prices = data
-        .map((d) => d[priceKey])
+        .map(datumKeyReader(priceKey, suppressFieldDotNotation))
         .filter((price) => isFiniteNumber(price))
         .sort((a, b) => a - b);
 
@@ -41,9 +57,10 @@ export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: strin
 export function normaliseVolumeProfile(
     data: DatumDefault[],
     keys: VolumeProfileKeys,
-    tickSize: number
+    tickSize: number,
+    suppressFieldDotNotation: boolean
 ): VolumeProfileDatum[] {
-    const byLevel = mergeVolumeProfileLevels(data, keys, tickSize);
+    const byLevel = mergeVolumeProfileLevels(data, keys, tickSize, suppressFieldDotNotation);
     if (byLevel.size === 0) return [];
 
     let lowest = Infinity;
@@ -85,16 +102,20 @@ export interface VolumeProfileDatum {
 function mergeVolumeProfileLevels(
     data: DatumDefault[],
     { priceKey, upKey, downKey }: VolumeProfileKeys,
-    tickSize: number
+    tickSize: number,
+    suppressFieldDotNotation: boolean
 ) {
+    const readPrice = datumKeyReader(priceKey, suppressFieldDotNotation);
+    const readUp = datumKeyReader(upKey, suppressFieldDotNotation);
+    const readDown = datumKeyReader(downKey, suppressFieldDotNotation);
     const byLevel = new Map<number, { upVolume: number; downVolume: number }>();
     for (const d of data) {
-        const price = d[priceKey];
+        const price = readPrice(d);
         if (!isFiniteNumber(price)) continue;
         const index = Math.round(stripFloatNoise(price / tickSize));
         const level = byLevel.get(index) ?? { upVolume: 0, downVolume: 0 };
-        level.upVolume += d[upKey] ?? 0;
-        level.downVolume += d[downKey] ?? 0;
+        level.upVolume += readUp(d) ?? 0;
+        level.downVolume += readDown(d) ?? 0;
         byLevel.set(index, level);
     }
     return byLevel;

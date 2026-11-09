@@ -50,7 +50,7 @@ import type { AgBaseChartOptions, AgBaseThemeableChartOptions, AgChartValidation
 import type { AgChartToolbarThemeableOptions } from './chartToolbarOptions';
 import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from './polarOptions';
 import type { AgChartThemeParams } from './themeParamsOptions';
-import type { ContextDefault, CssColor, DatumDefault } from './types';
+import type { AgMarkerShape, ContextDefault, CssColor, DatumDefault } from './types';
 
 export type AgChartThemeName =
     | 'ag-default'
@@ -81,6 +81,12 @@ export interface AgChartThemePalette {
     fills?: AgColorType[];
     /** The array of strokes to be used. */
     strokes?: CssColor[];
+    /**
+     * The array of marker shapes to be used. Each series without an explicit marker shape takes the shape at its series index, wrapping around when there are more series than shapes.
+     *
+     * Default: `['circle']`
+     */
+    markerShapes?: AgMarkerShape[];
     /** Colours used for positive or upward values, such as rising prices in Financial Charts. */
     up?: AgPaletteColors;
     /** Colours used for negative or downward values, such as falling prices in Financial Charts. */
