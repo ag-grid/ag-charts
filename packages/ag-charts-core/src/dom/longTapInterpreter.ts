@@ -1,5 +1,8 @@
-import type { TouchWidgetEvent, Widget } from 'ag-charts-core';
-import { CleanupRegistry, attachListener, deltaClientSquared } from 'ag-charts-core';
+import { CleanupRegistry } from '../state/cleanupRegistry';
+import type { Widget } from '../widget/widget';
+import type { TouchWidgetEvent } from '../widget/widgetEvents';
+import { attachListener } from './domEvents';
+import { deltaClientSquared } from './domUtil';
 
 const LONG_TAP_DURATION_MS = 500;
 const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px² */

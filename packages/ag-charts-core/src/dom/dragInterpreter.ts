@@ -1,14 +1,16 @@
+import { CleanupRegistry } from '../state/cleanupRegistry';
+import { EventEmitter } from '../structures/eventEmitter';
+import type { ClientPoint } from '../types/scene';
+import type { Widget } from '../widget/widget';
 import type {
     ClickWidgetEvent,
-    ClientPoint,
     DblClickWidgetEvent,
     DragWidgetEvent,
     MouseWidgetEvent,
     TouchWidgetEvent,
-    Widget,
     WidgetEventMap,
-} from 'ag-charts-core';
-import { CleanupRegistry, EventEmitter, deltaClientSquared } from 'ag-charts-core';
+} from '../widget/widgetEvents';
+import { deltaClientSquared } from './domUtil';
 
 const DRAG_THRESHOLD_PX = 3;
 const DOUBLE_TAP_TIMER_MS = 505;
