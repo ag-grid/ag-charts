@@ -1990,6 +1990,66 @@ describe('Group shadow compositor', () => {
             expect(at(106, 60)[3]).toBeGreaterThan(0);
         });
 
+        // A kept glow is cut with the gap it was cast with, so a change of the gap alone, with the same casters, casts it again.
+        // The probe is where the two gaps differ: inside the item, and in the ring between the item and a gap of 5.
+        it.each([
+            ['unset to 0', undefined, 0, { x: 80, y: 60 }],
+            ['0 to 5', 0, 5, { x: 57, y: 60 }],
+        ])('should cast a kept glow again when its gap changed from %s', (_name, from, to, probe) => {
+            const glow = (gap: number | undefined): Rect['fillGlow'] => ({
+                ...GAPPED_GLOW,
+                gap,
+            });
+            const make = (gap: number | undefined) => () =>
+                createGroup([
+                    caster(60, { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined, fillGlow: glow(gap) }),
+                    box(220, 40, 40, 40),
+                ]);
+            const change = (target: Group) => {
+                ([...target.children()][0] as Rect).fillGlow = glow(to);
+            };
+            const expected = direct(make(to), nothing);
+            const group = kept(make(from));
+            const before = redraw(group).pixels;
+            const probed = (data: number[]) => {
+                const i = (probe.y * WIDTH + probe.x) * 4;
+                return data.slice(i, i + 4);
+            };
+            expect(probed(before)).not.toEqual(probed(expected));
+
+            change(group);
+            const first = redraw(group);
+            const second = redraw(group);
+            const third = redraw(group);
+
+            expect(first.masked).toContain(60);
+            expect(second.masked).toContain(60);
+            expect(third.masked).toEqual([]);
+            for (const draw of [first, second, third]) {
+                expectSamePixels(draw.pixels, expected);
+            }
+        });
+
+        it.each([
+            ['a glow with a gap', GAPPED_GLOW],
+            ['a glow with no gap', { ...GAPPED_GLOW, gap: undefined }],
+        ])('should measure each caster of %s once when it fills the cache', (_name, fillGlow) => {
+            const measured = vi.spyOn(Rect.prototype, 'getShadowSilhouetteBounds');
+            const group = createGroup([
+                caster(60, { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined, fillGlow }),
+                caster(140, { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined, fillGlow }),
+                box(220, 40, 40, 40),
+            ]);
+            redraw(group);
+            measured.mockClear();
+
+            // The second draw of a cast fills the cache, so it measures the casters for the cache and for the cut.
+            redraw(group);
+
+            expect(measured).toHaveBeenCalledTimes(2);
+            measured.mockRestore();
+        });
+
         it('should keep the shadow of another item showing through an item with a gap of 0, from what it kept', () => {
             const GREEN = { ...RED_HALF, fill: 'rgba(0, 255, 0, 1)', xOffset: 50 };
             const translucent = { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined };
@@ -2674,6 +2734,39 @@ describe('Group shadow compositor', () => {
 
             expect(castShadows({ scene: undefined, user, keys: keys(0), index: 0 }, renderContext())).toBe(true);
             expect(paintedPixels()).toBeGreaterThan(0);
+        });
+
+        // The casters of the keys are the same node throughout, so only the gap of the shadow tells a kept cast to be made again.
+        it.each([
+            ['unset to 0', undefined, 0, { x: 80, y: 60 }],
+            ['0 to 5', 0, 5, { x: 57, y: 60 }],
+        ])('should cast a kept glow again when only its gap changed from %s', (_name, from, to, probe) => {
+            const glowWith = (gap: number | undefined): ResolvedDropShadowOptions =>
+                gap == null ? { ...IN_PLACE, spread: 8, glow: true } : { ...IN_PLACE, spread: 8, gap, glow: true };
+            // The node keeps the glow it has, as only the key's shadow changes between the casts.
+            const item = box(60, 40, 40, 40, { fill: 'rgba(0, 0, 255, 0.5)', fillGlow: glowWith(from) });
+            createGroup([item]).preRender(renderContext());
+            const cast = (user: object, gap: number | undefined) => {
+                clearCanvas();
+                const key: ShadowKey = { ...keyOf(item, glowWith(gap)), slot: 'glow' };
+                castShadows({ scene: undefined, user, keys: [key], index: 0 }, renderContext());
+                return pixels();
+            };
+            const probed = (data: number[]) => data.slice((probe.y * WIDTH + probe.x) * 4).slice(0, 4);
+            const expected = cast({}, to);
+            const user = {};
+
+            // The second cast fills the cache and the third blits it.
+            const [, , before] = [cast(user, from), cast(user, from), cast(user, from)];
+            expect(probed(before)).not.toEqual(probed(expected));
+            const first = cast(user, to);
+            const second = cast(user, to);
+            const third = cast(user, to);
+
+            for (const actual of [first, second, third]) {
+                expect(actual).toHaveLength(expected.length);
+                expect(actual.every((value, i) => Math.abs(value - expected[i]) <= 1)).toBe(true);
+            }
         });
 
         // A group casts each run of children that share a shadow in a call of its own, so a run that can't be cast falls back

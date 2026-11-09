@@ -406,13 +406,15 @@ const silhouette: SilhouetteBounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 /**
  * The part of the layer that the shadows of the keys can land on, in device pixels, or the whole layer if a caster's
  * silhouette can't be bounded. It is measured as the mask is cleared, so a kept cast holds every pixel a direct one draws.
+ * If `keyExtents` is given, each key with a `gap` has its own extent set on it, so that its casters are not measured again.
  */
 function getShadowExtent(
     keys: readonly ShadowKey[],
     transform: DOMMatrix,
     devicePixelRatio: number,
     width: number,
-    height: number
+    height: number,
+    keyExtents?: Map<ShadowKey, Extent>
 ): Extent {
     const layer = { x: 0, y: 0, width, height };
     let minX = Infinity;
@@ -420,11 +422,17 @@ function getShadowExtent(
     let maxX = -Infinity;
     let maxY = -Infinity;
 
-    for (const { slot, shadow, casters, frames } of keys) {
+    for (const key of keys) {
+        const { slot, shadow, casters, frames } = key;
         const spread = getShadowSpread(shadow);
         const offsetX = shadow.xOffset * devicePixelRatio;
         const offsetY = shadow.yOffset * devicePixelRatio;
         const blurReach = getBlurReach(shadow.blur * devicePixelRatio) + CACHED_EXTENT_MARGIN;
+        const measuresKey = keyExtents != null && shadow.gap != null;
+        let keyMinX = Infinity;
+        let keyMinY = Infinity;
+        let keyMaxX = -Infinity;
+        let keyMaxY = -Infinity;
         // A `root` key has a matrix for each frame, and a local key has the one transform.
         let frame: ShadowFrame | undefined;
         let frameTransform: MatrixFrame = transform;
@@ -436,14 +444,31 @@ function getShadowExtent(
                 const [a, b, c, d, e, f] = next.matrix;
                 frameTransform = { a, b, c, d, e, f };
             }
-            if (!caster.getShadowSilhouetteBounds(frameTransform, spread, silhouette, slot)) return layer;
+            if (!caster.getShadowSilhouetteBounds(frameTransform, spread, silhouette, slot)) {
+                // The extent of the keys is the layer, so a key with a gap is cut on the layer too.
+                if (keyExtents != null) {
+                    for (const other of keys) if (other.shadow.gap != null) keyExtents.set(other, layer);
+                }
+                return layer;
+            }
 
-            minX = Math.min(minX, silhouette.minX + offsetX - blurReach);
-            maxX = Math.max(maxX, silhouette.maxX + offsetX + blurReach);
-            minY = Math.min(minY, silhouette.minY + offsetY - blurReach);
-            maxY = Math.max(maxY, silhouette.maxY + offsetY + blurReach);
+            keyMinX = Math.min(keyMinX, silhouette.minX + offsetX - blurReach);
+            keyMaxX = Math.max(keyMaxX, silhouette.maxX + offsetX + blurReach);
+            keyMinY = Math.min(keyMinY, silhouette.minY + offsetY - blurReach);
+            keyMaxY = Math.max(keyMaxY, silhouette.maxY + offsetY + blurReach);
         }
+        if (measuresKey) {
+            keyExtents.set(key, clampExtent(keyMinX, keyMinY, keyMaxX, keyMaxY, width, height));
+        }
+        minX = Math.min(minX, keyMinX);
+        maxX = Math.max(maxX, keyMaxX);
+        minY = Math.min(minY, keyMinY);
+        maxY = Math.max(maxY, keyMaxY);
     }
+    return clampExtent(minX, minY, maxX, maxY, width, height);
+}
+
+function clampExtent(minX: number, minY: number, maxX: number, maxY: number, width: number, height: number): Extent {
     if (!(isFiniteNumber(minX) && isFiniteNumber(minY) && isFiniteNumber(maxX) && isFiniteNumber(maxY))) {
         return { x: 0, y: 0, width, height };
     }
@@ -707,7 +732,8 @@ function castPlan(
     renderCtx: RenderContext,
     originX: number,
     originY: number,
-    scene: object | undefined
+    scene: object | undefined,
+    keyExtent: Extent | undefined
 ): boolean {
     const { ctx } = renderCtx;
     let rendered: boolean;
@@ -771,7 +797,7 @@ function castPlan(
 
     const { gap } = key.shadow;
     if (gap != null) {
-        const region = getGapRegion(key, transform, renderCtx, target, originX, originY);
+        const region = getGapRegion(key, keyExtent, transform, renderCtx, target, originX, originY);
         if (region == null) return rendered;
 
         // A glow that can't have a canvas to be cut on is cast without the cut, rather than not at all.
@@ -894,9 +920,13 @@ function blurMask(
     }
 }
 
-/** The part of `target` that the glow of the key can land on, in layer pixels, or undefined if none of it does. */
+/**
+ * The part of `target` that the glow of the key can land on, in layer pixels, or undefined if none of it does.
+ * The extent of the key is measured here only if the cast has not measured it already.
+ */
 function getGapRegion(
     key: ShadowKey,
+    keyExtent: Extent | undefined,
     transform: DOMMatrix,
     renderCtx: RenderContext,
     target: Ctx,
@@ -904,13 +934,15 @@ function getGapRegion(
     originY: number
 ): Extent | undefined {
     const { canvas } = renderCtx.ctx;
-    const extent = getShadowExtent(
-        [key],
-        transform,
-        renderCtx.devicePixelRatio,
-        Math.ceil(canvas.width),
-        Math.ceil(canvas.height)
-    );
+    const extent =
+        keyExtent ??
+        getShadowExtent(
+            [key],
+            transform,
+            renderCtx.devicePixelRatio,
+            Math.ceil(canvas.width),
+            Math.ceil(canvas.height)
+        );
     const x = Math.max(extent.x, originX);
     const y = Math.max(extent.y, originY);
     const right = Math.min(extent.x + extent.width, originX + target.canvas.width);
@@ -1037,7 +1069,9 @@ export function castShadows({ scene, user, keys, index, unchanged }: ShadowCast,
     const masks: MaskPlan[] = [];
     let maskWidth = 0;
     let maskHeight = 0;
+    let gapped = false;
     for (const key of keys) {
+        gapped ||= key.shadow.gap != null;
         const plan = planKey(key, renderCtx, width, height);
         if (plan === 'unusable') return false;
         if (plan === 'empty') continue;
@@ -1067,21 +1101,26 @@ export function castShadows({ scene, user, keys, index, unchanged }: ShadowCast,
     if (scratch == null) return false;
 
     let kept: SpreadCanvas | undefined;
+    let keyExtents: Map<ShadowKey, Extent> | undefined;
     if (cache != null && repeated && !isDeclined(cache, scene)) {
-        const extent = getShadowExtent(keys, transform, renderCtx.devicePixelRatio, width, height);
+        keyExtents = gapped ? new Map() : undefined;
+        const extent = getShadowExtent(keys, transform, renderCtx.devicePixelRatio, width, height, keyExtents);
         kept = acquireCacheCanvas(cache, scene, extent);
     }
     if (cache != null && kept != null) {
         kept.context.clearRect(0, 0, kept.canvas.width, kept.canvas.height);
         let rendered = true;
         for (const plan of plans) {
-            rendered = castPlan(plan, scratch, kept.context, transform, renderCtx, cache.x, cache.y, scene) && rendered;
+            const keyExtent = keyExtents?.get(plan.key);
+            rendered =
+                castPlan(plan, scratch, kept.context, transform, renderCtx, cache.x, cache.y, scene, keyExtent) &&
+                rendered;
         }
         // A caster that failed to draw is drawn again by the next cast, rather than left out of the shadows for good.
         cache.valid = rendered;
         blitCache(ctx, cache);
     } else {
-        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene);
+        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined);
     }
     return true;
 }
