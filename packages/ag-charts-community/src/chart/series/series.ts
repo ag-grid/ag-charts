@@ -1381,15 +1381,17 @@ export abstract class Series<
         index: number,
         keyPrefix: string,
         itemGlow: AgGlowOptions,
-        under: () => Array<DeepPartial<AgGlowOptions> | undefined>
+        under: () => Array<DeepPartial<AgGlowOptions> | undefined>,
+        inGroup?: boolean
     ): NormalisedDropShadowOptions | undefined {
-        return this.mergeItemCast(base, itemGlow, index, `${keyPrefix}${JSON.stringify(itemGlow)}`, () =>
-            glowToShadow(
+        return this.mergeItemCast(base, itemGlow, index, `${keyPrefix}${JSON.stringify(itemGlow)}`, () => {
+            const merged = glowToShadow(
                 mergeGlow({ glow: { enabled: true, ...itemGlow } }, ...under().map((glow) => ({ glow })), {
                     glow: GLOW_THEME_DEFAULTS,
                 })
-            )
-        );
+            );
+            return merged != null && inGroup ? { ...merged, inGroup: true } : merged;
+        });
     }
 
     /**
@@ -1425,10 +1427,17 @@ export abstract class Series<
         const recalled = this.recallItemCast(seriesGlow, itemGlow, index);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        return this.mergeItemGlow(seriesGlow, index, `g${highlightState}`, itemGlow, () => [
-            this.getHighlightGlow(highlightState),
+        // As in getCascadedGlow, the glow of the highlighted series is cast in its own group, on top of the other series.
+        // Set on the interned result, so that a recalled cast allocates nothing per datum.
+        const inGroup = highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem;
+        return this.mergeItemGlow(
             seriesGlow,
-        ]);
+            index,
+            `g${highlightState}`,
+            itemGlow,
+            () => [this.getHighlightGlow(highlightState), seriesGlow],
+            inGroup
+        );
     }
 
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */
