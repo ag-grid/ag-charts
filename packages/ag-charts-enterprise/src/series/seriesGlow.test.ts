@@ -980,6 +980,31 @@ describe('series-level glow (enterprise series)', () => {
             expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
         });
 
+        it('casts the connector glow from one object across updates, and from another when the glow option changes', async () => {
+            const glowOf = () =>
+                collectShapes(getSeriesAt(chart).contentGroup).find((shape) => shape.fillGlow?.enabled)?.fillGlow;
+            await highlightSeries(SERIES_GLOW);
+            const before = glowOf();
+            expect(before).toBeDefined();
+
+            const { ctx, id } = deproxy(chart);
+            ctx.highlightManager.updateHighlight(id);
+            await waitForChartStability(chart);
+            expect(glowOf()).toBe(before);
+
+            await chart.update({
+                data: STAGES,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [
+                    { type: 'cone-funnel', stageKey: 'stage', valueKey: 'value', glow: { ...SERIES_GLOW, blur: 11 } },
+                ],
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+            expect(glowOf()).not.toBe(before);
+            expect(glowOf()).toMatchObject({ blur: 11 });
+        });
+
         // Only the highlight layer's copy casts the hovered item's glow, so a move redraws no in-place node.
         // A heatmap is left out: its cells have selection styling, so it always redraws.
         describe.each(SERIES.filter((testCase) => testCase.hoverable && testCase.name !== 'heatmap'))(

@@ -80,9 +80,18 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         return this.options.shadow;
     }
 
+    /** The connector glow converted from the `glow` option it was made from, so that it is the same object on every update. */
+    private connectorGlowCache?: { source: unknown; shadow: NormalisedDropShadowOptions | undefined };
+
     // Connectors have no highlight options, so their glow is the series-level one in every highlight state.
     protected override connectorGlow(): NormalisedDropShadowOptions | undefined {
-        return glowToShadow(this.options.glow);
+        const source = this.options.glow;
+        const cache = this.connectorGlowCache;
+        if (cache != null && cache.source === source) return cache.shadow;
+
+        const shadow = glowToShadow(source);
+        this.connectorGlowCache = { source, shadow };
+        return shadow;
     }
 
     protected getItemStyle(
