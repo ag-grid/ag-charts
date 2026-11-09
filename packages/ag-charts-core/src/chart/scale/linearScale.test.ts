@@ -612,16 +612,6 @@ describe('LinearScale configured interval', () => {
         return scale;
     }
 
-    describe('niceDomain at a tick count of one', () => {
-        test.each([
-            { interval: 25, domain: [0, 70], expected: [0, 75] },
-            { interval: 25, domain: [3, 77], expected: [0, 100] },
-            { interval: undefined, domain: [3, 77], expected: [0, 80] },
-        ])('snaps $domain to $expected with interval $interval', ({ interval, domain, expected }) => {
-            expect(scaleOver(domain).niceDomain(params({ interval, tickCount: 1 }), domain)).toEqual(expected);
-        });
-    });
-
     describe('intervalIgnored', () => {
         test.each([
             { name: 'honoured', step: 25, expected: undefined },

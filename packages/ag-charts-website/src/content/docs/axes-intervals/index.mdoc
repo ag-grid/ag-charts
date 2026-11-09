@@ -21,8 +21,7 @@ The axis interval can be configured with one of the following strategies:
 The `interval.step` property defines the size of the fixed interval, expressed in the units of the respective axis.
 
 {% note %}
-If the configured `interval` would result in more than one item per pixel along the axis, it is ignored, a warning is logged and the default interval is applied.
-An interval that fits but whose labels overlap is still applied, so choose a `step` that leaves enough room for the labels.
+If the configured `interval` results in too many items given the data domain and chart size, it will be ignored and the default interval will be applied.
 {% /note %}
 
 ### Number Axes
@@ -61,18 +60,11 @@ this should be an array consisting of `number`, `Date`, or `String` values.
 
 ```js format="snippet"
 {
-    max: 100,
     interval: {
         values: [50, 88, 100],
     },
 }
 ```
-
-{% note %}
-Only values inside the axis domain are shown, so a value beyond the domain is not displayed.
-In this example the largest data value is `88.07`, so the axis would end at `90` and the `100` tick would be dropped
-without `max: 100`. Use `min`, `max`, `preferredMin` or `preferredMax` to extend the domain to include the values you need.
-{% /note %}
 
 {% chartExampleRunner title="Values" name="axis-values" type="generated" /%}
 

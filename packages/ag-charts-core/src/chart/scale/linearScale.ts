@@ -107,10 +107,9 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         const numericDomain: number[] = domain.map(Number);
         let [start, stop] = numericDomain;
 
-        // niceTicksDomain ignores the interval, so a configured one skips it to avoid a power-of-ten snap.
-        if (tickCount === 1 && ticks.interval == null) {
+        if (tickCount === 1) {
             [start, stop] = niceTicksDomain(start, stop);
-        } else if (tickCount >= 1) {
+        } else if (tickCount > 1) {
             const roundStart = start > stop ? Math.ceil : Math.floor;
             const roundStop = start > stop ? Math.floor : Math.ceil;
             const maxAttempts = 4;

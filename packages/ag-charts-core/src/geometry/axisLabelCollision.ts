@@ -25,13 +25,15 @@ export function axisLabelsOverlap(boxes: readonly BoxBounds[], spacing: number =
 
 export interface TickLabelCandidate<T> {
     readonly candidate: T;
-    /** The ticks are fixed by configuration, so a sparser candidate would not thin their labels. */
+    /** The ticks are fixed by configuration, so later candidates only vary the domain around them. */
     readonly pinned: boolean;
 }
 
 /**
  * Thins tick labels by walking ever sparser, evenly spaced candidates until one has no overlapping labels,
  * auto-rotating any candidate whose labels overlap unrotated. `next` returns `undefined` once exhausted.
+ *
+ * If no candidate clears the overlap, the first pinned one is kept: later ones only move the domain of fixed ticks.
  */
 export function thinTickLabels<T>(
     next: () => TickLabelCandidate<T> | undefined,
@@ -42,15 +44,16 @@ export function thinTickLabels<T>(
     let candidate: T | undefined;
     let autoRotation = 0;
     let overlap = true;
+    let firstPinned: { candidate: T; autoRotation: number } | undefined;
 
     while (overlap) {
         const step = next();
-        if (step == null) break;
+        if (step == null) return firstPinned ?? { candidate, autoRotation };
         candidate = step.candidate;
 
         autoRotation = autoRotateAngle != null && overlaps(candidate, 0) ? autoRotateAngle : 0;
 
-        if (step.pinned) break;
+        if (step.pinned) firstPinned ??= { candidate, autoRotation };
 
         overlap = avoidCollisions && overlaps(candidate, autoRotation);
     }

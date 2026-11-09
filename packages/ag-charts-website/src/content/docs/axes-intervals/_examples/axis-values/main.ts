@@ -25,8 +25,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            // A configured value outside the axis domain is not shown, so extend the domain to include 100.
-            max: 100,
             title: {
                 text: 'Market Share (%)',
             },

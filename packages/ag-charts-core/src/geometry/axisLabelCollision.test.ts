@@ -65,9 +65,22 @@ describe('thinTickLabels', () => {
         expect(thinTickLabels(next, overlaps, true, 335)).toEqual({ candidate: sets[0], autoRotation: 335 });
     });
 
-    it('stops at a pinned candidate even when its labels overlap', () => {
-        const { next, overlaps, sets } = candidates({ overlaps: [true, true], pinned: true }, { overlaps: [false] });
-        expect(thinTickLabels(next, overlaps, true, 335)).toEqual({ candidate: sets[0], autoRotation: 335 });
+    it('moves on from a pinned candidate to a later pinned one whose labels fit', () => {
+        const { next, overlaps, sets } = candidates(
+            { overlaps: [true, true], pinned: true },
+            { overlaps: [false], pinned: true }
+        );
+        expect(thinTickLabels(next, overlaps, true, 335).candidate).toBe(sets[1]);
+    });
+
+    it('keeps the first pinned candidate when none clears the overlap', () => {
+        const { next, overlaps, sets } = candidates(
+            { overlaps: [true, true], pinned: true },
+            { overlaps: [true, true], pinned: true }
+        );
+        const { candidate, autoRotation } = thinTickLabels(next, overlaps, true, 335);
+        expect(candidate).toBe(sets[0]);
+        expect(autoRotation).toBe(335);
     });
 
     it('settles on the last candidate once they run out', () => {
