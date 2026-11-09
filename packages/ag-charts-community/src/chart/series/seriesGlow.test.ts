@@ -18,6 +18,7 @@ import {
     uncastGlows,
 } from '../test/shadowFixtures';
 import {
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     createChart,
     deproxy,
     expectWarningMessages,
@@ -33,6 +34,8 @@ interface SeriesCase {
     /** One series over the shared data, with the series-level `glow` where the series reads it from. */
     series: (key: 'v' | 'w', glow: object | undefined, opts?: { shadow?: object; highlight?: object }) => object;
     kind: abstract new (...args: any[]) => Shape;
+    /** Whether the series shares a category with the hovered item of another series, so `highlight.mode: 'shared'` lights it. */
+    sharesCategory: boolean;
 }
 
 // The bar rects go through the item style path, the markers through `applyMarkerStyle`.
@@ -40,16 +43,19 @@ const SERIES: SeriesCase[] = [
     {
         name: 'bar',
         kind: Rect,
+        sharesCategory: true,
         series: (key, glow, opts) => ({ type: 'bar', xKey: 'x', yKey: key, glow, ...opts }),
     },
     {
         name: 'scatter',
         kind: Marker,
+        sharesCategory: false,
         series: (key, glow, opts) => ({ type: 'scatter', xKey: 'x', yKey: key, glow, ...opts }),
     },
     {
         name: 'line markers',
         kind: Marker,
+        sharesCategory: true,
         series: (key, glow, { shadow, highlight } = {}) => ({
             type: 'line',
             xKey: 'x',
@@ -60,7 +66,7 @@ const SERIES: SeriesCase[] = [
     },
 ];
 
-describe.each(SERIES)('series-level glow ($name)', ({ series, kind }) => {
+describe.each(SERIES)('series-level glow ($name)', ({ series, kind, sharesCategory }) => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -154,11 +160,16 @@ describe.each(SERIES)('series-level glow ($name)', ({ series, kind }) => {
             unhighlightedSeries: { glow: { blur: 13 } },
         };
 
-        const hoverFirst = async (glow: object | undefined, highlight: object, shadow?: object) => {
-            const result = await create([
-                series('v', glow, { highlight, shadow }),
-                series('w', glow, { highlight, shadow }),
-            ]);
+        const hoverFirst = async (
+            glow: object | undefined,
+            highlight: object,
+            shadow?: object,
+            chartOptions: object = SINGLE_HIGHLIGHT_SHARED_TOOLTIP
+        ) => {
+            const result = await create(
+                [series('v', glow, { highlight, shadow }), series('w', glow, { highlight, shadow })],
+                chartOptions
+            );
             await result.hover(0);
             return result;
         };
@@ -186,6 +197,26 @@ describe.each(SERIES)('series-level glow ($name)', ({ series, kind }) => {
                 expect(shape.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 11, spread: 1 }));
             }
         });
+
+        it.runIf(sharesCategory)(
+            'casts the item of the other series that shares the hovered category as the hovered item, in place',
+            async () => {
+                const { inPlace, highlighted } = await hoverFirst(SERIES_GLOW, BUCKETS, undefined, {
+                    highlight: { mode: 'shared' },
+                });
+
+                const hoveredGlow = glowShadow({ ...SERIES_GLOW, blur: 9, spread: 1 });
+                expect(highlighted()[0].fillGlow).toMatchObject(hoveredGlow);
+                expect(highlighted(1)).toHaveLength(0);
+
+                const [match, ...others] = inPlace(1);
+                expect(match.fillGlow).toMatchObject(hoveredGlow);
+                expect(others).toHaveLength(XY_DATA.length - 1);
+                for (const shape of others) {
+                    expect(shape.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 13 }));
+                }
+            }
+        );
 
         it('casts the other series from unhighlightedSeries over the series', async () => {
             const { inPlace, highlighted } = await hoverFirst(SERIES_GLOW, BUCKETS);
