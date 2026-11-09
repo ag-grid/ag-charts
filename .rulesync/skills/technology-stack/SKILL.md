@@ -67,5 +67,5 @@ This document outlines the preferred technologies and architectural constraints 
 
 Tool and runtime versions live in the root `package.json` (`engines`, `devDependencies`) and `.nvmrc` — read them there rather than from this page.
 
--   **Build Target**: ES2020 (excludes IE)
+-   **Build Target**: the `target` of the `build:package` and `build:umd` target defaults in `nx.json` (ES2022; excludes IE)
 -   **TypeScript**: Strict mode enabled across all packages
