@@ -16,7 +16,7 @@ const { hideBin } = require('yargs/helpers');
 
 const { aggregateAllocation, allocationChange, formatMb } = require('./allocation');
 const { formatPercentageChange } = require('./format-utils');
-const { formatExcluded } = require('./shard-failures');
+const { formatExcluded, isBaseOnly } = require('./shard-failures');
 const { median, pctChange } = require('./stats');
 
 const argv = yargs(hideBin(process.argv))
@@ -351,11 +351,31 @@ for (const key of baseKeys) {
     }
 }
 
-// Added (in compare but not in base)
+// Examples the CI merge left out (failed or hung in a pass) are not comparable, but must not pass silently.
+// One that failed only on the base is the exception: the head side kept its results, so it appears below as a
+// head-only row carrying the reason; everything else is excluded from both sides.
+const excludedEntries = argv.excluded ? loadReport(argv.excluded) : [];
+const baseOnlyReasons = new Map(
+    excludedEntries.filter(isBaseOnly).map(({ example, reason }) => [example, reason ?? 'base failed'])
+);
+const excluded = formatExcluded(excludedEntries.filter((entry) => !isBaseOnly(entry)));
+
+// New (head only): in compare but not in base. Never regression-gated, since there is nothing to compare to.
 const added = [];
+const newHeadOnly = [];
 for (const key of compareKeys) {
     if (!baseKeys.has(key)) {
-        added.push(compare.results.get(key).displayName);
+        const c = compare.results.get(key);
+        added.push(c.displayName);
+        newHeadOnly.push({
+            test: c.displayName,
+            reason: baseOnlyReasons.get(c.exampleName) ?? null,
+            runCount: c.runCount,
+            crossRunCvPct: c.crossRunCv == null ? null : c.crossRunCv * 100,
+            medianMs: timeFormat(c.medianTime),
+            minMs: timeFormat(c.minTime),
+            samples: c.sampleCount,
+        });
     }
 }
 
@@ -376,11 +396,8 @@ for (const err of compare.errors) {
     errors.push(`${err.example}: ${err.status} (compare)${err.error ? ' - ' + err.error.split('\n')[0] : ''}`);
 }
 
-// Examples the CI merge left out (failed or hung in a pass) are not comparable, but must not pass silently
-const excluded = argv.excluded ? formatExcluded(loadReport(argv.excluded)) : [];
-
-// A comparison that holds nothing because every example was excluded must not pass as a clean run
-if (matched.length === 0 && excluded.length > 0) {
+// A comparison that holds nothing, and nothing new, because every example was excluded must not pass as a clean run
+if (matched.length === 0 && newHeadOnly.length === 0 && excluded.length > 0) {
     console.error('No example could be compared; every example failed or timed out:');
     excluded.forEach((line) => console.error(`  ! ${line}`));
     process.exitCode = 1;
@@ -493,9 +510,18 @@ if (argv.format === 'table') {
         }
     }
 
-    if (added.length > 0) {
-        console.log(`\nAdded (${added.length}):`);
-        added.forEach((name) => console.log(`  + ${name}`));
+    if (newHeadOnly.length > 0) {
+        console.log(`\nNew (head only) (${newHeadOnly.length}), not compared and not gated:`);
+        console.table(
+            newHeadOnly.map((r) => ({
+                test: r.test,
+                'Median (ms)': r.medianMs,
+                'Min (ms)': r.minMs,
+                Samples: r.samples,
+                'CV (%)': r.crossRunCvPct == null ? '—' : r.crossRunCvPct.toFixed(1),
+                Note: r.reason ? `base-only: ${r.reason}` : '',
+            }))
+        );
     }
     if (removed.length > 0) {
         console.log(`\nRemoved (${removed.length}):`);
@@ -541,6 +567,7 @@ if (argv.format === 'table') {
                 rankedByTime,
                 rankedByAllocation,
                 added,
+                newHeadOnly,
                 removed,
                 errors,
                 excluded,

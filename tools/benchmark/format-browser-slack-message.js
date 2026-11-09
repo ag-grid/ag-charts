@@ -35,6 +35,7 @@ const {
     compare,
     rankedByTime,
     added = [],
+    newHeadOnly = [],
     removed = [],
     errors = [],
     excluded = [],
@@ -83,7 +84,11 @@ blocks.push({
 
 // Added/removed/errors summary
 const notes = [];
-if (added.length > 0) notes.push(`${added.length} added`);
+if (newHeadOnly.length > 0) {
+    notes.push(`${newHeadOnly.length} new (head only: ${newHeadOnly.map(({ test }) => test).join(', ')})`);
+} else if (added.length > 0) {
+    notes.push(`${added.length} added`);
+}
 if (removed.length > 0) notes.push(`${removed.length} removed`);
 if (errors.length > 0) notes.push(`${errors.length} errors`);
 if (excluded.length > 0)

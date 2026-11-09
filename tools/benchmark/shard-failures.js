@@ -40,7 +40,8 @@ function remainingExamples(examples, reportPaths) {
 }
 
 /**
- * Examples that did not succeed in every timing pass of the shard directory.
+ * Examples that did not succeed in every timing pass of the shard directory. Entries whose only failures
+ * are base errors carry `baseOnly: true` and a `reason` (see baseOnlyReason).
  *
  * Only timing passes (`<side>-<shard>.r<run>.json`) count; a memory pass is advisory. An example is
  * `skipped` in a pass whose report lacks it while another pass of the same shard has it, which is how
@@ -77,24 +78,57 @@ function collectExcluded(shardsDir) {
                 entry.skipped.push({ side, pass });
             }
         }
+        const reason = baseOnlyReason(entry, reports);
+        if (reason) {
+            entry.baseOnly = true;
+            entry.reason = reason;
+        }
     }
     return [...excluded.values()].sort((a, b) => (a.example < b.example ? -1 : 1));
+}
+
+/**
+ * Why an excluded example is reported as head-only instead of dropped from both sides, or undefined when it is not.
+ *
+ * Base-only means the base is the only side that failed, and only with an `error`: every failure is
+ * `side: base, status: error`, and the head has a `success` for it in every head timing pass of its shard (so a
+ * head hang, or a head pass that skipped it after a base timeout, is never base-only). The reason is
+ * `not on base` when every error is an HTTP 404 (the example doesn't exist on the base site), else `base failed`.
+ */
+function baseOnlyReason({ example, shard, failed }, reports) {
+    if (!failed.every(({ side, status }) => side === 'base' && status === 'error')) {
+        return undefined;
+    }
+    const headPasses = reports.filter((report) => report.side === 'head' && report.shard === shard);
+    if (headPasses.length === 0 || !headPasses.every(({ examples }) => examples[example]?.status === 'success')) {
+        return undefined;
+    }
+    return failed.every(({ error }) => /\bHTTP 404\b/.test(error ?? '')) ? 'not on base' : 'base failed';
 }
 
 function firstLine(text) {
     return typeof text === 'string' ? text.split('\n')[0] : undefined;
 }
 
-/** One line per excluded example, e.g. `data-selection-zoom-bar: head r1 timeout; skipped: base r1, head r2`. */
+/**
+ * One line per excluded example, e.g. `data-selection-zoom-bar: head r1 timeout; skipped: base r1, head r2`.
+ * A base-only example is marked, e.g. `item-styler-shadow-glow: base r1 error, base r2 error [base-only: not on base]`.
+ */
 function formatExcluded(excluded) {
-    return excluded.map(({ example, failed, skipped }) => {
+    return excluded.map(({ example, failed, skipped, baseOnly, reason }) => {
         const failures = failed.map(({ side, pass, status }) => `${side} ${pass} ${status}`).join(', ');
         const skips = skipped.map(({ side, pass }) => `${side} ${pass}`).join(', ');
-        return `${example}: ${failures}${skips ? `; skipped: ${skips}` : ''}`;
+        const mark = baseOnly === true ? ` [base-only: ${reason ?? 'base failed'}; shown as a head-only row]` : '';
+        return `${example}: ${failures}${skips ? `; skipped: ${skips}` : ''}${mark}`;
     });
 }
 
-module.exports = { timedOutExamples, remainingExamples, collectExcluded, formatExcluded };
+/** Only an entry with `baseOnly: true` counts; anything else (or a malformed list) stays excluded from both sides. */
+function isBaseOnly(entry) {
+    return entry?.baseOnly === true;
+}
+
+module.exports = { timedOutExamples, remainingExamples, collectExcluded, formatExcluded, isBaseOnly };
 
 if (require.main === module) {
     const { argv } = process;

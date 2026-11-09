@@ -472,7 +472,7 @@ test('merge step: a hung example is dropped from every run, which are all kept, 
     });
 });
 
-test('merge step: an errored example in one run is likewise left out of all runs instead of failing the report', () => {
+test('merge step: an example that errored only on the base in one run is dropped from base runs and kept in head runs', () => {
     const erroredOnce = (side, shard, run) =>
         shard === 0
             ? { healthy: 'success', flaky: side === 'base' && run === 2 ? 'error' : 'success' }
@@ -481,8 +481,10 @@ test('merge step: an errored example in one run is likewise left out of all runs
         const proc = merge();
         assert.equal(proc.status, 0, proc.stderr + proc.stdout);
         for (const run of [1, 2, 3]) {
-            assert.deepEqual(Object.keys(read(`head.r${run}.json`).examples).sort(), ['healthy', 'other']);
+            assert.deepEqual(Object.keys(read(`head.r${run}.json`).examples).sort(), ['flaky', 'healthy', 'other']);
+            assert.deepEqual(Object.keys(read(`base.r${run}.json`).examples).sort(), ['healthy', 'other']);
         }
+        assert.match(proc.stdout, /flaky: base r2 error \[base-only: base failed; shown as a head-only row\]/);
     });
 });
 
