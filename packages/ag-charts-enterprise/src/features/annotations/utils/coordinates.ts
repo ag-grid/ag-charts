@@ -51,8 +51,8 @@ export interface CoordinateField {
     value: string;
     /** The input's granularity in seconds, so that a time shows the precision of its value. */
     step?: number;
-    /** The axis's categories, for the input to suggest. */
-    suggestions?: string[];
+    /** The axis's categories for the input to suggest, read once as the input is created. */
+    suggestions?: () => string[];
     /** The datum change for a parsed value, or `undefined` when the field cannot take it. */
     toProps(parsed: ParsedCoordinate): CoordinateChangeProps | undefined;
 }
@@ -251,7 +251,7 @@ function createPointField(
         kind,
         value,
         step: getTimeStep(kind, value),
-        suggestions: kind === 'category' ? context.scale.domain.map(withoutLineBreaks) : undefined,
+        suggestions: kind === 'category' ? () => context.scale.domain.map(withoutLineBreaks) : undefined,
         toProps: (parsed) => toProps(toPointType(parsed, kind, current)),
     };
 }

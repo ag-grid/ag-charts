@@ -227,7 +227,7 @@ describe('annotation coordinates', () => {
 
             expect(startX.kind).toBe('category');
             expect(startX.value).toBe('Pears');
-            expect(startX.suggestions).toEqual(['Apples', 'Pears', '7']);
+            expect(startX.suggestions?.()).toEqual(['Apples', 'Pears', '7']);
             expect(parseCoordinate('', 'category')).toBeUndefined();
             expect(resolveCoordinate(startX, 'apples', context)).toBeUndefined();
 
@@ -245,7 +245,7 @@ describe('annotation coordinates', () => {
             const wrappedStartX = getCoordinateFields(wrappedDatum, wrappedContext)[0];
 
             expect(wrappedStartX.value).toBe('SalesExecutive');
-            expect(wrappedStartX.suggestions).toEqual(['SalesExecutive', 'Manager']);
+            expect(wrappedStartX.suggestions?.()).toEqual(['SalesExecutive', 'Manager']);
             expect(resolveCoordinate(wrappedStartX, 'SalesExecutive', wrappedContext)).toBe('Sales\nExecutive');
         });
     });

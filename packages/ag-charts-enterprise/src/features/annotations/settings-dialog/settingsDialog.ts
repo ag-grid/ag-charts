@@ -346,7 +346,7 @@ export class AnnotationSettingsDialog extends Dialog {
             axis: localeManager.t(initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'),
         });
 
-        const suggestions = initial.suggestions && createDatalist(initial.suggestions);
+        const suggestions = initial.suggestions && createDatalist(initial.suggestions());
 
         let field = initial;
         let committed = field.value;
