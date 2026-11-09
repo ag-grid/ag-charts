@@ -184,7 +184,7 @@ export function createInput(options: InputOptions, attrs?: InputAttributeSet) {
         input.addEventListener('change', commit);
     }
     setAttributes(input, attrs);
-    setAttribute(input, 'data-preventdefault', false); // AG-13715
+    setAttribute(input, 'data-preventdefault', false);
     return input;
 }
 
