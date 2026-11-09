@@ -21,6 +21,7 @@ import {
     type MockRangeBarStyler,
     NEG_BIG,
     type PhasedPropertyExpectation,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     STRIPPED_NUMBER_AXES,
     STRIPPED_UNIT_TIME_AXES,
     type SceneFrameInvariant,
@@ -1428,6 +1429,7 @@ describe('RangeBarSeries', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart({
                     data,
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     series: [
                         {
                             type: 'range-bar',

@@ -35,6 +35,7 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<
             tick: { enabled: true, stroke: { $ref: 'groupedCategoryLineColor' } },
             label: { spacing: 10, rotation: 270, wrapping: 'on-space' },
             maxThicknessRatio: 0.5,
+            spacing: 15,
             paddingInner: 0.4,
             groupPaddingInner: 0.2,
         },

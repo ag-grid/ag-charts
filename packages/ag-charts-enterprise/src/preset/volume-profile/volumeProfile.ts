@@ -18,8 +18,7 @@ import {
 import type {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
-    AgCategoryAxisOptions,
-    AgNumberAxisOptions,
+    AgInsetNumberAxisOptions,
     AgSelectionClickMode,
     AgVolumeProfileOptions,
     AgVolumeProfileSelectedBandOptions,
@@ -291,48 +290,15 @@ export function createSelectedBandAxisOptions(selection: AgVolumeProfileSelectio
 
 export function createVolumeProfileAxis(
     volumeProfile: AgVolumeProfileOptions | undefined
-): Record<string, AgNumberAxisOptions | AgCategoryAxisOptions> {
+): Record<string, AgInsetNumberAxisOptions> {
     if (!volumeProfile) return {};
-
-    const placedRight = volumeProfile.placement !== 'left';
 
     return {
         yVolumeProfile: {
-            type: 'number',
+            type: 'inset-number',
             position: 'top',
-            tick: { enabled: false },
-            label: { enabled: false },
-            nice: false,
-            crosshair: { enabled: false },
-            gridLine: { enabled: false },
-            reverse: placedRight,
-            // @ts-expect-error undocumented option
-            layoutConstraints: {
-                stacked: false,
-                width: (volumeProfile.widthRatio ?? 0.5) * 100,
-                unit: 'percent',
-                align: placedRight ? 'end' : 'start',
-            },
-            ignoreZoom: true,
-        } satisfies AgNumberAxisOptions,
-        xVolumeProfilePrice: {
-            type: 'category',
-            position: 'right',
-            tick: { enabled: false },
-            label: { enabled: false },
-            line: { enabled: false },
-            crosshair: { enabled: false },
-            gridLine: { enabled: false },
-            paddingInner: 0,
-            // @ts-expect-error undocumented options
-            layoutConstraints: {
-                stacked: false,
-                width: 100,
-                unit: 'percent',
-                align: 'start',
-            },
-            linkZoom: 'y',
-            ...createTotalSegmentAxisOptions(volumeProfile.totalSegment, placedRight ? 'right' : 'left'),
-        } satisfies AgCategoryAxisOptions,
+            reverse: volumeProfile.placement !== 'left',
+            lengthRatio: volumeProfile.widthRatio ?? 0.5,
+        } satisfies AgInsetNumberAxisOptions,
     };
 }

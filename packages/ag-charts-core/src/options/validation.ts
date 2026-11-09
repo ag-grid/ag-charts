@@ -804,6 +804,27 @@ export const arrayOf = (validator: Validator, description?: string, strict: bool
     );
 
 /**
+ * Creates a validator for a `crosshairSnapTo` list: unknown names are reported individually and dropped, while valid
+ * names are kept.
+ * @param values The value names the series type supports.
+ */
+export const crosshairSnapToValidator = (values: readonly string[]) => {
+    const description = `one of ["${values.join('", "')}"]`;
+    return arrayOf(
+        attachDescription((value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
+            if (typeof value === 'string' && values.includes(value)) return true;
+            return {
+                valid: false,
+                cleared: null,
+                invalid: [new ValidationError(ErrorType.Invalid, description, value, context.path)],
+            };
+        }, description),
+        `an array of crosshair snap values: ["${values.join('", "')}"]`,
+        false
+    );
+};
+
+/**
  * Creates a validator for arrays where each element is validated against a given set of definitions.
  * Allows capturing both valid and invalid values while providing detailed validation errors.
  * @param defs The validation definitions to apply to each array element.

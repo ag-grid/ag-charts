@@ -47,6 +47,8 @@ const itemStyler = (params: AgRangeBarSeriesItemStylerParams<DatumType, unknown>
 
 const options: AgCartesianChartOptions<DatumType, unknown> = {
     container: document.getElementById('myChart'),
+    highlight: { mode: 'single' },
+    tooltip: { mode: 'shared' },
     data: getData(),
     series: [
         {

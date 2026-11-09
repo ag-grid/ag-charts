@@ -41,7 +41,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         marker: {
             enabled: true,
             shadow: SHADOW_THEME_DEFAULTS,
-            shape: 'circle',
+            shape: { $palette: 'markerShape' },
             size: 7,
             fillOpacity: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,

@@ -648,6 +648,7 @@ describe('series label fit', () => {
                     xKey: 'x',
                     yKey: 'y',
                     sizeKey: 'size',
+                    labelKey: 'size',
                     minSize: 120,
                     maxSize: 120,
                     label: boxedInsideLabel,
@@ -662,7 +663,7 @@ describe('series label fit', () => {
             data: [{ x: 1, y: 50 }],
             legend: { enabled: false },
             axes: singlePointAxes,
-            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 120, label: boxedInsideLabel }],
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', labelKey: 'y', size: 120, label: boxedInsideLabel }],
         });
         expect(labelTexts()).toContain('Revenue');
     });
@@ -672,7 +673,17 @@ describe('series label fit', () => {
             data: [{ x: 1, y: 50 }],
             legend: { enabled: false },
             axes: singlePointAxes,
-            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', shape: 'pin', size: 220, label: boxedInsideLabel }],
+            series: [
+                {
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'y',
+                    labelKey: 'y',
+                    shape: 'pin',
+                    size: 220,
+                    label: boxedInsideLabel,
+                },
+            ],
         });
         expect(labelTexts().some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
     });

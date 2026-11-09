@@ -2,6 +2,7 @@ import { expect } from 'vitest';
 
 import type { Node } from 'ag-charts-core';
 
+import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { SeriesNodeDataContext, UnknownSeries } from '../series/series';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { type ChartOrProxy, type LegendTestInternals, type LegendTestItemNode, deproxy } from './utils';
@@ -75,6 +76,11 @@ export function getSeriesHasChangesOnHighlight(chartOrProxy: ChartOrProxy<any>, 
     const { hasChangesOnHighlight } = getSeriesAt(chartOrProxy, index) as unknown as HighlightRedrawHost;
     expect(hasChangesOnHighlight, `series ${index} highlight redraw flag`).toBeTypeOf('boolean');
     return hasChangesOnHighlight!;
+}
+
+/** The datum the chart currently highlights, if any. */
+export function getActiveHighlight(chartOrProxy: ChartOrProxy<any>): HighlightNodeDatum | undefined {
+    return deproxy(chartOrProxy).ctx.highlightManager.getActiveHighlight();
 }
 
 /** The scene selections of a series that tests read the drawn nodes through. */

@@ -37,7 +37,14 @@ export type AgTooltipPlacement = `${AgTooltipPlacementType}`;
 export interface AgChartTooltipOptions {
     /** Set to `false` to disable tooltips for all series in the chart. */
     enabled?: boolean;
-    /** Group multiple series into the same tooltip */
+    /**
+     * Determines which series are shown in the tooltip.
+     * - `'single'` shows the hovered item only.
+     * - `'shared'` groups the items of every series that share the hovered item's category into the same tooltip.
+     * - `'compact'` shows the hovered item with fewer data fields and less padding.
+     *
+     * When only `highlight.mode` is set, this follows it. When neither is set, this is `'shared'` for 2 or 3 series, except on scatter and bubble charts, and `'single'` otherwise.
+     */
     mode?: AgTooltipMode;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
     showArrow?: boolean;

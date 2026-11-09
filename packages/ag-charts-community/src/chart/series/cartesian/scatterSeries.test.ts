@@ -1319,19 +1319,32 @@ describe('ScatterSeries', () => {
                     y: { type: 'number', position: 'left', min: 0, max: 30 },
                 },
             }) as AgCartesianChartOptions;
-        const fallback = { scatter: ['10', '20'], bubble: ['5', '8'] };
+        const valueKey = { scatter: 'y', bubble: 'size' };
+        const values = { scatter: ['10', '20'], bubble: ['5', '8'] };
 
         describe.each(['scatter', 'bubble'] as const)('%s', (type) => {
             it.each([
                 ['labelKey alone shows labels', { labelKey: 'name' }, ['a', 'b']],
                 ['no labelKey keeps labels hidden', {}, []],
                 ['explicit enabled: false wins over labelKey', { labelKey: 'name', label: { enabled: false } }, []],
+                ['explicit enabled: true without labelKey shows no labels', { label: { enabled: true } }, []],
                 [
-                    'explicit enabled: true without labelKey shows the fallback',
-                    { label: { enabled: true } },
-                    fallback[type],
+                    'a formatter without labelKey shows no labels',
+                    { label: { formatter: ({ datum }: { datum: { name: string } }) => datum.name } },
+                    [],
                 ],
-                ['a label object without labelKey shows the fallback', { label: { fontSize: 12 } }, fallback[type]],
+                [
+                    'a formatter with labelKey receives the datum',
+                    {
+                        labelKey: 'name',
+                        label: {
+                            formatter: ({ datum }: { datum: { name: string; y: number } }) =>
+                                `${datum.name}:${datum.y}`,
+                        },
+                    },
+                    ['a:10', 'b:20'],
+                ],
+                ['labelKey set to the value key shows the values', { labelKey: valueKey[type] }, values[type]],
             ] as [string, object, string[]][])('%s', async (_name, overrides, expected) => {
                 chart = await createChart(options(type, overrides));
 

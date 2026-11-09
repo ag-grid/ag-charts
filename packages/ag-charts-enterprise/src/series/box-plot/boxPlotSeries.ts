@@ -24,11 +24,17 @@ import {
     deepClone,
     isNumericValue,
     mergeDefaults,
+    readDatumKey,
     toNumber,
     upsertNodeDatum,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
@@ -123,6 +129,8 @@ interface BoxPlotNodeDatumParams {
     scaledValues: ScaledBoxPlotValues;
 }
 
+const BOX_PLOT_VALUE_KEYS = ['minKey', 'q1Key', 'medianKey', 'q3Key', 'maxKey'] as const;
+
 export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSeriesTypes> {
     static override readonly className = 'BoxPlotSeries';
     static readonly type = 'box-plot' as const;
@@ -137,6 +145,21 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             q3Key: this.options.q3Key,
             maxKey: this.options.maxKey,
         };
+    }
+
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
+        return resolveCrosshairSnapConfig(this.options, BOX_PLOT_VALUE_KEYS);
+    }
+
+    getCrosshairSnapValues(nodeDatum: _ModuleSupport.SeriesNodeDatum): Partial<Record<string, unknown>> {
+        const { datum } = nodeDatum;
+        const suppressFieldDotNotation = this.suppressFieldDotNotation;
+        return collectCrosshairSnapValues(
+            BOX_PLOT_VALUE_KEYS.map((valueKey) => [
+                valueKey,
+                readDatumKey(datum, this.options[valueKey], suppressFieldDotNotation),
+            ])
+        );
     }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
