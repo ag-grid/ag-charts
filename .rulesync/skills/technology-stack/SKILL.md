@@ -33,7 +33,7 @@ This document outlines the preferred technologies and architectural constraints 
 | Package             | Runtime Dependencies           | Peer Dependencies                                      |
 | ------------------- | ------------------------------ | ------------------------------------------------------ |
 | `ag-charts-react`   | `ag-charts-community`          | `react ^18.0.0 \|\| ^19.0.0`                           |
-| `ag-charts-angular` | `ag-charts-community`, `tslib` | `@angular/common >= 20.0.0`, `@angular/core >= 20.0.0` |
+| `ag-charts-angular` | `ag-charts-community`, `tslib` | `@angular/common >= 21.0.0`, `@angular/core >= 21.0.0` |
 | `ag-charts-vue3`    | `ag-charts-community`          | `vue ^3.5.0`                                           |
 
 ## Documentation Website (`ag-charts-website`)

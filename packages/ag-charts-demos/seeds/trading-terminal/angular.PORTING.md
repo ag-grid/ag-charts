@@ -1,7 +1,7 @@
 # Porting the Trading Terminal demo to Angular
 
 This seed is a hand-written port of `packages/ag-charts-demos/src/demos/trading-terminal` (React) to
-Angular 20 on the Angular CLI, with standalone components, signals and the Angular CDK for the
+Angular 21 on the Angular CLI, with standalone components, signals and the Angular CDK for the
 behaviour Radix UI supplied in React. It exists so the same demo can be published as an Angular
 StackBlitz seed, and so a sync agent can bring it back into step when the React source changes.
 This document is that agent's instruction set: the mapping rules, the invariants the port must
@@ -18,8 +18,9 @@ keep, and how to prove parity afterwards.
   source. Do not introduce options the React demo does not use.
 - The seed stays standalone: no `extends` or import that reaches above this folder, no workspace
   references, no dependencies beyond what `src/` imports (plus the Angular CLI and TypeScript).
-  Zone.js stays: `ag-charts-angular` and `ag-grid-angular` run chart and grid creation outside the
-  zone and re-enter it for callbacks, which is the change-detection model they are built for.
+  Angular 21 bootstraps zoneless, so the zone.js polyfill is inert: outputs and signals drive change
+  detection, and state touched from a chart or grid callback must be a signal or reach the template
+  through an output.
 
 ## File mapping
 
@@ -90,8 +91,8 @@ keep, and how to prove parity afterwards.
 - Imperative calls made through a `ref` (`applyTransaction`, `updateDelta`, `setState`,
   `getState`) are made on the wrapper's `chart` instance directly, with identical arguments and
   ordering.
-- Chart listeners (`listeners.zoom`) are wrapped by the wrapper to re-enter the Angular zone, so
-  an `output.emit` from one drives change detection as a React state update would.
+- Chart listeners (`listeners.zoom`) run inside the wrapper, and an `output.emit` or signal write
+  from one schedules change detection as a React state update would.
 
 ### `ag-grid-react` to `ag-grid-angular`
 
