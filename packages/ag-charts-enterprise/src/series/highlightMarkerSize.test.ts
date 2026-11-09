@@ -4,6 +4,7 @@ import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     MIN_UNHIGHLIGHT_DELAY,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     deproxy,
     focusIndicatorContainsCanvasPoint,
     getSeriesAt,
@@ -178,6 +179,7 @@ describe('highlight marker size (enterprise series)', () => {
             data: testCase.data,
             animation: { enabled: false },
             legend: { enabled: false },
+            ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
             ...testCase.chartOptions,
             ...chartOptions,
             series: [buildSeries(testCase, options, {}), buildSeries(testCase, options, testCase.second)],
