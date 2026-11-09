@@ -42,6 +42,8 @@ import type { NormalisedZoomOptions } from './normalisedZoomOptions';
 
 export type NormalisedBackgroundOptions = AgChartBackground & { visible: boolean; fill: string };
 
+export type NormalisedChartBorderOptions = NormalisedBorderOptions & { cornerRadius: number };
+
 export type NormalisedForegroundOptions = {
     visible?: boolean;
     fill?: string;
@@ -148,6 +150,7 @@ export type ResolvedChartOptions = Omit<
     | 'animation'
     | 'annotations'
     | 'background'
+    | 'border'
     | 'contextMenu'
     | 'dataSource'
     | 'flashOnUpdate'
@@ -172,6 +175,7 @@ export type ResolvedChartOptions = Omit<
 > & {
     animation?: NormalisedAnimationOptions;
     background: NormalisedBackgroundOptions;
+    border: NormalisedChartBorderOptions;
     contextMenu?: NormalisedContextMenuOptions;
     dataSource?: NormalisedDataSourceOptions;
     flashOnUpdate?: NormalisedFlashOnUpdateOptions;
