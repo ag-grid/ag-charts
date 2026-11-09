@@ -1078,11 +1078,8 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         const { itemMarkers } = this;
 
         datumSelection.each((node, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[datum.itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[datum.itemType][highlightState];
             // Style colours are resolved at runtime before reaching the scene node.
             this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, {
                 hideWithSize0,
@@ -1091,6 +1088,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
                 glow: itemMarkers[datum.itemType].glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
+                highlightState,
             });
             node.drawingMode = drawingMode;
         });

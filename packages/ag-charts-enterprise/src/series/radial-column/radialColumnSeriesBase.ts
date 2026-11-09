@@ -441,7 +441,6 @@ export abstract class RadialColumnSeriesBase<
         if (!contextNodeData) {
             return;
         }
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         let selectionData: RadialColumnNodeDatum[] = [];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -469,11 +468,10 @@ export abstract class RadialColumnSeriesBase<
             .each((node, nodeDatum) => {
                 const { midPoint } = nodeDatum;
 
+                const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
                 const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
                 const candidateState = this.getDataCandidacyState(nodeDatum.datumIndex);
                 if (hasItemStylers) {
-                    const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-
                     if (styleCache == null) {
                         nodeDatum.style = getItemStyle(
                             this,
@@ -504,9 +502,7 @@ export abstract class RadialColumnSeriesBase<
                 const bringToFront = !_ModuleSupport.isUnselected(selectionState);
                 node.zIndex = bringToFront ? 1 : 0;
 
-                const style =
-                    nodeDatum.style ??
-                    contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)];
+                const style = nodeDatum.style ?? contextNodeData.styles[highlightState];
 
                 const fill = style.fill;
                 const itemBounds = isGradientFill(fill) && fill.bounds === 'item';
@@ -518,8 +514,8 @@ export abstract class RadialColumnSeriesBase<
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
-                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
-                node.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex, highlightState);
+                node.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex, highlightState);
                 node.cornerRadius = style.cornerRadius ?? 0;
                 node.lineJoin = 'round';
             });

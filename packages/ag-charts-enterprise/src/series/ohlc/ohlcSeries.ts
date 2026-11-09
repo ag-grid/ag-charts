@@ -63,6 +63,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
         datumSelection.each(function updateOhlcNode(node, datum) {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
+            const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
 
             node.setStaticProperties(
                 centerX,
@@ -72,14 +73,12 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
                 yOpen,
                 yClose,
                 crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex),
-                series.resolveItemGlow(glow, isHighlight, datum.datumIndex)
+                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState),
+                series.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState)
             );
 
             const style = (datum.style ??
-                contextNodeData.styles[datum.itemType][
-                    series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ]) as NormalisedOhlcStyle;
+                contextNodeData.styles[datum.itemType][highlightState]) as NormalisedOhlcStyle;
 
             node.setStyleProperties(style);
 

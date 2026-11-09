@@ -1370,11 +1370,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         datumSelection.each((node, datum) => {
             const { itemType } = datum;
-            const style =
-                datum.style ??
-                contextNodeData.styles[itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[itemType][highlightState];
             // Style colours are resolved at runtime before reaching the scene node.
             this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, {
                 hideWithSize0,
@@ -1383,6 +1380,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 glow: glows[itemType],
                 isHighlight,
                 datumIndex: datum.datumIndex,
+                highlightState,
             });
             node.drawingMode = drawingMode;
         });

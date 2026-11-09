@@ -941,6 +941,7 @@ export class MapMarkerSeries
         const { markerSelection, isHighlight, highlightedDatum, drawingMode } = opts;
 
         const fillBBox = getTopologyShapeFillBBox(this.scale);
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
 
         markerSelection.each((marker, markerDatum) => {
             const { datum, point } = markerDatum;
@@ -950,8 +951,9 @@ export class MapMarkerSeries
             marker.size = style.size;
 
             marker.setStyleProperties(style, fillBBox);
-            const shadow = this.resolveItemShadow(this.options.shadow, isHighlight, markerDatum.datumIndex);
-            const glow = this.resolveItemGlow(this.options.glow, isHighlight, markerDatum.datumIndex);
+            const castState = this.getItemCastState(activeHighlight, isHighlight, markerDatum.datumIndex);
+            const shadow = this.resolveItemShadow(this.options.shadow, isHighlight, markerDatum.datumIndex, castState);
+            const glow = this.resolveItemGlow(this.options.glow, isHighlight, markerDatum.datumIndex, castState);
             const supported = isSupportedMarkerShape(style.shape);
             marker.fillShadow = shadow?.enabled && supported ? shadow : undefined;
             marker.fillGlow = glow?.enabled && supported ? glow : undefined;

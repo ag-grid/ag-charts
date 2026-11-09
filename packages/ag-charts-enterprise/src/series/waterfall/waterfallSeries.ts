@@ -1161,18 +1161,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[datum.itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[datum.itemType][highlightState];
             // `style` is fully resolved by render time; narrow it to the shape-compatible normalised style.
             rect.setStyleProperties(style as Required<NormalisedWaterfallSeriesStyle>, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
             const { shadow, glow } = this.getItemConfig(datum.itemType);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
-            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState);
+            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState);
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;

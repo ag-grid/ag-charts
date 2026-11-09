@@ -1054,9 +1054,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
             // updateDatumStyles populates datum.style for non-garbage nodes; the fallback below is rare.
-            const style =
-                datum.style ??
-                contextNodeData.styles[thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[highlightState];
             thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyPosition,
                 crossFilterSelected: datum.crossFilterSelected,
@@ -1066,6 +1065,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
+                highlightState,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);

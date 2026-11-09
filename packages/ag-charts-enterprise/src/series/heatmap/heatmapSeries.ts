@@ -1031,13 +1031,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
 
         const { cornerRadius, shadow, glow } = this.options;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         const updateNode = (rect: Rect<HeatmapNodeDatum>, nodeDatum: HeatmapNodeDatum) => {
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
-            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+            const castState = this.getItemCastState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex, castState);
+            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex, castState);
 
             rect.crisp = crisp;
             rect.cornerRadius = cornerRadius;

@@ -838,6 +838,7 @@ export class MapShapeSeries
     }) {
         const fillBBox = getTopologyShapeFillBBox(this.scale);
         const { shadow, glow } = this.options;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { projectedGeometry } = nodeDatum;
@@ -853,9 +854,10 @@ export class MapShapeSeries
             // Style is resolved by getItemStyle; colour refs are gone by render.
             geoGeometry.setStyleProperties(nodeDatum.style as NormalisedMapShapeSeriesStyle, fillBBox);
 
-            geoGeometry.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+            const castState = this.getItemCastState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
+            geoGeometry.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex, castState);
 
-            geoGeometry.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+            geoGeometry.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex, castState);
             geoGeometry.drawingMode = drawingMode;
 
             const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);

@@ -1194,6 +1194,21 @@ export abstract class Series<
         return shadow;
     }
 
+    /**
+     * The state of an in-place item to pass to both `resolveItemShadow` and `resolveItemGlow`, so that it is resolved once per
+     * datum. `undefined` where neither reads it, so that a series with no `highlightedItem.shadow` and no glow does no work.
+     */
+    protected getItemCastState(
+        highlightedDatum: HighlightNodeDatum | undefined,
+        isHighlight: boolean | undefined,
+        datumIndex: DatumIndex | undefined,
+        legendItemValues?: string[]
+    ): HighlightState | undefined {
+        if (isHighlight || highlightedDatum == null) return;
+        if (this.getItemShadowBucket() == null && !this.hasAnyGlow()) return;
+        return this.getHighlightState(highlightedDatum, false, datumIndex, legendItemValues);
+    }
+
     /** The state of an in-place copy, or `HOVERED_IN_PLACE`: the hovered item's copy reads `OtherItem`. */
     private resolveInPlaceCopy(
         highlightedDatum: HighlightNodeDatum,
