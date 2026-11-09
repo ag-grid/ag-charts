@@ -56,11 +56,6 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         segmentation: SEGMENTATION_DEFAULTS,
     },
     axes: {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: {
-            crosshair: {
-                snap: false,
-            },
-        },
         [CARTESIAN_AXIS_TYPE.CATEGORY]: {
             groupPaddingInner: 0.2,
             crosshair: {

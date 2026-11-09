@@ -17,6 +17,7 @@ import {
     MIN_UNHIGHLIGHT_DELAY,
     type MockBoxPlotStyler,
     NEG_BIG,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     type SceneNodeExpectation,
     compareImageSnapshot,
     createSceneGeometrySampler,
@@ -766,6 +767,7 @@ describe('BoxPlotSeries', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart<O>({
                     data,
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     series: [
                         {
                             type: 'box-plot',

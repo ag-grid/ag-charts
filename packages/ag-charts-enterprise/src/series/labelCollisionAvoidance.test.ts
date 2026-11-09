@@ -1350,13 +1350,13 @@ describe('label collision avoidance', () => {
             });
 
             it('positions each placement of a mixed cascade against its own axis', async () => {
-                const cascade = (formatter: () => string, seriesArea: boolean) =>
+                const cascade = (formatter: () => string, overlap: boolean) =>
                     options({
                         placement: ['outside-before', 'inside-start'],
                         formatter,
-                        collision: { alwaysShow: false, collideWith: { seriesArea } },
+                        collision: { alwaysShow: false, collideWith: { seriesArea: overlap, axisLabels: overlap } },
                     });
-                // The widest stage spans the series area, so only ignoring that boundary keeps every label outside.
+                // The widest stage spans the series area, so only ignoring it and the axis labels keeps every label outside.
                 const fitting = await anchors(cascade(() => 'A', true));
                 const fittingBars = bars();
                 const overflowing = await anchors(cascade(() => 'A very long funnel stage label', false));

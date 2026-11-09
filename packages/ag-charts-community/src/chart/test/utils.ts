@@ -109,6 +109,12 @@ export interface StandaloneTestCase extends ChartTestCase {
 }
 
 const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
+/** Single highlighting with the shared tooltip a 2-3-series cartesian chart defaults to, for tests not about either mode. */
+export const SINGLE_HIGHLIGHT_SHARED_TOOLTIP = {
+    highlight: { mode: 'single' },
+    tooltip: { mode: 'shared' },
+} as const;
+
 export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     failureThreshold: FAILURE_THRESHOLD,
     failureThresholdType: 'percent',
@@ -1404,10 +1410,10 @@ export function getSwapChainText() {
 }
 
 // The series-area widget handles keyboard navigation.
-export async function pressKey(chart: ChartOrProxy, key: string) {
+export async function pressKey(chart: ChartOrProxy, key: string, modifiers: KeyboardEventInit = {}) {
     const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
     expect(seriesArea).not.toBeNull();
-    seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+    seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true, ...modifiers }));
     await waitForChartStability(chart);
 }
 
@@ -2522,7 +2528,14 @@ export interface LegendTestItemNode {
     opacity?: number;
     label: { opacity?: number; text?: string };
     symbolsGroup: { opacity?: number };
-    marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
+    marker?: {
+        fill?: string;
+        fillOpacity?: number;
+        stroke?: string;
+        strokeOpacity?: number;
+        strokeWidth?: number;
+        shape?: unknown;
+    };
     line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
 }
 

@@ -3,7 +3,7 @@
     "framework": "typescript",
     "sourceHash": "sha256-50f2d78a11a3a9a99a73196ac95f0ad938960281061cf8c1027fcbd730720c3b",
     "sourceCommit": "ccd440fb9c17fd859bb1ea0a0516a68946923195",
-    "pinnedVersion": "14.3.0",
-    "pinSource": "release",
+    "pinnedVersion": "latest",
+    "pinSource": "dist-tag",
     "dist": "dist"
 }

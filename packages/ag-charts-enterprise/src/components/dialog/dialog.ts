@@ -1,11 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { BBox, DynamicContext, ElementID, SelectWidgetOption } from 'ag-charts-core';
+import type { BBox, DynamicContext, ElementID, InputWidgetType, SelectWidgetOption } from 'ag-charts-core';
 import {
     CheckboxWidget,
     Color,
     ContainerWidget,
     IconWidget,
     InputButtonWidget,
+    InputWidget,
     LabelWidget,
     type Point,
     RadioGroupWidget,
@@ -38,6 +39,19 @@ interface SelectOptions {
     label: string;
     options: SelectWidgetOption[];
     value: string;
+    onChange: (value: string, event: Event) => void;
+}
+
+interface InputOptions {
+    /** Already translated, as it is built from more than one locale string. */
+    ariaLabel: string;
+    type: InputWidgetType;
+    value: string;
+    /** The granularity of a `datetime-local` input, in seconds. */
+    step?: number;
+    /** The id of the datalist the input suggests from. */
+    list?: ElementID;
+    /** Called when the user commits a value; a `datetime-local` input may commit a value that has not changed. */
     onChange: (value: string, event: Event) => void;
 }
 
@@ -233,6 +247,27 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         group.addChild(select);
 
         return group;
+    }
+
+    /** A labelled row of inputs, for values that belong together such as the x and y of one point. */
+    protected createInputRow(label: string, inputs: Widget[]) {
+        const group = this.createInputGroup(label);
+        group.addClass('ag-charts-dialog__input-group--inputs');
+        for (const input of inputs) {
+            group.addChild(input);
+        }
+        return group;
+    }
+
+    protected createInput({ ariaLabel, type, value, step, onChange, list }: InputOptions) {
+        const input = new InputWidget(type, 'ag-charts-dialog__input');
+        if (step != null) input.setStep(step);
+        input.value = value;
+        input.addCommitListener((event) => onChange(input.value, event));
+        input.setAriaLabel(ariaLabel);
+        input.setTitle(ariaLabel);
+        input.setList(list);
+        return input;
     }
 
     protected createTextArea({ placeholder, value, onChange }: TextAreaOptions) {

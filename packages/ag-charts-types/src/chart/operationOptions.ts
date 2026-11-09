@@ -26,7 +26,7 @@ type ExcludeLeaves = string | symbol | number | boolean | undefined | AgGradient
  */
 type ExtendLiteralLeaves<T, V, E> = {
     [P in keyof T]: NonNullable<T[P]> extends Array<infer U>
-        ? U extends E
+        ? [U] extends [E]
             ? Array<U> | Array<V> | V
             : ExtendLiteralLeavesInner<T, V, E, P>
         : ExtendLiteralLeavesInner<T, V, E, P>;
@@ -78,6 +78,8 @@ type PaletteParam =
     | 'fillFallback'
     | 'strokes'
     | 'stroke'
+    | 'markerShapes'
+    | 'markerShape'
     | 'gradients'
     | 'gradient'
     | 'sequentialColors'

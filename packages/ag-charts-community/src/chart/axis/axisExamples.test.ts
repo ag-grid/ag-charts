@@ -15,7 +15,6 @@ import {
     clickLegendItem,
     compareImageSnapshot,
     createChart,
-    expectWarningsCalls,
     hoverAction,
     repeat,
     reverseAxes,
@@ -219,24 +218,6 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
             }),
         },
     }),
-};
-
-const EXAMPLES_LAYOUT: Record<string, TestCase> = {
-    COMBO_SERIES_COMPLEX_LAYOUT: {
-        options: axesExamples.COMBO_SERIES_COMPLEX_LAYOUT,
-        assertions: cartesianChartAssertions({
-            axisTypes: {
-                x: 'category',
-                y: 'number',
-                __AXIS_ID_2: 'number',
-                __AXIS_ID_3: 'number',
-                __AXIS_ID_4: 'number',
-                __AXIS_ID_5: 'number',
-                __AXIS_ID_6: 'number',
-            },
-            seriesTypes: ['bar', 'bar', 'line'],
-        }),
-    },
 };
 
 const EXAMPLES_LABEL_TEXT_ALIGN: Record<string, TestCase> = {
@@ -557,33 +538,6 @@ describe('Axis Examples', () => {
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
                 chart = await createChart(example.options);
                 await compare();
-            });
-        }
-    });
-
-    describe('complex layout cases', () => {
-        afterEach(() => {
-            expectWarningsCalls().toEqual(
-                ['yStart1', 'yStart2', 'yEnd1', 'yEnd2'].map((key) => [
-                    expect.stringContaining(`\`axes.${key}\` is not used by any series.`),
-                ])
-            );
-        });
-
-        for (const [exampleName, example] of Object.entries(EXAMPLES_LAYOUT)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = await createChart(example.options);
-                await example.assertions(chart);
-            });
-
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = await createChart(example.options);
-                await compare();
-
-                if (example.extraScreenshotActions) {
-                    await example.extraScreenshotActions(chart);
-                    await compare();
-                }
             });
         }
     });

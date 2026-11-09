@@ -346,6 +346,105 @@ describe('Annotation datum lifecycle', () => {
         });
     });
 
+    describe('toggle overlays from the options toolbar', () => {
+        const body = () => deproxy(chart).ctx.agDocument.body;
+        const isOpen = (selector: string) => body().querySelector(selector) != null;
+
+        async function select(annotation: AgAnnotation, at: { x: Date; y: number }) {
+            await prepareChart([annotation]);
+            const point = toCanvas(at.x, at.y);
+            await hoverAction(point.x, point.y)(chart);
+            await clickAction(point.x, point.y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        function getButton(title: string) {
+            const button = body().querySelector<HTMLElement>(`button[title="${title}"]`);
+            expect(button).not.toBeNull();
+            return button!;
+        }
+
+        function pointerDown(title: string, button = 0) {
+            const element = getButton(title);
+            element.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button }));
+            element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button }));
+        }
+
+        async function press(title: string) {
+            pointerDown(title);
+            getButton(title).click();
+            await waitForChartStability(chart);
+        }
+
+        async function pressEnter(title: string) {
+            getButton(title).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+            await waitForChartStability(chart);
+        }
+
+        const MENU = '.ag-charts-menu__row';
+        const COLOR_PICKER = '.ag-charts-color-picker';
+        const DIALOG = '.ag-charts-dialog';
+        const LINE = MINIMAL_ANNOTATIONS['horizontal-line'] as AgAnnotation;
+        const COMMENT = MINIMAL_ANNOTATIONS.comment as AgAnnotation;
+        const MID = { x: new Date('2024-06-01'), y: 50 };
+
+        it.each([
+            ['Line Style', LINE, MENU],
+            ['Line Stroke Width', LINE, MENU],
+            ['Line Color', LINE, COLOR_PICKER],
+            ['Settings', LINE, DIALOG],
+            ['Text Size', COMMENT, MENU],
+            ['Text Color', COMMENT, COLOR_PICKER],
+            ['Fill Color', COMMENT, COLOR_PICKER],
+        ])('%s opens on the first press and closes on the second', async (title, annotation, overlay) => {
+            await select(annotation, MID);
+
+            await press(title);
+            expect(isOpen(overlay)).toBe(true);
+            await press(title);
+            expect(isOpen(overlay)).toBe(false);
+            await press(title);
+            expect(isOpen(overlay)).toBe(true);
+        });
+
+        it('swaps the colour picker when a different colour button is pressed', async () => {
+            await select(COMMENT, MID);
+
+            await press('Text Color');
+            await press('Fill Color');
+            expect(isOpen(COLOR_PICKER)).toBe(true);
+            await press('Fill Color');
+            expect(isOpen(COLOR_PICKER)).toBe(false);
+        });
+
+        it.each([
+            ['a primary press released off the button', 0],
+            ['a secondary press', 2],
+        ])('opens a menu from the keyboard after %s closed it', async (_, mouseButton) => {
+            await select(LINE, MID);
+
+            await press('Line Stroke Width');
+            pointerDown('Line Stroke Width', mouseButton);
+            await waitForChartStability(chart);
+            expect(isOpen(MENU)).toBe(false);
+
+            await pressEnter('Line Stroke Width');
+            expect(isOpen(MENU)).toBe(true);
+        });
+
+        it('opens a menu again after it was closed by picking an item', async () => {
+            await select(LINE, MID);
+
+            await press('Line Stroke Width');
+            body().querySelector<HTMLElement>(MENU)!.click();
+            await waitForChartStability(chart);
+            expect(isOpen(MENU)).toBe(false);
+
+            await press('Line Stroke Width');
+            expect(isOpen(MENU)).toBe(true);
+        });
+    });
+
     describe('toolbar drawing', () => {
         async function chooseTool(group: string, tool: string) {
             const body = deproxy(chart).ctx.agDocument.body;

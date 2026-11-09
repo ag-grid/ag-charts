@@ -15,6 +15,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     type SceneFrameInvariant,
     type SceneGeometrySample,
     compareImageSnapshot,
@@ -664,6 +665,7 @@ describe('RadialBarSeries', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart<O>({
                     data,
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     legend: { position: 'left' },
                     series: [
                         {

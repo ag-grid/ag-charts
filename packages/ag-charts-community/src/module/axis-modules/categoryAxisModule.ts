@@ -35,6 +35,7 @@ export const CategoryAxisModule: AxisModuleDefinition<
         {
             groupPaddingInner: 0.1,
             maxThicknessRatio: 0.3,
+            spacing: 15,
             label: { autoRotate: true, wrapping: 'on-space' },
             gridLine: { enabled: false },
             interval: { placement: 'between' },

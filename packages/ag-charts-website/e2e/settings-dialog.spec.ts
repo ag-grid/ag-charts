@@ -42,6 +42,7 @@ test.describe('settings dialog', () => {
         await openTrendLineSettings(page, url);
         const lineTab = page.getByRole('tab', { name: 'Line' });
         const textTab = page.getByRole('tab', { name: 'Text' });
+        const coordinatesTab = page.getByRole('tab', { name: 'Coordinates' });
 
         await expect(lineTab).toBeFocused();
 
@@ -50,8 +51,12 @@ test.describe('settings dialog', () => {
         await expect(lineTab).toHaveAttribute('aria-selected', 'true');
 
         await page.keyboard.press('ArrowRight');
-        await expect(textTab).toBeFocused();
+        await expect(coordinatesTab).toBeFocused();
+        await page.keyboard.press('ArrowRight');
+        await expect(coordinatesTab).toBeFocused();
 
+        await page.keyboard.press('ArrowLeft');
+        await expect(textTab).toBeFocused();
         await page.keyboard.press('Enter');
         await expect(textTab).toHaveAttribute('aria-selected', 'true');
         await expect(lineTab).toHaveAttribute('aria-selected', 'false');

@@ -59,6 +59,7 @@ export type BaseAttributeTypeMap = {
 };
 
 type InputAttributeTypeMap = BaseAttributeTypeMap & {
+    list: ElementID;
     placeholder: string;
 };
 
@@ -98,6 +99,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     id: stringParser<ElementID>,
     tabindex: numberParser<0 | -1>,
     title: stringParser,
+    list: stringParser<ElementID>,
     placeholder: stringParser,
 };
 
@@ -123,7 +125,7 @@ export function setAttribute<A extends keyof BaseAttributeTypeMap>(
 ): void;
 
 export function setAttribute<A extends keyof InputAttributeTypeMap>(
-    e: Nullable<HTMLTextAreaElement>,
+    e: Nullable<HTMLInputElement | HTMLTextAreaElement>,
     qualifiedName: A,
     value: InputAttributeTypeMap[A] | undefined
 ): void;

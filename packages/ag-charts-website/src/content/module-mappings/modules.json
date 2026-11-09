@@ -24,6 +24,12 @@
                     "path": "axes-types/#log-axis"
                 },
                 {
+                    "moduleName": "InsetNumberAxisModule",
+                    "name": "Inset Number Axis",
+                    "path": "axes-types/#inset-number-axis",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "TimeAxisModule",
                     "name": "Time Axis",
                     "path": "axes-time"

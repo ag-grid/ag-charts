@@ -8,7 +8,7 @@ import type {
     SeriesChangeType,
     Size,
 } from 'ag-charts-core';
-import { ChartAxisDirection, ContinuousScale, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
+import { ChartAxisDirection, clampArray, entries, findMinMax, fromPairs, groupBy } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgChartOptions,
@@ -20,8 +20,6 @@ import type {
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import { CartesianAxis } from './axis/cartesianAxis';
-import { CategoryAxis } from './axis/categoryAxis';
-import { NumberAxis } from './axis/numberAxis';
 import { stackCartesianSeries } from './cartesianUtil';
 import { CartesianChartAxes, ChartAxes } from './chartAxes';
 import { ChartAxesComponent } from './chartAxesComponent';
@@ -65,8 +63,6 @@ export class CartesianChartType implements ChartTypeInstance {
     static readonly type = 'cartesian' as const;
     readonly type = CartesianChartType.type;
 
-    private static readonly AxesPadding = 15; // TODO should come from theme
-
     private readonly axesComponent: ChartAxesComponent<CartesianChartAxes>;
 
     private lastAreaWidths?: AreaWidthMap;
@@ -98,12 +94,7 @@ export class CartesianChartType implements ChartTypeInstance {
     private onAxisChange(newValue: CartesianAxis[], oldValue: CartesianAxis[] | undefined) {
         this.syncAxisChanges(newValue, oldValue);
 
-        this.ctx.zoomManager?.setAxes(
-            newValue.filter((axis) => {
-                const { ignoreZoom, linkZoom } = axis.options as { ignoreZoom?: boolean; linkZoom?: string };
-                return !ignoreZoom && linkZoom == null;
-            })
-        );
+        this.ctx.zoomManager?.setAxes(newValue.filter((axis) => axis.zoomable));
     }
 
     applyAxisOptions(
@@ -252,9 +243,62 @@ export class CartesianChartType implements ChartTypeInstance {
         const { seriesRoot, annotationRoot } = this.host;
         seriesRoot.setClipRect(clipRect);
         annotationRoot.setClipRect(clipRect);
+        this.applySeriesBandClips();
     }
 
     private lastUpdateClipRect: BBox | undefined = undefined;
+
+    private seriesBands = new Map<object, BBox>();
+    private bandClippedSeries = new Set<object>();
+
+    private updateSeriesBands(seriesRect: BBox, seriesPaddedRect: BBox, enableClip: boolean) {
+        const bands = new Map<object, BBox>();
+        for (const axis of this.axes) {
+            if (axis.lengthRatio == null || axis.lineRange == null) continue;
+
+            const isHorizontal = axis.position === 'top' || axis.position === 'bottom';
+            const [rectStart, rectLength, paddedStart, paddedLength] = isHorizontal
+                ? [seriesRect.x, seriesRect.width, seriesPaddedRect.x, seriesPaddedRect.width]
+                : [seriesRect.y, seriesRect.height, seriesPaddedRect.y, seriesPaddedRect.height];
+            const [bandStart, bandEnd] = findMinMax(axis.lineRange);
+            // Band ends on the series area edge keep the series area padding, as the root clip does.
+            const start = bandStart <= 0 ? paddedStart : rectStart + bandStart;
+            const end = bandEnd >= rectLength - 1e-6 ? paddedStart + paddedLength : rectStart + bandEnd;
+            for (const series of axis.boundSeries) {
+                // Bands clip with the series area, but a profile tiles half a step past its outer levels so always clips.
+                if (!enableClip && !series.isProfile?.()) continue;
+                const band = bands.get(series) ?? seriesPaddedRect.clone();
+                if (isHorizontal) {
+                    band.x = start;
+                    band.width = end - start;
+                } else {
+                    band.y = start;
+                    band.height = end - start;
+                }
+                bands.set(series, band);
+            }
+        }
+        for (const series of this.series) {
+            series.interactionBand = bands.get(series);
+        }
+        this.seriesBands = bands;
+    }
+
+    // Applied alongside the root clip so it tracks the animated series-root translation.
+    private applySeriesBandClips() {
+        const { seriesBands, bandClippedSeries } = this;
+        if (seriesBands.size === 0 && bandClippedSeries.size === 0) return;
+
+        for (const series of this.series) {
+            const band = seriesBands.get(series);
+            if (band == null && !bandClippedSeries.has(series)) continue;
+
+            for (const group of series.getRenderGroups()) {
+                group.setClipRect(band);
+            }
+        }
+        this.bandClippedSeries = new Set(seriesBands.keys());
+    }
 
     beforeProcessData() {
         const { series } = this;
@@ -335,6 +379,7 @@ export class CartesianChartType implements ChartTypeInstance {
         const alwaysClip = this.series.some((s) => s.alwaysClip);
         const enableClip = alwaysClip || (seriesArea.clip ?? false) || clipSeries;
         const clipRect = enableClip ? seriesPaddedRect : undefined;
+        this.updateSeriesBands(seriesRect, seriesPaddedRect, enableClip);
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
 
@@ -522,10 +567,7 @@ export class CartesianChartType implements ChartTypeInstance {
 
                 const axisThickness = axisWidths.get(axis.id) ?? 0;
                 totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
-                if (axis.layoutConstraints.stacked) {
-                    // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
-                    currentOffset += axisThickness + CartesianChartType.AxesPadding;
-                }
+                currentOffset += axisThickness + axis.options.spacing;
             }
 
             // The inset sits between the innermost axis and the series area, so it widens the area after the axes.
@@ -710,36 +752,31 @@ export class CartesianChartType implements ChartTypeInstance {
     }
 
     private sizeAxis(axis: CartesianAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
-        const isNumberAxis = axis instanceof NumberAxis; // Number, log axis
+        const isNumberAxis = axis.scale.type === 'number' || axis.scale.type === 'log';
         const isLeftRight = position === 'left' || position === 'right';
 
         const { width, height } = seriesRect;
-        const maxEnd = isLeftRight ? height : width;
+        const fullLength = isLeftRight ? height : width;
+        const [bandStart, bandEnd] = this.axisBand(axis, position).map((ratio) => ratio * fullLength);
+        const bandLength = bandEnd - bandStart;
 
-        let start = 0;
-        let end = maxEnd;
         // Per-axis zoom is axis-local — secondary axes in independent-axes mode diverge from their
         // direction primary. Read directly from the axis rather than the central chart state.
         let { min, max } = axis.getZoom();
 
         const { width: axisWidth, unit, align } = axis.layoutConstraints;
+        const size = unit === 'px' ? axisWidth : (bandLength * axisWidth) / 100;
 
-        if (unit === 'px') {
-            end = start + axisWidth;
-        } else {
-            end = (end * axisWidth) / 100;
-        }
-
-        const size = end - start;
+        let start = bandStart;
+        let end = bandStart + size;
         if (align === 'end') {
-            start = maxEnd - size;
-            end = maxEnd;
+            start = bandEnd - size;
+            end = bandEnd;
         } else if (align === 'center') {
-            const center = start + (maxEnd - start) / 2;
-            start = center - size / 2;
-            end = center + size / 2;
+            start = bandStart + (bandLength - size) / 2;
+            end = start + size;
         } else if (align === 'justify') {
-            end = maxEnd;
+            end = bandEnd;
         }
 
         if (isLeftRight) {
@@ -751,32 +788,19 @@ export class CartesianChartType implements ChartTypeInstance {
         }
 
         axis.range = [start, end];
-        axis.visibleRange = this.linkedVisibleRange(axis, start, end) ?? [min, max];
+        axis.visibleRange = [min, max];
         axis.gridLength = isLeftRight ? width : height;
-        axis.lineRange = isLeftRight ? [height, 0] : [0, width];
+        axis.lineRange = isLeftRight ? [bandEnd, bandStart] : [bandStart, bandEnd];
     }
 
-    // Centres each band of a `linkZoom` category axis on its category's value in the linked axis' scale,
-    // which already carries that axis' zoom. The linked axis must be laid out earlier in the same pass.
-    private linkedVisibleRange(axis: CartesianAxis, r0: number, r1: number): [number, number] | undefined {
-        const { linkZoom } = axis.options as { linkZoom?: string };
-        if (linkZoom == null || !CategoryAxis.is(axis)) return;
+    /** The part of the series area length the axis is laid out in, as `[start, end]` ratios. */
+    private axisBand(axis: CartesianAxis, position: AgCartesianAxisPosition): [number, number] {
+        const { lengthRatio } = axis;
+        if (lengthRatio == null) return [0, 1];
 
-        const axisIndex = this.axes.indexOf(axis);
-        const linked = this.axes.find((a, index) => index < axisIndex && a.userKey === linkZoom);
-        const { domain } = axis.dataDomain;
-        if (linked == null || !ContinuousScale.is(linked.scale) || domain.length < 2) return;
-
-        const first = linked.scale.convert(domain[0]);
-        const last = linked.scale.convert(domain.at(-1));
-        const step = (last - first) / (domain.length - 1);
-        if (!Number.isFinite(step) || step <= 0) return;
-
-        const { paddingInner = axis.scale.paddingInner, paddingOuter = axis.scale.paddingOuter } = axis.options;
-        const start = first - step * (paddingOuter + (1 - paddingInner) / 2);
-        const span = step * (domain.length - paddingInner + 2 * paddingOuter);
-        const min = (r0 - start) / span;
-        return [min, min + (r1 - r0) / span];
+        const isNumberAxis = axis.scale.type === 'number' || axis.scale.type === 'log';
+        const minAtEnd = (position === 'left' || position === 'right') && isNumberAxis;
+        return minAtEnd === axis.options.reverse ? [0, lengthRatio] : [1 - lengthRatio, 1];
     }
 
     private positionAxes(opts: {

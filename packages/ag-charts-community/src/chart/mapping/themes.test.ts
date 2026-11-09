@@ -16,7 +16,7 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { VERSION } from '../../version';
 import { sanitizeThemeModules } from '../factory/processModuleOptions';
-import { setAgChartsDebug } from '../test/seriesAccessors';
+import { getSeriesOptions, setAgChartsDebug } from '../test/seriesAccessors';
 import {
     deproxy,
     expectWarningsCalls,
@@ -260,6 +260,19 @@ describe('themes.ts', () => {
             `);
         });
 
+        it.each([
+            { markerShapes: ['blob'], warns: true },
+            { markerShapes: ['square'], warns: false },
+        ])('validates palette.markerShapes $markerShapes', async ({ markerShapes, warns }) => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: { palette: { markerShapes } as unknown as AgChartThemePalette },
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual(warns ? [[expect.stringContaining('theme.palette.markerShapes')]] : []);
+        });
+
         it('accepts theme operators in overrides only', async () => {
             const chart = AgCharts.create({
                 ...opts,
@@ -319,6 +332,46 @@ describe('themes.ts', () => {
 
             expectWarningsCalls().toEqual([]);
         });
+    });
+
+    describe('built-in themes marker shapes', () => {
+        setupMockConsole();
+        setupMockCanvas();
+
+        it.each(Object.keys(themes) as AgChartThemeName[])('%s defaults palette.markerShapes to circle', (name) => {
+            expect(themes[name]?.().palette.markerShapes).toEqual(['circle']);
+        });
+
+        it.each(['ag-default', 'ag-vivid-dark'] as AgChartThemeName[])(
+            '%s resolves circle for every marker series',
+            async (baseTheme) => {
+                const data = [
+                    { x: 1, y: 2, s: 3 },
+                    { x: 2, y: 4, s: 5 },
+                ];
+                const chart = AgCharts.create({
+                    ...prepareTestOptions({}),
+                    theme: baseTheme,
+                    data,
+                    series: (['line', 'area', 'scatter', 'bubble'] as const).map((type) => ({
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        ...(type === 'bubble' ? { sizeKey: 's' } : {}),
+                    })),
+                } as AgChartOptions);
+                await waitForChartStability(chart);
+
+                const shapes = [0, 1, 2, 3].map((i) => {
+                    const { marker, shape } = getSeriesOptions<{ marker?: { shape?: unknown }; shape?: unknown }>(
+                        chart,
+                        i
+                    );
+                    return marker?.shape ?? shape;
+                });
+                expect(shapes).toEqual(['circle', 'circle', 'circle', 'circle']);
+            }
+        );
     });
 
     describe('theme caching across repeat chart creates', () => {

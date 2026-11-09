@@ -353,7 +353,8 @@ describe('cartesian series shadow root', () => {
             // of the area's fill, which is translucent while it is dimmed, depends on whether it falls beneath or over it.
             const dimmed = (shadow: AgDropShadowOptions): AgCartesianChartOptions => ({
                 ...areas,
-                highlight: { drawingMode: 'cutout' },
+                highlight: { drawingMode: 'cutout', mode: 'single' },
+                tooltip: { mode: 'shared' },
                 series: [
                     {
                         type: 'area',
@@ -574,7 +575,8 @@ describe('cartesian series shadow root', () => {
         const lines = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
             data,
             axes: AXES,
-            highlight: { drawingMode: 'cutout' },
+            highlight: { drawingMode: 'cutout', mode: 'single' },
+            tooltip: { mode: 'shared' },
             series: [
                 { type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 0, marker: { enabled: true, ...square } },
                 {

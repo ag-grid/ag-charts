@@ -327,6 +327,7 @@ export class ChartTheme {
             mergeDefaults(palette, {
                 fills: Object.values(fills),
                 strokes: Object.values(strokes),
+                markerShapes: ['circle'],
                 sequentialColors: Object.values(sequentialColors),
                 ...otherColors,
             })

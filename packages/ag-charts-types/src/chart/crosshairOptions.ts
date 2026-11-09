@@ -3,10 +3,15 @@ import type { Formatter, Renderer } from './callbackOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { ContextDefault, CssColor, Opacity, PixelSize } from './types';
 
+/** Whether the crosshair snaps to every value in `crosshairSnapTo`, or only the one nearest the pointer. */
+export type AgCrosshairSnapMode = 'all' | 'nearest';
+
 export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, ContextDefault>> {
     /** Whether to show the crosshair. */
     enabled?: boolean;
-    /** When true, the crosshair snaps to the highlighted data point. By default this property is true. */
+    /**
+     * Whether the crosshair snaps to the highlighted data point. When unset, the crosshair snaps if the highlighted series has a single value on this axis or a `crosshairSnapTo` list, and follows the pointer otherwise.
+     */
     snap?: boolean;
     /** The colour of the stroke for the lines. A colour string, or a theme-colour reference object. */
     stroke?: AgCssColorOrRef;

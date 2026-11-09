@@ -303,7 +303,10 @@ export function validate<T>(
                 if (validatorResult.valid) {
                     cleared[key as keyof T] = validatorResult.cleared as any;
                     continue;
-                } else if (hasRequiredInPath(validatorResult.invalid, keyPath)) {
+                } else if (
+                    hasRequiredInPath(validatorResult.invalid, keyPath) ||
+                    hasErrorAtPath(validatorResult.invalid, keyPath)
+                ) {
                     continue;
                 }
             } else if (validatorResult) {
@@ -801,6 +804,27 @@ export const arrayOf = (validator: Validator, description?: string, strict: bool
     );
 
 /**
+ * Creates a validator for a `crosshairSnapTo` list: unknown names are reported individually and dropped, while valid
+ * names are kept.
+ * @param values The value names the series type supports.
+ */
+export const crosshairSnapToValidator = (values: readonly string[]) => {
+    const description = `one of ["${values.join('", "')}"]`;
+    return arrayOf(
+        attachDescription((value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
+            if (typeof value === 'string' && values.includes(value)) return true;
+            return {
+                valid: false,
+                cleared: null,
+                invalid: [new ValidationError(ErrorType.Invalid, description, value, context.path)],
+            };
+        }, description),
+        `an array of crosshair snap values: ["${values.join('", "')}"]`,
+        false
+    );
+};
+
+/**
  * Creates a validator for arrays where each element is validated against a given set of definitions.
  * Allows capturing both valid and invalid values while providing detailed validation errors.
  * @param defs The validation definitions to apply to each array element.
@@ -909,6 +933,12 @@ export const callbackDefs = <T>(
 
 export function hasRequiredInPath(errors: ValidationError[], rootPath: string) {
     return errors.some((error: ValidationError) => error.type === ErrorType.Required && error.path === rootPath);
+}
+
+function hasErrorAtPath(errors: ValidationError[], path: string) {
+    return errors.some(
+        ({ path: errorPath, key }) => (key == null || key === '' ? errorPath : extendPath(errorPath, key)) === path
+    );
 }
 
 function warnCallbackErrors(

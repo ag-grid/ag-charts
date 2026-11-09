@@ -1,5 +1,5 @@
 // @ag-skip-fws
-import type { AgCartesianAxisOptions, AgCartesianChartOptions } from 'ag-charts-enterprise';
+import type { AgCartesianChartOptions } from 'ag-charts-enterprise';
 import { AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import type { DatumType } from './data';
@@ -31,7 +31,7 @@ const options: AgCartesianChartOptions<DatumType> = {
     ],
     axes: {
         x: {
-            type: 'number' as AgCartesianAxisOptions['type'],
+            type: 'number' as 'number' | 'category',
         },
     },
 };
