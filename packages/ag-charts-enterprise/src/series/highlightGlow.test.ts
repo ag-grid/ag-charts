@@ -17,6 +17,7 @@ import {
     getSeriesOptions,
     getSeriesSelectionNodes,
     glowShadow,
+    itShadowsTheHoveredItem,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -1264,72 +1265,27 @@ describe('highlight glow (enterprise series)', () => {
             '$name',
             (testCase) => {
                 const copies = testCase.hoveredCopies ?? 1;
-                const isHighlightShadow = (shape: Shape) => shape.fillShadow?.fill === HIGHLIGHT_SHADOW.fill;
-
-                it('casts the shadow of the hovered item in place and none from its highlight copy', async () => {
-                    const { inPlace, highlighted } = await hoverItem(testCase, SHADOW, {
-                        highlightedItem: { shadow: HIGHLIGHT_SHADOW },
-                    });
-
-                    expect(warnings()).toEqual([]);
-                    const swapped = inPlace.filter(isHighlightShadow);
-                    expect(swapped).toHaveLength(copies);
-                    for (const shape of swapped) expect(shape.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
-                    for (const shape of inPlace.filter((item) => !isHighlightShadow(item))) {
-                        expect(shape.fillShadow).toMatchObject(SHADOW);
-                    }
-                    expect(highlighted.length).toBeGreaterThan(0);
-                    expect(highlighted.filter((shape) => shape.fillShadow?.enabled === true)).toHaveLength(0);
-                });
-
-                it('takes the fields that it leaves unset from the shadow of the series', async () => {
-                    const { inPlace } = await hoverItem(testCase, SHADOW, { highlightedItem: { shadow: { blur: 1 } } });
-
-                    const swapped = inPlace.filter((shape) => shape.fillShadow?.blur === 1);
-                    expect(swapped).toHaveLength(copies);
-                    for (const shape of swapped) {
-                        expect(shape.fillShadow).toMatchObject({ ...SHADOW, blur: 1, enabled: true });
-                    }
-                });
-
-                it('turns the shadow of the series off for the hovered item alone with enabled false', async () => {
-                    const { inPlace } = await hoverItem(testCase, SHADOW, {
-                        highlightedItem: { shadow: { enabled: false } },
-                    });
-
-                    expect(inPlace.filter((shape) => shape.fillShadow?.enabled !== true)).toHaveLength(copies);
-                    expect(inPlace.filter((shape) => shape.fillShadow?.enabled === true).length).toBeGreaterThan(0);
-                });
-
-                it('casts a shadow from the hovered item alone where the series has none', async () => {
-                    const { inPlace } = await hoverItem(testCase, undefined, { highlightedItem: { shadow: {} } });
-
-                    expect(inPlace.filter((shape) => shape.fillShadow?.enabled === true)).toHaveLength(copies);
-                });
-
-                it('casts a shadow and a glow from the hovered item together', async () => {
-                    const { inPlace, highlighted } = await hoverItem(testCase, SHADOW, {
-                        highlightedItem: { shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW },
-                    });
-
-                    expect(inPlace.filter(isHighlightShadow)).toHaveLength(copies);
-                    expect(highlighted.filter((shape) => shape.fillGlow?.enabled === true)).toHaveLength(copies);
-                });
-
-                it('moves the shadow from one hovered item to the next and ends it with the hover', async () => {
-                    await hoverItem(testCase, SHADOW, { highlightedItem: { shadow: HIGHLIGHT_SHADOW } });
-                    const next =
-                        testCase.hoverNext?.(chart) ??
-                        getSeriesNodeData<HighlightNodeDatum>(chart).find(
-                            (datum) => datum.datumIndex !== getSeriesNodeData<HighlightNodeDatum>(chart)[0].datumIndex
+                itShadowsTheHoveredItem({
+                    seriesShadow: SHADOW,
+                    copies,
+                    hover: (seriesShadow, highlightedItem) => hoverItem(testCase, seriesShadow, { highlightedItem }),
+                    series: () => getSeriesAt(chart),
+                    moveHover: async () => {
+                        raiseHighlight(
+                            testCase.hoverNext?.(chart) ??
+                                getSeriesNodeData<HighlightNodeDatum>(chart).find(
+                                    (datum) =>
+                                        datum.datumIndex !== getSeriesNodeData<HighlightNodeDatum>(chart)[0].datumIndex
+                                )
                         );
-                    raiseHighlight(next);
-                    await waitForChartStability(chart);
-                    expect(layersOf(testCase).inPlace.filter(isHighlightShadow)).toHaveLength(copies);
-
-                    raiseHighlight();
-                    await waitForChartStability(chart);
-                    expect(layersOf(testCase).inPlace.filter(isHighlightShadow)).toHaveLength(0);
+                        await waitForChartStability(chart);
+                        return layersOf(testCase).inPlace;
+                    },
+                    endHover: async () => {
+                        raiseHighlight();
+                        await waitForChartStability(chart);
+                        return layersOf(testCase).inPlace;
+                    },
                 });
             }
         );
