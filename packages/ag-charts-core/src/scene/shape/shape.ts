@@ -672,6 +672,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      */
     private castsOwnShadow(slot: ShadowSlot): boolean {
         if (slot === 'glow' && (this.__fillGlow == null || this.__drawingMode !== 'cutout')) return false;
+        // A group above the shadow root casts the glow of a cutout that is `inGroup`, as it would for any other shape.
+        if (slot === 'glow' && this.__fillGlow?.inGroup === true) return false;
 
         return shadowPass.state === 'none' && this.getCastShadow(slot) != null;
     }

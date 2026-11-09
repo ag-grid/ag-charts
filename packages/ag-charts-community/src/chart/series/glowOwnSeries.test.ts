@@ -1,0 +1,122 @@
+import { afterEach, describe, expect, it } from 'vitest';
+
+import { Transformable } from 'ag-charts-core';
+import type { AgChartOptions } from 'ag-charts-types';
+
+import type { HighlightNodeDatum } from '../../core/eventsHub';
+import type { Chart } from '../chart';
+import { Marker } from '../marker/marker';
+import { getLegendItemNodes, getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
+import { shapesOf } from '../test/shadowFixtures';
+import {
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+    createChart,
+    deproxy,
+    hoverAction,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
+
+const DATA = Array.from({ length: 30 }, (_, i) => ({ x: `P${i}`, y: 5 }));
+
+const STROKE = [255, 0, 0, 255];
+const GLOW = { enabled: true, fill: '#00ff00', fillOpacity: 1, spread: 14, blur: 0 };
+
+/** A series whose line and area fill are opaque, with a `marker.glow` for its other items when one is hovered. */
+const series = (type: 'line' | 'area', glow: object | undefined) => ({
+    type,
+    xKey: 'x',
+    yKey: 'y',
+    stroke: '#ff0000',
+    strokeWidth: 8,
+    ...(type === 'area' ? { fill: '#ff0000', fillOpacity: 1 } : undefined),
+    marker: { enabled: true, size: 16 },
+    highlight: { unhighlightedItem: { opacity: 1, strokeOpacity: 1, glow } },
+});
+
+describe('a highlight glow of the markers of a series', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    /** The pixels between two markers that are not hovered, on the line and in the area fill beneath it. */
+    const hover = async (type: 'line' | 'area', glow: object | undefined) => {
+        chart = deproxy(
+            await createChart({
+                data: DATA,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+                series: [series(type, glow)],
+            } as AgChartOptions)
+        );
+        await waitForChartStability(chart);
+        chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
+        await waitForChartStability(chart);
+
+        const [a, b] = shapesOf(getSeriesAt(chart).contentGroup, Marker).slice(14, 16);
+        const from = Transformable.toCanvas(a).computeCenter();
+        const to = Transformable.toCanvas(b).computeCenter();
+        const x = Math.round((from.x + to.x) / 2);
+        const pixelAt = (px: number, py: number) => [
+            ...chart.ctx.scene.canvas.context.getImageData(px, Math.round(py), 1, 1).data,
+        ];
+        return { line: pixelAt(x, from.y), fill: pixelAt(x, from.y + 14), beside: pixelAt(x, from.y - 14) };
+    };
+
+    // A marker with a shadow is a caster of the root, and its glow must still reach the group that casts it.
+    it.each(['overlay', 'cutout'] as const)(
+        'casts the glow of a marker that also casts a shadow (%s)',
+        async (mode) => {
+            chart = deproxy(
+                await createChart({
+                    data: DATA,
+                    animation: { enabled: false },
+                    legend: { enabled: true, position: 'bottom' },
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+                    highlight: { ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP.highlight, drawingMode: mode },
+                    series: [
+                        {
+                            ...series('line', undefined),
+                            marker: {
+                                enabled: true,
+                                size: 16,
+                                shadow: { enabled: true, xOffset: 2, yOffset: 2, blur: 2 },
+                            },
+                            highlight: { highlightedSeries: { glow: GLOW } },
+                        },
+                    ],
+                } as AgChartOptions)
+            );
+            await waitForChartStability(chart);
+            const { x, y } = Transformable.toCanvas(getLegendItemNodes(chart)[0]).computeCenter();
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            const { width, height } = chart.ctx.scene.canvas;
+            const { data } = chart.ctx.scene.canvas.context.getImageData(0, 0, width, height);
+            let glowPixels = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i] === 0 && data[i + 1] === 255 && data[i + 2] === 0 && data[i + 3] === 255) glowPixels++;
+            }
+            expect(glowPixels).toBeGreaterThan(0);
+        }
+    );
+
+    it.each(['line', 'area'] as const)('does not cover the line or the fill of its own series (%s)', async (type) => {
+        const without = await hover(type, undefined);
+        chart.destroy();
+        const withGlow = await hover(type, GLOW);
+
+        // The glow reaches this far, past the line, where nothing else of the series is drawn.
+        expect(withGlow.beside).toEqual([0, 255, 0, 255]);
+        expect(withGlow.line).toEqual(STROKE);
+        expect(withGlow.line).toEqual(without.line);
+        if (type === 'area') expect(withGlow.fill).toEqual(STROKE);
+    });
+});

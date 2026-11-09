@@ -487,7 +487,7 @@ describe('Shadow root', () => {
         });
     });
 
-    describe('a glow cast in the group', () => {
+    describe('a glow cast in the group of its series', () => {
         const GLOW = {
             enabled: true,
             fill: 'rgba(0, 0, 255, 0.5)',
@@ -498,60 +498,72 @@ describe('Shadow root', () => {
         };
         const IN_GROUP = { ...GLOW, inGroup: true as const };
 
-        // The glow lands below its square, over where `lower` draws its own square, which is drawn before it.
-        const series = (glow: typeof GLOW, withSibling = false) => {
-            const lower = group('shared', [square(120, 110)], { zIndex: 1 });
-            const caster = square(120, 40, { fillGlow: glow });
-            const upper = group('shared', withSibling ? [caster, square(120, 110)] : [caster], { zIndex: 2 });
-            return [lower, upper];
+        // A series is a group of `shared` groups. Its glow lands below its caster, over where `other` draws a square.
+        const hub = (children: readonly Node[]) => {
+            const node = new Group({ name: 'series', castsGroupGlows: true });
+            for (const child of children) node.appendChild(child);
+            return node;
         };
+        const caster = (glow: typeof GLOW) => square(120, 40, { fillGlow: glow });
+        const other = () => hub([group('shared', [square(120, 110)])]);
 
-        it('should draw beneath the items of an earlier group when the root casts it', () => {
-            const scene = draw(true, () => series(GLOW));
+        it('should draw beneath the items of an earlier series when the root casts it', () => {
+            const scene = draw(true, () => [other(), group('shared', [caster(GLOW)], { zIndex: 2 })]);
 
             expect(at(scene, 150, 130)).toEqual(BLACK);
         });
 
-        it('should draw over the items of an earlier group when its group casts it', () => {
-            const scene = draw(true, () => series(IN_GROUP));
+        it.each([true, false])('should draw over the items of an earlier series, with a root %s', (root) => {
+            const scene = draw(root, () => [other(), hub([group('shared', [caster(IN_GROUP)])])]);
 
             const [r, g, b] = at(scene, 150, 130);
-            expect(isHalf(at(scene, 150, 105), [0, 0, 255])).toBe(true);
             expect([r, g]).toEqual([0, 0]);
             expect(b).toBeGreaterThan(0);
         });
 
-        it('should draw beneath the items of its own group', () => {
-            const scene = draw(true, () => series(IN_GROUP, true));
-
-            expect(at(scene, 150, 130)).toEqual(BLACK);
-        });
-
-        // With a shadow in another group, the root casts for the group; without, it casts nothing, and the group batches.
+        // Whichever of its groups the item is in, and whichever draws first, no group draws a glow over a sibling's item.
         it.each([
-            { name: 'before the caster, in a covered group', bystanderFirst: true, covered: true },
-            { name: 'after the caster, in a covered group', bystanderFirst: false, covered: true },
-            { name: 'before the caster, in a group the root does not cover', bystanderFirst: true, covered: false },
-            { name: 'after the caster, in a group the root does not cover', bystanderFirst: false, covered: false },
-        ])('should draw beneath an item of its group that casts no glow, $name', ({ bystanderFirst, covered }) => {
-            // Children draw in the order they were made.
-            const makeCaster = () => square(120, 40, { fillGlow: IN_GROUP });
-            const makeBystander = () => square(120, 110);
-            const children = bystanderFirst ? [makeBystander(), makeCaster()] : [makeCaster(), makeBystander()];
+            { name: 'in an earlier group', groups: (c: Node, b: Node) => [group('shared', [c]), group('shared', [b])] },
+            { name: 'in a later group', groups: (c: Node, b: Node) => [group('shared', [b]), group('shared', [c])] },
+            { name: 'in its own group, after it', groups: (c: Node, b: Node) => [group('shared', [c, b])] },
+            { name: 'in its own group, before it', groups: (c: Node, b: Node) => [group('shared', [b, c])] },
+        ])('should draw beneath an item of its series that casts no glow, $name', ({ groups }) => {
             const scene = draw(true, () => [
-                group('shared', children),
-                ...(covered ? [group('shared', [square(300, 10, { fillShadow: RED_HALF })])] : []),
+                hub(groups(caster(IN_GROUP), square(120, 110))),
+                group('shared', [square(300, 10, { fillShadow: RED_HALF })]),
             ]);
 
+            expect(isHalf(at(scene, 150, 105), [0, 0, 255])).toBe(true);
             expect(at(scene, 150, 130)).toEqual(BLACK);
         });
 
-        it('should draw as a group of its own does, when no root covers it', () => {
-            const scene = draw(false, () => series(IN_GROUP));
+        it('should cast the glow of a cutout, beside its shadow', () => {
+            const cutout = square(120, 40, { fillGlow: IN_GROUP, fillShadow: RED_HALF, drawingMode: 'cutout' });
+            const scene = draw(true, () => [hub([group('shared', [cutout])])]);
 
-            const [r, g, b] = at(scene, 150, 130);
-            expect([r, g]).toEqual([0, 0]);
-            expect(b).toBeGreaterThan(0);
+            // Below the cutout, past its shadow's offset and the cutout's own footprint.
+            expect(at(scene, 150, 130)[3]).toBeGreaterThan(0);
+        });
+
+        it('should blit the glow of an unchanged series on a repaint, rather than blur it again', () => {
+            const item = new TestRect();
+            Object.assign(item, { x: 120, y: 40, width: 60, height: 60, fillGlow: IN_GROUP });
+            const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+            const series = hub([group('shared', [item])]);
+            root.appendChild(series);
+            const scene = newScene(root);
+            const redraw = () => {
+                masked = [];
+                series.markDirty();
+                scene.render();
+                return masked.length;
+            };
+            scene.render();
+
+            // The second cast is the first to be kept, and the next ones blit it.
+            expect(redraw()).toBeGreaterThan(0);
+            expect(redraw()).toBe(0);
+            expect(redraw()).toBe(0);
         });
     });
 

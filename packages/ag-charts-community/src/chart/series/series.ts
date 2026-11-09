@@ -305,6 +305,7 @@ export abstract class Series<
         name: `${this.internalId}-content`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
         batchShadows: true,
+        castsGroupGlows: true,
     });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -1090,7 +1091,7 @@ export abstract class Series<
         if (glow === undefined) {
             glow =
                 glowToShadow(mergeGlow({ glow: this.getHighlightGlow(highlightState) }, { glow: seriesGlow })) ?? null;
-            // The glow of the highlighted series is cast in its own group, which is on top, rather than beneath every series.
+            // The glow of the highlighted series is cast beneath its own items, which sit above the other series.
             if (
                 glow != null &&
                 (highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem)
@@ -1151,12 +1152,9 @@ export abstract class Series<
 
     /**
      * The glow to cast in the glow slot of one copy of an item, from the `glow` of its highlight state over the
-     * series-level `seriesGlow`. In place, that is the glow of an item in no highlight, or of `OtherSeries`, which the base pass
-     * casts behind every series, else of the state: the glow of `Series` and `OtherItem` is cast in the group of the series,
-     * see {@link getCascadedGlow}. The highlight layer's copy of the hovered item casts the glow of
-     * the item state, centred on it and above every series, so the in-place copy of that item casts none. The highlight
-     * layer owns `Item`, so that in-place copy has the state of `OtherItem`: it is told by being the item that
-     * {@link getRedrawnDatumIndex} reports.
+     * series-level `seriesGlow`. The highlight layer's copy of the hovered item casts the glow of the item state, so the
+     * in-place copy of that item casts none. The highlight layer owns `Item`, so that copy has the state of `OtherItem`:
+     * it is told by being the item that {@link getRedrawnDatumIndex} reports.
      */
     protected resolveItemGlow(
         seriesGlow: DeepPartial<AgGlowOptions> | undefined,
