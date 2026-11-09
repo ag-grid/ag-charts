@@ -176,7 +176,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
                 datum.datumIndex,
                 castState,
                 undefined,
-                !isHighlight && this.isHoveredInPlace(datum.datumIndex)
+                !isHighlight && this.isHoveredInPlace(datum.datumIndex, castState)
                     ? this.getItemStyle(datum, true).shadow
                     : style.shadow
             );

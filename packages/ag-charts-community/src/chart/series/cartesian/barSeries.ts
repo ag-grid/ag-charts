@@ -1929,6 +1929,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     ? series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                     : undefined;
             const style = datum.style ?? contextStyles[highlightState ?? HighlightState.None];
+            // Shared by the shadow and the glow, so that a styled datum resolves it once too.
+            const castState =
+                highlightState ?? series.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
 
             rect.setStyleProperties(style, fillBBox);
 
@@ -1949,20 +1952,13 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     shadow,
                     isHighlight,
                     datum.datumIndex,
-                    highlightState,
+                    castState,
                     undefined,
-                    series.isHoveredInPlace(datum.datumIndex, highlightState)
+                    !isHighlight && series.isHoveredInPlace(datum.datumIndex, castState)
                         ? series.getHoveredItemShadow(datum.datumIndex, (...args) => series.getItemStyle(...args))
                         : datum.style?.shadow
                 ),
-                series.resolveItemGlow(
-                    glow,
-                    isHighlight,
-                    datum.datumIndex,
-                    highlightState,
-                    undefined,
-                    datum.style?.glow
-                ),
+                series.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState, undefined, datum.style?.glow),
                 direction,
                 datum.featherRatio,
                 crispCentreDirection

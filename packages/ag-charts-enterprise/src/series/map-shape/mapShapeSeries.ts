@@ -866,7 +866,7 @@ export class MapShapeSeries
                 nodeDatum.datumIndex,
                 castState,
                 undefined,
-                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex)
+                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex, castState)
                     ? this.getItemStyle(nodeDatum, true).shadow
                     : nodeDatum.style.shadow
             );

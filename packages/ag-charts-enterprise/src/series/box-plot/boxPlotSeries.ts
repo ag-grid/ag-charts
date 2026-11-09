@@ -1024,7 +1024,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 nodeDatum.datumIndex,
                 highlightState,
                 undefined,
-                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex)
+                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex, highlightState)
                     ? this.getHoveredItemShadow(nodeDatum.datumIndex, (...args) => this.getItemStyle(...args))
                     : nodeDatum.style?.shadow
             );

@@ -521,7 +521,7 @@ export abstract class RadialColumnSeriesBase<
                     nodeDatum.datumIndex,
                     highlightState,
                     undefined,
-                    hasItemStylers && !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex)
+                    hasItemStylers && !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex, highlightState)
                         ? getItemStyle(
                               this,
                               nodeDatum,

@@ -1170,7 +1170,7 @@ export class SankeySeries extends FlowProportionSeries<
             rect.setStyleProperties(style, fillBBox);
             const castState = this.getItemCastState(highlightedDatum, isHighlight, datumIndex);
             const itemShadow =
-                !isHighlight && this.isHoveredInPlace(datumIndex)
+                !isHighlight && this.isHoveredInPlace(datumIndex, castState)
                     ? this.getNodeStyle(datum, datumIndex, true).shadow
                     : style.shadow;
             rect.fillShadow =
@@ -1291,7 +1291,7 @@ export class SankeySeries extends FlowProportionSeries<
             link.setStyleProperties(style, fillBBox);
             const castState = this.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
             const itemShadow =
-                !isHighlight && this.isHoveredInPlace(datum.datumIndex)
+                !isHighlight && this.isHoveredInPlace(datum.datumIndex, castState)
                     ? this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, true).shadow
                     : style.shadow;
             link.fillShadow =

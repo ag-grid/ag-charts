@@ -1040,7 +1040,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 datum.datumIndex,
                 highlightState,
                 undefined,
-                this.isHoveredInPlace(datum.datumIndex)
+                this.isHoveredInPlace(datum.datumIndex, highlightState)
                     ? this.getItemStyle(datum.datumIndex, true, HighlightState.Item).shadow
                     : itemShadow
             );

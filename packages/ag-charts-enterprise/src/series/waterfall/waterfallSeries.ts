@@ -1176,7 +1176,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 datum.datumIndex,
                 highlightState,
                 undefined,
-                !isHighlight && this.isHoveredInPlace(datum.datumIndex)
+                !isHighlight && this.isHoveredInPlace(datum.datumIndex, highlightState)
                     ? this.getItemStyle(datum, true, undefined, datum.itemType).shadow
                     : datum.style?.shadow
             );

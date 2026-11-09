@@ -1337,9 +1337,9 @@ export class DonutSeries extends PolarSeries<
                 this.options.shadow,
                 isDatumHighlighted,
                 datum.datumIndex,
-                undefined,
+                castState,
                 legendItemValues,
-                this.isHoveredInPlace(datum.datumIndex, undefined, legendItemValues)
+                !isDatumHighlighted && this.isHoveredInPlace(datum.datumIndex, castState, legendItemValues)
                     ? this.getItemStyle(datum, true, true, HighlightState.Item, legendItemValues).shadow
                     : format.shadow
             );
@@ -1347,7 +1347,7 @@ export class DonutSeries extends PolarSeries<
                 this.options.glow,
                 isDatumHighlighted,
                 datum.datumIndex,
-                undefined,
+                castState,
                 legendItemValues,
                 format.glow
             );

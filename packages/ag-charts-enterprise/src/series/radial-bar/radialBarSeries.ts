@@ -479,7 +479,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                     nodeDatum.datumIndex,
                     highlightState,
                     undefined,
-                    hasItemStylers && !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex)
+                    hasItemStylers && !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex, highlightState)
                         ? getItemStyle(
                               this,
                               nodeDatum,

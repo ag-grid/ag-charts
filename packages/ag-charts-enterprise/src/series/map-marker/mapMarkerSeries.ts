@@ -959,7 +959,7 @@ export class MapMarkerSeries
                 markerDatum.datumIndex,
                 castState,
                 undefined,
-                !isHighlight && this.isHoveredInPlace(markerDatum.datumIndex)
+                !isHighlight && this.isHoveredInPlace(markerDatum.datumIndex, castState)
                     ? this.getMarkerItemStyle(markerDatum, true).shadow
                     : style.shadow
             );

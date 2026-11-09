@@ -1419,11 +1419,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     datum.datumIndex,
                     highlightState,
                     undefined,
-                    !isHighlight && series.isHoveredInPlace(datum.datumIndex)
+                    !isHighlight && series.isHoveredInPlace(datum.datumIndex, highlightState)
                         ? series.getHoveredItemShadow(datum.datumIndex, (...args) => series.getItemStyle(...args))
                         : datum.style?.shadow
                 ),
-                series.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState, undefined, datum.style?.glow)
+                series.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    datum.style?.glow
+                )
             );
             rect.crispCentreDirection = crispCentreDirection;
         });
