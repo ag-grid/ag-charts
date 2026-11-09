@@ -8,3 +8,16 @@ export class NativeWidget<TElem extends HTMLElement = HTMLElement> extends Widge
         // Nothing to destroy.
     }
 }
+
+export class DOMManagerWidget extends NativeWidget {
+    constructor(elem: HTMLElement) {
+        super(elem);
+    }
+
+    protected override addChildToDOM() {
+        // Adding/removing elements from the DOM is managed by the DOMManager
+    }
+    protected override removeChildFromDOM() {
+        // Adding/removing elements from the DOM is managed by the DOMManager
+    }
+}

@@ -1,20 +1,7 @@
 import type { AxisID, AxisWidget, BoundedTextWidget, BoxBounds, DynamicContext, Widget } from 'ag-charts-core';
-import { DragInterpreter, FocusIndicator, FocusSwapChain, LongTapInterpreter, NativeWidget } from 'ag-charts-core';
+import { DOMManagerWidget, DragInterpreter, FocusIndicator, FocusSwapChain, LongTapInterpreter } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-
-class DOMManagerWidget extends NativeWidget {
-    constructor(elem: HTMLElement) {
-        super(elem);
-    }
-
-    protected override addChildToDOM() {
-        // Adding/removing elements from the DOM is managed by the DOMManager
-    }
-    protected override removeChildFromDOM() {
-        // Adding/removing elements from the DOM is managed by the DOMManager
-    }
-}
 
 type AxisInteraction = {
     widget: AxisWidget;
