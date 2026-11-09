@@ -44,6 +44,7 @@ import {
     boxContains,
     callWithContext,
     createId,
+    datumKeyName,
     glowToShadow,
     isGradientFill,
     isPatternFill,
@@ -448,6 +449,12 @@ export abstract class Series<
         this.onDataChange();
     }
 
+    setOptionsDataSuppressFieldDotNotation(suppressFieldDotNotation: boolean) {
+        const data = this._data;
+        if (data == null || data.suppressFieldDotNotation === suppressFieldDotNotation) return;
+        this.setOptionsData(DataSet.wrap(data.data, this.ctx.logger, data.dataIdKey, suppressFieldDotNotation));
+    }
+
     public isHighlightEnabled(): boolean {
         return this.options.highlight?.enabled !== false;
     }
@@ -604,6 +611,19 @@ export abstract class Series<
         return this.ctx.chartState.getValue('options')?.highlight;
     }
 
+    protected get suppressFieldDotNotation(): boolean {
+        return this.ctx.chartState.getValue('options')?.suppressFieldDotNotation ?? false;
+    }
+
+    /** The tooltip name for a datum key that has no display name set. */
+    protected keyName(key: string): string {
+        return datumKeyName(key, this.suppressFieldDotNotation);
+    }
+
+    protected optionalKeyName(key: string | undefined): string | undefined {
+        return key == null ? undefined : this.keyName(key);
+    }
+
     protected getChartHighlightDrawingMode(): AgDrawingMode {
         return this.getChartHighlightOptions()?.drawingMode ?? 'overlay';
     }
@@ -736,7 +756,11 @@ export abstract class Series<
     }
 
     /** The chart's data set when this series needs more than a flat one. */
-    createChartDataSet(_data: unknown[], _dataIdKey: string | undefined): DataSet | undefined {
+    createChartDataSet(
+        _data: unknown[],
+        _dataIdKey: string | undefined,
+        _suppressFieldDotNotation: boolean
+    ): DataSet | undefined {
         return undefined;
     }
 
@@ -960,6 +984,11 @@ export abstract class Series<
 
         const currentHighlightState = this.getHighlightState(currentHighlightedDatum);
         const previousHighlightState = this.getHighlightState(previousHighlightedDatum);
+
+        // Exact picks include the highlight layer's copy when it is drawn at a highlight `size`.
+        if (this.hasHighlightedItemSize()) {
+            this._pickNodeCache.clear();
+        }
 
         // Force re-check of layer z-index
         this.setSeriesIndex(this.declarationOrder);
@@ -1194,11 +1223,28 @@ export abstract class Series<
         return true;
     }
 
+    /** The canvas-space band the series is clipped to; it takes no interactions outside it. */
+    interactionBand: BBox | undefined = undefined;
+
+    /** Every group the series draws into. */
+    getRenderGroups(): Group[] {
+        return [this.contentGroup, this.highlightGroup, this.labelGroup, this.annotationGroup];
+    }
+
+    private isInInteractionBand({ x, y }: Point) {
+        const { interactionBand } = this;
+        if (interactionBand == null) return true;
+        // Points arrive relative to the series area.
+        const rect = this.chart?.seriesRect;
+        return interactionBand.containsPoint(x + (rect?.x ?? 0), y + (rect?.y ?? 0));
+    }
+
     protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
+        if (!this.isInInteractionBand(point)) return;
         if (intent !== 'event' && intent !== 'context-menu' && !this.isHoverable()) return;
 
         // Mini-charts render markerless by construction, so they keep the plain 'exact' semantics.
@@ -1276,7 +1322,28 @@ export abstract class Series<
                 picks.push({ datum, distance: 0, target: node });
             }
         }
+        // A highlight `size` can draw the hovered marker larger than its copy in `contentGroup`, so the
+        // highlight layer's copy is hit tested too, or the outer part of the visible marker would not pick.
+        if (this.hasHighlightedItemSize()) {
+            for (const node of this.highlightGroup.pickNodes(point.x, point.y)) {
+                const datum = node.unsafeClosestDatum();
+                if (
+                    typeof datum === 'object' &&
+                    datum != null &&
+                    datum.missing !== true &&
+                    !picks.some((pick) => pick.datum === datum)
+                ) {
+                    picks.push({ datum, distance: 0, target: node });
+                }
+            }
+        }
         return picks;
+    }
+
+    /** Whether the highlighted item is drawn at a highlight `size`, which only marker-based series accept. */
+    private hasHighlightedItemSize(): boolean {
+        const { size } = this.getHighlightStyle(true, undefined, HighlightState.Item) as { size?: number };
+        return size != null;
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
@@ -1364,17 +1431,32 @@ export abstract class Series<
             }
         }
 
+        let box = selectionBox;
+        const { interactionBand } = this;
+        if (interactionBand != null) {
+            const visibleBox = BBox.fromObject(selectionBox).intersection(interactionBand);
+            if (visibleBox == null) return;
+            // Under 'all' a part-hidden node is still tested whole, so only the band overlap gates it.
+            if ((this.options.selection?.containment ?? 'any') === 'any') box = visibleBox;
+        }
+
         const predicate: PickNodesInBBoxPredicate = this.pickNodesInBBoxPredicate();
 
         yield* walkNodes(this.contentGroup, (node) => {
-            if (predicate(selectionBox, node)) {
+            if (predicate(box, node)) {
                 return node.unsafeDatum;
             }
             return undefined;
         });
     }
 
-    isPointInArea?(x: number, y: number): boolean;
+    isPointInArea(x: number, y: number): boolean {
+        return this.isInInteractionBand({ x, y }) && this.isPointInFill(x, y);
+    }
+
+    protected isPointInFill(_x: number, _y: number): boolean {
+        return false;
+    }
 
     public getLabelData(): PointLabelDatum[] {
         return [];
@@ -1459,7 +1541,7 @@ export abstract class Series<
             totalValue: datum.totalValue,
             seriesId: this.id,
             dataIdKey,
-            itemId: getItemId(datum, dataIdKey),
+            itemId: getItemId(datum, this.data),
             selectionState: this.getSelectionStateString(datum.datumIndex),
             isCollapsed: datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId),
         };

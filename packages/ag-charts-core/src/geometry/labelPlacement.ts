@@ -445,7 +445,7 @@ export function resolveLabelAvoidance(collision: NormalisedChartLabelCollisionOp
         label: labels !== true,
         shape: shapes === false,
         seriesArea: seriesArea !== true,
-        axisLabel: axisLabels === false,
+        axisLabel: axisLabels !== true,
     };
 }
 

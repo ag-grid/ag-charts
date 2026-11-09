@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, SliderWidget, clamp, isFocused } from 'ag-charts-core';
+import { type BoxBounds, SliderWidget, clamp } from 'ag-charts-core';
 import type { DragWidgetEvent, MouseWidgetEvent, ToolbarWidget, Widget } from 'ag-charts-core';
 
 export type NavigatorButtonType = 'min' | 'max' | 'pan';
@@ -137,7 +137,7 @@ export class NavigatorDOMProxy {
     }
 
     private onKeyDown(slider: Widget) {
-        if (isFocused(slider.getElement())) {
+        if (slider.isFocused()) {
             slider.setFocusOverride(true);
         }
     }

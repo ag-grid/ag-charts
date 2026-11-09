@@ -1,6 +1,27 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-FOLLOWREDIRECTS-21762031:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.662Z
+    - ag-charts-generate-example-files@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.660Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.658Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.657Z
   SNYK-JS-FOLLOWREDIRECTS-21280747:
     - 'ag-charts-community@* > *':
         reason: >-
@@ -295,7 +316,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.517Z
   SNYK-JS-BRACEEXPANSION-20244952:
-    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.1.4:
+    - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -326,7 +347,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.516Z
   SNYK-JS-BRACEEXPANSION-20244948:
-    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.1.4:
+    - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -609,7 +630,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:10.799Z
-    - glob@8.0.3 > minimatch@5.1.6:
+    - 'glob@8.1.0 > minimatch@5.1.6':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:10.792Z
@@ -637,7 +658,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:59:01.189Z
-    - glob@8.0.3 > minimatch@5.1.6:
+    - 'glob@8.1.0 > minimatch@5.1.6':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:59:01.186Z

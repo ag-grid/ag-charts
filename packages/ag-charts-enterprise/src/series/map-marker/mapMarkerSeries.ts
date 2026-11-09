@@ -24,6 +24,7 @@ import {
     Text,
     applySizeMode,
     configureColorScale,
+    datumKeyReader,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
@@ -556,10 +557,11 @@ export class MapMarkerSeries
     }
 
     private buildFeatureMap(topologyIdKey: string): Map<string, Feature> {
+        const readTopologyId = datumKeyReader(topologyIdKey, this.suppressFieldDotNotation);
         const featureById = new Map<string, Feature>();
 
         for (const feature of this.topology?.features.values() ?? []) {
-            const property = feature.properties?.[topologyIdKey];
+            const property = readTopologyId(feature.properties);
             if (property != null) {
                 featureById.set(property, feature);
             }
@@ -838,7 +840,7 @@ export class MapMarkerSeries
             lineDash,
             lineDashOffset,
         };
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle: Partial<NormalisedMapMarkerSeriesStyle> = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, ownStyle);
 
@@ -853,7 +855,7 @@ export class MapMarkerSeries
             baseStyle.fill = missingDataFill;
         }
 
-        if (sizeValue != null) {
+        if (sizeValue != null && selectionStyle?.size == null && highlightStyle?.size == null) {
             baseStyle.size = this.scaleMarkerSize(sizeValue);
         }
 
@@ -1100,7 +1102,7 @@ export class MapMarkerSeries
                 itemId: seriesId,
                 seriesId,
                 enabled: visible,
-                label: { text: legendItemName ?? title ?? idName ?? idKey ?? seriesId },
+                label: { text: legendItemName ?? title ?? idName ?? this.optionalKeyName(idKey) ?? seriesId },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: showInLegend === false,
@@ -1166,7 +1168,7 @@ export class MapMarkerSeries
                 domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
+            data.push({ label: labelName, fallbackLabel: this.keyName(labelKey), value: content ?? labelValue });
         }
         if (sizeKey != null && sizeValue != null) {
             const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
@@ -1184,7 +1186,7 @@ export class MapMarkerSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
+            data.push({ label: sizeName, fallbackLabel: this.keyName(sizeKey), value: content ?? String(sizeValue) });
         }
         if (colorKey != null && colorValue != null) {
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
@@ -1208,7 +1210,11 @@ export class MapMarkerSeries
                 colorValue,
                 formatValue
             );
-            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? binLabel ?? String(colorValue) });
+            data.push({
+                label: colorName,
+                fallbackLabel: this.keyName(colorKey),
+                value: content ?? binLabel ?? String(colorValue),
+            });
         }
 
         let heading: string | undefined;
@@ -1252,7 +1258,7 @@ export class MapMarkerSeries
     }
 
     public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
-        const format = this.getMarkerItemStyle(markerDatum, false);
+        const format = this.getMarkerItemStyle(markerDatum, true);
 
         return { size: format.size, shape: format.shape };
     }

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createElement } from '../dom/domElements';
+import type { ElementID } from '../identity/idBranding';
 import { NativeWidget } from './nativeWidget';
 import type { WidgetEvent } from './widgetEvents';
 
@@ -45,11 +46,40 @@ describe('Widget', () => {
         });
     });
 
+    describe('setAriaChecked, setAriaSelected and setAriaLabelledBy', () => {
+        it('writes false as the string "false" and removes the attribute when undefined', () => {
+            const widget = makeWidget();
+            widget.setAriaChecked(false);
+            widget.setAriaSelected(true);
+            widget.setAriaLabelledBy('ag-charts-label' as ElementID);
+            expect(widget.getElement().getAttribute('aria-checked')).toBe('false');
+            expect(widget.getElement().getAttribute('aria-selected')).toBe('true');
+            expect(widget.getElement().getAttribute('aria-labelledby')).toBe('ag-charts-label');
+
+            widget.setAriaChecked(undefined);
+            widget.setAriaSelected(undefined);
+            widget.setAriaLabelledBy(undefined);
+            expect(widget.getElement().hasAttribute('aria-checked')).toBe(false);
+            expect(widget.getElement().hasAttribute('aria-selected')).toBe(false);
+            expect(widget.getElement().hasAttribute('aria-labelledby')).toBe(false);
+        });
+    });
+
     describe('setTranslate', () => {
         it('writes a translate transform in pixels', () => {
             const widget = makeWidget();
             widget.setTranslate(12, -3.5);
             expect(widget.getElement().style.transform).toBe('translate(12px, -3.5px)');
+        });
+    });
+
+    describe('setBorderRadius', () => {
+        it('writes and removes a border radius in pixels', () => {
+            const widget = makeWidget();
+            widget.setBorderRadius(6);
+            expect(widget.getElement().style.borderRadius).toBe('6px');
+            widget.setBorderRadius(undefined);
+            expect(widget.getElement().style.borderRadius).toBe('');
         });
     });
 
@@ -94,6 +124,17 @@ describe('Widget', () => {
             expect(parent.contains(child)).toBe(true);
             expect(child.contains(parent)).toBe(false);
             expect(parent.contains(unrelated)).toBe(false);
+        });
+    });
+
+    describe('getTextContent', () => {
+        it('returns the text written by setTextContent', () => {
+            const widget = makeWidget();
+            expect(widget.getTextContent()).toBe('');
+            widget.setTextContent('Series 1');
+            expect(widget.getTextContent()).toBe('Series 1');
+            widget.setTextContent(undefined);
+            expect(widget.getTextContent()).toBe('');
         });
     });
 
@@ -192,6 +233,52 @@ describe('Widget', () => {
 
             // jsdom does no layout, so the rendered width is 0.
             expect(widget.getBounds()).toEqual({ x: 4, y: 5, width: 0, height: 20 });
+        });
+    });
+
+    describe('setCssOffset', () => {
+        // jsdom ignores `right: unset` and `bottom: unset`, so only left and top are observable here.
+        it('sets left and top in pixels', () => {
+            const widget = makeWidget();
+            widget.setCssOffset({ x: 12, y: 34.5 });
+            const { style } = widget.getElement();
+            expect(style.left).toBe('12px');
+            expect(style.top).toBe('34.5px');
+        });
+
+        it('keeps the current value of an omitted coordinate', () => {
+            const widget = makeWidget();
+            widget.setCssOffset({ x: 10, y: 20 });
+            widget.setCssOffset({ y: 30 });
+            expect(widget.cssLeft()).toBe(10);
+            expect(widget.cssTop()).toBe(30);
+        });
+    });
+
+    describe('setMinWidth', () => {
+        it('sets and removes min-width in pixels', () => {
+            const widget = makeWidget();
+            widget.setMinWidth(200);
+            expect(widget.getElement().style.minWidth).toBe('200px');
+            widget.setMinWidth(undefined);
+            expect(widget.getElement().style.minWidth).toBe('');
+        });
+    });
+
+    describe('removeChildWidget', () => {
+        it('leaves the other children alone when the widget is no longer a child', () => {
+            const parent = makeWidget();
+            const first = makeWidget();
+            const second = makeWidget();
+            parent.addChild(first);
+            parent.addChild(second);
+
+            first.remove();
+            first.remove();
+
+            expect(Array.from(parent.getElement().children)).toEqual([second.getElement()]);
+            second.remove();
+            expect(parent.getElement().children.length).toBe(0);
         });
     });
 });

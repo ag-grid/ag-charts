@@ -325,6 +325,28 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogHeaderDatePriceRange: 'Date and Price',
     // Text for the annotation dialog's header text tab label
     dialogHeaderText: 'Text',
+    // Text for the annotation dialog's header coordinates tab label
+    dialogHeaderCoordinates: 'Coordinates',
+    // Text for the annotation dialog's start point coordinates label
+    dialogInputCoordinatesStart: 'Start',
+    // Text for the annotation dialog's end point coordinates label
+    dialogInputCoordinatesEnd: 'End',
+    // Text for the annotation dialog's single value coordinate label, used by horizontal and vertical lines
+    dialogInputCoordinatesValue: 'Value',
+    // Text for the annotation dialog's channel offset label
+    dialogInputCoordinatesOffset: 'Offset',
+    // Text for the annotation dialog's disjoint channel start offset label
+    dialogInputCoordinatesStartOffset: 'Start offset',
+    // Text for the annotation dialog's disjoint channel end offset label
+    dialogInputCoordinatesEndOffset: 'End offset',
+    // Text for the annotation dialog's trend based fibonacci retracement end point coordinates label
+    dialogInputCoordinatesEndRetracement: 'Retracement end',
+    // Text for the annotation dialog's x axis coordinate input
+    dialogInputCoordinatesAxisX: 'X',
+    // Text for the annotation dialog's y axis coordinate input
+    dialogInputCoordinatesAxisY: 'Y',
+    // Alt text for the annotation dialog's coordinate inputs, e.g. 'Start X'
+    dialogInputCoordinatesAltText: '${label} ${axis}',
     // Text for the annotation dialog's text alignment radio label
     dialogInputAlign: 'Align',
     // Text for the annotation dialog's color picker label
@@ -371,6 +393,16 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputFibonacciBands: 'Bands',
     // Text for the annotation dialog's Fibonacci bands label
     dialogInputFibonacciBandsAltText: 'Fibonacci Bands',
+    // Text for the annotation dialog's follow select box label; makes a horizontal line follow a datum of a series
+    dialogInputFollow: 'Follow',
+    // Text for the annotation dialog's follow select box alt text
+    dialogInputFollowAltText: 'Follow a series value',
+    // Text for the annotation dialog's follow select box option that leaves the line at a fixed value
+    dialogInputFollowNone: 'None',
+    // Text for the annotation dialog's follow select box option that makes the line follow the first datum of the series
+    dialogInputFollowFirst: 'First value',
+    // Text for the annotation dialog's follow select box option that makes the line follow the last datum of the series
+    dialogInputFollowLast: 'Last value',
     // Text for text area input placeholders
     inputTextareaPlaceholder: 'Add Text',
     // Text for the measurer statistics date range bars value

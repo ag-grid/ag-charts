@@ -149,6 +149,16 @@ function checkAllowedExtension(filename) {
     }
 }
 
+const rootFiles = new Set(['package.json', 'README.md', 'LICENSE.txt', 'LICENSE.html']);
+// Angular's packager lays its output out at the package root instead.
+const publishesFromDist = packageJson.main?.startsWith('./dist/') ?? false;
+function checkInsideDist(filename) {
+    if (!publishesFromDist || rootFiles.has(filename) || filename.startsWith('dist/')) return;
+
+    console.log(`[${packageJson.name}]: Unexpected file outside dist/: ${filename}`);
+    exitStatus = 1;
+}
+
 async function run() {
     if (packageJson.version !== expectedVersion) {
         console.log(
@@ -185,6 +195,7 @@ async function run() {
 
     for (const file of packageContents) {
         checkAllowedExtension(file);
+        checkInsideDist(file);
     }
 
     if (exitStatus === 0) {

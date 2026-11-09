@@ -12,13 +12,13 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
+    markerHighlightOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
     multiSeriesGlowHighlightOptionsDef,
     required,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
-    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
@@ -45,7 +45,7 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(markerHighlightOptionsDef, markerHighlightOptionsDef),
 };
 
 export const radarAreaSeriesOptionsDef: OptionsDefs<AgRadarAreaSeriesOptions> = {

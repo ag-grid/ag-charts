@@ -21,6 +21,7 @@ import {
     or,
     positiveNumber,
     positiveNumberNonZero,
+    shapeValidator,
     simpleColorUnion,
     string,
     union,
@@ -399,6 +400,7 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
     palette: {
         fills: arrayOf(simpleColorUnion),
         strokes: arrayOf(color),
+        markerShapes: arrayOf(shapeValidator),
         up: { fill: or(color, gradientStrict), stroke: color },
         down: { fill: or(color, gradientStrict), stroke: color },
         neutral: { fill: or(color, gradientStrict), stroke: color },

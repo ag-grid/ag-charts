@@ -200,17 +200,22 @@ interface BubbleStylerPassCtx extends BubbleNoStylerPassCtx {
     colorKey: string | undefined;
 }
 
+interface BubbleNoStylerTemplate {
+    style: NormalisedSeriesMarkerStyle;
+    /** The selection or highlight state sets the size, so it replaces the data-driven `point.size`. */
+    stateSized: boolean;
+}
 type BubbleNoStylerCompute = MarkerStyleCompute<
     BubbleSeries,
     BubbleNoStylerPassCtx,
     BubbleScatterNodeDatum,
-    NormalisedSeriesMarkerStyle
+    BubbleNoStylerTemplate
 >;
 type BubbleNoStylerApply = MarkerStyleApply<
     BubbleSeries,
     BubbleNoStylerPassCtx,
     BubbleScatterNodeDatum,
-    NormalisedSeriesMarkerStyle
+    BubbleNoStylerTemplate
 >;
 type BubbleStylerCompute = MarkerStyleCompute<
     BubbleSeries,
@@ -709,13 +714,6 @@ export abstract class BubbleScatterSeries<
         const canIncrementallyUpdate =
             processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
 
-        let labelTextDomain: any[];
-        if (labelKey == null && sizeKey != null) {
-            labelTextDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
-        } else {
-            labelTextDomain = [];
-        }
-
         const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'object');
 
         this.nodeDatumContext = {
@@ -763,7 +761,7 @@ export abstract class BubbleScatterSeries<
             legendItemName,
 
             // Label properties
-            labelsEnabled: label.enabled,
+            labelsEnabled: this.isLabelEnabled(),
             labelPlacement: placements[0],
             labelAnchor: Marker.anchor(marker.shape),
             labelInsideOffset: insideRect ? { x: insideRect.cx, y: insideRect.cy } : undefined,
@@ -773,7 +771,7 @@ export abstract class BubbleScatterSeries<
             labelInsideMask: insideOnly ? markerRowSpans(marker.shape) : undefined,
             labelInsideSize:
                 !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
-            labelTextDomain,
+            labelTextDomain: [],
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit,
@@ -948,7 +946,7 @@ export abstract class BubbleScatterSeries<
         // Compute label (skip expensive formatting if labels disabled)
         if (ctx.labelsEnabled) {
             const markerPixelSize = ctx.labelPlacement === 'inside' ? Math.sqrt(scratch.dilation) * markerSize : 0;
-            this.computeLabel(ctx, scratch, datum, yDatum, sizeValue, datumIndex, markerPixelSize);
+            this.computeLabel(ctx, scratch, datum, datumIndex, markerPixelSize);
         } else {
             scratch.nodeLabel = { text: '', width: 0, height: 0 };
             scratch.nodeLabelFit = undefined;
@@ -977,34 +975,15 @@ export abstract class BubbleScatterSeries<
         ctx: BubbleSeriesNodeDatumContext,
         scratch: PreparedBubbleNodeDatumState,
         datum: any,
-        yDatum: any,
-        sizeValue: number | undefined,
         datumIndex: number,
         markerSize: number
     ): void {
-        let labelTextValue: any;
-        let labelTextKey: string;
-        let labelTextProperty: FormatterPropertyType;
-
-        if (ctx.labelKey != null && ctx.labelDataValues) {
-            labelTextValue = ctx.labelDataValues[datumIndex];
-            labelTextKey = ctx.labelKey;
-            labelTextProperty = 'label';
-        } else if (ctx.sizeKey == null) {
-            labelTextValue = yDatum;
-            labelTextKey = ctx.yKey;
-            labelTextProperty = 'y';
-        } else {
-            labelTextValue = sizeValue;
-            labelTextKey = ctx.sizeKey;
-            labelTextProperty = 'size';
-        }
-
+        const labelTextValue = ctx.labelDataValues?.[datumIndex];
         const labelText = this.getLabelText<AgBubbleSeriesLabelFormatterParams>(
             labelTextValue,
             datum,
-            labelTextKey,
-            labelTextProperty,
+            ctx.labelKey!,
+            'label',
             ctx.labelTextDomain,
             this.options.label,
             {
@@ -1223,18 +1202,29 @@ export abstract class BubbleScatterSeries<
         datum
     ) => {
         const stylerStyle = series.getStyle(highlightState);
-        return series.getMarkerStyle(
+        const style = series.getMarkerStyle(
             ctx.marker,
             datum,
             ctx.params,
             { isHighlight: ctx.isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
             { ...stylerStyle, size: datum.point.size }
         );
+        const selectionStyle: NormalisedSeriesMarkerStyle | undefined = series.isSelectionEnabled()
+            ? series.getSelectionStyle(datum.datumIndex, selectionState)
+            : undefined;
+        const highlightStyle: NormalisedSeriesMarkerStyle = series.getHighlightStyle(
+            ctx.isHighlight,
+            datum.datumIndex,
+            highlightState
+        );
+        return { style, stateSized: (selectionStyle?.size ?? highlightStyle.size) != null };
     };
 
     private static readonly applyNoStylerTemplate: BubbleNoStylerApply = (_series, _ctx, datum, _h, _s, template) => {
+        const style = template.style;
         // Reuse the cached object directly when size matches (e.g. ScatterSeries with fixed size).
-        datum.style = template.size === datum.point.size ? template : { ...template, size: datum.point.size };
+        datum.style =
+            template.stateSized || style.size === datum.point.size ? style : { ...style, size: datum.point.size };
     };
 
     private static readonly computePerDatumStylerStyle: BubbleStylerCompute = (series, _ctx, highlightState) => {
@@ -1280,7 +1270,7 @@ export abstract class BubbleScatterSeries<
             this.runMarkerStylePass<
                 BubbleNoStylerPassCtx,
                 BubbleScatterNodeDatum,
-                NormalisedSeriesMarkerStyle,
+                BubbleNoStylerTemplate,
                 BubbleSeries
             >(
                 datumSelection,
@@ -1333,6 +1323,11 @@ export abstract class BubbleScatterSeries<
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+        const highlightSizes: Array<number | undefined> = [];
+        for (let state = HighlightState.None; state <= HighlightState.OtherItem; state++) {
+            const highlightStyle: NormalisedSeriesMarkerStyle = this.getHighlightStyle(isHighlight, undefined, state);
+            highlightSizes[state] = highlightStyle.size;
+        }
         const { shadow } = this.marker;
 
         datumSelection.each((node, datum, index) => {
@@ -1343,7 +1338,13 @@ export abstract class BubbleScatterSeries<
                 dilation,
             } = datum;
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const style = datum.style == null ? { ...contextNodeData.styles[state], size } : { ...datum.style };
+            const style =
+                datum.style == null
+                    ? {
+                          ...contextNodeData.styles[state],
+                          size: highlightSizes[state] ?? size,
+                      }
+                    : { ...datum.style };
 
             if (dilation > 1) {
                 const fillOpacity = style.fillOpacity ?? 0;
@@ -1643,38 +1644,21 @@ export abstract class BubbleScatterSeries<
 
         const data: TooltipContentDataRow[] = [];
 
-        if (this.isLabelEnabled() && labelKey != null) {
-            const value = dataModel.resolveColumnById<string | number | Date>(
-                this,
-                `labelValue`,
-                processedData,
-                'object'
-            )[datumIndex];
-            const content = formatManager.format(this.callWithContext.bind(this), {
-                type: 'category',
-                value,
-                datum,
-                seriesId,
-                legendItemName,
-                key: labelKey,
-                source: 'tooltip',
-                property: 'label',
-                domain: [],
-                boundSeries: this.getFormatterContext('label'),
-            });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+        const labelRow = this.getTooltipLabelRow(dataModel, processedData, datumIndex, datum);
+        if (labelRow != null) {
+            data.push(labelRow);
         }
 
         data.push(
             {
                 label: xName,
-                fallbackLabel: xKey,
+                fallbackLabel: this.keyName(xKey),
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
                 missing: isTooltipValueMissing(xValue, allowNullKeys),
             },
             {
                 label: yName,
-                fallbackLabel: yKey,
+                fallbackLabel: this.keyName(yKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName, allowNullKeys),
                 missing: isTooltipValueMissing(yValue, allowNullKeys),
             }
@@ -1703,7 +1687,7 @@ export abstract class BubbleScatterSeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: name, fallbackLabel: key, value: content ?? formatValue(value) });
+            data.push({ label: name, fallbackLabel: this.keyName(key), value: content ?? formatValue(value) });
             return value;
         };
 
@@ -1767,6 +1751,35 @@ export abstract class BubbleScatterSeries<
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
+    }
+
+    private getTooltipLabelRow(
+        dataModel: DataModel<any, any, true>,
+        processedData: ProcessedData<any>,
+        datumIndex: number,
+        datum: unknown
+    ): TooltipContentDataRow | undefined {
+        const { labelKey, labelName, legendItemName } = this.options;
+        if (!this.isLabelEnabled() || labelKey == null) return undefined;
+
+        const value = dataModel.resolveColumnById<string | number | Date>(this, `labelValue`, processedData, 'object')[
+            datumIndex
+        ];
+        if (value == null) return undefined;
+
+        const content = this.ctx.formatManager.format(this.callWithContext.bind(this), {
+            type: 'category',
+            value,
+            datum,
+            seriesId: this.id,
+            legendItemName,
+            key: labelKey,
+            source: 'tooltip',
+            property: 'label',
+            domain: [],
+            boundSeries: this.getFormatterContext('label'),
+        });
+        return { label: labelName, fallbackLabel: this.keyName(labelKey), value: content ?? formatValue(value) };
     }
 
     private legendItemSymbol(styleOverride?: Partial<NormalisedSeriesMarkerStyle>): LegendSymbolOptions {
@@ -1837,7 +1850,7 @@ export abstract class BubbleScatterSeries<
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: legendItemName ?? title ?? yName ?? itemId,
+                    text: legendItemName ?? title ?? yName ?? this.keyName(itemId),
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
@@ -1857,7 +1870,7 @@ export abstract class BubbleScatterSeries<
     }
 
     protected isLabelEnabled() {
-        return this.options.label.enabled;
+        return this.options.label.enabled && this.options.labelKey != null;
     }
 
     protected nodeFactory() {
@@ -1920,7 +1933,7 @@ export abstract class BubbleScatterSeries<
             this.marker,
             datum,
             { xKey, yKey, sizeKey, labelKey, colorKey },
-            { resolveMarkerSubPath: [] }
+            { isHighlight: true, resolveMarkerSubPath: [] }
         );
     }
 

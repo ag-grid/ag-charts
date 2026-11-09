@@ -21,7 +21,7 @@ import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgHighlightStyleOptions,
+    AgMarkerHighlightStyleOptions,
     AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
@@ -62,6 +62,8 @@ export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
         AgChartLabelCollisionFitOptions,
         AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
+    /** Whether to show the labels. Labels render only when `labelKey` is set. */
+    enabled?: boolean;
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered
      * fallback list tried in turn until one fits. Use `inside` to centre the label within the marker.
@@ -97,7 +99,7 @@ export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
 }

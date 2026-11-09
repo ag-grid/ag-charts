@@ -6,6 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
@@ -13,7 +14,7 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOption
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgHighlightStyleOptions,
+    AgMarkerHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
@@ -130,10 +131,23 @@ export interface AgHlcSeriesItemThemeableOptions<TDatum, TContext> {
     close?: AgHlcSeriesItemLineThemeableOptions<TDatum, TContext>;
 }
 
+/** The values of a datum that the crosshair can snap to. */
+export type AgHlcCrosshairSnapValue = 'high' | 'low' | 'close';
+
 export interface AgHlcSeriesThemeableOptions<
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > extends AgBaseCartesianThemeableOptions<TDatum, TContext> {
+    /**
+     * The values of the highlighted datum that the value-axis crosshair snaps to.
+     */
+    crosshairSnapTo?: AgHlcCrosshairSnapValue[];
+    /**
+     * Whether the crosshair snaps to every value in `crosshairSnapTo`, or only the one nearest the pointer.
+     *
+     * Default: `'all'`
+     */
+    crosshairSnapMode?: AgCrosshairSnapMode;
     /** Configuration for the markers used in the series. Markers are shared by the high, low and close values unless overridden in `item`. */
     marker?: AgHlcMarker<TDatum, TContext>;
     /** Configuration for the bands, edges and close line. */
@@ -147,7 +161,7 @@ export interface AgHlcSeriesThemeableOptions<
     /** Function used to return formatting for the entire series, based on the given parameters. */
     styler?: Styler<AgHlcSeriesStylerParams<TDatum, TContext>, AgHlcSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
 }
 
 export interface AgHlcSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

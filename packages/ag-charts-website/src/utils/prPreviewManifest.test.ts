@@ -2,7 +2,7 @@ import { NPM_CDN } from '@constants';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { ExampleFramework } from './example-modules/getImportMap';
+import { type ExampleFramework, PER_MODULE_ESM_PACKAGES } from './example-modules/getImportMap';
 import {
     ALL_EXAMPLE_FRAMEWORKS,
     type PrPreviewManifest,
@@ -189,7 +189,12 @@ describe('buildPrPreviewPlan', () => {
             const packageJson = JSON.parse(
                 readFileSync(join(REPO_ROOT, 'packages', packageName, 'package.json'), 'utf8')
             );
-            const declared = [packageJson.module, packageJson.exports?.['.']?.import].filter(Boolean) as string[];
+            const esmEntries = [packageJson.module, packageJson.exports?.['.']?.import].filter(Boolean) as string[];
+            // A package whose ESM ships one file per module also builds a single-file bundle beside its entry.
+            const bundles = PER_MODULE_ESM_PACKAGES.has(packageName)
+                ? esmEntries.map((entry) => entry.replace(/main\.esm\.mjs$/, 'main.esm.min.mjs'))
+                : [];
+            const declared = [...esmEntries, ...bundles];
 
             expect(declared.length, packageName).toBeGreaterThan(0);
             expect(

@@ -6,6 +6,7 @@ import { GALLERY_INTERNAL_FRAMEWORK } from '../constants';
 import { getExampleName, getSeriesTypeSlug } from '../utils/filesData';
 import type { GeneratedContents } from '@components/example-generator/types';
 import { getGeneratedContents } from '../../example-generator';
+import { getGalleryThemeInitFragment } from '../utils/getGalleryThemeInitFragment';
 interface Props {
     exampleName: string;
     /**
@@ -29,6 +30,10 @@ interface Props {
      */
     ignoreDarkMode?: boolean;
     /**
+     * Apply the theme picked in the gallery dropdown
+     */
+    applyGalleryTheme?: boolean;
+    /**
      * Override to be used for generated contents
      */
     generatedContents?: GeneratedContents;
@@ -41,6 +46,7 @@ const {
     addE2ECheckScript,
     addExternalExampleStyles,
     ignoreDarkMode,
+    applyGalleryTheme,
     generatedContents: generatedContentsOverride,
 } = Astro.props as Props;
 
@@ -78,4 +84,5 @@ const displayExampleName = getExampleName({
     addE2ECheckScript={addE2ECheckScript}
     addExternalExampleStyles={addExternalExampleStyles}
     ignoreDarkMode={ignoreDarkMode}
+    initHeadFragment={applyGalleryTheme ? getGalleryThemeInitFragment() : undefined}
 />

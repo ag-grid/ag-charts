@@ -5,7 +5,7 @@ import {
     type ChartModuleDefinition,
     ValidationError,
     cartesianChartOptionsDefs,
-    cartesianChartThemeOptionsDefs,
+    commonChartOptionsDefs,
     commonChartThemeTemplate,
     isObject,
     validate,
@@ -17,7 +17,7 @@ import { VERSION } from '../version';
 import { CartesianChartType } from './cartesianChart';
 import type { ChartEnv, ChartTypeHost } from './chartTypeEnv';
 
-const histogramAxisTypes = new Set(['number', 'log', 'time']);
+const histogramAxisTypes = new Set(['number', 'log', 'time', 'inset-number']);
 const invalidHistogramAxis = (axis: any) => isObject(axis) && axis.type != null && !histogramAxisTypes.has(axis.type);
 
 export const CartesianChartModule: ChartModuleDefinition<CartesianChartDefOptions, ChartEnv> =
@@ -28,7 +28,7 @@ export const CartesianChartModule: ChartModuleDefinition<CartesianChartDefOption
 
         options: cartesianChartOptionsDefs,
 
-        themeOptions: cartesianChartThemeOptionsDefs,
+        themeOptions: commonChartOptionsDefs,
 
         themeTemplate: commonChartThemeTemplate,
 

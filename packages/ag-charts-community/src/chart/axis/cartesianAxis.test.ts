@@ -21,6 +21,7 @@ import {
     getAxisLabelNodes,
     getAxisLinePosition,
     getAxisSizeLimit,
+    getAxisTitleRotation,
     getAxisTitleText,
     getLabelSegmentAlignments,
     getLabelText,
@@ -1092,6 +1093,38 @@ describe('CartesianAxis', () => {
         });
     });
 
+    describe('spacing', () => {
+        const leftAxesOptions = (inner: object, outer: object): AgCartesianChartOptions => ({
+            data: [
+                { x: 1, a: 1, b: 10 },
+                { x: 2, a: 2, b: 20 },
+            ],
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'a', yKeyAxis: 'inner' },
+                { type: 'line', xKey: 'x', yKey: 'b', yKeyAxis: 'outer' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                inner: { type: 'number', position: 'left', thickness: 40, ...inner },
+                outer: { type: 'number', position: 'left', thickness: 40, ...outer },
+            },
+        });
+
+        const seriesLeft = async (options: AgCartesianChartOptions) => {
+            chart?.destroy();
+            chart = await createChart(options);
+            return getSeriesRect(chart).x;
+        };
+
+        it('should space stacked axes by the inner axis spacing, not from the series area', async () => {
+            const defaultLeft = await seriesLeft(leftAxesOptions({}, {}));
+
+            expect(await seriesLeft(leftAxesOptions({ spacing: 40 }, {}))).toBe(defaultLeft + 25);
+            expect(await seriesLeft(leftAxesOptions({ spacing: 0 }, {}))).toBe(defaultLeft - 15);
+            expect(await seriesLeft(leftAxesOptions({}, { spacing: 40 }))).toBe(defaultLeft);
+        });
+    });
+
     describe('line', () => {
         const options = (line: AgCartesianChartOptions['axes']): AgCartesianChartOptions => ({
             data: NUMERIC_DATA,
@@ -1982,7 +2015,7 @@ describe('CartesianAxis', () => {
             },
             {
                 // The right y-axis title flipped from its default vertical direction.
-                name: 'title-orientation-vertical-right',
+                name: 'title-orientation-vertical-reversed-right',
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     axes: {
@@ -1990,7 +2023,7 @@ describe('CartesianAxis', () => {
                         y: {
                             type: 'number',
                             position: 'right',
-                            title: { enabled: true, text: 'Temperature', orientation: 'vertical' },
+                            title: { enabled: true, text: 'Temperature', orientation: 'vertical-reversed' },
                         },
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -2045,6 +2078,27 @@ describe('CartesianAxis', () => {
 
         it.each(orientationScenarios)('$name', async ({ name, optionsFactory }) => {
             await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+        });
+
+        it('reads left and right y-axis titles in the same direction by default', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 0, y: 1, y2: 10 },
+                    { x: 1, y: 2, y2: 20 },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', title: { text: 'Left' } },
+                    y2: { type: 'number', position: 'right', title: { text: 'Right' } },
+                },
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2' },
+                ],
+            });
+
+            expect(getAxisTitleRotation(chart, 'left')).toBe(-Math.PI / 2);
+            expect(getAxisTitleRotation(chart, 'right')).toBe(-Math.PI / 2);
         });
     });
 

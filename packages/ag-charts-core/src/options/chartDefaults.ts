@@ -910,8 +910,8 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
                         },
                     },
                     data: arrayOfDefs<AgTooltipRendererDataRow>({
-                        label: required(string),
-                        value: required(or(string, number, date)),
+                        label: string,
+                        value: or(string, number, date),
                     }),
                 },
                 'tooltip renderer result object'

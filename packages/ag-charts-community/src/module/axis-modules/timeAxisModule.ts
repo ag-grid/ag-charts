@@ -34,6 +34,7 @@ export const TimeAxisModule: AxisModuleDefinition<
     themeTemplate: mergeDefaults(
         {
             maxThicknessRatio: 0.3,
+            spacing: 15,
             gridLine: { enabled: false },
         },
         titleAxisThemeTemplate,

@@ -7,6 +7,7 @@ import { getFileList } from './fileUtils';
 // Relative to root
 const EXAMPLE_STYLES_FILE_PATHS = [
     './external/ag-website-shared/src/components/example-runner/styles/example-chart-theme.css',
+    './external/ag-website-shared/src/components/example-runner/styles/example-page-reset.css',
     './external/ag-website-shared/src/components/example-runner/styles/example-controls.css',
 ];
 const EXAMPLE_STYLE_FILE_NAME = 'ag-example-styles.css';

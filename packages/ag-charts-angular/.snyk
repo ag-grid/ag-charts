@@ -1,6 +1,35 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-OPEN-22112123:
+    - '@angular-devkit/build-angular@20.3.37 > webpack-dev-server@5.2.6 > open@10.2.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.300Z
+    - '@angular-devkit/build-angular@20.3.37 > open@10.2.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.292Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-21756800:
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.573Z
+  SNYK-JS-FLAT-22148819:
+    - '@angular-devkit/build-angular@20.3.37 > webpack-merge@6.0.1 > flat@5.0.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:01:48.537Z
+  SNYK-JS-FOLLOWREDIRECTS-21762031:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.634Z
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-21460687:
     - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-

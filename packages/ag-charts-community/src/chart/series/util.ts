@@ -3,6 +3,7 @@ import { Color, Transformable, findMaxIndex, findMinIndex, isString } from 'ag-c
 import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
+import type { DataIdReader } from '../data/dataSet';
 import { highlightStates } from './seriesProperties';
 import type {
     ErrorBoundSeriesNodeDatum,
@@ -238,8 +239,9 @@ export function resolveMarkerDrawingMode(
 export function findNodeDatumInArray<D extends SeriesNodeDatum>(
     itemIdOrIndex: AgActiveItemState['itemId'],
     nodeData: D[] | undefined,
-    dataIdKey?: string
+    dataSet?: DataIdReader
 ): D | undefined {
+    const dataIdKey = dataSet?.dataIdKey;
     for (const node of nodeData ?? []) {
         switch (typeof itemIdOrIndex) {
             case 'string':
@@ -247,7 +249,7 @@ export function findNodeDatumInArray<D extends SeriesNodeDatum>(
                     return node;
                 }
                 if (node.itemId === undefined && dataIdKey !== undefined) {
-                    const idValue = (node.datum as any)?.[dataIdKey];
+                    const idValue = dataSet!.readDataId(node.datum);
                     if (idValue != null && String(idValue) === itemIdOrIndex) {
                         return node;
                     }
@@ -258,7 +260,7 @@ export function findNodeDatumInArray<D extends SeriesNodeDatum>(
                     return node;
                 }
                 if (node.itemId === undefined && dataIdKey !== undefined) {
-                    const idValue = (node.datum as any)?.[dataIdKey];
+                    const idValue = dataSet!.readDataId(node.datum);
                     if (idValue === itemIdOrIndex) {
                         return node;
                     }

@@ -8,6 +8,7 @@ import {
     fillOptionsDef,
     interpolationOptionsDefs,
     lineDashOptionsDef,
+    markerHighlightOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
     multiSeriesGlowHighlightOptionsDef,
@@ -15,7 +16,6 @@ import {
     placedSeriesLabelOptionsDefs,
     required,
     shadowOptionsDefs,
-    shapeHighlightOptionsDef,
     shapeSegmentation,
     string,
     strokeOptionsDef,
@@ -24,7 +24,7 @@ import {
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, AgAreaSeriesStylerResult, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
 
-const highlight = multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
+const highlight = multiSeriesGlowHighlightOptionsDef(markerHighlightOptionsDef, markerHighlightOptionsDef);
 
 const areaStyler = callbackDefs<AgAreaSeriesStylerResult>({
     ...strokeOptionsDef,

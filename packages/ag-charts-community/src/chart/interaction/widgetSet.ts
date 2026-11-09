@@ -1,8 +1,7 @@
 import type { AxisID, AxisWidget, BoundedTextWidget, BoxBounds, DynamicContext, Widget } from 'ag-charts-core';
-import { FocusIndicator, FocusSwapChain, NativeWidget } from 'ag-charts-core';
+import { DragInterpreter, FocusIndicator, FocusSwapChain, LongTapInterpreter, NativeWidget } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { DragInterpreter, LongTapInterpreter } from './dragInterpreter';
 
 class DOMManagerWidget extends NativeWidget {
     constructor(elem: HTMLElement) {

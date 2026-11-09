@@ -4,6 +4,7 @@ import { getElementBBox, isFocused, setElementBBox } from '../dom/domUtil';
 import { isNode } from '../dom/globalsProxy';
 import type { BoxBounds } from '../geometry/boxBounds';
 import type { ElementID } from '../identity/idBranding';
+import type { Point } from '../types/scene';
 import type { CanvasOrigin, WidgetEvent, WidgetEventMap, WidgetEventMap_Internal } from './widgetEvents';
 import { WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
@@ -152,6 +153,10 @@ export abstract class Widget<
         this.elem.textContent = textContent ?? null;
     }
 
+    getTextContent(): string {
+        return this.elem.textContent ?? '';
+    }
+
     setAriaRole(role: BaseAttributeTypeMap['role'] | undefined) {
         setAttribute(this.elem, 'role', role);
     }
@@ -180,6 +185,18 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
     }
 
+    setAriaChecked(ariaChecked: BaseAttributeTypeMap['aria-checked'] | undefined) {
+        setAttribute(this.elem, 'aria-checked', ariaChecked);
+    }
+
+    setAriaSelected(ariaSelected: BaseAttributeTypeMap['aria-selected'] | undefined) {
+        setAttribute(this.elem, 'aria-selected', ariaSelected);
+    }
+
+    setAriaLabelledBy(ariaLabelledBy: BaseAttributeTypeMap['aria-labelledby'] | undefined) {
+        setAttribute(this.elem, 'aria-labelledby', ariaLabelledBy);
+    }
+
     /** Sets the `title` attribute (the native tooltip), or removes it when `undefined` or empty. */
     setTitle(title: BaseAttributeTypeMap['title'] | undefined) {
         setAttribute(this.elem, 'title', title);
@@ -200,6 +217,32 @@ export abstract class Widget<
     /** Positions the element with a CSS `translate()` transform, in CSS pixels, replacing any existing transform. */
     setTranslate(x: number, y: number) {
         this.elem.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    /** Sets the CSS `border-radius` in CSS pixels, or removes it when `undefined`. */
+    setBorderRadius(radius: number | undefined) {
+        this.elem.style.borderRadius = radius == null ? '' : `${radius}px`;
+    }
+
+    /**
+     * Moves the element through its inline `left`/`top`, in CSS pixels. An omitted coordinate keeps its current value.
+     * Inline `right`/`bottom` are set to `unset` so they cannot pull against the new position.
+     */
+    setCssOffset(position: Partial<Point>) {
+        const { style } = this.elem;
+        style.setProperty('right', 'unset');
+        style.setProperty('bottom', 'unset');
+        if (position.x != null) style.setProperty('left', `${position.x}px`);
+        if (position.y != null) style.setProperty('top', `${position.y}px`);
+    }
+
+    /** Sets the inline `min-width` in CSS pixels, or removes it when `undefined`. */
+    setMinWidth(minWidth: number | undefined) {
+        if (minWidth == null) {
+            this.elem.style.removeProperty('min-width');
+        } else {
+            this.elem.style.setProperty('min-width', `${minWidth}px`);
+        }
     }
 
     setInnerHTML(html: string) {
@@ -316,6 +359,8 @@ export abstract class Widget<
 
     removeChildWidget(child: TChildWidget) {
         const i = this.children.indexOf(child);
+        // `remove()` reaches here again for a child that was already removed, since `parent` is left set.
+        if (i < 0) return;
         this.children.splice(i, 1);
         this.removeChildFromDOM(child);
         this.onChildRemoved(child);

@@ -119,6 +119,33 @@
     cursor: pointer;
 }
 
+/* Input */
+.ag-charts-dialog__input-group--inputs {
+    column-gap: 6px;
+    flex-wrap: wrap;
+    row-gap: 4px;
+}
+
+.ag-charts-dialog__input-group--inputs > .ag-charts-dialog__input-group-label {
+    flex: 0 0 100%;
+}
+
+.ag-charts-dialog__input {
+    background: var(--ag-charts-input-background-color);
+    border-color: var(--ag-charts-input-border-color);
+    border-radius: var(--ag-charts-input-border-radius);
+    border-style: solid;
+    border-width: var(--ag-charts-input-border-width);
+    flex: 1 1 90px;
+    font-size: inherit;
+    min-width: 90px;
+    padding: 3px 4px 4px;
+}
+
+.ag-charts-dialog__input[type='datetime-local'] {
+    flex-basis: 170px;
+}
+
 /* Button */
 .ag-charts-dialog__button {
     border-radius: 0;

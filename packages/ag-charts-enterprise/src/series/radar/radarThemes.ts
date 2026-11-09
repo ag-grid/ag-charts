@@ -38,7 +38,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
             fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             stroke: { $palette: 'stroke' },
             fillOpacity: 1,
-            shape: 'circle',
+            shape: { $palette: 'markerShape' },
             size: 6,
             ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },

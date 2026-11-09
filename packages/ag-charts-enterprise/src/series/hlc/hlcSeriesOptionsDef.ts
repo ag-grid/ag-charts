@@ -14,19 +14,21 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    crosshairSnapToValidator,
     fillOptionsDef,
     interpolationOptionsDefs,
     lineDashOptionsDef,
+    markerHighlightOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
     required,
     shadowOptionsDefs,
-    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
     undocumentedDefs,
+    union,
 } from 'ag-charts-core';
 
 const hlcSeriesItemLineThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemLineThemeableOptions<unknown, unknown>> = {
@@ -56,6 +58,8 @@ const hlcSeriesBandStyleDef: OptionsDefs<AgHlcSeriesBandStyle> = {
 };
 
 export const hlcSeriesThemeableOptionsDef: OptionsDefs<AgHlcSeriesThemeableOptions> = {
+    crosshairSnapTo: crosshairSnapToValidator(['high', 'low', 'close']),
+    crosshairSnapMode: union('all', 'nearest'),
     showInMiniChart: boolean,
     connectMissingData: boolean,
     interpolation: interpolationOptionsDefs,
@@ -74,7 +78,7 @@ export const hlcSeriesThemeableOptionsDef: OptionsDefs<AgHlcSeriesThemeableOptio
             close: { ...hlcSeriesLineStyleDef },
         },
     }),
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesHighlightOptionsDef(markerHighlightOptionsDef, markerHighlightOptionsDef),
 };
 
 export const hlcSeriesOptionsDef: OptionsDefs<AgHlcSeriesOptions> = {

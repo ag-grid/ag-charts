@@ -1,6 +1,105 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-OPEN-22112123:
+    - patch-package@8.0.1 > open@7.4.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.283Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > open@8.4.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.275Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > open@8.4.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.270Z
+    - '@size-limit/esbuild-why@11.2.0 > open@10.1.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.264Z
+    - '@size-limit/esbuild-why@11.2.0 > esbuild-visualizer@0.7.0 > open@8.4.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.256Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1 > open@8.4.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.252Z
+    - nx@20.3.1 > open@8.4.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:30.234Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-21756800:
+    - rulesync@8.8.1 > fastmcp@3.34.0 > @modelcontextprotocol/sdk@1.26.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.567Z
+    - rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.556Z
+    - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.548Z
+    - '@modelcontextprotocol/server-sequential-thinking@2025.12.18 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.540Z
+    - '@modelcontextprotocol/server-puppeteer@2025.5.12 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.532Z
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.515Z
+  SNYK-JS-FOLLOWREDIRECTS-21762031:
+    - rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5 > follow-redirects@1.16.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:04.032Z
+    - wait-on@9.5.1 > axios@1.21.0 > follow-redirects@1.16.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:04.016Z
+  SNYK-JS-FLAT-22148819:
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > flat@5.0.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:01:48.534Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > flat@5.0.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:01:48.531Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1 > flat@5.0.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:01:48.527Z
+    - nx@20.3.1 > flat@5.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:01:48.517Z
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-21460687:
     - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
@@ -22,12 +121,12 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T12:58:56.000Z
-    - 'rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0':
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T12:58:56.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > @modelcontextprotocol/sdk@1.26.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -53,7 +152,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2':
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -65,12 +164,12 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-FOLLOWREDIRECTS-21280747:
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5 > follow-redirects@1.16.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5 > follow-redirects@1.16.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'wait-on@9.1.0 > axios@1.20.0 > follow-redirects@1.16.0':
+    - 'wait-on@9.5.1 > axios@1.21.0 > follow-redirects@1.16.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -96,12 +195,12 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0':
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > @modelcontextprotocol/sdk@1.26.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -127,12 +226,12 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0':
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > @modelcontextprotocol/sdk@1.26.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -158,12 +257,12 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0':
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > @modelcontextprotocol/sdk@1.26.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -355,17 +454,17 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'react-instantsearch@7.50.0 > instantsearch.js@4.118.0 > qs@6.14.1':
+    - 'react-instantsearch@7.54.0 > instantsearch.js@4.122.0 > qs@6.14.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -398,7 +497,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -434,7 +533,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -470,7 +569,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -511,7 +610,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -552,7 +651,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -588,7 +687,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -629,7 +728,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -670,7 +769,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - 'rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0':
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -794,7 +893,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:16:36.742Z
-    - cssnano-preset-lite@4.0.5 > postcss-discard-comments@7.0.8 > postcss-selector-parser@7.1.5:
+    - 'cssnano-preset-lite@4.0.6 > postcss-discard-comments@7.0.8 > postcss-selector-parser@7.1.5':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -842,12 +941,12 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:15:46.296Z
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-20579853:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > @modelcontextprotocol/sdk@1.26.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:15:09.787Z
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -873,7 +972,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:15:09.749Z
   SNYK-JS-BRACEEXPANSION-20244952:
-    - typescript-eslint@8.59.3 > @typescript-eslint/eslint-plugin@8.59.3 > @typescript-eslint/type-utils@8.59.3 > @typescript-eslint/typescript-estree@8.59.3 > minimatch@10.2.5 > brace-expansion@5.0.9:
+    - 'typescript-eslint@8.72.1 > @typescript-eslint/eslint-plugin@8.72.1 > @typescript-eslint/type-utils@8.72.1 > @typescript-eslint/typescript-estree@8.72.1 > minimatch@10.2.5 > brace-expansion@5.0.9':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1089,7 +1188,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:14:43.390Z
   SNYK-JS-BRACEEXPANSION-20244948:
-    - typescript-eslint@8.59.3 > @typescript-eslint/eslint-plugin@8.59.3 > @typescript-eslint/type-utils@8.59.3 > @typescript-eslint/typescript-estree@8.59.3 > minimatch@10.2.5 > brace-expansion@5.0.9:
+    - 'typescript-eslint@8.72.1 > @typescript-eslint/eslint-plugin@8.72.1 > @typescript-eslint/type-utils@8.72.1 > @typescript-eslint/typescript-estree@8.72.1 > minimatch@10.2.5 > brace-expansion@5.0.9':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1311,19 +1410,19 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:13:33.663Z
   SNYK-JS-AXIOS-20245060:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:02:41.281Z
   SNYK-JS-AXIOS-20245046:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:02:24.640Z
   SNYK-JS-AXIOS-20245044:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1341,13 +1440,18 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:00:43.086Z
   SNYK-JS-GRAYMATTER-20532010:
-    - rulesync@7.0.0 > gray-matter@4.0.3:
+    - 'rulesync@8.8.1 > gray-matter@4.0.3':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:00:09.833Z
   SNYK-JS-URIJS-19963963:
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1:
+    - eslint@10.13.0 > ajv@6.15.0 > uri-js@4.4.1:
+        reason: >-
+            Lint dependency - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:41.619Z
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1415,7 +1519,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-24T14:41:56.899Z
-    - rulesync@7.0.0 > globby@16.1.0 > fast-glob@3.3.3 > micromatch@4.0.8 > braces@3.0.3:
+    - 'rulesync@8.8.1 > globby@16.1.1 > fast-glob@3.3.3 > micromatch@4.0.8 > braces@3.0.3':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1446,31 +1550,31 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-24T14:41:56.865Z
   SNYK-JS-UNDICI-19635222:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:54:26.871Z
   SNYK-JS-UNDICI-19635216:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:54:12.405Z
   SNYK-JS-UNDICI-19635208:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:54:02.748Z
   SNYK-JS-UNDICI-19635206:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:53:51.588Z
   SNYK-JS-UNDICI-19635226:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1481,7 +1585,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:53:39.087Z
   SNYK-JS-UNDICI-19635210:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1497,7 +1601,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:52:59.697Z
-    - rulesync@7.0.0 > smol-toml@1.6.0:
+    - 'rulesync@8.8.1 > smol-toml@1.6.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1527,13 +1631,13 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:52:00.509Z
   SNYK-JS-UNDICI-19635218:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > undici@7.29.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:51:37.389Z
   SNYK-JS-PROXYADDR-19812342:
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1795,7 +1899,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-05T10:13:44.285Z
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-05T10:13:43.472Z
@@ -1810,7 +1914,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-05T10:12:32.295Z
   SNYK-JS-AXIOS-17111079:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-01T11:17:13.588Z
@@ -1835,7 +1939,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-01T11:17:13.522Z
   SNYK-JS-AXIOS-17111062:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-01T11:17:05.540Z
@@ -1860,7 +1964,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-01T11:17:05.481Z
   SNYK-JS-AXIOS-17111060:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-01T11:16:59.761Z
@@ -1910,7 +2014,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-01T11:12:19.054Z
   SNYK-JS-AXIOS-16299923:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-01T11:11:34.258Z
@@ -1935,7 +2039,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-01T11:11:34.190Z
   SNYK-JS-AXIOS-16299921:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-01T11:10:08.312Z
@@ -1960,7 +2064,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-01T11:10:08.271Z
   SNYK-JS-AXIOS-16299904:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-01T11:07:41.207Z
@@ -1985,7 +2089,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-01T11:07:41.174Z
   SNYK-JS-AXIOS-16298058:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-01T11:06:41.658Z
@@ -2046,7 +2150,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-04-15T13:08:22.685Z
   SNYK-JS-AXIOS-15969258:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-04-15T11:52:37.781Z
@@ -2122,7 +2226,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:19:14.031Z
-    - rulesync@7.0.0 > globby@16.1.0 > fast-glob@3.3.3 > micromatch@4.0.8 > picomatch@2.3.1:
+    - 'rulesync@8.8.1 > globby@16.1.1 > fast-glob@3.3.3 > micromatch@4.0.8 > picomatch@2.3.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:19:13.691Z
@@ -2191,11 +2295,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-PATHTOREGEXP-15789765:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > koa-router@14.0.0 > path-to-regexp@8.3.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > koa-router@14.0.0 > path-to-regexp@8.3.0':
         reason: MCP/dev tooling - not a directly exposed production dependency
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:54.967Z
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
         reason: MCP/dev tooling - not a directly exposed production dependency
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:54.964Z
@@ -2216,11 +2320,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-PATHTOREGEXP-15789763:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > koa-router@14.0.0 > path-to-regexp@8.3.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > koa-router@14.0.0 > path-to-regexp@8.3.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:42.298Z
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:42.294Z
@@ -2259,7 +2363,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-23T10:17:39.757Z
   SNYK-JS-FILETYPE-15609896:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > file-type@21.3.0:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > file-type@21.3.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-16T10:24:30.542Z
@@ -2281,7 +2385,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-16T10:22:44.844Z
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express-rate-limit@8.2.1:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express-rate-limit@8.2.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-16T10:22:11.233Z
@@ -2312,7 +2416,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:34:05.845Z
   SNYK-JS-QS-15268416:
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
         reason: MCP/dev tooling - not a directly exposed production dependency
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:32:01.584Z
@@ -2324,7 +2428,7 @@ ignore:
         reason: MCP/dev tooling - not a directly exposed production dependency
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:32:01.571Z
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
         reason: MCP/dev tooling - not a directly exposed production dependency
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:32:01.559Z
@@ -2344,7 +2448,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-    - 'react-instantsearch@7.50.0 > instantsearch.js@4.118.0 > qs@6.14.1':
+    - 'react-instantsearch@7.54.0 > instantsearch.js@4.122.0 > qs@6.14.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -2846,7 +2950,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-KOA-15353398:
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > koa@3.1.1:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > koa@3.1.1':
         reason: MCP/dev tooling - not a directly exposed production dependency
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:48:09.413Z
@@ -2868,7 +2972,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:45:05.049Z
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:45:05.043Z
@@ -2884,7 +2988,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:45:05.025Z
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > ajv@8.17.1:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > ajv@8.17.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:45:05.016Z
@@ -2949,7 +3053,7 @@ ignore:
         reason: qs is only used during development so an attack would only affect developer machines
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-02-06T10:30:00.000Z
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
         reason: rulesync is only used during development so an attack would only affect developer machines
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-02-12T10:10:00.000Z
@@ -3008,7 +3112,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+    - 'rulesync@8.8.1 > fastmcp@3.34.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -3106,7 +3210,7 @@ ignore:
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
-    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > @hono/node-server@1.19.9:
+    - 'rulesync@8.8.1 > @modelcontextprotocol/sdk@1.26.0 > @hono/node-server@1.19.9':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'

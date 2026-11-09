@@ -50,6 +50,12 @@ type ZoomToolbarOptions = NormalisedZoomButtons & {
     anchorPointY?: AgZoomAnchorPoint;
 };
 
+/**
+ * Exempt from Widget-only DOM access. The measured container height is written back as an inline style so that
+ * later measurements take the inline-style fast path instead of an `offsetHeight` read, which forces a synchronous
+ * reflow. The intended end state is a compare-before-write handle, such as `DOMElementProxy` or a Widget with that
+ * layer.
+ */
 export class ZoomToolbar {
     private enabled: boolean = false;
     private buttons: ZoomToolbarButtonOptions[] = [];
