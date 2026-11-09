@@ -107,7 +107,6 @@ export class ChartCaption implements CaptionLike {
 
     private truncated = false;
     private proxyText?: BoundedTextWidget;
-    private proxyTextListeners?: Array<() => void>;
     private lastProxyTextContent?: string;
     private lastProxyBBox?: { x: number; y: number; width: number; height: number };
 
@@ -191,15 +190,13 @@ export class ChartCaption implements CaptionLike {
         const { id: domManagerId } = this;
         if (this.proxyText == null) {
             this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
-            this.proxyTextListeners = [
-                this.proxyText.addListener('contextmenu', (ev) => this.handleContextMenu(moduleCtx, ev)),
-                this.proxyText.addListener('click', (ev) => this.handleClick(moduleCtx, ev)),
-                this.proxyText.addListener('dblclick', (ev) => this.handleClick(moduleCtx, ev)),
-                this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
-                this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
-                this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx)),
-                this.proxyText.addListener('blur', () => this.handleTooltipHide(moduleCtx)),
-            ];
+            this.proxyText.addListener('contextmenu', (ev) => this.handleContextMenu(moduleCtx, ev));
+            this.proxyText.addListener('click', (ev) => this.handleClick(moduleCtx, ev));
+            this.proxyText.addListener('dblclick', (ev) => this.handleClick(moduleCtx, ev));
+            this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev));
+            this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx));
+            this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx));
+            this.proxyText.addListener('blur', () => this.handleTooltipHide(moduleCtx));
         }
 
         if (this.needsTabStop(moduleCtx)) {
@@ -347,10 +344,6 @@ export class ChartCaption implements CaptionLike {
     private destroyProxyText() {
         if (this.proxyText == null) return;
 
-        for (const cleanup of this.proxyTextListeners ?? []) {
-            cleanup();
-        }
-        this.proxyTextListeners = undefined;
         this.proxyText.destroy();
         this.proxyText = undefined;
         this.lastProxyTextContent = undefined;
