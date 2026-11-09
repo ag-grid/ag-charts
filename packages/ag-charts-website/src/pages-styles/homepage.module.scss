@@ -210,7 +210,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
 }
 
 .galleryScrollerExample {
-    background: white;
+    background: var(--color-white);
 
     #{$selector-darkmode} & {
         background: var(--color-bg-primary);
@@ -266,10 +266,11 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     transform: translate(-85%, -65%);
     width: 97.5%;
     height: 50%;
-    background: linear-gradient(180deg, #dde9f9 -61.34%, #ffffff 89.79%);
+    /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
+    background: linear-gradient(180deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border: 1px solid #0e449126;
+    border: 1px solid color-mix(in srgb, var(--color-util-brand-500) 14.9%, transparent);
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
@@ -283,10 +284,11 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     transform: translate(85%, -65%);
     width: 97.5%;
     height: 50%;
-    background: linear-gradient(180deg, #dde9f9 -61.34%, #ffffff 89.79%);
+    /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
+    background: linear-gradient(180deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border: 1px solid #0e449126;
+    border: 1px solid color-mix(in srgb, var(--color-util-brand-500) 14.9%, transparent);
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
@@ -300,19 +302,19 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     transform: translate(-50%, -50%);
     width: 97.5%;
     height: 50%;
-    background: linear-gradient(0deg, #dde9f9 -61.34%, #ffffff 89.79%);
+    /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
+    background: linear-gradient(0deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border-left: 1px solid linear-gradient(0deg, #dde9f9 -61.34%, #0e449126 89.79%);
-    border-right: 1px solid linear-gradient(0deg, #dde9f9 -61.34%, #0e449126 89.79%);
-    border-bottom: 1px solid #0e449126;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-util-brand-500) 14.9%, transparent);
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         position: absolute;
         bottom: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(0deg, #dde9f9 -61.34%, #ffffff 89.79%);
+        /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
+        background: linear-gradient(0deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
         z-index: -999;
         border-radius: 8px;
         border: none;
@@ -347,14 +349,12 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
             margin: $spacing-size-1;
             padding: 0 $spacing-size-2;
             font-size: var(--text-fs-sm);
-            font-weight: var(--text-base);
             color: var(--color-brand-500);
         }
 
         .whatsNewText {
             padding: 0 $spacing-size-2;
             font-size: var(--text-fs-sm);
-            font-weight: var(--text-base);
             color: var(--color-brand-500);
             line-height: 100%;
         }
@@ -511,6 +511,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
             pointer-events: none;
 
             #{$selector-darkmode} & {
+                /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
                 border-color: #192232;
             }
         }
@@ -525,10 +526,11 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     border: 1px solid var(--color-util-gray-200);
     border-radius: var(--radius-lg);
     padding: $spacing-size-4;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--color-black) 10%, transparent);
 
     #{$selector-darkmode} & {
         border-color: var(--color-util-gray-300);
+        /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
         background-color: #192232;
     }
 
@@ -659,7 +661,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     height: fit-content;
     border-left: 1px solid var(--color-border-primary);
     border-bottom: 1px solid var(--color-border-primary);
-    background-color: rgba(255, 255, 255, 0.85);
+    background-color: color-mix(in srgb, var(--color-white) 85%, transparent);
     padding: $spacing-size-4;
     z-index: $z-index-debug-panel;
 

@@ -87,12 +87,12 @@
 }
 
 .exampleContainer {
-    --chart-bg: #fff;
-    --chart-border: #d0d5dd;
+    --chart-bg: var(--color-white);
+    --chart-border: var(--color-border-primary);
 
     [data-dark-mode='true'] & {
+        /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
         --chart-bg: #192232;
-        --chart-border: #344054;
     }
 
     position: relative;

@@ -24,8 +24,10 @@
         --link-color: var(--color-gray-400);
         --active-color: var(--color-brand-300);
         --active-border: var(--color-brand-300);
+        /* stylelint-disable function-disallowed-list -- old brand blue (#3892f9) tints, no matching token */
         --hover-background: rgba(56, 146, 249, 0.06);
         --active-background: rgba(56, 146, 249, 0.09);
+        /* stylelint-enable function-disallowed-list */
     }
 
     @supports (position: sticky) {
@@ -131,7 +133,7 @@
     color: var(--link-color);
     transition: color $transition-default-timing;
     font-weight: 500;
-    font-size: var(--text-fs-regular);
+    font-size: inherit;
 
     &:hover,
     &:global(.active) {

@@ -29,19 +29,21 @@
     }
 
     #{$selector-darkmode} & {
+        /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
         background-color: #192232; // Dark themes background color
     }
 
     &.modified {
-        border-color: var(--color-brand-primary);
-        box-shadow: 0 0 0 1px var(--color-brand-primary);
+        border-color: currentcolor;
+        box-shadow: none;
 
         .label {
-            border-top-color: var(--color-brand-primary);
+            border-top-color: currentcolor;
         }
 
         &:hover {
-            border-color: var(--color-brand-primary);
+            border-color: currentcolor;
+            /* stylelint-disable-next-line function-disallowed-list -- old brand blue (#3892f9) glow, no matching token */
             box-shadow: 0 0 8px rgba(56, 146, 249, 0.3);
         }
     }
@@ -87,7 +89,7 @@
 }
 
 .modifiedIndicator {
-    color: var(--color-brand-primary);
+    color: inherit;
     margin-left: $spacing-size-1;
     font-weight: bold;
     font-size: 14px;

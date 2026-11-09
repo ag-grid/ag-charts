@@ -39,9 +39,10 @@
     width: 100%;
     top: 100%;
     left: 0;
-    background-color: white;
+    background-color: var(--color-white);
+    /* stylelint-disable-next-line color-no-hex -- bespoke light grey border, no matching token */
     border: 1px solid #ddd;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px color-mix(in srgb, var(--color-black) 10%, transparent);
     z-index: 1000;
     display: flex;
     flex-direction: column;
