@@ -93,6 +93,25 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledWith({ start: { y: 2 } });
     });
 
+    it('commits a date on blur or Enter, not on each edited segment', () => {
+        const yScale = new TimeScale();
+        yScale.domain = [new Date(2024, 0, 1), new Date(2024, 0, 31)];
+        show(createAxesContext(new CategoryScale(), yScale));
+        const [, startY] = inputs();
+
+        startY.value = '2024-01-10T00:00:00';
+        startY.dispatchEvent(new Event('change'));
+        expect(onChangeCoordinates).not.toHaveBeenCalled();
+
+        startY.dispatchEvent(new Event('blur'));
+        expect(onChangeCoordinates).toHaveBeenCalledWith({ start: { y: new Date(2024, 0, 10) } });
+
+        startY.value = '2024-01-12T00:00:00';
+        startY.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+        expect(onChangeCoordinates).toHaveBeenLastCalledWith({ start: { y: new Date(2024, 0, 12) } });
+        expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
+    });
+
     it('offers the categories of a category axis and takes only one of them', () => {
         const xScale = new CategoryScale<string>();
         xScale.domain = ['Apples', 'Pears'];

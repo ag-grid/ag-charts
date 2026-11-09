@@ -1,4 +1,4 @@
-import { test } from './fixture';
+import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
@@ -73,5 +73,29 @@ test.describe('text-navigation', () => {
         await page.keyboard.press('ArrowDown');
         await page.keyboard.type('D');
         await expectChartScreenshot(page, page, 'settings-text-arrowdown.png', { animations: 'disabled' });
+    });
+
+    test('settings-coordinates-date', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.getByTitle('Trend Lines').click();
+        await page.getByText('Vertical Line').click();
+        await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+        await page.getByTitle('Settings').click();
+        await page.getByRole('tab').getByText('Coordinates').click();
+
+        const input = page.getByLabel('Value X');
+        const original = await input.inputValue();
+
+        // Focus the year, after the month and the day, and type its first digit.
+        await input.focus();
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.type('2');
+        await expect(input).toHaveValue(/^0002-/);
+
+        await page.keyboard.type(original.slice(1, 4));
+        await page.keyboard.press('Enter');
+        await expect(input).toHaveValue(original);
     });
 });

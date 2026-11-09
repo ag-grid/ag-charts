@@ -159,6 +159,7 @@ export interface InputOptions {
     value: string;
     /** The granularity of a `datetime-local` input, in seconds. */
     step?: number;
+    /** Called when the user commits a value; a `datetime-local` input may commit a value that has not changed. */
     onChange: (value: string, event: Event) => void;
 }
 export function createInput(options: InputOptions, attrs?: InputAttributeSet) {
@@ -170,7 +171,18 @@ export function createInput(options: InputOptions, attrs?: InputAttributeSet) {
         input.step = String(options.step);
     }
     input.value = options.value;
-    input.addEventListener('change', (event) => options.onChange(input.value, event));
+    const commit = (event: Event) => options.onChange(input.value, event);
+    if (options.type === 'datetime-local') {
+        // Chrome fires `change` after every edited segment, committing a half-typed date, so commit on blur or Enter.
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                commit(event);
+            }
+        });
+    } else {
+        input.addEventListener('change', commit);
+    }
     setAttributes(input, attrs);
     setAttribute(input, 'data-preventdefault', false); // AG-13715
     return input;
