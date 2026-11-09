@@ -86,10 +86,8 @@ export class Caption implements CaptionLike {
     private proxyTextListeners?: Array<() => void>;
     private lastProxyTextContent?: string;
     private lastProxyBBox?: { x: number; y: number; width: number; height: number };
-    private a11yContext?: { moduleCtx: DynamicContext<ChartRegistry>; axisId: AxisID };
 
     registerInteraction(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
-        this.a11yContext = { moduleCtx, axisId };
         return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, axisId));
     }
 
@@ -127,7 +125,7 @@ export class Caption implements CaptionLike {
         if (bbox == null) return;
 
         if (this.proxyText == null) {
-            this.proxyText = moduleCtx.widgets.axisWidgets.acquireTitle(axisId);
+            this.proxyText = moduleCtx.widgets.acquireAxisWidget(axisId).acquireTitle();
             this.proxyTextListeners = [
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
                 this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
@@ -151,7 +149,7 @@ export class Caption implements CaptionLike {
             bbox.width !== lastProxyBBox?.width ||
             bbox.height !== lastProxyBBox?.height
         ) {
-            moduleCtx.widgets.axisWidgets.setTitleBounds(axisId, bbox);
+            this.proxyText.setBounds(bbox);
             this.lastProxyBBox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
         }
     }
@@ -192,8 +190,7 @@ export class Caption implements CaptionLike {
             cleanup();
         }
         this.proxyTextListeners = undefined;
-        // The widget itself is owned by AxisWidgets, not the caption; release it there.
-        this.a11yContext?.moduleCtx.widgets.axisWidgets.releaseTitle(this.a11yContext.axisId);
+        this.proxyText.destroy();
         this.proxyText = undefined;
         this.lastProxyTextContent = undefined;
         this.lastProxyBBox = undefined;

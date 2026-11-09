@@ -92,8 +92,9 @@ export class AxisInteraction extends AbstractModuleInstance {
 
     private teardown() {
         for (const a of this.axes) {
-            this.ctx.widgets.axisWidgets.releaseRegion(a.axisId);
+            a.div.releaseInteractions();
         }
+        this.axes.length = 0;
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -132,9 +133,7 @@ export class AxisInteraction extends AbstractModuleInstance {
     }
 
     private processAxisDiff() {
-        const {
-            ctx: { axisManager, chartService },
-        } = this;
+        const { axisManager, chartService } = this.ctx;
 
         const axesCtx = [
             ...axisManager.getAxisContext(ChartAxisDirection.X),
@@ -147,7 +146,7 @@ export class AxisInteraction extends AbstractModuleInstance {
             this.axes = this.axes.filter((entry) => {
                 if (!removed.includes(entry.axisId)) return true;
 
-                this.ctx.widgets.axisWidgets.releaseRegion(entry.axisId);
+                entry.div.releaseInteractions();
                 this.overlappingAxisIds.delete(entry.axisId);
 
                 if (this.hoveredAxisId === entry.axisId) this.hoveredAxisId = undefined;
@@ -160,9 +159,6 @@ export class AxisInteraction extends AbstractModuleInstance {
         for (const newAxisCtx of added) {
             const { axisId, direction } = newAxisCtx;
             const proxyAxis = this.createAxisInteraction(axisId, direction);
-            const tabIndex = needsTabStop(chartService, newAxisCtx) ? 0 : -1;
-            proxyAxis.div.setTabIndex(tabIndex);
-
             this.axes.push(proxyAxis);
         }
 
@@ -173,12 +169,15 @@ export class AxisInteraction extends AbstractModuleInstance {
             if (bbox == undefined) {
                 axis.bounds = undefined;
             } else {
-                this.ctx.widgets.axisWidgets.setRegionBounds(axis.axisId, bbox);
+                axis.div.setBounds(bbox);
                 axis.bounds = new BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
             // Signal interactivity only on axes that actually have a click listener.
             const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);
             axis.div.setCursor(needsCursor ? 'pointer' : undefined);
+
+            const tabIndex = needsTabStop(chartService, axisCtx) ? 0 : -1;
+            axis.div.acquireInteractions().tickButtons.setTabIndex(tabIndex);
         }
     }
 
@@ -452,9 +451,8 @@ export class AxisInteraction extends AbstractModuleInstance {
     }
 
     private createAxisInteraction(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
-        const axisInteraction = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
-        const div = axisInteraction.widget;
-        const dragInterpretation = axisInteraction.dragInterpreter.events;
+        const div = this.ctx.widgets.acquireAxisWidget(axisId);
+        const dragInterpretation = div.acquireInteractions().dragInterpreter.events;
 
         dragInterpretation.on('drag-start', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
