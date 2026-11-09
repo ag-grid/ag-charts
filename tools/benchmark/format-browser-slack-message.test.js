@@ -4,7 +4,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const { COMPARE, EXCLUDED_ENTRY, node, report, result, withFiles } = require('./memory-fixtures');
+const {
+    COMPARE,
+    EXCLUDED_ENTRY,
+    baseOnlyEntry,
+    node,
+    report,
+    result,
+    runCompare,
+    withFiles,
+} = require('./memory-fixtures');
 
 /** The Slack message the nightly posts: how failed or timed-out examples are listed beside the comparison. */
 
@@ -129,27 +138,19 @@ test('slack message has no new note for an empty or absent newHeadOnly list', ()
 });
 
 test('compare output with a base-only example feeds the slack message end to end', () => {
-    const entry = { ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'not on base' };
     withFiles(
         {
             head: report({ healthy: [result('t')], fresh: [result('t')] }),
             base: report({ healthy: [result('t')] }),
-            excluded: [entry],
+            excluded: [baseOnlyEntry('fresh')],
         },
         (p) => {
-            const proc = node(COMPARE, [
-                '--base',
-                p.base,
-                '--compare',
-                p.head,
-                '--excluded',
-                p.excluded,
-                '--format',
-                'json',
-            ]);
-            assert.equal(proc.status, 0, proc.stderr);
-            const message = format(JSON.parse(proc.stdout));
-            assert.equal(notesOf(message), '1 new (head only: fresh / t)');
+            const { status, stderr, json } = runCompare(
+                { base: p.base, compare: p.head, excluded: p.excluded },
+                { format: 'json' }
+            );
+            assert.equal(status, 0, stderr);
+            assert.equal(notesOf(format(json)), '1 new (head only: fresh / t)');
         }
     );
 });

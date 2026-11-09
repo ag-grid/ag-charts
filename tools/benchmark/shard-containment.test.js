@@ -8,9 +8,12 @@ const test = require('node:test');
 const yaml = require('js-yaml');
 
 const {
+    BROKEN_BASE,
     COMPARE,
     EXCLUDED_ENTRY,
     MERGE,
+    NOT_FOUND,
+    baseOnlyEntry,
     node,
     report,
     result,
@@ -582,8 +585,6 @@ test('report job: when every example was excluded nothing is compared and the jo
 
 // --- Examples that fail only on the base are reported as head-only "New" rows ---
 
-const NOT_FOUND = { status: 'error', error: 'HTTP 404 for https://example.test/benchmarks/examples/new-one' };
-const BROKEN_BASE = { status: 'error', error: 'page.goto: net::ERR_FAILED' };
 const reportJson = (dir) => JSON.parse(fs.readFileSync(path.join(dir, 'reports/browser-benchmark.json'), 'utf8'));
 const reportLog = (dir) => fs.readFileSync(path.join(dir, 'reports/browser-benchmark.log'), 'utf8');
 
@@ -636,20 +637,6 @@ test('report job: a base error that is not a 404 among matched examples is a New
         // The matched table and the New section stay apart: the new row is never in the ranked comparison.
         assert.doesNotMatch(JSON.stringify(json.rankedByTime), /flaky/);
         assert.match(reportLog(dir), /base-only: base failed/);
-    });
-});
-
-test('report job: a new head-only row is never gated, however slow it is', () => {
-    const notOnBase = (side, shard) =>
-        shard === 0 ? { healthy: 'success', slow: side === 'base' ? NOT_FOUND : 'success' } : {};
-    withReportJob({ statuses: notOnBase }, ({ merge, compare, dir }) => {
-        assert.equal(merge().status, 0);
-        const compared = compare();
-        assert.equal(compared.status, 0, compared.stderr + compared.stdout);
-        assert.deepEqual(
-            reportJson(dir).newHeadOnly.map((r) => r.test),
-            ['slow / t']
-        );
     });
 });
 
@@ -795,76 +782,47 @@ test('merge --side rejects a value other than head or base', () => {
 });
 
 test('compare: a head-only row carries the head median, min, sample count and cross-run CV', () => {
+    // Per-run medians are 12 and 22; the cross-run CV is their sample standard deviation over their mean.
     const head1 = report({ shared: [result('t')], fresh: [result('t', { timings: [10, 12, 14] })] });
     const head2 = report({ shared: [result('t')], fresh: [result('t', { timings: [20, 22, 24] })] });
     const base = report({ shared: [result('t')] });
-    withFiles(
-        {
-            head1,
-            head2,
-            base1: base,
-            base2: base,
-            excluded: [{ ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'not on base' }],
-        },
-        (p) => {
-            const out = node(COMPARE, [
-                '--base',
-                p.base1,
-                p.base2,
-                '--compare',
-                p.head1,
-                p.head2,
-                '--excluded',
-                p.excluded,
-                '--format',
-                'json',
-            ]);
-            assert.equal(out.status, 0, out.stderr);
-            const json = JSON.parse(out.stdout);
-            assert.equal(json.newHeadOnly.length, 1);
-            const [row] = json.newHeadOnly;
-            assert.equal(row.test, 'fresh / t');
-            assert.equal(row.reason, 'not on base');
-            assert.equal(row.runCount, 2);
-            assert.equal(row.samples, 3);
-            assert.ok(row.medianMs != null && row.minMs != null);
-            assert.ok(row.crossRunCvPct > 0, 'two different run medians give a non-zero cross-run CV');
-            // Medians across runs: run 1 median 12, run 2 median 22. Min is the smallest min, 10.
-            assert.equal(Number(row.minMs), 10);
-            assert.deepEqual(
-                json.rankedByTime.map((r) => r.test),
-                ['shared / t']
-            );
-            assert.deepEqual(json.excluded, []);
-        }
-    );
+    const expectedCvPct = (Math.sqrt((5 ** 2 + 5 ** 2) / (2 - 1)) / 17) * 100;
+    withFiles({ head1, head2, base1: base, base2: base, excluded: [baseOnlyEntry('fresh')] }, (p) => {
+        const { status, stderr, json } = runCompare(
+            { base: [p.base1, p.base2], compare: [p.head1, p.head2], excluded: p.excluded },
+            { format: 'json' }
+        );
+        assert.equal(status, 0, stderr);
+        assert.equal(json.newHeadOnly.length, 1);
+        const [row] = json.newHeadOnly;
+        assert.equal(row.test, 'fresh / t');
+        assert.equal(row.reason, 'not on base');
+        assert.equal(row.runCount, 2);
+        assert.equal(row.samples, 3);
+        assert.equal(Number(row.medianMs), 17, 'median of the run medians 12 and 22');
+        assert.equal(Number(row.minMs), 10, 'the smallest min across runs');
+        assert.ok(Math.abs(row.crossRunCvPct - expectedCvPct) < 1e-6, `CV ${row.crossRunCvPct} != ${expectedCvPct}`);
+        assert.deepEqual(
+            json.rankedByTime.map((r) => r.test),
+            ['shared / t']
+        );
+        assert.deepEqual(json.excluded, []);
+    });
 });
 
 test('compare: New (head only) is its own table section, apart from the matched table', () => {
     const head = report({ shared: [result('t')], fresh: [result('t')] });
     const base = report({ shared: [result('t')] });
-    withFiles(
-        { head, base, excluded: [{ ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'base failed' }] },
-        (p) => {
-            const out = node(COMPARE, [
-                '--base',
-                p.base,
-                '--compare',
-                p.head,
-                '--excluded',
-                p.excluded,
-                '--format',
-                'table',
-            ]);
-            assert.equal(out.status, 0, out.stderr);
-            const at = out.stdout.indexOf('New (head only)');
-            assert.ok(at >= 0, 'has a New (head only) section');
-            assert.doesNotMatch(out.stdout.slice(0, at), /fresh/);
-            assert.match(out.stdout.slice(at), /fresh \/ t/);
-            assert.match(out.stdout.slice(at), /base-only: base failed/);
-            assert.doesNotMatch(out.stdout, /Excluded/);
-        }
-    );
+    withFiles({ head, base, excluded: [baseOnlyEntry('fresh', 'base failed')] }, (p) => {
+        const out = runCompare({ base: p.base, compare: p.head, excluded: p.excluded }, { format: 'table' });
+        assert.equal(out.status, 0, out.stderr);
+        const at = out.stdout.indexOf('New (head only)');
+        assert.ok(at >= 0, 'has a New (head only) section');
+        assert.doesNotMatch(out.stdout.slice(0, at), /fresh/);
+        assert.match(out.stdout.slice(at), /fresh \/ t/);
+        assert.match(out.stdout.slice(at), /base-only: base failed/);
+        assert.doesNotMatch(out.stdout, /Excluded/);
+    });
 });
 
 test('compare: an example that is new on the head without any excluded entry is still a New row, with no reason', () => {
@@ -880,46 +838,82 @@ test('compare: an example that is new on the head without any excluded entry is 
     });
 });
 
+test('compare: a new head-only row is never regression-gated, however slow, while a slow matched one is', () => {
+    const slow = { timings: [5000, 5000, 5000] };
+    const base = report({ shared: [result('t')] });
+    withFiles(
+        {
+            base,
+            head: report({ shared: [result('t')], fresh: [result('t', slow)] }),
+            slowMatched: report({ shared: [result('t', slow)] }),
+            excluded: [baseOnlyEntry('fresh')],
+        },
+        (p) => {
+            // No --report-only here, unlike the workflow, so a gate on the new row would make this exit 1.
+            const newRow = runCompare({ base: p.base, compare: p.head, excluded: p.excluded }, { format: 'table' });
+            assert.equal(newRow.status, 0, newRow.stderr + newRow.stdout);
+            assert.doesNotMatch(newRow.stdout, /Notable Regressions/);
+            assert.match(newRow.stdout, /fresh \/ t/);
+
+            const matched = runCompare({ base: p.base, compare: p.slowMatched }, { format: 'table' });
+            assert.equal(matched.status, 1, 'the same timings on a matched example do trip the gate');
+        }
+    );
+});
+
 test('compare: only new examples (nothing matched) passes, and nothing at all with everything excluded fails', () => {
     const head = report({ fresh: [result('t')] });
     const base = report({});
-    withFiles(
-        {
-            head,
-            base,
-            excluded: [{ ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'not on base' }],
-            hung: [EXCLUDED_ENTRY],
-        },
-        (p) => {
-            assert.equal(node(COMPARE, ['--base', p.base, '--compare', p.head, '--excluded', p.excluded]).status, 0);
-            const failing = node(COMPARE, ['--base', p.base, '--compare', p.base, '--excluded', p.hung]);
-            assert.equal(failing.status, 1);
-        }
-    );
+    withFiles({ head, base, excluded: [baseOnlyEntry('fresh')], hung: [EXCLUDED_ENTRY] }, (p) => {
+        assert.equal(runCompare({ base: p.base, compare: p.head, excluded: p.excluded }).status, 0);
+        const failing = runCompare({ base: p.base, compare: p.base, excluded: p.hung });
+        assert.equal(failing.status, 1);
+    });
 });
 
 test('compare: nothing matched but one new row passes even while another example is excluded', () => {
     const head = report({ fresh: [result('t')] });
     const base = report({});
-    const baseOnly = { ...EXCLUDED_ENTRY, example: 'fresh', baseOnly: true, reason: 'not on base' };
-    withFiles({ head, base, excluded: [baseOnly, EXCLUDED_ENTRY] }, (p) => {
-        const out = node(COMPARE, [
-            '--base',
-            p.base,
-            '--compare',
-            p.head,
-            '--excluded',
-            p.excluded,
-            '--format',
-            'json',
-        ]);
-        assert.equal(out.status, 0, out.stderr);
-        const json = JSON.parse(out.stdout);
+    withFiles({ head, base, excluded: [baseOnlyEntry('fresh'), EXCLUDED_ENTRY] }, (p) => {
+        const { status, stderr, json } = runCompare(
+            { base: p.base, compare: p.head, excluded: p.excluded },
+            { format: 'json' }
+        );
+        assert.equal(status, 0, stderr);
         assert.deepEqual(
             json.newHeadOnly.map((r) => r.test),
             ['fresh / t']
         );
         assert.deepEqual(json.excluded, ['hung: head r1 timeout; skipped: base r1']);
+    });
+});
+
+test('compare: a base-only entry with no head results fails closed and is listed, never silently dropped', () => {
+    // E.g. the head reports were merged without --side head, which dropped the example from both sides.
+    const empty = report({});
+    withFiles({ head: empty, base: empty, excluded: [baseOnlyEntry('fresh')] }, (p) => {
+        const { status, stderr } = runCompare({ base: p.base, compare: p.head, excluded: p.excluded });
+        assert.equal(status, 1);
+        assert.match(stderr, /No example could be compared/);
+        assert.match(stderr, /! fresh: base r1 error/);
+    });
+});
+
+test('compare: an orphan base-only entry is listed as excluded while the others still show as New or matched', () => {
+    const head = report({ shared: [result('t')], fresh: [result('t')] });
+    const base = report({ shared: [result('t')] });
+    withFiles({ head, base, excluded: [baseOnlyEntry('fresh'), baseOnlyEntry('orphan', 'base failed')] }, (p) => {
+        const { status, json } = runCompare(
+            { base: p.base, compare: p.head, excluded: p.excluded },
+            { format: 'json' }
+        );
+        assert.equal(status, 0);
+        assert.deepEqual(
+            json.newHeadOnly.map((r) => r.test),
+            ['fresh / t']
+        );
+        assert.equal(json.excluded.length, 1);
+        assert.match(json.excluded[0], /^orphan: /);
     });
 });
 

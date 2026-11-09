@@ -10,7 +10,7 @@ const {
     remainingExamples,
     timedOutExamples,
 } = require('./shard-failures');
-const { node, shardReport, withFiles } = require('./memory-fixtures');
+const { BROKEN_BASE: BROKEN, NOT_FOUND, node, shardReport, withFiles } = require('./memory-fixtures');
 
 const SHARD_FAILURES = path.join(__dirname, 'shard-failures.js');
 
@@ -205,9 +205,6 @@ test('collectExcluded treats a missing shards directory as no shards, and the CL
 });
 
 // --- base-only: an example that failed only on the base is shown as a head-only row ---
-
-const NOT_FOUND = { status: 'error', error: 'HTTP 404 for https://example.test/benchmarks/examples/new-one' };
-const BROKEN = { status: 'error', error: 'page.goto: net::ERR_FAILED' };
 
 test('collectExcluded marks an example that 404ed on the base in every pass as base-only: not on base', () => {
     withShards(
