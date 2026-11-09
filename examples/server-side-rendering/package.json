@@ -15,6 +15,6 @@
     "tsx": "^4.23.15",
     "@types/express": "^5.0.6",
     "@types/node": "^24.19.2",
-    "typescript": "~5.8.3"
+    "typescript": "~5.9.3"
   }
 }

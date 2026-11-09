@@ -15,7 +15,7 @@ function init_fw {
 }
 
 function install_fw {
-    # The newest Angular starter pulls in vitest, whose optional peer graph
+    # Angular 21+ starters pull in vitest, whose optional peer graph
     # crashes npm 10's resolver ("Cannot read properties of null (reading
     # 'edgesOut')"). Scaffold without installing and install the starter's own
     # dependencies with peer resolution disabled; the ag-charts packages are
@@ -29,6 +29,9 @@ function install_fw {
     else
         echo ">>> npm i -g @angular/cli@^${version}.0.0"
         npm i -g @angular/cli@^${version}.0.0
+        if [[ ${version} -ge 21 ]] ; then
+            ng_new_opts=--skip-install
+        fi
     fi
     echo ">>> ng new angular-${version}-test"
     echo "" | ng new angular-${version}-test --defaults=true --strict --prefix=app --style=scss --package-manager=npm --routing=false --interactive=false ${ng_new_opts}
