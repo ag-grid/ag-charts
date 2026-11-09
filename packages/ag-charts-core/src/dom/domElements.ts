@@ -1,5 +1,6 @@
 import type { AgIconName } from 'ag-charts-types';
 
+import { createElementId } from '../identity/id';
 import type { AgDocument } from './agDocument';
 import {
     type AttributeSet,
@@ -151,6 +152,55 @@ export function createTextArea(options: TextAreaOptions, attrs?: InputAttributeS
     setAttributes(textArea, attrs);
     setAttribute(textArea, 'data-preventdefault', false); // AG-13715
     return textArea;
+}
+
+export interface InputOptions {
+    type: 'number' | 'datetime-local' | 'text';
+    value: string;
+    /** The granularity of a `datetime-local` input, in seconds. */
+    step?: number;
+    /** Called when the user commits a value; a `datetime-local` input may commit a value that has not changed. */
+    onChange: (value: string, event: Event) => void;
+}
+export function createInput(options: InputOptions, attrs?: InputAttributeSet) {
+    const input = createElement('input', getClassName('ag-charts-input', attrs));
+    input.type = options.type;
+    if (options.type === 'number') {
+        input.step = 'any';
+    } else if (options.step != null) {
+        input.step = String(options.step);
+    }
+    input.value = options.value;
+    const commit = (event: Event) => options.onChange(input.value, event);
+    if (options.type === 'datetime-local') {
+        // Chrome fires `change` after every edited segment, committing a half-typed date, so commit on blur or Enter.
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                commit(event);
+            }
+        });
+    } else {
+        input.addEventListener('change', commit);
+    }
+    setAttributes(input, attrs);
+    setAttribute(input, 'data-preventdefault', false);
+    return input;
+}
+
+/** Suggestions for an input whose `list` attribute is the returned id. */
+export function createDatalist(values: readonly string[]) {
+    const id = createElementId();
+    const datalist = createElement('datalist');
+    setAttribute(datalist, 'id', id);
+    datalist.append(
+        ...values.map((value) => {
+            const option = createElement('option');
+            option.value = value;
+            return option;
+        })
+    );
+    return { id, datalist };
 }
 
 export function createIcon(icon?: AgIconName) {
