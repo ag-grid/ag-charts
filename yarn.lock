@@ -8755,6 +8755,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nx/devkit@npm:^20.8.4":
+  version: 20.8.4
+  resolution: "@nx/devkit@npm:20.8.4"
+  dependencies:
+    ejs: "npm:^3.1.7"
+    enquirer: "npm:~2.3.6"
+    ignore: "npm:^5.0.4"
+    minimatch: "npm:9.0.3"
+    semver: "npm:^7.5.3"
+    tmp: "npm:~0.2.1"
+    tslib: "npm:^2.3.0"
+    yargs-parser: "npm:21.1.1"
+  peerDependencies:
+    nx: ">= 19 <= 21"
+  checksum: 10c0/25a72c5dec472e2c4b5738c8c72f508ae2b335c2c2ce6395c46c3e75eb7eb33be6154f34c515b5d02e28a9406d63b00081291633efdf0b1e81d7991e4a30b722
+  languageName: node
+  linkType: hard
+
 "@nx/esbuild@npm:24.0.2":
   version: 24.0.2
   resolution: "@nx/esbuild@npm:24.0.2"
@@ -14852,7 +14870,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ag-shared@workspace:external/ag-shared"
   dependencies:
-    "@nx/devkit": "npm:24.0.2"
+    "@nx/devkit": "npm:^20.8.4"
     "@swc/helpers": "npm:0.5.23"
     "@types/yargs": "npm:^17.0.35"
     glob: "npm:^11.1.0"
@@ -15098,7 +15116,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansi-colors@npm:4.1.3, ansi-colors@npm:^4.1.3":
+"ansi-colors@npm:4.1.3, ansi-colors@npm:^4.1.1, ansi-colors@npm:^4.1.3":
   version: 4.1.3
   resolution: "ansi-colors@npm:4.1.3"
   checksum: 10c0/ec87a2f59902f74e61eada7f6e6fe20094a628dab765cfdbd03c3477599368768cffccdb5d3bb19a1b6c99126783a143b1fee31aab729b31ffe5836c7e5e28b9
@@ -18651,6 +18669,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"enquirer@npm:~2.3.6":
+  version: 2.3.6
+  resolution: "enquirer@npm:2.3.6"
+  dependencies:
+    ansi-colors: "npm:^4.1.1"
+  checksum: 10c0/8e070e052c2c64326a2803db9084d21c8aaa8c688327f133bf65c4a712586beb126fd98c8a01cfb0433e82a4bd3b6262705c55a63e0f7fb91d06b9cedbde9a11
+  languageName: node
+  linkType: hard
+
 "ent@npm:~2.2.0":
   version: 2.2.0
   resolution: "ent@npm:2.2.0"
@@ -21814,7 +21841,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ignore@npm:^5.2.0":
+"ignore@npm:^5.0.4, ignore@npm:^5.2.0":
   version: 5.3.2
   resolution: "ignore@npm:5.3.2"
   checksum: 10c0/f9f652c957983634ded1e7f02da3b559a0d4cc210fca3792cb67f1b153623c9c42efdc1c4121af171e295444459fc4a9201101fb041b1104a3c000bccb188337
@@ -24868,6 +24895,15 @@ __metadata:
   dependencies:
     brace-expansion: "npm:^5.0.5"
   checksum: 10c0/6bb058bd6324104b9ec2f763476a35386d05079c1f5fe4fbf1f324a25237cd4534d6813ecd71f48208f4e635c1221899bef94c3c89f7df55698fe373aaae20fd
+  languageName: node
+  linkType: hard
+
+"minimatch@npm:9.0.3":
+  version: 9.0.3
+  resolution: "minimatch@npm:9.0.3"
+  dependencies:
+    brace-expansion: "npm:^2.0.1"
+  checksum: 10c0/85f407dcd38ac3e180f425e86553911d101455ca3ad5544d6a7cec16286657e4f8a9aa6695803025c55e31e35a91a2252b5dc8e7d527211278b8b65b4dbd5eac
   languageName: node
   linkType: hard
 
@@ -31823,7 +31859,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tmp@npm:0.2.7, tmp@npm:^0.2.3":
+"tmp@npm:0.2.7, tmp@npm:^0.2.3, tmp@npm:~0.2.1":
   version: 0.2.7
   resolution: "tmp@npm:0.2.7"
   checksum: 10c0/59eb55584f2f07210d3231b6a1f6b5c2b9794d8a7b509c8ee867ed2acad6d2245ee2448b7937b676ffbff3155a70077edde8a69f9d7cf0f90c86a62e8910c357

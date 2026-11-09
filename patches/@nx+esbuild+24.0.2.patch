@@ -1,8 +1,8 @@
 diff --git a/node_modules/@nx/esbuild/dist/src/executors/esbuild/lib/build-esbuild-options.js b/node_modules/@nx/esbuild/dist/src/executors/esbuild/lib/build-esbuild-options.js
-index c0f9d8e..ae93f24 100644
+index c0f9d8e..836ea88 100644
 --- a/node_modules/@nx/esbuild/dist/src/executors/esbuild/lib/build-esbuild-options.js
 +++ b/node_modules/@nx/esbuild/dist/src/executors/esbuild/lib/build-esbuild-options.js
-@@ -191,26 +191,25 @@ function getProjectEntryPoint(projectPkgJson, projectPath) {
+@@ -191,17 +191,17 @@ function getProjectEntryPoint(projectPkgJson, projectPath) {
      return entryPoint;
  }
  function getOutExtension(format, options, context) {
@@ -27,18 +27,4 @@ index c0f9d8e..ae93f24 100644
 +   return defaultExt;
  }
  function getOutfile(format, options, context) {
--    const ext = getOutExtension(format, options, context);
--    // Use the normalized options rather than `context.target.options`, which
--    // holds the static value from the project configuration and misses any
--    // override, e.g. `--output-path` on the command line.
-     const candidate = (0, devkit_1.joinPathFragments)(options.outputPath, options.outputFileName);
--    const { dir, name } = path.parse(candidate);
--    return `${dir}/${name}${ext}`;
-+    const { dir, name, ext } = path.parse(candidate);
-+    if (!['js', 'mjs', 'cjs'].includes(ext)) {
-+        const defaultExt = getOutExtension(format, options, context);
-+        return `${dir}/${name}${defaultExt}`;
-+    }
- }
- function writeTmpEntryWithRequireOverrides(paths, outExtension, options, context, format = 'cjs') {
-     const project = context.projectGraph?.nodes[context.projectName];
+     const ext = getOutExtension(format, options, context);
