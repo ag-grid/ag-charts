@@ -487,6 +487,74 @@ describe('Shadow root', () => {
         });
     });
 
+    describe('a glow cast in the group', () => {
+        const GLOW = {
+            enabled: true,
+            fill: 'rgba(0, 0, 255, 0.5)',
+            xOffset: 0,
+            yOffset: 60,
+            blur: 0,
+            glow: true as const,
+        };
+        const IN_GROUP = { ...GLOW, inGroup: true as const };
+
+        // The glow lands below its square, over where `lower` draws its own square, which is drawn before it.
+        const series = (glow: typeof GLOW, withSibling = false) => {
+            const lower = group('shared', [square(120, 110)], { zIndex: 1 });
+            const caster = square(120, 40, { fillGlow: glow });
+            const upper = group('shared', withSibling ? [caster, square(120, 110)] : [caster], { zIndex: 2 });
+            return [lower, upper];
+        };
+
+        it('should draw beneath the items of an earlier group when the root casts it', () => {
+            const scene = draw(true, () => series(GLOW));
+
+            expect(at(scene, 150, 130)).toEqual(BLACK);
+        });
+
+        it('should draw over the items of an earlier group when its group casts it', () => {
+            const scene = draw(true, () => series(IN_GROUP));
+
+            const [r, g, b] = at(scene, 150, 130);
+            expect(isHalf(at(scene, 150, 105), [0, 0, 255])).toBe(true);
+            expect([r, g]).toEqual([0, 0]);
+            expect(b).toBeGreaterThan(0);
+        });
+
+        it('should draw beneath the items of its own group', () => {
+            const scene = draw(true, () => series(IN_GROUP, true));
+
+            expect(at(scene, 150, 130)).toEqual(BLACK);
+        });
+
+        // With a shadow in another group, the root casts for the group; without, it casts nothing, and the group batches.
+        it.each([
+            { name: 'before the caster, in a covered group', bystanderFirst: true, covered: true },
+            { name: 'after the caster, in a covered group', bystanderFirst: false, covered: true },
+            { name: 'before the caster, in a group the root does not cover', bystanderFirst: true, covered: false },
+            { name: 'after the caster, in a group the root does not cover', bystanderFirst: false, covered: false },
+        ])('should draw beneath an item of its group that casts no glow, $name', ({ bystanderFirst, covered }) => {
+            // Children draw in the order they were made.
+            const makeCaster = () => square(120, 40, { fillGlow: IN_GROUP });
+            const makeBystander = () => square(120, 110);
+            const children = bystanderFirst ? [makeBystander(), makeCaster()] : [makeCaster(), makeBystander()];
+            const scene = draw(true, () => [
+                group('shared', children),
+                ...(covered ? [group('shared', [square(300, 10, { fillShadow: RED_HALF })])] : []),
+            ]);
+
+            expect(at(scene, 150, 130)).toEqual(BLACK);
+        });
+
+        it('should draw as a group of its own does, when no root covers it', () => {
+            const scene = draw(false, () => series(IN_GROUP));
+
+            const [r, g, b] = at(scene, 150, 130);
+            expect([r, g]).toEqual([0, 0]);
+            expect(b).toBeGreaterThan(0);
+        });
+    });
+
     describe('segments', () => {
         const items = () => [square(20, 40, { fillShadow: RED_HALF }), square(220, 40, { fillShadow: RED_HALF })];
 

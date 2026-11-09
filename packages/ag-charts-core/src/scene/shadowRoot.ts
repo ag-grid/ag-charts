@@ -8,7 +8,7 @@ import {
     type ShadowKey,
     castShadows,
     endShadowCasts,
-    getBatchedShadow,
+    getRootBatchedShadow,
     getRootShadow,
     getShadowClip,
     joinsShadowKey,
@@ -86,7 +86,7 @@ function buildKeys(frames: readonly CollectedFrame[]) {
             if (!child.visible) continue;
 
             // A cutout erases only its own layer, so in one it leaves the shadow of the root whole.
-            const shadowOf = frame.layered ? getRootShadow : getBatchedShadow;
+            const shadowOf = frame.layered ? getRootShadow : getRootBatchedShadow;
             const shadow = shadowOf(child);
             const glow = shadowOf(child, 'glow');
             if (shadow == null && glow == null) continue;

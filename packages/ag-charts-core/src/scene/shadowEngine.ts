@@ -71,15 +71,38 @@ export interface ShadowKey {
     readonly clips?: readonly ShadowRegion[];
 }
 
-/** The options that a node casts in a slot through a shadow root, which a cutout may, or undefined if it casts none. */
-export function getRootShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
-    return node instanceof Shape ? node.getBatchShadow(slot) : undefined;
+/**
+ * Whether a node casts its glow in the batch of the group it is in, even when a shadow root covers the group: the glow
+ * is `inGroup`, so the layer of the group draws it, above the layers of the series that are drawn before it.
+ */
+function castsGlowInGroup(node: Shape, slot: ShadowSlot): boolean {
+    return slot === 'glow' && node.__fillGlow?.inGroup === true;
 }
 
-/** The options that a node casts in a slot through the engine, or undefined if it casts none. */
-export function getBatchedShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
+/** The options that a node casts in a slot through a shadow root, which a cutout may, or undefined if it casts none. */
+export function getRootShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
+    return node instanceof Shape && !castsGlowInGroup(node, slot) ? node.getBatchShadow(slot) : undefined;
+}
+
+/** The options that a node casts in a slot through the root, or undefined if it casts none, or a cutout casts its own. */
+export function getRootBatchedShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
     // A cutout erases the layer beneath it, and so also what the engine's shadow or glow put there. It casts both for itself.
     return node instanceof Shape && node.__drawingMode === 'cutout' ? undefined : getRootShadow(node, slot);
+}
+
+/** The options that a node casts in a slot through the batches of its group, or undefined if it casts none. */
+export function getBatchedShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
+    if (!(node instanceof Shape) || node.__drawingMode === 'cutout') return;
+
+    return node.getBatchShadow(slot);
+}
+
+/**
+ * The glow that a node casts in the batch of its group although a shadow root covers the group, or undefined if it casts
+ * none there. The root casts the rest, beneath every series.
+ */
+export function getGroupGlow(node: Node): NormalisedDropShadowOptions | undefined {
+    return node instanceof Shape && castsGlowInGroup(node, 'glow') ? getBatchedShadow(node, 'glow') : undefined;
 }
 
 export function getShadowClip(node: Node): ShadowClip | undefined {
