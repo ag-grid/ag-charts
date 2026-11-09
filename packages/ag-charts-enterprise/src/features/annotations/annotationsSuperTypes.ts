@@ -47,6 +47,12 @@ export type AnnotationDatum =
 
 export type EphemeralDatumType = QuickDatePriceRangeDatum;
 
+/** The annotations the settings dialog opens for. */
+export type LinearDialogDatumType = Exclude<
+    LineDatumType | ChannelDatumType | MeasurerDatumType | FibonacciDatumType,
+    EphemeralDatumType
+>;
+
 export type AnnotationScene =
     // Lines
     | LineScene

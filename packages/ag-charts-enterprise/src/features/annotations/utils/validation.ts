@@ -40,7 +40,7 @@ export function validateDatumPoint(
     return false;
 }
 
-function validateDatumPointDirection(d: any, context: AnnotationAxisContext) {
+export function validateDatumPointDirection(d: any, context: AnnotationAxisContext) {
     const { domain } = context.scale;
     const value = getGroupingValue(d);
     if (domain != null && value != null && context.continuous) {

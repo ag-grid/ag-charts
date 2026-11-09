@@ -1,11 +1,12 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { type DynamicContext, EventEmitter, focusCursorAtEnd } from 'ag-charts-core';
+import { type DynamicContext, EventEmitter, createDatalist, focusCursorAtEnd } from 'ag-charts-core';
 import type { AgAnnotationFollowName } from 'ag-charts-types';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
 import { getDefaultColor, getDefaultOpacity } from '../annotationDatums';
 import {
+    type AnnotationContext,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type ChannelTextPosition,
@@ -14,21 +15,27 @@ import {
     type LineTextPosition,
 } from '../annotationTypes';
 import { FIBONACCI_RATIO_ITEMS, LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
-import type {
-    ChannelDatumType,
-    EphemeralDatumType,
-    FibonacciDatumType,
-    LineDatumType,
-    MeasurerDatumType,
-} from '../annotationsSuperTypes';
+import type { LinearDialogDatumType } from '../annotationsSuperTypes';
 import { horizontalLineDatum } from '../cross-line/crossLineDatum';
 import { normaliseFollow } from '../cross-line/followValue';
 import { dateRangeDatum, priceRangeDatum } from '../measurer/measurerDatum';
+import {
+    type CoordinateChangeProps,
+    type CoordinateField,
+    type CoordinateKind,
+    type CoordinateRow,
+    formatCoordinate,
+    getCoordinateFields,
+    parseCoordinate,
+    resolveCoordinate,
+} from '../utils/coordinates';
 import { hasBackground, hasExtendable } from '../utils/has';
 import { isChannelType, isFibonacciType } from '../utils/types';
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
     initialSelectedTab: 'line' | 'text';
+    getContext: () => AnnotationContext | undefined;
+    onChangeCoordinates: (props: CoordinateChangeProps) => void;
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
     onChangeFillColor: Required<ColorPickerOptions>['onChange'];
@@ -62,10 +69,23 @@ export interface LinearSettingsDialogTextChangeProps {
     label?: string;
 }
 
-type LinearDialogDatumType = Exclude<
-    LineDatumType | ChannelDatumType | MeasurerDatumType | FibonacciDatumType,
-    EphemeralDatumType
->;
+const COORDINATE_ROW_LABELS: Record<CoordinateRow, string> = {
+    start: 'dialogInputCoordinatesStart',
+    end: 'dialogInputCoordinatesEnd',
+    endRetracement: 'dialogInputCoordinatesEndRetracement',
+    value: 'dialogInputCoordinatesValue',
+    offset: 'dialogInputCoordinatesOffset',
+    startOffset: 'dialogInputCoordinatesStartOffset',
+    endOffset: 'dialogInputCoordinatesEndOffset',
+};
+
+const COORDINATE_INPUT_TYPES = {
+    number: 'number',
+    time: 'datetime-local',
+    'ordinal-time': 'datetime-local',
+    'unit-time': 'datetime-local',
+    category: 'text',
+} as const satisfies Record<CoordinateKind, string>;
 
 interface EventMap {
     hidden: null;
@@ -74,9 +94,19 @@ interface EventMap {
 export class AnnotationSettingsDialog extends Dialog {
     readonly events = new EventEmitter<EventMap>();
 
+    private refreshCoordinateInputs?: () => void;
+
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
-        this.hideFns.push(() => this.events.emit('hidden', null));
+        this.hideFns.push(() => {
+            this.refreshCoordinateInputs = undefined;
+            this.events.emit('hidden', null);
+        });
+    }
+
+    /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
+    public refreshCoordinates() {
+        this.refreshCoordinateInputs?.();
     }
 
     public show(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
@@ -96,7 +126,8 @@ export class AnnotationSettingsDialog extends Dialog {
             lineLabel = 'dialogHeaderDatePriceRange';
         }
 
-        const { tabs, initialFocus } = this.createTabs('ariaLabelSettingsTabBar', options.initialSelectedTab, {
+        const coordinatesTab = this.createCoordinatesTab(datum, options);
+        const tabsOptions = {
             line: {
                 label: lineLabel,
                 panel: lineTab,
@@ -106,7 +137,14 @@ export class AnnotationSettingsDialog extends Dialog {
                 panel: textTab.panel,
                 onShow: textTab.onShow,
             },
-        });
+            ...(coordinatesTab && { coordinates: { label: 'dialogHeaderCoordinates', panel: coordinatesTab } }),
+        };
+
+        const { tabs, initialFocus } = this.createTabs(
+            'ariaLabelSettingsTabBar',
+            options.initialSelectedTab,
+            tabsOptions
+        );
         options.initialFocus = initialFocus;
 
         const popover = this.showWithChildren([tabs], options);
@@ -270,6 +308,100 @@ export class AnnotationSettingsDialog extends Dialog {
         panel.append(textArea, inputGroupLine);
 
         return { panel, onShow: () => focusCursorAtEnd(textArea) };
+    }
+
+    private createCoordinatesTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
+        const context = options.getContext();
+        if (!context) {
+            return;
+        }
+
+        const fields = getCoordinateFields(datum, context);
+        if (fields.length === 0) {
+            return;
+        }
+
+        const rows = new Map<CoordinateRow, HTMLElement[]>();
+        const refreshes: Array<(next: CoordinateField) => void> = [];
+        for (const field of fields) {
+            const { elements, refresh } = this.createCoordinateInput(field, options);
+            refreshes.push(refresh);
+            const row = rows.get(field.row);
+            if (row) {
+                row.push(...elements);
+            } else {
+                rows.set(field.row, elements);
+            }
+        }
+
+        this.refreshCoordinateInputs = () => {
+            const current = options.getContext();
+            const next = current && getCoordinateFields(datum, current);
+            if (next?.length !== refreshes.length) {
+                return;
+            }
+            for (const [index, refresh] of refreshes.entries()) {
+                refresh(next[index]);
+            }
+        };
+
+        const panel = this.createTabPanel();
+        for (const [row, inputs] of rows) {
+            panel.append(this.createInputRow(COORDINATE_ROW_LABELS[row], inputs));
+        }
+        return panel;
+    }
+
+    private createCoordinateInput(initial: CoordinateField, options: LinearSettingsDialogOptions) {
+        const { localeManager } = this.ctx;
+        const ariaLabel = localeManager.t('dialogInputCoordinatesAltText', {
+            label: localeManager.t(COORDINATE_ROW_LABELS[initial.row]),
+            axis: localeManager.t(initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'),
+        });
+
+        const suggestions = initial.suggestions && createDatalist(initial.suggestions());
+
+        let field = initial;
+        let committed = field.value;
+        const input = this.createInput({
+            ariaLabel,
+            type: COORDINATE_INPUT_TYPES[field.kind],
+            value: field.value,
+            step: field.step,
+            list: suggestions?.id,
+            onChange: (text) => {
+                const context = options.getContext();
+                const parsed = parseCoordinate(text, field.kind);
+                const resolved = parsed == null || !context ? undefined : resolveCoordinate(field, parsed, context);
+                const props = resolved == null ? undefined : field.toProps(resolved);
+                if (resolved == null || props == null) {
+                    input.value = committed;
+                    return;
+                }
+
+                // A value that resolves to the one already set, such as a date snapped to the same bar, is not a change.
+                const formatted = formatCoordinate(resolved, field.kind);
+                input.value = formatted;
+                if (formatted !== committed) {
+                    committed = formatted;
+                    options.onChangeCoordinates(props);
+                }
+            },
+        });
+
+        // An input being typed into keeps its text; the datum it will be compared against is still brought up to date.
+        const refresh = (next: CoordinateField) => {
+            field = next;
+            committed = next.value;
+            if (next.step != null) {
+                input.step = String(next.step);
+            }
+            if (!input.matches(':focus')) {
+                input.value = committed;
+            }
+        };
+
+        return { elements: suggestions ? [input, suggestions.datalist] : [input], refresh };
     }
 
     private createColorPickerInput(

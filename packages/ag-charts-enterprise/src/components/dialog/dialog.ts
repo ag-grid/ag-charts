@@ -3,6 +3,7 @@ import type {
     BBox,
     ContainerWidget,
     CheckboxOptions as CoreCheckboxOptions,
+    InputOptions as CoreInputOptions,
     SelectOptions as CoreSelectOptions,
     TextAreaOptions as CoreTextAreaOptions,
     DynamicContext,
@@ -18,6 +19,7 @@ import {
     createCheckbox,
     createElement,
     createElementId,
+    createInput,
     createSelect,
     createTextArea,
     entries,
@@ -45,6 +47,13 @@ interface RadioGroupOptions<T extends string> {
 interface SelectOptions extends CoreSelectOptions {
     altText: string;
     label: string;
+}
+
+interface InputOptions extends CoreInputOptions {
+    /** Already translated, as it is built from more than one locale string. */
+    ariaLabel: string;
+    /** The id of the datalist the input suggests from. */
+    list?: ElementID;
 }
 
 interface TextAreaOptions extends CoreTextAreaOptions {
@@ -250,6 +259,21 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         group.append(select);
 
         return group;
+    }
+
+    /** A labelled row of inputs, for values that belong together such as the x and y of one point. */
+    protected createInputRow(label: string, inputs: HTMLElement[]) {
+        const group = this.createInputGroup(label);
+        group.classList.add('ag-charts-dialog__input-group--inputs');
+        group.append(...inputs);
+        return group;
+    }
+
+    protected createInput({ ariaLabel, type, value, step, onChange, list }: InputOptions) {
+        return createInput(
+            { type, value, step, onChange },
+            { class: 'ag-charts-dialog__input', 'aria-label': ariaLabel, title: ariaLabel, list }
+        );
     }
 
     protected createTextArea({ placeholder, value, onChange }: TextAreaOptions) {
