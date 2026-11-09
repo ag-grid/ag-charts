@@ -291,8 +291,9 @@ jobs:
     benchmark:
         runs-on: ubuntu-24.04
         # Hosted runners are ~2x slower than the previous bare-metal runner and we now run each
-        # side AG_BENCHMARK_RUNS times. Leaves headroom for a balanced shard plus one hung example.
-        timeout-minutes: 60
+        # side AG_BENCHMARK_RUNS times. Leaves headroom for a balanced shard plus one hung example,
+        # and for the shadow variants of the high-freq examples that roughly tripled their cost.
+        timeout-minutes: 75
         needs: [resolve, build]
         strategy:
             fail-fast: false
