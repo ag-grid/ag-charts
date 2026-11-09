@@ -1,4 +1,5 @@
 @use 'design-system' as *;
+@use '../../../styles/bespoke-colors' as bespoke;
 
 .container {
     display: flex;
@@ -91,8 +92,7 @@
     --chart-border: var(--color-border-primary);
 
     [data-dark-mode='true'] & {
-        /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
-        --chart-bg: #192232;
+        --chart-bg: #{bespoke.$chart-dark-bg};
     }
 
     position: relative;

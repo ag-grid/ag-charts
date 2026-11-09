@@ -1,4 +1,5 @@
 @use 'design-system' as *;
+@use '../../../styles/bespoke-colors' as bespoke;
 
 .link {
     position: relative;
@@ -29,8 +30,7 @@
     }
 
     #{$selector-darkmode} & {
-        /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
-        background-color: #192232; // Dark themes background color
+        background-color: bespoke.$chart-dark-bg;
     }
 
     &.modified {

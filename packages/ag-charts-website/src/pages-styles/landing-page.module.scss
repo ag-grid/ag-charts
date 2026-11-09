@@ -1,4 +1,5 @@
 @use 'design-system' as *;
+@use '../styles/bespoke-colors' as bespoke;
 
 // ============================================================================
 // Hero Section Styles
@@ -24,33 +25,36 @@
     transform: translate(-50%, -50%);
     width: 97.5vw;
     height: 150%;
-    /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
-    background: linear-gradient(0deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
+    background: linear-gradient(0deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border-bottom: 1px solid color-mix(in srgb, var(--color-util-brand-500) 14.9%, transparent);
+    border-bottom: 1px solid bespoke.$hero-border;
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         position: absolute;
         bottom: 0;
         width: 100%;
         height: 100%;
-        /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
-        background: linear-gradient(0deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
+        background: linear-gradient(0deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
         z-index: -999;
         border-radius: 8px;
         border: none;
     }
 
     #{$selector-darkmode} & {
-        /* stylelint-disable-next-line color-no-hex -- bespoke dark hero gradient; a color-mix() stop would make it interpolate in Oklab */
-        background: linear-gradient(0deg, #29384b -61.34%, #141d2c 89.79%);
-        /* stylelint-disable-next-line color-no-hex -- bespoke dark hero border colour, no matching token */
-        border-bottom: 1px solid #f1bbde26;
+        background: linear-gradient(
+            0deg,
+            bespoke.$hero-gradient-dark-start -61.34%,
+            bespoke.$hero-gradient-dark-end 89.79%
+        );
+        border-bottom: 1px solid bespoke.$hero-border-dark;
 
         @media screen and (max-width: $breakpoint-landing-page-medium) {
-            /* stylelint-disable-next-line color-no-hex -- bespoke dark hero gradient; a color-mix() stop would make it interpolate in Oklab */
-            background: linear-gradient(0deg, #29384b -61.34%, #141d2c 89.79%);
+            background: linear-gradient(
+                0deg,
+                bespoke.$hero-gradient-dark-start -61.34%,
+                bespoke.$hero-gradient-dark-end 89.79%
+            );
             border: none;
         }
     }

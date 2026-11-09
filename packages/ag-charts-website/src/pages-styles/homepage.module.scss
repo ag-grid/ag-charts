@@ -1,4 +1,5 @@
 @use 'design-system' as *;
+@use '../styles/bespoke-colors' as bespoke;
 
 .container {
     display: flex;
@@ -262,11 +263,10 @@
     transform: translate(-85%, -65%);
     width: 97.5%;
     height: 50%;
-    /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
-    background: linear-gradient(180deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
+    background: linear-gradient(180deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border: 1px solid color-mix(in srgb, var(--color-util-brand-500) 14.9%, transparent);
+    border: 1px solid bespoke.$hero-border;
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
@@ -280,11 +280,10 @@
     transform: translate(85%, -65%);
     width: 97.5%;
     height: 50%;
-    /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
-    background: linear-gradient(180deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
+    background: linear-gradient(180deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border: 1px solid color-mix(in srgb, var(--color-util-brand-500) 14.9%, transparent);
+    border: 1px solid bespoke.$hero-border;
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
@@ -298,19 +297,17 @@
     transform: translate(-50%, -50%);
     width: 97.5%;
     height: 50%;
-    /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
-    background: linear-gradient(0deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
+    background: linear-gradient(0deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border-bottom: 1px solid color-mix(in srgb, var(--color-util-brand-500) 14.9%, transparent);
+    border-bottom: 1px solid bespoke.$hero-border;
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         position: absolute;
         bottom: 0;
         width: 100%;
         height: 100%;
-        /* stylelint-disable-next-line color-no-hex -- bespoke hero gradient stop, no matching token */
-        background: linear-gradient(0deg, #dde9f9 -61.34%, var(--color-white) 89.79%);
+        background: linear-gradient(0deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
         z-index: -999;
         border-radius: 8px;
         border: none;
@@ -507,8 +504,7 @@
             pointer-events: none;
 
             #{$selector-darkmode} & {
-                /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
-                border-color: #192232;
+                border-color: bespoke.$chart-dark-bg;
             }
         }
     }
@@ -526,8 +522,7 @@
 
     #{$selector-darkmode} & {
         border-color: var(--color-util-gray-300);
-        /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
-        background-color: #192232;
+        background-color: bespoke.$chart-dark-bg;
     }
 
     h4 {

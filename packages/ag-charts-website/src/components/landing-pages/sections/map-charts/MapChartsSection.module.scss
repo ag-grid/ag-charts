@@ -1,4 +1,5 @@
 @use 'design-system' as *;
+@use '../../../../styles/bespoke-colors' as bespoke;
 
 .mapChartsGrid {
     display: flex;
@@ -26,8 +27,7 @@
             pointer-events: none;
 
             #{$selector-darkmode} & {
-                /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
-                border-color: #192232;
+                border-color: bespoke.$chart-dark-bg;
             }
         }
     }
@@ -45,8 +45,7 @@
 
     #{$selector-darkmode} & {
         border-color: var(--color-util-gray-300);
-        /* stylelint-disable-next-line color-no-hex -- AG Charts dark-theme chart background, no matching token */
-        background-color: #192232;
+        background-color: bespoke.$chart-dark-bg;
     }
 
     h4 {
