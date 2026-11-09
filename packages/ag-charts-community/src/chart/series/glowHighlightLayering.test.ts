@@ -25,17 +25,25 @@ const DATA = [
     { quarter: 'Q3', mac: 5, ipad: 8, iphone: 6 },
 ];
 
-const HIGHLIGHT_GLOWS = {
-    highlightedSeries: { glow: { enabled: true, fill: '#f5a623', fillOpacity: 0.7, blur: 12, spread: 14 } },
-    highlightedItem: { glow: { enabled: true, fill: '#d0021b', fillOpacity: 0.9, blur: 6, spread: 4 } },
+/** The glows of the chart, each of which is cut a `gap` clear of its item, if one is given. */
+const withGap = <T extends object>(glow: T, gap: number | undefined) => (gap == null ? glow : { ...glow, gap });
+
+const highlightGlows = (gap?: number) => ({
+    highlightedSeries: {
+        glow: withGap({ enabled: true, fill: '#f5a623', fillOpacity: 0.7, blur: 12, spread: 14 }, gap),
+    },
+    highlightedItem: { glow: withGap({ enabled: true, fill: '#d0021b', fillOpacity: 0.9, blur: 6, spread: 4 }, gap) },
     // Opaque, so that a glow drawn beneath a neighbouring series is hidden by it and not seen through it.
     unhighlightedSeries: { opacity: 1, fillOpacity: 1 },
-    unhighlightedItem: { glow: { enabled: true, fill: '#7ed321', fillOpacity: 0.6, blur: 12, spread: 14 } },
-};
+    unhighlightedItem: {
+        glow: withGap({ enabled: true, fill: '#7ed321', fillOpacity: 0.6, blur: 12, spread: 14 }, gap),
+    },
+});
 
-const BAR_SERIES_GLOW = { enabled: true, fill: '#4a90e2', fillOpacity: 0.3, blur: 4, spread: 3 };
+const barSeriesGlow = (gap?: number) =>
+    withGap({ enabled: true, fill: '#4a90e2', fillOpacity: 0.3, blur: 4, spread: 3 }, gap);
 
-const options = (): AgChartOptions => ({
+const options = (gap?: number): AgChartOptions => ({
     data: DATA,
     animation: { enabled: false },
     legend: { position: 'bottom' },
@@ -44,8 +52,8 @@ const options = (): AgChartOptions => ({
         type: 'bar',
         xKey: 'quarter',
         yKey,
-        glow: BAR_SERIES_GLOW,
-        highlight: HIGHLIGHT_GLOWS,
+        glow: barSeriesGlow(gap),
+        highlight: highlightGlows(gap),
     })),
 });
 
@@ -58,8 +66,8 @@ describe('highlight glow above the other series', () => {
         chart?.destroy();
     });
 
-    const create = async () => {
-        chart = deproxy(await createChart(options()));
+    const create = async (gap?: number) => {
+        chart = deproxy(await createChart(options(gap)));
         await waitForChartStability(chart);
     };
 
@@ -77,17 +85,31 @@ describe('highlight glow above the other series', () => {
     const inGroupGlows = (seriesIndex: number) =>
         shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Rect).map((rect) => rect.fillGlow?.inGroup === true);
 
+    // The gap of the glow that each rect of the hovered series casts in its group, which the hovered item doesn't.
+    const inGroupGaps = () =>
+        shapesOf(getSeriesAt(chart, HOVERED).contentGroup, Rect)
+            .filter((rect) => rect.fillGlow?.inGroup === true)
+            .map((rect) => rect.fillGlow?.gap);
+
     // The middle series, so that a series on each side is drawn over and under its glow.
     const HOVERED = 1;
 
+    // A gap is cut out of every glow of the hovered series, which is cast in the series' own batch, over its neighbours.
+    const GAPS: [string, number | undefined][] = [
+        ['', undefined],
+        [', glow gap 0', 0],
+        [', glow gap 6', 6],
+    ];
+
     describe.each([
-        { name: 'series-level hover', hover: () => hoverSeries(HOVERED) },
-        { name: 'item hover', hover: () => hoverItem(HOVERED, 1) },
-    ])('$name', ({ name, hover }) => {
-        it(`draws the highlighted series' glow over its neighbours (${name})`, async () => {
-            await create();
+        { name: 'series-level hover', hover: () => hoverSeries(HOVERED), inGroup: 3 },
+        { name: 'item hover', hover: () => hoverItem(HOVERED, 1), inGroup: 2 },
+    ])('$name', ({ name, hover, inGroup }) => {
+        it.each(GAPS)(`draws the highlighted series' glow over its neighbours (${name}%s)`, async (_suffix, gap) => {
+            await create(gap);
             await hover();
 
+            expect(inGroupGaps()).toEqual(Array(inGroup).fill(gap));
             await compareImageSnapshot(chart, ctx);
         });
     });
