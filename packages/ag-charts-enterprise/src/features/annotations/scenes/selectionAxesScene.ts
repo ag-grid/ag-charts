@@ -43,7 +43,8 @@ class AxisSelectionOverlay {
     private opacity = 1;
 
     constructor() {
-        this.shading.zIndex = 0;
+        // Beneath a cross-line's axis label, which has the default z-index, while the selection's own labels sit above it.
+        this.shading.zIndex = -1;
         this.shading.visible = false;
     }
 

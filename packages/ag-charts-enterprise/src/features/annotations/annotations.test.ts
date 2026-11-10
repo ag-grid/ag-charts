@@ -13,7 +13,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, type Node, Text, Transformable } from 'ag-charts-core';
+import { Group, type Node, Text, Transformable, compareZIndex } from 'ag-charts-core';
 import type { AgHorizontalLineAnnotation } from 'ag-charts-types';
 
 import {
@@ -1306,6 +1306,37 @@ describe('Annotations', () => {
                 expect(axisLabelTexts().sort(byText)).toEqual([...texts].sort(byText));
             }
         );
+
+        it('draws the shading beneath a cross-line axis label and the selection labels above it', async () => {
+            await prepareChart(
+                {
+                    annotations: [
+                        { type: 'horizontal-line', value: 90 },
+                        { type: 'line', start: START, end: END },
+                    ],
+                },
+                withAxes()
+            );
+
+            await clickDatum(50, 50);
+
+            const labelWithText = (text: string) =>
+                visibleAxisLabels().find(
+                    (label) =>
+                        label instanceof Group &&
+                        Array.from(label.descendants()).some((node) => node instanceof Text && node.text === text)
+                );
+            const crossLineLabel = labelWithText('90');
+            const selectionLabel = labelWithText('75');
+            expect(crossLineLabel).toBeDefined();
+            expect(selectionLabel).toBeDefined();
+            const shading = visibleShading().find((node) => node.parentNode === crossLineLabel!.parentNode);
+            expect(shading).toBeDefined();
+
+            expect(selectionLabel!.parentNode).toBe(crossLineLabel!.parentNode);
+            expect(compareZIndex(shading!.zIndex, crossLineLabel!.zIndex)).toBe(-1);
+            expect(compareZIndex(crossLineLabel!.zIndex, selectionLabel!.zIndex)).toBe(-1);
+        });
 
         it.each(SELECTABLE)(
             'lets the datum and the theme switch off the labels and shading of a selected $name',
