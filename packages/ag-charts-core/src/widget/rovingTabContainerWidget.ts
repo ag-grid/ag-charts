@@ -1,4 +1,5 @@
 import { getAttribute, setAttribute } from '../dom/attributeUtil';
+import type { BaseAttributeTypeMap } from '../dom/attributeUtil';
 import { createElement } from '../dom/domElements';
 import { isDirectionRtl } from '../dom/domUtil';
 import { getPrevNextKeys, hasNoModifiers } from '../dom/keynavUtil';
@@ -18,6 +19,7 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
     TChildWidget
 > {
     private focusedChildIndex = 0;
+    private rovingTabIndex: 0 | -1 = 0;
 
     public get orientation(): RovingDirection {
         return getAttribute(this.elem, 'aria-orientation') ?? 'both';
@@ -44,6 +46,25 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
         }
         this.elem.textContent = '';
         this.children.length = 0;
+    }
+
+    public resize(newLength: number, allocator: () => TChildWidget): void {
+        if (newLength === 0) {
+            return this.clear();
+        }
+        while (this.children.length > newLength) {
+            this.removeChildWidget(this.children.at(-1)!);
+        }
+        while (this.children.length < newLength) {
+            this.addChild(allocator());
+        }
+    }
+
+    public override setTabIndex(tabIndex: BaseAttributeTypeMap['tabindex'] | undefined) {
+        if (tabIndex !== undefined) {
+            this.rovingTabIndex = tabIndex;
+            this.children[this.focusedChildIndex].setTabIndex(tabIndex);
+        }
     }
 
     private addChildListeners(child: RovingChildWidgets): void {
@@ -83,7 +104,7 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
                 this.focusedChildIndex = 0; // this happens when this.children ends up empty
             } else {
                 this.focusedChildIndex = newFocusChild.index;
-                newFocusChild.setTabIndex(0);
+                newFocusChild.setTabIndex(this.rovingTabIndex);
             }
         }
     }
@@ -92,7 +113,7 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
         const oldFocus = this.children[this.focusedChildIndex];
         this.focusedChildIndex = child.index;
         oldFocus?.setTabIndex(-1);
-        child.setTabIndex(0);
+        child.setTabIndex(this.rovingTabIndex);
     };
 
     private readonly onChildKeyDown = (event: KeyboardWidgetEvent, child: RovingChildWidgets): void => {

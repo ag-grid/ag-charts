@@ -138,7 +138,7 @@ export class AxisInteraction extends AbstractModuleInstance {
     }
 
     private processAxisDiff() {
-        const { axisManager, chartService } = this.ctx;
+        const { axisManager } = this.ctx;
 
         const axesCtx = [
             ...axisManager.getAxisContext(ChartAxisDirection.X),
@@ -169,20 +169,7 @@ export class AxisInteraction extends AbstractModuleInstance {
 
         for (const axis of this.axes) {
             const axisCtx = axesCtx.find((ac) => ac.axisId === axis.axisId)!;
-            const bbox = axisCtx.getCanvasBounds();
-            axis.div.setHidden(boxEmpty(bbox));
-            if (bbox == undefined) {
-                axis.bounds = undefined;
-            } else {
-                axis.div.setBounds(bbox);
-                axis.bounds = new BBox(bbox.x, bbox.y, bbox.width, bbox.height);
-            }
-            // Signal interactivity only on axes that actually have a click listener.
-            const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);
-            axis.div.setCursor(needsCursor ? 'pointer' : undefined);
-
-            const tabIndex = needsTabStop(chartService, axisCtx) ? 0 : -1;
-            axis.div.acquireInteractions().tickButtons.setTabIndex(tabIndex);
+            this.updateAxisInteraction(axis, axisCtx);
         }
     }
 
@@ -504,6 +491,34 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
 
         return { axisId, div, direction };
+    }
+
+    private updateAxisInteraction(axis: ProxyAxis, axisCtx: AxisContext) {
+        const { chartService } = this.ctx;
+
+        const bbox = axisCtx.getCanvasBounds();
+        axis.div.setHidden(boxEmpty(bbox));
+        if (bbox == undefined) {
+            axis.bounds = undefined;
+        } else {
+            axis.div.setBounds(bbox);
+            axis.bounds = new BBox(bbox.x, bbox.y, bbox.width, bbox.height);
+        }
+        // Signal interactivity only on axes that actually have a click listener.
+        const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);
+        axis.div.setCursor(needsCursor ? 'pointer' : undefined);
+
+        // Update keyboard navigation ticks
+        const tabIndex = needsTabStop(chartService, axisCtx) ? 0 : -1;
+        const tickDataIt = axisCtx.iterateTickData();
+        const tickButtonList = axis.div.acquireInteractions().tickButtons;
+        tickButtonList.setTabIndex(tabIndex);
+        tickButtonList.resize(tickDataIt.length);
+        for (const button of tickButtonList.iterateChildren()) {
+            const tickData = tickDataIt.next().value;
+            button.setTextContent(tickData.ariaLabel);
+            button.setBounds(tickData.focusBounds);
+        }
     }
 
     private diffAxisIds(axesCtx: AxisContext[]) {

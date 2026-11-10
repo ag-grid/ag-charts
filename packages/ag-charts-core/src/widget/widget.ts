@@ -420,6 +420,10 @@ export abstract class Widget<
         this.addChildToDOM(child, this.getBefore(child));
     }
 
+    iterateChildren(): Iterable<TChildWidget> {
+        return this.children;
+    }
+
     addClass(...tokens: string[]) {
         this.elem.classList.add(...tokens);
     }
