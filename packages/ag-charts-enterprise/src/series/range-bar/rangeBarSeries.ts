@@ -46,10 +46,10 @@ import {
     insideBarContainer,
     insideBarRegion,
     isContinuous,
+    labelBoxCentreOffset,
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
-    rotatedGlyphDrift,
     rotatedLabelInset,
     toArray,
     toNumber,
@@ -175,6 +175,8 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     readonly labelBoxPadding: Required<PaddingOptions>;
     readonly yLowFacing: keyof Required<PaddingOptions>;
     readonly yHighFacing: keyof Required<PaddingOptions>;
+    // Pulls the anchor back so the drawn box, not the glyph, centres on the bar's cross axis.
+    readonly labelCrossOffset: number;
     // Orientation derived once (series-constant) to keep the per-datum label build allocation-free.
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
@@ -534,6 +536,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const labelProps = this.options.label;
         const placementStyle = labelPlacement === 'outside' ? labelProps.outsideStyle : labelProps.insideStyle;
         const boxPadding = resolvePlacementLabelBoxExtent(labelProps, placementStyle);
+        const boxOffset = labelBoxCentreOffset(boxPadding);
         const isOutside = labelPlacement === 'outside';
         const sign = isOutside ? 1 : -1;
         // yLow and yHigh sit on opposite edges of the same axis, so one's outer side is the other's inner side.
@@ -581,6 +584,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelBoxPadding: boxPadding,
             yLowFacing,
             yHighFacing,
+            labelCrossOffset: barAlongX ? boxOffset.y : boxOffset.x,
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
             nodeIndex: 0,
@@ -1006,10 +1010,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         );
 
         // Reach from the bar edge to the anchor: series-constant when unrotated, per-datum (box cross-axis
-        // extent) when rotated; a rotated box's asymmetric drift off its anchor is pulled back on both labels.
+        // extent) when rotated.
         let yLowPadding = ctx.yLowPadding;
         let yHighPadding = ctx.yHighPadding;
-        let crossDrift = 0;
+        const crossOffset = ctx.labelCrossOffset;
         if (rotation !== 0) {
             const low = measureLabelText(yLowText, fontWithSize(label, yLowFontSize));
             const high = measureLabelText(yHighText, fontWithSize(label, yHighFontSize));
@@ -1020,12 +1024,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighPadding =
                 (labelSpacing + rotatedLabelInset(yHighFacing, rotation, high.width, high.height, labelBoxPadding)) *
                 labelSign;
-            const drift = rotatedGlyphDrift(rotation, labelBoxPadding);
-            crossDrift = barAlongX ? drift.y : drift.x;
         }
 
-        const yLowX = rectX + (barAlongX ? -yLowPadding : rectWidth / 2 - crossDrift);
-        const yLowY = rectY + (barAlongX ? rectHeight / 2 - crossDrift : rectHeight + yLowPadding);
+        const yLowX = rectX + (barAlongX ? -yLowPadding : rectWidth / 2 - crossOffset);
+        const yLowY = rectY + (barAlongX ? rectHeight / 2 - crossOffset : rectHeight + yLowPadding);
 
         let yLowTextAlign: CanvasTextAlign;
         if (placement === 'outside') {
@@ -1041,8 +1043,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowTextBaseline = barAlongX ? 'middle' : 'bottom';
         }
 
-        const yHighX = rectX + (barAlongX ? rectWidth + yHighPadding : rectWidth / 2 - crossDrift);
-        const yHighY = rectY + (barAlongX ? rectHeight / 2 - crossDrift : -yHighPadding);
+        const yHighX = rectX + (barAlongX ? rectWidth + yHighPadding : rectWidth / 2 - crossOffset);
+        const yHighY = rectY + (barAlongX ? rectHeight / 2 - crossOffset : -yHighPadding);
 
         let yHighTextAlign: CanvasTextAlign;
         if (placement === 'outside') {

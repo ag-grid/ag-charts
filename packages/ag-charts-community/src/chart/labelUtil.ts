@@ -44,13 +44,13 @@ import {
     insideBarRegion,
     insideBarValueInsets,
     isRotatable,
+    labelBoxCentreOffset,
     lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
     orientationAngles,
     resolveLabelAvoidance,
     resolveLabelFitDescriptors,
-    rotatedGlyphDrift,
     rotatedLabelInset,
     stylerLineHeightOverrides,
     toRadians,
@@ -780,9 +780,8 @@ export function adjustLabelPlacement({
     let textAlign: CanvasTextAlign = 'center';
     let textBaseline: CanvasTextBaseline = 'middle';
 
-    // The node rotates the padded box about its own centre; asymmetric padding drifts the glyph off the
-    // anchor. Pre-subtracting the drift keeps the glyph centred on the bar's cross-axis. Zero unrotated.
-    const drift = boxPadding == null ? { x: 0, y: 0 } : rotatedGlyphDrift(rotation, boxPadding);
+    // The drawn box, not the glyph, is what reads as the label, so centring axes centre the box.
+    const boxOffset = boxPadding == null ? { x: 0, y: 0 } : labelBoxCentreOffset(boxPadding);
 
     // Distance from the anchor to the (rotated) box edge facing the bar; added beyond `spacing` so the box
     // edge — not the text — sits `spacing` from the bar.
@@ -806,9 +805,9 @@ export function adjustLabelPlacement({
     const valueSpacing = beside == null ? spacing : 0;
 
     if (valuePlacement === 'inside-center') {
-        // No bar-facing axis: keep the glyph centred on both axes of the bar rect.
-        x -= drift.x;
-        y -= drift.y;
+        // No bar-facing axis: keep the box centred on both axes of the bar rect.
+        x -= boxOffset.x;
+        y -= boxOffset.y;
     } else {
         const barDirection = (isUpward ? 1 : -1) * (isVertical ? -1 : 1);
         const { direction, textAlignment } = placements[valuePlacement];
@@ -820,7 +819,7 @@ export function adjustLabelPlacement({
             const facing = textAlignment === barDirection ? 'top' : 'bottom';
             const inset = insetFor(facing);
             y = y0 + height * displacementRatio + (valueSpacing + inset) * textAlignment * barDirection;
-            x -= drift.x;
+            x -= boxOffset.x;
             textBaseline = facing;
         } else {
             const x0 = isUpward ? rect.x : rect.x + rect.width;
@@ -828,7 +827,7 @@ export function adjustLabelPlacement({
             const facing = textAlignment === barDirection ? 'left' : 'right';
             const inset = insetFor(facing);
             x = x0 + width * displacementRatio + (valueSpacing + inset) * textAlignment * barDirection;
-            y -= drift.y;
+            y -= boxOffset.y;
             textAlign = facing;
         }
     }

@@ -17,9 +17,9 @@ import {
     insideBarContainer,
     insideBarRegion,
     insideBarValueInsets,
+    labelBoxCentreOffset,
     labelFootprintBox,
     rectLabelObstacles,
-    rotatedGlyphDrift,
     rotatedLabelInset,
     sectorLabelContainer,
 } from './barLabelGeometry';
@@ -42,6 +42,7 @@ import {
     labelsAvoidAxisLabels,
     placeLabels,
     resolveLabelFit,
+    writeLabelBoxCentre,
 } from './labelPlacement';
 import { SpatialIndex } from './spatialIndex';
 
@@ -1358,17 +1359,27 @@ describe('bar label placement helpers', () => {
         });
     });
 
-    describe('rotatedGlyphDrift', () => {
-        it('is zero when unrotated or when padding is symmetric', () => {
-            expect(rotatedGlyphDrift(0, { top: 1, right: 2, bottom: 3, left: 4 })).toEqual({ x: 0, y: 0 });
-            expect(rotatedGlyphDrift(-Math.PI / 2, { top: 5, right: 7, bottom: 5, left: 7 })).toEqual({ x: 0, y: 0 });
+    describe('labelBoxCentreOffset', () => {
+        it('is zero for symmetric padding', () => {
+            expect(labelBoxCentreOffset({ top: 5, right: 7, bottom: 5, left: 7 })).toEqual({ x: 0, y: 0 });
         });
 
-        it('drifts by the box-centre offset carried through the rotation for asymmetric padding', () => {
-            // shift = ((10-50)/2, 0) = (-20, 0); at -90° that lands the glyph at (-20, -20) off the anchor.
-            const drift = rotatedGlyphDrift(-Math.PI / 2, { top: 0, right: 10, bottom: 0, left: 50 });
-            expect(drift.x).toBeCloseTo(-20);
-            expect(drift.y).toBeCloseTo(-20);
+        it('offsets toward the wider padding sides', () => {
+            expect(labelBoxCentreOffset({ top: 40, right: 10, bottom: 4, left: 50 })).toEqual({ x: -20, y: -18 });
+        });
+    });
+
+    describe('writeLabelBoxCentre', () => {
+        const padding = { top: 40, right: 10, bottom: 4, left: 50 };
+
+        // Box 100x60 around a 40x16 glyph: each anchor shape must recover the same box centre.
+        it.each<[CanvasTextAlign, CanvasTextBaseline, number, number]>([
+            ['center', 'middle', 100, 50],
+            ['left', 'top', 80, 42],
+            ['right', 'bottom', 120, 58],
+        ])('recovers the box centre from a %s/%s anchor', (textAlign, textBaseline, x, y) => {
+            const centre = writeLabelBoxCentre({ x: 0, y: 0 }, { x, y, textAlign, textBaseline }, 100, 60, padding);
+            expect(centre).toEqual({ x: 80, y: 32 });
         });
     });
 

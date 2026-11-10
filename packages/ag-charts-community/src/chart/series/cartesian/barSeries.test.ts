@@ -4826,12 +4826,8 @@ describe('BarSeries', () => {
         });
 
         // A rotated label's box turns a quarter-turn about its own centre, so per-side padding must not move the
-        // rendered text: constant along-axis gap from the bar, glyph still centred cross-axis.
+        // box: constant along-axis gap from the bar, box still centred cross-axis.
         const rotatedLabelGeometry = async (padding: Padding, fit: { truncate?: boolean; wrapping?: 'on-space' }) => {
-            const p =
-                typeof padding === 'number'
-                    ? { top: padding, right: padding, bottom: padding, left: padding }
-                    : padding;
             const options: AgCartesianChartOptions = {
                 data: [{ cat: 'A', value: 60 }],
                 legend: { enabled: false },
@@ -4862,14 +4858,9 @@ describe('BarSeries', () => {
             expect(node, 'label drawn').toBeDefined();
             const bar = getBarSeriesContextNodeData(chart).nodeData[0];
             const box = node.getTextMeasureBBox();
-            const r = node.rotation;
             // Box rotates about its centre; at ±90° its bar-facing (vertical) extent is the box width.
             const boxBottom = box.y + box.height / 2 + Math.abs(box.width / 2);
-            // Final glyph centre = box centre − R(θ)·shift, shift = ((right−left)/2, (bottom−top)/2).
-            const sx = ((p.right ?? 0) - (p.left ?? 0)) / 2;
-            const sy = ((p.bottom ?? 0) - (p.top ?? 0)) / 2;
-            const glyphX = box.x + box.width / 2 - (Math.cos(r) * sx - Math.sin(r) * sy);
-            return { clearance: bar.y - boxBottom, glyphOffset: glyphX - (bar.x + bar.width / 2) };
+            return { clearance: bar.y - boxBottom, boxOffset: box.x + box.width / 2 - (bar.x + bar.width / 2) };
         };
 
         it.each([
@@ -4889,9 +4880,75 @@ describe('BarSeries', () => {
                 for (const variant of [scalar, wideLeft, wideRight, tallAsym]) {
                     // Clear of the bar by the same gap as scalar padding...
                     expect(variant.clearance).toBeCloseTo(scalar.clearance, 0);
-                    // ...and the glyph stays centred on the bar regardless of padding distribution.
-                    expect(variant.glyphOffset).toBeCloseTo(0, 0);
+                    // ...and the box stays centred on the bar regardless of padding distribution.
+                    expect(variant.boxOffset).toBeCloseTo(0, 0);
                 }
+            }
+        );
+
+        // The drawn box is what reads as the label, so asymmetric padding must centre the box, not the glyph.
+        const boxCentreOffsets = async (
+            direction: 'vertical' | 'horizontal',
+            placement: AgBarSeriesLabelPlacement,
+            orientation: 'horizontal' | 'vertical',
+            fit: { truncate?: boolean }
+        ) => {
+            chart = await createChart({
+                data: [{ cat: 'A', value: 60 }],
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'category', position: direction === 'vertical' ? 'bottom' : 'left' },
+                    // Room on both sides of the bar keeps outside labels inside the series area.
+                    y: { type: 'number', position: direction === 'vertical' ? 'left' : 'bottom', min: -100, max: 160 },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        direction,
+                        xKey: 'cat',
+                        yKey: 'value',
+                        label: {
+                            enabled: true,
+                            placement,
+                            orientation,
+                            fill: 'khaki',
+                            padding: { top: 30, bottom: 4, left: 40, right: 6 },
+                            ...fit,
+                        },
+                    },
+                ],
+            } satisfies AgCartesianChartOptions);
+            const [node] = getVisibleLabelTextNodes(chart);
+            expect(node, 'label drawn').toBeDefined();
+            const bar = getBarSeriesContextNodeData(chart).nodeData[0];
+            // Rotation pivots about the box centre, so the untransformed box centre is the rendered one.
+            const box = node.getTextMeasureBBox();
+            const dx = box.x + box.width / 2 - (bar.x + bar.width / 2);
+            const dy = box.y + box.height / 2 - (bar.y + bar.height / 2);
+            return direction === 'vertical' ? { cross: dx, value: dy } : { cross: dy, value: dx };
+        };
+
+        const CENTRED_PLACEMENTS: AgBarSeriesLabelPlacement[] = [
+            'inside-start',
+            'inside-center',
+            'inside-end',
+            'outside-start',
+            'outside-end',
+        ];
+        it.each(
+            (['vertical', 'horizontal'] as const).flatMap((direction) =>
+                CENTRED_PLACEMENTS.flatMap((placement) =>
+                    (['horizontal', 'vertical'] as const).flatMap((orientation) =>
+                        [{}, { truncate: true }].map((fit) => [direction, placement, orientation, fit] as const)
+                    )
+                )
+            )
+        )(
+            'centres an asymmetrically padded label box on a %s bar (%s, %s text, fit %o)',
+            async (direction, placement, orientation, fit) => {
+                const { cross, value } = await boxCentreOffsets(direction, placement, orientation, fit);
+                expect(cross).toBeCloseTo(0, 0);
+                if (placement === 'inside-center') expect(value).toBeCloseTo(0, 0);
             }
         );
     });
