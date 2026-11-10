@@ -1,0 +1,40 @@
+{
+    "context": "AG Charts is an open-source (community) and commercial (enterprise) JavaScript charting library published to npm as ag-charts-community, ag-charts-enterprise, framework wrappers for React, Angular and Vue, and ag-charts-server-side for rendering charts on Node.js servers. Customers embed it in their own web applications, where it renders data, labels and tooltips that frequently come from their end users or third parties, so any path from chart data or options to script execution affects every application using it. The repository also contains the documentation website (www.ag-grid.com/charts), build and release tooling, and GitHub Actions workflows that hold publishing and cloud credentials. The repository is public and accepts pull requests from forks.",
+    "shards": [
+        {
+            "name": "core",
+            "paths": ["packages/ag-charts-core", "packages/ag-charts-types"],
+            "focus": "Shared utilities used by every chart: option merging and deep-copy (prototype pollution), text and HTML rendering helpers, number and date formatting, and DOM and canvas helpers."
+        },
+        {
+            "name": "community",
+            "paths": ["packages/ag-charts-community"],
+            "focus": "Tooltips, legends, labels and other places where data or formatter output reaches the DOM; HTML-accepting options and how escaping is applied; image and data export."
+        },
+        {
+            "name": "enterprise",
+            "paths": ["packages/ag-charts-enterprise"],
+            "focus": "Context menus, navigator, annotations and their text input and persistence, financial charts, toolbar, and licence key handling."
+        },
+        {
+            "name": "frameworks-and-ssr",
+            "paths": [
+                "packages/ag-charts-react",
+                "packages/ag-charts-angular",
+                "packages/ag-charts-vue3",
+                "packages/ag-charts-server-side"
+            ],
+            "focus": "How framework components and props reach the DOM. For ag-charts-server-side, which runs on customers' servers with request-derived options: file system and network access, path traversal, SSRF via image or font URLs, and resource exhaustion."
+        },
+        {
+            "name": "website",
+            "paths": ["packages/ag-charts-website", "external/ag-website-shared"],
+            "focus": "Server-side code and API routes, redirects, search integration, rendering of untrusted content, and any secrets in the site or its build. Ignore example code under _examples. external/ag-website-shared holds the site components, layouts and scripts shared by the AG Grid, AG Charts and AG Studio sites."
+        },
+        {
+            "name": "build-and-ci",
+            "paths": [".github", "tools", "plugins", "external/ag-shared/github", "external/ag-shared/scripts"],
+            "focus": "Workflow injection, fork-triggered runs with secrets, pull_request_target and workflow_run safety, command injection in release and deployment scripts, and secrets in logs or artifacts."
+        }
+    ]
+}
