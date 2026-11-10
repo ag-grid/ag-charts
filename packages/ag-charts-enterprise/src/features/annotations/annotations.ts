@@ -55,7 +55,7 @@ import { findFollowedSeries, isFollowing, normaliseFollow, readFollowedValue } f
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
-import { calculateAxisLabelPadding, calculateAxisThickness } from './utils/axis';
+import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { getGroupingValue } from './utils/scale';
@@ -981,14 +981,14 @@ export class Annotations extends AbstractModuleInstance {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(xAxis.layout),
-                thickness: calculateAxisThickness(xAxis.layout),
+                thickness: xAxis.layout.labelThickness ?? 0,
                 snapToGroup: snap,
             },
             yAxis: {
                 ...yAxis.context,
                 bounds: yAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(yAxis.layout),
-                thickness: calculateAxisThickness(yAxis.layout),
+                thickness: yAxis.layout.labelThickness ?? 0,
                 snapToGroup: snap,
             },
         };

@@ -21,7 +21,7 @@ interface UpdateOpts {
  * The labels and shading for one axis of a selected annotation. They are attached to the axis, as a horizontal or
  * vertical line's axis label is, so they draw over its ticks and tick labels.
  */
-class SelectionAxisScene {
+class AxisSelectionOverlay {
     private readonly shading = new Rect({ name: 'AnnotationSelectionAxisShading' });
     private readonly labels: AxisLabelScene[] = [];
     // The axis's `attachLabel` identifies it: an axis that is recreated has a new one, and its layer is a new group.
@@ -66,6 +66,7 @@ class SelectionAxisScene {
         const enabled = axisLabel.enabled ?? true;
         const isX = context.direction === ChartAxisDirection.X;
 
+        // Labels are pooled: a spare one is hidden rather than removed, and there are at most a handful per axis.
         while (labels.length < positions.length) {
             const label = new AxisLabelScene();
             label.zIndex = 1;
@@ -183,8 +184,8 @@ class SelectionAxisScene {
 
 /** The axis labels and shading shown on both axes while an annotation with two or more points is selected. */
 export class SelectionAxesScene {
-    private readonly x = new SelectionAxisScene();
-    private readonly y = new SelectionAxisScene();
+    private readonly x = new AxisSelectionOverlay();
+    private readonly y = new AxisSelectionOverlay();
 
     update(opts: Omit<UpdateOpts, 'context'> & { xAxis: AnnotationAxisContext; yAxis: AnnotationAxisContext }) {
         const { xAxis, yAxis, ...rest } = opts;
