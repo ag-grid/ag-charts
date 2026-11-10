@@ -46,9 +46,11 @@ export class WidgetSet {
     readonly containerWidget: Widget;
     readonly seriesDragInterpreter?: DragInterpreter;
     readonly longTapInterpreter?: LongTapInterpreter;
+    private ctx: DynamicContext<ChartRegistry>;
     private axes: WeakMap<AxisID, WeakRef<AxisWidget>> = new Map();
 
-    constructor(private ctx: DynamicContext<ChartRegistry>, opts: { withDragInterpretation: boolean }) {
+    constructor(ctx: DynamicContext<ChartRegistry>, opts: { withDragInterpretation: boolean }) {
+        this.ctx = ctx;
         const { domManager } = ctx;
         this.seriesWidget = new SeriesAreaWidget(ctx);
         this.seriesBoundsWidget = new DOMManagerWidget(domManager.getParent('series-area-bounds'));
