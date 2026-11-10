@@ -1,5 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
@@ -100,6 +100,8 @@ export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, Line
 export interface AgChordSeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesLinkStyle {
     /** Configuration for the shadow used behind the links. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the links. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Function used to return formatting for individual links, based on the given parameters.*/
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum, TContext>, AgChordSeriesLinkStyle>;
 }
@@ -116,6 +118,8 @@ export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, Line
 export interface AgChordSeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesNodeStyle {
     /** Configuration for the shadow used behind the nodes. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the nodes. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */

@@ -82,6 +82,8 @@ export type NormalisedDropShadowOptions = Normalised<
     'enabled' | 'xOffset' | 'yOffset' | 'blur'
 > & {
     glow?: true;
+    /** A glow cast beneath the items of its series, not by the shadow root beneath every series. */
+    inGroup?: true;
 };
 
 /** A shadow with the `fill` that it casts in. */

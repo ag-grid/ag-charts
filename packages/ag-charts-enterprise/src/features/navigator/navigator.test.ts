@@ -13,7 +13,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { ChartAxisDirection } from 'ag-charts-core';
+import { ChartAxisDirection, type Group } from 'ag-charts-core';
 
 import {
     getMiniChart,
@@ -22,7 +22,7 @@ import {
     getNavigator,
     getSeriesPlacedLabels,
 } from '../../test/featureAccessors';
-import { SHADOW, createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
+import { SHADOW, collectShapes, createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const xyData = (ys: number[], key = 'y') => ys.map((y, x) => ({ x, [key]: y }));
 
@@ -754,80 +754,100 @@ describe('Navigator', () => {
         const candleKeys = { xKey: 'date', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' };
         const barData = Array.from({ length: 8 }, (_, i) => ({ x: `c${i}`, y: i + 1 }));
 
-        const shadowedNodes = (root: any): string[] => {
-            const found: string[] = [];
-            const walk = (node: any) => {
-                if (node.fillShadow?.enabled) found.push(node.constructor.name);
-                if (typeof node.children === 'function') for (const child of node.children()) walk(child);
-            };
-            walk(root);
-            return found;
-        };
-
         const create = async (options: AgCartesianChartOptions) => {
             chart = await createEnterpriseChart(options);
             return getMiniChart(chart);
         };
 
-        const seriesCases: [string, object][] = [
-            ['candlestick', { type: 'candlestick', ...candleKeys, data: ohlcData, shadow: SHADOW }],
-            ['ohlc', { type: 'ohlc', ...candleKeys, data: ohlcData, shadow: SHADOW }],
-            ['bar', { type: 'bar', xKey: 'x', yKey: 'y', data: barData, shadow: SHADOW }],
-            [
-                'area',
-                {
-                    type: 'area',
-                    xKey: 'x',
-                    yKey: 'y',
-                    data: barData,
-                    shadow: SHADOW,
-                    marker: { enabled: true, shadow: SHADOW },
-                },
-            ],
-            ['line', { type: 'line', xKey: 'x', yKey: 'y', data: barData, marker: { enabled: true, shadow: SHADOW } }],
-            [
-                'range-area',
-                {
-                    type: 'range-area',
-                    xKey: 'x',
-                    yHighKey: 'yHigh',
-                    yLowKey: 'yLow',
-                    data: barData.map((d) => ({ ...d, yHigh: d.y + 2, yLow: d.y - 2 })),
-                    shadow: SHADOW,
-                    marker: { enabled: true, shadow: SHADOW },
-                },
-            ],
-            ['scatter', { type: 'scatter', xKey: 'y', yKey: 'y', data: barData, shadow: SHADOW }],
-            [
-                'waterfall',
-                {
-                    type: 'waterfall',
-                    xKey: 'x',
-                    yKey: 'y',
-                    data: barData.map((d, i) => ({ ...d, y: i % 2 === 0 ? d.y : -d.y })),
-                    item: { positive: { shadow: SHADOW }, negative: { shadow: SHADOW }, total: { shadow: SHADOW } },
-                },
-            ],
-        ];
+        const castingNodes = (root: Group, key: 'fillShadow' | 'fillGlow') =>
+            collectShapes(root)
+                .filter((shape) => shape[key]?.enabled)
+                .map((shape) => shape.constructor.name);
+        const shadowedNodes = (root: Group) => castingNodes(root, 'fillShadow');
 
-        it.each(seriesCases)('does not draw the %s series shadow in the mini chart', async (_type, series) => {
-            const miniChart = await create({
-                series: [series],
-                navigator: { enabled: true, miniChart: { enabled: true } },
-            } as AgCartesianChartOptions);
+        // Neither slot is inherited by the mini chart. An area fill, unlike its markers, has a shadow and no glow.
+        const SLOTS = [
+            { slot: 'shadow', key: 'fillShadow', option: SHADOW, hasFill: true },
+            { slot: 'glow', key: 'fillGlow', option: { enabled: true }, hasFill: false },
+        ] as const;
 
-            expect(miniChart.series.length).toBe(1);
-            expect(shadowedNodes(miniChart.root).join()).toBe('');
-            expectWarningsCalls().toEqual([]);
-        });
+        describe.each(SLOTS)('$slot', ({ slot, key, option, hasFill }) => {
+            const set = { [slot]: option };
+            const seriesCases: [string, object][] = [
+                ['candlestick', { type: 'candlestick', ...candleKeys, data: ohlcData, ...set }],
+                ['ohlc', { type: 'ohlc', ...candleKeys, data: ohlcData, ...set }],
+                ['bar', { type: 'bar', xKey: 'x', yKey: 'y', data: barData, ...set }],
+                [
+                    'area',
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        data: barData,
+                        ...(hasFill ? set : {}),
+                        marker: { enabled: true, ...set },
+                    },
+                ],
+                ['line', { type: 'line', xKey: 'x', yKey: 'y', data: barData, marker: { enabled: true, ...set } }],
+                [
+                    'range-area',
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yHighKey: 'yHigh',
+                        yLowKey: 'yLow',
+                        data: barData.map((d) => ({ ...d, yHigh: d.y + 2, yLow: d.y - 2 })),
+                        ...(hasFill ? set : {}),
+                        marker: { enabled: true, ...set },
+                    },
+                ],
+                [
+                    'hlc',
+                    {
+                        type: 'hlc',
+                        xKey: 'date',
+                        highKey: 'high',
+                        lowKey: 'low',
+                        closeKey: 'close',
+                        data: ohlcData,
+                        marker: { enabled: true, ...set },
+                    },
+                ],
+                ['scatter', { type: 'scatter', xKey: 'y', yKey: 'y', data: barData, ...set }],
+                [
+                    'waterfall',
+                    {
+                        type: 'waterfall',
+                        xKey: 'x',
+                        yKey: 'y',
+                        data: barData.map((d, i) => ({ ...d, y: i % 2 === 0 ? d.y : -d.y })),
+                        item: { positive: set, negative: set, total: set },
+                    },
+                ],
+            ];
 
-        it.each(seriesCases)('still draws the %s shadow in the main chart', async (_type, series) => {
-            await create({
-                series: [series],
-                navigator: { enabled: true, miniChart: { enabled: true } },
-            } as AgCartesianChartOptions);
+            it.each(seriesCases)(
+                'does not draw the %s series ' + slot + ' in the mini chart',
+                async (_type, series) => {
+                    const miniChart = await create({
+                        series: [series],
+                        navigator: { enabled: true, miniChart: { enabled: true } },
+                    } as AgCartesianChartOptions);
 
-            expect(shadowedNodes(getSeriesAt(chart).contentGroup).length).toBeGreaterThan(0);
+                    expect(miniChart.series.length).toBe(1);
+                    expect(castingNodes(miniChart.root, key).join()).toBe('');
+                    expectWarningsCalls().toEqual([]);
+                }
+            );
+
+            it.each(seriesCases)('still draws the %s ' + slot + ' in the main chart', async (_type, series) => {
+                await create({
+                    series: [series],
+                    navigator: { enabled: true, miniChart: { enabled: true } },
+                } as AgCartesianChartOptions);
+
+                expect(castingNodes(getSeriesAt(chart).contentGroup, key).length).toBeGreaterThan(0);
+            });
         });
 
         it('honours an explicit navigator.miniChart.series shadow', async () => {

@@ -33,6 +33,7 @@ ModuleRegistry.registerModules([
 const SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000', fillOpacity: 0.5, xOffset: 4, yOffset: 4, blur: 8 };
 const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 14 };
 const GLOW: AgGlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35, blur: 6, spread: 14 };
+const SERIES_GLOW: AgGlowOptions = { fillOpacity: 0.35, blur: 6, spread: 4 };
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -50,11 +51,13 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
-type Scenario = 'bars' | 'areas' | 'highlight' | 'many-markers';
+type Scenario = 'bars' | 'areas' | 'highlight' | 'many-markers' | 'series-glow' | 'series-highlight';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
-// `many-markers` is 1,400px wide, as a line series draws no markers when its points are under 1px apart.
+// `many-markers`, `series-glow` and `series-highlight` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
+// `series-glow` sets the series-level `marker.glow`, which every highlight state inherits, so a hover recasts every series.
+// `series-highlight` sets only `highlightedSeries.glow`, so the glow is cast only while a legend item is hovered.
 /** inScope */
 function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOptions {
     const shadow = <T extends AgDropShadowOptions>(value: T) => (shadowOn ? value : undefined);
@@ -68,6 +71,24 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
                 xKey: 'x',
                 yKey: `y${i}`,
                 shadow: shadow(SPREAD_SHADOW),
+            })),
+        };
+    }
+
+    if (scenario === 'series-glow' || scenario === 'series-highlight') {
+        const atRest = scenario === 'series-glow';
+        const glow = shadowOn ? SERIES_GLOW : undefined;
+        return {
+            width: 1400,
+            height: 600,
+            data: getRows(1000, 20, false),
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 20 }, (_, i) => ({
+                type: 'line' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                marker: { enabled: true, size: 6, ...(atRest ? { glow } : undefined) },
+                ...(atRest ? undefined : { highlight: { highlightedSeries: { glow } } }),
             })),
         };
     }
@@ -145,13 +166,33 @@ async function performRedrawFirstSeries(chartOptions: AgCartesianChartOptions): 
     return performance.now() - start;
 }
 
+// Hovers the legend items in turn, as a pointer entering each does, so that each series is highlighted in its turn.
 /** inScope */
-function variantsOf(scenario: Scenario, operations: Record<string, (o: AgCartesianChartOptions) => Promise<number>>) {
+async function performLegendHover(count: number): Promise<number> {
+    const chart = chartRef.current!;
+    const buttons = container.querySelectorAll('.ag-charts-proxy-legend-toolbar button');
+    if (buttons.length === 0) throw new Error('No legend items found to hover');
+
+    const start = performance.now();
+    for (let i = 0; i < count; i++) {
+        buttons[i % buttons.length].dispatchEvent(new MouseEvent('mouseenter'));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        await chart.waitForUpdate();
+    }
+    return performance.now() - start;
+}
+
+/** inScope */
+function variantsOf(
+    scenario: Scenario,
+    operations: Record<string, (o: AgCartesianChartOptions) => Promise<number>>,
+    optionName = 'Shadow'
+) {
     const variants: Variants = [];
     for (const shadowOn of [false, true]) {
         for (const [operation, run] of Object.entries(operations)) {
             variants.push({
-                params: { Operation: operation, Shadow: shadowOn ? 'On' : 'Off' },
+                params: { Operation: operation, [optionName]: shadowOn ? 'On' : 'Off' },
                 run: async () => run(await prepare(scenario, shadowOn)),
             });
         }
@@ -192,6 +233,24 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'one-series',
                 label: 'One of 20 series updated, marker shadows',
                 variants: variantsOf('many-markers', { 'Chart Redraw': performRedrawFirstSeries }),
+            },
+            {
+                id: 'series-glow',
+                label: '20 series x 1,000 points, series marker glow',
+                variants: variantsOf(
+                    'series-glow',
+                    {
+                        'Chart Create': create,
+                        'Chart Redraw': performRedraw,
+                        'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10),
+                    },
+                    'Glow'
+                ),
+            },
+            {
+                id: 'series-highlight',
+                label: '20 series x 1,000 points, highlighted series marker glow',
+                variants: variantsOf('series-highlight', { 'Legend hover x10': () => performLegendHover(10) }, 'Glow'),
             },
         ],
         config: {

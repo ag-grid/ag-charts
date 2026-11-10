@@ -719,7 +719,6 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             this.plainRect &&
             shadowPass.state === 'none' &&
             this.__fillShadow?.enabled !== true &&
-            this.__fillGlow?.enabled !== true &&
             this.__drawingMode !== 'cutout' &&
             !this.clip &&
             this.fillImage == null &&

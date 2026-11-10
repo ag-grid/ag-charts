@@ -1595,6 +1595,14 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         });
     }
 
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
+    protected override getSeriesGlows() {
+        return [this.options.marker.glow];
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
         isHighlight: boolean;
@@ -1617,7 +1625,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
-        const { shadow } = this.options.marker;
+        const { shadow, glow } = this.options.marker;
 
         datumSelection.each((node, datum) => {
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
@@ -1627,6 +1635,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 hideWithSize0: hideMarkerWithSize0(hideWithSize0, selectedOnly, datum),
                 pickInflation,
                 shadow,
+                glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
                 highlightState: state,

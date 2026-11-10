@@ -1199,6 +1199,17 @@ describe('Shape', () => {
                 ]);
             });
 
+            it("casts a cutout's shadow before the glow beside it, as the batches do", () => {
+                const glow = { enabled: true, fill: 'rgba(0, 0, 255, 0.7)', xOffset: 0, yOffset: 0, blur: 4 };
+                const calls = record(whiskerPath('fill', 40, { fillGlow: glow, drawingMode: 'cutout' }));
+                // The mock canvas normalises the 0.7 alpha to 8-bit precision.
+                const glowed = calls.map((c) => /^(fill|stroke):rgba\(0, 0, 255, 0\.7\d*\):/.test(c));
+                const shadowed = calls.map((c) => SHADOWED.test(c));
+                expect(shadowed.some(Boolean)).toBe(true);
+                expect(glowed.some(Boolean)).toBe(true);
+                expect(shadowed.lastIndexOf(true)).toBeLessThan(glowed.indexOf(true));
+            });
+
             it('shadows only the stroke in stroke mode', () => {
                 const calls = record(whiskerPath('stroke', 40));
                 expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([

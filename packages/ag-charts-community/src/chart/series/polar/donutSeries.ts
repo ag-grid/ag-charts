@@ -364,6 +364,11 @@ export class DonutSeries extends PolarSeries<
         this.innerLabelsGroup.pointerEvents = PointerEvents.None;
     }
 
+    // The inner circle sits in a group drawn before the sectors, so the root casts the highlight glows, beneath every series.
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
         super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
@@ -1315,8 +1320,9 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.resolveItemShadow(
-                this.options.shadow,
+            sector.fillShadow = this.resolveItemShadow(this.options.shadow, isDatumHighlighted);
+            sector.fillGlow = this.resolveItemGlow(
+                this.options.glow,
                 isDatumHighlighted,
                 datum.datumIndex,
                 undefined,
@@ -1344,6 +1350,7 @@ export class DonutSeries extends PolarSeries<
             sector.stroke = undefined;
             sector.strokeWidth = 0;
             sector.fillShadow = undefined;
+            sector.fillGlow = undefined;
             sector.drawingMode = 'cutout';
             sector.cornerRadius = format.cornerRadius;
 

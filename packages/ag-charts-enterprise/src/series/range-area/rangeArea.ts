@@ -1334,6 +1334,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         );
     }
 
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
+    protected override getSeriesGlows() {
+        const { low, high } = this.itemMarkers;
+        return [low.glow, high.glow];
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
         isHighlight: boolean;
@@ -1357,6 +1366,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             maxMarkerStrokePickInflation(contextNodeData.styles.high)
         );
         const shadows = { low: this.itemMarkers.low.shadow, high: this.itemMarkers.high.shadow };
+        const glows = { low: this.itemMarkers.low.glow, high: this.itemMarkers.high.glow };
 
         datumSelection.each((node, datum) => {
             const { itemType } = datum;
@@ -1370,6 +1380,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 hideWithSize0,
                 pickInflation,
                 shadow: shadows[itemType],
+                glow: glows[itemType],
                 isHighlight,
                 datumIndex: datum.datumIndex,
             });

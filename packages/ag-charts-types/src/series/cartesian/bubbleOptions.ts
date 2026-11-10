@@ -8,7 +8,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -123,6 +123,8 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     maxRenderedItems?: number;
     /** Configuration for the shadow used behind the markers. Not applied to custom marker shapes. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the bubbles. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */

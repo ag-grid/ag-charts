@@ -1,5 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelFitOptions,
@@ -129,6 +129,8 @@ export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     radiusMax?: number;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the sectors. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Apply rounded corners to each sector. */

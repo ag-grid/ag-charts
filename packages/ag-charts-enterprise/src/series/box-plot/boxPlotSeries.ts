@@ -989,7 +989,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const strokeAlignment = this.getStyle(false, HighlightState.None, undefined, undefined).strokeWidth / 2;
 
         const wickStrokeAlignment = options.whisker?.strokeWidth ?? options.strokeWidth;
-        const { shadow } = options;
+        const { shadow, glow } = options;
 
         datumSelection.each((boxPlotNode, nodeDatum) => {
             // Colour refs are resolved at theme-merge, so the style is normalised by render.
@@ -1017,7 +1017,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             boxPlotNode.cornerRadius = style.cornerRadius;
 
             boxPlotNode.crisp = true;
-            boxPlotNode.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+            boxPlotNode.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+            boxPlotNode.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
 
             boxPlotNode.horizontal = !isVertical;
             boxPlotNode.center = nodeDatum.scaledValues.xValue;

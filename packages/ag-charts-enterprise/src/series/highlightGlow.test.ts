@@ -52,6 +52,8 @@ interface SeriesCase {
     /** The exact shape class that casts the shadow, so labels, lines and subclasses like sankey links are left out. */
     kind: abstract new (...args: never[]) => Shape;
     chartOptions?: object;
+    /** The series has no series-level `glow` yet, so a highlight bucket's glow replaces the shadow, in the shadow slot. */
+    glowInShadowSlot?: boolean;
     /** The in-place and highlight-layer shapes, for series that keep both copies of an item in one group. */
     layers?: (chart: AgChartInstance) => { inPlace: Shape[]; highlighted: Shape[] };
     /** How many copies of the hovered item the highlight layer draws; range-area lights both its low and high marker. */
@@ -297,6 +299,7 @@ const SERIES: SeriesCase[] = [
     {
         // Tile and group highlights live under `tile.highlight` and `group.highlight`, not the series' `highlight`.
         name: 'treemap tiles',
+        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Rect,
         hover: FIRST_LEAF,
@@ -312,6 +315,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'treemap groups',
+        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Rect,
         hover: FIRST_GROUP,
@@ -326,6 +330,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'sunburst',
+        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Sector,
         hover: FIRST_LEAF,
@@ -517,7 +522,14 @@ describe('highlight glow (enterprise series)', () => {
         chart?.destroy();
     });
 
-    const casts = (shape: Shape) => shape.fillShadow?.enabled === true;
+    /** Whether a shape casts anything: its glow, or a shadow, which a highlight copy never casts. */
+    const casts = (shape: Shape) => shape.fillShadow?.enabled === true || shape.fillGlow?.enabled === true;
+
+    /** The options a shape of the case casts its glow with, and the shadow they are cast as. */
+    const castOptionsOf = (shape: Shape, testCase: SeriesCase) =>
+        testCase.glowInShadowSlot ? shape.fillShadow : shape.fillGlow;
+    const castGlowOf = (shape: Shape, testCase: SeriesCase) =>
+        shape.getCastShadow(testCase.glowInShadowSlot ? 'shadow' : 'glow');
 
     /** The visible in-place and highlight-layer shapes of the case's shape kind. */
     const layersOf = (testCase: SeriesCase) => {
@@ -714,7 +726,7 @@ describe('highlight glow (enterprise series)', () => {
                     { highlightedItem: { glow: { enabled: true } } }
                 );
                 expect(highlighted).toHaveLength(1);
-                expect(sameColour(highlighted[0].getCastShadow()?.fill, expected)).toBe(true);
+                expect(sameColour(highlighted[0].getCastShadow('glow')?.fill, expected)).toBe(true);
                 chart.destroy();
             }
         });
@@ -743,7 +755,7 @@ describe('highlight glow (enterprise series)', () => {
                     highlightedItem: { glow: { enabled: true } },
                 });
                 expect(highlighted).toHaveLength(1);
-                expect(sameColour(highlighted[0].getCastShadow()?.fill, expected)).toBe(true);
+                expect(sameColour(castGlowOf(highlighted[0], testCase)?.fill, expected)).toBe(true);
                 chart.destroy();
             }
         });
@@ -776,10 +788,10 @@ describe('highlight glow (enterprise series)', () => {
                 );
             const [hovered, ...others] = drawn(0);
             expect(hovered.fillShadow).toMatchObject(SHADOW);
-            for (const shape of others) expect(shape.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+            for (const shape of others) expect(shape.fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
 
             expect(drawn(1).length).toBeGreaterThan(0);
-            for (const shape of drawn(1)) expect(shape.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+            for (const shape of drawn(1)) expect(shape.fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
         });
     });
 
@@ -798,7 +810,7 @@ describe('highlight glow (enterprise series)', () => {
 
                 expect(highlighted.length).toBeGreaterThan(0);
                 expect(highlighted.filter(casts)).toHaveLength(copies);
-                expect(highlighted.find(casts)?.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                expect(castOptionsOf(highlighted.find(casts)!, testCase)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
             }
         );
 
@@ -831,11 +843,11 @@ describe('highlight glow (enterprise series)', () => {
                 highlightedItem: { glow: { enabled: true } },
             });
 
-            const shapes = highlighted.filter((shape) => shape.getCastShadow() != null);
+            const shapes = highlighted.filter((shape) => castGlowOf(shape, testCase) != null);
             expect(shapes.length).toBeGreaterThan(0);
             for (const shape of shapes) {
-                expect(shape.getCastShadow()).toMatchObject({ enabled: true, fillOpacity: 0.4 });
-                expect(sameColour(shape.getCastShadow()?.fill, PAINT)).toBe(true);
+                expect(castGlowOf(shape, testCase)).toMatchObject({ enabled: true, fillOpacity: 0.4 });
+                expect(sameColour(castGlowOf(shape, testCase)?.fill, PAINT)).toBe(true);
             }
         });
 
@@ -845,9 +857,9 @@ describe('highlight glow (enterprise series)', () => {
                 highlightedItem: { ...style, glow: { enabled: true } },
             });
 
-            const shapes = highlighted.filter((shape) => shape.getCastShadow() != null);
+            const shapes = highlighted.filter((shape) => castGlowOf(shape, testCase) != null);
             expect(shapes.length).toBeGreaterThan(0);
-            for (const shape of shapes) expect(sameColour(shape.getCastShadow()?.fill, 'orange')).toBe(true);
+            for (const shape of shapes) expect(sameColour(castGlowOf(shape, testCase)?.fill, 'orange')).toBe(true);
         });
 
         it('casts its own fill and fillOpacity, and not that of the item, when it sets them', async () => {
@@ -858,7 +870,7 @@ describe('highlight glow (enterprise series)', () => {
             const shapes = highlighted.filter(casts);
             expect(shapes.length).toBeGreaterThan(0);
             for (const shape of shapes) {
-                expect(shape.getCastShadow()).toMatchObject({ fill: '#123456', fillOpacity: 0.7 });
+                expect(castGlowOf(shape, testCase)).toMatchObject({ fill: '#123456', fillOpacity: 0.7 });
             }
         });
 
@@ -873,8 +885,8 @@ describe('highlight glow (enterprise series)', () => {
                 .filter((message) => message.includes('glow.color'));
             expect(messages.length).toBeGreaterThan(0);
             for (const shape of highlighted.filter(casts)) {
-                expect(shape.fillShadow).not.toHaveProperty('color');
-                expect(shape.getCastShadow()?.fill).not.toBe('#ff00ff');
+                expect(castOptionsOf(shape, testCase)).not.toHaveProperty('color');
+                expect(castGlowOf(shape, testCase)?.fill).not.toBe('#ff00ff');
             }
             vi.mocked(console.warn).mockClear();
         });
@@ -895,7 +907,7 @@ describe('highlight glow (enterprise series)', () => {
                 highlightedItem: { glow: { enabled: true } },
             });
 
-            expect(highlighted.find(casts)?.fillShadow).toMatchObject({
+            expect(castOptionsOf(highlighted.find(casts)!, testCase)).toMatchObject({
                 ...defaults,
                 enabled: true,
                 xOffset: 0,
@@ -928,8 +940,8 @@ describe('highlight glow (enterprise series)', () => {
                 // ... and the highlight copy casts the glow alone, never merged with the base shadow.
                 expect(highlighted.filter(casts)).toHaveLength(copies);
                 for (const shape of highlighted.filter(casts)) {
-                    expect(shape.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
-                    expect(shape.fillShadow?.fill).not.toBe(SHADOW.fill);
+                    expect(castOptionsOf(shape, testCase)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                    expect(castOptionsOf(shape, testCase)?.fill).not.toBe(SHADOW.fill);
                 }
             }
         );
@@ -955,7 +967,7 @@ describe('highlight glow (enterprise series)', () => {
 
             const moved = layersOf(testCase);
             expect(moved.highlighted.filter(casts)).toHaveLength(copies);
-            expect(moved.highlighted.find(casts)?.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+            expect(castOptionsOf(moved.highlighted.find(casts)!, testCase)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
 
             raiseHighlight();
             await waitForChartStability(chart);
@@ -981,7 +993,7 @@ describe('highlight glow (enterprise series)', () => {
                 const { inPlace, highlighted } = layersOf(testCase);
                 expect(inPlace.length).toBeGreaterThan(1);
                 expect(highlighted.filter(casts)).toHaveLength(0);
-                for (const shape of inPlace) expect(shape.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                for (const shape of inPlace) expect(shape.fillGlow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
             });
         }
     );
@@ -1051,8 +1063,8 @@ describe('highlight glow (enterprise series)', () => {
 
     describe('theme defaults', () => {
         const HIERARCHY = (series: object) => ({ labelKey: 'name', sizeKey: 'size', ...series });
-        const BRANCH_BUCKETS = ['highlightedItem', 'unhighlightedItem', 'highlightedBranch', 'unhighlightedBranch'];
         const ITEM_BUCKETS = ['highlightedItem', 'unhighlightedItem'];
+        const BRANCH_ONLY_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'];
         const SERIES_BUCKETS = [...ITEM_BUCKETS, 'highlightedSeries', 'unhighlightedSeries'];
 
         const resolvedOptions = async (theme: string, series: object, data: object[] = HIERARCHY_SHADOW_DATA) => {
@@ -1066,54 +1078,36 @@ describe('highlight glow (enterprise series)', () => {
             return getSeriesOptions<any>(chart);
         };
 
-        // `defaulted` are the buckets that carry the glow theme defaults, which the others fall back to.
+        // Each bucket follows whether the series-level `glow`, which holds the glow theme defaults, is on.
         const CASES: Array<{
             name: string;
             series: object;
             data?: object[];
             buckets: string[];
-            defaulted: string[];
+            glow: (options: any) => any[];
             highlight: (options: any) => any;
+            /** The series has a `glow` on several parts, so a bucket without a `glow` of its own has no `enabled` to follow. */
+            perPart?: boolean;
         }> = [
             {
-                name: 'treemap tile',
-                series: HIERARCHY({ type: 'treemap' }),
-                buckets: BRANCH_BUCKETS,
-                defaulted: ['highlightedBranch', 'unhighlightedBranch'],
-                highlight: (options) => options.tile.highlight,
-            },
-            {
-                name: 'treemap group',
-                series: HIERARCHY({ type: 'treemap' }),
-                buckets: ITEM_BUCKETS,
-                defaulted: ITEM_BUCKETS,
-                highlight: (options) => options.group.highlight,
-            },
-            {
-                name: 'sunburst',
-                series: HIERARCHY({ type: 'sunburst' }),
-                buckets: BRANCH_BUCKETS,
-                defaulted: ['highlightedBranch', 'unhighlightedBranch'],
-                highlight: (options) => options.highlight,
-            },
-            {
                 name: 'radial-bar',
+                glow: (options) => [options.glow],
                 data: POLAR_DATA,
                 series: { type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter' },
                 buckets: SERIES_BUCKETS,
-                defaulted: ['highlightedSeries', 'unhighlightedSeries'],
                 highlight: (options) => options.highlight,
             },
             {
                 name: 'heatmap',
+                glow: (options) => [options.glow],
                 data: GRID_DATA,
                 series: { type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' },
                 buckets: ITEM_BUCKETS,
-                defaulted: ITEM_BUCKETS,
                 highlight: (options) => options.highlight,
             },
             {
                 name: 'candlestick',
+                glow: (options) => [options.glow],
                 data: OHLC_DATA,
                 series: {
                     type: 'candlestick',
@@ -1124,38 +1118,71 @@ describe('highlight glow (enterprise series)', () => {
                     closeKey: 'close',
                 },
                 buckets: SERIES_BUCKETS,
-                defaulted: ['highlightedSeries', 'unhighlightedSeries'],
                 highlight: (options) => options.highlight,
             },
             {
                 name: 'sankey',
+                perPart: true,
+                glow: (options) => [options.node.glow, options.link.glow],
                 data: FLOW_DATA,
                 series: { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' },
                 buckets: ITEM_BUCKETS,
-                defaulted: ITEM_BUCKETS,
                 highlight: (options) => options.highlight,
             },
         ];
 
-        describe.each(CASES)('$name', ({ series, data, buckets, defaulted, highlight: highlightOf }) => {
+        describe.each(CASES)('$name', ({ series, data, buckets, glow: glowOf, highlight: highlightOf, perPart }) => {
             it.each([
                 ['light', 'ag-default', LIGHT_GLOW],
                 ['dark', 'ag-default-dark', DARK_GLOW],
             ])(
-                'puts the %s glow theme defaults, with the glow off, on the buckets the others fall back to',
+                'puts the %s glow theme defaults, with the glow off, on the series-level glow',
                 async (_, theme, expected) => {
-                    const styles = highlightOf(await resolvedOptions(theme, series, data));
+                    const options = await resolvedOptions(theme, series, data);
 
-                    for (const bucket of defaulted) expect(styles[bucket].glow).toEqual(expected);
+                    for (const glow of glowOf(options)) expect(glow).toEqual(expected);
                 }
             );
 
-            it('leaves the glow of the other buckets unset, so a glow on a broader bucket reaches them', async () => {
+            it('turns each bucket off with the series-level glow, and leaves its other glow options to it', async () => {
                 const styles = highlightOf(await resolvedOptions('ag-default', series, data));
 
-                for (const bucket of buckets.filter((name) => !defaulted.includes(name))) {
-                    expect(styles[bucket]?.glow).toBeUndefined();
+                for (const bucket of buckets) {
+                    // Each part keeps its own `enabled` where there is no one value for the bucket to follow.
+                    if (perPart) expect(styles[bucket]?.glow?.enabled).toBeUndefined();
+                    else expect(styles[bucket].glow).toEqual({ enabled: false });
                 }
+            });
+        });
+
+        // Treemap and sunburst have no series-level glow yet: the branch buckets hold the glow theme defaults themselves.
+        describe.each([
+            {
+                name: 'treemap tile',
+                series: HIERARCHY({ type: 'treemap' }),
+                defaulted: BRANCH_ONLY_BUCKETS,
+                highlight: (options: any) => options.tile.highlight,
+            },
+            {
+                name: 'treemap group',
+                series: HIERARCHY({ type: 'treemap' }),
+                defaulted: ITEM_BUCKETS,
+                highlight: (options: any) => options.group.highlight,
+            },
+            {
+                name: 'sunburst',
+                series: HIERARCHY({ type: 'sunburst' }),
+                defaulted: BRANCH_ONLY_BUCKETS,
+                highlight: (options: any) => options.highlight,
+            },
+        ])('$name', ({ series, defaulted, highlight: highlightOf }) => {
+            it.each([
+                ['light', 'ag-default', LIGHT_GLOW],
+                ['dark', 'ag-default-dark', DARK_GLOW],
+            ])('puts the %s glow theme defaults, with the glow off, on the buckets', async (_, theme, expected) => {
+                const styles = highlightOf(await resolvedOptions(theme, series));
+
+                for (const bucket of defaulted) expect(styles[bucket].glow).toEqual(expected);
             });
         });
 

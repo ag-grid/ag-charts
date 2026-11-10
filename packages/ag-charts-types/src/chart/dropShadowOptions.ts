@@ -38,9 +38,9 @@ export interface AgDropShadowOptions {
 
 export interface AgGlowOptions {
     /**
-     * Whether the glow is visible.
+     * Whether the glow is visible. Setting a glow without this turns it on, so `glow: {}` is enough.
      *
-     * Default: `false`
+     * Default: `false` until the glow is set
      */
     enabled?: boolean;
     /**

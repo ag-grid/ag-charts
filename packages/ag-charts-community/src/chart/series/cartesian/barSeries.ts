@@ -1909,7 +1909,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const fillBBox = this.getShapeFillBBox();
 
@@ -1943,8 +1943,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 datum.bottomLeftCornerRadius ? cornerRadius : 0,
                 visible,
                 datum.crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState),
-                undefined,
+                series.resolveItemShadow(shadow, isHighlight),
+                series.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState),
                 direction,
                 datum.featherRatio,
                 crispCentreDirection

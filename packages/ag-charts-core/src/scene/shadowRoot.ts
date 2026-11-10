@@ -9,6 +9,7 @@ import {
     castShadows,
     endShadowCasts,
     getBatchedShadow,
+    getGroupGlow,
     getRootShadow,
     getShadowClip,
     joinsShadowKey,
@@ -78,7 +79,7 @@ class SlotKeys {
  * The keys of the frames' casters: every shadow key, then every glow key, so that a shadow never darkens a glow, whichever
  * item casts it. A caster that casts both is in a key of each.
  */
-function buildKeys(frames: readonly CollectedFrame[]) {
+function buildKeys(frames: readonly CollectedFrame[], glowsOnly: boolean) {
     const shadows = new SlotKeys('shadow');
     const glows = new SlotKeys('glow');
     for (const frame of frames) {
@@ -86,10 +87,15 @@ function buildKeys(frames: readonly CollectedFrame[]) {
             if (!child.visible) continue;
 
             // A cutout erases only its own layer, so in one it leaves the shadow of the root whole.
-            const shadow = frame.layered ? getRootShadow(child) : getBatchedShadow(child);
-            if (shadow != null) shadows.add(child as ShadowCaster, shadow, frame, getShadowClip(child));
-            const glow = frame.layered ? getRootShadow(child, 'glow') : getBatchedShadow(child, 'glow');
-            if (glow != null) glows.add(child as ShadowCaster, glow, frame, getShadowClip(child));
+            const shadowOf = frame.layered ? getRootShadow : getBatchedShadow;
+            const shadow = glowsOnly ? undefined : shadowOf(child);
+            const glow = glowsOnly ? getGroupGlow(child) : shadowOf(child, 'glow');
+            if (shadow == null && glow == null) continue;
+
+            // Asked once, as it allocates for a clipped caster.
+            const clip = getShadowClip(child);
+            if (shadow != null) shadows.add(child as ShadowCaster, shadow, frame, clip);
+            if (glow != null) glows.add(child as ShadowCaster, glow, frame, clip);
         }
     }
     return glows.keys.length === 0 ? shadows.keys : [...shadows.keys, ...glows.keys];
@@ -114,11 +120,12 @@ export function castRootShadows(
     frames: readonly CollectedFrame[],
     scene: object | undefined,
     user: object,
-    renderCtx: RenderContext
+    renderCtx: RenderContext,
+    glowsOnly: boolean = false
 ): ReadonlyMap<object, boolean> | undefined {
     const memo = memos.get(user);
     const unchanged = memo != null && matchesMemo(memo, frames);
-    const keys = unchanged ? memo.keys : buildKeys(frames);
+    const keys = unchanged ? memo.keys : buildKeys(frames, glowsOnly);
     if (keys.length === 0) {
         // Nothing casts, so the root gives up the scratch canvas and the shadows that its casts kept.
         releaseShadowRoot(scene, user);
@@ -136,4 +143,14 @@ export function castRootShadows(
     const cover = new Map(frames.map((frame) => [frame.source, frame.layered]));
     memos.set(user, { frames, keys, cover });
     return cover;
+}
+
+/** Casts the group glows of the frames' casters, which a shadow root leaves out, beneath what `renderCtx` draws next. */
+export function castGroupGlows(
+    frames: readonly CollectedFrame[],
+    scene: object | undefined,
+    user: object,
+    renderCtx: RenderContext
+) {
+    castRootShadows(frames, scene, user, renderCtx, true);
 }

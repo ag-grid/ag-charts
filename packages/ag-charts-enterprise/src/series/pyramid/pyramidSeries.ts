@@ -941,7 +941,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection: Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
     }) {
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
 
         const bounds = this.contextNodeData?.bounds;
         const fillBBox: _ModuleSupport.ShapeFillBBox | undefined = bounds
@@ -953,7 +953,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             applyPyramidDatum(connector, nodeDatum);
 
-            connector.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+            connector.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+
+            connector.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
         });
     }
 

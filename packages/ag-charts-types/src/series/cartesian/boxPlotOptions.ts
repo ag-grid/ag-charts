@@ -7,7 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
 import type {
@@ -121,6 +121,8 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext
     crosshairSnapMode?: AgCrosshairSnapMode;
     /** Configuration for the shadow used behind the series items, including the whiskers and caps. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the boxes. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /**
      * Bar rendering direction.
      *
