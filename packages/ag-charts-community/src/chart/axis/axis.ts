@@ -47,6 +47,7 @@ import {
     isArray,
     mergeDefaults,
     stylerLineHeightOverrides,
+    toPlainText,
 } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
@@ -74,6 +75,8 @@ import type {
     AxisBandMeasurement,
     AxisContext,
     AxisFormattableLabel,
+    AxisTickData,
+    AxisTickDataIterator,
     AxisValuePick,
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
@@ -1452,6 +1455,31 @@ export abstract class Axis<
             pickValue: (point) => this.pickValue(point),
             pickBand: (point) => this.pickBand(point),
             measureBand: (value) => this.measureBand(value),
+            iterateTickData: () => this.iterateTickData(),
+        };
+    }
+
+    protected iterateTickData(): AxisTickDataIterator {
+        const labels: { node: TransformableText<LabelNodeDatum>; datum: LabelNodeDatum }[] = [];
+        const groupVisible = this.tickLabelGroup.visible;
+        for (const node of groupVisible ? this.tickLabelGroupSelection.nodes() : []) {
+            const { datum } = node;
+            if (node.visible && datum?.visible) labels.push({ node, datum });
+        }
+        const toTickData = ({ node, datum }: (typeof labels)[number]): AxisTickData => ({
+            ariaLabel: datum.textUntruncated ?? toPlainText(datum.text),
+            focusBounds: Transformable.toCanvas(node),
+        });
+        let index = 0;
+        return {
+            length: labels.length,
+            next(): IteratorResult<AxisTickData> {
+                if (index >= labels.length) return { done: true, value: undefined };
+                return { done: false, value: toTickData(labels[index++]) };
+            },
+            [Symbol.iterator]() {
+                return this;
+            },
         };
     }
 

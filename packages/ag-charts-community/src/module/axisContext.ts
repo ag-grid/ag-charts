@@ -1,5 +1,6 @@
 import type {
     AxisID,
+    BBox,
     BoxBounds,
     CanvasPoint,
     ChartAxisDirection,
@@ -55,6 +56,15 @@ export interface AxisBandDatum extends AxisBandMeasurement {
     readonly position: number;
 }
 
+export interface AxisTickData {
+    readonly ariaLabel: string;
+    readonly focusBounds: BBox;
+}
+
+export interface AxisTickDataIterator extends IterableIterator<AxisTickData> {
+    readonly length: number;
+}
+
 export interface AxisContext {
     /**
      * Context provider for user callbacks scoped to this axis. Carries `axes[].context` only when
@@ -106,6 +116,7 @@ export interface AxisContext {
     pickValue(point: CanvasPoint): AxisValuePick | undefined;
     pickBand(point: Point): AxisBandDatum | undefined;
     measureBand(value: string): AxisBandMeasurement | undefined;
+    iterateTickData(): AxisTickDataIterator;
     /** Defined only on polar axes; cartesian axes leave it undefined. */
     getPolarLayout?(): PolarAxisLayout;
 }
