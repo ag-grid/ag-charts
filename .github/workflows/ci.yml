@@ -1583,7 +1583,10 @@ jobs:
               id: demos_e2e
               if: matrix.suite == 'functional'
               run: |
+                  # The Chromium env presets avoid a launch SIGSEGV; see playwright.sh.
                   docker run --rm --ipc=host --init \
+                    -e DBUS_SESSION_BUS_ADDRESS=disabled: \
+                    -e FC_FONTATIONS=1 \
                     -v "$(pwd)":/data \
                     -w /data/packages/ag-charts-demos \
                     -e CI \
@@ -1600,6 +1603,8 @@ jobs:
               if: matrix.suite == 'self-parity'
               run: |
                   docker run --rm --ipc=host --init \
+                    -e DBUS_SESSION_BUS_ADDRESS=disabled: \
+                    -e FC_FONTATIONS=1 \
                     -v "$(pwd)":/data \
                     -w /data/packages/ag-charts-demos \
                     -e CI \
@@ -1625,6 +1630,8 @@ jobs:
                   node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > "$report"
                   jq -r '.stale[] | "::warning title=Stale demo port skipped by parity::seeds/\(.demo)/\(.framework) no longer matches src/demos/\(.demo) and is not compared. It is aligned at the release-branch cut (Demo Port Alignment workflow) or with /port-showcases."' "$report"
                   docker run --rm --ipc=host --init \
+                    -e DBUS_SESSION_BUS_ADDRESS=disabled: \
+                    -e FC_FONTATIONS=1 \
                     -v "$(pwd)":/data \
                     -v "${RUNNER_TEMP}/parity-input":/parity-input:ro \
                     -w /data/packages/ag-charts-demos \
@@ -1651,6 +1658,8 @@ jobs:
                   mkdir -p "${input}"
                   node packages/ag-charts-demos/tools/seeds/port-spec-plan.mjs --out "${input}/port-spec-plan.json"
                   docker run --rm --ipc=host --init \
+                    -e DBUS_SESSION_BUS_ADDRESS=disabled: \
+                    -e FC_FONTATIONS=1 \
                     -v "$(pwd)":/data \
                     -v "${input}":/parity-input:ro \
                     -w /data/packages/ag-charts-demos \
