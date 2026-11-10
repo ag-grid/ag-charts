@@ -30,7 +30,7 @@ import {
     toNumber,
     withoutCasts,
 } from 'ag-charts-core';
-import type { AgActiveItemState, AgGlowOptions, FillOptions, StrokeOptions } from 'ag-charts-types';
+import type { AgActiveItemState, AgGlowOptions, AgItemShadowStyle, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 
@@ -56,6 +56,10 @@ export enum HierarchyHighlightState {
     Branch,
     OtherBranch,
 }
+
+/** Where the merges of an item styler's `glow` start among those a cast object keeps, clear of the series' own. */
+const HIERARCHY_GLOW_INDEX = 16;
+const HIERARCHY_STATE_COUNT = 8;
 
 export function toHierarchyHighlightString(
     state: HierarchyHighlightState
@@ -647,7 +651,8 @@ export abstract class HierarchySeries<
     protected getHierarchyGlow(
         slot: number,
         highlightState: HierarchyHighlightState,
-        resolveGlow: (highlightState: HierarchyHighlightState) => Parameters<typeof glowToShadow>[0]
+        resolveGlow: (highlightState: HierarchyHighlightState) => Parameters<typeof glowToShadow>[0],
+        itemGlow?: AgGlowOptions
     ): NormalisedDropShadowOptions | undefined {
         const glowByState = (this.glowBySlot[slot] ??= []);
         let glow = glowByState[highlightState];
@@ -655,7 +660,15 @@ export abstract class HierarchySeries<
             glow = glowToShadow(resolveGlow(highlightState)) ?? null;
             glowByState[highlightState] = glow;
         }
-        return glow ?? undefined;
+        if (itemGlow == null) return glow ?? undefined;
+
+        const index = HIERARCHY_GLOW_INDEX + slot * HIERARCHY_STATE_COUNT + highlightState;
+        const recalled = this.recallItemCast(glow ?? undefined, itemGlow, index);
+        if (recalled !== undefined) return recalled ?? undefined;
+
+        return this.mergeItemGlow(glow ?? undefined, index, `h${slot}:${highlightState}:`, itemGlow, () => [
+            resolveGlow(highlightState),
+        ]);
     }
 
     /**
@@ -668,8 +681,10 @@ export abstract class HierarchySeries<
         glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
         highlightedNode: TNodeClass | undefined,
-        nodeDatum: Pick<TNodeClass, 'datumIndex'>
+        nodeDatum: Pick<TNodeClass, 'datumIndex'>,
+        itemShadow?: AgItemShadowStyle['shadow']
     ): NormalisedDropShadowOptions | undefined {
+        if (itemShadow != null) shadow = this.mergeItemShadow(shadow, itemShadow);
         if (isHighlight) return glow;
         if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
         return glow ?? shadow;

@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgItemShadowStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     BBox,
     type CallbackParamRules,
@@ -543,7 +543,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         style.opacity = 1;
 
-        return style;
+        return style as typeof style & AgItemShadowStyle;
     }
 
     private makeItemStylerParams(
@@ -602,10 +602,18 @@ export class ChordSeries extends FlowProportionSeries<
 
             sector.setStyleProperties(style, fillBBox);
             const castState = this.getItemCastState(highlightedDatum, isHighlight, datumIndex);
+            const itemShadow =
+                !isHighlight && this.isHoveredInPlace(datumIndex, castState)
+                    ? this.getNodeStyle(datum, datumIndex, true).shadow
+                    : style.shadow;
             sector.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState);
+                datum === focusedDatum
+                    ? undefined
+                    : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState, undefined, itemShadow);
             sector.fillGlow =
-                focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datumIndex, castState) : undefined;
+                focusedDatum == null
+                    ? this.resolveItemGlow(glow, isHighlight, datumIndex, castState, undefined, style.glow)
+                    : undefined;
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -678,7 +686,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         style.opacity = 1;
 
-        return style;
+        return style as typeof style & AgItemShadowStyle;
     }
 
     /**
@@ -754,12 +762,18 @@ export class ChordSeries extends FlowProportionSeries<
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);
             const castState = this.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
+            const itemShadow =
+                !isHighlight && this.isHoveredInPlace(datum.datumIndex, castState)
+                    ? this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, true).shadow
+                    : style.shadow;
             link.fillShadow =
                 datum === focusedDatum
                     ? undefined
-                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState);
+                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState, undefined, itemShadow);
             link.fillGlow =
-                focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState) : undefined;
+                focusedDatum == null
+                    ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState, undefined, style.glow)
+                    : undefined;
         });
     }
 

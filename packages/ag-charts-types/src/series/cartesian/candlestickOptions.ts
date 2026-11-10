@@ -1,6 +1,6 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
@@ -67,7 +67,10 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = DatumDefault, TCon
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters.*/
-    itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum, TContext>, AgCandlestickSeriesItemOptions>;
+    itemStyler?: Styler<
+        AgCandlestickSeriesItemStylerParams<TDatum, TContext>,
+        AgCandlestickSeriesItemOptions & AgItemShadowStyle
+    >;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesGlowHighlightOptions<
         AgCandlestickHighlightStyleOptions,

@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Rect } from 'ag-charts-core';
-import type { AgChartOptions } from 'ag-charts-types';
+import { Rect, Sector } from 'ag-charts-core';
+import type { AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
+import { Marker } from '../marker/marker';
 import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
-import { shapesOf } from '../test/shadowFixtures';
+import { CATEGORY_DATA, XY_DATA, shapesOf } from '../test/shadowFixtures';
 import {
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     compareImageSnapshot,
@@ -43,7 +44,9 @@ const highlightGlows = (gap?: number) => ({
 const barSeriesGlow = (gap?: number) =>
     withGap({ enabled: true, fill: '#4a90e2', fillOpacity: 0.3, blur: 4, spread: 3 }, gap);
 
-const options = (gap?: number): AgChartOptions => ({
+type ItemStyler = (params: unknown) => object;
+
+const options = (gap?: number, itemStyler?: ItemStyler): AgChartOptions => ({
     data: DATA,
     animation: { enabled: false },
     legend: { position: 'bottom' },
@@ -54,7 +57,8 @@ const options = (gap?: number): AgChartOptions => ({
         yKey,
         glow: barSeriesGlow(gap),
         highlight: highlightGlows(gap),
-    })),
+        itemStyler,
+    })) as AgCartesianSeriesOptions[],
 });
 
 describe('highlight glow above the other series', () => {
@@ -66,8 +70,8 @@ describe('highlight glow above the other series', () => {
         chart?.destroy();
     });
 
-    const create = async (gap?: number) => {
-        chart = deproxy(await createChart(options(gap)));
+    const create = async (gap?: number, itemStyler?: ItemStyler) => {
+        chart = deproxy(await createChart(options(gap, itemStyler)));
         await waitForChartStability(chart);
     };
 
@@ -133,5 +137,107 @@ describe('highlight glow above the other series', () => {
         expect(rects.map((rect) => rect.fillGlow?.inGroup === true)).toEqual([true, false, true]);
         expect(rects[1].fillGlow).toBeUndefined();
         expect(inGroupGlows(0)).toEqual([false, false, false]);
+    });
+
+    // An item styler that returns a `glow` merges it over the cascade, which keeps the placement of the cascade's glow.
+    describe.each([
+        { name: 'series-level hover', hover: () => hoverSeries(HOVERED), expected: [true, true, true] },
+        { name: 'item hover', hover: () => hoverItem(HOVERED, 1), expected: [true, false, true] },
+    ])('with an itemStyler that returns a glow, $name', ({ hover, expected }) => {
+        it.each([
+            ['an empty glow', () => ({ glow: {} })],
+            ['a glow with fields', () => ({ glow: { fill: '#ff00ff', blur: 9 } })],
+        ])('casts the highlighted series glow in its own group (%s)', async (_name, itemStyler) => {
+            await create(undefined, itemStyler);
+            await hover();
+
+            expect(inGroupGlows(HOVERED)).toEqual(expected);
+            expect(inGroupGlows(0)).toEqual([false, false, false]);
+            expect(inGroupGlows(2)).toEqual([false, false, false]);
+        });
+    });
+
+    it('casts the glow of a scatter series that an itemStyler overrides in its own group when it is hovered', async () => {
+        chart = deproxy(
+            await createChart({
+                data: XY_DATA,
+                animation: { enabled: false },
+                legend: { position: 'bottom' },
+                series: ['y', 'size', 'x'].map((yKey) => ({
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey,
+                    glow: { enabled: true, fill: '#4a90e2', fillOpacity: 0.3, blur: 4, spread: 3 },
+                    itemStyler: () => ({ glow: {} }),
+                })) as AgCartesianSeriesOptions[],
+            })
+        );
+        await waitForChartStability(chart);
+        const inGroup = (seriesIndex: number) =>
+            shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Marker).map(
+                (marker) => marker.fillGlow?.inGroup === true
+            );
+        expect(inGroup(HOVERED)).toEqual(Array(XY_DATA.length).fill(false));
+
+        await hoverSeries(HOVERED);
+
+        expect(inGroup(HOVERED)).toEqual(Array(XY_DATA.length).fill(true));
+        expect(inGroup(0)).toEqual(Array(XY_DATA.length).fill(false));
+        expect(inGroup(2)).toEqual(Array(XY_DATA.length).fill(false));
+    });
+
+    // A series that leaves its highlight glow to the root casts a styler glow there too, as it does the option glow.
+    describe('an itemStyler glow on a series that casts its highlight glows in the root', () => {
+        const GLOW = { enabled: true, fill: '#4a90e2', fillOpacity: 0.3, blur: 4, spread: 3 };
+
+        it('keeps the glows of the markers of a hovered line series out of its group', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: XY_DATA,
+                    animation: { enabled: false },
+                    legend: { position: 'bottom' },
+                    series: ['y', 'size', 'x'].map((yKey) => ({
+                        type: 'line',
+                        xKey: 'x',
+                        yKey,
+                        marker: { enabled: true, glow: GLOW, itemStyler: () => ({ glow: {} }) },
+                    })) as AgCartesianSeriesOptions[],
+                })
+            );
+            await waitForChartStability(chart);
+            const glows = (seriesIndex: number) =>
+                shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Marker).map((marker) => marker.fillGlow);
+
+            await hoverSeries(HOVERED);
+
+            const hovered = glows(HOVERED);
+            expect(hovered.length).toBeGreaterThan(0);
+            expect(hovered.every((glow) => glow?.enabled === true && glow.inGroup !== true)).toBe(true);
+        });
+
+        it('keeps the glows of the other sectors of a hovered donut out of its group', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: CATEGORY_DATA,
+                    animation: { enabled: false },
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'value',
+                            calloutLabelKey: 'category',
+                            glow: GLOW,
+                            itemStyler: () => ({ glow: {} }),
+                        },
+                    ],
+                })
+            );
+            await waitForChartStability(chart);
+
+            await hoverItem(0, 0);
+
+            const sectors = shapesOf(getSeriesAt(chart, 0).contentGroup, Sector);
+            expect(sectors.some((sector) => sector.fillGlow?.enabled === true)).toBe(true);
+            expect(sectors.filter((sector) => sector.fillGlow?.inGroup === true)).toEqual([]);
+        });
     });
 });

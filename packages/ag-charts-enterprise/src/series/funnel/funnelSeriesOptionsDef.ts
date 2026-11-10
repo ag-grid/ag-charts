@@ -1,4 +1,9 @@
-import type { AgFunnelSeriesOptions, AgFunnelSeriesStyle, AgFunnelSeriesThemeableOptions } from 'ag-charts-community';
+import type {
+    AgFunnelSeriesOptions,
+    AgFunnelSeriesStyle,
+    AgFunnelSeriesThemeableOptions,
+    AgItemShadowStyle,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
@@ -13,6 +18,7 @@ import {
     fillOptionsDef,
     glowHighlightOptionsDef,
     glowOptionsDefs,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelPlacementStyleDefs,
@@ -48,7 +54,8 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
     direction: union('horizontal', 'vertical'),
     fills: arrayOf(colorUnion),
     strokes: arrayOf(colorOrRef),
-    itemStyler: callbackDefs<AgFunnelSeriesStyle>({
+    itemStyler: callbackDefs<AgFunnelSeriesStyle & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,

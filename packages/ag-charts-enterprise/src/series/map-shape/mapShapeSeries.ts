@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgItemShadowStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
     CallbackParamRules,
     DynamicContext,
@@ -43,6 +43,7 @@ import {
     resolveLabelFit,
     toPlainText,
     withFitRegion,
+    withoutCasts,
 } from 'ag-charts-core';
 import type {
     AgDrawingMode,
@@ -94,7 +95,7 @@ export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDat
     readonly labelValue: string | undefined;
     readonly legendItemName: string | undefined;
     readonly projectedGeometry: Geometry | undefined;
-    style: AgMapShapeSeriesStyle;
+    style: AgMapShapeSeriesStyle & AgItemShadowStyle;
 }
 
 interface MapShapeNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -721,7 +722,7 @@ export class MapShapeSeries
     protected getItemStyle(
         { datumIndex, datum, colorValue }: Partial<MapShapeNodeDatum>,
         isHighlight: boolean
-    ): Required<NormalisedMapShapeSeriesStyle> {
+    ): Required<NormalisedMapShapeSeriesStyle> & AgItemShadowStyle {
         const { options, colorScale } = this;
         const { colorKey, colorScale: colorScaleProps, itemStyler } = options;
         const { missingDataFill } = colorScaleProps;
@@ -751,7 +752,11 @@ export class MapShapeSeries
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        let style = mergeDefaults(selectionStyle, highlightStyle, baseStyle);
+        let style: Required<NormalisedMapShapeSeriesStyle> & AgItemShadowStyle = mergeDefaults(
+            selectionStyle,
+            highlightStyle,
+            baseStyle
+        );
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -855,9 +860,25 @@ export class MapShapeSeries
             geoGeometry.setStyleProperties(nodeDatum.style as NormalisedMapShapeSeriesStyle, fillBBox);
 
             const castState = this.getItemCastState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
-            geoGeometry.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex, castState);
+            geoGeometry.fillShadow = this.resolveItemShadow(
+                shadow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                castState,
+                undefined,
+                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex, castState)
+                    ? this.getItemStyle(nodeDatum, true).shadow
+                    : nodeDatum.style.shadow
+            );
 
-            geoGeometry.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex, castState);
+            geoGeometry.fillGlow = this.resolveItemGlow(
+                glow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                castState,
+                undefined,
+                nodeDatum.style.glow
+            );
             geoGeometry.drawingMode = drawingMode;
 
             const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
@@ -1123,7 +1144,7 @@ export class MapShapeSeries
                 symbol: this.legendItemSymbol(datumIndex),
                 data,
             },
-            { seriesId, datum, title, idKey, idName, colorKey, colorName, labelKey, labelName, ...format }
+            { seriesId, datum, title, idKey, idName, colorKey, colorName, labelKey, labelName, ...withoutCasts(format) }
         );
     }
 

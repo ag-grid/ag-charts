@@ -1,4 +1,9 @@
-import type { AgOhlcSeriesItemOptions, AgOhlcSeriesOptions, AgOhlcSeriesThemeableOptions } from 'ag-charts-community';
+import type {
+    AgItemShadowStyle,
+    AgOhlcSeriesItemOptions,
+    AgOhlcSeriesOptions,
+    AgOhlcSeriesThemeableOptions,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
@@ -8,6 +13,7 @@ import {
     constant,
     crosshairSnapToValidator,
     glowOptionsDefs,
+    itemStylerCastDefs,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
@@ -24,7 +30,8 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
     crosshairSnapTo: crosshairSnapToValidator(['open', 'high', 'low', 'close']),
     crosshairSnapMode: union('all', 'nearest'),
     showInMiniChart: boolean,
-    itemStyler: callbackDefs<AgOhlcSeriesItemOptions>({
+    itemStyler: callbackDefs<AgOhlcSeriesItemOptions & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     }),

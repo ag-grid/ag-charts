@@ -8,7 +8,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -113,7 +113,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgRangeBarSeriesStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters.*/
-    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
+    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle & AgItemShadowStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesGlowHighlightOptions<AgRangeBarHighlightStyleOptions, AgRangeBarHighlightStyleOptions>;
     /** Whether to group together (adjacently) separate bars. */

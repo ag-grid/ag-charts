@@ -7,7 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
 import type {
@@ -134,7 +134,7 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgBoxPlotSeriesStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
     /** Function used to return formatting for individual columns, based on the given parameters.*/
-    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
+    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle & AgItemShadowStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesGlowHighlightOptions<AgBoxPlotHighlightStyleOptions, AgBoxPlotHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */

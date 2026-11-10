@@ -7,7 +7,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -187,7 +187,10 @@ export interface AgWaterfallSeriesItemOptions<TDatum, TContext = ContextDefault>
     /** Configuration for the glow around the series items. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
     glow?: AgGlowOptions;
     /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters.*/
-    itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<TDatum, TContext>, AgWaterfallSeriesStyle>;
+    itemStyler?: Styler<
+        AgWaterfallSeriesItemStylerParams<TDatum, TContext>,
+        AgWaterfallSeriesStyle & AgItemShadowStyle
+    >;
     /** Series item specific tooltip configuration. */
     tooltip?: AgWaterfallSeriesItemTooltip<TDatum, TContext>;
 }

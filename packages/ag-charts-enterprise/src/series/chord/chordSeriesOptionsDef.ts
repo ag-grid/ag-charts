@@ -3,6 +3,7 @@ import type {
     AgChordSeriesNodeStyle,
     AgChordSeriesOptions,
     AgChordSeriesThemeableOptions,
+    AgItemShadowStyle,
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
@@ -20,6 +21,7 @@ import {
     fillPatternDefaults,
     glowHighlightOptionsDef,
     glowOptionsDefs,
+    itemStylerCastDefs,
     lineDashOptionsDef,
     positiveNumber,
     ratio,
@@ -48,7 +50,8 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
         shadow: shadowOptionsDefs,
         glow: glowOptionsDefs,
         tension: ratio,
-        itemStyler: callbackDefs<AgChordSeriesLinkStyle>({
+        itemStyler: callbackDefs<AgChordSeriesLinkStyle & AgItemShadowStyle>({
+            ...itemStylerCastDefs,
             ...fillOptionsDef,
             ...strokeOptionsDef,
             ...lineDashOptionsDef,
@@ -64,7 +67,8 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
         width: positiveNumber,
         spacing: positiveNumber,
         cornerRadius: positiveNumber,
-        itemStyler: callbackDefs<AgChordSeriesNodeStyle>({
+        itemStyler: callbackDefs<AgChordSeriesNodeStyle & AgItemShadowStyle>({
+            ...itemStylerCastDefs,
             ...fillOptionsDef,
             ...strokeOptionsDef,
             ...lineDashOptionsDef,

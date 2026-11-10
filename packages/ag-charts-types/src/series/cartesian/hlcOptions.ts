@@ -7,6 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
+import type { AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
@@ -106,7 +107,7 @@ export interface AgHlcMarker<TDatum, TContext> extends AgSeriesMarkerOptions<
     TContext
 > {
     /** Function used to return formatting for individual markers, based on the supplied information. */
-    itemStyler?: Styler<AgHlcSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<AgHlcSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle & AgItemShadowStyle>;
 }
 
 export interface AgHlcSeriesItemMarker<TDatum, TContext> extends Omit<
