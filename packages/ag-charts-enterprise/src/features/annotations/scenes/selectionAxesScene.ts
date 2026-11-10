@@ -1,7 +1,7 @@
 import { type BBox, ChartAxisDirection, Rect } from 'ag-charts-core';
 import type { Point } from 'ag-charts-core';
 
-import type { AxisLabelDatum, SelectionAxesFields } from '../annotationDatum';
+import type { AxisLabelDatum, SelectionAxesFields, SelectionColours } from '../annotationDatum';
 import type { AnnotationAxisContext } from '../annotationTypes';
 import { getGroupingValue } from '../utils/scale';
 import { invert } from '../utils/values';
@@ -13,6 +13,8 @@ interface UpdateOpts {
     /** Where the annotation's handles are, relative to the series area. */
     points: Point[];
     styles: SelectionAxesFields;
+    /** What the labels and shading are filled with when the styles do not set it. */
+    colours: SelectionColours;
     seriesRect: BBox;
     context: AnnotationAxisContext;
 }
@@ -48,7 +50,7 @@ class AxisSelectionOverlay {
         this.shading.visible = false;
     }
 
-    update({ points, styles, seriesRect, context }: UpdateOpts) {
+    update({ points, styles, colours, seriesRect, context }: UpdateOpts) {
         this.attach(context);
 
         const isX = context.direction === ChartAxisDirection.X;
@@ -66,19 +68,25 @@ class AxisSelectionOverlay {
         const positions = [...byPixel.values()];
         const inRange = positions.filter((p) => context.inRange(p));
 
-        this.updateLabels(inRange, styles.axisLabel, seriesRect, context, edge);
-        this.updateShading(positions, length, styles, seriesRect, context, edge);
+        this.updateLabels(inRange, styles.axisLabel, colours, seriesRect, context, edge);
+        this.updateShading(positions, length, styles, colours, seriesRect, context, edge);
     }
 
     private updateLabels(
         positions: number[],
         axisLabel: AxisLabelDatum,
+        { stroke, strokeOpacity }: SelectionColours,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin }: AxisEdge
     ) {
         const { labels } = this;
         const enabled = axisLabel.enabled ?? true;
+        const styles = {
+            ...axisLabel,
+            fill: axisLabel.fill ?? stroke,
+            fillOpacity: axisLabel.fillOpacity ?? strokeOpacity,
+        };
 
         // Labels are pooled: a spare one is hidden rather than removed, and there are at most a handful per axis.
         while (labels.length < positions.length) {
@@ -98,7 +106,7 @@ class AxisSelectionOverlay {
                 x: isX ? seriesRect.x + p : origin,
                 y: isX ? origin : seriesRect.y + p,
                 value: getGroupingValue(invert(p, context)),
-                styles: axisLabel,
+                styles,
                 context,
             });
         }
@@ -107,7 +115,8 @@ class AxisSelectionOverlay {
     private updateShading(
         positions: number[],
         length: number,
-        { axisLabel, axisShading }: SelectionAxesFields,
+        { axisShading }: SelectionAxesFields,
+        colours: SelectionColours,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin, outward }: AxisEdge
@@ -136,8 +145,8 @@ class AxisSelectionOverlay {
             shading.setProperties({ x: from, y: seriesRect.y + start, width: reach, height: along });
         }
 
-        shading.fill = axisShading.fill ?? axisLabel.fill;
-        shading.fillOpacity = axisShading.fillOpacity ?? 1;
+        shading.fill = axisShading.fill ?? colours.fill;
+        shading.fillOpacity = axisShading.fillOpacity ?? colours.fillOpacity ?? 1;
         shading.strokeWidth = 0;
     }
 

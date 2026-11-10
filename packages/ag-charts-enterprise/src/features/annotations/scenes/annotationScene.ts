@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Group, Transformable, ZIndexMap, isObject } from 'ag-charts-core';
 import type { Node, Point } from 'ag-charts-core';
 
-import type { SelectionAxesFields } from '../annotationDatum';
+import type { SelectionAxesFields, SelectionColours } from '../annotationDatum';
 import type { AnnotationContext } from '../annotationTypes';
 import { Handle } from './handle';
 import { SelectionAxesScene } from './selectionAxesScene';
@@ -54,6 +54,7 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
         }
         this.selectionAxes.update({
             points: this.getSelectionPoints(datum, context),
+            colours: this.getSelectionColours(datum),
             styles: datum,
             seriesRect: context.seriesRect,
             xAxis: context.xAxis,
@@ -91,6 +92,11 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
             }
         }
         return centres;
+    }
+
+    /** The annotation's colours, which its axis labels and shading take unless the datum sets their own. */
+    protected getSelectionColours(_datum: unknown): SelectionColours {
+        return {};
     }
 
     public toggleHovered(hovered: boolean, active: boolean, readOnly: boolean | undefined) {

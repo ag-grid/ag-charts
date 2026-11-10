@@ -499,11 +499,16 @@ interface SelectionAxes {
      * Configuration for the axis labels shown at each of the annotation's points, on both axes, while the annotation is
      * selected. Unlike the axis label of a horizontal or vertical line, these are not shown when the annotation is not
      * selected.
+     *
+     * The labels are filled with the annotation's line colour unless `fill` is set.
      */
     axisLabel?: AgAnnotationAxisLabel;
     /**
      * Configuration for the shading drawn over each axis, between the annotation's outermost points, while the
      * annotation is selected. It covers the axis ticks and tick labels but not the axis title.
+     *
+     * The shading is filled with the annotation's background, such as a channel's, unless `fill` is set. An annotation
+     * with no background shades with its line colour.
      */
     axisShading?: AgAnnotationAxisShading;
 }

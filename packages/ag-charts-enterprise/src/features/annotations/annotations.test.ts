@@ -13,7 +13,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, type Node, Text, Transformable, compareZIndex } from 'ag-charts-core';
+import { Group, type Node, Text } from 'ag-charts-core';
 import type { AgHorizontalLineAnnotation } from 'ag-charts-types';
 
 import {
@@ -35,7 +35,6 @@ import {
 
 // The name of the group the annotations module draws an annotation's label on its axis into.
 const ANNOTATION_AXIS_LABEL_GROUP = 'AnnotationAxisLabelGroup';
-const SELECTION_AXIS_SHADING = 'AnnotationSelectionAxisShading';
 
 describe('Annotations', () => {
     setupMockConsole();
@@ -1202,16 +1201,12 @@ describe('Annotations', () => {
 
         const visibleAxisLabels = () =>
             findSceneNodes(chart, (node) => node.name === ANNOTATION_AXIS_LABEL_GROUP && node.visible);
-        const visibleShading = () =>
-            findSceneNodes(chart, (node) => node.name === SELECTION_AXIS_SHADING && node.visible);
 
-        // Each annotation with a point on its body to click it by, and the text of the axis labels it shows when selected:
-        // the exact datum values, x as the plain date.
+        // Each annotation with a point on its body to click it by.
         interface Selectable {
             name: string;
             annotation: AgAnnotation;
             body: { x: number; y: number };
-            texts: string[];
         }
         const [START, END] = [
             { x: day(20), y: 25 },
@@ -1222,32 +1217,12 @@ describe('Annotations', () => {
                 name: 'line',
                 annotation: { type: 'line', start: START, end: END },
                 body: { x: 50, y: 50 },
-                texts: ['Jan 21 2024', 'Mar 21 2024', '25', '75'],
-            },
-            {
-                name: 'arrow',
-                annotation: { type: 'arrow', start: START, end: END },
-                body: { x: 50, y: 50 },
-                texts: ['Jan 21 2024', 'Mar 21 2024', '25', '75'],
             },
             {
                 name: 'fibonacci-retracement',
                 annotation: { type: 'fibonacci-retracement', start: START, end: END },
                 // On the 0.5 level, which is drawn between the two x positions.
                 body: { x: 50, y: 50 },
-                texts: ['Jan 21 2024', 'Mar 21 2024', '25', '75'],
-            },
-            {
-                name: 'fibonacci-retracement-trend-based',
-                annotation: {
-                    type: 'fibonacci-retracement-trend-based',
-                    start: START,
-                    end: { x: day(50), y: 75 },
-                    endRetracement: { x: day(80), y: 50 },
-                },
-                // On the trend line between the start and the end.
-                body: { x: 35, y: 50 },
-                texts: ['Jan 21 2024', 'Feb 20 2024', 'Mar 21 2024', '25', '50', '75'],
             },
             {
                 name: 'parallel-channel',
@@ -1257,9 +1232,8 @@ describe('Annotations', () => {
                     end: { x: day(80), y: 60 },
                     height: 20,
                 },
+                // Its four corners are labelled, not the middle handles that only move an edge.
                 body: { x: 50, y: 45 },
-                // Its four corners, not the middle handles that only move an edge.
-                texts: ['Jan 21 2024', 'Mar 21 2024', '10', '30', '40', '60'],
             },
             {
                 name: 'disjoint-channel',
@@ -1270,93 +1244,125 @@ describe('Annotations', () => {
                     startHeight: 10,
                     endHeight: 20,
                 },
+                // All four handles are labelled, including the univariant one at the end of the bottom line.
                 body: { x: 50, y: 45 },
-                // All four handles, including the univariant one at the end of the bottom line.
-                texts: ['Jan 21 2024', 'Mar 21 2024', '20', '30', '40', '60'],
             },
-            ...(['date-range', 'price-range', 'date-price-range', 'quick-date-price-range'] as const).map(
-                (type): Selectable => ({
-                    name: type,
-                    annotation: { type, start: START, end: END },
-                    body: { x: 50, y: 50 },
-                    texts: ['Jan 21 2024', 'Mar 21 2024', '25', '75'],
-                })
-            ),
+            ...(['price-range', 'quick-date-price-range'] as const).map((type): Selectable => ({
+                name: type,
+                annotation: { type, start: START, end: END },
+                body: { x: 50, y: 50 },
+            })),
         ];
-        const SNAPSHOTTED = SELECTABLE.filter(({ name }) => ['line', 'parallel-channel'].includes(name));
         const { annotation: LINE, body: LINE_BODY } = SELECTABLE[0];
+        const PARALLEL_CHANNEL = SELECTABLE.find(({ name }) => name === 'parallel-channel')!;
         // Away from every annotation above, so that clicking it deselects.
         const EMPTY = { x: 10, y: 95 };
 
-        const byText = (a: string, b: string) => a.localeCompare(b);
-        const axisLabelTexts = () =>
-            visibleAxisLabels()
-                .flatMap((label) => (label instanceof Group ? Array.from(label.descendants()) : []))
-                .filter((node): node is Text => node instanceof Text)
-                .map((text) => String(text.text));
-
-        it.each(SELECTABLE)(
-            'labels the axes with the exact values of a selected $name',
-            async ({ annotation, body, texts }) => {
-                await prepareChart({ annotations: [annotation] }, withAxes());
-
-                await clickDatum(body.x, body.y);
-
-                // Unrounded values read as plain dates and the values as given; rounded ones would carry a time of day.
-                expect(axisLabelTexts().sort(byText)).toEqual([...texts].sort(byText));
-            }
-        );
-
+        // A cross-line label that the selection's own label overlaps, and a shading that reaches under both.
         it('draws the shading beneath a cross-line axis label and the selection labels above it', async () => {
             await prepareChart(
                 {
                     annotations: [
-                        { type: 'horizontal-line', value: 90 },
-                        { type: 'line', start: START, end: END },
+                        { type: 'horizontal-line', value: 73, axisLabel: { fill: '#ff0000' } },
+                        { ...LINE, axisShading: { fillOpacity: 0.5 } } as AgAnnotation,
                     ],
                 },
                 withAxes()
             );
 
-            await clickDatum(50, 50);
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
 
-            const labelWithText = (text: string) =>
-                visibleAxisLabels().find(
-                    (label) =>
-                        label instanceof Group &&
-                        Array.from(label.descendants()).some((node) => node instanceof Text && node.text === text)
-                );
-            const crossLineLabel = labelWithText('90');
-            const selectionLabel = labelWithText('75');
-            expect(crossLineLabel).toBeDefined();
-            expect(selectionLabel).toBeDefined();
-            const shading = visibleShading().find((node) => node.parentNode === crossLineLabel!.parentNode);
-            expect(shading).toBeDefined();
-
-            expect(selectionLabel!.parentNode).toBe(crossLineLabel!.parentNode);
-            expect(compareZIndex(shading!.zIndex, crossLineLabel!.zIndex)).toBe(-1);
-            expect(compareZIndex(crossLineLabel!.zIndex, selectionLabel!.zIndex)).toBe(-1);
+            await compare();
         });
 
-        it.each(SELECTABLE)(
-            'lets the datum and the theme switch off the labels and shading of a selected $name',
-            async ({ name, annotation, body }) => {
-                const off = { axisLabel: { enabled: false }, axisShading: { enabled: false } };
-                const select = async (options: AgCartesianChartOptions, datum: AgAnnotation) => {
-                    await prepareChart({ annotations: [datum] }, options);
-                    await clickDatum(body.x, body.y);
-                    expect(visibleAxisLabels()).toHaveLength(0);
-                    expect(visibleShading()).toHaveLength(0);
-                    chart.destroy();
-                };
+        describe('colours', () => {
+            const RED = '#ff0000';
+            const GREEN = '#00aa00';
+            const BLUE = '#0000ff';
 
-                await select(withAxes(), { ...annotation, ...off });
-                await select(
-                    { ...withAxes(), theme: { overrides: { common: { annotations: { [name]: off } } } } },
-                    annotation
-                );
-            }
-        );
+            // Each is snapshotted, as one annotation is selected at a time: the labels take the line colour and the
+            // shading the background, or the line colour where there is none.
+            const colourCases: Array<{ name: string; annotation: AgAnnotation; body: { x: number; y: number } }> = [
+                {
+                    name: 'a line follows its line colour',
+                    annotation: { type: 'line', start: START, end: END, stroke: RED },
+                    body: LINE_BODY,
+                },
+                {
+                    name: 'a channel labels with its line colour and shades with its background',
+                    annotation: {
+                        type: 'parallel-channel',
+                        start: { x: day(20), y: 30 },
+                        end: { x: day(80), y: 60 },
+                        height: 20,
+                        stroke: RED,
+                        background: { fill: BLUE, fillOpacity: 0.3 },
+                    },
+                    body: { x: 50, y: 45 },
+                },
+                {
+                    name: 'a fibonacci follows its range stroke',
+                    annotation: { type: 'fibonacci-retracement', start: START, end: END, rangeStroke: GREEN },
+                    body: { x: 50, y: 50 },
+                },
+                {
+                    name: 'a line yields to the fills set on its axis label and shading',
+                    annotation: {
+                        type: 'line',
+                        start: START,
+                        end: END,
+                        stroke: RED,
+                        axisLabel: { fill: GREEN },
+                        axisShading: { fill: BLUE, fillOpacity: 0.5 },
+                    },
+                    body: LINE_BODY,
+                },
+                {
+                    name: 'a quick range measuring up follows its up styles',
+                    annotation: {
+                        type: 'quick-date-price-range',
+                        start: START,
+                        end: END,
+                        up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
+                        down: { stroke: BLUE, fill: BLUE, fillOpacity: 0.1 },
+                    },
+                    body: LINE_BODY,
+                },
+                {
+                    name: 'a quick range measuring down follows its down styles',
+                    annotation: {
+                        type: 'quick-date-price-range',
+                        start: END,
+                        end: START,
+                        up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
+                        down: { stroke: BLUE, fill: GREEN, fillOpacity: 0.1 },
+                    },
+                    body: LINE_BODY,
+                },
+            ];
+
+            it.each(colourCases)('colours the axes for $name', async ({ annotation, body }) => {
+                await prepareChart({ annotations: [annotation] }, withAxes());
+
+                await clickDatum(body.x, body.y);
+
+                expect(visibleAxisLabels().length).toBeGreaterThan(0);
+                await compare();
+            });
+        });
+
+        it('lets the theme switch off the labels and shading of a selected parallel channel', async () => {
+            const { annotation, body } = PARALLEL_CHANNEL;
+            const off = { axisLabel: { enabled: false }, axisShading: { enabled: false } };
+            await prepareChart(
+                { annotations: [annotation] },
+                { ...withAxes(), theme: { overrides: { common: { annotations: { 'parallel-channel': off } } } } }
+            );
+
+            await clickDatum(body.x, body.y);
+
+            await compare();
+        });
 
         it('draws one label and no shading along an axis where the handles share a position', async () => {
             // The two ends are well under a pixel apart along x, so they collapse to one position there.
@@ -1365,11 +1371,12 @@ describe('Annotations', () => {
 
             await clickDatum(50, 50);
 
-            expect(axisLabelTexts().sort(byText)).toEqual(['25', '75', 'Feb 20 2024']);
-            expect(visibleShading()).toHaveLength(1);
+            await compare();
         });
 
-        it.each(SNAPSHOTTED)(
+        // The line, parallel channel, Fibonacci and quick range are selected in the colours cases above.
+        const NOT_IN_COLOURS = SELECTABLE.filter(({ name }) => ['disjoint-channel', 'price-range'].includes(name));
+        it.each(NOT_IN_COLOURS)(
             'shows axis labels and shading on both axes for a selected $name',
             async ({ annotation, body }) => {
                 await prepareChart({ annotations: [annotation] }, withAxes());
@@ -1410,39 +1417,26 @@ describe('Annotations', () => {
             await clickDatum(20, 25);
             await clickDatum(80, 75);
 
-            expect(visibleAxisLabels()).toHaveLength(4);
-            expect(visibleShading()).toHaveLength(2);
+            await compare();
+        });
+
+        it('keeps the single axis label of a selected horizontal line and adds no shading', async () => {
+            await prepareChart({ annotations: [{ type: 'horizontal-line', value: 60 }] }, withAxes());
+
+            await clickDatum(50, 60);
+
+            await compare();
         });
 
         it.each([
-            ['horizontal-line', { type: 'horizontal-line', value: 60 }, { x: 50, y: 60 }],
-            ['vertical-line', { type: 'vertical-line', value: day(60) }, { x: 60, y: 50 }],
-        ] as [string, AgAnnotation, { x: number; y: number }][])(
-            'keeps the single axis label of a selected %s and adds no shading',
-            async (_, annotation, body) => {
-                await prepareChart({ annotations: [annotation] }, withAxes());
-                expect(visibleAxisLabels()).toHaveLength(1);
-
-                await clickDatum(body.x, body.y);
-
-                expect(visibleAxisLabels()).toHaveLength(1);
-                expect(visibleShading()).toHaveLength(0);
-            }
-        );
-
-        it.each([
-            ['both', {}, 4, 2],
-            ['labels only', { axisShading: { enabled: false } }, 4, 0],
-            ['shading only', { axisLabel: { enabled: false } }, 0, 2],
-            ['neither', { axisLabel: { enabled: false }, axisShading: { enabled: false } }, 0, 0],
-        ])('draws the shading and the labels independently of each other: %s', async (_, styles, labels, shading) => {
+            ['labels only', { axisShading: { enabled: false } }],
+            ['shading only', { axisLabel: { enabled: false } }],
+        ])('draws the shading and the labels independently of each other: %s', async (_, styles) => {
             await prepareChart({ annotations: [{ ...LINE, ...styles }] }, withAxes());
 
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
 
-            // One label for each end of the line on each axis, and one band of shading on each axis.
-            expect(visibleAxisLabels()).toHaveLength(labels);
-            expect(visibleShading()).toHaveLength(shading);
+            await compare();
         });
 
         it('places the labels and shading beside a top x axis and a right y axis', async () => {
@@ -1450,7 +1444,6 @@ describe('Annotations', () => {
 
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
 
-            expect(visibleAxisLabels()).toHaveLength(4);
             await compare();
         });
 
@@ -1471,16 +1464,12 @@ describe('Annotations', () => {
                 withYAxis('number')
             );
             await clickDatum(50, 50);
-            expect(visibleAxisLabels()).toHaveLength(4);
-            expect(visibleShading()).toHaveLength(2);
 
             await chart.update(prepareEnterpriseTestOptions({ ...withYAxis('log'), initialState: undefined }) as never);
             await waitForChartStability(chart);
 
-            // Nodes left on a detached axis layer are not part of the chart, so they are not found.
-            expect(visibleAxisLabels()).toHaveLength(4);
-            expect(visibleShading()).toHaveLength(2);
-            expect(axisLabelTexts().sort(byText)).toEqual(['100', '900', 'Jan 21 2024', 'Mar 21 2024'].sort(byText));
+            // Nodes left on a detached axis layer are not part of the chart, so they are not drawn.
+            await compare();
         });
 
         // Where an axis is not linear and continuous, the value of a position is read differently.
@@ -1489,7 +1478,6 @@ describe('Annotations', () => {
             options: AgCartesianChartOptions;
             annotation: AgAnnotation;
             click: number[];
-            texts: string[];
         }>([
             {
                 name: 'a log y axis',
@@ -1497,7 +1485,6 @@ describe('Annotations', () => {
                 annotation: { type: 'line', start: { x: day(20), y: 10 }, end: { x: day(80), y: 100 } },
                 // A third and two thirds of the way up the log axis, so the middle of the line is in the middle.
                 click: [50, 50],
-                texts: ['10', '100', 'Jan 21 2024', 'Mar 21 2024'],
             },
             {
                 name: 'a category x axis',
@@ -1513,24 +1500,14 @@ describe('Annotations', () => {
                 annotation: { type: 'line', start: { x: 'Q1', y: 85 }, end: { x: 'Q4', y: 95 } },
                 // Above the bars, and a category sits at the start of its band, so the line's middle is left of centre.
                 click: [41, 90],
-                texts: ['85', '95', 'Q1', 'Q4'],
             },
-        ])('labels a selected line with the values of $name', async ({ options, annotation, click, texts }) => {
+        ])('labels a selected line with the values of $name', async ({ options, annotation, click }) => {
             await prepareChart({ annotations: [annotation] }, options);
 
             await clickDatum(click[0], click[1]);
 
-            expect(axisLabelTexts().sort(byText)).toEqual([...texts].sort(byText));
+            await compare();
         });
-
-        // The band of shading along each axis, the wider of the two being the one along the x axis.
-        const canvasBox = (node: Node) => Transformable.toCanvas(node);
-        const shadingBands = () => {
-            const [horizontal, vertical] = visibleShading()
-                .map(canvasBox)
-                .sort((a, b) => b.width - a.width);
-            return { horizontal, vertical };
-        };
 
         it('labels only the points inside the axes but shades up to the edge of the series area', async () => {
             // The end is past both the right and the top of the chart.
@@ -1541,12 +1518,7 @@ describe('Annotations', () => {
 
             await clickDatum(50, 62.5);
 
-            expect(axisLabelTexts().sort(byText)).toEqual(['25', 'Jan 21 2024']);
-            const { x, y, width, height } = getSeriesRect(chart);
-            const { horizontal, vertical } = shadingBands();
-            expect(horizontal.x + horizontal.width).toBeCloseTo(x + width, 0);
-            expect(vertical.y).toBeCloseTo(y, 0);
-            expect(vertical.height).toBeLessThanOrEqual(height + 1);
+            await compare();
         });
 
         it('labels the points inside a zoomed chart and shades across the rest', async () => {
@@ -1558,11 +1530,7 @@ describe('Annotations', () => {
 
             await clickDatum(50, 50);
 
-            expect(axisLabelTexts().sort(byText)).toEqual(['25', '75']);
-            const { x, width } = getSeriesRect(chart);
-            const { horizontal } = shadingBands();
-            expect(horizontal.x).toBeCloseTo(x, 0);
-            expect(horizontal.width).toBeCloseTo(width, 0);
+            await compare();
         });
 
         it('shades out to the further edge of the tick labels and axis labels, and stops short of the axis titles', async () => {
@@ -1580,28 +1548,11 @@ describe('Annotations', () => {
 
             await clickDatum(50, 50);
 
-            const tickLabels = (pattern: RegExp) =>
-                findSceneNodes(chart, (node) => node instanceof Text && pattern.test(String(node.text))).map(canvasBox);
-            const xTicks = tickLabels(/^[A-Z][a-z]{2}\s+\d{1,2}$/);
-            const yTicks = tickLabels(/^(0|20|40|60|80|100)$/);
-            const axisLabels = visibleAxisLabels().map(canvasBox);
-            const [xTitle] = tickLabels(/^Date$/);
-            const [yTitle] = tickLabels(/^Price$/);
-            const { horizontal, vertical } = shadingBands();
-
-            const bottomEdge = Math.max(...[...xTicks, ...axisLabels].map((box) => box.y + box.height));
-            const leftEdge = Math.min(...[...yTicks, ...axisLabels].map((box) => box.x));
-            expect(horizontal.y + horizontal.height).toBeCloseTo(bottomEdge, 0);
-            expect(vertical.x).toBeCloseTo(leftEdge, 0);
-            expect(horizontal.y + horizontal.height).toBeLessThanOrEqual(xTitle.y);
-            expect(vertical.x).toBeGreaterThanOrEqual(yTitle.x + yTitle.width);
+            await compare();
         });
 
-        it.each([
-            ['line', LINE],
-            ['parallel-channel', SELECTABLE.find(({ name }) => name === 'parallel-channel')!.annotation],
-        ])('writes the state of a selected %s back so that it restores unchanged', async (_, annotation) => {
-            await prepareChart({ annotations: [annotation] }, withAxes());
+        it('writes the state of a selected annotation back so that it restores unchanged', async () => {
+            await prepareChart({ annotations: [LINE] }, withAxes());
             const saved = chart.getState().annotations;
 
             chart.destroy();

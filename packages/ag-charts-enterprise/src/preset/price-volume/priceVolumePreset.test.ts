@@ -795,7 +795,8 @@ describe('priceVolumePreset', () => {
             { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 150 },
         ];
 
-        // The labels and shading take the annotation's own colour, as a horizontal line's label does.
+        // The labels and shading take the annotation's own colours, so the theme sets only the white text and the shading
+        // at the opacity of the annotation's background, or of its own when it has no background.
         it.each<AgAnnotation>([
             { type: 'line', start, end },
             { type: 'arrow', start, end },
@@ -803,18 +804,26 @@ describe('priceVolumePreset', () => {
             { type: 'disjoint-channel', start, end, startHeight: 4, endHeight: 8 },
             { type: 'fibonacci-retracement', start, end },
             { type: 'date-price-range', start, end },
-        ])('themes the axis labels and shading of a $type with the annotation colour', async (annotation) => {
+        ])('themes the axis labels and shading of a $type without fixing their colour', async (annotation) => {
             chart = AgCharts.createFinancialChart(
                 prepareFinancialTestOptions({ data, initialState: { annotations: [annotation] } })
             );
             await waitForChartStability(chart);
 
-            const state = chart.getState().annotations![0] as AgAnnotation & { stroke?: string };
+            const state = chart.getState().annotations![0] as AgAnnotation & {
+                stroke?: string;
+                background?: { fillOpacity?: number };
+                axisLabel?: { fill?: string };
+                axisShading?: { fill?: string; fillOpacity?: number };
+            };
             expect(state).toMatchObject({
-                axisLabel: { enabled: true, fill: state.stroke, color: 'white' },
-                axisShading: { enabled: true, fill: state.stroke, fillOpacity: 0.2 },
+                axisLabel: { enabled: true, color: 'white' },
+                axisShading: { enabled: true },
             });
-            // The colour is the theme's annotation colour, not the foreground colour of the default theme.
+            expect(state.axisLabel?.fill).toBeUndefined();
+            expect(state.axisShading?.fill).toBeUndefined();
+            expect(state.axisShading?.fillOpacity ?? state.background?.fillOpacity).toBe(0.2);
+            // The annotation's colour, which they follow, is the theme's annotation colour and not the default foreground.
             expect(state.stroke).not.toBe('#181d1f');
         });
     });

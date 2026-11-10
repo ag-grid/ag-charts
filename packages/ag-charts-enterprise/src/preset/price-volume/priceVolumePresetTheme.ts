@@ -42,16 +42,16 @@ const font: WithThemeParams<TextOptions> = {
 
 const background = { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 } as const;
 
-// A selected annotation's axis labels match a horizontal line's, and its shading matches a channel's background.
-const selectionAxes = () =>
+// The labels and shading take the annotation's colours. A line has no fill to shade with, so it passes the opacity.
+const selectionAxes = (shadingOpacity?: number) =>
     ({
-        axisLabel: { ...axisLabel },
-        axisShading: { enabled: true, ...background },
+        axisLabel: { ...axisLabel, fill: undefined },
+        axisShading: { enabled: true, fillOpacity: shadingOpacity },
     }) as const;
 
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(),
+    ...selectionAxes(background.fillOpacity),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'annotationColor' },
     handle: { ...handle },
@@ -77,7 +77,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Lines
     line: {
         ...stroke,
-        ...selectionAxes(),
+        ...selectionAxes(background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -153,7 +153,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Shapes
     arrow: {
         ...stroke,
-        ...selectionAxes(),
+        ...selectionAxes(background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },

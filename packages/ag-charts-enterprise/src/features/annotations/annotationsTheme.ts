@@ -94,16 +94,16 @@ export const QUICK_MEASURER_DIVIDER_THEME = { stroke: '#fff', strokeWidth: 1, st
 
 const background = { fill: { $ref: 'foregroundColor' }, fillOpacity: 0.075 } as const;
 
-// The shading has the label's fill, at the opacity of a channel's background.
-const selectionAxes = () =>
+// The labels and shading take the annotation's colours. A line has no fill to shade with, so it passes the opacity.
+const selectionAxes = (shadingOpacity?: number) =>
     ({
-        axisLabel: { ...axisLabel },
-        axisShading: { enabled: true, ...background },
+        axisLabel: { ...axisLabel, fill: undefined },
+        axisShading: { enabled: true, fillOpacity: shadingOpacity },
     }) as const;
 
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(),
+    ...selectionAxes(background.fillOpacity),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'foregroundColor' },
     handle: { ...handle },
@@ -215,7 +215,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Lines
     line: {
         ...stroke,
-        ...selectionAxes(),
+        ...selectionAxes(background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -295,7 +295,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Shapes
     arrow: {
         ...stroke,
-        ...selectionAxes(),
+        ...selectionAxes(background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },

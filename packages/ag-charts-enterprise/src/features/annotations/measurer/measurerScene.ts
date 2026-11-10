@@ -1,6 +1,7 @@
 import { type Bounds4, Path, Vec2, Vec4, isDate, isNumericValue, toNumber } from 'ag-charts-core';
 import type { BBox } from 'ag-charts-core';
 
+import { getBackgroundColours } from '../annotationDatum';
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene } from '../scenes/capScene';
@@ -70,6 +71,10 @@ export class MeasurerScene extends StartEndScene<MeasurerDatum> {
             this.end,
             this.statistics,
         ]);
+    }
+
+    protected override getSelectionColours(datum: MeasurerDatum) {
+        return getBackgroundColours(datum);
     }
 
     protected createStatisticsScene() {
@@ -417,6 +422,11 @@ export class QuickMeasurerScene extends MeasurerScene {
 
     override createStatisticsScene() {
         return new QuickMeasurerStatisticsScene();
+    }
+
+    protected override getSelectionColours(datum: QuickDatePriceRangeDatum) {
+        const { stroke, strokeOpacity, fill, fillOpacity } = this.getDirectionStyles(datum);
+        return { stroke, strokeOpacity, fill, fillOpacity };
     }
 
     private getDirectionStyles(datum: QuickDatePriceRangeDatum) {

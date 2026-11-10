@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { Bounds4, Logger, Point } from 'ag-charts-core';
 import { Path, Transformable } from 'ag-charts-core';
 
+import { getBackgroundColours } from '../annotationDatum';
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { ChannelTypeDatum } from '../datum/channelDatum';
 import { convertLine } from '../utils/values';
@@ -49,6 +50,10 @@ export abstract class ChannelScene<Datum extends ChannelTypeDatum> extends Linea
         for (const handle of Object.values(this.handles)) {
             handle.toggleLocked(locked ?? false);
         }
+    }
+
+    protected override getSelectionColours(datum: Datum) {
+        return getBackgroundColours(datum);
     }
 
     override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {
