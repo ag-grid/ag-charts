@@ -321,13 +321,13 @@ node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs trading-termin
 ### `port-spec-plan.mjs` and `run-port-specs.mjs`
 
 The CI step "playwright functional specs on framework ports" runs the demos' functional specs
-(`e2e/*.spec.ts`, the `test:e2e` suite) against each port, in the same job as the parity run and
-from the same built seed `dist/`, so nothing is built twice. The two scripts split the work along the
+(`e2e/*.spec.ts`, the `test:e2e` suite) against each port, as its own `port-specs` matrix entry of the
+job that runs the parity suites and from the same built seed `dist/`, so nothing is built twice. The two scripts split the work along the
 line the parity step already draws: git is set up on the runner, Playwright is in the container.
 
 `port-spec-plan.mjs [--stale-report <file>] [--out <file>]` runs on the runner. It lists every port
-with a manifest, drops the stale ones (read from the `check-seeds.mjs --stale` report the parity step
-wrote, or worked out with `findStalePorts` when none is given) and writes the plan, `{ run, skipped }`,
+with a manifest, drops the stale ones (worked out with `findStalePorts`, or read from a
+`check-seeds.mjs --stale` report when one is given) and writes the plan, `{ run, skipped }`,
 as JSON. Each entry to run carries the port's `dist` and the `--grep` that selects only its demo's
 specs, since a port is a single-demo app and cannot answer the others'. Stale ports are named in a
 `::warning` annotation and in the job output, as in the parity step; when nothing is left to run it

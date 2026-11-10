@@ -48,6 +48,10 @@ interface Props {
      * Ignore dark mode (always use light mode)
      */
     ignoreDarkMode?: boolean;
+    /**
+     * Render-blocking markup to run after the dark mode init, ahead of the example's own head
+     */
+    initHeadFragment?: string;
 }
 
 const {
@@ -63,6 +67,7 @@ const {
     ignoreModuleLoader,
     transpileInBrowser,
     ignoreDarkMode,
+    initHeadFragment,
 } = Astro.props as Props;
 
 const isDev = getIsDev();
@@ -90,6 +95,7 @@ const externalExampleStyles = `
 const headFragment =
     (addExternalExampleStyles ? externalExampleStyles : '') +
     getExampleDarkModeInitFragment({ ignoreDarkMode }) +
+    (initHeadFragment ?? '') +
     (files?.['head.html'] ?? '');
 const appLocation = relativePath ? '' : exampleUrl;
 

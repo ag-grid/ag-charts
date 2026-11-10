@@ -121,7 +121,7 @@ const options: AgCartesianChartOptions = {
                     lineDash: [5, 5],
                     label: {
                         text: 'COVID-19 START',
-                        padding: 10,
+                        spacing: 10,
                     },
                 },
             ],

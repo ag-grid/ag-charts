@@ -4,7 +4,6 @@ import type {
     ChartAnimationPhase,
     DeepPartial,
     DynamicContext,
-    InternalAgGlowOptions,
     Node,
     NormalisedDropShadowOptions,
     NormalisedHierarchySeriesKeys,
@@ -22,6 +21,7 @@ import {
     arraysEqual,
     clamp,
     configureColorScale,
+    datumKeyReader,
     glowToShadow,
     isFiniteNumericValue,
     isNumericValue,
@@ -30,7 +30,7 @@ import {
     toNumber,
     withoutGlow,
 } from 'ag-charts-core';
-import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
+import type { AgActiveItemState, AgGlowOptions, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 
@@ -170,10 +170,10 @@ export abstract class HierarchySeries<
 > extends _ModuleSupport.Series<TNodeClass, TOptions> {
     override readonly navigatesWithinSeries = true;
 
-    override createChartDataSet(data: unknown[], dataIdKey: string | undefined) {
+    override createChartDataSet(data: unknown[], dataIdKey: string | undefined, suppressFieldDotNotation: boolean) {
         const { childrenKey } = this.options;
         if (childrenKey == null) return;
-        return new HierarchyDataSet(data, dataIdKey, childrenKey, this.ctx.logger);
+        return new HierarchyDataSet(data, dataIdKey, childrenKey, this.ctx.logger, suppressFieldDotNotation);
     }
 
     override getChartAriaLabel(caption: string) {
@@ -251,6 +251,10 @@ export abstract class HierarchySeries<
 
         const { NodeClass } = this;
         const { childrenKey, sizeKey, colorKey } = this.options;
+        const suppressFieldDotNotation = this.data?.suppressFieldDotNotation ?? false;
+        const readChildren = childrenKey == null ? undefined : datumKeyReader(childrenKey, suppressFieldDotNotation);
+        const readSize = sizeKey == null ? undefined : datumKeyReader(sizeKey, suppressFieldDotNotation);
+        const readColor = colorKey == null ? undefined : datumKeyReader(colorKey, suppressFieldDotNotation);
 
         let maxDepth = 0;
         let minColor = Infinity;
@@ -259,11 +263,11 @@ export abstract class HierarchySeries<
 
         const createNode = (datum: any, indexPath: number[], parent: TNodeClass): TNodeClass => {
             const depth = parent.depth == null ? 0 : parent.depth + 1;
-            const children = childrenKey == null ? undefined : datum[childrenKey];
+            const children = readChildren?.(datum);
             const isLeaf = children == null || children.length === 0;
 
             // Accept bigint sizes (coerced to Number) so out-of-safe-range integers still drive tile area.
-            let sizeValue = sizeKey == null ? undefined : datum[sizeKey];
+            let sizeValue = readSize?.(datum);
             if (isFiniteNumericValue(sizeValue)) {
                 sizeValue = Math.max(toNumber(sizeValue), 0);
             } else {
@@ -273,7 +277,7 @@ export abstract class HierarchySeries<
             const sumSize = sizeValue;
             maxDepth = Math.max(maxDepth, depth);
 
-            let colorValue = colorKey == null ? undefined : datum[colorKey];
+            let colorValue = readColor?.(datum);
             if (isNumericValue(colorValue)) {
                 colorValue = toNumber(colorValue);
                 minColor = Math.min(minColor, colorValue);
@@ -606,10 +610,10 @@ export abstract class HierarchySeries<
     }
 
     /** The merged `glow` of the highlight styles of a node. */
-    protected getHierarchyHighlightGlow<TStyle extends { glow?: DeepPartial<InternalAgGlowOptions> }>(
+    protected getHierarchyHighlightGlow<TStyle extends { glow?: DeepPartial<AgGlowOptions> }>(
         highlightState: HierarchyHighlightState,
         highlight: HierarchyHighlightBuckets<TStyle>
-    ): DeepPartial<InternalAgGlowOptions> | undefined {
+    ): DeepPartial<AgGlowOptions> | undefined {
         const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
         return style && mergeGlow(style);
     }

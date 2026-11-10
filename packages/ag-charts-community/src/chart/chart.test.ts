@@ -22,6 +22,7 @@ import type {
     AgDataTransaction,
     AgLineSeriesOptions,
     AgPolarChartOptions,
+    AgStandaloneChartOptions,
     InteractionRange,
 } from 'ag-charts-types';
 
@@ -989,6 +990,21 @@ describe('Chart', () => {
             expect(chart.series[0].data).toEqual(chart.data);
             expect(chart.series[1].data).toEqual(chart.data);
         });
+
+        it('Series data follows the chart suppressFieldDotNotation', async () => {
+            const series = {
+                type: 'line' as const,
+                data: datasets.economy.data,
+                xKey: datasets.economy.categoryKey,
+                yKey: datasets.economy.valueKey,
+            };
+            const chartProxy = await createChart({ suppressFieldDotNotation: true, series: [series] });
+            chart = deproxy(chartProxy);
+            expect(chart.series[0].data?.suppressFieldDotNotation).toBe(true);
+
+            await updateChart(chartProxy, { suppressFieldDotNotation: false, series: [series] });
+            expect(chart.series[0].data?.suppressFieldDotNotation).toBe(false);
+        });
     });
 
     describe('preSeriesUpdate', () => {
@@ -1070,7 +1086,7 @@ describe('Chart', () => {
         });
 
         it('should cleanup DOM on chart-type switch', async () => {
-            const options: AgCartesianChartOptions | AgPolarChartOptions = prepareTestOptions({
+            const options: AgCartesianChartOptions | AgStandaloneChartOptions = prepareTestOptions({
                 container: document.body,
                 series: [
                     {
@@ -1116,7 +1132,7 @@ describe('Chart', () => {
             chart = deproxy(agChartInstance);
             await waitForChartStability(chart);
 
-            const pieOptions: AgPolarChartOptions = prepareTestOptions(
+            const pieOptions: AgStandaloneChartOptions = prepareTestOptions(
                 {
                     series: [
                         {

@@ -64,7 +64,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 10,
-                collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }) },
+                collision: { alwaysShow: false, collideWith: { shapes: false } },
             },
             node: {
                 spacing: { $if: [{ $greaterThan: [{ $path: './minSpacing' }, 20] }, { $path: './minSpacing' }, 20] },
@@ -77,13 +77,13 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
-                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
-                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

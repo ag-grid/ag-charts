@@ -1,4 +1,11 @@
-import { type AgAnnotation, type AgAnnotationLineStyleType, type Direction, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgAnnotation,
+    type AgAnnotationFollow,
+    type AgAnnotationFollowName,
+    type AgAnnotationLineStyleType,
+    type Direction,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     BBox,
@@ -33,7 +40,7 @@ import type {
 } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs } from './annotationsConfig';
-import { LINE_STYLE_TYPE_ITEMS } from './annotationsMenuOptions';
+import { LINE_STYLE_TYPE_ITEMS, getAnnotationLabel } from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type {
     AnnotationDatum,
@@ -44,11 +51,13 @@ import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { CalloutScene } from './callout/calloutScene';
 import { horizontalLineDatum, verticalLineDatum } from './cross-line/crossLineDatum';
+import { findFollowedSeries, isFollowing, normaliseFollow, readFollowedValue } from './cross-line/followValue';
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
+import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
@@ -354,6 +363,7 @@ export class Annotations extends AbstractModuleInstance {
                 const seriesRectOffset = Vec2.required(this.seriesRect);
 
                 this.textInput.show({
+                    ariaLabel: this.ctx.localeManager.t(getAnnotationLabel(datum.type) ?? 'inputTextareaPlaceholder'),
                     styles,
                     layout: {
                         ...layout,
@@ -419,7 +429,13 @@ export class Annotations extends AbstractModuleInstance {
                     initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
+                    getContext: () => this.getAnnotationContext(),
+                    onChangeCoordinates: (props) => this.state.transition('coordinates', props),
                     onChangeLine: (props) => {
+                        if (props.follow != null) {
+                            this.setFollow(datum, props.follow);
+                            return;
+                        }
                         this.state.transition('lineProps', props);
                         if (props.bands != null)
                             this.defaults.setDefaultFibonacciOptions(datum.type, 'bands', props.bands);
@@ -509,9 +525,13 @@ export class Annotations extends AbstractModuleInstance {
             }),
             toolbar.events.on('pressed-create-annotation', ({ annotation }) => {
                 this.cancel();
+                this.reset();
                 this.pushAnnotationState(InteractionState.Annotations);
                 this.state.transition(annotation);
                 this.update();
+            }),
+            toolbar.events.on('pressed-place-annotation', ({ annotation, sourceEvent }) => {
+                this.createAnnotationAtCentre(annotation, sourceEvent);
             }),
             toolbar.events.on('pressed-clear', () => {
                 this.clear();
@@ -634,6 +654,32 @@ export class Annotations extends AbstractModuleInstance {
             this.defaults.applyDefaults(datum);
         }
 
+        this.update();
+    }
+
+    private readonly getFollowedValue = (follow: AgAnnotationFollow) => {
+        const normalised = normaliseFollow(follow);
+        if (normalised == null || this.yAxis == null) return;
+
+        const series = findFollowedSeries(normalised, this.ctx.chartService.series, this.yAxis.context.seriesIds());
+        return series && readFollowedValue(series, normalised.follow);
+    };
+
+    /** Make a horizontal line follow `follow`, or stop it following with `'none'`, leaving it where it was last drawn. */
+    private setFollow(datum: AnnotationDatum, follow: AgAnnotationFollowName | 'none') {
+        if (!horizontalLineDatum.is(datum)) return;
+
+        const current = datum.follow;
+        if (follow === 'none') {
+            if (current == null) return;
+            datum.value = this.getFollowedValue(current) ?? datum.value;
+            datum.follow = undefined;
+        } else {
+            const seriesId = normaliseFollow(current)?.seriesId;
+            datum.follow = seriesId == null ? follow : { follow, seriesId };
+        }
+
+        this.recordActionAfterNextUpdate(`Change ${datum.type} follow to ${follow}`);
         this.update();
     }
 
@@ -794,6 +840,7 @@ export class Annotations extends AbstractModuleInstance {
     private onPreRender() {
         if (!(this.opts.enabled ?? true)) return;
         this.updateAnnotations();
+        this.settingsDialog.refreshCoordinates();
         this.state.transition('render');
     }
 
@@ -933,6 +980,7 @@ export class Annotations extends AbstractModuleInstance {
             seriesRect,
             isRtl: ctx.domManager.isRtl,
             getVolume: this.getDatumRangeVolume,
+            getFollowedValue: this.getFollowedValue,
             xAxis: {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
@@ -1073,6 +1121,26 @@ export class Annotations extends AbstractModuleInstance {
         if (sourceEvent?.currentTarget !== sourceEvent?.target) return;
         this.cancel();
         this.reset();
+    }
+
+    /** Create the annotation at the centre of the chart at once, without a pointer. */
+    private createAnnotationAtCentre(type: AnnotationType, sourceEvent: KeyboardEvent) {
+        const context = this.getAnnotationContext();
+        if (!context) return;
+
+        sourceEvent.preventDefault();
+
+        const { width, height } = context.seriesRect;
+        const points = getKeyboardCreateOffsets(type, { width, height }).map((offset) => invertCoords(offset, context));
+
+        // The tool's button can be a menu item that is gone, so focus must land where the arrow keys work.
+        const { seriesWidget } = this.ctx.widgets;
+        seriesWidget.focus({ preventScroll: true });
+        const label = getAnnotationLabel(type);
+        if (label != null) seriesWidget.swapChain.update(this.ctx.localeManager.t(label));
+
+        this.state.transition('create', { points });
+        this.update();
     }
 
     private onDelete() {
@@ -1219,6 +1287,8 @@ export class Annotations extends AbstractModuleInstance {
         const isHorizontal = horizontalLineDatum.is(datum);
         if (!isHorizontal && !verticalLineDatum.is(datum)) return;
         if (!datum.axisLabel.enabled) return;
+        // A followed line is not dragged, so there is no dragged value for its label to report
+        if (isFollowing(datum)) return;
 
         const axis = isHorizontal ? this.yAxis : this.xAxis;
         if (!axis) return;

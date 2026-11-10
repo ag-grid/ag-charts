@@ -1,9 +1,9 @@
+import type { ChartType } from 'ag-charts-core';
 import {
     BASE_FONT_SIZE,
     Color,
     type ContributionHost,
     FONT_SIZE_RATIO,
-    type InternalAgThemeParams,
     ModuleRegistry,
     type ModuleScope,
     ModuleType,
@@ -38,7 +38,6 @@ import type {
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
-import type { ChartType } from '../chartType';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
@@ -129,6 +128,8 @@ export class ChartTheme {
             borderWidth: 1,
             cardShadow: { $ref: 'popupShadow' },
             chartBackgroundColor: { $ref: 'backgroundColor' },
+            chartBorder: false,
+            chartBorderRadius: { $ref: 'borderRadius' },
             chartPadding: 20,
             focusShadow: '0 0 0 3px color-mix(in srgb, var(--ag-charts-accent-color) 50%, transparent)',
             foregroundColor: '#181d1f',
@@ -295,7 +296,7 @@ export class ChartTheme {
         };
     }
 
-    protected getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams & InternalAgThemeParams>> {
+    protected getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
         return {
             focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
             annotationColor: this.getDefaultColors().fills.BLUE,
@@ -328,6 +329,7 @@ export class ChartTheme {
             mergeDefaults(palette, {
                 fills: Object.values(fills),
                 strokes: Object.values(strokes),
+                markerShapes: ['circle'],
                 sequentialColors: Object.values(sequentialColors),
                 ...otherColors,
             })

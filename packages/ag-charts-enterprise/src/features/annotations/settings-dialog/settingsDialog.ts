@@ -1,10 +1,12 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { type DynamicContext, EventEmitter, focusCursorAtEnd } from 'ag-charts-core';
+import { DatalistWidget, type DynamicContext, EventEmitter, type Widget } from 'ag-charts-core';
+import type { AgAnnotationFollowName } from 'ag-charts-types';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
 import { getDefaultColor, getDefaultOpacity } from '../annotationDatums';
 import {
+    type AnnotationContext,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type ChannelTextPosition,
@@ -13,19 +15,27 @@ import {
     type LineTextPosition,
 } from '../annotationTypes';
 import { FIBONACCI_RATIO_ITEMS, LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
-import type {
-    ChannelDatumType,
-    EphemeralDatumType,
-    FibonacciDatumType,
-    LineDatumType,
-    MeasurerDatumType,
-} from '../annotationsSuperTypes';
+import type { LinearDialogDatumType } from '../annotationsSuperTypes';
+import { horizontalLineDatum } from '../cross-line/crossLineDatum';
+import { normaliseFollow } from '../cross-line/followValue';
 import { dateRangeDatum, priceRangeDatum } from '../measurer/measurerDatum';
+import {
+    type CoordinateChangeProps,
+    type CoordinateField,
+    type CoordinateKind,
+    type CoordinateRow,
+    formatCoordinate,
+    getCoordinateFields,
+    parseCoordinate,
+    resolveCoordinate,
+} from '../utils/coordinates';
 import { hasBackground, hasExtendable } from '../utils/has';
 import { isChannelType, isFibonacciType } from '../utils/types';
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
     initialSelectedTab: 'line' | 'text';
+    getContext: () => AnnotationContext | undefined;
+    onChangeCoordinates: (props: CoordinateChangeProps) => void;
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
     onChangeFillColor: Required<ColorPickerOptions>['onChange'];
@@ -49,6 +59,8 @@ export interface LinearSettingsDialogLineChangeProps {
     reverse?: boolean;
     showFill?: boolean;
     bands?: FibonacciBands;
+    /** Make a horizontal line follow the first or last datum of a series, or `'none'` to stop it following. */
+    follow?: AgAnnotationFollowName | 'none';
 }
 
 export interface LinearSettingsDialogTextChangeProps {
@@ -57,10 +69,23 @@ export interface LinearSettingsDialogTextChangeProps {
     label?: string;
 }
 
-type LinearDialogDatumType = Exclude<
-    LineDatumType | ChannelDatumType | MeasurerDatumType | FibonacciDatumType,
-    EphemeralDatumType
->;
+const COORDINATE_ROW_LABELS: Record<CoordinateRow, string> = {
+    start: 'dialogInputCoordinatesStart',
+    end: 'dialogInputCoordinatesEnd',
+    endRetracement: 'dialogInputCoordinatesEndRetracement',
+    value: 'dialogInputCoordinatesValue',
+    offset: 'dialogInputCoordinatesOffset',
+    startOffset: 'dialogInputCoordinatesStartOffset',
+    endOffset: 'dialogInputCoordinatesEndOffset',
+};
+
+const COORDINATE_INPUT_TYPES = {
+    number: 'number',
+    time: 'datetime-local',
+    'ordinal-time': 'datetime-local',
+    'unit-time': 'datetime-local',
+    category: 'text',
+} as const satisfies Record<CoordinateKind, string>;
 
 interface EventMap {
     hidden: null;
@@ -69,9 +94,19 @@ interface EventMap {
 export class AnnotationSettingsDialog extends Dialog {
     readonly events = new EventEmitter<EventMap>();
 
+    private refreshCoordinateInputs?: () => void;
+
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
-        this.hideFns.push(() => this.events.emit('hidden', null));
+        this.hideFns.push(() => {
+            this.refreshCoordinateInputs = undefined;
+            this.events.emit('hidden', null);
+        });
+    }
+
+    /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
+    public refreshCoordinates() {
+        this.refreshCoordinateInputs?.();
     }
 
     public show(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
@@ -91,7 +126,8 @@ export class AnnotationSettingsDialog extends Dialog {
             lineLabel = 'dialogHeaderDatePriceRange';
         }
 
-        const { tabs, initialFocus } = this.createTabs('ariaLabelSettingsTabBar', options.initialSelectedTab, {
+        const coordinatesTab = this.createCoordinatesTab(datum, options);
+        const tabsOptions = {
             line: {
                 label: lineLabel,
                 panel: lineTab,
@@ -101,11 +137,18 @@ export class AnnotationSettingsDialog extends Dialog {
                 panel: textTab.panel,
                 onShow: textTab.onShow,
             },
-        });
+            ...(coordinatesTab && { coordinates: { label: 'dialogHeaderCoordinates', panel: coordinatesTab } }),
+        };
+
+        const { tabs, initialFocus } = this.createTabs(
+            'ariaLabelSettingsTabBar',
+            options.initialSelectedTab,
+            tabsOptions
+        );
         options.initialFocus = initialFocus;
 
         const popover = this.showWithChildren([tabs], options);
-        popover.classList.add('ag-charts-dialog--annotation-settings');
+        popover.addClass('ag-charts-dialog--annotation-settings');
     }
 
     private createLinearLineTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
@@ -128,7 +171,7 @@ export class AnnotationSettingsDialog extends Dialog {
         const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, options.onChangeLineStyleWidth);
         const lineStyle = this.createLineStyleRadioGroup(datum.lineStyle ?? 'solid', options.onChangeLineStyleType);
 
-        groupOne.append(lineColorPicker);
+        groupOne.addChild(lineColorPicker);
 
         if (hasBackground(datum)) {
             const fillColorPicker = this.createColorPickerInput(
@@ -141,38 +184,49 @@ export class AnnotationSettingsDialog extends Dialog {
                 options.onChangeHideFillColor
             );
 
-            groupOne.append(fillColorPicker);
-            groupTwo.append(strokeWidth);
+            groupOne.addChild(fillColorPicker);
+            groupTwo.addChild(strokeWidth);
         } else if (isFibonacciType(datum)) {
-            groupOne.append(
+            groupOne.addChild(
                 this.createCheckbox({
                     label: 'dialogInputShowFill',
                     checked: datum.showFill ?? true,
                     onChange: (showFill) => options.onChangeLine({ showFill }),
                 })
             );
-            groupTwo.append(strokeWidth);
+            groupTwo.addChild(strokeWidth);
         } else {
-            groupOne.append(strokeWidth);
+            groupOne.addChild(strokeWidth);
         }
 
-        groupTwo.append(lineStyle);
+        groupTwo.addChild(lineStyle);
 
-        panel.append(groupOne, groupTwo);
+        panel.addChild(groupOne);
+        panel.addChild(groupTwo);
+
+        if (horizontalLineDatum.is(datum)) {
+            panel.addChild(
+                this.createFollowSelect(normaliseFollow(datum.follow)?.follow ?? 'none', (follow) =>
+                    options.onChangeLine({ follow })
+                )
+            );
+        }
 
         if (isFibonacciType(datum)) {
-            panel.append(
+            panel.addChild(
                 this.createFibonacciRatioSelect(datum.bands ?? 10, (bands) => options.onChangeLine({ bands }))
             );
         }
 
         if (hasExtendable(datum)) {
-            panel.append(
+            panel.addChild(
                 this.createCheckbox({
                     label: isChannelType(datum) ? 'dialogInputExtendChannelStart' : 'dialogInputExtendLineStart',
                     checked: datum.extendStart ?? false,
                     onChange: (extendStart) => options.onChangeLine({ extendStart }),
-                }),
+                })
+            );
+            panel.addChild(
                 this.createCheckbox({
                     label: isChannelType(datum) ? 'dialogInputExtendChannelEnd' : 'dialogInputExtendLineEnd',
                     checked: datum.extendEnd ?? false,
@@ -182,12 +236,14 @@ export class AnnotationSettingsDialog extends Dialog {
         }
 
         if (dateRangeDatum.is(datum)) {
-            panel.append(
+            panel.addChild(
                 this.createCheckbox({
                     label: 'dialogInputExtendAbove',
                     checked: datum.extendAbove ?? false,
                     onChange: (extendAbove) => options.onChangeLine({ extendAbove }),
-                }),
+                })
+            );
+            panel.addChild(
                 this.createCheckbox({
                     label: 'dialogInputExtendBelow',
                     checked: datum.extendBelow ?? false,
@@ -197,12 +253,14 @@ export class AnnotationSettingsDialog extends Dialog {
         }
 
         if (priceRangeDatum.is(datum)) {
-            panel.append(
+            panel.addChild(
                 this.createCheckbox({
                     label: 'dialogInputExtendLeft',
                     checked: datum.extendLeft ?? false,
                     onChange: (extendLeft) => options.onChangeLine({ extendLeft }),
-                }),
+                })
+            );
+            panel.addChild(
                 this.createCheckbox({
                     label: 'dialogInputExtendRight',
                     checked: datum.extendRight ?? false,
@@ -212,7 +270,7 @@ export class AnnotationSettingsDialog extends Dialog {
         }
 
         if (isFibonacciType(datum)) {
-            panel.append(
+            panel.addChild(
                 this.createCheckbox({
                     label: 'dialogInputReverse',
                     checked: datum.reverse ?? false,
@@ -253,10 +311,108 @@ export class AnnotationSettingsDialog extends Dialog {
         );
 
         const inputGroupLine = this.createInputGroupLine();
-        inputGroupLine.append(fontSize, colorPicker, position, alignment);
-        panel.append(textArea, inputGroupLine);
+        inputGroupLine.addChild(fontSize);
+        inputGroupLine.addChild(colorPicker);
+        inputGroupLine.addChild(position);
+        inputGroupLine.addChild(alignment);
+        panel.addChild(textArea);
+        panel.addChild(inputGroupLine);
 
-        return { panel, onShow: () => focusCursorAtEnd(textArea) };
+        return { panel, onShow: () => textArea.focusCursorAtEnd() };
+    }
+
+    private createCoordinatesTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
+        const context = options.getContext();
+        if (!context) {
+            return;
+        }
+
+        const fields = getCoordinateFields(datum, context);
+        if (fields.length === 0) {
+            return;
+        }
+
+        const rows = new Map<CoordinateRow, Widget[]>();
+        const refreshes: Array<(next: CoordinateField) => void> = [];
+        for (const field of fields) {
+            const { widgets, refresh } = this.createCoordinateInput(field, options);
+            refreshes.push(refresh);
+            const row = rows.get(field.row);
+            if (row) {
+                row.push(...widgets);
+            } else {
+                rows.set(field.row, widgets);
+            }
+        }
+
+        this.refreshCoordinateInputs = () => {
+            const current = options.getContext();
+            const next = current && getCoordinateFields(datum, current);
+            if (next?.length !== refreshes.length) {
+                return;
+            }
+            for (const [index, refresh] of refreshes.entries()) {
+                refresh(next[index]);
+            }
+        };
+
+        const panel = this.createTabPanel();
+        for (const [row, inputs] of rows) {
+            panel.addChild(this.createInputRow(COORDINATE_ROW_LABELS[row], inputs));
+        }
+        return panel;
+    }
+
+    private createCoordinateInput(initial: CoordinateField, options: LinearSettingsDialogOptions) {
+        const { localeManager } = this.ctx;
+        const ariaLabel = localeManager.t('dialogInputCoordinatesAltText', {
+            label: localeManager.t(COORDINATE_ROW_LABELS[initial.row]),
+            axis: localeManager.t(initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'),
+        });
+
+        const suggestions = initial.suggestions && new DatalistWidget(initial.suggestions());
+
+        let field = initial;
+        let committed = field.value;
+        const input = this.createInput({
+            ariaLabel,
+            type: COORDINATE_INPUT_TYPES[field.kind],
+            value: field.value,
+            step: field.step,
+            list: suggestions?.id,
+            onChange: (text) => {
+                const context = options.getContext();
+                const parsed = parseCoordinate(text, field.kind);
+                const resolved = parsed == null || !context ? undefined : resolveCoordinate(field, parsed, context);
+                const props = resolved == null ? undefined : field.toProps(resolved);
+                if (resolved == null || props == null) {
+                    input.value = committed;
+                    return;
+                }
+
+                // A value that resolves to the one already set, such as a date snapped to the same bar, is not a change.
+                const formatted = formatCoordinate(resolved, field.kind);
+                input.value = formatted;
+                if (formatted !== committed) {
+                    committed = formatted;
+                    options.onChangeCoordinates(props);
+                }
+            },
+        });
+
+        // An input being typed into keeps its text; the datum it will be compared against is still brought up to date.
+        const refresh = (next: CoordinateField) => {
+            field = next;
+            committed = next.value;
+            if (next.step != null) {
+                input.setStep(next.step);
+            }
+            if (!input.isFocused()) {
+                input.value = committed;
+            }
+        };
+
+        return { widgets: suggestions ? [input, suggestions] : [input], refresh };
     }
 
     private createColorPickerInput(
@@ -300,6 +456,24 @@ export class AnnotationSettingsDialog extends Dialog {
             options: FIBONACCI_RATIO_ITEMS.map(({ label, value }) => ({ label: label!, value: `${value}` })),
             value: String(bands),
             onChange: (value) => onChange(Number(value) as FibonacciBands),
+        });
+    }
+
+    private createFollowSelect(
+        follow: AgAnnotationFollowName | 'none',
+        onChange: (value: AgAnnotationFollowName | 'none') => void
+    ) {
+        const { localeManager } = this.ctx;
+        return this.createSelect({
+            label: 'dialogInputFollow',
+            altText: 'dialogInputFollowAltText',
+            options: [
+                { label: localeManager.t('dialogInputFollowNone'), value: 'none' },
+                { label: localeManager.t('dialogInputFollowFirst'), value: 'first' },
+                { label: localeManager.t('dialogInputFollowLast'), value: 'last' },
+            ],
+            value: follow,
+            onChange: (value) => onChange(value as AgAnnotationFollowName | 'none'),
         });
     }
 

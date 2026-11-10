@@ -1,6 +1,7 @@
 import { setAttribute, setElementStyle } from '../dom/attributeUtil';
 import { createElement } from '../dom/domElements';
 import type { ButtonWidget } from './buttonWidget';
+import type { DescriptionWidget } from './descriptionWidget';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import { type BeforeWidget, Widget } from './widget';
 
@@ -16,6 +17,8 @@ function removeFromDOM(child: Widget) {
 }
 
 export class ListWidget extends RovingTabContainerWidget<TChildWidget> {
+    private description?: DescriptionWidget;
+
     constructor() {
         super('both', 'list');
         this.setHidden(true);
@@ -25,6 +28,18 @@ export class ListWidget extends RovingTabContainerWidget<TChildWidget> {
         for (const child of this.children) {
             removeFromDOM(child);
         }
+        this.description?.destroy();
+        this.description = undefined;
+    }
+
+    /**
+     * Appends a description that the list items reference with `aria-describedby`. It is not a list item, so it is
+     * not part of the roving tab order, and the list owns it: destroying the list destroys it.
+     */
+    setDescription(description: DescriptionWidget) {
+        this.description?.destroy();
+        this.description = description;
+        this.elem.append(description.getElement());
     }
 
     protected override addChildToDOM(child: TChildWidget, before: BeforeWidget<TChildWidget> | undefined) {

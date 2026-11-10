@@ -16,6 +16,7 @@ const { LayoutElement, Menu } = _ModuleSupport;
 interface EventMap {
     'cancel-create-annotation': null;
     'pressed-create-annotation': { annotation: AnnotationType };
+    'pressed-place-annotation': { annotation: AnnotationType; sourceEvent: KeyboardEvent };
     'pressed-clear': null;
     'pressed-show-menu': null;
     'pressed-unrelated': null;
@@ -55,6 +56,8 @@ export class AnnotationsToolbar {
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
     private readonly cleanup = new CleanupRegistry();
     private readonly menuMargin: number = 6;
+    private menuItemPicked = false;
+    private menuHideRegistered = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('annotations');
@@ -204,47 +207,47 @@ export class AnnotationsToolbar {
                 break;
 
             case 'line':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Line);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Line);
                 break;
 
             case 'horizontal-line':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.HorizontalLine);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.HorizontalLine);
                 break;
 
             case 'vertical-line':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.VerticalLine);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.VerticalLine);
                 break;
 
             case 'parallel-channel':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.ParallelChannel);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.ParallelChannel);
                 break;
 
             case 'disjoint-channel':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.DisjointChannel);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.DisjointChannel);
                 break;
 
             case 'fibonacci-retracement':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.FibonacciRetracement);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.FibonacciRetracement);
                 break;
 
             case 'fibonacci-retracement-trend-based':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.FibonacciRetracementTrendBased);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.FibonacciRetracementTrendBased);
                 break;
 
             case 'text':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Text);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Text);
                 break;
 
             case 'comment':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Comment);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Comment);
                 break;
 
             case 'callout':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Callout);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Callout);
                 break;
 
             case 'note':
-                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Note);
+                this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Note);
                 break;
 
             case 'clear':
@@ -263,9 +266,6 @@ export class AnnotationsToolbar {
     ) {
         this.events.emit('pressed-show-menu', null);
 
-        const index = this.buttons.findIndex((button) => button.value === menu);
-        this.toolbar.toggleActiveButtonByIndex(index);
-
         const anchorX = this.ctx.domManager.isRtl
             ? buttonBounds.x - this.menuMargin
             : buttonBounds.x + buttonBounds.width + this.menuMargin;
@@ -276,24 +276,55 @@ export class AnnotationsToolbar {
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             class: 'ag-charts-annotations__toolbar-menu',
             sourceEvent: event.sourceEvent,
-            onPress: this.onButtonPressMenuCreateAnnotation.bind(this, menu),
+            onPress: (item, pressEvent) => this.onButtonPressMenuCreateAnnotation(menu, item, pressEvent),
+            // `Popover` keeps every `onHide` for its lifetime, so register ours once.
+            onHide: this.menuHideRegistered ? undefined : this.onMenuHide,
         });
+        this.menuHideRegistered = true;
+
+        // Must run after `show()`, which hides the previous menu and so clears the active button.
+        this.menuItemPicked = false;
+        const index = this.buttons.findIndex((button) => button.value === menu);
+        this.toolbar.toggleActiveButtonByIndex(index);
     }
+
+    // Picking an item keeps the button active while drawing.
+    private readonly onMenuHide = () => {
+        if (!this.menuItemPicked) {
+            this.toolbar.clearActiveButton();
+        }
+    };
 
     private onButtonPressMenuCreateAnnotation(
         menu: AnnotationsToolbarButtonValue,
-        item: _ModuleSupport.MenuItem<AnnotationType>
+        item: _ModuleSupport.MenuItem<AnnotationType>,
+        event: ClickWidgetEvent
     ) {
         const index = this.buttons.findIndex((button) => button.value === menu);
-        this.updateButtonByIndex(index, { icon: item.icon });
+        this.menuItemPicked = true;
         this.events.emit('pressed-create-annotation', { annotation: item.value });
+        // Must run after the reset, which clears the active button and icons.
+        this.updateButtonByIndex(index, { icon: item.icon });
+        this.toolbar.toggleActiveButtonByIndex(index);
         this.annotationMenu.hide();
+        // Must run after the menu is hidden, which would otherwise drop the focus placing moves to the chart.
+        this.placeOnKeyboardPress(event, item.value);
     }
 
-    private onButtonPressCreateAnnotation(item: AnnotationsToolbarButtonValue, annotation: AnnotationType) {
+    private onButtonPressCreateAnnotation(
+        event: ClickWidgetEvent,
+        item: AnnotationsToolbarButtonValue,
+        annotation: AnnotationType
+    ) {
         const index = this.buttons.findIndex((button) => button.value === item);
-        this.toolbar.toggleActiveButtonByIndex(index);
         this.events.emit('pressed-create-annotation', { annotation });
+        this.toolbar.toggleActiveButtonByIndex(index);
+        this.placeOnKeyboardPress(event, annotation);
+    }
+
+    private placeOnKeyboardPress(event: ClickWidgetEvent, annotation: AnnotationType) {
+        if (event.device !== 'keyboard') return;
+        this.events.emit('pressed-place-annotation', { annotation, sourceEvent: event.sourceEvent });
     }
 
     private onKeyDown({ sourceEvent }: KeyboardWidgetEvent) {

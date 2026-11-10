@@ -25,7 +25,8 @@ describe('volume profile levels', () => {
                 { price: 160, up: 7, down: 8 },
             ],
             KEYS,
-            10
+            10,
+            false
         );
 
         expect(levels.map(({ price, priceLow, priceHigh }) => [price, priceLow, priceHigh])).toEqual([
@@ -37,18 +38,17 @@ describe('volume profile levels', () => {
     });
 
     it('should keep the bounds free of float noise', () => {
-        const [level] = normaliseVolumeProfile([{ price: 0.3, up: 1, down: 1 }], KEYS, 0.1);
+        const [level] = normaliseVolumeProfile([{ price: 0.3, up: 1, down: 1 }], KEYS, 0.1, false);
         expect([level.priceLow, level.priceHigh]).toEqual([0.25, 0.35]);
     });
 });
 
 describe('volume profile tooltips', () => {
-    // The tooltips read only the up and down fills from the theme.
-    const getTheme = () =>
-        ({ palette: { up: { fill: '#112233' }, down: { fill: '#445566' } } }) as unknown as ChartTheme;
+    // The tooltip renderers do not read the theme.
+    const getTheme = () => ({}) as ChartTheme;
     const [upSeries, downSeries] = createVolumeProfileSeries(getTheme, 'x');
 
-    const [level] = normaliseVolumeProfile([{ price: 150, up: 56617298, down: 68115020 }], KEYS, 10);
+    const [level] = normaliseVolumeProfile([{ price: 150, up: 56617298, down: 68115020 }], KEYS, 10, false);
 
     const renderTooltip = (series: typeof upSeries, datum = level) => {
         const { yKey, yName } = series;
@@ -57,19 +57,21 @@ describe('volume profile tooltips', () => {
     };
     const render = (series: typeof upSeries, datum = level) => renderTooltip(series, datum).data;
 
-    it('should mark each tooltip with the colour of its series', () => {
-        expect(renderTooltip(upSeries).symbol).toEqual({ marker: { fill: '#112233' } });
-        expect(renderTooltip(downSeries).symbol).toEqual({ marker: { fill: '#445566' } });
+    it('should head both tooltips with the range the level covers, so they group', () => {
+        expect(renderTooltip(upSeries).heading).toBe('145-155');
+        expect(renderTooltip(downSeries).heading).toBe('145-155');
     });
 
-    it('should give the range a level covers beside its up volume', () => {
-        expect(render(upSeries)).toEqual([
-            { label: 'Range', value: '145-155' },
-            { label: 'Up Volume', value: '56.6M' },
-        ]);
+    it('should hide the series marker of each tooltip', () => {
+        expect(renderTooltip(upSeries).symbol).toEqual({ marker: { enabled: false } });
+        expect(renderTooltip(downSeries).symbol).toEqual({ marker: { enabled: false } });
     });
 
-    it('should give the down volume and total of a level abbreviated to one decimal place, without repeating the range', () => {
+    it('should give the up volume of a level abbreviated to one decimal place', () => {
+        expect(render(upSeries)).toEqual([{ label: 'Up Volume', value: '56.6M' }]);
+    });
+
+    it('should give the down volume and total of a level abbreviated to one decimal place', () => {
         expect(render(downSeries)).toEqual([
             { label: 'Down Volume', value: '68.1M' },
             { label: 'Total', value: '124.7M' },
@@ -77,7 +79,7 @@ describe('volume profile tooltips', () => {
     });
 
     it('should keep the one decimal place when a volume is a round number', () => {
-        const [round] = normaliseVolumeProfile([{ price: 150, up: 3_000_000, down: 1_000 }], KEYS, 10);
+        const [round] = normaliseVolumeProfile([{ price: 150, up: 3_000_000, down: 1_000 }], KEYS, 10, false);
         expect(render(downSeries, round)).toEqual([
             { label: 'Down Volume', value: '1.0K' },
             { label: 'Total', value: '3.0M' },

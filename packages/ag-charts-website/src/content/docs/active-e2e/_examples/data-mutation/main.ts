@@ -34,6 +34,7 @@ const options: AgCartesianChartOptions<DataType, unknown> = {
 
 const chart = AgCharts.create(options);
 
+/** inScope */
 function onSeriesNodeClick() {
     const state = chart.getState();
     state.active = { ...(state.active ?? {}), frozen: true };
@@ -50,6 +51,7 @@ export async function unfreeze() {
     updateStatus();
 }
 
+/** inScope */
 function updateData() {
     options.data = [...currentData];
     chart.update(options);

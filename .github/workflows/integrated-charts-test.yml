@@ -17,7 +17,7 @@ env:
     GIT_CONFIG_VALUE_1: 'false'
     NX_NO_CLOUD: true
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    # Shared by both Slack steps below; only the color/title/message differ per-step.
+    # Used by the webhook recovery notification below.
     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
     SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
     SLACK_USERNAME: ag-charts CI
@@ -115,17 +115,40 @@ jobs:
 
                   echo "conclusion=${PREV_CONCLUSION}" >> "$GITHUB_OUTPUT"
 
-            - name: Slack Notification (failure)
+            # Bot token rather than webhook: chat.postMessage returns the ts that lets
+            # ci-failure-handler reply in this alert's thread (same anchor as ci.yml).
+            # Best-effort: without an anchor the handler posts its own root message.
+            - name: Slack Notification (failure, thread anchor)
+              id: failure_alert
               if: failure()
-              uses: rtCamp/action-slack-notify@33ca3be66c6f378fe1610fd1d5258632dbed5e58 # v2.4.0
+              continue-on-error: true
               env:
-                  SLACK_COLOR: failure
-                  SLACK_TITLE: Integrated Charts Pre-Integration Test Failed
-                  SLACK_MESSAGE: >
-                      The ag-grid integration build check failed. AG Charts changes
-                      on the `latest` branch are likely to break the next Charts
-                      Pre-Integration Build in TeamCity.
-                      ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  SLACK_ALERT_CHANNEL: ${{ vars.CI_FAILURE_SLACK_CHANNEL }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  set -euo pipefail
+                  TEXT=":x: *Integrated Charts Pre-Integration Test failed*
+                  The ag-grid integration build check failed. AG Charts changes on the \`latest\` branch are likely to break the next Charts Pre-Integration Build in TeamCity.
+                  <${RUN_URL}|Failed run>"
+                  PAYLOAD=$(jq -nc --arg ch "$SLACK_ALERT_CHANNEL" --arg text "$TEXT" '{channel:$ch, text:$text}')
+                  RESP=$(curl -sS -X POST https://slack.com/api/chat.postMessage \
+                      -H "Authorization: Bearer ${SLACK_BOT_OAUTH_TOKEN}" \
+                      -H 'Content-type: application/json; charset=utf-8' \
+                      --data "$PAYLOAD" || echo '{}')
+                  if ! echo "$RESP" | jq -e '.ok' >/dev/null 2>&1; then
+                      echo "::warning::chat.postMessage failed: $(echo "$RESP" | jq -r '.error // "no response"')"
+                      exit 0
+                  fi
+                  echo "$RESP" | jq -c '{channel, ts}' > ci-failure-slack.json
+
+            - name: Upload CI-failure Slack thread anchor
+              if: failure() && steps.failure_alert.outcome == 'success' && hashFiles('ci-failure-slack.json') != ''
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: ci-failure-slack
+                  path: ci-failure-slack.json
+                  retention-days: 7
 
             - name: Slack Notification (recovery)
               # Only announce a return to green, not every routine pass, so a daily

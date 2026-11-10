@@ -19,7 +19,10 @@
             />
             <label for="direction-vertical">Vertical</label>
         </div>
-        <button id="reverseToggle" aria-pressed="false" onclick="toggleReverse()">Toggle Reverse</button>
+        <label>
+            <input type="checkbox" role="switch" onchange="toggleReverse(event.target.checked)" />
+            Reverse
+        </label>
     </div>
 </div>
 <div id="myChart"></div>

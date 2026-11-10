@@ -360,6 +360,52 @@ test.describe('api-ref-page', () => {
         await expect(page.locator('#reference-AgChartOptions-contextMenu-items-series-node')).toBeVisible();
     });
 
+    // A submenu's `items` repeats its ancestor's `AgContextMenuItem[]` type, so it must not expand again.
+    const NESTED_ITEMS_ID = 'reference-AgChartOptions-contextMenu-items-axis-items';
+
+    test('stops a nested contextMenu items row expanding its type again', async ({ page }) => {
+        // A deep link below the row expands it whenever it can expand.
+        await gotoUrl(page, toPageUrl(`options/#${NESTED_ITEMS_ID}-axis`));
+
+        const nestedItems = page.locator(`#${NESTED_ITEMS_ID}`);
+        await expect(nestedItems).toBeVisible();
+        await expect(nestedItems.getByRole('button', { name: /child properties|available interfaces/ })).toHaveCount(0);
+        await expect(page.locator(`[id^="${NESTED_ITEMS_ID}-"]`)).toHaveCount(0);
+
+        await nestedItems.getByRole('button', { name: 'See more details about items' }).click();
+        await expect(page.locator(`#${NESTED_ITEMS_ID}-details`)).toBeVisible();
+    });
+
+    test('links a nested contextMenu items row back to its ancestor', async ({ page }) => {
+        await gotoUrl(page, toPageUrl(`options/#${NESTED_ITEMS_ID}`));
+
+        await page
+            .locator(`#${NESTED_ITEMS_ID}`)
+            .getByRole('link', { name: 'Recursive, see contextMenu.items' })
+            .click();
+
+        await expect(page).toHaveURL(/#reference-AgChartOptions-contextMenu-items$/);
+        await expect(page.locator('#reference-AgChartOptions-contextMenu-items')).toBeInViewport();
+    });
+
+    test('marks a nested contextMenu items nav entry recursive instead of expanding it', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await expandNavNode(page, /^contextMenu/);
+        await expandNavNode(page, /^items/);
+        await expandNavNode(page, /showOn\s*= 'series-node'/);
+
+        const nestedItems = getNavigationProperty(page, /^items.*recursive/);
+        await expect(nestedItems).toBeVisible();
+        await expect(nestedItems.locator(PROPERTY_EXPANDER_SELECTOR)).toHaveCount(0);
+
+        await getNavigationTree(page).getByRole('link', { name: 'items (recursive)', exact: true }).click();
+
+        await expect(page).toHaveURL(/#reference-AgChartOptions-contextMenu-items-series-node-items$/);
+        await expect(page.locator('#reference-AgChartOptions-contextMenu-items-series-node-items')).toBeInViewport();
+    });
+
     // `crossLines` sits under the `{ type = 'number' ... }` nav node, collapsed by default.
     // Deep-linking to a sibling axis property auto-expands that node without expanding `crossLines`.
     const NUMBER_AXIS_URL = 'options/axes/number/#reference-AgNumberAxisOptions-nice';

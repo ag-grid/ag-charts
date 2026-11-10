@@ -38,6 +38,7 @@ import type { AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-t
 import type { ActiveLoadMementoEvent, HighlightNodeDatum } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartService } from '../chartService';
+import { createDatumId } from '../data/processors';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
@@ -47,7 +48,7 @@ import { Pagination } from '../pagination/pagination';
 import { getShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta } from '../tooltip/tooltip';
 import type { TooltipContent } from '../tooltip/tooltipContent';
-import { LegendDOMProxy } from './legendDOMProxy';
+import { LegendDOMProxy, type LegendHoverEvent, type LegendLeaveEvent } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
@@ -87,6 +88,11 @@ function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDat
     }
 }
 
+/** Identifies a legend item across series: an `itemId` is only unique within its series, where it is often a shared `yKey`. */
+function legendItemKey({ seriesId, itemId, id }: CategoryLegendDatum): string {
+    return createDatumId(seriesId, itemId ?? id);
+}
+
 function unreachable(_a: never): never {
     return undefined as never;
 }
@@ -111,7 +117,7 @@ export class Legend {
     /** Page awaiting restore; flushed by the next layout once the real page count is known. */
     private pendingPage?: number;
 
-    private readonly truncatedItems: Set<string | number> = new Set();
+    private readonly truncatedItems: Set<string> = new Set();
 
     /** Incremented on every highlight update so a deferred (animation-batch) update can detect
      * that a later update has superseded it and skip itself. */
@@ -130,17 +136,15 @@ export class Legend {
     }
 
     private syncProxyButtonStates(data: CategoryLegendDatum[]) {
-        const enabledMap = new Map(data.map((d) => [d.itemId, d.enabled]));
-        this.itemSelection.each(({ proxyButton }, { itemId }) => {
+        const enabledMap = new Map(data.map((d) => [legendItemKey(d), d.enabled]));
+        this.itemSelection.each(({ proxyButton }, datum) => {
             if (proxyButton == null) return;
-            const enabled = enabledMap.get(itemId);
+            const enabled = enabledMap.get(legendItemKey(datum));
             if (enabled != null) {
                 proxyButton.setChecked(enabled);
             }
         });
     }
-
-    private readonly contextMenuDatum?: CategoryLegendDatum;
 
     readonly size: [number, number] = [0, 0];
 
@@ -326,7 +330,7 @@ export class Legend {
             markerLabel.isRtl = isRtl;
 
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled, item);
-            const id = datum.itemId ?? datum.id;
+            const id = legendItemKey(datum);
             const labelText = this.getItemLabel(datum);
             const text = toPlainText(labelText, '<unknown>');
             markerLabel.label.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, measurer, id);
@@ -505,7 +509,7 @@ export class Legend {
         maxItemWidth: number,
         paddedMarkerWidth: number,
         measurer: ITextMeasurer,
-        id: string | number
+        id: string
     ): string {
         let addEllipsis = false;
         if (text.length > maxCharLength) {
@@ -932,7 +936,7 @@ export class Legend {
     } {
         const { datum, proxyButton } =
             this.itemSelection.select((ml: Node<any>): ml is LegendMarkerLabel => {
-                return ml.datum?.itemId === params.itemId;
+                return ml.datum?.itemId === params.itemId && ml.datum?.seriesId === params.seriesId;
             })[0] ?? {};
         if (datum === undefined || proxyButton === undefined) {
             throw new Error(
@@ -955,7 +959,6 @@ export class Legend {
 
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
-        const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.unsafeNonNullDatum;
 
         this.clearHighlight();
@@ -964,7 +967,7 @@ export class Legend {
         if (registryItems) {
             registryItems['toggle-series-visibility'].enabled = !(
                 this.opts.preventHidingAll &&
-                this.contextMenuDatum?.enabled &&
+                legendItem.enabled &&
                 this.getVisibleItemCount() <= 1
             );
         }
@@ -975,8 +978,7 @@ export class Legend {
         const action = toggleOtherSeriesVisible ? 'show' : 'hide';
         this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
 
-        const { offsetX, offsetY } = sourceEvent;
-        const { canvasX, canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
+        const { canvasX, canvasY } = widgetEvent;
         this.ctx.contextMenuRegistry?.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
     }
 
@@ -987,7 +989,26 @@ export class Legend {
     }
 
     private getVisibleItemCount(): number {
-        return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
+        // A name hides together across series, but one row at a time within a series.
+        let count = 0;
+        const maxRowsByName = new Map<string, number>();
+        for (const series of this.ctx.chartService.series) {
+            const rowsByName = new Map<string, number>();
+            for (const { enabled, legendItemName } of series.getLegendData('category')) {
+                if (!enabled) continue;
+                if (legendItemName == null || legendItemName === '') {
+                    count += 1;
+                    continue;
+                }
+                const rows = (rowsByName.get(legendItemName) ?? 0) + 1;
+                rowsByName.set(legendItemName, rows);
+                if (rows > (maxRowsByName.get(legendItemName) ?? 0)) {
+                    maxRowsByName.set(legendItemName, rows);
+                    count += 1;
+                }
+            }
+        }
+        return count;
     }
 
     private doClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): boolean {
@@ -1117,13 +1138,13 @@ export class Legend {
         return true;
     }
 
-    private toTooltipMeta(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): TooltipMeta {
+    private toTooltipMeta(event: LegendHoverEvent, node: LegendMarkerLabel): TooltipMeta {
         let canvasX: number, canvasY: number;
-        if (event instanceof FocusEvent) {
+        if (event.type === 'focus') {
             ({ x: canvasX, y: canvasY } = Transformable.toCanvas(node).computeCenter());
         } else {
-            event.preventDefault();
-            ({ canvasX, canvasY } = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY));
+            event.sourceEvent.preventDefault();
+            ({ canvasX, canvasY } = event);
         }
 
         return { canvasX, canvasY, showArrow: false };
@@ -1131,7 +1152,7 @@ export class Legend {
 
     private getTooltipContent(datum: CategoryLegendDatum): TooltipContent[] | undefined {
         const tooltipOpts = this.opts.item.tooltip;
-        const isTruncated = this.truncatedItems.has(datum.itemId ?? datum.id);
+        const isTruncated = this.truncatedItems.has(legendItemKey(datum));
 
         // Resolve effective visibility: default is 'always' when custom content provided, else 'auto'
         const hasCustomContent = tooltipOpts?.text != null || tooltipOpts?.renderer != null;
@@ -1161,7 +1182,7 @@ export class Legend {
         return [{ type: 'structured', title: this.getItemLabel(datum) }];
     }
 
-    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel, fromKeyboardFocus = false) {
+    onHover(event: LegendHoverEvent, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
         if (!this.opts.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
@@ -1178,14 +1199,14 @@ export class Legend {
             this.ctx.tooltipManager.removeTooltip(this.id, undefined, true);
         }
 
-        this.updateHighlight(datum?.enabled, datum, series, undefined, fromKeyboardFocus);
+        this.updateHighlight(datum?.enabled, datum, series, undefined, event.type === 'focus');
         this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
-    onLeave(fromKeyboardFocus = false) {
+    onLeave(event: LegendLeaveEvent) {
         if (this.checkInteractionState()) return;
         this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
-        this.clearHighlight(fromKeyboardFocus);
+        this.clearHighlight(event.type !== 'mouseleave');
     }
 
     private clearHighlight(fromKeyboardFocus = false): void {

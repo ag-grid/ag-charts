@@ -22,6 +22,7 @@ import {
     isNumberEqual,
     normalizeAngle360,
     normalizeAngle360FromDegrees,
+    resolvePadding,
     validateCrossLineValue,
 } from 'ag-charts-core';
 import type { BBox, ExtendedPath2D, Node, Point } from 'ag-charts-core';
@@ -30,11 +31,6 @@ import { drawPolygonRing } from '../polygonRing';
 
 /** Polar axes reserve no padding, so `overflow: 'pad-chart'` leaves the label at its configured position. */
 export type PolarCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions;
-
-/** A polar label offsets along a radius, so only a uniform numeric padding can position it. */
-function labelOffset(label: PolarCrossLineLabelOptions): number {
-    return typeof label.padding === 'number' ? label.padding : 0;
-}
 
 /** Circumradius per unit apothem of a regular `sides`-gon: moving its edges out by `d` grows its radius by `d` times this. */
 function polygonRadiusRatio(sides: number): number {
@@ -519,8 +515,8 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
             const midX = ((axisInnerRadius + axisOuterRadius) / 2) * Math.cos(angle);
             const midY = ((axisInnerRadius + axisOuterRadius) / 2) * Math.sin(angle);
 
-            labelX = midX + labelOffset(label) * Math.cos(angle + Math.PI / 2);
-            labelY = midY + labelOffset(label) * Math.sin(angle + Math.PI / 2);
+            labelX = midX + label.spacing * Math.cos(angle + Math.PI / 2);
+            labelY = midY + label.spacing * Math.sin(angle + Math.PI / 2);
             textBaseline = isRightSide ? 'top' : 'bottom';
             rotation = isRightSide ? angle : angle - Math.PI;
         } else {
@@ -534,9 +530,9 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
 
             let distance: number;
             if (this.shape === 'circle' || ticks.length < 3) {
-                distance = axisOuterRadius - labelOffset(label);
+                distance = axisOuterRadius - label.spacing;
             } else {
-                distance = axisOuterRadius * Math.cos(Math.PI / ticks.length) - labelOffset(label);
+                distance = axisOuterRadius * Math.cos(Math.PI / ticks.length) - label.spacing;
             }
 
             labelX = distance * Math.cos(angle);
@@ -670,11 +666,11 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
         let distance: number;
         const angles = this.gridAngles ?? [];
         if (type === 'line') {
-            distance = innerRadius + labelOffset(label);
+            distance = innerRadius + label.spacing;
         } else if (shape === 'circle' || angles.length < 3) {
-            distance = innerRadius - labelOffset(label);
+            distance = innerRadius - label.spacing;
         } else {
-            distance = innerRadius * Math.cos(Math.PI / angles.length) - labelOffset(label);
+            distance = innerRadius * Math.cos(Math.PI / angles.length) - label.spacing;
         }
 
         const labelX = distance * Math.cos(angle);
@@ -730,6 +726,17 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
     ) {
         const { label } = this;
 
+        node.setFont(label);
+        node.setBoxing(label);
+
+        // `spacing` is measured to the box edge facing the line, so push the text out by that edge's inset.
+        if (node.hasBoxing()) {
+            const { top, bottom } = resolvePadding(label.padding);
+            const inset = baseline === 'top' ? top : -bottom;
+            x -= inset * Math.sin(rotation);
+            y += inset * Math.cos(rotation);
+        }
+
         node.x = x;
         node.y = y;
         node.text = label.text;
@@ -741,9 +748,6 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
         node.rotationCenterY = y;
 
         node.fill = label.color;
-
-        node.setFont(label);
-        node.setBoxing(label);
 
         node.visible = true;
     }

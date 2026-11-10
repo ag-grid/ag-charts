@@ -3,6 +3,7 @@ import {
     AbstractModuleInstance,
     BBox,
     ChartAxisDirection,
+    ContinuousScale,
     type FontOptions,
     Rect,
     Selection,
@@ -11,7 +12,9 @@ import {
     ZIndexMap,
     cachedTextMeasurer,
     callWithContext,
+    clamp,
     createId,
+    datumKeyReader,
     isFiniteNumber,
 } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
@@ -21,6 +24,7 @@ import type { AxisInsetValueLabelOptions, AxisInsetValueOptions } from './axisIn
 const { LayoutElement, fitLabelToContainer } = _ModuleSupport;
 
 type AxisContext = _ModuleSupport.AxisContext;
+type BoundSeries = _ModuleSupport.ChartAxisRegistry<AxisContext>['chartService']['series'][number];
 
 const DEFAULT_FONT_SIZE = 12;
 
@@ -56,7 +60,17 @@ export class AxisInsetValue extends AbstractModuleInstance {
     private options: AxisInsetValueOptions | undefined;
     private readonly axisCtx: AxisContext;
     private seriesRect: BBox | undefined;
-    private rowCache: { data: any[]; categoryKey: string; valueKey: string; rows: InsetRow[] } | undefined;
+    private rowCache:
+        | {
+              data: any[];
+              categoryKey: string;
+              valueKey: string;
+              suppressFieldDotNotation: boolean;
+              rows: InsetRow[];
+              step: number | undefined;
+          }
+        | undefined;
+    private profile: BoundSeries | undefined = undefined;
     private textCache:
         | { rows: readonly InsetRow[]; formatter: AxisInsetValueLabelOptions['formatter']; texts: readonly string[] }
         | undefined;
@@ -293,22 +307,56 @@ export class AxisInsetValue extends AbstractModuleInstance {
         if (categoryKey == null || valueKey == null) return NO_ROWS;
 
         const boundIds = this.axisCtx.seriesIds();
-        const series = this.ctx.chartService.series.find((s) => boundIds.includes(s.id));
-        const data = (series as { data?: { data?: any[] } } | undefined)?.data?.data;
-        if (data == null) return NO_ROWS;
+        const bound = this.ctx.chartService.series.filter((s) => boundIds.includes(s.id));
+        this.profile = bound.find((s) => s.isProfile?.());
+        const series = this.profile ?? bound[0];
+        const dataSet = (series as { data?: { data?: any[]; suppressFieldDotNotation: boolean } } | undefined)?.data;
+        const data = dataSet?.data;
+        if (dataSet == null || data == null) return NO_ROWS;
+        const { suppressFieldDotNotation } = dataSet;
 
         // Reuse the rows while the series keeps the same data array and keys.
         const cache = this.rowCache;
-        if (cache?.data === data && cache.categoryKey === categoryKey && cache.valueKey === valueKey) return cache.rows;
-
-        const rows: InsetRow[] = [];
-        for (const datum of data) {
-            const value: unknown = datum?.[valueKey];
-            // A category with nothing to show gets neither a block nor a label.
-            if (isFiniteNumber(value) && value !== 0) rows.push({ category: datum[categoryKey], value, datum });
+        if (
+            cache?.data === data &&
+            cache.categoryKey === categoryKey &&
+            cache.valueKey === valueKey &&
+            cache.suppressFieldDotNotation === suppressFieldDotNotation
+        ) {
+            return cache.rows;
         }
-        this.rowCache = { data, categoryKey, valueKey, rows };
+
+        const readCategory = datumKeyReader(categoryKey, suppressFieldDotNotation);
+        const readValue = datumKeyReader(valueKey, suppressFieldDotNotation);
+        const rows: InsetRow[] = [];
+        const levels: number[] = [];
+        for (const datum of data) {
+            const category: unknown = readCategory(datum);
+            if (isFiniteNumber(category)) levels.push(category);
+            const value: unknown = readValue(datum);
+            // A category with nothing to show gets neither a block nor a label.
+            if (isFiniteNumber(value) && value !== 0) rows.push({ category, value, datum });
+        }
+        this.rowCache = { data, categoryKey, valueKey, suppressFieldDotNotation, rows, step: smallestStep(levels) };
         return rows;
+    }
+
+    /** A level's extent along the axis: its category band, its profile bar's band, else one level step about it. */
+    private measureLevel(category: unknown): [number, number] | undefined {
+        const { scale, range } = this.axisCtx;
+        if (!ContinuousScale.is(scale)) return this.axisCtx.measureBand(category as string)?.band;
+
+        let extent = this.profile?.profileLevelExtent?.(category);
+        if (extent == null) {
+            const step = this.rowCache?.step;
+            if (step == null || !isFiniteNumber(category)) return;
+            extent = [scale.convert(category - step / 2), scale.convert(category + step / 2)];
+        }
+
+        const [a, b] = extent;
+        const min = Math.min(range[0], range[1]);
+        const max = Math.max(range[0], range[1]);
+        return [clamp(min, Math.min(a, b), max), clamp(min, Math.max(a, b), max)];
     }
 
     /** The blocks of the categories in view, valued from the data of the series bound to the axis. */
@@ -317,7 +365,7 @@ export class AxisInsetValue extends AbstractModuleInstance {
         const texts = this.formatRows(rows, this.options?.label?.formatter);
         const blocks: InsetBlock[] = [];
         for (let i = 0; i < rows.length; i++) {
-            const band = this.axisCtx.measureBand(rows[i].category)?.band;
+            const band = this.measureLevel(rows[i].category);
             if (band == null) continue;
 
             // The axis clamps bands to its range, so a level outside the zoomed range collapses to its edge.
@@ -341,4 +389,14 @@ export class AxisInsetValue extends AbstractModuleInstance {
             callWithContext([this.axisCtx.caller, this.ctx.chartService], formatter, { category, value, datum }) ?? ''
         );
     }
+}
+
+function smallestStep(levels: number[]): number | undefined {
+    levels.sort((a, b) => a - b);
+    let step: number | undefined;
+    for (let i = 1; i < levels.length; i++) {
+        const gap = levels[i] - levels[i - 1];
+        if (gap > 0 && (step == null || gap < step)) step = gap;
+    }
+    return step;
 }

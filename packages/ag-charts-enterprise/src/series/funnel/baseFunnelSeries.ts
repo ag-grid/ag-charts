@@ -224,7 +224,7 @@ export abstract class BaseFunnelSeries<
         new Group({
             name: `${this.id}-series-connectorNodes`,
             zIndex: SeriesZIndexMap.BACKGROUND,
-            batchShadows: false,
+            batchShadows: 'shared',
         })
     );
     protected connectorSelection = Selection.select<FunnelConnector<FunnelConnectorDatum>>(
@@ -562,7 +562,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected resolveItemId(datum: unknown, datumIndex: number) {
-        return getItemId({ series: this, datum, datumIndex }, this.data?.dataIdKey);
+        return getItemId({ series: this, datum, datumIndex }, this.data);
     }
 
     protected abstract getItemStyle(
@@ -837,7 +837,7 @@ export abstract class BaseFunnelSeries<
     override getLabelData(): PointLabelDatum[] {
         const { label } = this.options;
         if (!this.usesPlacedLabels || !label.enabled) return [];
-        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
+        const { alwaysShow, avoid, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '' || labelDatum.candidates == null) continue;
@@ -852,7 +852,7 @@ export abstract class BaseFunnelSeries<
                     labelDatum,
                     labelDatum.ownBox ?? { x: labelDatum.x, y: labelDatum.y, width: 0, height: 0 },
                     alwaysShow,
-                    collideWith,
+                    avoid,
                     threshold,
                     true,
                     fitFor(labelDatum.text),

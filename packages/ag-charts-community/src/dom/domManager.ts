@@ -2,8 +2,10 @@ import {
     AgDocument,
     BBox,
     BaseManager,
+    type CanvasOrigin,
+    type CanvasPoint,
+    type ClientPoint,
     type ElementSize,
-    GuardedElement,
     type PerWindowEntry,
     SizeMonitor,
     StateTracker,
@@ -99,13 +101,6 @@ const NULL_DOMRECT: DOMRect = {
     },
 };
 
-function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 'afterend') {
-    const div = createElement('div');
-    div.className = 'ag-charts-tab-guard';
-    guardedElem.insertAdjacentElement(where, div);
-    return div;
-}
-
 // Singleton global-listener registry for minimal-mode charts — one DOM listener set per
 // Window, fanned out to all subscribers. Torn down when the last subscriber unregisters.
 
@@ -150,7 +145,7 @@ const globalListenerRegistry = createPerWindowRegistry<GlobalListenerSubscriber,
     'DOMManager.globalListeners'
 );
 
-export class DOMManager extends BaseManager {
+export class DOMManager extends BaseManager implements CanvasOrigin {
     static readonly className = 'DOMManager';
     private static readonly batchedUpdateContainer: DOMManager[] = [];
     // Head styles are shared per document: a chart in an iframe must not stop a chart in the main document
@@ -174,7 +169,6 @@ export class DOMManager extends BaseManager {
     private initiallyConnected?: boolean = undefined;
     private hasDeferredCSSVariables = false;
     containerSize?: ElementSize = undefined;
-    private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
     private attachObserver?: MutationObserver;
@@ -251,14 +245,6 @@ export class DOMManager extends BaseManager {
         this.setupGlobalListeners();
 
         this.updateCSSVariableWatchers(cssVariables);
-
-        if (this.mode === 'normal') {
-            const guardedElement = this.rootElements['canvas-center'].element;
-            if (guardedElement == null) throw new Error('Error initializing tab guards');
-            const topGuard = createTabGuardElement(guardedElement, 'beforebegin');
-            const botGuard = createTabGuardElement(guardedElement, 'afterend');
-            this.tabGuards = new GuardedElement(guardedElement, topGuard, botGuard);
-        }
     }
 
     private initDOM(): HTMLElement {
@@ -489,12 +475,6 @@ export class DOMManager extends BaseManager {
         this.updateContainerClassName();
     }
 
-    setTabGuardIndex(tabIndex: number) {
-        if (!this.tabGuards) return;
-
-        this.tabGuards.tabIndex = tabIndex;
-    }
-
     setContainer(newContainer?: HTMLElement) {
         if (newContainer === this.container) return;
 
@@ -678,6 +658,13 @@ export class DOMManager extends BaseManager {
         const scaleY = layoutHeight > 0 && rect.height > 0 ? rect.height / layoutHeight : 1;
         this._cachedCanvasScale = { scaleX, scaleY };
         return this._cachedCanvasScale;
+    }
+
+    /** Maps client (viewport) coordinates onto the canvas, using the cached rect and scale. */
+    toCanvasPoint({ clientX, clientY }: ClientPoint): CanvasPoint {
+        const rect = this.getBoundingClientRect();
+        const { scaleX, scaleY } = this.getCanvasScale();
+        return { canvasX: (clientX - rect.x) / scaleX, canvasY: (clientY - rect.y) / scaleY };
     }
 
     /**

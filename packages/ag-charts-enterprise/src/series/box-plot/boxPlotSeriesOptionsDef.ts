@@ -11,6 +11,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    crosshairSnapToValidator,
     fillOptionsDef,
     lineDashOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
@@ -23,7 +24,6 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 
@@ -61,12 +61,14 @@ const boxPlotStyler = callbackDefs<AgBoxPlotSeriesStyle>({
 });
 
 export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemeableOptions> = {
+    crosshairSnapTo: crosshairSnapToValidator(['min', 'q1', 'median', 'q3', 'max']),
+    crosshairSnapMode: union('all', 'nearest'),
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
     styler: boxPlotStyler,
     itemStyler: boxPlotStyler,
     tooltip: tooltipOptionsDefs,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...boxPlotStyleOptionsDef,
     highlight: multiSeriesGlowHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),

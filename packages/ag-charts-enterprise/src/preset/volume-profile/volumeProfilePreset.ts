@@ -29,6 +29,8 @@ export function volumeProfileChart(
         data = [],
         totalSegment,
         selection,
+        up,
+        down,
         // Read by the preset's `transformSeriesData`, or resolved against its `themeTemplate`; pulled out here
         // only to keep them out of `unusedOpts`.
         priceKey: _priceKey,
@@ -43,7 +45,7 @@ export function volumeProfileChart(
         data,
         animation: { enabled: false },
         legend: { enabled: false },
-        series: createVolumeProfileSeries(getTheme, 'x', undefined, selection),
+        series: createVolumeProfileSeries(getTheme, 'x', undefined, selection, { up, down }),
         ...createSelectionChartOptions(selection),
         axes: {
             ...createPriceAxis(totalSegment, selection),

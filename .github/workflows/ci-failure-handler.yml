@@ -1,10 +1,10 @@
 name: CI failure handler
 
-# Auto-investigate a failed mainline (`latest`) CI run and, if possible, raise a
-# fix PR — streaming live status into the CI-failure Slack thread. Standalone
-# (JIRA-free) sibling of jira-agent-pipeline: a mainline break has no JIRA ticket
-# and no pre-existing PR. The reusable pieces are pulled from the published
-# @ag-grid/dev-prompts package (same channel-pinned install as the jira stub);
+# Auto-investigate a failed mainline (`latest`) run of CI or the nightly Integrated
+# Charts Test and, if possible, raise a fix PR — streaming live status into the
+# CI-failure Slack thread. Standalone (JIRA-free) sibling of jira-agent-pipeline: a
+# mainline break has no JIRA ticket and no pre-existing PR. The reusable pieces are
+# pulled from the published @ag-grid/dev-prompts package (same channel-pinned install as the jira stub);
 # this file is the thin per-repo stub that owns the trigger + eligibility gate.
 #
 # The `branches: [latest]` filter is the recursion guard: the agent's fix PR
@@ -32,7 +32,9 @@ name: CI failure handler
 #     The `branches` filter matches the run's head branch, which for a fork PR
 #     is the fork's branch name, so a fork branch named `latest` would pass it.
 #     The preflight `if` therefore also requires the run to come from this
-#     repository and from a push or manual dispatch, never a pull request.
+#     repository and from a push (or, for Integrated Charts Test, its schedule),
+#     never a pull request or a manual CI run: a manual run on latest is a full
+#     verification, and the rerun budget would repeat it.
 #   - No auto-merge: the agent's only write outcomes are a `ci-fix/*` branch
 #     push and a fix PR; every fix still goes through human review and normal
 #     PR CI before it can land.
@@ -62,7 +64,7 @@ name: CI failure handler
 
 on:
     workflow_run:
-        workflows: ['CI']
+        workflows: ['CI', 'Integrated Charts Test']
         types: [completed]
         branches: [latest]
     workflow_dispatch:
@@ -111,7 +113,9 @@ jobs:
             github.event_name == 'workflow_dispatch' ||
             (github.event.workflow_run.conclusion == 'failure' &&
              github.event.workflow_run.head_repository.full_name == github.repository &&
-             contains(fromJSON('["push","workflow_dispatch"]'), github.event.workflow_run.event))
+             (github.event.workflow_run.event == 'push' ||
+              (github.event.workflow_run.name == 'Integrated Charts Test' &&
+               github.event.workflow_run.event == 'schedule')))
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
@@ -127,6 +131,7 @@ jobs:
             reruns_remaining: ${{ steps.pf.outputs.reruns_remaining }}
             slack_channel: ${{ steps.pf.outputs.slack_channel }}
             slack_thread_ts: ${{ steps.pf.outputs.slack_thread_ts }}
+            source_workflow: ${{ steps.ctx.outputs.source_workflow }}
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -144,6 +149,7 @@ jobs:
                   REPO: ${{ github.repository }}
                   EVENT_NAME: ${{ github.event_name }}
                   WR_ID: ${{ github.event.workflow_run.id }}
+                  WR_NAME: ${{ github.event.workflow_run.name }}
                   WR_SHA: ${{ github.event.workflow_run.head_sha }}
                   WR_BRANCH: ${{ github.event.workflow_run.head_branch }}
                   WR_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
@@ -153,9 +159,10 @@ jobs:
                   set -euo pipefail
                   if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
                       RUN_ID="$INPUT_RUN_ID"
-                      META=$(gh run view "$RUN_ID" --repo "$REPO" --json headSha,headBranch 2>/dev/null || echo '{}')
+                      META=$(gh run view "$RUN_ID" --repo "$REPO" --json headSha,headBranch,workflowName 2>/dev/null || echo '{}')
                       SHA=$(echo "$META" | jq -r '.headSha // ""')
                       BRANCH=$(echo "$META" | jq -r '.headBranch // ""')
+                      WORKFLOW=$(echo "$META" | jq -r '.workflowName // ""')
                       ATTEMPT="1"
                       CONCLUSION="failure"
                       # Fail fast on a bad/inaccessible run id rather than emitting
@@ -166,7 +173,7 @@ jobs:
                           exit 1
                       fi
                   else
-                      RUN_ID="$WR_ID"; SHA="$WR_SHA"; BRANCH="$WR_BRANCH"
+                      RUN_ID="$WR_ID"; SHA="$WR_SHA"; BRANCH="$WR_BRANCH"; WORKFLOW="$WR_NAME"
                       ATTEMPT="${WR_ATTEMPT:-1}"; CONCLUSION="$WR_CONCLUSION"
                   fi
                   {
@@ -175,6 +182,7 @@ jobs:
                       echo "head_branch=${BRANCH}"
                       echo "run_attempt=${ATTEMPT}"
                       echo "conclusion=${CONCLUSION}"
+                      echo "source_workflow=${WORKFLOW}"
                   } >> "$GITHUB_OUTPUT"
 
             - name: Preflight gate
@@ -202,6 +210,15 @@ jobs:
         if: needs.preflight.outputs.eligible == 'true'
         runs-on: ubuntu-latest
         timeout-minutes: 60
+        env:
+            INTEGRATED_CHARTS_CONTEXT: >-
+                The failed run is the Integrated Charts Test, not CI. It builds ag-grid's `latest`,
+                cloned fresh and so not pinned to the failed commit, against tarballs of this repo's
+                packages at the failed commit (see .github/workflows/integrated-charts-test.yml).
+                The break can come from either repo, so check ag-grid's recent commits as well as the
+                diff since last green. Never revert or weaken a deliberate ag-charts API change to
+                turn this job green. Your token only covers this repo: if the fix belongs in ag-grid,
+                open no PR, report outcome no-fix, and name the ag-grid file and change in the summary.
         permissions:
             contents: write
             pull-requests: write
@@ -259,6 +276,7 @@ jobs:
                   github_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   dev_prompts_channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+                  extra_context: ${{ needs.preflight.outputs.source_workflow == 'Integrated Charts Test' && env.INTEGRATED_CHARTS_CONTEXT || '' }}
                   # Scope the App token to THIS (failing) repo — the one the handler
                   # opens the fix PR in. The marketplace is a local-path copy shipped
                   # in the package, so ag-dev-prompts access is NOT needed here.

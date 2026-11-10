@@ -93,23 +93,10 @@ export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptio
     text?: string;
     /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
+    /**
+     * Distance in pixels between the Cross Line and the label. Negative values move the label towards, or past, the line.
+     *
+     * Default: `0` when the label has a `fill` or an enabled `border`; `5` otherwise.
+     */
+    spacing?: PixelSize;
 }
-
-export type AgCrossLineLabelPosition =
-    | 'top'
-    | 'left'
-    | 'right'
-    | 'bottom'
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-left'
-    | 'bottom-right'
-    | 'inside'
-    | 'inside-left'
-    | 'inside-right'
-    | 'inside-top'
-    | 'inside-bottom'
-    | 'inside-top-left'
-    | 'inside-bottom-left'
-    | 'inside-top-right'
-    | 'inside-bottom-right';

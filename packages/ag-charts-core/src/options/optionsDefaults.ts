@@ -10,6 +10,8 @@ import type {
     AgGradientColorStrict,
     AgHighlightStyleOptions,
     AgLineHighlightStyleOptions,
+    AgLineMarkerHighlightStyleOptions,
+    AgMarkerHighlightStyleOptions,
     AgNumericValue,
     AgSelectionContainment,
     AgSelectionStyleOptions,
@@ -75,6 +77,8 @@ const themeParams = [
     'borderRadius',
     'cardShadow',
     'chartBackgroundColor',
+    'chartBorder',
+    'chartBorderRadius',
     'chartPadding',
     'focusShadow',
     'foregroundColor',
@@ -426,6 +430,16 @@ export const shapeHighlightOptionsDef: OptionsDefs<AgHighlightStyleOptions> = {
 
 export const shapeSelectionOptionsDef: OptionsDefs<AgSelectionStyleOptions> = shapeHighlightOptionsDef;
 
+export const markerHighlightOptionsDef: OptionsDefs<AgMarkerHighlightStyleOptions> = {
+    ...shapeHighlightOptionsDef,
+    size: positiveNumber,
+};
+
+export const lineMarkerHighlightOptionsDef: OptionsDefs<AgLineMarkerHighlightStyleOptions> = {
+    ...lineHighlightOptionsDef,
+    size: positiveNumber,
+};
+
 export const selectionContainmentValidator = strictUnion<AgSelectionContainment>()('any', 'all');
 
 export function highlightOptionsDef<T>(itemHighlightOptionsDef: T) {
@@ -514,21 +528,11 @@ export const textWrap = union('never', 'always', 'hyphenate', 'on-space');
 export const textAlign = union('left', 'center', 'right', 'start', 'end');
 export const verticalAlign = union('top', 'middle', 'bottom');
 
-export const overflowStrategy = union('ellipsis', 'hide');
-
 export const paddingOptions = optionsDefs<PaddingOptions>(
     { top: positiveNumber, right: positiveNumber, bottom: positiveNumber, left: positiveNumber },
     'padding object'
 );
 export const padding = or(positiveNumber, paddingOptions);
-
-// Cross-line labels consume `padding` as a signed positional value rather than a box inset, so they are
-// deliberately exempt from the non-negative rule. New padding options must use `padding` above.
-export const signedPaddingOptions = optionsDefs<PaddingOptions>(
-    { top: number, right: number, bottom: number, left: number },
-    'padding object'
-);
-export const signedPadding = or(number, signedPaddingOptions);
 
 export const borderOptionsDef: OptionsDefs<BorderOptions> = {
     enabled: boolean,

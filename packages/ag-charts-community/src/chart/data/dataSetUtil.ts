@@ -14,7 +14,7 @@ export function deepCloneDataSet<T = unknown>(
     src: DataSet<T>,
     logger: Logger
 ): DataSet<T> {
-    const clone = new DataSet<T>([...src.data], logger, src.dataIdKey);
+    const clone = new DataSet<T>([...src.data], logger, src.dataIdKey, src.suppressFieldDotNotation);
     service?.transferDataSet(clone, src);
     return clone;
 }
@@ -29,9 +29,18 @@ export function replaceDataSet<T = unknown>(
     src: DataSet<T> | undefined,
     data: T[],
     dataIdKey: string | undefined,
-    logger: Logger
+    logger: Logger,
+    suppressFieldDotNotation = src?.suppressFieldDotNotation ?? false
 ): DataSet<T> {
-    const dst = new DataSet<T>(data, logger, dataIdKey);
+    return inheritDataSet(service, src, new DataSet<T>(data, logger, dataIdKey, suppressFieldDotNotation));
+}
+
+/** Transfers persistent state from `src`, if any, to `dst`. */
+export function inheritDataSet<T, D extends DataSet<T>>(
+    service: IDataSelectionService | undefined,
+    src: DataSet<T> | undefined,
+    dst: D
+): D {
     if (src) service?.transferDataSet(dst, src);
     return dst;
 }

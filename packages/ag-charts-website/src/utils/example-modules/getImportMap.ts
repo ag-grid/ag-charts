@@ -22,7 +22,7 @@ export type ExampleFramework = 'typescript' | 'react' | 'angular' | 'vue3';
  * The framework versions examples run against, deliberately independent of the versions the
  * docs site itself is built with. Kept in step with what the SystemJS boilerplate loaded.
  */
-const ANGULAR_VERSION = '20.0.0';
+const ANGULAR_VERSION = '21.0.0';
 const CLONE_VERSION = '2.1.2';
 const REACT_VERSION = '19.2.4';
 const RXJS_VERSION = '7.8.1';
@@ -61,9 +61,9 @@ const ANGULAR_IMPORTS: ImportMap = {
     '@angular/common/http': angularPackage('common', 'http'),
     '@angular/compiler': angularPackage('compiler'),
     '@angular/core': angularPackage('core'),
-    '@angular/core/primitives/di': angularPackage('core', 'primitives/di'),
-    '@angular/core/primitives/event-dispatch': angularPackage('core', 'primitives/event-dispatch'),
-    '@angular/core/primitives/signals': angularPackage('core', 'primitives/signals'),
+    '@angular/core/primitives/di': angularPackage('core', 'primitives-di'),
+    '@angular/core/primitives/event-dispatch': angularPackage('core', 'primitives-event-dispatch'),
+    '@angular/core/primitives/signals': angularPackage('core', 'primitives-signals'),
     '@angular/forms': angularPackage('forms'),
     '@angular/platform-browser': angularPackage('platform-browser'),
     '@angular/platform-browser/animations': angularPackage('platform-browser', 'animations'),
@@ -94,8 +94,19 @@ const getPackageRoot = (packageName: string) =>
         ? `${NPM_CDN}/${packageName}@${agChartsVersion}`
         : pathJoin(import.meta.env?.PUBLIC_SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH, packageName);
 
+/** These packages publish their ESM one file per module; the browser loads the single-file bundle instead. */
+export const PER_MODULE_ESM_PACKAGES = new Set([
+    'ag-charts-core',
+    'ag-charts-community',
+    'ag-charts-enterprise',
+    'ag-charts-locale',
+]);
+
 const esmEntryPoint = (packageName: string, entryPoint = 'dist/package/main.esm.mjs') =>
     `${getPackageRoot(packageName)}/${entryPoint}`;
+
+const libraryEntryPoint = (packageName: string) =>
+    esmEntryPoint(packageName, PER_MODULE_ESM_PACKAGES.has(packageName) ? 'dist/package/main.esm.min.mjs' : undefined);
 
 /**
  * The library packages every example resolves, whichever framework it runs as. Enterprise is
@@ -103,11 +114,11 @@ const esmEntryPoint = (packageName: string, entryPoint = 'dist/package/main.esm.
  * community example never imports it, so the entry is unused rather than wrong.
  */
 const LIBRARY_IMPORTS = (): ImportMap => ({
-    'ag-charts-types': esmEntryPoint('ag-charts-types'),
-    'ag-charts-core': esmEntryPoint('ag-charts-core'),
-    'ag-charts-community': esmEntryPoint('ag-charts-community'),
-    'ag-charts-enterprise': esmEntryPoint('ag-charts-enterprise'),
-    'ag-charts-locale': esmEntryPoint('ag-charts-locale'),
+    'ag-charts-types': libraryEntryPoint('ag-charts-types'),
+    'ag-charts-core': libraryEntryPoint('ag-charts-core'),
+    'ag-charts-community': libraryEntryPoint('ag-charts-community'),
+    'ag-charts-enterprise': libraryEntryPoint('ag-charts-enterprise'),
+    'ag-charts-locale': libraryEntryPoint('ag-charts-locale'),
 });
 
 /** The framework wrapper's ES module entry point, which differs per package */

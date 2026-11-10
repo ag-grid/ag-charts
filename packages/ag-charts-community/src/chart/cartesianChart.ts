@@ -1,5 +1,14 @@
-import type { AxisPrimaryTickCount, BBox, CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
-import { ChartAxisDirection, ContinuousScale, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
+import type {
+    AxisPrimaryTickCount,
+    BBox,
+    CanvasPoint,
+    ChartAnimationPhase,
+    RequireOptional,
+    RequiredRange,
+    SeriesChangeType,
+    Size,
+} from 'ag-charts-core';
+import { ChartAxisDirection, clampArray, entries, findMinMax, fromPairs, groupBy } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgChartOptions,
@@ -11,17 +20,13 @@ import type {
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import { CartesianAxis } from './axis/cartesianAxis';
-import { CategoryAxis } from './axis/categoryAxis';
-import { NumberAxis } from './axis/numberAxis';
 import { stackCartesianSeries } from './cartesianUtil';
-import type { SeriesAxesHost, TransferableResources } from './chart';
-import { Chart } from './chart';
 import { CartesianChartAxes, ChartAxes } from './chartAxes';
-import type { ChartAxis } from './chartAxis';
+import { ChartAxesComponent } from './chartAxesComponent';
+import type { ChartTypeHost, ChartTypeInstance, SeriesAxesHost } from './chartTypeEnv';
 import type { LayoutContext, ScrollbarLayoutMap, SeriesInsetMap } from './layout/layoutManager';
 import { deriveMiniChartOptions, filterMiniChartSeries } from './miniChartOptions';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
-import type { UnknownSeries } from './series/series';
 
 type Dimension = 'x' | 'y';
 type Direction = -1 | 1;
@@ -54,75 +59,81 @@ function clampPaddingPair(
     padding[high] *= scale;
 }
 
-interface SyncModule extends ModuleInstance {
-    enabled?: boolean;
-    getSyncedDomain(axis: ChartAxis): Promise<any[] | undefined>;
-    removeAxis(axis: ChartAxis): void;
-    updateSiblings(): void;
-}
+export class CartesianChartType implements ChartTypeInstance {
+    static readonly type = 'cartesian' as const;
+    readonly type = CartesianChartType.type;
 
-export class CartesianChart extends Chart {
-    static override readonly className = 'CartesianChart';
-    static readonly type = 'cartesian';
-
-    private static readonly AxesPadding = 15; // TODO should come from theme
-
-    /** Integrated Charts feature state - not used in Standalone Charts. */
-    public readonly paired: boolean = true;
-
-    declare axes: CartesianChartAxes;
-    override createChartAxes() {
-        return new CartesianChartAxes();
-    }
+    private readonly axesComponent: ChartAxesComponent<CartesianChartAxes>;
 
     private lastAreaWidths?: AreaWidthMap;
 
     private _requiredRange = 0;
     private _requiredRangeDirection = ChartAxisDirection.X;
 
-    constructor(options: ChartOptions, resources?: TransferableResources) {
-        super(options, resources);
+    constructor(private readonly host: ChartTypeHost) {
+        this.axesComponent = new ChartAxesComponent(
+            host.ctx,
+            this.type,
+            () => new CartesianChartAxes(),
+            (newValue, oldValue) => this.onAxisChange(newValue, oldValue)
+        );
     }
 
-    override onAxisChange(newValue: CartesianAxis[], oldValue?: CartesianAxis[]) {
-        super.onAxisChange(newValue, oldValue);
+    get axes() {
+        return this.axesComponent.axes;
+    }
 
+    private get ctx() {
+        return this.host.ctx;
+    }
+
+    private get series() {
+        return this.host.series;
+    }
+
+    private onAxisChange(newValue: CartesianAxis[], oldValue: CartesianAxis[] | undefined) {
         this.syncAxisChanges(newValue, oldValue);
 
-        if (this.ctx != null) {
-            // Registered here rather than by the axis, so mini-chart axes sharing these ids never replace them.
-            const { labelManager } = this.ctx;
-            for (const axis of oldValue ?? []) {
-                labelManager.unregisterSource(axis.labelSource.id, axis.labelSource);
-            }
-            for (const axis of newValue) {
-                labelManager.registerSource(axis.labelSource);
-            }
-
-            this.ctx.zoomManager?.setAxes(
-                newValue.filter((axis) => {
-                    const { ignoreZoom, linkZoom } = axis.options as { ignoreZoom?: boolean; linkZoom?: string };
-                    return !ignoreZoom && linkZoom == null;
-                })
-            );
-        }
+        this.ctx.zoomManager?.setAxes(newValue.filter((axis) => axis.zoomable));
     }
 
-    protected override processRanges() {
+    applyAxisOptions(
+        options: AgChartOptions,
+        chartOptions: ChartOptions,
+        seriesStatus: SeriesChangeType,
+        axesChanged: boolean
+    ) {
+        this.axesComponent.applyAxes(this.axesComponent, options, chartOptions, seriesStatus, axesChanged);
+    }
+
+    supportsLayoutOnlyDelta() {
+        return this.axes.length > 0;
+    }
+
+    getResizeUpdateType() {
+        return this.axesComponent.getResizeUpdateType();
+    }
+
+    resetAnimations(phase: ChartAnimationPhase) {
+        this.axesComponent.resetAnimations(phase);
+    }
+
+    destroy() {
+        this.axesComponent.destroy();
+    }
+
+    processRanges() {
         const seriesRanges: Record<string, number[]> = {};
         const chartRanges: Record<string, number> = {};
         const seriesTypes = new Map();
 
-        this._requiredRangeDirection = ChartAxisDirection.X;
+        this._requiredRangeDirection = this.getDomainDirection();
 
         // First apply the minimum range from each series by type.
         for (const series of this.series) {
             if (!series.visible) continue;
             seriesRanges[series.type] ??= [];
             series.getMinimumRangeSeries(seriesRanges[series.type]);
-            if (series.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y) {
-                this._requiredRangeDirection = ChartAxisDirection.Y;
-            }
             if (!seriesTypes.has(series.type)) {
                 seriesTypes.set(series.type, series);
             }
@@ -147,27 +158,21 @@ export class CartesianChart extends Chart {
         }
     }
 
-    protected override preSeriesUpdate() {
-        const { _requiredRange, seriesRect } = this;
-        if (seriesRect == null) return;
-
+    getRequiredRange(seriesRect: BBox): RequiredRange {
+        const { _requiredRange } = this;
         const dimension = this._requiredRangeDirection === ChartAxisDirection.X ? seriesRect.width : seriesRect.height;
         const rangeRatio = _requiredRange / dimension;
         const requiredRangeRatio = Number.isNaN(rangeRatio) ? 0 : rangeRatio; // In case it's NaN, return 0.
 
-        // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
-        this.ctx.eventsHub.emit('update:pre-series', {
+        return {
             requiredRangeRatio,
             requiredRangeDirection: this._requiredRangeDirection,
             requiredRange: _requiredRange,
-        });
+        };
     }
 
-    protected override applyChartTypeOptions(newOpts: AgChartOptions, oldOpts: AgChartOptions & { type?: SeriesType }) {
-        const navigatorModule = this.modulesManager.getModule<{ miniChart?: SeriesAxesHost & { enabled?: boolean } }>(
-            'navigator'
-        );
-        const miniChart = navigatorModule?.miniChart;
+    applyChartTypeOptions(newOpts: AgChartOptions, oldOpts: AgChartOptions & { type?: SeriesType }) {
+        const miniChart = this.ctx.navigatorManager?.miniChart;
         const miniChartSeries =
             (newOpts.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? newOpts.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
@@ -178,46 +183,45 @@ export class CartesianChart extends Chart {
         }
     }
 
+    private getDomainDirection() {
+        const flipped = this.series.some(
+            (s) => s.visible && s.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y
+        );
+        return flipped ? ChartAxisDirection.Y : ChartAxisDirection.X;
+    }
+
     private applyMiniChartOptions(
-        miniChart: any,
+        miniChart: SeriesAxesHost,
         miniChartSeries: NonNullable<AgChartOptions['series']>,
         completeOptions: AgChartOptions,
         oldOpts: AgChartOptions & { type?: SeriesType }
     ) {
         const oldSeries =
             (oldOpts?.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? oldOpts?.series;
-        const miniChartSeriesStatus = this.applySeries(
+        const miniChartSeriesStatus = this.host.applySeries(
             miniChart,
             filterMiniChartSeries(miniChartSeries),
             filterMiniChartSeries(oldSeries)
         );
         const derivedOptions = deriveMiniChartOptions(completeOptions);
-        this.applyAxes(miniChart, derivedOptions, this.chartOptions, miniChartSeriesStatus);
-
-        const axes = miniChart.axes as ChartAxis[];
+        this.axesComponent.applyAxes(miniChart, derivedOptions, this.host.chartOptions, miniChartSeriesStatus);
 
         // The navigator overlay derives from the main domain-direction axis after `nice` rounding, so the
         // matching mini-chart axis must inherit `nice` or the handles drift; cross axes keep `nice = false`.
-        const domainDirection = this.series.some(
-            (s) => s.visible && s.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y
-        )
-            ? ChartAxisDirection.Y
-            : ChartAxisDirection.X;
+        const domainDirection = this.getDomainDirection();
         const mainDomainAxis = this.axes.find((axis) => axis.direction === domainDirection);
-        for (const axis of axes) {
+        for (const axis of miniChart.axes) {
             axis.nice = axis.direction === domainDirection ? (mainDomainAxis?.nice ?? true) : false;
             axis.interactionEnabled = false;
         }
     }
 
-    override destroySeries(series: UnknownSeries[]) {
-        super.destroySeries(series);
-
+    onSeriesDestroyed() {
         this.lastLayoutWidth = Number.NaN;
         this.lastLayoutHeight = Number.NaN;
     }
 
-    override toAgCoordinates(point: CanvasPoint): AgCoordinates {
+    toAgCoordinates(point: CanvasPoint): AgCoordinates {
         const result: AgCoordinates = {};
         for (const axis of this.axes) {
             const pick = axis.pickValue(point);
@@ -235,33 +239,89 @@ export class CartesianChart extends Chart {
         return result;
     }
 
-    override getChartType() {
-        return 'cartesian' as const;
-    }
-
     private setRootClipRects(clipRect: BBox | undefined) {
-        const { seriesRoot, annotationRoot } = this;
+        const { seriesRoot, annotationRoot } = this.host;
         seriesRoot.setClipRect(clipRect);
         annotationRoot.setClipRect(clipRect);
+        this.applySeriesBandClips();
     }
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
-    override async processData(): Promise<void> {
-        await super.processData();
+    private seriesBands = new Map<object, BBox>();
+    private bandClippedSeries = new Set<object>();
 
-        if (this.syncStatus === 'init') {
-            this.syncStatus = 'domains-calculated';
+    private updateSeriesBands(seriesRect: BBox, seriesPaddedRect: BBox, enableClip: boolean) {
+        const bands = new Map<object, BBox>();
+        for (const axis of this.axes) {
+            if (axis.lengthRatio == null || axis.lineRange == null) continue;
+
+            const isHorizontal = axis.position === 'top' || axis.position === 'bottom';
+            const [rectStart, rectLength, paddedStart, paddedLength] = isHorizontal
+                ? [seriesRect.x, seriesRect.width, seriesPaddedRect.x, seriesPaddedRect.width]
+                : [seriesRect.y, seriesRect.height, seriesPaddedRect.y, seriesPaddedRect.height];
+            const [bandStart, bandEnd] = findMinMax(axis.lineRange);
+            // Band ends on the series area edge keep the series area padding, as the root clip does.
+            const start = bandStart <= 0 ? paddedStart : rectStart + bandStart;
+            const end = bandEnd >= rectLength - 1e-6 ? paddedStart + paddedLength : rectStart + bandEnd;
+            for (const series of axis.boundSeries) {
+                // Bands clip with the series area, but a profile tiles half a step past its outer levels so always clips.
+                if (!enableClip && !series.isProfile?.()) continue;
+                const band = bands.get(series) ?? seriesPaddedRect.clone();
+                if (isHorizontal) {
+                    band.x = start;
+                    band.width = end - start;
+                } else {
+                    band.y = start;
+                    band.height = end - start;
+                }
+                bands.set(series, band);
+            }
+        }
+        for (const series of this.series) {
+            series.interactionBand = bands.get(series);
+        }
+        this.seriesBands = bands;
+    }
+
+    // Applied alongside the root clip so it tracks the animated series-root translation.
+    private applySeriesBandClips() {
+        const { seriesBands, bandClippedSeries } = this;
+        if (seriesBands.size === 0 && bandClippedSeries.size === 0) return;
+
+        for (const series of this.series) {
+            const band = seriesBands.get(series);
+            if (band == null && !bandClippedSeries.has(series)) continue;
+
+            for (const group of series.getRenderGroups()) {
+                group.setClipRect(band);
+            }
+        }
+        this.bandClippedSeries = new Set(seriesBands.keys());
+    }
+
+    beforeProcessData() {
+        const { series } = this;
+        if (!series.some((s) => s.canHaveAxes)) return;
+        this.axesComponent.assignAxesToSeries(series);
+        this.axesComponent.assignSeriesToAxes(series);
+    }
+
+    afterProcessData() {
+        if (this.host.syncStatus === 'init') {
+            this.host.syncStatus = 'domains-calculated';
         }
 
         this.ctx.eventsHub.emit('update:process-data', { series: { shouldFlipXY: this.shouldFlipXY() } });
     }
 
-    override async processDomains() {
-        await super.processDomains();
+    beforeSeriesDomains() {
+        this.axesComponent.processDomains();
+    }
 
+    async afterSeriesDomains() {
         for (const axis of this.axes) {
-            const syncedDomain = await this.getSyncedDomain(axis);
+            const syncedDomain = await this.ctx.syncManager.getSyncedDomain(axis);
 
             if (syncedDomain == null) {
                 this.warnIfUnused(axis);
@@ -283,13 +343,12 @@ export class CartesianChart extends Chart {
 
     private lastLayoutWidth = Number.NaN;
     private lastLayoutHeight = Number.NaN;
-    protected performLayout(ctx: LayoutContext) {
-        const { seriesRoot, annotationRoot } = this;
+    layout(ctx: LayoutContext) {
+        const { seriesRoot, annotationRoot, seriesArea, id } = this.host;
         const { clipSeries, seriesRect, visible } = this.updateAxes(ctx);
 
-        this.seriesRoot.visible = visible;
-        this.seriesRect = seriesRect;
-        this.animationRect = ctx.layoutBox;
+        seriesRoot.visible = visible;
+        this.host.setLayoutRects(seriesRect, ctx.layoutBox);
 
         const { x, y } = seriesRect;
         if (ctx.width !== this.lastLayoutWidth || ctx.height !== this.lastLayoutHeight) {
@@ -302,7 +361,7 @@ export class CartesianChart extends Chart {
             // Animate seriesRect movements - typically caused by axis size changes.
             const { translationX, translationY } = seriesRoot;
             staticFromToMotion(
-                this.id,
+                id,
                 'seriesRect',
                 this.ctx.animationManager,
                 [seriesRoot, annotationRoot],
@@ -315,17 +374,18 @@ export class CartesianChart extends Chart {
         this.lastLayoutWidth = ctx.width;
         this.lastLayoutHeight = ctx.height;
 
-        const seriesPaddedRect = seriesRect.clone().grow(this.getSeriesAreaPadding());
+        const seriesPaddedRect = seriesRect.clone().grow(this.host.getSeriesAreaPadding());
 
         const alwaysClip = this.series.some((s) => s.alwaysClip);
-        const enableClip = alwaysClip || (this.seriesArea.clip ?? false) || clipSeries;
+        const enableClip = alwaysClip || (seriesArea.clip ?? false) || clipSeries;
         const clipRect = enableClip ? seriesPaddedRect : undefined;
+        this.updateSeriesBands(seriesRect, seriesPaddedRect, enableClip);
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
 
         if (this.ctx.animationManager.isActive() && lastUpdateClipRect != null) {
             this.ctx.animationManager.animate({
-                id: this.id,
+                id,
                 groupId: 'clip-rect',
                 phase: 'update',
                 from: lastUpdateClipRect,
@@ -339,7 +399,7 @@ export class CartesianChart extends Chart {
         }
 
         // Update the series area modules and always clip them to the series padded rect area.
-        this.seriesArea.update(seriesRect, seriesPaddedRect);
+        seriesArea.update(seriesRect, seriesPaddedRect);
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             axes: fromPairs(this.axes.map((axis) => [axis.id, axis.getLayoutState()])),
@@ -414,7 +474,7 @@ export class CartesianChart extends Chart {
 
         let overflows = false;
         let clipSeries = false;
-        const seriesAreaPadding = this.getSeriesAreaPadding();
+        const seriesAreaPadding = this.host.getSeriesAreaPadding();
         const outerSpace: AreaWidthMap = new Map(axisAreaWidths);
 
         for (const dir of directions) {
@@ -507,10 +567,7 @@ export class CartesianChart extends Chart {
 
                 const axisThickness = axisWidths.get(axis.id) ?? 0;
                 totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
-                if (axis.layoutConstraints.stacked) {
-                    // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
-                    currentOffset += axisThickness + CartesianChart.AxesPadding;
-                }
+                currentOffset += axisThickness + axis.options.spacing;
             }
 
             // The inset sits between the innermost axis and the series area, so it widens the area after the axes.
@@ -586,17 +643,14 @@ export class CartesianChart extends Chart {
         seriesRect: BBox,
         visible: boolean
     ): void {
-        const annotationsModule = this.modulesManager.getModule('annotations');
-        const hasAnnotations =
-            annotationsModule?.enabled === true ||
-            this.ctx.annotationManager?.createMemento().some((annotation) => {
-                switch (annotation.type) {
-                    case 'vertical-line':
-                        return axis.direction === ChartAxisDirection.X;
-                    case 'horizontal-line':
-                        return axis.direction === ChartAxisDirection.Y;
-                }
-            });
+        const hasAnnotations = this.ctx.annotationManager?.createMemento().some((annotation) => {
+            switch (annotation.type) {
+                case 'vertical-line':
+                    return axis.direction === ChartAxisDirection.X;
+                case 'horizontal-line':
+                    return axis.direction === ChartAxisDirection.Y;
+            }
+        });
         if (hasAnnotations) return;
 
         const currentWidth = axisWidths.get(axis.id) ?? 0;
@@ -612,8 +666,7 @@ export class CartesianChart extends Chart {
         crossPosition: number | undefined,
         seriesRect: BBox
     ): number {
-        const { titlePlacement, labelPlacement } = axis.options.crossAt ?? {};
-        if (titlePlacement !== 'edge' && labelPlacement !== 'edge' && !axis.crosshairLabelNeedsEdgeSpace()) {
+        if (!axis.isTitleAtEdge() && !axis.isLabelsAtEdge() && !axis.crosshairLabelNeedsEdgeSpace()) {
             return this.calculateAxisBleedingWidth(axis, currentWidth, crossPosition, seriesRect);
         }
 
@@ -690,56 +743,40 @@ export class CartesianChart extends Chart {
         return direction === 1 ? Math.min(value, bound + size) : Math.max(value, bound);
     }
 
-    private async getSyncedDomain(axis: CartesianAxis) {
-        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
-        if (!syncModule?.enabled) return;
-        return await syncModule.getSyncedDomain(axis);
-    }
-
     private syncAxisChanges(newValue: CartesianAxis[], oldValue: CartesianAxis[] | undefined) {
-        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
-        if (!syncModule?.enabled) return;
-
         const removed = new Set(oldValue ?? []);
         for (const axis of newValue) {
             removed.delete(axis);
         }
-        for (const removedAxis of removed) {
-            syncModule.removeAxis(removedAxis);
-        }
+        this.ctx.syncManager.removeAxes(removed);
     }
 
     private sizeAxis(axis: CartesianAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
-        const isNumberAxis = axis instanceof NumberAxis; // Number, log axis
+        const isNumberAxis = axis.scale.type === 'number' || axis.scale.type === 'log';
         const isLeftRight = position === 'left' || position === 'right';
 
         const { width, height } = seriesRect;
-        const maxEnd = isLeftRight ? height : width;
+        const fullLength = isLeftRight ? height : width;
+        const [bandStart, bandEnd] = this.axisBand(axis, position).map((ratio) => ratio * fullLength);
+        const bandLength = bandEnd - bandStart;
 
-        let start = 0;
-        let end = maxEnd;
         // Per-axis zoom is axis-local — secondary axes in independent-axes mode diverge from their
         // direction primary. Read directly from the axis rather than the central chart state.
         let { min, max } = axis.getZoom();
 
         const { width: axisWidth, unit, align } = axis.layoutConstraints;
+        const size = unit === 'px' ? axisWidth : (bandLength * axisWidth) / 100;
 
-        if (unit === 'px') {
-            end = start + axisWidth;
-        } else {
-            end = (end * axisWidth) / 100;
-        }
-
-        const size = end - start;
+        let start = bandStart;
+        let end = bandStart + size;
         if (align === 'end') {
-            start = maxEnd - size;
-            end = maxEnd;
+            start = bandEnd - size;
+            end = bandEnd;
         } else if (align === 'center') {
-            const center = start + (maxEnd - start) / 2;
-            start = center - size / 2;
-            end = center + size / 2;
+            start = bandStart + (bandLength - size) / 2;
+            end = start + size;
         } else if (align === 'justify') {
-            end = maxEnd;
+            end = bandEnd;
         }
 
         if (isLeftRight) {
@@ -751,32 +788,19 @@ export class CartesianChart extends Chart {
         }
 
         axis.range = [start, end];
-        axis.visibleRange = this.linkedVisibleRange(axis, start, end) ?? [min, max];
+        axis.visibleRange = [min, max];
         axis.gridLength = isLeftRight ? width : height;
-        axis.lineRange = isLeftRight ? [height, 0] : [0, width];
+        axis.lineRange = isLeftRight ? [bandEnd, bandStart] : [bandStart, bandEnd];
     }
 
-    // Centres each band of a `linkZoom` category axis on its category's value in the linked axis' scale,
-    // which already carries that axis' zoom. The linked axis must be laid out earlier in the same pass.
-    private linkedVisibleRange(axis: CartesianAxis, r0: number, r1: number): [number, number] | undefined {
-        const { linkZoom } = axis.options as { linkZoom?: string };
-        if (linkZoom == null || !CategoryAxis.is(axis)) return;
+    /** The part of the series area length the axis is laid out in, as `[start, end]` ratios. */
+    private axisBand(axis: CartesianAxis, position: AgCartesianAxisPosition): [number, number] {
+        const { lengthRatio } = axis;
+        if (lengthRatio == null) return [0, 1];
 
-        const axisIndex = this.axes.indexOf(axis);
-        const linked = this.axes.find((a, index) => index < axisIndex && a.userKey === linkZoom);
-        const { domain } = axis.dataDomain;
-        if (linked == null || !ContinuousScale.is(linked.scale) || domain.length < 2) return;
-
-        const first = linked.scale.convert(domain[0]);
-        const last = linked.scale.convert(domain.at(-1));
-        const step = (last - first) / (domain.length - 1);
-        if (!Number.isFinite(step) || step <= 0) return;
-
-        const { paddingInner = axis.scale.paddingInner, paddingOuter = axis.scale.paddingOuter } = axis.options;
-        const start = first - step * (paddingOuter + (1 - paddingInner) / 2);
-        const span = step * (domain.length - paddingInner + 2 * paddingOuter);
-        const min = (r0 - start) / span;
-        return [min, min + (r1 - r0) / span];
+        const isNumberAxis = axis.scale.type === 'number' || axis.scale.type === 'log';
+        const minAtEnd = (position === 'left' || position === 'right') && isNumberAxis;
+        return minAtEnd === axis.options.reverse ? [0, lengthRatio] : [1 - lengthRatio, 1];
     }
 
     private positionAxes(opts: {

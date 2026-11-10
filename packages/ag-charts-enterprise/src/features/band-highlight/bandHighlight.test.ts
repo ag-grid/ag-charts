@@ -8,6 +8,7 @@ import type {
     AgChartInstance,
 } from 'ag-charts-community';
 import {
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     applyAxesFlip,
     compareImageSnapshot,
     hoverAction,
@@ -18,6 +19,7 @@ import {
 import { createEnterpriseChart } from '../../test/utils';
 
 const BASE_OPTIONS: AgCartesianChartOptions = {
+    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     theme: {
         overrides: {
             line: {
@@ -105,7 +107,7 @@ const SIMPLE_LINE_OPTIONS: AgCartesianChartOptions = {
 const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SIMPLE_AXIS_OPTIONS,
-    tooltip: { range: 'exact' },
+    tooltip: { mode: 'shared', range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar' })) as AgBarSeriesOptions[],
 };
 
@@ -240,7 +242,7 @@ const STACKED_BAR_OPTIONS: AgCartesianChartOptions = {
             },
         },
     },
-    tooltip: { range: 'exact' },
+    tooltip: { mode: 'shared', range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({
         ...s,
         type: 'bar',
@@ -257,7 +259,7 @@ const GROUPED_BAR_OPTIONS: AgCartesianChartOptions = {
         { x: 2, y1: 25, y2: 200, y3: 48 },
         { x: 3, y1: 75, y2: 2000, y3: 72 },
     ],
-    tooltip: { range: 'exact' },
+    tooltip: { mode: 'shared', range: 'exact' },
     axes: {
         x: {
             position: 'bottom',

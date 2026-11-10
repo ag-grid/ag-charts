@@ -44,7 +44,7 @@ import {
     measureLabelText,
     mergeDefaults,
     resetRememberedResults,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     resolveTextAlign,
     upsertNodeDatum,
     writeLabelBoxCentre,
@@ -561,7 +561,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         if (!dataModel || !processedData) return undefined;
 
         const { xKey, xName, yKey, yName, colorKey, colorName, itemPadding } = this.options;
-        // The top-level textAlign/verticalAlign are write-only forwarders, never read by the series.
         const { textAlign, verticalAlign } = this.options.label;
 
         const xScale = xAxis.scale;
@@ -1135,7 +1134,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         for (const { point, width, height } of nodeData) {
             if (width <= 0 || height <= 0) continue;
             const box = { x: point.x - width / 2, y: point.y - height / 2, width, height };
-            obstacles.push({ kind: 'rect', box, category: 'seriesItem' });
+            obstacles.push({ kind: 'rect', box, category: 'shape' });
         }
         return obstacles;
     }
@@ -1144,7 +1143,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { label } = this.options;
         if (!this.usesPlacedLabels || !label.enabled) return [];
         const alwaysShow = label.collision?.alwaysShow === true;
-        const collideWith = resolveCollideWith({ ...label.collision, alwaysShow });
+        const avoid = resolveLabelAvoidance({ ...label.collision, alwaysShow });
         const threshold = label.collision?.threshold ?? 0;
         const boxPadding = expandLabelBoxExtent(label);
         const data: HeatmapPlacedLabelDatum[] = [];
@@ -1172,7 +1171,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 anchor: undefined,
                 placement: undefined,
                 neverDrop: alwaysShow,
-                collideWith,
+                avoid,
                 threshold,
                 positionedCandidates: [candidate],
                 ownBox: region,
@@ -1326,7 +1325,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const binLabel = findDiscreteColorBinLabel(colorScale, options.colorScale.fills, colorValue, formatValue);
             data.push({
                 label: colorName,
-                fallbackLabel: colorKey!,
+                fallbackLabel: this.keyName(colorKey!),
                 value: content ?? binLabel ?? formatValue(colorValue),
             });
         }
@@ -1334,12 +1333,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         data.push(
             {
                 label: xName,
-                fallbackLabel: xKey,
+                fallbackLabel: this.keyName(xKey),
                 value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, undefined),
             },
             {
                 label: yName,
-                fallbackLabel: yKey,
+                fallbackLabel: this.keyName(yKey),
                 value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, undefined),
             }
         );

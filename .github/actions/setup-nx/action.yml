@@ -60,6 +60,17 @@ inputs:
         options:
             - 'true'
             - 'false'
+    tidy_nx_cache_pr_threshold_mb:
+        description: 'On-disk size in MB above which a PR run resets the Nx cache.'
+        required: false
+        default: '700'
+    save_yarn_cache:
+        description: 'Save the yarn download cache after an install that warmed it. Set false to restore only.'
+        required: false
+        default: 'true'
+        options:
+            - 'true'
+            - 'false'
 
 outputs:
     base:
@@ -80,10 +91,12 @@ runs:
               skip_plugin_build: ${{ inputs.skip_plugin_build }}
               fetch_base: ${{ inputs.fetch_base }}
               nx_restore: ${{ inputs.nx_restore }}
-              base_ref: ${{ inputs.base_ref }}
+              base_ref: ${{ inputs.base_ref || 'latest' }}
               cache_mode: ${{ inputs.cache_mode }}
               free_disk_space: ${{ inputs.free_disk_space }}
               tidy_nx_cache: ${{ inputs.tidy_nx_cache }}
+              tidy_nx_cache_pr_threshold_mb: ${{ inputs.tidy_nx_cache_pr_threshold_mb }}
+              save_yarn_cache: ${{ inputs.save_yarn_cache }}
               node_modules_paths: |
                   .yarn/install-state.gz
                   node_modules/

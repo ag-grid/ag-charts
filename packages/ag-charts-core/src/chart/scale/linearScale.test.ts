@@ -594,3 +594,36 @@ describe('LinearScale', () => {
         });
     });
 });
+
+describe('LinearScale configured interval', () => {
+    const params = (overrides: Partial<ScaleTickParams<number>>): ScaleTickParams<number> => ({
+        nice: [true, true],
+        interval: undefined,
+        tickCount: 5,
+        minTickCount: 0,
+        maxTickCount: Infinity,
+        ...overrides,
+    });
+
+    function scaleOver(domain: number[], pixels = 100) {
+        const scale = new LinearScale();
+        scale.domain = domain;
+        scale.range = [0, pixels];
+        return scale;
+    }
+
+    describe('intervalIgnored', () => {
+        test.each([
+            { name: 'honoured', step: 25, expected: undefined },
+            { name: 'too dense for the pixel range', step: 0.5, expected: true },
+        ])('is $expected when the interval is $name', ({ step, expected }) => {
+            const scale = scaleOver([0, 100]);
+
+            expect(scale.ticks(params({ interval: step }))?.intervalIgnored).toBe(expected);
+        });
+
+        test('is unset without an interval', () => {
+            expect(scaleOver([0, 100]).ticks(params({}))?.intervalIgnored).toBeUndefined();
+        });
+    });
+});

@@ -59,10 +59,7 @@ function directionChange(event: Event) {
     chart.update(options);
 }
 
-function toggleReverse() {
-    const series = options.series![0] as AgOrganizationSeriesOptions;
-    series.reverse = !series.reverse;
-    const button = document.getElementById('reverseToggle') as HTMLButtonElement;
-    button.setAttribute('aria-pressed', String(series.reverse));
+function toggleReverse(reverse: boolean) {
+    (options.series![0] as AgOrganizationSeriesOptions).reverse = reverse;
     chart.update(options);
 }

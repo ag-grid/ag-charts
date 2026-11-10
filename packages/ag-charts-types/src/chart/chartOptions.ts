@@ -57,7 +57,7 @@ export interface AgChartOverlayOptions<TContext = ContextDefault> {
     enabled?: boolean;
     /** Text to render in the overlay. Plain text, or an array of segments for rich content. */
     text?: TextOrSegments;
-    /** A function for generating HTML element or string for overlay content. */
+    /** A function for generating HTML element or string for overlay content. A returned string is inserted as HTML, so escape any values derived from chart data. */
     renderer?: Renderer<AgChartOverlayRendererParams<TContext>, HTMLElement>;
 }
 
@@ -93,7 +93,7 @@ export interface AgCaptionTooltipOptions<TContext = ContextDefault> {
     /** Static text to display in the tooltip. Overrides the default caption text. */
     text?: string;
     /**
-     * Function to produce tooltip content. Return a plain string or an HTML string. Takes precedence over `text`.
+     * Function to produce tooltip content. Return a plain string or an HTML string; escape any values derived from chart data. Takes precedence over `text`.
      *
      * Returning `undefined` falls back to `text` (or the caption's own text). Returning an empty string suppresses the tooltip.
      */
@@ -158,6 +158,11 @@ export interface AgChartBackground {
     image?: AgChartBackgroundImage;
 }
 
+export interface AgChartBorderOptions extends BorderOptions {
+    /** The corner radius of the border. Also rounds the chart background while the border is enabled. */
+    cornerRadius?: PixelSize;
+}
+
 export type AgChartHighlightRange = 'tooltip' | 'node';
 
 export type AgChartHighlightMode = 'single' | 'shared';
@@ -176,7 +181,9 @@ export interface AgChartHighlightOptions {
      * - `'single'` highlights the hovered item only.
      * - `'shared'` also highlights the item of every other series that shares the hovered item's category, using the same grouping as `tooltip.mode: 'shared'`. Series with no item at that category - including series with no category concept, such as scatter and bubble - are unhighlighted as a whole series.
      *
-     * Default: `'single'`
+     * When only `tooltip.mode` is set, this follows it, with `'compact'` giving `'single'`. When neither is set, this matches the `tooltip.mode` default: `'shared'` for 2 or 3 series, except on scatter and bubble charts, and `'single'` otherwise.
+     *
+     * To keep single highlighting on a chart whose tooltip defaults to `'shared'`, set both `highlight.mode: 'single'` and `tooltip.mode: 'shared'`.
      */
     mode?: AgChartHighlightMode;
     /**
@@ -275,6 +282,8 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     seriesArea?: AgSeriesAreaOptions;
     /** Configuration for the background shown behind the chart. */
     background?: AgChartBackground;
+    /** Configuration for the border drawn around the outside of the chart, outside any `padding`. */
+    border?: AgChartBorderOptions;
     /** Configuration for the title shown at the top of the chart. */
     title?: AgChartCaptionOptions<TContext>;
     /** Configuration for the subtitle shown beneath the chart title. */

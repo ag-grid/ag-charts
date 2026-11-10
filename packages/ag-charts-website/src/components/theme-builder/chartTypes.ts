@@ -1,13 +1,8 @@
 import type { IconName } from '@ag-website-shared/components/icon/Icon';
 import { type PersistentAtom, atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 
-import type {
-    AgCartesianChartOptions,
-    AgCartesianSeriesOptions,
-    AgChartOptions,
-    AgContextMenuItem,
-} from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-community';
 
 import { type ChartFeatureId, type ChartFeatures, DEFAULT_CHART_FEATURES, isFeatureActive } from './chartFeatures';
 import {
@@ -94,17 +89,10 @@ const CARTESIAN_AXES = {
 };
 
 /** The features every chart here can show, whatever shape it is. */
-const COMMON_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'legend', 'tooltip', 'contextMenu'];
+const COMMON_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'seriesLabels', 'legend', 'tooltip', 'contextMenu'];
 
 /** Zoom, scrollbar and navigator are cartesian-only in AG Charts. */
 const CARTESIAN_FEATURES: ChartFeatureId[] = [...COMMON_FEATURES, 'crosshairs', 'zoom', 'scrollbar', 'navigator'];
-
-/** Stand-ins, so the menu has rows enough to show its hover, disabled and separator styles. */
-export const PREVIEW_MENU_EXTRA_ITEMS = [
-    { label: 'Copy Value' },
-    { label: 'Add Note' },
-    { label: 'Export Data', enabled: false },
-] satisfies AgContextMenuItem[];
 
 /**
  * AG Charts resolves a series' `strokeWidth` to zero unless the chart sets a
@@ -123,6 +111,10 @@ const shapeStroke = (features: ChartFeatures) =>
 const markerStroke = (features: ChartFeatures) =>
     isFeatureActive(features, 'seriesStrokes') ? { marker: { strokeWidth: MARKER_STROKE_WIDTH } } : {};
 
+/** Series labels are off by default, so without this the Series Labels group edits nothing visible. */
+const seriesLabel = (features: ChartFeatures) =>
+    isFeatureActive(features, 'seriesLabels') ? { label: { enabled: true } } : {};
+
 /**
  * Crosshairs default on for continuous axes only, so a category x-axis must ask
  * for one or there is no x label to carry `crosshairLabelBackgroundColor`. Band
@@ -140,10 +132,7 @@ const cartesianAxes = (features: ChartFeatures) => {
 const commonOptions = (features: ChartFeatures) => ({
     legend: { ...LEGEND, enabled: isFeatureActive(features, 'legend') },
     tooltip: { enabled: isFeatureActive(features, 'tooltip') },
-    contextMenu: {
-        enabled: isFeatureActive(features, 'contextMenu'),
-        items: ['defaults', 'separator', ...PREVIEW_MENU_EXTRA_ITEMS] satisfies AgContextMenuItem[],
-    },
+    contextMenu: { enabled: isFeatureActive(features, 'contextMenu') },
 });
 
 const navigationOptions = (features: ChartFeatures) => ({
@@ -152,6 +141,9 @@ const navigationOptions = (features: ChartFeatures) => ({
     scrollbar: { enabled: isFeatureActive(features, 'scrollbar'), visible: 'always' as const },
     navigator: { enabled: isFeatureActive(features, 'navigator') },
 });
+
+/** AG Charts shares the tooltip for only two or three series; past this count the rows outgrow the preview. */
+export const MAX_SHARED_TOOLTIP_SERIES = 8;
 
 /**
  * Shared scaffolding for the four cartesian variants. Typed as cartesian rather
@@ -173,6 +165,10 @@ const cartesian = (
     axes: cartesianAxes(features),
     ...navigationOptions(features),
     ...commonOptions(features),
+    tooltip: {
+        ...commonOptions(features).tooltip,
+        mode: seriesCount <= MAX_SHARED_TOOLTIP_SERIES ? 'shared' : 'single',
+    },
 });
 
 export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
@@ -190,6 +186,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yKey: key,
                 yName: name,
                 ...shapeStroke(features),
+                ...seriesLabel(features),
             })),
     },
     {
@@ -207,6 +204,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yName: name,
                 stacked: true,
                 ...shapeStroke(features),
+                ...seriesLabel(features),
             })),
     },
     {
@@ -223,6 +221,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yKey: key,
                 yName: name,
                 ...markerStroke(features),
+                ...seriesLabel(features),
             })),
     },
     {
@@ -240,6 +239,7 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 yName: name,
                 stacked: true,
                 ...shapeStroke(features),
+                ...seriesLabel(features),
             })),
     },
     {
@@ -260,7 +260,9 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                     type: 'donut',
                     id: previewSeriesId(0),
                     angleKey: 'revenue',
+                    // A donut has no `label.enabled`; naming a key is what draws its sector labels.
                     calloutLabelKey: 'country',
+                    ...(isFeatureActive(features, 'seriesLabels') ? { sectorLabelKey: 'revenue' } : {}),
                     innerRadiusRatio: 0.6,
                     ...shapeStroke(features),
                 },
@@ -275,8 +277,12 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         /**
          * No series-strokes switch: daily candles render barely a pixel wide,
          * below the three AG Charts needs to draw a body rather than a wick.
+         * No series labels either, as a candlestick series has no label option.
          */
-        features: [...CARTESIAN_FEATURES.filter((id) => id !== 'seriesStrokes'), 'rangeButtons'],
+        features: [
+            ...CARTESIAN_FEATURES.filter((id) => id !== 'seriesStrokes' && id !== 'seriesLabels'),
+            'rangeButtons',
+        ],
         tooltipTarget: CANDLESTICK_TOOLTIP_TARGET,
         buildOptions: (_count, features) => {
             const crosshair = { enabled: isFeatureActive(features, 'crosshairs') };
@@ -372,3 +378,16 @@ const chartFeatureAtoms: Record<PreviewPaneId, PersistentAtom<ChartFeatures>> = 
 };
 
 export const usePreviewFeatures = (pane: PreviewPaneId) => useAtom(chartFeatureAtoms[pane]);
+
+/** Whether a pane outlines its series - never for a type with no series strokes to show. */
+export const showsSeriesStrokes = (chartType: PreviewChartType, features: ChartFeatures) =>
+    chartType.features.includes('seriesStrokes') && isFeatureActive(features, 'seriesStrokes');
+
+/** Whether either pane outlines its series, so the palette's stroke inputs change what is on screen. */
+export const useSeriesStrokesPreviewed = () => {
+    const [left] = usePreviewChartType('left');
+    const [right] = usePreviewChartType('right');
+    const leftFeatures = useAtomValue(chartFeatureAtoms.left);
+    const rightFeatures = useAtomValue(chartFeatureAtoms.right);
+    return showsSeriesStrokes(left, leftFeatures) || showsSeriesStrokes(right, rightFeatures);
+};

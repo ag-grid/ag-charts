@@ -34,6 +34,8 @@ function lowAndHigh<T>(p: T): { item: { low: T; high: T } } {
 
 const options: AgCartesianChartOptions<DatumType, unknown> = {
     container: document.getElementById('myChart'),
+    highlight: { mode: 'single' },
+    tooltip: { mode: 'shared' },
     data: getData(),
     series: [
         {

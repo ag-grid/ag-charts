@@ -100,14 +100,13 @@ async function uploadArtifactsForRelease(release) {
 
     let uploadError = false;
     for (const artifactFolder of artifactFolders) {
-        const fileEntries = fs
-            .readdirSync(`${artifactsPath}/${artifactFolder}`, { withFileTypes: true })
-            .filter((item) => !item.isDirectory());
+        const folderPath = `${artifactsPath}/${artifactFolder}`;
+        const fileEntries = fs.readdirSync(folderPath, { withFileTypes: true }).filter((item) => !item.isDirectory());
 
         for (const file of fileEntries) {
-            const { name, path } = file;
+            const { name } = file;
 
-            const fullPath = `${path}/${name}`;
+            const fullPath = `${folderPath}/${name}`;
             const stats = fs.statSync(fullPath);
             try {
                 await octokit.request(`POST /repos/ag-grid/ag-charts/releases/${release.releaseId}/assets`, {

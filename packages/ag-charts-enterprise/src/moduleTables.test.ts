@@ -100,7 +100,7 @@ function collectExports(namespace: Record<string, unknown>): PackageExports {
 }
 
 /** Enterprise re-exports are read from `main.ts` by source, as vitest lets the community star export shadow them. */
-async function collectEnterpriseExports(): Promise<PackageExports> {
+async function readEnterpriseExports(): Promise<Record<string, unknown>> {
     const source = readFileSync(paths.enterpriseMain, 'utf-8');
     const namespace: Record<string, unknown> = {};
     const statements = [...source.matchAll(/^export \{([^}]+)\} from '(\.\/[^']+)';/gm)];
@@ -116,7 +116,7 @@ async function collectEnterpriseExports(): Promise<PackageExports> {
             if (name.length > 0) namespace[name] = imported[name];
         }
     }
-    return collectExports(namespace);
+    return namespace;
 }
 
 interface ModuleCatalogue {
@@ -602,7 +602,8 @@ function normalise(value: unknown): unknown {
 }
 
 describe('module tables', async () => {
-    const catalogue = buildCatalogue(collectExports(community), await collectEnterpriseExports());
+    const enterpriseNamespace = await readEnterpriseExports();
+    const catalogue = buildCatalogue(collectExports(community), collectExports(enterpriseNamespace));
     const placeholders = sortedPlaceholders(catalogue);
     const mappings = eslintMappings(catalogue);
 

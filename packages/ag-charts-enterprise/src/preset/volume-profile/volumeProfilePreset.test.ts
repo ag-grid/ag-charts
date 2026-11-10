@@ -95,6 +95,12 @@ describe('volumeProfilePreset', () => {
                 label: { formatter: ({ value }) => `${value} shares traded` },
             },
         },
+        // `down` sets only a stroke, which keeps the themed fill and takes the 1px width of candlestick's items.
+        'custom up and down bars': {
+            ...volumeProfile,
+            up: { fill: '#1565c0', fillOpacity: 0.7, stroke: '#0d47a1', strokeWidth: 2 },
+            down: { stroke: '#e65100' },
+        },
     };
 
     it.each(Object.entries(EXAMPLES))('for %s it should render to canvas as expected', async (exampleName, example) => {
@@ -338,6 +344,20 @@ describe('volumeProfilePreset', () => {
 
             expectWarningsCalls().toEqual([]);
         });
+    });
+
+    it('should restyle and then restore the bars as `up` and `down` change', async () => {
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
+        await waitForChartStability(chart);
+        const themed = ctx.snapshot();
+
+        await chart.updateDelta({ up: { fill: '#1565c0' }, down: { fill: '#ef6c00' } });
+        await waitForChartStability(chart);
+        expect(ctx.snapshot()).not.toMatchImage(themed, { writeDiff: false });
+
+        await chart.updateDelta({ up: undefined, down: undefined });
+        await waitForChartStability(chart);
+        expect(ctx.snapshot()).toMatchImage(themed);
     });
 
     it('should colour the bars from the theme palette', async () => {

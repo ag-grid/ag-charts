@@ -24,7 +24,6 @@ import type {
     VerticalAlign,
 } from 'ag-charts-types';
 
-import type { InternalAgGlowHighlightStyleOptions, WithInternalShadow } from '../internalShadowOptions';
 import type { Normalised } from './normalise';
 import type {
     FillStrokeMorph,
@@ -54,16 +53,12 @@ export interface NormalisedHierarchySeriesKeys {
 export type NormalisedTreemapSeriesStyle = Normalised<AgTreemapSeriesStyle, never, FillStrokeMorph>;
 
 export type NormalisedTreemapGroupHighlightStyle = Normalised<
-    AgTreemapSeriesGroupHighlightStyle & InternalAgGlowHighlightStyleOptions,
+    AgTreemapSeriesGroupHighlightStyle,
     never,
     FillStrokeMorph
 >;
 
-export type NormalisedTreemapTileHighlightStyle = Normalised<
-    AgTreemapSeriesTileHighlightStyle & InternalAgGlowHighlightStyleOptions,
-    never,
-    FillStrokeMorph
->;
+export type NormalisedTreemapTileHighlightStyle = Normalised<AgTreemapSeriesTileHighlightStyle, never, FillStrokeMorph>;
 
 export type NormalisedTreemapGroupHighlightOptions = Normalised<
     AgTreemapSeriesGroupHighlightOptions,
@@ -107,7 +102,7 @@ type TreemapGroupRequiredKeys =
     | 'highlight';
 
 export type NormalisedTreemapGroupOptions = Normalised<
-    AgTreemapSeriesGroupOptions<unknown, unknown> & WithInternalShadow,
+    AgTreemapSeriesGroupOptions<unknown, unknown>,
     TreemapGroupRequiredKeys,
     {
         fill?: NormalisedColorType;
@@ -133,7 +128,7 @@ type TreemapTileRequiredKeys =
     | 'selection';
 
 export type NormalisedTreemapTileOptions = Normalised<
-    AgTreemapSeriesTileOptions<unknown, unknown> & WithInternalShadow,
+    AgTreemapSeriesTileOptions<unknown, unknown>,
     TreemapTileRequiredKeys,
     {
         fill?: NormalisedColorType;
@@ -167,11 +162,7 @@ export type NormalisedTreemapSeriesOwnOptions = Normalised<
 
 export type NormalisedSunburstSeriesStyle = Normalised<AgSunburstSeriesStyle, never, FillStrokeMorph>;
 
-export type NormalisedSunburstSeriesHighlightStyle = Normalised<
-    AgSunburstSeriesHighlightStyle & InternalAgGlowHighlightStyleOptions,
-    never,
-    FillStrokeMorph
->;
+export type NormalisedSunburstSeriesHighlightStyle = Normalised<AgSunburstSeriesHighlightStyle, never, FillStrokeMorph>;
 
 export type NormalisedSunburstSeriesHighlightOptions = Normalised<
     AgSunburstSeriesHighlightOptions,
@@ -214,7 +205,7 @@ type SunburstRequiredKeys =
 
 /** Sunburst options the series owns, before the common series keys are layered on. */
 export type NormalisedSunburstSeriesOwnOptions = Normalised<
-    AgSunburstSeriesOptions & WithInternalShadow,
+    AgSunburstSeriesOptions,
     SunburstRequiredKeys,
     {
         fills: NormalisedColorType[];

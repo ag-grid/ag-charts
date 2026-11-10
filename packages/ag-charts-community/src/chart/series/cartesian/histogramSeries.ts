@@ -1119,7 +1119,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.options;
-        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
+        const { alwaysShow, avoid, threshold, measureBox, fitFor } = barLabelDataContext(label);
         // The positioned path serves hideable, fitted and placement-cascading labels; an orientation-only
         // array stays on the baked path below, which resolves orientation against the bar region.
         if (barLabelPropsUsePositionedCandidates(label)) {
@@ -1139,7 +1139,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         nodeLabel,
                         ownBox,
                         alwaysShow,
-                        collideWith,
+                        avoid,
                         threshold,
                         false,
                         fitFor(nodeLabel.text),
@@ -1173,7 +1173,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 label: nodeLabel,
                 config: label,
                 size: styledBox?.size ?? (hasText ? measureBox(nodeLabel.text) : undefined),
-                collideWith,
+                avoid,
                 threshold,
                 fit:
                     fit == null || styledBox == null
@@ -1238,7 +1238,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const data: TooltipContentDataRow[] = [
             {
                 label: xName,
-                fallbackLabel: xKey,
+                fallbackLabel: this.keyName(xKey),
                 value: `${this.getAxisValueText(xAxis, 'tooltip', rangeMin, datum, xKey, legendItemName)} - ${this.getAxisValueText(xAxis, 'tooltip', rangeMax, datum, xKey, legendItemName)}`,
             },
             {
@@ -1251,13 +1251,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             let label: string;
             switch (options.aggregation) {
                 case 'sum':
-                    label = localeManager.t('seriesHistogramTooltipSum', { yName: yName ?? yKey });
+                    label = localeManager.t('seriesHistogramTooltipSum', { yName: yName ?? this.keyName(yKey) });
                     break;
                 case 'mean':
-                    label = localeManager.t('seriesHistogramTooltipMean', { yName: yName ?? yKey });
+                    label = localeManager.t('seriesHistogramTooltipMean', { yName: yName ?? this.keyName(yKey) });
                     break;
                 case 'count':
-                    label = localeManager.t('seriesHistogramTooltipCount', { yName: yName ?? yKey });
+                    label = localeManager.t('seriesHistogramTooltipCount', { yName: yName ?? this.keyName(yKey) });
                     break;
             }
 
@@ -1323,7 +1323,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: yName ?? itemId ?? 'Frequency',
+                    text: yName ?? (itemId == null ? undefined : this.keyName(itemId)) ?? 'Frequency',
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: showInLegend === false,

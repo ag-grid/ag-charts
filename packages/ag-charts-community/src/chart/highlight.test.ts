@@ -1,13 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Rect } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartOptions, AgPolarChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions, AgStandaloneChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { Chart } from './chart';
 import { getSeriesNodeData, getSeriesOptions, getSeriesSelectionNodes } from './test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     compareImageSnapshot,
     createChart,
     deproxy,
@@ -37,6 +38,7 @@ describe('Chart highlighting', () => {
 
     it('Handles bringToFront property', async () => {
         const options = prepareTestOptions<AgCartesianChartOptions>({
+            ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
             data: [
                 { x: 'A', line1: 10, line2: 5, bar: 20 },
                 { x: 'B', line1: 15, line2: 15, bar: 25 },
@@ -148,6 +150,7 @@ describe('Chart highlighting', () => {
         {
             name: 'bar',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -165,6 +168,7 @@ describe('Chart highlighting', () => {
         {
             name: 'line',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: cartesianSeriesData,
                 axes: {
                     x: { position: 'bottom', type: 'number' },
@@ -194,6 +198,7 @@ describe('Chart highlighting', () => {
         {
             name: 'area',
             options: {
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: cartesianSeriesData,
                 axes: {
                     x: { position: 'bottom', type: 'number' },
@@ -326,7 +331,7 @@ describe('Chart highlighting', () => {
                         sectorLabel: { enabled: true },
                     },
                 ],
-            } as AgPolarChartOptions,
+            } as AgStandaloneChartOptions,
             seriesIndex: 0,
             datumIndex: 2,
         },
@@ -346,7 +351,7 @@ describe('Chart highlighting', () => {
                         innerRadiusRatio: 0.6,
                     },
                 ],
-            } as AgPolarChartOptions,
+            } as AgStandaloneChartOptions,
             seriesIndex: 0,
             datumIndex: 1,
         },
@@ -422,6 +427,7 @@ describe('Chart highlighting', () => {
             ];
 
             const options = prepareTestOptions<AgCartesianChartOptions>({
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: threeSeriesData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -691,6 +697,7 @@ describe('Chart highlighting', () => {
 
         const twoSeriesOptions = () =>
             prepareTestOptions<AgCartesianChartOptions>({
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -1048,8 +1055,17 @@ describe('Chart highlighting', () => {
             }
         });
 
-        it('is provably the non-default: highlight.mode left unset behaves like single mode', async () => {
+        it.each([
+            [2, 'highlighted-item'],
+            [4, 'unhighlighted-series'],
+        ])('defaults to the tooltip mode when highlight.mode is unset on %i bar series', async (count, expected) => {
             const options = twoBarSeriesOptions();
+            options.series = Array.from({ length: count }, (_, i) => ({
+                type: 'bar',
+                xKey: 'category',
+                yKey: i % 2 === 0 ? 'apples' : 'oranges',
+                yName: `series ${i}`,
+            }));
             chart = deproxy(await createChart(options));
 
             const hoveredDatum = defaultHighlightDatum(chart, {
@@ -1063,9 +1079,7 @@ describe('Chart highlighting', () => {
             chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
             await waitForChartStability(chart);
 
-            // Without an explicit `mode`, the non-hovered series' item at the same category stays
-            // series-dimmed - proving the default is 'single', not 'shared'.
-            expect(stateAt(chart, 1, 1)).toBe('unhighlighted-series');
+            expect(stateAt(chart, 1, 1)).toBe(expected);
         });
 
         it('repaints the previously-matched item when the hover moves to a different category (no itemStyler)', async () => {

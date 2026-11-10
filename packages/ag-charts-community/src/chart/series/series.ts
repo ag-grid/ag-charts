@@ -44,13 +44,14 @@ import {
     boxContains,
     callWithContext,
     createId,
+    datumKeyName,
     glowToShadow,
     isGradientFill,
     isPatternFill,
     isSupportedMarkerShape,
     jsonDiff,
     nearestSquared,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     without,
 } from 'ag-charts-core';
 import type {
@@ -236,7 +237,9 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 
 export type UnknownSeries = Series<SeriesNodeDatum, object>;
 
-export type SeriesAreaLayout = (series: UnknownSeries[], seriesRect: BBox) => Promise<void>;
+export interface SeriesAreaLayout<T = UnknownSeries> {
+    layoutSeries(series: T[], seriesRect: BBox): Promise<void>;
+}
 
 export abstract class Series<
     TDatum extends SeriesNodeDatum,
@@ -260,8 +263,8 @@ export abstract class Series<
     readonly supportsDataTransactions: boolean = true;
     /** Lets the standalone chart round the series area origin down to whole pixels. */
     readonly snapsSeriesAreaOrigin: boolean = true;
-    /** Lays out every series sharing this function, before the chart updates them. */
-    readonly seriesAreaLayout?: SeriesAreaLayout;
+    /** Lays out every series sharing this layout, before the chart updates them. */
+    readonly seriesAreaLayout?: SeriesAreaLayout<this>;
 
     protected hasChangesOnHighlight: boolean = false;
     protected hasChangesOnSelection: boolean = false;
@@ -299,7 +302,7 @@ export abstract class Series<
     readonly contentGroup = new TranslatableGroup({
         name: `${this.internalId}-content`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
-        batchShadows: false,
+        batchShadows: true,
     });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -308,11 +311,11 @@ export abstract class Series<
     readonly highlightGroup = new TranslatableGroup({
         name: `${this.internalId}-highlight`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
-        batchShadows: false,
+        batchShadows: true,
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(
-        new Group<TDatum>({ name: `${this.internalId}-highlight-node`, batchShadows: false })
+        new Group<TDatum>({ name: `${this.internalId}-highlight-node`, batchShadows: true })
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(
@@ -444,6 +447,12 @@ export abstract class Series<
     setOptionsData(input: DataSet | undefined) {
         this._data = input;
         this.onDataChange();
+    }
+
+    setOptionsDataSuppressFieldDotNotation(suppressFieldDotNotation: boolean) {
+        const data = this._data;
+        if (data == null || data.suppressFieldDotNotation === suppressFieldDotNotation) return;
+        this.setOptionsData(DataSet.wrap(data.data, this.ctx.logger, data.dataIdKey, suppressFieldDotNotation));
     }
 
     public isHighlightEnabled(): boolean {
@@ -602,6 +611,19 @@ export abstract class Series<
         return this.ctx.chartState.getValue('options')?.highlight;
     }
 
+    protected get suppressFieldDotNotation(): boolean {
+        return this.ctx.chartState.getValue('options')?.suppressFieldDotNotation ?? false;
+    }
+
+    /** The tooltip name for a datum key that has no display name set. */
+    protected keyName(key: string): string {
+        return datumKeyName(key, this.suppressFieldDotNotation);
+    }
+
+    protected optionalKeyName(key: string | undefined): string | undefined {
+        return key == null ? undefined : this.keyName(key);
+    }
+
     protected getChartHighlightDrawingMode(): AgDrawingMode {
         return this.getChartHighlightOptions()?.drawingMode ?? 'overlay';
     }
@@ -734,7 +756,11 @@ export abstract class Series<
     }
 
     /** The chart's data set when this series needs more than a flat one. */
-    createChartDataSet(_data: unknown[], _dataIdKey: string | undefined): DataSet | undefined {
+    createChartDataSet(
+        _data: unknown[],
+        _dataIdKey: string | undefined,
+        _suppressFieldDotNotation: boolean
+    ): DataSet | undefined {
         return undefined;
     }
 
@@ -959,6 +985,11 @@ export abstract class Series<
         const currentHighlightState = this.getHighlightState(currentHighlightedDatum);
         const previousHighlightState = this.getHighlightState(previousHighlightedDatum);
 
+        // Exact picks include the highlight layer's copy when it is drawn at a highlight `size`.
+        if (this.hasHighlightedItemSize()) {
+            this._pickNodeCache.clear();
+        }
+
         // Force re-check of layer z-index
         this.setSeriesIndex(this.declarationOrder);
 
@@ -1045,7 +1076,8 @@ export abstract class Series<
      * every series. Every in-place copy casts the item's own `shadow` in the base pass that keeps it behind every
      * series, except where its highlight state sets a `glow`: that glow replaces the shadow, as an item has one shadow
      * slot. The exception is the item this series' highlight layer redraws, whose in-place copy keeps its `shadow`.
-     * AG-9003: while no `glow` is set, every copy casts its `shadow`, as in 14.2.0.
+     * While no highlight state sets a `glow`, the highlight layer's copy casts nothing and every in-place copy casts its
+     * `shadow`.
      */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
@@ -1054,7 +1086,7 @@ export abstract class Series<
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ): NormalisedDropShadowOptions | undefined {
-        if (!this.hasAnyGlow()) return shadow;
+        if (!this.hasAnyGlow()) return isHighlight ? undefined : shadow;
         if (isHighlight) return this.getStateGlow(HighlightState.Item);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
@@ -1191,11 +1223,28 @@ export abstract class Series<
         return true;
     }
 
+    /** The canvas-space band the series is clipped to; it takes no interactions outside it. */
+    interactionBand: BBox | undefined = undefined;
+
+    /** Every group the series draws into. */
+    getRenderGroups(): Group[] {
+        return [this.contentGroup, this.highlightGroup, this.labelGroup, this.annotationGroup];
+    }
+
+    private isInInteractionBand({ x, y }: Point) {
+        const { interactionBand } = this;
+        if (interactionBand == null) return true;
+        // Points arrive relative to the series area.
+        const rect = this.chart?.seriesRect;
+        return interactionBand.containsPoint(x + (rect?.x ?? 0), y + (rect?.y ?? 0));
+    }
+
     protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
+        if (!this.isInInteractionBand(point)) return;
         if (intent !== 'event' && intent !== 'context-menu' && !this.isHoverable()) return;
 
         // Mini-charts render markerless by construction, so they keep the plain 'exact' semantics.
@@ -1273,7 +1322,28 @@ export abstract class Series<
                 picks.push({ datum, distance: 0, target: node });
             }
         }
+        // A highlight `size` can draw the hovered marker larger than its copy in `contentGroup`, so the
+        // highlight layer's copy is hit tested too, or the outer part of the visible marker would not pick.
+        if (this.hasHighlightedItemSize()) {
+            for (const node of this.highlightGroup.pickNodes(point.x, point.y)) {
+                const datum = node.unsafeClosestDatum();
+                if (
+                    typeof datum === 'object' &&
+                    datum != null &&
+                    datum.missing !== true &&
+                    !picks.some((pick) => pick.datum === datum)
+                ) {
+                    picks.push({ datum, distance: 0, target: node });
+                }
+            }
+        }
         return picks;
+    }
+
+    /** Whether the highlighted item is drawn at a highlight `size`, which only marker-based series accept. */
+    private hasHighlightedItemSize(): boolean {
+        const { size } = this.getHighlightStyle(true, undefined, HighlightState.Item) as { size?: number };
+        return size != null;
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
@@ -1361,17 +1431,32 @@ export abstract class Series<
             }
         }
 
+        let box = selectionBox;
+        const { interactionBand } = this;
+        if (interactionBand != null) {
+            const visibleBox = BBox.fromObject(selectionBox).intersection(interactionBand);
+            if (visibleBox == null) return;
+            // Under 'all' a part-hidden node is still tested whole, so only the band overlap gates it.
+            if ((this.options.selection?.containment ?? 'any') === 'any') box = visibleBox;
+        }
+
         const predicate: PickNodesInBBoxPredicate = this.pickNodesInBBoxPredicate();
 
         yield* walkNodes(this.contentGroup, (node) => {
-            if (predicate(selectionBox, node)) {
+            if (predicate(box, node)) {
                 return node.unsafeDatum;
             }
             return undefined;
         });
     }
 
-    isPointInArea?(x: number, y: number): boolean;
+    isPointInArea(x: number, y: number): boolean {
+        return this.isInInteractionBand({ x, y }) && this.isPointInFill(x, y);
+    }
+
+    protected isPointInFill(_x: number, _y: number): boolean {
+        return false;
+    }
 
     public getLabelData(): PointLabelDatum[] {
         return [];
@@ -1456,7 +1541,7 @@ export abstract class Series<
             totalValue: datum.totalValue,
             seriesId: this.id,
             dataIdKey,
-            itemId: getItemId(datum, dataIdKey),
+            itemId: getItemId(datum, this.data),
             selectionState: this.getSelectionStateString(datum.datumIndex),
             isCollapsed: datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId),
         };
@@ -1472,8 +1557,13 @@ export abstract class Series<
         const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
+        if (series.id === this.id || matchedLegendItemName) {
             this.toggleSeriesItem(enabled, legendType, itemId, legendItemName, event);
+        } else if (legendItemKey != undefined) {
+            const linkedItemId = this.findLinkedLegendItemId(event);
+            if (linkedItemId != undefined) {
+                this.toggleSeriesItem(enabled, legendType, linkedItemId, legendItemName, event);
+            }
         }
     }
 
@@ -1482,9 +1572,14 @@ export abstract class Series<
         const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
+        if (series.id === this.id || matchedLegendItemName) {
             // Double-clicked item should always become visible.
             this.toggleSeriesItem(true, legendType, itemId, legendItemName, event);
+        } else if (legendItemKey != undefined) {
+            const linkedItemId = this.findLinkedLegendItemId(event);
+            if (linkedItemId != undefined) {
+                this.toggleSeriesItem(true, legendType, linkedItemId, legendItemName, event);
+            }
         } else if (enabled && numVisibleItems === 1) {
             // Other items should become visible if there is only one existing visible item.
             this.toggleSeriesItem(true, legendType, undefined, legendItemName);
@@ -1492,6 +1587,13 @@ export abstract class Series<
             // Disable other items if not exactly one enabled.
             this.toggleSeriesItem(false, legendType, undefined, legendItemName);
         }
+    }
+
+    /** Series linked by `legendItemKey` can order their rows differently, so the clicked row is matched by name. */
+    private findLinkedLegendItemId({ itemId, legendItemName }: LegendItemClickEvent | LegendItemDoubleClickEvent) {
+        if (legendItemName == undefined) return;
+        const items = this.ctx.legendManager?.getData(this.id).filter((d) => d.legendItemName === legendItemName);
+        return (items?.find((d) => d.itemId === itemId) ?? items?.[0])?.itemId;
     }
 
     abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
@@ -1900,9 +2002,9 @@ export abstract class Series<
         };
     }
 
-    /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
+    /** The series-area containment rect unless the label may overflow it (`collideWith.seriesArea: true`). */
     protected resolveLabelPlotRegion(collision: NormalisedChartLabelCollisionOptions): BoxBounds | undefined {
-        return resolveCollideWith(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
+        return resolveLabelAvoidance(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;

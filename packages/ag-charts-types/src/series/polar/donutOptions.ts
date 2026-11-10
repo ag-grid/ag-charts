@@ -29,7 +29,7 @@ import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 
 export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
@@ -169,7 +169,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     /** A styler function for adjusting the styling of the Donut sectors. */
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum, TContext>, AgDonutSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgDonutSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -193,7 +193,7 @@ export interface AgDonutSeriesOptionsKeys<TDatum = DatumDefault> {
     calloutLabelKey?: DatumKey<TDatum>;
     /** The key to use to retrieve sector label values from the data. */
     sectorLabelKey?: DatumKey<TDatum>;
-    /** The key to use to retrieve legend item labels from the data. If multiple series share this key they will be merged in the legend. */
+    /** The key to use to retrieve legend item labels from the data. Legend items with the same value are toggled together across series that set this key. */
     legendItemKey?: DatumKey<TDatum>;
 }
 

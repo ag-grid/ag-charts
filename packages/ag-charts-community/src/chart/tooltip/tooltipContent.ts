@@ -29,9 +29,13 @@ function tooltipTextHtml(ctx: TooltipHtmlContext, text: NormalisedTextOrSegments
     return sanitizeHtml(forceLtrNumbersIn(toPlainText(text), ctx.isRtl));
 }
 
-export type TooltipContentDataRow =
-    | { label: string; fallbackLabel?: string; value: TextValue; missing?: boolean; symbol?: LegendSymbolOptions }
-    | { label: undefined; fallbackLabel: string; value: TextValue; missing?: boolean; symbol?: LegendSymbolOptions };
+export type TooltipContentDataRow = {
+    label?: string;
+    fallbackLabel?: string;
+    value?: TextValue;
+    missing?: boolean;
+    symbol?: LegendSymbolOptions;
+};
 
 export type TooltipStructuredContent = {
     heading?: NormalisedTextOrSegments;
@@ -143,7 +147,9 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[], logg
                 for (const datum of i.data) {
                     // Skip data rows that are marked as missing
                     if (datum.missing === true) continue;
-                    ariaLabel.push(datum.label ?? datum.fallbackLabel, toPlainText(datum.value));
+                    const label = datum.label ?? datum.fallbackLabel;
+                    if (label != null) ariaLabel.push(label);
+                    if (datum.value != null) ariaLabel.push(toPlainText(datum.value));
                 }
             }
         }
@@ -155,7 +161,7 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[], logg
 function dataHtml(
     ctx: TooltipHtmlContext,
     label: string | undefined,
-    value: string,
+    value: TextValue | undefined,
     inline: boolean,
     symbol: LegendSymbolOptions | undefined
 ) {
@@ -163,10 +169,14 @@ function dataHtml(
 
     if (textOrSegmentsIsDefined(label)) {
         rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${tooltipTextHtml(ctx, label)}</span>`;
-        rowHtml += ' ';
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-value">${tooltipTextHtml(ctx, value)}</span>`;
+        if (value != null) {
+            rowHtml += ' ';
+            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-value">${tooltipTextHtml(ctx, toPlainText(value))}</span>`;
+        }
+    } else if (value == null) {
+        return '';
     } else {
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${tooltipTextHtml(ctx, value)}</span>`;
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${tooltipTextHtml(ctx, toPlainText(value))}</span>`;
     }
 
     const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}-row`];
@@ -177,7 +187,11 @@ function dataHtml(
         rowHtml = `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${legendSymbolSvg(symbol, ROW_SYMBOL_SIZE)}</span>${rowHtml}`;
     }
 
-    return rowHtml;
+    return rowHtml + ' ';
+}
+
+function isEmptyRow(datum: TooltipContentDataRow) {
+    return datum.value == null && !textOrSegmentsIsDefined(datum.label ?? datum.fallbackLabel);
 }
 
 function tooltipRowContentHtml(ctx: TooltipHtmlContext, content: GroupedStructuredContent['items'][0]) {
@@ -190,10 +204,17 @@ function tooltipRowContentHtml(ctx: TooltipHtmlContext, content: GroupedStructur
 
     const titleDefined = textOrSegmentsIsDefined(content.title);
 
-    const dataInline = !titleDefined && content.data?.length === 1;
+    let rowCount = 0;
+    if (content.data) {
+        for (const datum of content.data) {
+            if (!isEmptyRow(datum)) rowCount++;
+        }
+    }
+
+    const dataInline = !titleDefined && rowCount === 1;
 
     const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
-    if (symbol != null && (titleDefined || (content.data?.length ?? 0) > 0)) {
+    if (symbol != null && (titleDefined || rowCount > 0)) {
         html += `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${symbol}</span>`;
     }
 
@@ -206,14 +227,7 @@ function tooltipRowContentHtml(ctx: TooltipHtmlContext, content: GroupedStructur
         for (const datum of content.data) {
             // Skip data rows that are marked as missing
             if (datum.missing === true) continue;
-            html += dataHtml(
-                ctx,
-                datum.label ?? datum.fallbackLabel,
-                toPlainText(datum.value),
-                dataInline,
-                datum.symbol
-            );
-            html += ' ';
+            html += dataHtml(ctx, datum.label ?? datum.fallbackLabel, datum.value, dataInline, datum.symbol);
         }
     }
     return html;
@@ -270,8 +284,7 @@ function tooltipContentHtml(
             for (const datum of singleItem.data) {
                 // Skip data rows that are marked as missing
                 if (datum.missing === true) continue;
-                html += dataHtml(ctx, datum.label ?? compactFallbackLabel, toPlainText(datum.value), false, undefined);
-                html += ' ';
+                html += dataHtml(ctx, datum.label ?? compactFallbackLabel, datum.value, false, undefined);
             }
         }
     } else {

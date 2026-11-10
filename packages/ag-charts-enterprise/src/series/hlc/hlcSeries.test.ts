@@ -33,7 +33,6 @@ import {
     getLegendItemNodes,
     getTooltipElement,
     hoverAction,
-    internalOptions,
     isTooltipVisible,
     magnitudePair,
     pressKey,
@@ -174,18 +173,15 @@ describe('HlcSeries', () => {
             await compare();
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('renders a marker shadow', async () => {
+        it('renders a marker shadow', async () => {
             await renderSeries(
-                withSeries(
-                    internalOptions<Partial<AgHlcSeriesOptions>>({
-                        marker: {
-                            enabled: true,
-                            size: 14,
-                            shadow: { enabled: true, fill: '#000000', xOffset: 6, yOffset: 6, blur: 0 },
-                        },
-                    })
-                )
+                withSeries({
+                    marker: {
+                        enabled: true,
+                        size: 14,
+                        shadow: { enabled: true, fill: '#000000', xOffset: 6, yOffset: 6, blur: 0 },
+                    },
+                })
             );
             await compare();
         });
@@ -487,6 +483,7 @@ describe('HlcSeries', () => {
     describe('mixed chart', () => {
         const MIXED_OPTIONS: AgCartesianChartOptions = {
             data: DATA.map((d) => ({ ...d, volume: d.high - d.low, mean: (d.high + d.low) / 2 })),
+            highlight: { mode: 'single' },
             tooltip: { mode: 'shared' },
             legend: { enabled: true },
             series: [

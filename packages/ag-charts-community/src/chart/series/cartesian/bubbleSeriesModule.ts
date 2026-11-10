@@ -16,7 +16,6 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     themeLineHeight,
-    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type {
@@ -69,7 +68,7 @@ export const BUBBLE_SCATTER_GRADIENT_LEGEND_THEME: WithThemeParams<AgGradientLeg
 const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
-        shape: 'circle',
+        shape: { $palette: 'markerShape' },
         minSize: 7,
         maxSize: 30,
         sizeMode: 'diameter',
@@ -78,12 +77,12 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
         fillOpacity: 0.8,
         strokeWidth: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
-        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+        shadow: SHADOW_THEME_DEFAULTS,
         maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
-            enabled: false,
+            enabled: true,
             fontSize: { $ref: 'seriesLabelFontSize' },
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
@@ -91,7 +90,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
             padding: 8,
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
-            collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesArea: false } }) },
+            collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             placement: 'top',
         },
         tooltip: NEAREST_NODE_TOOLTIP_THEME,

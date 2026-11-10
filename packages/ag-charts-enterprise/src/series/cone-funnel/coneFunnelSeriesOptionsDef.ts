@@ -8,7 +8,6 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
-    deprecatedValue,
     fillOptionsDef,
     highlightOptionsDef,
     labelAutoFontSizeOptionsDefs,
@@ -23,7 +22,6 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumentedDefs,
     union,
     unionOrArray,
     without,
@@ -38,10 +36,7 @@ const coneFunnelPlacementDef = unionOrArray(
     'middle-after',
     'end-before',
     'end-center',
-    'end-after',
-    deprecatedValue('before', 'Use `start-center` instead.'),
-    deprecatedValue('middle', 'Use `middle-center` instead.'),
-    deprecatedValue('after', 'Use `end-center` instead.')
+    'end-after'
 );
 
 export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeriesThemeableOptions> = {
@@ -61,7 +56,7 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
         ...commonAxisLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     ...without(commonSeriesThemeableOptionsDefs, ['showInLegend']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),

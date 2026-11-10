@@ -21,10 +21,10 @@ interface FibonacciRetracementTrendBasedStateMachineContext extends Omit<
 }
 
 export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
-    'start' | 'waiting-first-render' | 'end' | 'endRetracement',
+    'start' | 'waiting-first-render' | 'waiting-create-render' | 'end' | 'endRetracement',
     Pick<
         AnnotationStateEvents,
-        'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'reset' | 'cancel' | 'render'
+        'click' | 'create' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'reset' | 'cancel' | 'render'
     >
 > {
     override debug = Debug.create(true, 'annotations');
@@ -46,6 +46,12 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             ctx.create(datum);
         };
 
+        const actionCreateAll = ({ points: [start, end, endRetracement] }: { points: DataPoint[] }) => {
+            const datum = this.createDatum();
+            applyAnnotationOptions(datum, { start, end, endRetracement });
+            ctx.create(datum);
+        };
+
         const actionFirstRender = () => {
             const { node } = this;
             node?.toggleActive(true);
@@ -64,8 +70,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             const { datum } = this;
             if (!datum) return;
 
-            datum.endRetracement.x = datum.end.x;
-            datum.endRetracement.y = datum.end.y;
+            applyAnnotationOptions(datum, { endRetracement: datum.end });
 
             this.node?.toggleHandles({ end: true });
             ctx.update();
@@ -93,6 +98,12 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             ctx.recordAction(`Create ${(this.datum as any)?.type} annotation`);
         };
 
+        const actionCreatedRender = () => {
+            this.node?.toggleActive(true);
+            onExitEnd();
+            ctx.update();
+        };
+
         super('start', {
             start: {
                 click: {
@@ -103,12 +114,22 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
+                create: {
+                    target: 'waiting-create-render',
+                    action: actionCreateAll,
+                },
                 reset: StateMachine.parent,
             },
             'waiting-first-render': {
                 render: {
                     target: 'end',
                     action: actionFirstRender,
+                },
+            },
+            'waiting-create-render': {
+                render: {
+                    target: StateMachine.parent,
+                    action: actionCreatedRender,
                 },
             },
             end: {

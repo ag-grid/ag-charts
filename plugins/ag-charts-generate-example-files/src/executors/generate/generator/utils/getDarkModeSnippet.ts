@@ -77,10 +77,13 @@ const swappedContainers = new WeakSet();
 __chartAPI.optionsMutationFn = function update(options, preset) {
     const theme = options.theme;
     const isThemeObject = typeof theme === 'object' && theme != null;
-    const baseTheme = isThemeObject ? theme.baseTheme : theme;
+    const ownBaseTheme = isThemeObject ? theme.baseTheme : theme;
     const params = isThemeObject ? theme.params : undefined;
 
-    if (!isAgThemeOrUndefined(baseTheme)) return options;
+    if (!isAgThemeOrUndefined(ownBaseTheme)) return options;
+
+    // Like the gallery thumbnails, the gallery's theme dropdown replaces the example's own base theme.
+    const baseTheme = document.documentElement.dataset.galleryTheme ?? ownBaseTheme;
 
     // Every other colour is derived from these two, so an example setting either has a scheme of
     // its own that these variables would only half-overwrite.

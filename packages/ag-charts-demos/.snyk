@@ -1,14 +1,41 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-21756800:
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T12:02:15.578Z
+  SNYK-JS-FOLLOWREDIRECTS-21762031:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.644Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.642Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.639Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-06T11:57:21.638Z
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-21460687:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T12:58:56.000Z
   SNYK-JS-BODYPARSER-21431495:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -35,75 +62,70 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-21369529:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-21369530:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-21369553:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-PICOMATCH-21248802:
-    - '@angular/build@20.3.37 > @angular-devkit/architect@0.2003.37 > @angular-devkit/core@20.3.37 > picomatch@4.0.4':
+    - '@angular/build@21.2.29 > @angular-devkit/architect@0.2102.29 > @angular-devkit/core@21.2.29 > picomatch@4.0.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > picomatch@4.0.4':
+    - '@angular/build@21.2.29 > picomatch@4.0.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
+    - '@angular/build@21.2.29 > sass@1.97.3 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > sass@1.90.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
+    - '@angular/build@21.2.29 > tinyglobby@0.2.15 > picomatch@4.0.7':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > tinyglobby@0.2.14 > picomatch@4.0.7':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
+    - '@angular/build@21.2.29 > vite@7.3.7 > picomatch@4.0.7':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > picomatch@4.0.7':
+    - '@angular/build@21.2.29 > vite@7.3.7 > tinyglobby@0.2.15 > picomatch@4.0.7':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > tinyglobby@0.2.15 > picomatch@4.0.7':
+    - '@angular/cli@21.2.29 > @angular-devkit/architect@0.2102.29 > @angular-devkit/core@21.2.29 > picomatch@4.0.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/cli@20.3.27 > @angular-devkit/architect@0.2003.27 > @angular-devkit/core@20.3.27 > picomatch@4.0.4':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tinyglobby@0.2.17 > picomatch@4.0.4':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tinyglobby@0.2.17 > picomatch@4.0.4':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -164,33 +186,28 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-QS-20943482:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181005:
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -231,17 +248,12 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181009:
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -282,17 +294,12 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181011:
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -333,22 +340,17 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181013:
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -389,22 +391,17 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181015:
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -445,17 +442,12 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181017:
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -496,22 +488,17 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181019:
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -552,22 +539,17 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21185768:
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -608,11 +590,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-VITE-21282024:
-    - '@angular/build@20.3.37 > vite@7.3.6':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - 'ag-charts-community@* > *':
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -639,30 +616,19 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-ZOD-20510278:
-    - '@angular/cli@20.3.27 > zod@4.1.13':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-12T11:18:44.610Z
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > zod@4.3.5':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > zod@4.3.5':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:18:44.604Z
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-20579853:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:15:09.807Z
-  SNYK-JS-PISCINA-20417213:
-    - '@angular/build@20.3.37 > piscina@5.2.0':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-12T11:00:43.117Z
   SNYK-JS-PICOMATCH-15765511:
-    - '@angular/build@20.3.37 > sass@1.90.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
+    - '@angular/build@21.2.29 > sass@1.97.3 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -673,7 +639,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.383Z
   SNYK-JS-BRACES-19963945:
-    - '@angular/build@20.3.37 > sass@1.90.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > braces@3.0.3':
+    - '@angular/build@21.2.29 > sass@1.97.3 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > braces@3.0.3':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -684,7 +650,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.375Z
   SNYK-JS-BRACEEXPANSION-20244952:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -705,7 +671,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.374Z
   SNYK-JS-BRACEEXPANSION-20244948:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -852,65 +818,65 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.359Z
   SNYK-JS-AJV-15274295:
-    - '@angular/build@20.3.37 > @angular-devkit/architect@0.2003.37 > @angular-devkit/core@20.3.37 > ajv-formats@3.0.1 > ajv@8.12.0':
+    - '@angular/build@21.2.29 > @angular-devkit/architect@0.2102.29 > @angular-devkit/core@21.2.29 > ajv-formats@3.0.1 > ajv@8.12.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
-    - '@angular/cli@20.3.27 > @angular-devkit/architect@0.2003.27 > @angular-devkit/core@20.3.27 > ajv-formats@3.0.1 > ajv@8.12.0':
+    - '@angular/cli@21.2.29 > @angular-devkit/architect@0.2102.29 > @angular-devkit/core@21.2.29 > ajv-formats@3.0.1 > ajv@8.12.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > ajv@8.17.1':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > ajv@8.17.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-EXPRESSRATELIMIT-15440710:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express-rate-limit@8.2.1':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express-rate-limit@8.2.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-HONONODESERVER-18170326:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > @hono/node-server@1.19.9':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > @hono/node-server@1.19.9':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-HTTPCACHESEMANTICS-19964064:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > npm-registry-fetch@19.1.1 > make-fetch-happen@15.0.6 > http-cache-semantics@4.1.1':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > npm-registry-fetch@19.1.1 > make-fetch-happen@15.0.6 > http-cache-semantics@4.1.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-HTTPCACHESEMANTICS-19964068:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > npm-registry-fetch@19.1.1 > make-fetch-happen@15.0.6 > http-cache-semantics@4.1.1':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > npm-registry-fetch@19.1.1 > make-fetch-happen@15.0.6 > http-cache-semantics@4.1.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-IMMUTABLE-15423650:
-    - '@angular/build@20.3.37 > sass@1.90.0 > immutable@5.0.3':
+    - '@angular/build@21.2.29 > sass@1.97.3 > immutable@5.0.3':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-IMMUTABLE-17900558:
-    - '@angular/build@20.3.37 > sass@1.90.0 > immutable@5.0.3':
+    - '@angular/build@21.2.29 > sass@1.97.3 > immutable@5.0.3':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-IMMUTABLE-17900573:
-    - '@angular/build@20.3.37 > sass@1.90.0 > immutable@5.0.3':
+    - '@angular/build@21.2.29 > sass@1.97.3 > immutable@5.0.3':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-ISAACSBRACEEXPANSION-15208653:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1 > @isaacs/brace-expansion@5.0.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1 > @isaacs/brace-expansion@5.0.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -931,13 +897,13 @@ ignore:
             Local workspace package - its dependencies are scanned and triaged in its own project
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.380Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-MINIMATCH-15353387:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -958,25 +924,19 @@ ignore:
             Local workspace package - its dependencies are scanned and triaged in its own project
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.381Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-09-28T09:37:46.963Z
-  SNYK-JS-PACOTE-8225084:
-    - '@angular/cli@20.3.27 > pacote@21.0.4':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-PATHTOREGEXP-15789763:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-PATHTOREGEXP-15789765:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1002,7 +962,7 @@ ignore:
             Local workspace package - its dependencies are scanned and triaged in its own project
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.363Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > postcss@8.5.10':
+    - '@angular/build@21.2.29 > vite@7.3.7 > postcss@8.5.10':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1028,35 +988,35 @@ ignore:
             Local workspace package - its dependencies are scanned and triaged in its own project
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.364Z
-    - '@angular/build@20.3.37 > beasties@0.3.5 > postcss@8.5.15':
+    - '@angular/build@21.2.29 > beasties@0.4.1 > postcss@8.5.15':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > postcss@8.5.10':
+    - '@angular/build@21.2.29 > vite@7.3.7 > postcss@8.5.10':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-PROXYADDR-19812342:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-QS-14724253:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-QS-15268416:
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
-    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+    - '@angular/cli@21.2.29 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1072,17 +1032,12 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:17:57.700Z
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tar@7.5.16':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:17:57.681Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-12T11:17:57.668Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1112,12 +1067,12 @@ ignore:
             Local workspace package - its dependencies are scanned and triaged in its own project
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.367Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > tar@7.5.16':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1133,17 +1088,12 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:18:24.419Z
-    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tar@7.5.16':
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:18:24.412Z
-    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-12T11:18:24.406Z
-    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
+    - '@angular/build@21.2.29 > vite@7.3.7 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -1173,47 +1123,47 @@ ignore:
             Local workspace package - its dependencies are scanned and triaged in its own project
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.369Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > tar@7.5.16':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-UNDICI-17372658:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-UNDICI-17372758:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-UNDICI-19635210:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-UNDICI-19635226:
-    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@angular/cli@21.2.29 > pacote@21.5.1 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-URIJS-19963963:
-    - '@angular/build@20.3.37 > @angular-devkit/architect@0.2003.37 > @angular-devkit/core@20.3.37 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
+    - '@angular/build@21.2.29 > @angular-devkit/architect@0.2102.29 > @angular-devkit/core@21.2.29 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
-    - '@angular/cli@20.3.27 > @angular-devkit/architect@0.2003.27 > @angular-devkit/core@20.3.27 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
+    - '@angular/cli@21.2.29 > @angular-devkit/architect@0.2102.29 > @angular-devkit/core@21.2.29 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'

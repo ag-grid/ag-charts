@@ -8,11 +8,11 @@ import type {
     CallbackParam,
     CandidateLabelStyle,
     CandidateStyleResolver,
-    CollideWith,
     DynamicContext,
     FitRegion,
     FontOptions,
     IsAny,
+    LabelAvoidance,
     LabelFit,
     LabelFitDescriptor,
     LabelObstacle,
@@ -48,7 +48,7 @@ import {
     measureLabelText,
     mergeDefaults,
     orientationAngles,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     resolveLabelFitDescriptors,
     rotatedGlyphDrift,
     rotatedLabelInset,
@@ -71,6 +71,7 @@ import type {
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
+import type { DataIdReader } from './data/dataSet';
 import {
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
@@ -85,7 +86,7 @@ interface SeriesLike {
     id: string;
     ctx: DynamicContext<ChartRegistry>;
     declarationOrder: number;
-    readonly data?: { readonly dataIdKey?: string };
+    readonly data?: DataIdReader;
     get visible(): boolean;
     cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined;
     isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined): boolean;
@@ -404,7 +405,7 @@ export interface BarLabelDataContext {
     /** Per-side extent of the drawn box (padding plus border) around the glyph. */
     readonly box: Required<PaddingOptions>;
     readonly alwaysShow: boolean;
-    readonly collideWith: CollideWith;
+    readonly avoid: LabelAvoidance;
     readonly threshold: number;
     /** Drawn-box footprint of `text` under the configured label font: the measured glyph plus {@link box}. */
     readonly measureBox: (text: NormalisedTextOrSegments) => { width: number; height: number };
@@ -424,7 +425,7 @@ export function barLabelDataContext<TParams>(label: BarLabelSurface<TParams>): B
     return {
         box,
         alwaysShow,
-        collideWith: resolveCollideWith(label.collision),
+        avoid: resolveLabelAvoidance(label.collision),
         threshold: label.collision.threshold ?? 0,
         measureBox: (text) => {
             const { width, height } = measureLabelText(text, label);
@@ -520,9 +521,7 @@ export function getLabelStyles<TParams>(
             nodeDatum?.datumIndex
         );
 
-        const itemId: string | number | undefined = nodeDatum
-            ? getItemId(nodeDatum, series.data?.dataIdKey)
-            : undefined;
+        const itemId: string | number | undefined = nodeDatum ? getItemId(nodeDatum, series.data) : undefined;
 
         const styleParams: NormalisedCallbackParams<
             AgChartLabelStylerParams<unknown, unknown>,

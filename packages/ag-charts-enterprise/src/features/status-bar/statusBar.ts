@@ -14,6 +14,7 @@ import {
     drawnLineHeight,
     isFiniteNumber,
     isNumericValue,
+    readDatumKey,
 } from 'ag-charts-core';
 
 import { findBandLevel } from './findBandLevel';
@@ -207,6 +208,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         {
             labelKey: 'statusBarVolumeProfileUp' as const,
             style: 'positive' as const,
+            colorKey: 'upColor' as const,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             formatter: createVolumeFormatter(),
@@ -215,6 +217,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         {
             labelKey: 'statusBarVolumeProfileDown' as const,
             style: 'negative' as const,
+            colorKey: 'downColor' as const,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             formatter: createVolumeFormatter(),
@@ -517,11 +520,12 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         this.labelGroup.visible = true;
 
         const itemId = activeHighlight?.itemId;
+        const suppress = this.ctx.chartState.getValue('options', 'suppressFieldDotNotation') ?? false;
 
         let baseStyle = itemId == null ? undefined : itemIdMap[itemId];
         if (baseStyle == null && opts.openKey != null && opts.closeKey != null) {
             // Fallback for series without distinct positive/negative items.
-            if (datum[opts.openKey] < datum[opts.closeKey]) {
+            if (readDatumKey(datum, opts.openKey, suppress) < readDatumKey(datum, opts.closeKey, suppress)) {
                 baseStyle = 'positive';
             } else {
                 baseStyle = 'negative';
@@ -537,7 +541,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             }
 
             const datumKey = opts[key];
-            const datumValue = datumKey == null ? undefined : datum?.[datumKey];
+            const datumValue = datumKey == null ? undefined : readDatumKey(datum, datumKey, suppress);
 
             value.setFont(opts[labelStyle]);
             value.fill = opts[labelStyle].color;
@@ -581,13 +585,13 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         this.backgroundNode.width = band == null ? this.candleWidth : this.bandWidth;
         this.backgroundNode.height = band == null ? this.candleHeight : this.bandHeight;
 
-        for (const { style, title, value, formatter, text } of bandLabels) {
+        for (const { style, colorKey, title, value, formatter, text } of bandLabels) {
             title.visible = band != null;
             value.visible = band != null;
             if (band == null) continue;
 
             value.setFont(opts[style]);
-            value.fill = opts[style].color;
+            value.fill = (colorKey == null ? undefined : opts.volumeProfile?.[colorKey]) ?? opts[style].color;
             value.text = text(band, (n) => formatter.format(n));
         }
     }

@@ -48,6 +48,27 @@ describe('BackgroundImage', () => {
         await compare(chart);
     });
 
+    it('Draws the chart border once, above an image at the edge', async () => {
+        const options = {
+            title: { text: 'Background image under the chart border' },
+            border: { stroke: 'red', strokeWidth: 8, strokeOpacity: 0.5 },
+            background: {
+                image: {
+                    url: SMALL_IMAGE,
+                    width: 100,
+                    height: 100,
+                    left: 0,
+                    top: 0,
+                    opacity: 1,
+                },
+            },
+        };
+
+        chart = await createEnterpriseChart(options);
+
+        await compare(chart);
+    });
+
     it('Transparent image at right bottom corner with fill color', async () => {
         const options = {
             title: { text: 'Background image in the right bottom corner' },

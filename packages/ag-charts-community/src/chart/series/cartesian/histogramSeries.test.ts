@@ -1316,7 +1316,7 @@ describe('HistogramSeries', () => {
     });
 
     describe('getLabelObstacles', () => {
-        it('contributes a seriesItem rect obstacle per bin', async () => {
+        it('contributes a shape rect obstacle per bin', async () => {
             const options: AgCartesianChartOptions = {
                 data: [1, 2, 3, 4, 11, 12, 21, 22, 23].map((x) => ({ x })),
                 series: [{ type: 'histogram', xKey: 'x', binCount: 3 }],
@@ -1331,7 +1331,7 @@ describe('HistogramSeries', () => {
                 nodeData.map(({ x, y, width, height }) => ({
                     kind: 'rect',
                     box: { x, y, width, height },
-                    category: 'seriesItem',
+                    category: 'shape',
                 }))
             );
         });

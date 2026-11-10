@@ -59,10 +59,17 @@ import type { BBox, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import {
+    type CrosshairSnapConfig,
+    collectCrosshairSnapValues,
+    resolveCrosshairSnapConfig,
+} from '../../utils/crosshairSnap';
+import {
     type RangeBarSeriesDataAggregationFilter,
     aggregateRangeBarDataFromDataModel,
     aggregateRangeBarDataFromDataModelPartial,
 } from './rangeBarAggregation';
+
+const RANGE_BAR_VALUE_KEYS = ['yLowKey', 'yHighKey'] as const;
 
 const {
     barLabelObstaclesFor,
@@ -239,6 +246,10 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
     style?: Required<NormalisedRangeBarSeriesStyle>;
 }
 
+function isRangeBarNodeDatum(nodeDatum: _ModuleSupport.SeriesNodeDatum): nodeDatum is RangeBarNodeDatum {
+    return 'yLowValue' in nodeDatum && 'yHighValue' in nodeDatum;
+}
+
 type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<RangeBarSeriesTypes>;
 
 interface RangeBarSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
@@ -298,6 +309,29 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowKey: this.options.yLowKey,
             yHighKey: this.options.yHighKey,
         };
+    }
+
+    getCrosshairSnapConfig(): CrosshairSnapConfig {
+        return resolveCrosshairSnapConfig(this.options, RANGE_BAR_VALUE_KEYS);
+    }
+
+    getCrosshairSnapValues(nodeDatum: _ModuleSupport.SeriesNodeDatum): Partial<Record<string, unknown>> {
+        if (!isRangeBarNodeDatum(nodeDatum)) return {};
+
+        let { yLowValue, yHighValue } = nodeDatum;
+        const ctx = this.nodeDatumContext;
+        const filter = ctx?.dataAggregationFilter;
+        const bucketIndex = filter == null ? undefined : this.bucketLookup?.getBucketIndex(nodeDatum.datumIndex);
+        if (ctx != null && filter != null && bucketIndex != null && bucketIndex < filter.maxRange) {
+            const aggIndex = bucketIndex * AGGREGATION_SPAN;
+            yLowValue = ctx.yLowValues[filter.indexData[aggIndex + AGGREGATION_INDEX_Y_MIN]];
+            yHighValue = ctx.yHighValues[filter.indexData[aggIndex + AGGREGATION_INDEX_Y_MAX]];
+        }
+
+        return collectCrosshairSnapValues([
+            ['yLowKey', yLowValue],
+            ['yHighKey', yHighValue],
+        ]);
     }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -1398,7 +1432,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.options.label.enabled) return [];
         const { label } = this.options;
-        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
+        const { alwaysShow, avoid, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const resolveStyle =
             label.itemStyler == null
                 ? undefined
@@ -1411,7 +1445,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     ...buildBarLabelData([labelDatum], () => ({
                         label: labelDatum,
                         config: label,
-                        collideWith,
+                        avoid,
                         threshold,
                     }))
                 );
@@ -1438,7 +1472,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         label: labelDatum,
                         config: label,
                         size: styled?.size ?? measureBox(labelDatum.text),
-                        collideWith,
+                        avoid,
                         threshold,
                         fit:
                             configuredFit == null || styled == null
@@ -1459,7 +1493,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         labelDatum,
                         ownBox,
                         alwaysShow,
-                        collideWith,
+                        avoid,
                         threshold,
                         true,
                         configuredFit,
@@ -1509,12 +1543,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { xKey, xName, yName, yLowKey, yLowName, yHighKey, yHighName, legendItemName } = this.options;
         return {
             xKey,
-            xName: xName ?? xKey,
+            xName: xName ?? this.keyName(xKey),
             yName,
             yLowKey,
-            yLowName: yLowName ?? yLowKey,
+            yLowName: yLowName ?? this.keyName(yLowKey),
             yHighKey,
-            yHighName: yHighName ?? yHighKey,
+            yHighName: yHighName ?? this.keyName(yHighKey),
             legendItemName,
         };
     }
@@ -1586,7 +1620,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
+                        fallbackLabel: `${yLowName ?? this.keyName(yLowKey)} - ${yHighName ?? this.keyName(yHighKey)}`,
                         value,
                         missing:
                             _ModuleSupport.isTooltipValueMissing(yHighValue) &&
@@ -1639,7 +1673,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { id: seriesId, visible } = this;
 
         const { yName, yLowName, yHighName, yLowKey, yHighKey, legendItemName, showInLegend } = this.options;
-        const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const legendItemText =
+            legendItemName ?? yName ?? `${yLowName ?? this.keyName(yLowKey)} - ${yHighName ?? this.keyName(yHighKey)}`;
         const itemId = `${yLowKey}-${yHighKey}`;
 
         return [

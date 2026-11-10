@@ -622,8 +622,10 @@ describe('ErrorBars', () => {
     it('should dim opacity on highlight', async () => {
         chart = await createEnterpriseChart({
             highlight: {
+                mode: 'single',
                 drawingMode: 'cutout',
             },
+            tooltip: { mode: 'shared' },
             series: [
                 { type: 'line', ...SERIES_CANADA },
                 { type: 'line', ...SERIES_AUSTRALIA, highlight: { unhighlightedSeries: { opacity: 0.3 } } },
@@ -1135,6 +1137,7 @@ describe('ErrorBars', () => {
                         ],
                         xKey: 'x',
                         yKey: 'y',
+                        labelKey: 'y',
                         label: { placement: 'right', spacing: SPACING },
                         errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', cap: { length: 40 } },
                     },
@@ -1180,7 +1183,7 @@ describe('ErrorBars', () => {
                         label: { placement: 'top', spacing: SPACING },
                         errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
                     },
-                    { ...SERIES_BOYLESLAW, label: { placement: 'right', spacing: SPACING } },
+                    { ...SERIES_BOYLESLAW, labelKey: 'pressure', label: { placement: 'right', spacing: SPACING } },
                 ],
                 axes: {
                     x: { type: 'number', position: 'bottom' },
@@ -1215,6 +1218,7 @@ describe('ErrorBars', () => {
                         ],
                         xKey: 'x',
                         yKey: 'y',
+                        labelKey: 'y',
                         shape: 'pin',
                         size: 30,
                         label: { placement: 'bottom', spacing: SPACING },
@@ -1264,12 +1268,18 @@ describe('ErrorBars', () => {
         it.each([
             ['without error bars', undefined, {}, 'inside'],
             ['off their own whiskers', SERIES_BOYLESLAW.errorBar, {}, 'bottom'],
-            ['off the whiskers with marker collision off', SERIES_BOYLESLAW.errorBar, { markers: false }, 'bottom'],
+            [
+                'off the whiskers when allowed to overlap markers',
+                SERIES_BOYLESLAW.errorBar,
+                { markers: true },
+                'bottom',
+            ],
         ])('places inside marker labels %s', async (_, errorBar, collideWith, expected) => {
             chart = await createEnterpriseChart({
                 series: [
                     {
                         ...SERIES_BOYLESLAW,
+                        labelKey: 'pressure',
                         errorBar,
                         size: 30,
                         label: {
@@ -1404,6 +1414,7 @@ describe('ErrorBars', () => {
                             ],
                             xKey: 'x',
                             yKey: 'y',
+                            labelKey: 'y',
                             label: { spacing: SPACING, ...label },
                             errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', offsetLabels: false },
                         } as AgScatterSeriesOptions,

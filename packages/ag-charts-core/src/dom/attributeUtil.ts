@@ -9,6 +9,7 @@ export type StrictHTMLElement = HTMLElement & { id: ElementID };
 
 type AriaRole =
     | 'button'
+    | 'dialog'
     | 'figure'
     | 'group'
     | 'img'
@@ -20,6 +21,7 @@ type AriaRole =
     | 'presentation'
     | 'radio'
     | 'radiogroup'
+    | 'region'
     | 'separator'
     | 'status'
     | 'switch'
@@ -43,6 +45,9 @@ export type BaseAttributeTypeMap = {
     'aria-live': 'assertive' | 'polite';
     'aria-orientation': Direction;
     'aria-selected': boolean;
+    'aria-valuemax': number;
+    'aria-valuemin': number;
+    'aria-valuetext': string;
     'data-focus-override': boolean;
     'data-focus-visible-override': boolean;
     'data-preventdefault': boolean;
@@ -54,6 +59,7 @@ export type BaseAttributeTypeMap = {
 };
 
 type InputAttributeTypeMap = BaseAttributeTypeMap & {
+    list: ElementID;
     placeholder: string;
 };
 
@@ -82,6 +88,9 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'aria-live': stringParser<BaseAttributeTypeMap['aria-live']>,
     'aria-orientation': stringParser<Direction>,
     'aria-selected': booleanParser,
+    'aria-valuemax': numberParser,
+    'aria-valuemin': numberParser,
+    'aria-valuetext': stringParser,
     'data-focus-override': booleanParser,
     'data-focus-visible-override': booleanParser,
     'data-preventdefault': booleanParser,
@@ -90,6 +99,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     id: stringParser<ElementID>,
     tabindex: numberParser<0 | -1>,
     title: stringParser,
+    list: stringParser<ElementID>,
     placeholder: stringParser,
 };
 
@@ -115,7 +125,7 @@ export function setAttribute<A extends keyof BaseAttributeTypeMap>(
 ): void;
 
 export function setAttribute<A extends keyof InputAttributeTypeMap>(
-    e: Nullable<HTMLTextAreaElement>,
+    e: Nullable<HTMLInputElement | HTMLTextAreaElement>,
     qualifiedName: A,
     value: InputAttributeTypeMap[A] | undefined
 ): void;

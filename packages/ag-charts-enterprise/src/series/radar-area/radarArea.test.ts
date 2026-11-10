@@ -14,6 +14,7 @@ import {
     type ChartOrProxy,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadarAreaStyler,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     type SceneNodeExpectation,
     compareImageSnapshot,
     createSceneGeometrySampler,
@@ -25,7 +26,6 @@ import {
     expectWarningsCalls,
     getSeriesOptions,
     hoverAction,
-    internalOptions,
     looserSnapshotDefaults,
     newFreezableMock,
     setupMockCanvas,
@@ -35,7 +35,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import type { NonNullablePath, WithInternalShadow } from 'ag-charts-core';
+import type { NonNullablePath } from 'ag-charts-core';
 
 import { destroyChart, getRadarAreaGroups } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -640,6 +640,7 @@ describe('RadarAreaSeries', () => {
             beforeEach(async () => {
                 chart = await createEnterpriseChart<O>({
                     data,
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
                     series: [
                         {
                             type: 'radar-area',
@@ -733,6 +734,7 @@ describe('RadarAreaSeries', () => {
 
     it('should dim non-highlight markers with cutout in multi-series radar area', async () => {
         const options: AgPolarChartOptions = {
+            ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
             data: [
                 { subject: 'Maths', gradeA: 7, gradeB: 4.2 },
                 { subject: 'Physics', gradeA: 4.3, gradeB: 8.5 },
@@ -924,20 +926,17 @@ describe('RadarAreaSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions =>
-            internalOptions<AgChartOptions>({
-                data: EXAMPLE_OPTIONS.data,
-                series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', shadow: seriesShadow }],
-                legend: { enabled: false },
-            });
+        const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
+            data: EXAMPLE_OPTIONS.data,
+            series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', shadow: seriesShadow }],
+            legend: { enabled: false },
+        });
 
         it('defaults to a disabled shadow', async () => {
             const options = shadowOptions();
             chart = await createEnterpriseChart(options);
 
-            expect(getSeriesOptions<AgRadarAreaSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
-                DEFAULT_DISABLED_SHADOW
-            );
+            expect(getSeriesOptions<AgRadarAreaSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {

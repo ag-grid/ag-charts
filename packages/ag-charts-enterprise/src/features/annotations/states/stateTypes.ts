@@ -11,6 +11,7 @@ import type {
     LinearSettingsDialogLineChangeProps,
     LinearSettingsDialogTextChangeProps,
 } from '../settings-dialog/settingsDialog';
+import type { CoordinateChangeProps } from '../utils/coordinates';
 
 export type AnnotationStateEvents = InteractionEvents &
     ActionEvents &
@@ -72,6 +73,7 @@ type InteractionEvents = {
 };
 
 type ActionEvents = {
+    create: { points: DataPoint[] };
     copy: undefined;
     cut: undefined;
     paste: undefined;
@@ -84,6 +86,7 @@ type ActionEvents = {
         opacity: number;
         isMultiColor: boolean;
     };
+    coordinates: CoordinateChangeProps;
     fontSize: number;
     lineProps: LinearSettingsDialogLineChangeProps;
     lineStyle: AnnotationLineStyle;

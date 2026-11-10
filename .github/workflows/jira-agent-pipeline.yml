@@ -381,10 +381,10 @@ jobs:
                       Import map — splice these into the repro's existing `<script type="importmap">`, replacing only the `ag-charts-` entries and leaving `react`, `vue`, `@angular/*`, `rxjs`, `tslib` and `clone` alone:
 
                       "ag-charts-types": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-types/dist/package/main.esm.mjs",
-                      "ag-charts-core": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-core/dist/package/main.esm.mjs",
-                      "ag-charts-community": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-community/dist/package/main.esm.mjs",
-                      "ag-charts-enterprise": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-enterprise/dist/package/main.esm.mjs",
-                      "ag-charts-locale": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-locale/dist/package/main.esm.mjs",
+                      "ag-charts-core": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-core/dist/package/main.esm.min.mjs",
+                      "ag-charts-community": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-community/dist/package/main.esm.min.mjs",
+                      "ag-charts-enterprise": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-enterprise/dist/package/main.esm.min.mjs",
+                      "ag-charts-locale": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-locale/dist/package/main.esm.min.mjs",
                       "ag-charts-react": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-react/dist/package/index.esm.mjs",
                       "ag-charts-angular": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-angular/fesm2022/ag-charts-angular.mjs",
                       "ag-charts-vue3": "https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-vue3/dist/package/index.esm.mjs"

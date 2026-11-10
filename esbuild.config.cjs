@@ -57,7 +57,10 @@ const htmlPlugin = {
 const postBuildMinificationPlugin = {
     name: 'minification-plugin',
     setup(build) {
+        // Per-module ESM output is for consumers' bundlers, which minify it themselves.
+        if (isUnbundledEsm(build.initialOptions)) return;
         build.initialOptions.metafile = true;
+        const sourcemap = Boolean(build.initialOptions.sourcemap);
 
         /** @type {Map<string, AbortController>} */
         const writeState = new Map();
@@ -78,7 +81,7 @@ const postBuildMinificationPlugin = {
                 if (signal.aborted) return;
                 const minified = await esbuild.transform(contents, {
                     minify: true,
-                    sourcemap: true,
+                    sourcemap,
                 });
 
                 if (signal.aborted) return;
@@ -86,7 +89,7 @@ const postBuildMinificationPlugin = {
                 const minifiedFile = path.resolve(path.dirname(outputFile), `${name}.min${ext}`);
                 await Promise.all([
                     fs.writeFile(minifiedFile, minified.code, { signal }),
-                    fs.writeFile(`${minifiedFile}.map`, minified.map, { signal }),
+                    sourcemap && fs.writeFile(`${minifiedFile}.map`, minified.map, { signal }),
                 ]);
             } catch (e) {
                 if (e.name !== 'AbortError') throw e;
@@ -102,8 +105,8 @@ const postBuildMinificationPlugin = {
 
 /**
  * Post-build plugin that adds /*#__PURE__* / annotations to top-level side effects
- * in the ESM bundle. This allows downstream bundlers to tree-shake unused code from
- * the single-file bundle output.
+ * in the ESM output. `sideEffects` lets downstream bundlers drop a whole unused module,
+ * and these annotations let them drop the unused declarations inside a module they keep.
  *
  * Covers:
  *   - Expression statements (calls like __decorateClass, assignments like _Foo.bar = …)
@@ -147,19 +150,10 @@ const umdWrapperAdaptorPlugin = {
             path: path.join(args.resolveDir, args.path.replace('.cjs.js', '.esm.mjs')),
         }));
 
-        // Creates UMD banner + footer config.
+        // Creates UMD banner + footer config, mapping externals to their published global names.
         const exportedName = exportedNames[process.env.NX_TASK_TARGET_PROJECT];
-        const umdWrapperInstance = umdWrapper({ libraryName: exportedName });
+        const umdWrapperInstance = umdWrapper({ libraryName: exportedName, globals: exportedNames });
         umdWrapperInstance.setup(build);
-
-        // Correct global variable name references.
-        const { banner } = build.initialOptions;
-        for (const external of initialOptions.external ?? []) {
-            const globalName = exportedNames[external];
-            if (globalName) {
-                banner.js = banner.js.replaceAll(`g["${external}"]`, `g["${globalName}"]`);
-            }
-        }
 
         // Add `require()` function which uses resolved module references.
         const externalsMap =
@@ -178,6 +172,111 @@ if (typeof require === 'undefined') {
     },
 };
 
+const UNBUNDLED_ESM_PROJECTS = new Set([
+    'ag-charts-core',
+    'ag-charts-community',
+    'ag-charts-enterprise',
+    'ag-charts-locale',
+]);
+const isUnbundledEsm = (initialOptions) =>
+    initialOptions.format === 'esm' &&
+    process.env.NX_TASK_TARGET_TARGET === 'build:package' &&
+    UNBUNDLED_ESM_PROJECTS.has(process.env.NX_TASK_TARGET_PROJECT);
+
+const toPosix = (filePath) => filePath.split(path.sep).join('/');
+const RESOLVING = Symbol('unbundled-esm-resolving');
+const MODULE_EXTENSION = /\.(ts|css|html)$/;
+/** `chart/foo.ts` becomes `chart/foo`, while `styles.css` keeps its extension so it cannot collide with `styles.ts`. */
+const outputStem = (file) => file.replace(/\.ts$/, '');
+
+/**
+ * Emits the ESM build as one file per source module, so that consumers' bundlers drop unused modules by
+ * file. Each module is still bundled on its own: relative imports of other modules stay external and point
+ * at their `.esm.mjs` outputs. CSS and HTML files become modules exporting their text, so importers share one copy.
+ *
+ * @type {import('esbuild').Plugin}
+ */
+const unbundledEsmPlugin = {
+    name: 'unbundled-esm',
+    async setup(build) {
+        const { initialOptions } = build;
+        if (!isUnbundledEsm(initialOptions)) return;
+
+        const { entryPoints, outfile } = initialOptions;
+        const srcDir = path.resolve(path.dirname(entryPoints[0]));
+        const outdir = initialOptions.outdir ?? path.dirname(outfile);
+        const outExtension = initialOptions.outExtension['.js'];
+        const bundleOptions = {
+            bundle: true,
+            format: 'esm',
+            platform: initialOptions.platform,
+            target: initialOptions.target,
+            tsconfig: initialOptions.tsconfig,
+            external: initialOptions.external,
+            define: initialOptions.define,
+            logLevel: 'silent',
+        };
+
+        // Ship only the modules reachable from the entry points, not every file under `src`.
+        const { metafile } = await esbuild.build({
+            ...bundleOptions,
+            entryPoints,
+            write: false,
+            metafile: true,
+            outdir,
+            loader: { '.css': 'empty', '.html': 'empty' },
+        });
+        const modules = new Set(
+            Object.keys(metafile.inputs)
+                .map((input) => path.resolve(input))
+                .filter((input) => input.startsWith(srcDir + path.sep) && MODULE_EXTENSION.test(input))
+        );
+
+        initialOptions.entryPoints = [...modules].map((file) => ({
+            in: file,
+            out: outputStem(path.relative(srcDir, file)),
+        }));
+        initialOptions.outdir = outdir;
+        delete initialOptions.outfile;
+
+        // The minified entry stays a single file, so a browser loading it through an import map makes one request.
+        build.onEnd(async (result) => {
+            if (result.errors.length > 0) return;
+            await esbuild.build({
+                ...bundleOptions,
+                entryPoints: [path.join(srcDir, 'main.ts')],
+                outfile: path.join(outdir, 'main.esm.min.mjs'),
+                minify: true,
+                sourcemap: initialOptions.sourcemap,
+                plugins: [cssPlugin, htmlPlugin],
+                logLevel: 'error',
+            });
+        });
+
+        // Inlining a dependency would give every importing module its own copy, so leave them to the consumer.
+        const { dependencies = {}, peerDependencies = {} } = JSON.parse(
+            fsSync.readFileSync(path.join(srcDir, '..', 'package.json'), 'utf8')
+        );
+        const packages = new Set([...Object.keys(dependencies), ...Object.keys(peerDependencies)]);
+        build.onResolve({ filter: /^[^./]/ }, ({ path: specifier }) => {
+            if (packages.has(specifier)) return { path: specifier, external: true };
+        });
+
+        build.onResolve({ filter: /^\.\.?\// }, async (args) => {
+            if (args.pluginData === RESOLVING) return;
+            const { kind, resolveDir, importer } = args;
+            const resolved = await build.resolve(args.path, { kind, resolveDir, importer, pluginData: RESOLVING });
+            // A module missing from the set (e.g. added during watch) is inlined until the next full build.
+            if (resolved.errors.length > 0 || !modules.has(resolved.path)) return;
+
+            const target = outputStem(path.relative(path.dirname(importer), resolved.path)) + outExtension;
+            const specifier = toPosix(target.startsWith('.') ? target : `./${target}`);
+            // Without `sideEffects: false`, an import used only as a type is kept as a bare `import "./x.esm.mjs"`.
+            return { path: specifier, external: true, sideEffects: false };
+        });
+    },
+};
+
 const plugins = [cssPlugin, htmlPlugin];
 let outExtension;
 if (process.env.NX_TASK_TARGET_TARGET?.endsWith('umd')) {
@@ -193,7 +292,7 @@ if (process.env.NX_TASK_TARGET_TARGET?.endsWith('umd')) {
 }
 
 if (!process.env.NX_TASK_TARGET_TARGET?.endsWith('umd')) {
-    plugins.push(pureTopLevelSideEffectsPlugin);
+    plugins.push(unbundledEsmPlugin, pureTopLevelSideEffectsPlugin);
 }
 
 if (process.env.NX_TASK_TARGET_CONFIGURATION !== 'watch') {

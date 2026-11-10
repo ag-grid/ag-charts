@@ -44,7 +44,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
         ...without(undocumentedLabelFitOptionsDefs, ['maxWidth']),
     },
     link: {
-        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+        shadow: shadowOptionsDefs,
         tension: ratio,
         itemStyler: callbackDefs<AgChordSeriesLinkStyle>({
             ...fillOptionsDef,
@@ -57,7 +57,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
         ...lineDashOptionsDef,
     },
     node: {
-        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+        shadow: shadowOptionsDefs,
         width: positiveNumber,
         spacing: positiveNumber,
         cornerRadius: positiveNumber,

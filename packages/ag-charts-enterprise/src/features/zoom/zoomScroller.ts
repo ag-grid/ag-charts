@@ -14,7 +14,7 @@ export class ZoomScroller {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
         // Convert the cursor position to coordinates as a ratio of 0 to 1.
-        const origin = pointToRatio(bbox, event.currentX, event.currentY);
+        const origin = pointToRatio(bbox, event.canvasX, event.canvasY);
 
         for (const [axisId, value] of entries(zooms)) {
             if (value == null) continue;
@@ -52,9 +52,7 @@ export class ZoomScroller {
     ): DefinedZoomState | undefined {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
-        const canvasX = event.currentX + bbox.x;
-        const canvasY = event.currentY + bbox.y;
-        const origin = pointToRatio(bbox, canvasX, canvasY);
+        const origin = pointToRatio(bbox, event.canvasX, event.canvasY);
 
         // Scale the zoom bounding box
         const dir = event.deltaY;

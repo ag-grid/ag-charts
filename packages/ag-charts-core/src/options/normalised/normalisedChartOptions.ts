@@ -42,6 +42,8 @@ import type { NormalisedZoomOptions } from './normalisedZoomOptions';
 
 export type NormalisedBackgroundOptions = AgChartBackground & { visible: boolean; fill: string };
 
+export type NormalisedChartBorderOptions = NormalisedBorderOptions & { cornerRadius: number };
+
 export type NormalisedForegroundOptions = {
     visible?: boolean;
     fill?: string;
@@ -148,6 +150,7 @@ export type ResolvedChartOptions = Omit<
     | 'animation'
     | 'annotations'
     | 'background'
+    | 'border'
     | 'contextMenu'
     | 'dataSource'
     | 'flashOnUpdate'
@@ -172,6 +175,7 @@ export type ResolvedChartOptions = Omit<
 > & {
     animation?: NormalisedAnimationOptions;
     background: NormalisedBackgroundOptions;
+    border: NormalisedChartBorderOptions;
     contextMenu?: NormalisedContextMenuOptions;
     dataSource?: NormalisedDataSourceOptions;
     flashOnUpdate?: NormalisedFlashOnUpdateOptions;
@@ -213,6 +217,8 @@ export type NormalisedStatusBarOptions = {
     // Volume Profile levels, highest price first, which the status bar looks up by the pointer's price on `priceAxisKey`.
     volumeProfile?: {
         priceAxisKey: string;
+        upColor?: string;
+        downColor?: string;
         levels: { priceLow: number; priceHigh: number; up: number; down: number; total: number }[];
     };
     layoutStyle: 'block' | 'overlay';

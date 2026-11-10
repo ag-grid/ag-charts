@@ -75,6 +75,7 @@ const version = chart.getState().version;
 let events: unknown[] = [];
 
 // Highlight a series by activating it via setState (legend-type activeItem)
+/** inScope */
 export function activateSeries(seriesId: string) {
     chart.setState({
         version,
@@ -85,6 +86,7 @@ export function activateSeries(seriesId: string) {
 }
 
 // Clear the highlight by setting activeItem to undefined
+/** inScope */
 export function deactivateSeries() {
     chart.setState({
         version,

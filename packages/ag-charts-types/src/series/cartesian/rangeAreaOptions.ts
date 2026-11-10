@@ -6,6 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
@@ -21,8 +22,8 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOption
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMarkerHighlightStyleOptions,
+    AgMultiSeriesGlowHighlightOptions,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
@@ -133,8 +134,23 @@ export interface AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext> {
     high?: AgRangeAreaSeriesItemLineThemeableOptions<TDatum, TContext>;
 }
 
+/** The values of a datum that the crosshair can snap to. */
+export type AgRangeAreaCrosshairSnapValue = 'yLow' | 'yHigh';
+
 export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends FillOptions, AgBaseCartesianThemeableOptions<TDatum, TContext> {
+    /**
+     * The values of the highlighted datum that the value-axis crosshair snaps to.
+     *
+     * Default: `['yLow', 'yHigh']`
+     */
+    crosshairSnapTo?: AgRangeAreaCrosshairSnapValue[];
+    /**
+     * Whether the crosshair snaps to every value in `crosshairSnapTo`, or only the one nearest the pointer.
+     *
+     * Default: `'all'`
+     */
+    crosshairSnapMode?: AgCrosshairSnapMode;
     /** Configuration for the markers used in the series.  */
     marker?: AgRangeAreaMarker<TDatum, TContext>;
     /** The colour for the stroke. A colour string, or a theme-colour reference object. */
@@ -162,7 +178,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgRangeAreaSeriesStylerParams<TDatum, TContext>, AgRangeAreaSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
     /** Style options for the fill of areas where the `yHigh` line is below the `yLow` line. */

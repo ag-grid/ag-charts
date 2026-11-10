@@ -112,9 +112,7 @@ interface TitleOrientationLayout {
 
 /** The orientation that reproduces the default title rendering for an axis position. */
 function defaultTitleOrientation(position: AgCartesianAxisPosition): AgAxisTitleOrientation {
-    if (position === 'left') return 'vertical';
-    if (position === 'right') return 'vertical-reversed';
-    return 'horizontal';
+    return position === 'left' || position === 'right' ? 'vertical' : 'horizontal';
 }
 
 /** True when the title text runs across the axis line rather than along it. */
@@ -211,6 +209,16 @@ export abstract class CartesianAxis<
 
     public setZoom(zoom: ZoomMinMax): void {
         this.zoom = { min: zoom.min, max: zoom.max };
+    }
+
+    /** The share of the series area length the axis is laid out in, or `undefined` for all of it. */
+    get lengthRatio(): number | undefined {
+        return undefined;
+    }
+
+    // Zoom gestures map onto the whole series area, so an axis laid out along part of it cannot zoom.
+    get zoomable(): boolean {
+        return this.lengthRatio == null;
     }
 
     protected animationManager: AnimationManager;
@@ -987,11 +995,14 @@ export abstract class CartesianAxis<
         return { bbox, spacing };
     }
 
-    private isTitleAtEdge() {
-        return this.options.crossAt?.titlePlacement === 'edge';
+    isTitleAtEdge() {
+        const { crossAt, title } = this.options;
+        if (crossAt == null) return false;
+        // An omitted placement on a title-less axis must keep the crossing width path in `calculateCrossAtAxisWidth`.
+        return (crossAt.titlePlacement ?? (title.enabled ? 'edge' : 'crossing')) === 'edge';
     }
 
-    private isLabelsAtEdge() {
+    isLabelsAtEdge() {
         return this.options.crossAt?.labelPlacement === 'edge';
     }
 
@@ -1009,9 +1020,10 @@ export abstract class CartesianAxis<
         return this.isTitleAtEdge() === this.isLabelsAtEdge();
     }
 
-    /** The title only has to clear the labels when both render in the same place. */
+    /** The title has to clear the labels, or the crosshair label band, wherever they share its location. */
     private resolveTitleSpacing(spacing: number) {
-        return this.titleRendersWithLabels() ? spacing : 0;
+        const clearsEdgeCrosshairLabel = this.isTitleAtEdge() && this.crosshairLabelNeedsEdgeSpace();
+        return this.titleRendersWithLabels() || clearsEdgeCrosshairLabel ? spacing : 0;
     }
 
     /** Thickness occupied at the `position` edge and at the crossing point, which `crossAt` can split apart. */

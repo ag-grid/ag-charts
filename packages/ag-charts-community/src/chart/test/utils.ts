@@ -60,6 +60,7 @@ import type {
     AgGaugeOptions,
     AgPolarChartOptions,
     AgSparklineOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -103,11 +104,17 @@ export interface CartesianTestCase extends ChartTestCase {
     options: AgCartesianChartOptions;
 }
 
-export interface PolarTestCase extends ChartTestCase {
-    options: AgPolarChartOptions;
+export interface StandaloneTestCase extends ChartTestCase {
+    options: AgStandaloneChartOptions;
 }
 
 const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
+/** Single highlighting with the shared tooltip a 2-3-series cartesian chart defaults to, for tests not about either mode. */
+export const SINGLE_HIGHLIGHT_SHARED_TOOLTIP = {
+    highlight: { mode: 'single' },
+    tooltip: { mode: 'shared' },
+} as const;
+
 export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     failureThreshold: FAILURE_THRESHOLD,
     failureThresholdType: 'percent',
@@ -913,7 +920,7 @@ export function cartesianChartAssertions(params?: {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('CartesianChart');
+        expect(chart.getChartType()).toBe('cartesian');
         expect(chart.axes).toHaveLength(Object.keys(axisTypes).length);
         expect(fromPairs(chart.axes.map((a) => [a.id, a.type]))).toEqual(axisTypes);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
@@ -925,7 +932,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -936,7 +943,7 @@ export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('TopologyChart');
+        expect(chart.getChartType()).toBe('topology');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -947,7 +954,7 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -958,7 +965,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -967,7 +974,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 export function gaugeAssertions() {
     return (chartOrProxy: ChartOrProxy<AgGaugeOptions>) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('StandaloneChart');
+        expect(chart.getChartType()).toBe('standalone');
     };
 }
 
@@ -1071,12 +1078,20 @@ export function clickAction(
     };
 }
 
-export function doubleClickAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
+/**
+ * Double-clicks at the given point. By default the `dblclick` is preceded by two synchronous single clicks; pass
+ * `precedingClicks: false` to dispatch the `dblclick` alone, for a caller that has already clicked twice itself.
+ */
+export function doubleClickAction(
+    canvasX: number,
+    canvasY: number,
+    opts?: { precedingClicks?: boolean }
+): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, canvasX, canvasY);
-        // A double click is always preceded by two single clicks, simulate here to ensure correct handling
-        for (let i = 0; i < 2; i += 1) {
+        const precedingClicks = opts?.precedingClicks === false ? 0 : 2;
+        for (let i = 0; i < precedingClicks; i += 1) {
             dispatchPointerEvent(testTarget, pointerDownEvent(testTarget, canvasX, canvasY));
             dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY));
             dispatchPointerEvent(testTarget, pointerUpEvent(testTarget, canvasX, canvasY));
@@ -1333,6 +1348,41 @@ export function keyDownAction(
     };
 }
 
+// Popup UI such as the context menu has no canvas position, so these actions target its elements directly.
+
+export function focusElementAction(element: Element): (chart: ChartOrProxy) => Promise<void> {
+    return async (chart) => {
+        expect(element).toBeInstanceOf(HTMLElement);
+        (element as HTMLElement).focus();
+        await waitForChartStability(chart);
+    };
+}
+
+/** Moves keyboard focus to a focusable element elsewhere in the page, as Tab past the chart's last stop does. */
+export function focusOutsideChartAction(): (chart: ChartOrProxy) => Promise<void> {
+    return async (chart) => {
+        const outside = document.createElement('button');
+        document.body.append(outside);
+        try {
+            outside.focus();
+            await waitForChartStability(chart);
+        } finally {
+            outside.remove();
+        }
+    };
+}
+
+/** Right-clicks `element`. Resolves to the event, so that a test can check whether the browser menu was suppressed. */
+export function contextMenuElementAction(element: Element): (chart: ChartOrProxy) => Promise<MouseEvent> {
+    return async (chart) => {
+        // `cancelable` is required, otherwise `defaultPrevented` stays false whatever the chart does.
+        const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+        element.dispatchEvent(event);
+        await waitForChartStability(chart);
+        return event;
+    };
+}
+
 // Tab lands on the swap-chain's active announcer, which initialises the series focus.
 export async function tabIntoChart(chart: ChartOrProxy) {
     const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[tabindex="0"]');
@@ -1360,10 +1410,10 @@ export function getSwapChainText() {
 }
 
 // The series-area widget handles keyboard navigation.
-export async function pressKey(chart: ChartOrProxy, key: string) {
+export async function pressKey(chart: ChartOrProxy, key: string, modifiers: KeyboardEventInit = {}) {
     const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
     expect(seriesArea).not.toBeNull();
-    seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+    seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true, ...modifiers }));
     await waitForChartStability(chart);
 }
 
@@ -2473,11 +2523,19 @@ export function computeLegendBBox(chart: Chart): BBox {
 }
 
 export interface LegendTestItemNode {
-    datum?: { id: string; itemId?: string | number };
+    datum?: { id: string; seriesId?: string; itemId?: string | number; enabled?: boolean };
+    proxyButton?: { getElement(): HTMLElement };
     opacity?: number;
     label: { opacity?: number; text?: string };
     symbolsGroup: { opacity?: number };
-    marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
+    marker?: {
+        fill?: string;
+        fillOpacity?: number;
+        stroke?: string;
+        strokeOpacity?: number;
+        strokeWidth?: number;
+        shape?: unknown;
+    };
     line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
 }
 
@@ -2497,8 +2555,6 @@ export function errorFrom(fn: () => unknown): Error | undefined {
 
 export interface LegendTestInternals {
     itemSelection: { nodes(): (LegendTestItemNode & Node)[] };
-    onHover(event: FocusEvent | MouseEvent, node: unknown, fromKeyboardFocus?: boolean): void;
-    onLeave(fromKeyboardFocus?: boolean): void;
 }
 
 export function getLegendModule(chart: Chart): LegendTestInternals {
@@ -2511,13 +2567,62 @@ export function getLegendModule(chart: Chart): LegendTestInternals {
  * that goes on to compare the chart moves it off again (`hoverAction`) to clear the item's highlight.
  */
 export async function clickLegendItem(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const [centreX, centreY] = getLegendItemCentre(chartOrProxy, index);
+    await hoverAction(centreX, centreY)(chartOrProxy);
+    await clickAction(centreX, centreY)(chartOrProxy);
+}
+
+/**
+ * Double-clicks the legend item at `index` (legend order). The two preceding clicks are spaced by a wait for chart
+ * stability, as a user's are: the legend reads an item's state from the last layout, so unspaced clicks would both
+ * act on the same stale state and compound instead of cancelling out.
+ */
+export async function doubleClickLegendItem(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const [centreX, centreY] = getLegendItemCentre(chartOrProxy, index);
+    await hoverAction(centreX, centreY)(chartOrProxy);
+    for (let i = 0; i < 2; i += 1) {
+        await clickAction(centreX, centreY)(chartOrProxy);
+        await waitForChartStability(chartOrProxy);
+    }
+    await doubleClickAction(centreX, centreY, { precedingClicks: false })(chartOrProxy);
+    await waitForChartStability(chartOrProxy);
+}
+
+/** Opens the context menu on the legend item at `index` (legend order). */
+export async function openLegendItemContextMenu(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const [centreX, centreY] = getLegendItemCentre(chartOrProxy, index);
+    await contextMenuAction(centreX, centreY)(chartOrProxy);
+    await waitForChartStability(chartOrProxy);
+}
+
+/**
+ * The state of every legend item, in legend order: its `seriesId:itemId`, whether the legend has it enabled, and
+ * whether its proxy button reports it checked.
+ */
+export function getLegendItemStates(
+    chartOrProxy: ChartOrProxy<any>
+): { id: string; enabled: boolean; checked: boolean }[] {
+    return getLegendModule(deproxy(chartOrProxy))
+        .itemSelection.nodes()
+        .map(({ datum, proxyButton }) => ({
+            id: `${datum?.seriesId}:${datum?.itemId}`,
+            enabled: datum?.enabled === true,
+            checked: proxyButton?.getElement().getAttribute('aria-checked') === 'true',
+        }));
+}
+
+/** Moves the pointer onto the centre of the legend item at `index` (legend order) the way a pointer does. */
+export async function hoverLegendItem(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const [centreX, centreY] = getLegendItemCentre(chartOrProxy, index);
+    await hoverAction(centreX, centreY)(chartOrProxy);
+}
+
+function getLegendItemCentre(chartOrProxy: ChartOrProxy<any>, index: number): [number, number] {
     const items = getLegendModule(deproxy(chartOrProxy)).itemSelection.nodes();
     expect(items.length).toBeGreaterThan(index);
 
     const { x, y, width, height } = Transformable.toCanvas(items[index]);
-    const [centreX, centreY] = [x + width / 2, y + height / 2];
-    await hoverAction(centreX, centreY)(chartOrProxy);
-    await clickAction(centreX, centreY)(chartOrProxy);
+    return [x + width / 2, y + height / 2];
 }
 
 /**

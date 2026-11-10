@@ -6,6 +6,7 @@ import {
     type Group,
     OrdinalTimeScale,
     type Scale,
+    Transformable,
     type TransformableText,
 } from 'ag-charts-core';
 
@@ -97,6 +98,16 @@ export function getAxisTitleText(chartOrProxy: ChartOrProxy<any>, position: stri
     const { text } = findAxis(chartOrProxy, position).caption.node;
     expect(text).toBeDefined();
     return String(text);
+}
+
+/** The canvas-space bounds of the axis title as drawn. */
+export function getAxisTitleBBox(chartOrProxy: ChartOrProxy<any>, position: string): BBox {
+    return Transformable.toCanvas(findAxis(chartOrProxy, position).caption.node);
+}
+
+/** The rotation of the axis title in radians. */
+export function getAxisTitleRotation(chartOrProxy: ChartOrProxy<any>, position: string): number {
+    return findAxis(chartOrProxy, position).caption.node.rotation;
 }
 
 /** The series rect, asserted to have been laid out. */

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
 import { Canvas, DOMMatrix, type ExportFormat, FontLibrary } from 'skia-canvas';
@@ -62,10 +61,12 @@ export class MockContext {
         this.registerCanvasInstance(this.ctx.nodeCanvas);
     }
 
-    snapshot() {
-        return this.ctx.nodeCanvas
+    snapshot(): ImageData {
+        const { colorSpace, data, width, height } = this.ctx.nodeCanvas
             .getContext('2d')
             .getImageData(0, 0, this.ctx.nodeCanvas.width, this.ctx.nodeCanvas.height);
+        // The DOM type requires an ArrayBuffer-backed array; skia-canvas only promises ArrayBufferLike.
+        return { colorSpace, data: new Uint8ClampedArray(data), width, height };
     }
 
     getRenderContext2D(): globalThis.CanvasRenderingContext2D {

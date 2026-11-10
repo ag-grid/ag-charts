@@ -14,7 +14,6 @@ import {
     fillThemeTemplate,
     mergeDefaults,
     themeLineHeight,
-    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -35,11 +34,11 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
         },
         marker: {
             enabled: true,
-            ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+            shadow: SHADOW_THEME_DEFAULTS,
             fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             stroke: { $palette: 'stroke' },
             fillOpacity: 1,
-            shape: 'circle',
+            shape: { $palette: 'markerShape' },
             size: 6,
             ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },

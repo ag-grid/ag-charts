@@ -42,8 +42,6 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import { LogAxis } from '../../axis/logAxis';
-import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
@@ -373,7 +371,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             'xValue'
         );
 
-        if (this.isNormalized() && yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
+        if (this.isNormalized() && yAxis?.scale.type === 'number') {
             return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };
@@ -546,6 +544,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelInsideOffset: labelContext.labelInsideOffset,
             labelInsideSize: labelContext.labelInsideSize,
             labelAnchor: labelContext.labelAnchor,
+            labelRegion: labelContext.labelRegion,
             emptyLabel: { text: '', width: 0, height: 0 },
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
@@ -635,6 +634,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 existingNode.label = label;
                 existingNode.fit = fit;
                 existingNode.gap = gap;
+                existingNode.region = ctx.labelRegion;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
@@ -656,6 +656,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     anchor: ctx.labelAnchor,
                     insideOffset: ctx.labelInsideOffset,
                     insideSize: ctx.labelInsideSize,
+                    region: ctx.labelRegion,
                     placement: 'top',
                     gap,
                     crossFilterSelected: scratch.crossFilterSelected,
@@ -746,6 +747,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             anchor: ctx.labelAnchor,
             insideOffset: ctx.labelInsideOffset,
             insideSize: ctx.labelInsideSize,
+            region: ctx.labelRegion,
             placement: 'top',
             crossFilterSelected: undefined,
         };
@@ -1200,7 +1202,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 data: [
                     {
                         label: yName,
-                        fallbackLabel: yKey,
+                        fallbackLabel: this.keyName(yKey),
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                         missing: isTooltipValueMissing(yValue),
                     },
@@ -1281,7 +1283,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 seriesId,
                 enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
-                    text: legendItemName ?? title ?? yName ?? itemId,
+                    text: legendItemName ?? title ?? yName ?? this.keyName(itemId),
                 },
                 symbol: this.legendItemSymbol(),
                 hideInLegend: showInLegend === false,

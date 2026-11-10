@@ -6,6 +6,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    crosshairSnapToValidator,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
@@ -15,9 +16,12 @@ import {
     strokeOptionsDef,
     tooltipOptionsDefs,
     undocumentedDefs,
+    union,
 } from 'ag-charts-core';
 
 export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOptions> = {
+    crosshairSnapTo: crosshairSnapToValidator(['open', 'high', 'low', 'close']),
+    crosshairSnapMode: union('all', 'nearest'),
     showInMiniChart: boolean,
     itemStyler: callbackDefs<AgOhlcSeriesItemOptions>({
         ...strokeOptionsDef,
@@ -34,7 +38,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
         },
     },
     tooltip: tooltipOptionsDefs,
-    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: multiSeriesGlowHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };

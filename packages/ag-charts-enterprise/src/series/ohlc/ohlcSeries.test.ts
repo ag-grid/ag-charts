@@ -28,7 +28,6 @@ import {
     focusIndicatorContainsCanvasPoint,
     getSeriesAt,
     getSeriesOptions,
-    internalOptions,
     isoEpochPair,
     magnitudePair,
     pressKey,
@@ -40,7 +39,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Transformable, type WithInternalShadow } from 'ag-charts-core';
+import { Transformable } from 'ag-charts-core';
 
 import { getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -334,18 +333,15 @@ describe('OhlcSeries', () => {
     describe('shadow', () => {
         const SPREAD_SHADOW = { ...SHADOW, spread: 6 };
 
-        const buildOptions = (shadow?: typeof SHADOW & { spread?: number }): AgChartOptions =>
-            internalOptions<AgChartOptions>({
-                ...OHLC_OPTIONS,
-                series: [{ ...OHLC_SERIES, shadow }],
-            });
+        const buildOptions = (shadow?: typeof SHADOW & { spread?: number }): AgChartOptions => ({
+            ...OHLC_OPTIONS,
+            series: [{ ...OHLC_SERIES, shadow }],
+        });
 
         it('defaults to a disabled shadow', async () => {
             const chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(getSeriesOptions<AgOhlcSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
-                DEFAULT_DISABLED_SHADOW
-            );
+            expect(getSeriesOptions<AgOhlcSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 
@@ -390,6 +386,23 @@ describe('OhlcSeries', () => {
         });
     });
 
+    describe('series id and legend label', () => {
+        it('has an id of OhlcSeries-<n>', async () => {
+            const chart = await createEnterpriseChart(OHLC_OPTIONS);
+
+            expect(getSeriesInstance(chart, OhlcSeries).id).toBe('OhlcSeries-1');
+            chart.destroy();
+        });
+
+        it('uses its id as the legend label when yName and legendItemName are unset', async () => {
+            const chart = await createEnterpriseChart(OHLC_OPTIONS);
+
+            const [legendDatum] = getSeriesInstance(chart, OhlcSeries).getLegendData('category');
+            expect(legendDatum.label.text).toBe('OhlcSeries-1');
+            chart.destroy();
+        });
+    });
+
     describe('null category key', () => {
         const OHLC_NULL_CATEGORY_KEY_DATA = [
             { year: '2020', low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
@@ -423,7 +436,7 @@ describe('OhlcSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [object] for [ohlc-1 / xValue] ignored:",
+    "AG Charts - invalid value of type [object] for [OhlcSeries-1 / xValue] ignored:",
     "[null]",
   ],
 ]
@@ -502,7 +515,7 @@ describe('OhlcSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [undefined] for [ohlc-1 / xValue] ignored:",
+    "AG Charts - invalid value of type [undefined] for [OhlcSeries-1 / xValue] ignored:",
     "[undefined]",
   ],
 ]

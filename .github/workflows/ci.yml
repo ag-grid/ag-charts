@@ -39,6 +39,9 @@ env:
     GIT_CONFIG_KEY_1: maintenance.auto
     GIT_CONFIG_VALUE_1: 'false'
     NX_NO_CLOUD: true
+    # A clean_checkout run must re-execute tasks: cached results would replay in every job that
+    # restores the Nx cache, and init is the only job that cache_mode turns off.
+    NX_SKIP_NX_CACHE: ${{ github.event.inputs.clean_checkout == 'true' && 'true' || 'false' }}
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     NX_COMMAND_TYPE: ${{ github.event.inputs.nx_command }}
@@ -52,7 +55,9 @@ permissions:
     pull-requests: read
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
+    # Manual runs get their own group, so a long full run on latest never holds up merges and their
+    # staging deploys.
+    group: ${{ github.workflow }}-${{ github.ref }}${{ github.event_name == 'workflow_dispatch' && '-manual' || '' }}
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' && github.ref != 'refs/heads/next' }}
 
 jobs:
@@ -147,7 +152,8 @@ jobs:
             test_pkg_matrix: ${{ steps.matrix.outputs.pkg_matrix }}
             e2e_matrix: ${{ steps.matrix.outputs.e2e_matrix }}
             e2e_count: ${{ steps.matrix.outputs.e2e_count }}
-            demos_affected: ${{ steps.matrix.outputs.demos_affected }}
+            e2e_cross_browser: ${{ steps.matrix.outputs.e2e_cross_browser }}
+            demos_suites: ${{ steps.matrix.outputs.demos_suites }}
             build_type: ${{ steps.setup.outputs.type }}
             snapshot_branch: ${{ steps.snapshot-prepare.outputs.branch }}
             pkg_tests_modified: ${{ steps.matrix.outputs.pkg_tests_modified }}
@@ -164,6 +170,12 @@ jobs:
               with:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
                   free_disk_space: false
+                  # Above a clean baseline on disk (~1.7GB restored from latest), so PR runs reuse it
+                  # instead of always resetting. It compresses to ~100MB when stored.
+                  tidy_nx_cache_pr_threshold_mb: 2560
+                  # PRs restore from the entry latest saved; saving their own would use ~260MB of the
+                  # shared 10GB quota each time the lockfile changes.
+                  save_yarn_cache: ${{ github.event_name == 'push' }}
                   # Safe for init only: its own build step materialises all plugin outputs.
                   # Measured net win (~30s): the graph computation moves into the build step,
                   # but the plugin-build invocation's own fixed overhead is avoided.
@@ -182,7 +194,11 @@ jobs:
                   # build:test IS built here: `build` is a noop aggregator that does not depend on
                   # it, and this is the only job that saves the Nx cache, so without it every ro
                   # test shard recompiles the community and enterprise spec tsconfigs (~36s each).
-                  yarn nx run-many -t build,build:test,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all --parallel=12
+                  #
+                  # The demo seeds are excluded here. They were the last tasks to finish, adding ~100s,
+                  # and only the port suites read their output, so "Build demo seeds" below builds them
+                  # when those suites will run. The Build job still builds them when a change affects them.
+                  yarn nx run-many -t build,build:test,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all,ag-charts-demos-seeds --parallel=12
                   # Populate the (rw-cached) staging example outputs here so the ro website_build
                   # job restores them instead of regenerating all examples. Only latest builds the
                   # website with -c staging, so scope the extra generation to that branch.
@@ -220,9 +236,30 @@ jobs:
                   echo "pkg_matrix=${pkg_matrix}" >> $GITHUB_OUTPUT
                   echo "Package test matrix determined to be: ${pkg_matrix}"
 
-                  e2e_nx_count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
+                  # A PR that changes only the website runs the specs it can break. Pushes and manual
+                  # runs always run everything, and so does any PR the script cannot classify.
+                  e2e_specs_file="${RUNNER_TEMP}/e2e-specs.txt"
+                  e2e_cross_browser=true
+                  e2e_list_args=()
+                  e2e_assign_args=()
+                  if [[ "${{ github.event_name }}" == "pull_request" ]] ; then
+                    e2e_scope=$(node tools/ci/e2e-scope.mjs --base ${{ steps.setup.outputs.base }} --out "${e2e_specs_file}")
+                    echo "E2E scope: ${e2e_scope}"
+                    if [[ $(jq -r .scope <<< "${e2e_scope}") == "scoped" ]] ; then
+                      e2e_cross_browser=$(jq -r .crossBrowser <<< "${e2e_scope}")
+                      mapfile -t e2e_list_args < <(sed 's#^#e2e/#' "${e2e_specs_file}")
+                      e2e_assign_args=(--specs "${e2e_specs_file}")
+                    fi
+                  fi
+                  echo "e2e_cross_browser=${e2e_cross_browser}" >> $GITHUB_OUTPUT
+
+                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
+                    e2e_nx_count=1
+                  else
+                    e2e_nx_count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
+                  fi
                   if [[ ${e2e_nx_count} -gt 0 ]] ; then
-                    e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
+                    e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list "${e2e_list_args[@]}" | grep -v '!!!SKIPPED!!!' | wc -l)
                   else
                     e2e_count=0
                   fi
@@ -266,23 +303,41 @@ jobs:
                     --max ${e2e_shards} \
                     --count ${e2e_count} \
                     --timings packages/ag-charts-website/e2e/${e2e_timings} \
-                    --test-dir packages/ag-charts-website/e2e)
+                    --test-dir packages/ag-charts-website/e2e \
+                    "${e2e_assign_args[@]}")
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
 
-                  # Whether the demo-apps smoke should run (its own files or an upstream dep changed).
-                  # The seed projects under packages/ag-charts-demos/seeds are the nested project
-                  # ag-charts-demos-seeds, which has no test:e2e target of its own, so a port-only
-                  # change affects only it; it is counted too, since the job carries the parity step
-                  # that gates the ports. Non-zero means run; the value may be 2.
+                  # Which demo-apps suites to run, as the demos_e2e job's matrix. Nothing unless the
+                  # demos or an upstream dep changed. The seed projects under
+                  # packages/ag-charts-demos/seeds are the nested project ag-charts-demos-seeds, which
+                  # has no test:e2e target of its own, so a port-only change affects only it; it is
+                  # counted too, since the job carries the parity suites that gate the ports.
+                  #
+                  # A PR that changes only the library skips the two port suites: the React app and
+                  # the ports get the same library, so what they compare moves only with the demos,
+                  # the seeds, the harness, the framework wrappers or the build inputs. The React
+                  # suites still prove the library against the demos, and pushes run everything. If
+                  # the diff cannot be read, run everything.
+                  demos_all='["functional","self-parity","port-parity","port-specs"]'
+                  demos_react='["functional","self-parity"]'
+                  demos_port_inputs='^(packages/ag-charts-demos/|packages/ag-charts-(react|vue3|angular)/|patches/|\.github/workflows/ci\.yml$|yarn\.lock$|package\.json$|esbuild\.config|tsconfig\.)'
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
-                    demos_affected=1
+                    demos_suites=${demos_all}
+                  elif [[ $(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true) -eq 0 ]] ; then
+                    demos_suites='[]'
+                  elif [[ "${{ github.event_name }}" != "pull_request" ]] ; then
+                    demos_suites=${demos_all}
+                  elif ! demos_changed=$(git diff --name-only ${{ steps.setup.outputs.base }}) ; then
+                    demos_suites=${demos_all}
+                  elif grep -qE "${demos_port_inputs}" <<< "${demos_changed}" ; then
+                    demos_suites=${demos_all}
                   else
-                    demos_affected=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true)
+                    demos_suites=${demos_react}
                   fi
-                  echo "demos_affected=${demos_affected}" >> $GITHUB_OUTPUT
-                  echo "Demos affected: ${demos_affected}"
+                  echo "demos_suites=${demos_suites}" >> $GITHUB_OUTPUT
+                  echo "Demo suites: ${demos_suites}"
 
                   # Check if package test files are directly modified in PR
                   pkg_tests_modified="false"
@@ -291,6 +346,10 @@ jobs:
                   fi
                   echo "pkg_tests_modified=${pkg_tests_modified}" >> $GITHUB_OUTPUT
                   echo "Package tests modified: ${pkg_tests_modified}"
+
+            - name: Build demo seeds
+              if: contains(steps.matrix.outputs.demos_suites, 'port-')
+              run: yarn nx run ag-charts-demos-seeds:build --parallel=12
 
             - name: Prepare Snapshot Branch
               uses: ./.github/actions/snapshot-prepare
@@ -364,6 +423,10 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx run ag-charts-demos:check-seeds
 
+            - name: E2E scope tests
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: node --test tools/ci/e2e-scope.test.mjs
+
             # The Angular, Vue and TypeScript seeds are ports of the React demos, aligned after the
             # fact: a demo change is expected to leave them stale, and they stay stale on latest
             # between releases. The "Demo Port Alignment" workflow (demo-port-align.yml) aligns them
@@ -382,7 +445,9 @@ jobs:
             # was already stale at the base when the change also moves its demo (an API migration):
             # that drift is not this change's, and is reported as a warning.
             - name: Edited demo ports are restamped
-              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              # Not on manual runs: a branch behind latest would be blamed for ports it never edited (the
+              # check compares the base tree with HEAD, as shallow clones have no merge base).
+              if: github.event_name != 'workflow_dispatch' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched "${{ steps.setup.outputs.base }}"
 
     generate:
@@ -551,6 +616,8 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         # Per-PR lock: stops this PR's publishers (the preview payload here and the
         # snapshot reports in `snapshot_review`) and its close-time cleanup from
         # running concurrently, which narrows the window in which a late publish
@@ -659,6 +726,8 @@ jobs:
         permissions:
             contents: read
             pull-requests: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -692,10 +761,11 @@ jobs:
                   mkdir -p "${RUNNER_TEMP}/pr-sections"
                   out="${RUNNER_TEMP}/pr-sections/30-l10n.md"
                   if [ -f l10n-review.md ]; then
-                      # Drop the standalone marker the generator prepends (review-translations.mjs);
-                      # the consolidated comment owns the parent marker. Prepend our section heading.
+                      # Keep the `<!-- l10n-translation-review -->` marker the generator leads with:
+                      # the AI Workflow pipeline reads a section whose content starts with a review
+                      # marker as that review. Prepend our section heading.
                       # [warn]: the reviewer flagged translations to read before merge.
-                      { echo '## [warn] Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
+                      { echo '## [warn] Translation review'; echo; cat l10n-review.md; } > "$out"
                   else
                       # [ok]: nothing to action.
                       printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
@@ -1107,9 +1177,9 @@ jobs:
             contents: write
             packages: read
         needs: [detect-changes, init, playwright_image]
-        # Gated on run_full_ci only — NOT on init's e2e_count, which is derived from the *main*
-        # config's test list and so no longer counts this job's workload at all.
-        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        # NOT gated on init's e2e_count, which is derived from the *main* config's test list and so
+        # no longer counts this job's workload at all.
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_cross_browser != 'false'
         env:
             PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
             GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
@@ -1393,9 +1463,13 @@ jobs:
 
     demos_e2e:
         runs-on: ubuntu-24.04
-        name: Demo Apps Smoke
+        name: Demo Apps Smoke (${{ matrix.suite }})
         needs: [detect-changes, init, playwright_image]
-        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.demos_affected != '0'
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.demos_suites != '[]'
+        strategy:
+            fail-fast: false
+            matrix:
+                suite: ${{ fromJson(needs.init.outputs.demos_suites) }}
         permissions:
             contents: read
             packages: read
@@ -1507,6 +1581,7 @@ jobs:
 
             - name: playwright test ag-charts-demos
               id: demos_e2e
+              if: matrix.suite == 'functional'
               run: |
                   docker run --rm --ipc=host --init \
                     -v "$(pwd)":/data \
@@ -1519,10 +1594,10 @@ jobs:
             # Self-parity: the React app served twice from the dist/ the init job built, with
             # vite preview as the port run serves its reference, and compared with itself. Every
             # pixel must match; this proves the demos and the harness are deterministic, which the
-            # port comparison below relies on to mean anything.
+            # port comparison relies on to mean anything.
             - name: playwright self-parity ag-charts-demos
               id: demos_self_parity
-              if: ${{ !cancelled() }}
+              if: matrix.suite == 'self-parity'
               run: |
                   docker run --rm --ipc=host --init \
                     -v "$(pwd)":/data \
@@ -1542,11 +1617,9 @@ jobs:
             # where the checkout's git is set up, and read by the run in the container.
             - name: playwright parity ag-charts-demos
               id: demos_parity
-              if: ${{ !cancelled() }}
+              if: matrix.suite == 'port-parity'
               run: |
-                  # The report goes under the runner's temp folder, mounted read-only into the
-                  # container: e2e/parity/results/ is created by the self-parity container as root,
-                  # so the runner user cannot write into it.
+                  # The report goes under the runner's temp folder, mounted read-only into the container.
                   report="${RUNNER_TEMP}/parity-input/stale-ports.json"
                   mkdir -p "$(dirname "$report")"
                   node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > "$report"
@@ -1568,19 +1641,15 @@ jobs:
             # app, so each runs only its own demo's specs. Stale ports are skipped and named, as
             # in the parity step, and with no current port the step passes saying so. The plan
             # (port-spec-plan.mjs) is made here on the runner, where the checkout's git is set
-            # up, from the stale report the parity step wrote when it ran; run-port-specs.mjs runs
-            # in the container and reports which demo and framework failed.
+            # up; run-port-specs.mjs runs in the container and reports which demo and framework
+            # failed.
             - name: playwright functional specs on framework ports ag-charts-demos
               id: demos_port_specs
-              if: ${{ !cancelled() }}
+              if: matrix.suite == 'port-specs'
               run: |
                   input="${RUNNER_TEMP}/parity-input"
                   mkdir -p "${input}"
-                  stale_report=()
-                  if [ -f "${input}/stale-ports.json" ] ; then
-                    stale_report=(--stale-report "${input}/stale-ports.json")
-                  fi
-                  node packages/ag-charts-demos/tools/seeds/port-spec-plan.mjs "${stale_report[@]}" --out "${input}/port-spec-plan.json"
+                  node packages/ag-charts-demos/tools/seeds/port-spec-plan.mjs --out "${input}/port-spec-plan.json"
                   docker run --rm --ipc=host --init \
                     -v "$(pwd)":/data \
                     -v "${input}":/parity-input:ro \
@@ -1595,7 +1664,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
-                  name: test-results-demos-e2e
+                  name: test-results-demos-e2e-${{ matrix.suite }}
                   path: |
                       reports/
                       packages/ag-charts-demos/test-results/
@@ -1726,6 +1795,8 @@ jobs:
             pull-requests: write
             statuses: write
             deployments: write
+            # pr-report-comment installs @ag-grid/dev-prompts from GitHub Packages.
+            packages: read
         needs:
             [
                 detect-changes,
@@ -1864,7 +1935,9 @@ jobs:
                   # run. Constrain the query to recent runs, sort locally by creation time, and drop
                   # this run, unfinished runs and cancelled runs before taking the head.
                   SINCE=$(date -u -d '14 days ago' +%Y-%m-%d)
+                  # Same event only, so a manual run's result does not read as a state change for pushes.
                   LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b ${{ github.ref_name }} \
+                      --event ${{ github.event_name }} \
                       --created ">=${SINCE}" -L 50 --json databaseId,status,conclusion,createdAt \
                     | jq -r --argjson self "${GITHUB_RUN_ID}" '
                         map(select(.databaseId != $self and .status == "completed" and .conclusion != "cancelled"))
@@ -1917,7 +1990,7 @@ jobs:
                   echo "EOF" >> $GITHUB_ENV
 
             - name: Restore Website Build for Staging Deploy
-              if: github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              if: github.event_name == 'push' && github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               with:
                   name: website-staging-dist
@@ -1926,7 +1999,7 @@ jobs:
             - name: Read commit currently on staging
               # Base of the staging-deploy notifications; read before the deploy replaces it.
               id: previously_deployed
-              if: github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              if: github.event_name == 'push' && github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               run: |
                   sha=$(curl --silent --fail --max-time 30 https://charts-staging.ag-grid.com/debug/meta.json | node -pe 'JSON.parse(require("fs").readFileSync(0, "utf8")).git.hash' || true)
                   echo "sha=${sha}" >> $GITHUB_OUTPUT
@@ -1934,7 +2007,7 @@ jobs:
 
             - name: Deploy to Staging
               id: deploy_to_staging
-              if: github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              if: github.event_name == 'push' && github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               env:
                   SSH_PRIVATE_KEY: |
                       ${{ secrets.STAGING_SSH_KEY }}
@@ -1951,7 +2024,7 @@ jobs:
               # Surface the staging deploy as a distinct commit status so it's visible
               # from the commits view (hover over the status icon) without expanding the
               # CI report job. Only posted on `latest`, where the deploy is attempted.
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest'
+              if: always() && job.status != 'cancelled' && github.event_name == 'push' && github.ref == 'refs/heads/latest'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
@@ -1982,7 +2055,7 @@ jobs:
               # execute under `bash -e`, so a transient gh api failure would abort the step
               # and redden a job whose deploy had already succeeded. The record is a
               # convenience, never worth failing a good deploy over.
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && contains(fromJSON('["success", "failure"]'), steps.deploy_to_staging.outcome)
+              if: always() && job.status != 'cancelled' && github.event_name == 'push' && github.ref == 'refs/heads/latest' && contains(fromJSON('["success", "failure"]'), steps.deploy_to_staging.outcome)
               continue-on-error: true
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -2009,21 +2082,29 @@ jobs:
             - name: Tag Deployed Staging Commit
               # Moving tag so the commit currently live on staging shows as an inline chip
               # in the commits list, with no status icon to hover.
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
+              if: always() && job.status != 'cancelled' && github.event_name == 'push' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
               uses: EndBug/latest-tag@8fcae8848c1e23fd8212258f69a9619bc62cad67 # v1.6.3
               with:
                   ref: staging
                   description: Commit currently deployed to the staging website.
 
             - name: Tag Latest Successful Commit
-              if: success() && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              # Not on manual runs: this tag is the `affected` base for later pushes, so only pushes move it.
+              if: success() && github.event_name != 'workflow_dispatch' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               uses: EndBug/latest-tag@8fcae8848c1e23fd8212258f69a9619bc62cad67 # v1.6.3
               with:
                   ref: ${{ github.ref_name }}-success
                   description: Latest commit to pass GitHub Actions workflow on ${{ github.ref_name }} branch.
 
+            - name: Tag Latest Full Run Commit
+              if: success() && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/latest' && github.event.inputs.clean_checkout == 'true' && github.event.inputs.nx_command == 'run-many' && needs.init.result == 'success' && needs.bundle_tests.result == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              uses: EndBug/latest-tag@8fcae8848c1e23fd8212258f69a9619bc62cad67 # v1.6.3
+              with:
+                  ref: latest-full-success
+                  description: Latest commit to pass a full, uncached CI run on latest.
+
             - name: Find matching workflow
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
+              if: always() && job.status != 'cancelled' && github.event_name == 'push' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
               id: find_latest_sha
               uses: SamhammerAG/last-successful-build-action@1c368a27a90596574a71ac0ede422a897d0e8e84 # v4
               with:
@@ -2032,7 +2113,7 @@ jobs:
                   verify: false
 
             - name: Notify staging deploy
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
+              if: always() && job.status != 'cancelled' && github.event_name == 'push' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
               shell: bash
               env:
                   SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
@@ -2057,7 +2138,7 @@ jobs:
               # continue-on-error: a JIRA outage or a token-scope problem must never turn
               # a successful deploy red. The script also swallows per-ticket failures, so
               # this only trips on a total failure (e.g. missing config).
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
+              if: always() && job.status != 'cancelled' && github.event_name == 'push' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
               continue-on-error: true
               shell: bash
               env:
@@ -2099,7 +2180,7 @@ jobs:
                   # team already sees them; the bot must be a member of it.
                   # chat.postMessage returns the canonical ID the handler threads on.
                   SLACK_CHANNEL: ${{ vars.CI_FAILURE_SLACK_CHANNEL }}
-                  REF_NAME: ${{ github.ref_name }}
+                  REF_NAME: ${{ github.ref_name }}${{ github.event_name == 'workflow_dispatch' && ' (manual run)' || '' }}
                   WORKFLOW_STATUS: ${{ steps.lastJobStatus.outputs.workflowStatus }}
                   IS_LATEST: ${{ github.ref == 'refs/heads/latest' }}
                   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -2176,6 +2257,68 @@ jobs:
                   path: ci-failure-slack.json
                   retention-days: 7
 
+            # Manual-run status: fail open, because `report` is the required check.
+            - name: Publish manual run status check
+              # Not on ghabot-* branches: the watchdog acts on red rollup rows there.
+              if: always() && job.status != 'cancelled' && github.event_name == 'workflow_dispatch' && !startsWith(github.ref_name, 'ghabot-')
+              continue-on-error: true
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  WORKFLOW_STATUS: ${{ steps.lastJobStatus.outputs.workflowStatus }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  post_status() {
+                    gh api --method POST \
+                        -H "Accept: application/vnd.github+json" \
+                        "/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+                        -f state="$1" \
+                        -f context="CI (manual)" \
+                        -f description="$2" \
+                        -f target_url="${RUN_URL}" > /dev/null
+                  }
+
+                  case "${WORKFLOW_STATUS}" in
+                    success) state="success"; description="Manual CI run passed" ;;
+                    partial) state="success"; description="Manual CI run passed (Sonar failed)" ;;
+                    failure) state="failure"; description="Manual CI run failed" ;;
+                    *)
+                      echo "::warning::No workflow status for this run, so no manual run status was posted."
+                      exit 0
+                      ;;
+                  esac
+
+                  if ! post_status "${state}" "${description}" ; then
+                    echo "::warning::Could not post the manual run status."
+                  fi
+
+            - name: Supersede a red manual run status
+              # Not on drafts, where every job is skipped.
+              if: always() && job.status != 'cancelled' && github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+              continue-on-error: true
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  # Statuses come newest first.
+                  if ! manual_state=$(gh api "/repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/statuses?per_page=100" \
+                      --jq '[.[] | select(.context == "CI (manual)")][0].state // ""') ; then
+                    echo "::warning::Could not read the manual run status."
+                    exit 0
+                  fi
+                  if [[ "${manual_state}" != "failure" && "${manual_state}" != "error" ]] ; then
+                    exit 0
+                  fi
+                  if ! gh api --method POST \
+                      -H "Accept: application/vnd.github+json" \
+                      "/repos/${GITHUB_REPOSITORY}/statuses/${HEAD_SHA}" \
+                      -f state="success" \
+                      -f context="CI (manual)" \
+                      -f description="Superseded by the pull request CI run" \
+                      -f target_url="${RUN_URL}" > /dev/null ; then
+                    echo "::warning::Could not clear the failed manual run status."
+                  fi
+
             - name: Fail job if workflow failed
               if: success() && steps.lastJobStatus.outputs.workflowStatus == 'failure'
               run: |
@@ -2210,7 +2353,7 @@ jobs:
         name: Update Algolia Dev Index
         needs: [website_build]
         # Only when the whole Website Build job succeeded (build and artifact upload), not just its build step.
-        if: ${{ !cancelled() && github.ref == 'refs/heads/latest' && needs.website_build.result == 'success' }}
+        if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/latest' && needs.website_build.result == 'success' }}
         # Search indexing is not part of the build's verdict: a failure here must not turn latest red
         # (and so trigger the CI failure handler).
         continue-on-error: true

@@ -6,8 +6,11 @@ import {
     clickAction,
     computeLegendBBox,
     contextMenuAction,
+    contextMenuElementAction,
     deproxy,
     expectWarningsCalls,
+    focusElementAction,
+    focusOutsideChartAction,
     getCrossLinesPlugin,
     getSeriesAt,
     getSeriesNodeData,
@@ -22,7 +25,7 @@ import { ChartAxisDirection, Transformable } from 'ag-charts-core';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster } from 'ag-charts-test';
 
 import { pointOnPolarCrossLine, polarCanvasPoint, polarCrossLineAt } from '../../test/polarCrossLines';
-import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, findContextMenuItem, prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
 // The bar-shaped datums of the histogram and bar series the tests click on.
@@ -260,18 +263,65 @@ describe('Context Menu', () => {
             await contextMenuAction(x, y)(chart);
             await waitForChartStability(chart);
 
-            const menuItems = Array.from(
-                document.body.getElementsByClassName(
-                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
-                ) as HTMLCollectionOf<HTMLElement>
-            );
-            const toggleVisibilityItem = menuItems.find((item) => item.textContent?.includes('Toggle Visibility'));
-            expect(toggleVisibilityItem).toBeDefined();
+            const toggleVisibilityItem = findContextMenuItem('Toggle Visibility');
 
-            toggleVisibilityItem!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            toggleVisibilityItem.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
             await waitForChartStability(chart);
 
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+    });
+
+    describe('menu container', () => {
+        function menuContainer() {
+            const container = document.body.getElementsByClassName(DEFAULT_CONTEXT_MENU_CLASS).item(0);
+            return new Caster(container).cast(HTMLElement).value;
+        }
+
+        function menuItems() {
+            return Array.from(document.body.getElementsByClassName(`${DEFAULT_CONTEXT_MENU_CLASS}__item`));
+        }
+
+        it('closes when focus moves outside the menu', async () => {
+            chart = await createEnterpriseChart(chartOptions());
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            expect(menuContainer().style.display).toBe('block');
+
+            await focusOutsideChartAction()(chart);
+
+            expect(menuContainer().style.display).toBe('none');
+            expect(menuItems()).toHaveLength(0);
+        });
+
+        it('stays open when focus moves between its items', async () => {
+            chart = await createEnterpriseChart(
+                chartOptions({
+                    items: [
+                        { label: 'One', action() {} },
+                        { label: 'Two', action() {} },
+                    ],
+                })
+            );
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            const [, second] = menuItems();
+
+            await focusElementAction(second)(chart);
+
+            expect(menuContainer().style.display).toBe('block');
+            expect(menuItems()).toHaveLength(2);
+        });
+
+        it('suppresses the browser context menu over the open menu', async () => {
+            chart = await createEnterpriseChart(chartOptions());
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            const [item] = menuItems();
+
+            const event = await contextMenuElementAction(item)(chart);
+
+            expect(event.defaultPrevented).toBe(true);
         });
     });
 
@@ -331,15 +381,9 @@ describe('Context Menu', () => {
             await contextMenuAction(x, y)(chart);
             await waitForChartStability(chart);
 
-            const menuItems = Array.from(
-                document.body.getElementsByClassName(
-                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
-                ) as HTMLCollectionOf<HTMLElement>
-            );
-            const nodeItem = menuItems.find((item) => item.textContent?.includes('Node Item'));
-            expect(nodeItem).toBeDefined();
+            const nodeItem = findContextMenuItem('Node Item');
 
-            nodeItem!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            nodeItem.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
             await waitForChartStability(chart);
 
             expect(action).toHaveBeenCalledTimes(1);
@@ -687,14 +731,8 @@ describe('Context Menu', () => {
         }
 
         function clickMenuItem(label: string) {
-            const menuItems = Array.from(
-                document.body.getElementsByClassName(
-                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
-                ) as HTMLCollectionOf<HTMLElement>
-            );
-            const item = menuItems.find((menuItem) => menuItem.textContent?.includes(label));
-            expect(item, `no context menu item labelled "${label}"`).toBeDefined();
-            item!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            const item = findContextMenuItem(label);
+            item.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
         }
 
         type OpenMenuOpts = {
@@ -1088,11 +1126,31 @@ describe('Context Menu', () => {
             expect(menuItemCount()).toBeGreaterThan(0);
         });
 
-        it.each([
-            ['false', { allowBrowserMenuWithModifierKey: false }],
-            ['unset', {}],
-        ])('opens the chart menu on Ctrl/Cmd + right-click when the option is %s', async (_name, contextMenu) => {
-            const { getItems } = await prepare(contextMenu, coordinatesOptions());
+        it.each(['ctrlKey', 'metaKey'] as const)(
+            'lets the browser menu through with %s when the option is unset',
+            async (modifier) => {
+                const { getItems } = await prepare({}, coordinatesOptions());
+
+                const event = await rightClick(seriesAreaCentre, { [modifier]: true });
+
+                expect(event.defaultPrevented).toBe(false);
+                expect(getItems).not.toHaveBeenCalled();
+                expect(menuItemCount()).toBe(0);
+            }
+        );
+
+        it('opens the chart menu without a modifier key when the option is unset', async () => {
+            const { getItems } = await prepare({}, coordinatesOptions());
+
+            const event = await rightClick(seriesAreaCentre, {});
+
+            expect(event.defaultPrevented).toBe(true);
+            expect(getItems).toHaveBeenCalledTimes(1);
+            expect(menuItemCount()).toBeGreaterThan(0);
+        });
+
+        it('opens the chart menu on Ctrl/Cmd + right-click when the option is false', async () => {
+            const { getItems } = await prepare({ allowBrowserMenuWithModifierKey: false }, coordinatesOptions());
 
             const ctrlEvent = await rightClick(seriesAreaCentre, { ctrlKey: true });
             const metaEvent = await rightClick(seriesAreaCentre, { metaKey: true });

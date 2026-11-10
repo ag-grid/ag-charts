@@ -1,5 +1,5 @@
 import { _Theme } from 'ag-charts-community';
-import { type Logger } from 'ag-charts-core';
+import { type Logger, datumKeyReader } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
@@ -9,6 +9,7 @@ import type {
     AgCartesianChartOptions,
     AgChartSyncOptions,
     AgHlcSeriesOptions,
+    AgInsetNumberAxisOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
     AgNumberAxisOptions,
@@ -25,6 +26,7 @@ import type {
 } from 'ag-charts-types';
 
 import {
+    createTotalSegmentAxisOptions,
     createVolumeProfileAxis,
     createVolumeProfileSeries,
     createVolumeProfileStatusBarOptions,
@@ -107,29 +109,34 @@ export function priceVolume(
     const shownVolumeKey = volume ? volumeKey : undefined;
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
 
-    const profileLevels = volumeProfile && groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize, logger);
+    const suppressFieldDotNotation = opts.suppressFieldDotNotation ?? false;
+    const profileLevels =
+        volumeProfile &&
+        groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize, suppressFieldDotNotation, logger);
 
     return {
         animation: { enabled: false },
         legend: { enabled: false },
         series: [
-            ...createVolumeSeries(getTheme, keys, shownVolumeKey),
+            ...createVolumeSeries(getTheme, keys, shownVolumeKey, suppressFieldDotNotation),
             ...createPriceVolumeProfileSeries(getTheme, profileLevels, volumeProfile),
             ...createPriceSeries(chartType, keys, logger),
         ],
         axes: {
-            ...createPriceAxis(tickSize),
+            ...createPriceAxis(tickSize, volumeProfile),
             ...createDateAxis(),
             ...createVolumeAxis(volume),
             ...createVolumeProfileAxis(volumeProfile),
         },
         tooltip: { enabled: true, mode: 'shared' },
+        // Set alongside the shared tooltip, which would otherwise make the highlight shared too.
+        highlight: { mode: 'single' },
         data,
         formatter,
         ...createAnnotationsOptions(toolbar, themeOverrides, data, dateKey, shownVolumeKey),
         ...createNavigatorOptions(navigator, dateKey, shownVolumeKey),
         ...createRangesOptions(rangeButtons, zoom),
-        ...createStatusBarOptions(statusBar, keys, shownVolumeKey, profileLevels),
+        ...createStatusBarOptions(statusBar, keys, shownVolumeKey, profileLevels, volumeProfile),
         ...createSyncOptions(sync),
         ...createZoomOptions(zoom),
         ...unusedOpts,
@@ -250,9 +257,13 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
 function createVolumeSeries(
     getTheme: () => ChartTheme,
     { xKey, openKey, closeKey }: PriceSeriesKeys,
-    volumeKey: string | undefined
+    volumeKey: string | undefined,
+    suppressFieldDotNotation: boolean
 ) {
     if (volumeKey == null) return [];
+
+    const readOpen = datumKeyReader(openKey, suppressFieldDotNotation);
+    const readClose = datumKeyReader(closeKey, suppressFieldDotNotation);
 
     return [
         {
@@ -266,7 +277,9 @@ function createVolumeSeries(
             // @ts-expect-error undocumented option
             simpleItemStyler(datum: DatumDefault) {
                 const { up, down } = getTheme().palette;
-                return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
+                return {
+                    fill: readOpen(datum) < readClose(datum) ? up?.fill : down?.fill,
+                };
             },
             focusIndex: 1,
             highlight: { unhighlightedSeries: { opacity: 1 } },
@@ -281,10 +294,10 @@ function createPriceVolumeProfileSeries(
 ) {
     if (volumeProfile == null || levels == null) return [];
 
-    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, undefined, false);
+    return createVolumeProfileSeries(getTheme, PRICE_AXIS_KEY, levels, undefined, volumeProfile, false);
 }
 
-function createPriceAxis(tickSize: number | undefined) {
+function createPriceAxis(tickSize: number | undefined, volumeProfile: AgVolumeProfileOptions | undefined) {
     // `snapInterval` is undocumented; `snap` is themed so that theme overrides can turn snapping off.
     const crosshair = { enabled: true, snapInterval: tickSize };
     return {
@@ -292,13 +305,11 @@ function createPriceAxis(tickSize: number | undefined) {
             type: 'number',
             position: 'right',
             crosshair,
-            // @ts-expect-error undocumented option
-            layoutConstraints: {
-                stacked: false,
-                width: 100,
-                unit: 'percent',
-                align: 'start',
-            },
+            spacing: 0,
+            ...createTotalSegmentAxisOptions(
+                volumeProfile?.totalSegment,
+                volumeProfile?.placement === 'left' ? 'left' : 'right'
+            ),
         } satisfies AgNumberAxisOptions,
     };
 }
@@ -321,25 +332,15 @@ function createDateAxis() {
     };
 }
 
-function createVolumeAxis(volume: boolean): Record<string, AgNumberAxisOptions> {
+function createVolumeAxis(volume: boolean): Record<string, AgInsetNumberAxisOptions> {
     if (!volume) return {};
 
     return {
         yVolume: {
-            type: 'number',
+            type: 'inset-number',
             position: 'left',
-            label: { enabled: false },
-            crosshair: { enabled: false },
-            gridLine: { enabled: false },
-            nice: false,
-            // @ts-expect-error undocumented option
-            layoutConstraints: {
-                stacked: false,
-                width: 20,
-                unit: 'percent',
-                align: 'end',
-            },
-        } satisfies AgNumberAxisOptions,
+            lengthRatio: 0.2,
+        } satisfies AgInsetNumberAxisOptions,
     };
 }
 
@@ -403,7 +404,8 @@ function createStatusBarOptions(
     statusBar: boolean,
     { openKey, closeKey, highKey, lowKey }: PriceSeriesKeys,
     volumeKey: string | undefined,
-    profileLevels: VolumeProfileDatum[] | undefined
+    profileLevels: VolumeProfileDatum[] | undefined,
+    volumeProfile: AgVolumeProfileOptions | undefined
 ) {
     if (!statusBar) return {};
 
@@ -415,7 +417,9 @@ function createStatusBarOptions(
             lowKey,
             closeKey,
             volumeKey,
-            volumeProfile: profileLevels && createVolumeProfileStatusBarOptions(profileLevels, PRICE_AXIS_KEY),
+            volumeProfile:
+                profileLevels &&
+                createVolumeProfileStatusBarOptions(profileLevels, PRICE_AXIS_KEY, volumeProfile ?? {}),
         },
     };
 }

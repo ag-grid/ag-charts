@@ -16,9 +16,11 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type {
     AgAnnotationsToolbarButton,
+    AgCartesianChartOptions,
     AgChartInstance,
     AgChartTheme,
     AgFinancialChartOptions,
@@ -26,6 +28,7 @@ import type {
 } from 'ag-charts-types';
 
 import { setupEnterpriseModules } from '../../setup';
+import { collectShapes } from '../../test/utils';
 import { getStockData } from '../test/stockData';
 import { totalSegmentBlocks, totalSegmentLabels } from '../test/totalSegment';
 import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volumeProfileData';
@@ -148,6 +151,15 @@ describe('priceVolumePreset', () => {
         await waitForChartStability(chart);
 
         expect(ids()).toEqual(['price', 'volume']);
+    });
+
+    it('keeps single highlighting alongside its shared tooltip', async () => {
+        chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ ...EXAMPLES.candlestick }));
+        await waitForChartStability(chart);
+
+        const { processedOptions } = deproxy(chart).chartOptions;
+        expect(processedOptions.tooltip?.mode).toBe('shared');
+        expect((processedOptions as AgCartesianChartOptions).highlight?.mode).toBe('single');
     });
 
     it('gives the price, volume and volume profile series four distinct fixed ids', async () => {
@@ -280,6 +292,11 @@ describe('priceVolumePreset', () => {
             'smaller tick size': { data: getStockData(), volumeProfile, tickSize: 1 },
             'matching tick size': { data: getStockData(), volumeProfile, tickSize: 2.5 },
             'larger tick size': { data: getStockData(), volumeProfile, tickSize: 5 },
+            'single level': {
+                data: getStockData(),
+                volumeProfile: { ...volumeProfile, totalSegment: { enabled: true } },
+                tickSize: 1000,
+            },
             'total segment placement left': {
                 data: getStockData(),
                 volumeProfile: { ...volumeProfile, placement: 'left', totalSegment: { enabled: true } },
@@ -292,6 +309,14 @@ describe('priceVolumePreset', () => {
                 data: getStockData(),
                 volumeProfile: { ...volumeProfile, data: getIrregularVolumeProfile() },
             },
+            'custom up and down bars': {
+                data: getStockData(),
+                volumeProfile: {
+                    ...volumeProfile,
+                    up: { fill: '#1565c0', fillOpacity: 0.7, stroke: '#0d47a1', strokeWidth: 2 },
+                    down: { stroke: '#e65100' },
+                },
+            },
         };
 
         it.each(Object.entries(VOLUME_PROFILE_EXAMPLES))(
@@ -301,6 +326,24 @@ describe('priceVolumePreset', () => {
                 await compare();
             }
         );
+
+        it('should keep a single level centred on the price axis when it is zoomed', async () => {
+            const extents = async (initialState?: AgFinancialChartOptions['initialState']) => {
+                chart = AgCharts.createFinancialChart(
+                    prepareFinancialTestOptions({ ...VOLUME_PROFILE_EXAMPLES['single level'], initialState })
+                );
+                await waitForChartStability(chart);
+                const profile = deproxy(chart).series.find((s) => s.id === 'volumeProfileUp')!;
+                const [bar] = collectShapes(profile.contentGroup).filter((node) => node.visible) as Rect[];
+                const [block] = totalSegmentBlocks(chart);
+                chart.destroy();
+                return { bar: [bar.y, bar.height], block: [block.y, block.height] };
+            };
+
+            const unzoomed = await extents();
+            const zoomed = await extents({ zoom: { ratioY: { start: 0, end: 0.5 } } });
+            expect(zoomed).toEqual(unzoomed);
+        });
 
         it('should warn when a key is found in no data element', async () => {
             chart = AgCharts.createFinancialChart(
@@ -486,6 +529,15 @@ describe('priceVolumePreset', () => {
             await hoverCandleAtLevel(50, LEVEL_200);
 
             expectProfileNotHovered();
+            await compare();
+        });
+
+        it('should colour the hovered level by the up and down fills', async () => {
+            await create({
+                volumeProfile: { ...volumeProfile, up: { fill: '#7b1fa2' }, down: { fill: '#ef6c00' } },
+            });
+            await hoverCandleAtLevel(50, LEVEL_200);
+
             await compare();
         });
 

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { InternalAgDropShadowOptions } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBubbleSeriesOptions,
     AgCartesianChartOptions,
     AgChartInstance,
+    AgDropShadowOptions,
     AgLineSeriesOptions,
     AgMarkerShape,
     AgMarkerShapeFn,
@@ -17,7 +17,7 @@ import type { Marker } from '../../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
 import { getSeriesPaths } from '../../test/communitySeriesAccessors';
 import { getSeriesAt, getSeriesSelectionNodes } from '../../test/seriesAccessors';
-import { MARKER_SHADOW, customMarkerShape, internalOptions } from '../../test/shadowFixtures';
+import { MARKER_SHADOW, customMarkerShape } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -42,39 +42,35 @@ interface MarkerOverrides {
 }
 
 const markerSeriesOptions = {
-    scatter: (marker: MarkerOverrides, shadow?: InternalAgDropShadowOptions): AgScatterSeriesOptions =>
-        internalOptions<AgScatterSeriesOptions>({
-            type: 'scatter',
-            xKey: 'x',
-            yKey: 'y',
-            shape: 'circle',
-            size: 12,
-            shadow,
-            ...marker,
-        }),
-    bubble: (marker: MarkerOverrides, shadow?: InternalAgDropShadowOptions): AgBubbleSeriesOptions =>
-        internalOptions<AgBubbleSeriesOptions>({
-            type: 'bubble',
-            xKey: 'x',
-            yKey: 'y',
-            sizeKey: 'size',
-            shadow,
-            ...marker,
-        }),
-    line: (marker: MarkerOverrides, shadow?: InternalAgDropShadowOptions): AgLineSeriesOptions =>
-        internalOptions<AgLineSeriesOptions>({
-            type: 'line',
-            xKey: 'x',
-            yKey: 'y',
-            marker: { enabled: true, size: 12, ...marker, shadow },
-        }),
-    area: (marker: MarkerOverrides, shadow?: InternalAgDropShadowOptions): AgAreaSeriesOptions =>
-        internalOptions<AgAreaSeriesOptions>({
-            type: 'area',
-            xKey: 'x',
-            yKey: 'y',
-            marker: { enabled: true, size: 12, ...marker, shadow },
-        }),
+    scatter: (marker: MarkerOverrides, shadow?: AgDropShadowOptions): AgScatterSeriesOptions => ({
+        type: 'scatter',
+        xKey: 'x',
+        yKey: 'y',
+        shape: 'circle',
+        size: 12,
+        shadow,
+        ...marker,
+    }),
+    bubble: (marker: MarkerOverrides, shadow?: AgDropShadowOptions): AgBubbleSeriesOptions => ({
+        type: 'bubble',
+        xKey: 'x',
+        yKey: 'y',
+        sizeKey: 'size',
+        shadow,
+        ...marker,
+    }),
+    line: (marker: MarkerOverrides, shadow?: AgDropShadowOptions): AgLineSeriesOptions => ({
+        type: 'line',
+        xKey: 'x',
+        yKey: 'y',
+        marker: { enabled: true, size: 12, ...marker, shadow },
+    }),
+    area: (marker: MarkerOverrides, shadow?: AgDropShadowOptions): AgAreaSeriesOptions => ({
+        type: 'area',
+        xKey: 'x',
+        yKey: 'y',
+        marker: { enabled: true, size: 12, ...marker, shadow },
+    }),
 };
 
 describe('marker shadow', () => {
@@ -91,8 +87,8 @@ describe('marker shadow', () => {
 
     const ctx = setupMockCanvas();
 
-    const create = async (options: object) => {
-        chart = await createChart(internalOptions<AgCartesianChartOptions>(options));
+    const create = async (options: AgCartesianChartOptions) => {
+        chart = await createChart(options);
         return chart;
     };
 
@@ -143,7 +139,7 @@ describe('marker shadow', () => {
     });
 
     describe.each(['scatter', 'bubble', 'line', 'area'] as const)('%s dynamic update', (type) => {
-        const options = (shadow: InternalAgDropShadowOptions): AgCartesianChartOptions => ({
+        const options = (shadow: AgDropShadowOptions): AgCartesianChartOptions => ({
             data: SCATTER_DATA,
             series: [markerSeriesOptions[type](shapeOption('circle'), shadow)],
         });
@@ -253,7 +249,7 @@ describe('marker shadow', () => {
     });
 
     describe('area', () => {
-        const AREA_FILL_SHADOW: InternalAgDropShadowOptions = {
+        const AREA_FILL_SHADOW: AgDropShadowOptions = {
             enabled: true,
             fill: '#ff0000',
             xOffset: 10,
@@ -359,8 +355,7 @@ describe('marker shadow', () => {
             await compare();
         });
 
-        // AG-9003: 14.2.0 rendering restored for this release
-        it.skip('should render line markers with a shadow', async () => {
+        it('should render line markers with a shadow', async () => {
             await create({
                 data: SCATTER_DATA,
                 axes: PADDED_AXES,

@@ -1,5 +1,4 @@
 import {
-    AUTO_SIZED_LABEL_TRUNCATE,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
@@ -8,7 +7,6 @@ import {
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     themeLineHeight,
-    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -32,7 +30,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
-        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
@@ -42,9 +40,9 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             wrapping: 'on-space',
-            truncate: AUTO_SIZED_LABEL_TRUNCATE,
-            textAlign: { $path: ['../textAlign', 'center'] },
-            verticalAlign: { $path: ['../verticalAlign', 'middle'] },
+            truncate: true,
+            textAlign: 'center',
+            verticalAlign: 'middle',
         },
         itemPadding: 3,
         tooltip: SERIES_TOOLTIP_THEME,

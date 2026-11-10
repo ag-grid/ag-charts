@@ -1,5 +1,6 @@
+import type { _ModuleSupport } from 'ag-charts-community';
 import { type ChartOrProxy, deproxy, findAxis, getAxisLayoutState, getSeriesAt } from 'ag-charts-community-test';
-import type { BBox, Group, Node, Rect } from 'ag-charts-core';
+import type { BBox, DynamicContext, Group, Node, Rect } from 'ag-charts-core';
 
 import type { MiniChart } from '../features/navigator/miniChart';
 import type { Navigator } from '../features/navigator/navigator';
@@ -96,6 +97,7 @@ export function getSeriesPlacedLabels<TDatum = unknown>(
 
 // The annotations module keeps its axis helpers private; the toolbars are public but belong to the module's own type.
 interface AnnotationsHost {
+    ctx: DynamicContext<_ModuleSupport.ChartRegistry>;
     toolbar: { enabled?: boolean };
     optionsToolbar: {
         enabled?: boolean;
@@ -116,6 +118,11 @@ function getAnnotations(chartOrProxy: ChartOrProxy<any>): AnnotationsHost {
     const annotations = deproxy(chartOrProxy).modulesManager.getModule<AnnotationsHost>('annotations');
     assertPresent(annotations, 'annotations module');
     return annotations;
+}
+
+/** The context the annotations module builds its dialogs from, for driving a dialog without a canvas hit-test. */
+export function getAnnotationsModuleContext(chartOrProxy: ChartOrProxy<any>) {
+    return getAnnotations(chartOrProxy).ctx;
 }
 
 /** Whether the annotations module enabled its annotation toolbar and its options toolbar. */
@@ -256,7 +263,22 @@ export function getAxisGrantedLabelWidth(chartOrProxy: ChartOrProxy<any>, positi
 // `Crosshair.crosshairGroup` and `Crosshair.lineGroupSelection` are private; the axis owns the crosshair as a module.
 interface CrosshairHost {
     crosshairGroup: { visible: boolean };
-    lineGroupSelection: { nodes(): { visible: boolean; y1: number }[] };
+    lineGroupSelection: {
+        nodes(): { visible: boolean; y1: number }[];
+        each(callback: (line: { visible: boolean; x1: number; y1: number }, key: string) => void): void;
+    };
+}
+
+function getCrosshair(chartOrProxy: ChartOrProxy<any>, positionOrId: string): CrosshairHost {
+    const crosshair = (
+        findAxis(chartOrProxy, positionOrId) as unknown as {
+            getModuleMap(): { getModule<T>(name: string): T | undefined };
+        }
+    )
+        .getModuleMap()
+        .getModule<CrosshairHost>('crosshair');
+    assertPresent(crosshair, `${positionOrId} axis crosshair`);
+    return crosshair;
 }
 
 /**
@@ -267,17 +289,29 @@ export function getCrosshairLine(
     chartOrProxy: ChartOrProxy<any>,
     positionOrId: string
 ): { visible: boolean; y1: number } {
-    const crosshair = (
-        findAxis(chartOrProxy, positionOrId) as unknown as {
-            getModuleMap(): { getModule<T>(name: string): T | undefined };
-        }
-    )
-        .getModuleMap()
-        .getModule<CrosshairHost>('crosshair');
-    assertPresent(crosshair, `${positionOrId} axis crosshair`);
+    const crosshair = getCrosshair(chartOrProxy, positionOrId);
     const [line] = crosshair.lineGroupSelection.nodes();
     assertPresent(line, `${positionOrId} axis crosshair line`);
     return { visible: crosshair.crosshairGroup.visible && line.visible, y1: line.y1 };
+}
+
+/**
+ * Every line the crosshair of the axis at `positionOrId` currently shows, keyed by the series key property it was
+ * drawn for (`'pointer'` for the pointer line). `position` is along the axis, relative to the series area: `x1` of a
+ * crosshair on a horizontal axis, `y1` of one on a vertical axis.
+ */
+export function getCrosshairLines(
+    chartOrProxy: ChartOrProxy<any>,
+    positionOrId: string
+): { key: string; position: number }[] {
+    const crosshair = getCrosshair(chartOrProxy, positionOrId);
+    const isHorizontalAxis = ['bottom', 'top'].includes(findAxis(chartOrProxy, positionOrId).position ?? '');
+    const lines: { key: string; position: number }[] = [];
+    if (!crosshair.crosshairGroup.visible) return lines;
+    crosshair.lineGroupSelection.each((line, key) => {
+        if (line.visible) lines.push({ key, position: isHorizontalAxis ? line.x1 : line.y1 });
+    });
+    return lines;
 }
 
 /** The navigator module. Its track and mini chart are public; the range and drag handling are not, see below. */
@@ -292,7 +326,7 @@ interface NavigatorRangeHost {
     domProxy: { _min: number; _max: number };
     x: number;
     width: number;
-    onDrag(handle: 'min' | 'max' | 'pan', event: { offsetX: number }): void;
+    onDrag(handle: 'min' | 'max' | 'pan', event: { canvasX: number }): void;
 }
 
 /** The range the navigator shows as a ratio of the full data, from `0` to `1`. */
@@ -311,7 +345,7 @@ export function dragNavigatorHandle(
     ratio: number
 ): void {
     const navigator = getNavigator(chartOrProxy) as unknown as NavigatorRangeHost;
-    navigator.onDrag(handle, { offsetX: navigator.x + navigator.width * ratio });
+    navigator.onDrag(handle, { canvasX: navigator.x + navigator.width * ratio });
 }
 
 /** The mini chart of the navigator, which the navigator keeps even while the mini chart is disabled. */

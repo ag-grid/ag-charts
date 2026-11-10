@@ -5,6 +5,7 @@
  */
 export const CHART_FEATURE_IDS = [
     'seriesStrokes',
+    'seriesLabels',
     'legend',
     'tooltip',
     'crosshairs',
@@ -37,6 +38,11 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
         label: 'Series Strokes',
         hint: 'Outlines each series in its palette stroke, which charts hide by default',
     },
+    {
+        id: 'seriesLabels',
+        label: 'Series Labels',
+        hint: 'The value of each datum, drawn on its series',
+    },
     { id: 'legend', label: 'Legend', hint: 'Series names, and its pager once they overflow' },
     { id: 'tooltip', label: 'Tooltip', hint: 'Shown on hover, and held open while the tooltip params are edited' },
     { id: 'crosshairs', label: 'Crosshairs', hint: 'Axis labels on hover - hover the chart to see them' },
@@ -55,7 +61,10 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
 
 /** Mostly on by default, because a feature nobody switches on is a param nobody sees. */
 export const DEFAULT_CHART_FEATURES: ChartFeatures = {
-    seriesStrokes: true,
+    // Off, as charts draw no strokes until their options set a width.
+    seriesStrokes: false,
+    // Off, as a label per datum swamps the chart once the series count climbs.
+    seriesLabels: false,
     legend: true,
     tooltip: true,
     crosshairs: true,

@@ -10,14 +10,9 @@ import { PresetSelector } from './PresetSelector';
 import { PreviewPane } from './PreviewPane';
 import { PREVIEW_PANES } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
+import { useSetEditedGroup } from './editedGroup';
 import { withSansFallback } from './fonts';
-import {
-    completePalette,
-    setStoredPalette,
-    usePreviewStrokes,
-    useStoredPalette,
-    useStrokeDirection,
-} from './paletteModel';
+import { completePalette, setStoredPalette, useStoredPalette, useStrokeDirection } from './paletteModel';
 import {
     getSelectedPresetId,
     setInitialBaseTheme,
@@ -33,11 +28,11 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const { overriddenParams } = useRenderedThemeInfo();
     const storedPalette = useStoredPalette();
     const strokeDirection = useStrokeDirection();
-    const [previewStrokes] = usePreviewStrokes();
 
     const selectedPresetId = useSelectedPresetId();
     const preset = findPreset(selectedPresetId) ?? initialPreset;
     const baseTheme = useBaseThemeName();
+    const setEditedGroup = useSetEditedGroup();
 
     // The palette and the preset live outside the shared param model, so a first
     // visit seeds them here. Guarded separately: a returning user may have edited
@@ -76,7 +71,14 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     }, []);
 
     return (
-        <Container ref={containerRef} style={{ height }}>
+        // See `editedGroup.ts`. Released on capture here, before a param group in the
+        // panel can name itself: a held tooltip sits in the top layer, above any dialog.
+        <Container
+            ref={containerRef}
+            style={{ height }}
+            onFocusCapture={() => setEditedGroup(null)}
+            onPointerDownCapture={() => setEditedGroup(null)}
+        >
             <Menu className={renderedTheme._getParamsClassName()}>
                 <SidebarHeader>Theme Builder</SidebarHeader>
                 <EditorScroller>
@@ -90,7 +92,7 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
                 <PresetSelector selectedId={selectedPresetId} />
                 <PreviewRow>
                     {PREVIEW_PANES.map((pane) => (
-                        <PreviewPane key={pane} pane={pane} theme={previewTheme} strokesEnabled={previewStrokes} />
+                        <PreviewPane key={pane} pane={pane} theme={previewTheme} />
                     ))}
                 </PreviewRow>
             </Main>
@@ -173,11 +175,14 @@ const Main = styled('div')`
 `;
 
 // Side by side rather than stacked: the panes share the height they would
-// otherwise halve, and the tool refuses to render below 900px wide anyway.
+// otherwise halve, and the tool refuses to render below 900px wide anyway. The
+// panes share the toolbar row, so the charts stay level when only one wraps.
 const PreviewRow = styled('div')`
     flex: 1;
     min-width: 0;
     min-height: 0;
-    display: flex;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 12px 16px;
 `;

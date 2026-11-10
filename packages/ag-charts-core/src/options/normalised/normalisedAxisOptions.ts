@@ -22,11 +22,11 @@ import type {
     AgCartesianCrossLineLabelPlacement,
     AgCartesianTimeAxisLabelOptions,
     AgCategoryAxisOptions,
-    AgCrossLineLabelPosition,
     AgCrosshairLabel,
     AgCrosshairOptions,
     AgGroupedCategoryAxisLabelOptions,
     AgGroupedCategoryAxisOptions,
+    AgInsetNumberAxisOptions,
     AgLineCrossLineOptions,
     AgLogAxisOptions,
     AgNumberAxisOptions,
@@ -129,7 +129,7 @@ export type NormalisedAngleAxisFormattableLabelOptions<TContext = ContextDefault
 
 // --- Line / tick / gridLine normalised shapes ---
 export type NormalisedAxisLineOptions = Normalised<
-    Omit<AgAxisLineOptions, 'width'>,
+    AgAxisLineOptions,
     'enabled' | 'strokeWidth' | 'strokeOpacity' | 'lineDash',
     { stroke?: CssColor }
 >;
@@ -166,7 +166,7 @@ export type NormalisedTimeAxisParentLevelOptions<TContext = ContextDefault> = No
 // The base alias keeps `title` optional because angle axes do not render a title.
 type AxisRequiredKeys = 'label' | 'line' | 'tick' | 'gridLine' | 'reverse';
 type TitledAxisRequiredKeys = AxisRequiredKeys | 'title';
-type CartesianAxisRequiredKeys = TitledAxisRequiredKeys | 'maxThicknessRatio';
+type CartesianAxisRequiredKeys = TitledAxisRequiredKeys | 'maxThicknessRatio' | 'spacing';
 type CategoryStyleAxisRequiredKeys = CartesianAxisRequiredKeys | 'groupPaddingInner';
 
 type AxisLineTickGridLineMorph = {
@@ -270,6 +270,12 @@ export type NormalisedNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
 >;
 
+export type NormalisedInsetNumberAxisOptions<TContext = ContextDefault> = Normalised<
+    AgInsetNumberAxisOptions<TContext>,
+    CartesianAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
+>;
+
 export type NormalisedLogAxisOptions<TContext = ContextDefault> = Normalised<
     AgLogAxisOptions<TContext>,
     CartesianAxisRequiredKeys,
@@ -364,7 +370,7 @@ type CrosshairLabelMorph<TFormat, TContext> = {
 
 export type NormalisedCrosshairOptions<TFormat = string, TContext = ContextDefault> = Normalised<
     AgCrosshairOptions<NormalisedCrosshairLabelOptions<TFormat, TContext>>,
-    'enabled' | 'snap' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'label',
+    'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'label',
     CrosshairLabelMorph<TFormat, TContext>
 > & {
     /** When set with `snap`, the pointer value snaps to the nearest multiple of this interval. */
@@ -385,15 +391,13 @@ export type CrossLineLabelOverflow = 'pad-chart' | 'realign-text' | 'clip-text';
 // themed in `crossLinesModule.ts`, so they are absent from the public label options.
 export type NormalisedAxisCrossLineLabelOptions = Normalised<
     AgBaseCrossLineLabelOptions,
-    'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'color' | 'cornerRadius',
+    'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'spacing' | 'color' | 'cornerRadius',
     { fontFamily: string; color?: CssColor; fill?: NormalisedColorType; border?: NormalisedBorderOptions }
 > &
     // The fit options apply to cartesian cross lines only.
     NormalisedLabelFitOptions & {
         overflow?: CrossLineLabelOverflow;
         reserveSpace?: boolean;
-        /** Cartesian cross lines only. */
-        position?: AgCrossLineLabelPosition;
         /** Cartesian cross lines only. */
         placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
         /** Cartesian cross lines only. */

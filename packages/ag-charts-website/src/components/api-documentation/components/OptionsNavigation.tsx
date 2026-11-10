@@ -51,6 +51,9 @@ export const SelectionContext = createContext<{
     basePath: string;
 } | null>(null);
 
+/** Type names expanded by the ancestors of a nav entry. */
+type AncestorTypes = ReadonlySet<string>;
+
 export function OptionsNavigation({
     basePath,
     breadcrumbs,
@@ -165,12 +168,14 @@ function NavProperty({
     depth = 0,
     genericsMap,
     path,
+    ancestorTypes,
     onClick,
 }: {
     member: MemberNode;
     depth?: number;
     genericsMap?: Record<string, string>;
     path: { name: string; type: string }[];
+    ancestorTypes?: AncestorTypes;
     onClick?: (navData: NavigationData) => void;
 }) {
     const selection = useContext(SelectionContext);
@@ -192,7 +197,11 @@ function NavProperty({
             : undefined;
     const isTypedUnion = Boolean(unionVariants);
     const noExpand = config.noExpand?.includes(cleanupName(member.name));
-    const expandable = !noExpand && (isInterface || isInterfaceArray || isInterfaceRecord || isTypedUnion);
+    // A type that recurses (e.g. a context-menu item's submenu `items`) would expand without end, so a repeat
+    // of an ancestor's type is marked recursive instead of expanding.
+    const isRecursive = ancestorTypes?.has(memberType) === true;
+    const expandable =
+        !noExpand && !isRecursive && (isInterface || isInterfaceArray || isInterfaceRecord || isTypedUnion);
     const isObjectArray =
         !isInterfaceArray &&
         !isInterfaceRecord &&
@@ -209,6 +218,7 @@ function NavProperty({
         (isObjectArray === true && !isUnionArray) || (isTypedUnion && unionVariants?.isArray === true);
 
     const navData = getNavigationDataFromPath(path, config.specialTypes);
+    const childAncestorTypes = expandable ? new Set(ancestorTypes).add(memberType) : undefined;
 
     const [isExpanded, toggleExpanded] = useAutoExpand(() => {
         if (config.keepExpanded?.includes(member.name)) {
@@ -282,7 +292,15 @@ function NavProperty({
                     )}
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
-                    <NavLink navData={navData} onClick={onClick}>
+                    <NavLink
+                        navData={navData}
+                        onClick={onClick}
+                        ariaLabel={
+                            isRecursive
+                                ? `${cleanupName(member.name)}${isInterfaceRecord ? '.key' : ''} (recursive)`
+                                : undefined
+                        }
+                    >
                         {isStringLiteralType(memberType) ? (
                             <>
                                 {member.name} <span className={styles.punctuation}>= '</span>
@@ -298,6 +316,7 @@ function NavProperty({
                         ) : (
                             ''
                         )}
+                        {isRecursive && <span className={styles.comment}>{' // recursive'}</span>}
                     </NavLink>
                     {expandable && (
                         <OpeningBrackets
@@ -334,6 +353,7 @@ function NavProperty({
                                               name: cleanupName(childMember.name),
                                               type: getMemberType(childMember),
                                           })}
+                                          ancestorTypes={childAncestorTypes}
                                           onClick={onClick}
                                       />
                                   ))
@@ -345,6 +365,7 @@ function NavProperty({
                                           path={path.concat({ name, type })}
                                           isRecordUnion={isInterfaceRecord}
                                           genericsMap={unionVariants?.genericsMap}
+                                          ancestorTypes={childAncestorTypes}
                                           onClick={onClick}
                                       />
                                   )
@@ -366,12 +387,14 @@ function NavTypedUnionProperty({
     path,
     isRecordUnion,
     genericsMap,
+    ancestorTypes,
     onClick,
 }: {
     depth?: number;
     path: NavigationPath[];
     isRecordUnion: boolean;
     genericsMap?: Record<string, TypeNode>;
+    ancestorTypes?: AncestorTypes;
     onClick?: (navData: NavigationData) => void;
 }) {
     const selection = useContext(SelectionContext);
@@ -451,6 +474,7 @@ function NavTypedUnionProperty({
                                 depth={depth + 1}
                                 genericsMap={interfaceRef.genericsMap}
                                 path={path.concat({ name: member.name, type: getMemberType(member) })}
+                                ancestorTypes={new Set(ancestorTypes).add(variantType)}
                                 onClick={onClick}
                             />
                         ))}
@@ -557,10 +581,12 @@ function NavBreadcrumb({
 function NavLink({
     navData,
     onClick,
+    ariaLabel,
     children,
 }: {
     navData: NavigationData;
     onClick?: (navData: NavigationData) => void;
+    ariaLabel?: string;
     children: ReactNode;
 }) {
     const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -573,7 +599,7 @@ function NavLink({
     };
 
     return (
-        <a className={styles.navLink} href={hrefFor(navData)} onClick={handleClick}>
+        <a className={styles.navLink} href={hrefFor(navData)} aria-label={ariaLabel} onClick={handleClick}>
             {children}
         </a>
     );

@@ -1,11 +1,14 @@
 import { afterEach, describe, expect, it, test, vi } from 'vitest';
 
+import { Transformable } from 'ag-charts-core';
 import type {
+    AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgChartLegendItemOptions,
     AgChartLegendListeners,
     AgChartLegendPosition,
     AgChartOptions,
+    AgDonutSeriesOptions,
     AgLineSeriesOptions,
     AgMarkerShapeFnParams,
     AgPath,
@@ -20,12 +23,15 @@ import type { AgChartProxy, LegendTestItemNode } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    clickLegendItem,
     compareImageSnapshot,
     computeLegendBBox,
     createChart,
     deproxy,
     doubleClickAction,
+    doubleClickLegendItem,
     doubleTapAction,
+    expectWarningsCalls,
     getLegendModule,
     getTooltipElement,
     hoverAction,
@@ -1005,6 +1011,25 @@ describe('Legend', () => {
         test('left-bottom', async () => {
             await testPosition('left-bottom');
         });
+
+        const invalidPosition = 'middle' as AgChartLegendPosition;
+        it.each([
+            { path: 'legend.position', options: { legend: { position: invalidPosition } } },
+            {
+                path: 'theme.overrides.common.legend.position',
+                options: { theme: { overrides: { common: { legend: { position: invalidPosition } } } } },
+            },
+        ])('warns once for an invalid $path string', async ({ path, options }) => {
+            chart = deproxy(
+                await createChart({ data, series: [{ type: 'bar', xKey: 'quarter', yKey: 'coal' }], ...options })
+            );
+
+            expectWarningsCalls().toEqual([
+                [
+                    `AG Charts - Option \`${path}\` cannot be set to \`"middle"\`; expecting a legend placement string: ["top", "top-right", "top-left", "bottom", "bottom-right", "bottom-left", "right", "right-top", "right-bottom", "left", "left-top", "left-bottom"], ignoring.`,
+                ],
+            ]);
+        });
     });
 
     describe('AG-15363 legend.floating', () => {
@@ -1034,84 +1059,6 @@ describe('Legend', () => {
                 })
             );
             await compare(chart);
-        });
-    });
-
-    describe('CRT-1130', () => {
-        const animate = spyOnAnimationManager();
-
-        test('keyboard legend focus change interrupts in-progress highlight animation', async () => {
-            const options: AgChartOptions = prepareTestOptions({
-                data: [
-                    { year: '2016', gold: 26, silver: 18, bronze: 26 },
-                    { year: '2020', gold: 38, silver: 32, bronze: 19 },
-                    { year: '2024', gold: 40, silver: 27, bronze: 24 },
-                ],
-                series: [
-                    { type: 'bar', xKey: 'year', yKey: 'gold' },
-                    { type: 'bar', xKey: 'year', yKey: 'silver' },
-                    { type: 'bar', xKey: 'year', yKey: 'bronze' },
-                ],
-            });
-
-            animate(1200, 1);
-            chart = deproxy(await createChart(options));
-
-            const legend = getLegendModule(chart);
-            const items = legend.itemSelection.nodes();
-
-            // spyOnAnimationManager completes animations instantly via forceTimeJump, so Animation state is pushed
-            // directly to reach the legend's highlight-interruption path.
-            chart.ctx.interactionManager.pushState(InteractionState.Animation);
-
-            // Keyboard navigation: blur the current item then focus a different one.
-            legend.onLeave(true);
-            legend.onHover(new FocusEvent('focus'), items[1], true);
-
-            // Focus applies the new highlight immediately, before the animation completes.
-            expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
-
-            chart.ctx.interactionManager.popState(InteractionState.Animation);
-            await waitForChartStability(chart);
-
-            // And the deferred clear from the blur does not clobber it once the batch stops.
-            expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
-        });
-
-        test('keyboard focus is not clobbered by a deferred pointer-hover update on batch stop', async () => {
-            const options: AgChartOptions = prepareTestOptions({
-                data: [
-                    { year: '2016', gold: 26, silver: 18, bronze: 26 },
-                    { year: '2020', gold: 38, silver: 32, bronze: 19 },
-                ],
-                series: [
-                    { type: 'bar', xKey: 'year', yKey: 'gold' },
-                    { type: 'bar', xKey: 'year', yKey: 'silver' },
-                    { type: 'bar', xKey: 'year', yKey: 'bronze' },
-                ],
-            });
-
-            animate(1200, 1);
-            chart = deproxy(await createChart(options));
-
-            const legend = getLegendModule(chart);
-            const items = legend.itemSelection.nodes();
-
-            chart.ctx.interactionManager.pushState(InteractionState.Animation);
-
-            // Pointer hover queues a deferred highlight update for batch stop.
-            legend.onHover(new MouseEvent('mouseenter'), items[0]);
-            // Keyboard focus then applies a different highlight immediately, superseding the queued update.
-            legend.onLeave(true);
-            legend.onHover(new FocusEvent('focus'), items[1], true);
-
-            expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
-
-            chart.ctx.interactionManager.popState(InteractionState.Animation);
-            await waitForChartStability(chart);
-
-            // The superseded pointer-hover update must not run on batch stop and overwrite the focus.
-            expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
         });
     });
 
@@ -1161,59 +1108,262 @@ describe('Legend', () => {
         });
     });
 
-    describe('CRT-1193', () => {
-        test('legend hover highlight is suppressed while an interaction holds ZoomDrag', async () => {
-            const options: AgChartOptions = prepareTestOptions({
-                data: [
-                    { year: '2016', gold: 26, silver: 18, bronze: 26 },
-                    { year: '2020', gold: 38, silver: 32, bronze: 19 },
-                ],
-                series: [
-                    { type: 'bar', xKey: 'year', yKey: 'gold' },
-                    { type: 'bar', xKey: 'year', yKey: 'silver' },
-                    { type: 'bar', xKey: 'year', yKey: 'bronze' },
-                ],
+    describe('items sharing a legend name', () => {
+        const NAME_FILLS: Record<string, string> = { Alpha: 'red', Beta: 'green', Gamma: 'blue' };
+
+        const donutRing = (
+            id: string,
+            names: string[],
+            extra?: Partial<AgDonutSeriesOptions>
+        ): AgDonutSeriesOptions => ({
+            id,
+            type: 'donut',
+            angleKey: 'value',
+            legendItemKey: 'name',
+            data: names.map((name) => ({ name, value: 1 })),
+            fills: names.map((name) => NAME_FILLS[name]),
+            ...extra,
+        });
+
+        const namedLine = (id: string, legendItemName?: string, extra?: Partial<AgLineSeriesOptions>) =>
+            ({
+                ...buildSeries({ x: 0, y: 1 }),
+                id,
+                yName: legendItemName ?? id,
+                legendItemName,
+                stroke: 'red',
+                marker: { fill: 'red', stroke: 'red' },
+                ...extra,
+            }) as AgLineSeriesOptions;
+
+        function hiddenItems() {
+            return (chart.ctx.legendManager?.getData() ?? [])
+                .filter(({ enabled }) => !enabled)
+                .map(({ seriesId, itemId }) => `${seriesId}:${itemId}`);
+        }
+
+        describe('rings sharing a legendItemKey', () => {
+            const INNER = ['Alpha', 'Beta', 'Gamma'];
+            const OUTER = ['Gamma', 'Alpha', 'Beta'];
+
+            it.each([
+                ['the inner ring', 0],
+                ['the outer ring', 4],
+            ])('clicking Alpha in %s hides Alpha in both rings', async (_name, legendIndex) => {
+                const seriesVisibilityChange = vi.fn();
+                chart = deproxy(
+                    await createChart({
+                        series: [donutRing('inner', INNER), donutRing('outer', OUTER)],
+                        listeners: { seriesVisibilityChange },
+                    })
+                );
+
+                await clickLegendItem(chart, legendIndex);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual(['inner:0', 'outer:1']);
+                const events = seriesVisibilityChange.mock.calls.map(([{ seriesId, itemId, legendItemName }]) => ({
+                    seriesId,
+                    itemId,
+                    legendItemName,
+                }));
+                expect(events).toEqual([
+                    { seriesId: 'inner', itemId: 0, legendItemName: 'Alpha' },
+                    { seriesId: 'outer', itemId: 1, legendItemName: 'Alpha' },
+                ]);
             });
 
-            chart = deproxy(await createChart(options));
+            it('a ring hidden from the legend follows the name too', async () => {
+                chart = deproxy(
+                    await createChart({
+                        series: [donutRing('inner', INNER), donutRing('outer', OUTER, { showInLegend: false })],
+                    })
+                );
 
-            const { highlightManager, interactionManager, tooltipManager } = chart.ctx;
-            const legend = getLegendModule(chart);
-            const items = legend.itemSelection.nodes();
+                await clickLegendItem(chart, 0);
+                await waitForChartStability(chart);
 
-            const updateTooltip = vi.spyOn(tooltipManager, 'updateTooltip');
-            const removeTooltip = vi.spyOn(tooltipManager, 'removeTooltip');
+                expect(hiddenItems()).toEqual(['inner:0', 'outer:1']);
+            });
 
-            // Positive control: the same hover on the same chart does highlight, and does reach the
-            // tooltip manager, when nothing is dragging.
-            legend.onHover(new MouseEvent('mouseenter'), items[0]);
-            expect(highlightManager.getActiveHighlight()?.series.id).toBe(items[0].datum?.id);
-            expect(updateTooltip.mock.calls.length + removeTooltip.mock.calls.length).toBeGreaterThan(0);
+            it('a ring without the name is left alone', async () => {
+                chart = deproxy(
+                    await createChart({ series: [donutRing('inner', INNER), donutRing('outer', ['Gamma', 'Beta'])] })
+                );
 
-            // Legend highlight clears are deferred to batch stop, so the baseline has to be allowed
-            // to land before the suppression case is measured against it.
-            legend.onLeave();
+                await clickLegendItem(chart, 0);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual(['inner:0']);
+            });
+
+            it('a name repeated within rings in the same order follows the clicked row', async () => {
+                const names = ['Alpha', 'Alpha', 'Beta'];
+                chart = deproxy(await createChart({ series: [donutRing('inner', names), donutRing('outer', names)] }));
+
+                await clickLegendItem(chart, 1);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual(['inner:1', 'outer:1']);
+            });
+
+            it('double-clicking a hidden item restores it in both rings', async () => {
+                chart = deproxy(await createChart({ series: [donutRing('inner', INNER), donutRing('outer', OUTER)] }));
+
+                await clickLegendItem(chart, 1);
+                await waitForChartStability(chart);
+                expect(hiddenItems()).toEqual(['inner:1', 'outer:2']);
+
+                await doubleClickLegendItem(chart, 5);
+
+                expect(hiddenItems()).toEqual([]);
+            });
+        });
+
+        it('bars sharing a legendItemName toggle together whatever their data order', async () => {
+            const bar = (id: string, xs: string[], legendItemName: string, stackGroup: string): AgBarSeriesOptions => ({
+                id,
+                type: 'bar',
+                xKey: 'x',
+                yKey: 'y',
+                yName: id,
+                legendItemName,
+                stackGroup,
+                fill: legendItemName === 'Q1' ? 'red' : 'blue',
+                data: xs.map((x) => ({ x, y: 1 })),
+            });
+            chart = deproxy(
+                await createChart({
+                    series: [
+                        bar('na-q1', ['2023', '2024'], 'Q1', 'na'),
+                        bar('na-q2', ['2023', '2024'], 'Q2', 'na'),
+                        bar('eu-q1', ['2024', '2023'], 'Q1', 'eu'),
+                        bar('eu-q2', ['2024', '2023'], 'Q2', 'eu'),
+                    ],
+                })
+            );
+
+            await clickLegendItem(chart, 0);
             await waitForChartStability(chart);
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-            updateTooltip.mockClear();
-            removeTooltip.mockClear();
 
-            // ZoomDrag is written directly to pin the guard without a zoom module: isState() compares only the
-            // lowest set bit, so the guard is observable only while no higher-priority state is queued.
-            interactionManager.pushState(InteractionState.ZoomDrag);
-            expect(interactionManager.isState(InteractionState.ZoomDrag)).toBe(true);
+            expect(hiddenItems()).toEqual(['na-q1:y', 'eu-q1:y']);
+        });
 
-            legend.onHover(new MouseEvent('mouseenter'), items[1]);
+        describe('preventHidingAll', () => {
+            it.each([
+                ['both listed in the legend', {}, 2],
+                ['one hidden from the legend', { showInLegend: false }, 1],
+            ])('keeps the last visible name with its series %s', async (_name, sharedExtra, otherIndex) => {
+                chart = deproxy(
+                    await createChart({
+                        legend: { preventHidingAll: true },
+                        series: [
+                            namedLine('shared-1', 'Shared'),
+                            namedLine('shared-2', 'Shared', sharedExtra),
+                            namedLine('other'),
+                        ],
+                    })
+                );
 
-            // Highlight application is separately gated on the state queue, so the tooltip calls are what
-            // distinguish the guard returning early from a highlight that merely never lands.
-            expect(updateTooltip).not.toHaveBeenCalled();
-            expect(removeTooltip).not.toHaveBeenCalled();
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+                await clickLegendItem(chart, otherIndex);
+                await waitForChartStability(chart);
+                expect(hiddenItems()).toEqual(['other:y']);
 
-            interactionManager.popState(InteractionState.ZoomDrag);
-            updateTooltip.mockRestore();
-            removeTooltip.mockRestore();
+                await clickLegendItem(chart, 0);
+                await waitForChartStability(chart);
+                expect(hiddenItems()).toEqual(['other:y']);
+            });
+
+            it('still hides a shared name while an unnamed series is visible', async () => {
+                chart = deproxy(
+                    await createChart({
+                        legend: { preventHidingAll: true },
+                        series: [namedLine('shared-1', 'Shared'), namedLine('shared-2', 'Shared'), namedLine('other')],
+                    })
+                );
+
+                await clickLegendItem(chart, 0);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual(['shared-1:y', 'shared-2:y']);
+            });
+
+            it('keeps the last visible name across linked rings', async () => {
+                chart = deproxy(
+                    await createChart({
+                        legend: { preventHidingAll: true },
+                        series: [
+                            donutRing('inner', ['Alpha', 'Beta', 'Gamma']),
+                            donutRing('outer', ['Gamma', 'Alpha', 'Beta']),
+                        ],
+                    })
+                );
+
+                for (const legendIndex of [1, 2, 0]) {
+                    await clickLegendItem(chart, legendIndex);
+                    await waitForChartStability(chart);
+                }
+
+                expect(hiddenItems()).toEqual(['inner:1', 'inner:2', 'outer:0', 'outer:2']);
+            });
+
+            it.each([
+                ['a single ring', ['inner'], ['inner:0', 'inner:2']],
+                ['linked rings', ['inner', 'outer'], ['inner:0', 'inner:2', 'outer:0', 'outer:2']],
+            ])('hides repeated rows one at a time until one is left in %s', async (_name, ringIds, expectedHidden) => {
+                chart = deproxy(
+                    await createChart({
+                        legend: { preventHidingAll: true },
+                        series: ringIds.map((id) => donutRing(id, ['Alpha', 'Alpha', 'Beta'])),
+                    })
+                );
+
+                for (const legendIndex of [2, 0, 1]) {
+                    await clickLegendItem(chart, legendIndex);
+                    await waitForChartStability(chart);
+                }
+
+                expect(hiddenItems()).toEqual(expectedHidden);
+            });
+        });
+    });
+
+    describe('CRT-1254 series sharing a yKey', () => {
+        const sharedYKeySeries = (names: string[]): AgLineSeriesOptions[] =>
+            names.map((yName, x) => ({ ...buildSeries({ x, y: 1 }), id: `series-${x}`, yName }));
+
+        function legendItems() {
+            return getLegendModule(chart).itemSelection.nodes();
+        }
+
+        test('each proxy switch follows its own series', async () => {
+            chart = deproxy(await createChart({ series: sharedYKeySeries(['a', 'b', 'c']) }));
+
+            await clickLegendItem(chart, 2);
+            await waitForChartStability(chart);
+
+            const checked = legendItems().map(({ proxyButton }) =>
+                proxyButton?.getElement().getAttribute('aria-checked')
+            );
+            expect(checked).toEqual(['true', 'true', 'false']);
+        });
+
+        test.each([
+            ['truncated', 0, true],
+            ['untruncated', 1, false],
+        ])('the %s item resolves its own auto tooltip', async (_name, index, tooltipVisible) => {
+            chart = deproxy(
+                await createChart({
+                    series: sharedYKeySeries(['A name long enough to be truncated', 'short']),
+                    legend: { item: { label: { maxLength: 10 } } },
+                })
+            );
+
+            const { x, y, width, height } = Transformable.toCanvas(legendItems()[index]);
+            await hoverAction(x + width / 2, y + height / 2)(chart);
+            await waitForChartStability(chart);
+
+            expect(isTooltipVisible(chart)).toBe(tooltipVisible);
         });
     });
 

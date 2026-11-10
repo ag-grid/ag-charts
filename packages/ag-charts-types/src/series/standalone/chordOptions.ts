@@ -1,14 +1,20 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, PixelSize, Ratio } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgGlowHighlightOptions,
+    AgHighlightStyleOptions,
+} from '../seriesOptions';
 
 export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'focusIndex'>,
-        AgChordSeriesOptionsKeys,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
+        AgChordSeriesOptionsKeys<TDatum>,
         AgChordSeriesOptionsNames,
         AgChordSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Chord Series. */
@@ -40,14 +46,14 @@ export interface AgChordSeriesLinkItemStylerParams<TDatum, TContext = ContextDef
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgChordSeriesOptionsKeys,
+        AgChordSeriesOptionsKeys<TDatum>,
         Required<AgChordSeriesLinkStyle> {}
 
 export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgChordSeriesOptionsKeys,
+        AgChordSeriesOptionsKeys<TDatum>,
         Required<AgChordSeriesNodeStyle> {
     /** Label of the node. */
     label: string | undefined;
@@ -69,6 +75,8 @@ export interface AgChordSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     link?: AgChordSeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgChordSeriesNodeOptions<TDatum, TContext>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum, TContext>>;
 }
@@ -90,6 +98,8 @@ export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgChordSeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesLinkStyle {
+    /** Configuration for the shadow used behind the links. */
+    shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual links, based on the given parameters.*/
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum, TContext>, AgChordSeriesLinkStyle>;
 }
@@ -104,6 +114,8 @@ export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgChordSeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesNodeStyle {
+    /** Configuration for the shadow used behind the nodes. */
+    shadow?: AgDropShadowOptions;
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */
@@ -112,13 +124,13 @@ export interface AgChordSeriesNodeOptions<TDatum, TContext = ContextDefault> ext
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<TDatum, TContext>, AgChordSeriesNodeStyle>;
 }
 
-export interface AgChordSeriesOptionsKeys {
+export interface AgChordSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key containing the start node of each link. */
-    fromKey?: string;
+    fromKey?: DatumKey<TDatum>;
     /** The key containing the end node of each link. */
-    toKey?: string;
+    toKey?: DatumKey<TDatum>;
     /** The key containing the size of each link. */
-    sizeKey?: string;
+    sizeKey?: DatumKey<TDatum>;
 }
 
 export interface AgChordSeriesOptionsNames {
@@ -135,12 +147,12 @@ interface SizeParams {
 export interface AgChordSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends
         AgSeriesTooltipRendererParams<TDatum, TContext>,
-        AgChordSeriesOptionsKeys,
+        AgChordSeriesOptionsKeys<TDatum>,
         AgChordSeriesOptionsNames,
         SizeParams,
         FillOptions,
         StrokeOptions,
         LineDashOptions {}
 
-export interface AgChordSeriesLabelFormatterParams<_TDatum = DatumDefault>
-    extends AgChordSeriesOptionsKeys, SizeParams {}
+export interface AgChordSeriesLabelFormatterParams<TDatum = DatumDefault>
+    extends AgChordSeriesOptionsKeys<TDatum>, SizeParams {}
