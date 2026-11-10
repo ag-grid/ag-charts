@@ -1,22 +1,23 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
+import { Sector, Transformable } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
-import { getLegendItemNodes, getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
+import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { shapesOf } from '../test/shadowFixtures';
 import {
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     createChart,
     deproxy,
-    hoverAction,
+    hoverLegendItem,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
+import type { DonutSeries } from './polar/donutSeries';
 
 const DATA = Array.from({ length: 30 }, (_, i) => ({ x: `P${i}`, y: 5 }));
 
@@ -94,8 +95,7 @@ describe('a highlight glow of the markers of a series', () => {
                 } as AgChartOptions)
             );
             await waitForChartStability(chart);
-            const { x, y } = Transformable.toCanvas(getLegendItemNodes(chart)[0]).computeCenter();
-            await hoverAction(x, y)(chart);
+            await hoverLegendItem(chart, 0);
             await waitForChartStability(chart);
 
             const { width, height } = chart.ctx.scene.canvas;
@@ -118,5 +118,65 @@ describe('a highlight glow of the markers of a series', () => {
         expect(withGlow.line).toEqual(STROKE);
         expect(withGlow.line).toEqual(without.line);
         if (type === 'area') expect(withGlow.fill).toEqual(STROKE);
+    });
+});
+
+describe('a highlight glow of the sectors of a donut', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    /** The pixel a little inside the inner edge of the ring, where the glow of its sectors reaches over the inner circle. */
+    const hoverInnerCircle = async (glow: object | undefined) => {
+        chart = deproxy(
+            await createChart({
+                data: [
+                    { asset: 'Stocks', amount: 30 },
+                    { asset: 'Bonds', amount: 25 },
+                    { asset: 'Cash', amount: 20 },
+                ],
+                animation: { enabled: false },
+                legend: { enabled: true, position: 'bottom' },
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        legendItemKey: 'asset',
+                        innerRadiusRatio: 0.6,
+                        innerCircle: { fill: '#ff0000', fillOpacity: 1 },
+                        highlight: { unhighlightedItem: { opacity: 1, glow } },
+                    },
+                ],
+            } as AgChartOptions)
+        );
+        await waitForChartStability(chart);
+        await hoverLegendItem(chart, 0);
+        await waitForChartStability(chart);
+
+        const donut = getSeriesAt(chart) as DonutSeries;
+        const centre = Transformable.toCanvas(donut.innerCircleSelection.nodes()[0]).computeCenter();
+        const { innerRadius } = shapesOf(donut.contentGroup, Sector)[1];
+        return [
+            ...chart.ctx.scene.canvas.context.getImageData(
+                Math.round(centre.x),
+                Math.round(centre.y - innerRadius + 6),
+                1,
+                1
+            ).data,
+        ];
+    };
+
+    it('does not cover the inner circle of its own series', async () => {
+        const without = await hoverInnerCircle(undefined);
+        chart.destroy();
+        const withGlow = await hoverInnerCircle(GLOW);
+
+        expect(without).toEqual(STROKE);
+        expect(withGlow).toEqual(without);
     });
 });

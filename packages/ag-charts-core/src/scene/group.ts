@@ -881,7 +881,6 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         return this.shadowCasterCount;
     }
 
-    /** The children of the `shared` groups at or below this one that cast a group glow, cached like the other counts. */
     /** Makes the group cast the group glows of `sources`, which it draws before, in place of their own cast. */
     castGroupGlowsOf(sources: readonly Group[]) {
         this.castsGroupGlows = true;
@@ -889,10 +888,14 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         for (const source of sources) source.castsGroupGlows = false;
     }
 
+    /**
+     * The children of the `shared` groups at or below this group and its sources that cast a group glow.
+     * A group with no shared caster below it is not walked, so a chart with nothing cast allocates nothing here.
+     */
     private getSharedGroupGlowCount(): number {
-        let count = this.countOwnGroupGlows();
+        let count = this.getSharedCasterCount() > 0 ? this.countOwnGroupGlows() : 0;
         for (const source of this.groupGlowSources) {
-            if (source.visible) count += source.countOwnGroupGlows();
+            if (source.visible && source.getSharedCasterCount() > 0) count += source.countOwnGroupGlows();
         }
         return count;
     }

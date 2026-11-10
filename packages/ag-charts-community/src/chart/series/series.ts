@@ -1151,10 +1151,8 @@ export abstract class Series<
     }
 
     /**
-     * The glow to cast in the glow slot of one copy of an item, from the `glow` of its highlight state over the
-     * series-level `seriesGlow`. The highlight layer's copy of the hovered item casts the glow of the item state, so the
-     * in-place copy of that item casts none. The highlight layer owns `Item`, so that copy has the state of `OtherItem`:
-     * it is told by being the item that {@link getRedrawnDatumIndex} reports.
+     * The glow one copy of an item casts: its highlight state's `glow` over `seriesGlow`. The in-place copy of the
+     * hovered item reads as `OtherItem`, so it is told by {@link getRedrawnDatumIndex} and casts none.
      */
     protected resolveItemGlow(
         seriesGlow: DeepPartial<AgGlowOptions> | undefined,

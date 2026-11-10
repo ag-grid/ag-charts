@@ -2,8 +2,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
+    CATEGORY_DATA,
+    HISTOGRAM_DATA,
     SERIES_GLOW,
     THEME_GLOW,
+    XY_DATA,
     deproxy,
     expectWarningsCalls,
     getSeriesAt,
@@ -18,7 +21,15 @@ import {
 import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
-import { HIERARCHY_SHADOW_DATA, SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
+import {
+    FLOW_DATA,
+    HIERARCHY_SHADOW_DATA,
+    OHLC_DATA,
+    SHADOW,
+    WATERFALL_DATA,
+    collectShapes,
+    createEnterpriseChart,
+} from '../test/utils';
 import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
@@ -26,11 +37,6 @@ import ukTopology from './map-test/ukTopology.json';
 type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
 type AnySeriesOptions = NonNullable<AgChartOptions['series']>[number];
 
-const FLOW = [
-    { from: 'A', to: 'C', size: 8 },
-    { from: 'A', to: 'D', size: 4 },
-    { from: 'B', to: 'C', size: 5 },
-];
 const STAGES = [
     { stage: 'Visits', value: 100 },
     { stage: 'Sign-ups', value: 60 },
@@ -52,32 +58,11 @@ const RANGE = [
     { x: 'Q2', low: 3, high: 8 },
     { x: 'Q3', low: 1, high: 3 },
 ];
-const OHLC = [
-    { x: 'Q1', open: 6, high: 7, low: 3, close: 4 },
-    { x: 'Q2', open: 5, high: 7, low: 4, close: 6 },
-    { x: 'Q3', open: 4, high: 5, low: 4, close: 4.5 },
-];
 const OHLC_KEYS = { xKey: 'x', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' };
 const BOX_PLOT = [
     { x: 'Q1', min: 3, q1: 4, median: 5, q3: 6, max: 7 },
     { x: 'Q2', min: 4, q1: 5, median: 6, q3: 7, max: 8 },
 ];
-const WATERFALL = [
-    { x: 'Start', y: 10 },
-    { x: 'Down', y: -4 },
-    { x: 'Up', y: 6 },
-];
-const XY = [
-    { x: 1, y: 5, size: 10 },
-    { x: 2, y: 8, size: 20 },
-    { x: 3, y: 3, size: 30 },
-];
-const SLICES = [
-    { category: 'A', value: 5 },
-    { category: 'B', value: 8 },
-    { category: 'C', value: 3 },
-];
-const HISTOGRAM = [{ x: 1 }, { x: 2 }, { x: 2.5 }, { x: 4 }, { x: 5 }, { x: 5.5 }, { x: 7 }];
 
 interface SeriesCase {
     name: string;
@@ -98,13 +83,13 @@ interface SeriesCase {
 const SERIES: SeriesCase[] = [
     {
         name: 'bubble',
-        data: XY,
+        data: XY_DATA,
         hoverable: true,
         series: (glow, shadow) => ({ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size', glow, shadow }),
     },
     {
         name: 'histogram',
-        data: HISTOGRAM,
+        data: HISTOGRAM_DATA,
         series: (glow, shadow) => ({ type: 'histogram', xKey: 'x', glow, shadow }),
     },
     {
@@ -138,19 +123,19 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'candlestick',
-        data: OHLC,
+        data: OHLC_DATA,
         hoverable: true,
         series: (glow, shadow) => ({ type: 'candlestick', ...OHLC_KEYS, glow, shadow }),
     },
     {
         name: 'ohlc',
-        data: OHLC,
+        data: OHLC_DATA,
         hoverable: true,
         series: (glow, shadow) => ({ type: 'ohlc', ...OHLC_KEYS, glow, shadow }),
     },
     {
         name: 'hlc markers',
-        data: OHLC,
+        data: OHLC_DATA,
         hoverable: true,
         copies: 3,
         series: (glow, shadow) => ({
@@ -259,8 +244,8 @@ const SERIES: SeriesCase[] = [
     {
         name: 'area markers',
         hoverable: true,
-        data: XY,
-        count: XY.length,
+        data: XY_DATA,
+        count: XY_DATA.length,
         series: (glow, shadow) => ({
             type: 'area',
             xKey: 'x',
@@ -271,18 +256,18 @@ const SERIES: SeriesCase[] = [
     {
         name: 'pie',
         hoverable: true,
-        data: SLICES,
+        data: CATEGORY_DATA,
         series: (glow, shadow) => ({ type: 'pie', angleKey: 'value', glow, shadow }),
     },
     {
         name: 'donut',
         hoverable: true,
-        data: SLICES,
+        data: CATEGORY_DATA,
         series: (glow, shadow) => ({ type: 'donut', angleKey: 'value', glow, shadow }),
     },
     {
         name: 'waterfall positive',
-        data: WATERFALL,
+        data: WATERFALL_DATA,
         count: 2,
         series: (glow, shadow) => ({
             type: 'waterfall',
@@ -293,7 +278,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'waterfall negative',
-        data: WATERFALL,
+        data: WATERFALL_DATA,
         count: 1,
         series: (glow, shadow) => ({
             type: 'waterfall',
@@ -304,7 +289,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'waterfall total',
-        data: [...WATERFALL, { x: 'Total', y: 12 }],
+        data: [...WATERFALL_DATA, { x: 'Total', y: 12 }],
         count: 1,
         series: (glow, shadow) => ({
             type: 'waterfall',
@@ -316,7 +301,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'sankey nodes',
-        data: FLOW,
+        data: FLOW_DATA,
         count: 4,
         series: (glow, shadow) => ({
             type: 'sankey',
@@ -328,8 +313,8 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'sankey links',
-        data: FLOW,
-        count: FLOW.length,
+        data: FLOW_DATA,
+        count: FLOW_DATA.length,
         series: (glow, shadow) => ({
             type: 'sankey',
             fromKey: 'from',
@@ -340,7 +325,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'chord nodes',
-        data: FLOW,
+        data: FLOW_DATA,
         count: 4,
         series: (glow, shadow) => ({
             type: 'chord',
@@ -352,8 +337,8 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'chord links',
-        data: FLOW,
-        count: FLOW.length,
+        data: FLOW_DATA,
+        count: FLOW_DATA.length,
         series: (glow, shadow) => ({
             type: 'chord',
             fromKey: 'from',
@@ -587,7 +572,7 @@ describe('series-level glow (enterprise series)', () => {
     const PARTS: PartsCase[] = [
         {
             name: 'sankey',
-            data: FLOW,
+            data: FLOW_DATA,
             parts: ['node', 'link'],
             series: flow('sankey'),
             partOf: FLOW_PART,
@@ -595,7 +580,7 @@ describe('series-level glow (enterprise series)', () => {
         },
         {
             name: 'chord',
-            data: FLOW,
+            data: FLOW_DATA,
             parts: ['node', 'link'],
             series: flow('chord'),
             partOf: FLOW_PART,
@@ -603,7 +588,7 @@ describe('series-level glow (enterprise series)', () => {
         },
         {
             name: 'waterfall',
-            data: WATERFALL,
+            data: WATERFALL_DATA,
             parts: ['positive', 'negative'],
             partOf: ITEM_PART,
             series: (glow) => ({
@@ -615,7 +600,7 @@ describe('series-level glow (enterprise series)', () => {
         },
         {
             name: 'hlc',
-            data: OHLC,
+            data: OHLC_DATA,
             parts: ['high', 'low', 'close'],
             partOf: ITEM_PART,
             common: true,
@@ -746,7 +731,7 @@ describe('series-level glow (enterprise series)', () => {
         ...(['sankey', 'chord'] as const).flatMap((type): HoverCase[] => [
             {
                 name: `${type} node`,
-                data: FLOW,
+                data: FLOW_DATA,
                 series: flowSeries(type),
                 hovered: (c) => getFlowNodeData(c)[0] as HighlightNodeDatum,
                 partOf: FLOW_PART,
@@ -754,7 +739,7 @@ describe('series-level glow (enterprise series)', () => {
             },
             {
                 name: `${type} link`,
-                data: FLOW,
+                data: FLOW_DATA,
                 series: flowSeries(type),
                 hovered: (c) => getFlowLinkData(c)[0] as HighlightNodeDatum,
                 partOf: FLOW_PART,
@@ -764,7 +749,7 @@ describe('series-level glow (enterprise series)', () => {
         // The `item.total` options style the subtotals as well as the totals.
         ...['positive', 'negative', 'subtotal'].map((itemType): HoverCase => ({
             name: `waterfall ${itemType}`,
-            data: [...WATERFALL, { x: 'Total', y: 12 }],
+            data: [...WATERFALL_DATA, { x: 'Total', y: 12 }],
             series: waterfallSeries,
             hovered: waterfallDatum(itemType),
             partOf: ITEM_PART,
@@ -876,7 +861,7 @@ describe('series-level glow (enterprise series)', () => {
     const BUCKETS: BucketCase[] = [
         ...(['sankey', 'chord'] as const).map((type): BucketCase => ({
             name: type,
-            data: FLOW,
+            data: FLOW_DATA,
             series: (highlight) =>
                 ({
                     type,
@@ -892,7 +877,7 @@ describe('series-level glow (enterprise series)', () => {
         })),
         {
             name: 'waterfall',
-            data: WATERFALL,
+            data: WATERFALL_DATA,
             series: (highlight) =>
                 ({
                     type: 'waterfall',

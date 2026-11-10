@@ -10,15 +10,9 @@ import {
 } from 'ag-charts-community-test';
 
 import { getFlowNodeData } from '../test/enterpriseSeriesAccessors';
-import { createEnterpriseChart } from '../test/utils';
+import { FLOW_DATA, createEnterpriseChart } from '../test/utils';
 
 type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
-
-const FLOW = [
-    { from: 'A', to: 'C', size: 8 },
-    { from: 'A', to: 'D', size: 4 },
-    { from: 'B', to: 'C', size: 5 },
-];
 
 const LINK = [255, 0, 0, 255];
 const GLOW = [0, 255, 0, 255];
@@ -36,7 +30,7 @@ describe('a highlight glow of a series with links and nodes', () => {
     // The pixels of one colour, after node 0 is hovered, so that the other nodes cast their `unhighlightedItem` glow.
     const hovered = async (type: 'sankey' | 'chord', glow: object | undefined) => {
         chart = await createEnterpriseChart({
-            data: FLOW,
+            data: FLOW_DATA,
             animation: { enabled: false },
             legend: { enabled: false },
             ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,

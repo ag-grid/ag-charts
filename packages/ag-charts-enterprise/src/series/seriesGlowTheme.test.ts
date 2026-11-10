@@ -3,17 +3,8 @@ import { describe, expect, it } from 'vitest';
 import type { AgChartOptions } from 'ag-charts-community';
 import { getSeriesOptions, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
-import { createEnterpriseChart } from '../test/utils';
+import { FLOW_DATA, OHLC_DATA, WATERFALL_DATA, createEnterpriseChart } from '../test/utils';
 
-const FLOW = [
-    { from: 'A', to: 'C', size: 8 },
-    { from: 'B', to: 'C', size: 5 },
-];
-const WATERFALL = [
-    { x: 'a', y: 5 },
-    { x: 'b', y: -2 },
-];
-const OHLC = [{ x: 1, open: 1, high: 3, low: 0, close: 2 }];
 const HEATMAP = [{ x: 'a', y: 'p', value: 1 }];
 const ON = { enabled: true };
 const MARKER = { enabled: true, glow: ON };
@@ -26,42 +17,42 @@ const CASES: Array<[string, object, object[], (options: any) => any, string[]]> 
     [
         'sankey node',
         { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', node: { glow: ON } },
-        FLOW,
+        FLOW_DATA,
         (o) => o.highlight,
         ITEM,
     ],
     [
         'sankey link',
         { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', link: { glow: ON } },
-        FLOW,
+        FLOW_DATA,
         (o) => o.highlight,
         ITEM,
     ],
     [
         'chord node',
         { type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size', node: { glow: ON } },
-        FLOW,
+        FLOW_DATA,
         (o) => o.highlight,
         ITEM,
     ],
     [
         'chord link',
         { type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size', link: { glow: ON } },
-        FLOW,
+        FLOW_DATA,
         (o) => o.highlight,
         ITEM,
     ],
     [
         'waterfall positive',
         { type: 'waterfall', xKey: 'x', yKey: 'y', item: { positive: { glow: ON } } },
-        WATERFALL,
+        WATERFALL_DATA,
         (o) => o.highlight,
         ITEM,
     ],
     [
         'waterfall total',
         { type: 'waterfall', xKey: 'x', yKey: 'y', item: { total: { glow: ON } } },
-        WATERFALL,
+        WATERFALL_DATA,
         (o) => o.highlight,
         ITEM,
     ],
@@ -76,7 +67,7 @@ const CASES: Array<[string, object, object[], (options: any) => any, string[]]> 
             closeKey: 'close',
             glow: ON,
         },
-        OHLC,
+        OHLC_DATA,
         (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
@@ -90,28 +81,28 @@ const CASES: Array<[string, object, object[], (options: any) => any, string[]]> 
     [
         'hlc marker',
         { type: 'hlc', xKey: 'x', highKey: 'high', lowKey: 'low', closeKey: 'close', marker: MARKER },
-        OHLC,
+        OHLC_DATA,
         (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
     [
         'range-area marker',
         { type: 'range-area', xKey: 'x', yLowKey: 'low', yHighKey: 'high', marker: MARKER },
-        OHLC,
+        OHLC_DATA,
         (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
     [
         'radar-area marker',
         { type: 'radar-area', angleKey: 'x', radiusKey: 'high', marker: MARKER },
-        OHLC,
+        OHLC_DATA,
         (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
     [
         'radar-line marker',
         { type: 'radar-line', angleKey: 'x', radiusKey: 'high', marker: MARKER },
-        OHLC,
+        OHLC_DATA,
         (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
@@ -198,7 +189,7 @@ describe('series glow theme', () => {
 
     it('turns the buckets off when nothing glows', async () => {
         const base = { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' };
-        const chart: any = await create(base, FLOW);
+        const chart: any = await create(base, FLOW_DATA);
         const { highlight } = getSeriesOptions<any>(chart);
         expect(ITEM.map((bucket) => highlight[bucket]?.glow?.enabled === true)).toEqual([false, false]);
         chart.destroy();

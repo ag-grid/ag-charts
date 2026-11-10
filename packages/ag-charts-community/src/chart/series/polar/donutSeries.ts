@@ -362,6 +362,8 @@ export class DonutSeries extends PolarSeries<
         this.phantomHighlightGroup.opacity = 0.2;
 
         this.innerLabelsGroup.pointerEvents = PointerEvents.None;
+        // The inner circle is drawn first, so the sectors cast their group glows beneath it, as the root does at rest.
+        this.backgroundGroup.castGroupGlowsOf([this.contentGroup]);
     }
 
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {

@@ -1,18 +1,18 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Rect, Transformable } from 'ag-charts-core';
+import { Rect } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
-import { getLegendItemNodes, getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
+import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { shapesOf } from '../test/shadowFixtures';
 import {
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     compareImageSnapshot,
     createChart,
     deproxy,
-    hoverAction,
+    hoverLegendItem,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -69,9 +69,8 @@ describe('highlight glow above the other series', () => {
         await waitForChartStability(chart);
     };
 
-    const hoverLegendItem = async (seriesIndex: number) => {
-        const { x, y } = Transformable.toCanvas(getLegendItemNodes(chart)[seriesIndex]).computeCenter();
-        await hoverAction(x, y)(chart);
+    const hoverSeries = async (seriesIndex: number) => {
+        await hoverLegendItem(chart, seriesIndex);
         await waitForChartStability(chart);
     };
 
@@ -82,7 +81,7 @@ describe('highlight glow above the other series', () => {
     const HOVERED = 1;
 
     describe.each([
-        { name: 'series-level hover', hover: () => hoverLegendItem(HOVERED) },
+        { name: 'series-level hover', hover: () => hoverSeries(HOVERED) },
         { name: 'item hover', hover: () => hoverItem(HOVERED, 1) },
     ])('$name', ({ name, hover }) => {
         it(`draws the highlighted series' glow over its neighbours (${name})`, async () => {
@@ -97,7 +96,7 @@ describe('highlight glow above the other series', () => {
         await create();
         expect(inGroupGlows(HOVERED)).toEqual([false, false, false]);
 
-        await hoverLegendItem(HOVERED);
+        await hoverSeries(HOVERED);
 
         expect(inGroupGlows(HOVERED)).toEqual([true, true, true]);
         expect(inGroupGlows(0)).toEqual([false, false, false]);

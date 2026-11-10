@@ -1120,6 +1120,20 @@ describe('Shadow root', () => {
             expect(gatherChildren).not.toHaveBeenCalled();
         });
 
+        it('should not walk the groups of a series that casts no glow, where it casts group glows', () => {
+            const collect = vi.spyOn(Group.prototype as any, 'collectChildGroups');
+
+            draw(true, () =>
+                Array.from({ length: 20 }, () => {
+                    const series = new Group({ name: 'series', castsGroupGlows: true });
+                    series.appendChild(group('shared', [group('shared', [square(20, 40)])]));
+                    return series;
+                })
+            );
+
+            expect(collect).not.toHaveBeenCalled();
+        });
+
         it('should visit the groups that cast, and those that hold them, and no others', () => {
             const gather = spy('gatherShadows');
 
