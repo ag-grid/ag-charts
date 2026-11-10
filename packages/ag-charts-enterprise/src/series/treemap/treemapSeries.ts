@@ -54,7 +54,7 @@ import {
     resolveMinimumFontSize,
     resolveTextAlign,
     toPlainText,
-    withoutGlow,
+    withoutCasts,
     wrapText,
 } from 'ag-charts-core';
 import type { AgGlowOptions, PaddingOptions } from 'ag-charts-types';
@@ -1216,7 +1216,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     private getGroupHighlightStyle(highlightState: HierarchyHighlightState): HighlightStyle | undefined {
         return this.getCachedHighlightStyle(GROUP_SLOT, highlightState, () => {
             const bucket = this.getGroupHighlightBucket(highlightState);
-            return bucket && withoutGlow(bucket);
+            return bucket && withoutCasts(bucket);
         });
     }
 

@@ -31,3 +31,14 @@ export function getRows(pointCount: number, seriesCount: number, categorical: bo
     }
     return rows;
 }
+
+/** Rows of `{ x, y, level }` for a `columns` x `rows` heatmap, with `level` rising smoothly across the cells. */
+export function getHeatmapRows(columns: number, rows: number) {
+    const cells: { x: string; y: string; level: number }[] = [];
+    for (let x = 0; x < columns; x++) {
+        for (let y = 0; y < rows; y++) {
+            cells.push({ x: `C${x}`, y: `R${y}`, level: Math.round((Math.sin(x / 7 + y / 9) + 1) * 50) });
+        }
+    }
+    return cells;
+}

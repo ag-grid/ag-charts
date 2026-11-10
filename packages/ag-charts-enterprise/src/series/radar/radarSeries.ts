@@ -557,9 +557,9 @@ export abstract class RadarSeries<
 
         selection.each((node, datum) => {
             // datum.style is populated from resolved (ref-free) marker styles by the style passes.
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const style =
-                (datum.style as NormalisedSeriesMarkerStyle | undefined) ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+                (datum.style as NormalisedSeriesMarkerStyle | undefined) ?? contextNodeData.styles[highlightState];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 hideWithSize0,
                 pickInflation,
@@ -567,6 +567,7 @@ export abstract class RadarSeries<
                 glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
+                highlightState,
             });
 
             node.drawingMode = drawingMode;

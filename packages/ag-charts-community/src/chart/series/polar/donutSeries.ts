@@ -1320,12 +1320,24 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.resolveItemShadow(this.options.shadow, isDatumHighlighted);
+            const castState = this.getItemCastState(
+                highlightedDatum,
+                isDatumHighlighted,
+                datum.datumIndex,
+                legendItemValues
+            );
+            sector.fillShadow = this.resolveItemShadow(
+                this.options.shadow,
+                isDatumHighlighted,
+                datum.datumIndex,
+                castState,
+                legendItemValues
+            );
             sector.fillGlow = this.resolveItemGlow(
                 this.options.glow,
                 isDatumHighlighted,
                 datum.datumIndex,
-                undefined,
+                castState,
                 legendItemValues
             );
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);

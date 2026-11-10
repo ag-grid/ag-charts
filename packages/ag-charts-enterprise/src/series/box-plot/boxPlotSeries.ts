@@ -993,10 +993,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
         datumSelection.each((boxPlotNode, nodeDatum) => {
             // Colour refs are resolved at theme-merge, so the style is normalised by render.
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
             const style = (nodeDatum.style ??
-                contextNodeData.styles[
-                    this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)
-                ]) as DeepRequired<NormalisedBoxPlotHighlightStyleOptions>;
+                contextNodeData.styles[highlightState]) as DeepRequired<NormalisedBoxPlotHighlightStyleOptions>;
             boxPlotNode.setFillProperties(style.fill, fillBBox);
 
             const nodeOpacity = style.opacity ?? 1;
@@ -1017,8 +1016,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             boxPlotNode.cornerRadius = style.cornerRadius;
 
             boxPlotNode.crisp = true;
-            boxPlotNode.fillShadow = this.resolveItemShadow(shadow, isHighlight);
-            boxPlotNode.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+            boxPlotNode.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex, highlightState);
+            boxPlotNode.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex, highlightState);
 
             boxPlotNode.horizontal = !isVertical;
             boxPlotNode.center = nodeDatum.scaledValues.xValue;

@@ -1398,9 +1398,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const series = this;
         datumSelection.each(function updateRangeBarNode(rect, datum) {
-            const style =
-                datum.style ??
-                contextNodeData.styles[series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[highlightState];
             rect.setStyleProperties(style, fillBBox);
 
             // Batched static property updates - write directly to backing fields to reduce markDirty() calls
@@ -1412,8 +1411,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 style.cornerRadius ?? 0,
                 categoryAlongX ? datum.width > 0 : datum.height > 0,
                 datum.crisp,
-                series.resolveItemShadow(shadow, isHighlight),
-                series.resolveItemGlow(glow, isHighlight, datum.datumIndex)
+                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState),
+                series.resolveItemGlow(glow, isHighlight, datum.datumIndex, highlightState)
             );
             rect.crispCentreDirection = crispCentreDirection;
         });

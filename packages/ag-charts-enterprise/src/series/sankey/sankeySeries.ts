@@ -1154,6 +1154,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         const fillBBox = this.getShapeFillBBox();
         const { shadow, glow } = this.options.node;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
@@ -1166,8 +1167,11 @@ export class SankeySeries extends FlowProportionSeries<
             rect.cornerRadius = this.options.node.cornerRadius;
 
             rect.setStyleProperties(style, fillBBox);
-            rect.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
-            rect.fillGlow = focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datumIndex) : undefined;
+            const castState = this.getItemCastState(highlightedDatum, isHighlight, datumIndex);
+            rect.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState);
+            rect.fillGlow =
+                focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datumIndex, castState) : undefined;
         });
     }
 
@@ -1261,6 +1265,7 @@ export class SankeySeries extends FlowProportionSeries<
         const fillBBox = this.getShapeFillBBox();
         const { cornerRadius } = this.options.node;
         const { shadow, glow } = this.options.link;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         datumSelection.each((link, datum) => {
             const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
@@ -1275,9 +1280,13 @@ export class SankeySeries extends FlowProportionSeries<
             link.endEdge = nodeEdge(datum.toNode, cornerRadius, 1);
 
             link.setStyleProperties(style, fillBBox);
-            link.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
+            const castState = this.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
+            link.fillShadow =
+                datum === focusedDatum
+                    ? undefined
+                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState);
             link.fillGlow =
-                focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex) : undefined;
+                focusedDatum == null ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState) : undefined;
 
             link.inset = link.strokeWidth / 2;
         });

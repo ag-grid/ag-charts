@@ -41,6 +41,7 @@ import {
     type ToolbarButton,
 } from 'ag-charts-types';
 
+import { without } from '../data/object';
 import { isValidNumberFormat } from '../format/numberFormat';
 import {
     borderOptionsDef,
@@ -695,10 +696,18 @@ export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
     fillOpacity: ratio,
 };
 
+/** The `shadow` of a highlighted item, which has no deprecated `color`: a new option takes `fill`. */
+const highlightedItemShadowOptionsDefs = without(shadowOptionsDefs, ['color']);
+
+/** The item buckets of a series that can cast a `glow`: only `highlightedItem` can also cast a `shadow`. */
+function glowItemHighlightDefs<I extends object>(itemHighlightOptionsDef: I) {
+    const unhighlightedItem = { ...itemHighlightOptionsDef, glow: glowOptionsDefs };
+    return { highlightedItem: { ...unhighlightedItem, shadow: highlightedItemShadowOptionsDefs }, unhighlightedItem };
+}
+
 /** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */
 export function glowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
-    const itemDef = { ...itemHighlightOptionsDef, glow: glowOptionsDefs };
-    return highlightOptionsDef(itemDef);
+    return { ...highlightOptionsDef(undefined), ...glowItemHighlightDefs(itemHighlightOptionsDef) };
 }
 
 /** As {@link glowHighlightOptionsDef}, for a series that also has highlighted-series and unhighlighted-series slots. */
@@ -706,10 +715,10 @@ export function multiSeriesGlowHighlightOptionsDef<I extends object, S extends o
     itemHighlightOptionsDef: I,
     seriesHighlightOptionsDef: S
 ) {
-    return multiSeriesHighlightOptionsDef(
-        { ...itemHighlightOptionsDef, glow: glowOptionsDefs },
-        { ...seriesHighlightOptionsDef, glow: glowOptionsDefs }
-    );
+    return {
+        ...multiSeriesHighlightOptionsDef(undefined, { ...seriesHighlightOptionsDef, glow: glowOptionsDefs }),
+        ...glowItemHighlightDefs(itemHighlightOptionsDef),
+    };
 }
 
 export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {

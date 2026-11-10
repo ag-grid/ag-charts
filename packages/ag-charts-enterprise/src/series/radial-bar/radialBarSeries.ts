@@ -410,7 +410,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         if (!contextNodeData) {
             return;
         }
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const fillBBox = this.getShapeFillBBox();
         const { shadow, glow } = this.options;
@@ -425,8 +424,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const datum = readDatum(nodeDatum);
                 if (datum == null) return;
 
+                const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
                 if (hasItemStylers) {
-                    const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
                     const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
                     const candidateState = this.getDataCandidacyState(nodeDatum.datumIndex);
 
@@ -458,9 +457,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                     }
                 }
 
-                const style =
-                    nodeDatum.style ??
-                    contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)];
+                const style = nodeDatum.style ?? contextNodeData.styles[highlightState];
 
                 const cornerRadius = style.cornerRadius;
 
@@ -470,9 +467,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
-                node.fillShadow = this.resolveItemShadow(shadow, isHighlight);
+                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex, highlightState);
 
-                node.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex);
+                node.fillGlow = this.resolveItemGlow(glow, isHighlight, nodeDatum.datumIndex, highlightState);
                 node.lineJoin = 'round';
                 node.inset = node.stroke == null ? 0 : node.strokeWidth / 2;
 

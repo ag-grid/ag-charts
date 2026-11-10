@@ -155,6 +155,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         const crispCentreDirection = this.getCategoryCrispDirection();
 
         const fillBBox = this.getShapeFillBBox();
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         datumSelection.each((rect, datum) => {
             const style = this.getItemStyle(datum, isHighlight);
@@ -163,8 +164,9 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight);
-            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex);
+            const castState = this.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState);
+            rect.fillGlow = this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState);
             rect.cornerRadius = cornerRadius;
         });
     }

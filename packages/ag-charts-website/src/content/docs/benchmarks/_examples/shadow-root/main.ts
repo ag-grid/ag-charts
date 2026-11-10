@@ -1,37 +1,16 @@
 // @ag-skip-fws
 /* @ag-options-extract */
-import {
-    AgCartesianChartOptions,
-    AgCharts,
-    AgDropShadowOptions,
-    AgGlowOptions,
-    AreaSeriesModule,
-    BarSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    LineSeriesModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    VERSION,
-} from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgDropShadowOptions, AgGlowOptions, VERSION } from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { ChartRef, performDatumHighlight, performInitialLoad } from './benchmarkUtils';
-import { getRows } from './data';
-
-ModuleRegistry.registerModules([
-    AreaSeriesModule,
-    BarSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    LineSeriesModule,
-    NumberAxisModule,
-]);
+import { getHeatmapRows, getRows } from './data';
 
 (window as any).agChartsDebug = 'scene:stats';
 
 const SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000', fillOpacity: 0.5, xOffset: 4, yOffset: 4, blur: 8 };
 const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 14 };
+const ITEM_SHADOW: AgDropShadowOptions = { fill: '#000', fillOpacity: 0.5, xOffset: 2, yOffset: 2, blur: 6 };
 const GLOW: AgGlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35, blur: 6, spread: 14 };
 const SERIES_GLOW: AgGlowOptions = { fillOpacity: 0.35, blur: 6, spread: 4 };
 
@@ -51,13 +30,24 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
-type Scenario = 'bars' | 'areas' | 'highlight' | 'many-markers' | 'series-glow' | 'series-highlight';
+type Scenario =
+    | 'bars'
+    | 'areas'
+    | 'highlight'
+    | 'many-markers'
+    | 'series-glow'
+    | 'series-highlight'
+    | 'item-shadow-bar'
+    | 'item-shadow-scatter'
+    | 'item-shadow-heatmap';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
 // `many-markers`, `series-glow` and `series-highlight` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
 // `series-glow` sets the series-level `marker.glow`, which every highlight state inherits, so a hover recasts every series.
 // `series-highlight` sets only `highlightedSeries.glow`, so the glow is cast only while a legend item is hovered.
+// `item-shadow-bar`, `item-shadow-scatter` and `item-shadow-heatmap` set `highlightedItem.shadow` only, so the second variant adds
+// the option itself. A hovered heatmap with the option set unbatches every cell, so it is measured at 100 x 100 cells.
 /** inScope */
 function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOptions {
     const shadow = <T extends AgDropShadowOptions>(value: T) => (shadowOn ? value : undefined);
@@ -72,6 +62,55 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
                 yKey: `y${i}`,
                 shadow: shadow(SPREAD_SHADOW),
             })),
+        };
+    }
+
+    if (scenario === 'item-shadow-bar') {
+        return {
+            data: getRows(20, 4, true),
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+            series: Array.from({ length: 4 }, (_, i) => ({
+                type: 'bar' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                shadow: SPREAD_SHADOW,
+                highlight: { highlightedItem: { shadow: shadow(ITEM_SHADOW) } },
+            })),
+        };
+    }
+
+    if (scenario === 'item-shadow-scatter') {
+        return {
+            width: 1400,
+            height: 600,
+            data: getRows(5000, 10, false),
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 10 }, (_, i) => ({
+                type: 'scatter' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                size: 6,
+                highlight: { highlightedItem: { shadow: shadow(ITEM_SHADOW) } },
+            })),
+        };
+    }
+
+    if (scenario === 'item-shadow-heatmap') {
+        return {
+            width: 1400,
+            height: 600,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            data: getHeatmapRows(100, 100),
+            series: [
+                {
+                    type: 'heatmap' as const,
+                    xKey: 'x',
+                    yKey: 'y',
+                    colorKey: 'level',
+                    highlight: { highlightedItem: { shadow: shadow(ITEM_SHADOW) } },
+                },
+            ],
         };
     }
 
@@ -251,6 +290,33 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'series-highlight',
                 label: '20 series x 1,000 points, highlighted series marker glow',
                 variants: variantsOf('series-highlight', { 'Legend hover x10': () => performLegendHover(10) }, 'Glow'),
+            },
+            {
+                id: 'item-shadow-bar',
+                label: '4 bar series x 20 categories, highlightedItem.shadow',
+                variants: variantsOf(
+                    'item-shadow-bar',
+                    { 'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10) },
+                    'Item Shadow'
+                ),
+            },
+            {
+                id: 'item-shadow-heatmap',
+                label: 'Heatmap of 100 x 100 cells, highlightedItem.shadow',
+                variants: variantsOf(
+                    'item-shadow-heatmap',
+                    { 'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10) },
+                    'Item Shadow'
+                ),
+            },
+            {
+                id: 'item-shadow-scatter',
+                label: '10 scatter series x 5,000 points, highlightedItem.shadow',
+                variants: variantsOf(
+                    'item-shadow-scatter',
+                    { 'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10) },
+                    'Item Shadow'
+                ),
             },
         ],
         config: {
