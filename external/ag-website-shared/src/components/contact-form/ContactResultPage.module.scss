@@ -195,8 +195,4 @@
     line-height: var(--text-lh-ratio-tight);
     margin: 0;
     color: var(--color-fg-primary);
-
-    @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        font-size: var(--text-fs-4xl);
-    }
 }
