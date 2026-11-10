@@ -119,6 +119,16 @@ export abstract class Widget<
     }
 
     destroy(): void {
+        const self: object & { isDestroying?: true } = this;
+        if (self.isDestroying) {
+            return; // block reentrance.
+        }
+        self.isDestroying = true;
+        this.nonReentrantDestruction();
+        delete self['isDestroying'];
+    }
+
+    private nonReentrantDestruction() {
         this.destroyListener?.();
         this.destroyListener = undefined;
         this.remove();

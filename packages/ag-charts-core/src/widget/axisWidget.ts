@@ -19,11 +19,6 @@ export class AxisWidget extends NativeWidget {
         super(createElement('div'));
     }
 
-    protected override destructor(): void {
-        this.removeAxisTitle();
-        this.removeAxisInteractions();
-    }
-
     protected override onChildRemoved(child: Widget): void {
         if (child === this.title) {
             this.title = undefined;
@@ -43,19 +38,6 @@ export class AxisWidget extends NativeWidget {
         if (this.title === undefined && this.interactions === undefined) {
             this.destroy();
         }
-    }
-
-    private removeAxisTitle(): void {
-        this.title?.remove();
-        this.title = undefined;
-    }
-
-    private removeAxisInteractions(): void {
-        if (this.interactions) {
-            this.interactions.tickButtons.remove();
-            this.interactions.dragInterpreter.destroy();
-        }
-        this.interactions = undefined;
     }
 
     acquireTitle(): BoundedTextWidget {
@@ -78,7 +60,6 @@ export class AxisWidget extends NativeWidget {
     }
 
     releaseInteractions(): void {
-        this.removeAxisInteractions();
-        this.checkOwnership();
+        this.interactions?.tickButtons.destroy();
     }
 }
