@@ -10,7 +10,14 @@ import type {
     DynamicContext,
     MouseWidgetEvent,
 } from 'ag-charts-core';
-import { AbstractModuleInstance, BBox, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    BBox,
+    ButtonWidget,
+    ChartAxisDirection,
+    boxEmpty,
+    callWithContext,
+} from 'ag-charts-core';
 
 type AxisContext = _ModuleSupport.AxisContext;
 type ChartService = _ModuleSupport.ChartService;
@@ -513,7 +520,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         const tickDataIt = axisCtx.iterateA11YTickData();
         const tickButtonList = axis.div.acquireInteractions().tickButtons;
         tickButtonList.setTabIndex(tabIndex);
-        tickButtonList.resize(tickDataIt.length);
+        tickButtonList.resize(tickDataIt.length, () => new ButtonWidget());
         for (const button of tickButtonList.iterateChildren()) {
             const tickData = tickDataIt.next().value;
             button.setTextContent(tickData.ariaLabel);

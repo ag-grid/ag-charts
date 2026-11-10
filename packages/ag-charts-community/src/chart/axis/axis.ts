@@ -71,12 +71,12 @@ import type {
 
 import type { AxisLayout } from '../../core/eventsHub';
 import type {
+    AxisA11YTickData,
+    AxisA11YTickDataIterator,
     AxisBandDatum,
     AxisBandMeasurement,
     AxisContext,
     AxisFormattableLabel,
-    AxisA11YTickData,
-    AxisA11YTickDataIterator,
     AxisValuePick,
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
