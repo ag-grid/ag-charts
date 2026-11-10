@@ -13,8 +13,11 @@ export const redHalfShadow = (xOffset: number, yOffset = 0) => ({
     blur: 0,
 });
 
-export const isHalfRed = (pixel: Pixel) =>
-    pixel[0] === 255 && pixel[1] === 0 && pixel[2] === 0 && Math.abs(pixel[3] - 128) <= 1;
+/** Whether a pixel is the colour at half strength, as left by the shadow of that colour at half opacity. */
+export const isHalf = (pixel: Pixel, [red, green, blue]: readonly [number, number, number]) =>
+    pixel[0] === red && pixel[1] === green && pixel[2] === blue && Math.abs(pixel[3] - 128) <= 1;
+
+export const isHalfRed = (pixel: Pixel) => isHalf(pixel, [255, 0, 0]);
 
 export const box = (x: number, y: number, width: number, height: number, mixin: Partial<Rect> = {}) => {
     const node = new Rect();

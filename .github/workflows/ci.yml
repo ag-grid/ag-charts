@@ -272,7 +272,7 @@ jobs:
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     count=10
                   else
-                    count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)
+                    count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test --json=false | wc -l)
                   fi
 
                   matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 6 --ratio 1 --zero ${count})
@@ -304,7 +304,7 @@ jobs:
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     e2e_nx_count=1
                   else
-                    e2e_nx_count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
+                    e2e_nx_count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e --json=false | wc -l)
                   fi
                   if [[ ${e2e_nx_count} -gt 0 ]] ; then
                     e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list "${e2e_list_args[@]}" | grep -v '!!!SKIPPED!!!' | wc -l)
@@ -373,7 +373,7 @@ jobs:
                   demos_port_inputs='^(packages/ag-charts-demos/|packages/ag-charts-(react|vue3|angular)/|patches/|\.github/workflows/ci\.yml$|yarn\.lock$|package\.json$|esbuild\.config|tsconfig\.)'
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     demos_suites=${demos_all}
-                  elif [[ $(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true) -eq 0 ]] ; then
+                  elif [[ $(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} --json=false | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true) -eq 0 ]] ; then
                     demos_suites='[]'
                   elif [[ "${{ github.event_name }}" != "pull_request" ]] ; then
                     demos_suites=${demos_all}
