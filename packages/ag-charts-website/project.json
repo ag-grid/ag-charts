@@ -76,6 +76,7 @@
     },
     "dev": {
       "executor": "nx:run-commands",
+      "cache": false,
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
       "inputs": [],
       "outputs": [],
@@ -94,6 +95,7 @@
     "preview": {
       "dependsOn": ["build"],
       "command": "ASTRO_PREVIEW_BACKGROUND=${ASTRO_PREVIEW_BACKGROUND-0} astro preview --port=${PORT}",
+      "cache": false,
       "options": {
         "cwd": "packages/ag-charts-website"
       },
@@ -110,6 +112,7 @@
         }
       ],
       "command": "tsx scripts/csp/preview-csp.ts --port=${PORT}",
+      "cache": false,
       "options": {
         "cwd": "packages/ag-charts-website"
       },
