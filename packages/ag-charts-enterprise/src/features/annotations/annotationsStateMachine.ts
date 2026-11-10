@@ -59,7 +59,14 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
         return ANNOTATIONS_STATE_MACHINE_INHERITED_PROPERTIES;
     }
 
+    private readonly main: AnnotationsMainStateMachine;
+
     constructor(ctx: AnnotationsStateMachineContext) {
+        const main = new AnnotationsMainStateMachine(ctx, (index) => {
+            this.active = index;
+            this.datum = this.active == null ? undefined : ctx.datum(this.active);
+            this.node = this.active == null ? undefined : ctx.node(this.active);
+        });
         super(
             new SnappingStateMachine((snapping) => {
                 this.snapping = snapping;
@@ -67,12 +74,13 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
             new UpdateMachine(() => {
                 this.node = this.active == null ? undefined : ctx.node(this.active);
             }),
-            new AnnotationsMainStateMachine(ctx, (index) => {
-                this.active = index;
-                this.datum = this.active == null ? undefined : ctx.datum(this.active);
-                this.node = this.active == null ? undefined : ctx.node(this.active);
-            })
+            main
         );
+        this.main = main;
+    }
+
+    public isIdle() {
+        return this.main.isIdle();
     }
 
     // TODO: remove this leak
@@ -139,6 +147,10 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
     }
 
     protected hoverCoords?: Point;
+
+    public isIdle() {
+        return this.is(States.Idle);
+    }
 
     protected copied?: AnnotationDatum;
 

@@ -17,6 +17,19 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
         private readonly stateDefs: OptionsDefs<AgAnnotation>
     ) {}
 
+    private editingProbe?: () => boolean;
+
+    public setEditingProbe(probe: () => boolean) {
+        this.editingProbe = probe;
+        return () => {
+            if (this.editingProbe === probe) this.editingProbe = undefined;
+        };
+    }
+
+    public isEditing() {
+        return this.editingProbe?.() ?? false;
+    }
+
     public createMemento() {
         return this.annotations;
     }

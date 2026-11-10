@@ -139,6 +139,7 @@ export class Annotations extends AbstractModuleInstance {
         this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
 
         this.cleanup.register(
+            ctx.annotationManager?.setEditingProbe(() => this.isEditing()),
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'annotations');
                 const enabled = opts?.enabled ?? false;
@@ -1308,6 +1309,10 @@ export class Annotations extends AbstractModuleInstance {
     ) {
         this.ctx.interactionManager.popState(state);
         this.ctx.tooltipManager.unsuppressTooltip('annotations');
+    }
+
+    private isEditing() {
+        return !this.state.isIdle() || this.settingsDialog.isVisible();
     }
 
     private isAnnotationState() {
