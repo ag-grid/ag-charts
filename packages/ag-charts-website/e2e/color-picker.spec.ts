@@ -31,6 +31,7 @@ test.describe('colour picker', () => {
         await expect(page.getByRole('slider', { name: 'Hue' })).toBeVisible();
         await expect(page.getByRole('slider', { name: 'Transparency' })).toHaveValue('1');
         await expect(page.getByRole('switch', { name: 'Multi Color' })).toHaveAttribute('aria-checked', 'true');
+        await expect(page.getByRole('switch', { name: 'Multi Color' })).toHaveAttribute('type', 'button');
         await expect(page.getByRole('textbox', { name: 'Color' })).toHaveValue('Multi Color');
     });
 

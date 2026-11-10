@@ -73,6 +73,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         const colorRow = new ContainerWidget(doc, 'ag-charts-color-picker__color-row');
         colorRow.setAriaRole('presentation');
         const multiColorButton = new SwitchWidget(doc);
+        multiColorButton.setType('button');
         multiColorButton.addClass('ag-charts-color-picker__multi-color-button');
         multiColorButton.setTabIndex(0);
         const hueInput = new RangeInputWidget(doc, 'ag-charts-color-picker__hue-input');
