@@ -17,6 +17,20 @@ interface UpdateOpts {
     context: AnnotationAxisContext;
 }
 
+interface AxisEdge {
+    isX: boolean;
+    /** The coordinate of the series area's edge that the axis sits against, across the axis. */
+    origin: number;
+    /** `1` when the axis lies after that edge (bottom, right), `-1` when it lies before it (top, left). */
+    outward: 1 | -1;
+}
+
+function getAxisEdge({ x, y, width, height }: BBox, isX: boolean, position: AxisPosition): AxisEdge {
+    const outward = position === 'top' || position === 'left' ? -1 : 1;
+    const [start, size] = isX ? [y, height] : [x, width];
+    return { isX, origin: outward > 0 ? start + size : start, outward };
+}
+
 /**
  * The labels and shading for one axis of a selected annotation. They are attached to the axis, as a horizontal or
  * vertical line's axis label is, so they draw over its ticks and tick labels.
@@ -37,7 +51,7 @@ class AxisSelectionOverlay {
         this.attach(context);
 
         const isX = context.direction === ChartAxisDirection.X;
-        const position: AxisPosition = context.position ?? (isX ? 'bottom' : 'left');
+        const edge = getAxisEdge(seriesRect, isX, context.position ?? (isX ? 'bottom' : 'left'));
         const length = isX ? seriesRect.width : seriesRect.height;
 
         // Handles that share a position, such as a channel's top and bottom ends, would draw the same label twice.
@@ -51,8 +65,8 @@ class AxisSelectionOverlay {
         const positions = [...byPixel.values()];
         const inRange = positions.filter((p) => context.inRange(p));
 
-        this.updateLabels(inRange, styles.axisLabel, seriesRect, context, position);
-        this.updateShading(positions, length, styles, seriesRect, context, position, isX);
+        this.updateLabels(inRange, styles.axisLabel, seriesRect, context, edge);
+        this.updateShading(positions, length, styles, seriesRect, context, edge);
     }
 
     private updateLabels(
@@ -60,11 +74,10 @@ class AxisSelectionOverlay {
         axisLabel: AxisLabelDatum,
         seriesRect: BBox,
         context: AnnotationAxisContext,
-        position: AxisPosition
+        { isX, origin }: AxisEdge
     ) {
         const { labels } = this;
         const enabled = axisLabel.enabled ?? true;
-        const isX = context.direction === ChartAxisDirection.X;
 
         // Labels are pooled: a spare one is hidden rather than removed, and there are at most a handful per axis.
         while (labels.length < positions.length) {
@@ -80,13 +93,9 @@ class AxisSelectionOverlay {
             label.visible = enabled && p != null;
             if (!label.visible) continue;
 
-            const corner = isX
-                ? { x: p, y: position === 'top' ? 0 : seriesRect.height }
-                : { x: position === 'left' ? 0 : seriesRect.width, y: p };
-
             label.update({
-                x: corner.x + seriesRect.x,
-                y: corner.y + seriesRect.y,
+                x: isX ? seriesRect.x + p : origin,
+                y: isX ? origin : seriesRect.y + p,
                 value: getGroupingValue(invert(p, context)),
                 styles: axisLabel,
                 context,
@@ -100,8 +109,7 @@ class AxisSelectionOverlay {
         { axisLabel, axisShading }: SelectionAxesFields,
         seriesRect: BBox,
         context: AnnotationAxisContext,
-        position: AxisPosition,
-        isX: boolean
+        { isX, origin, outward }: AxisEdge
     ) {
         const { shading } = this;
 
@@ -111,35 +119,20 @@ class AxisSelectionOverlay {
         if (!shading.visible) return;
 
         // The shading reaches the further of the tick labels and the annotation's own labels, which sit beyond them.
-        const labelBoxes = this.labels.filter((label) => label.visible).map((label) => label.getBBox());
-        const { thickness } = context;
+        const outerEdge = (box: BBox) => {
+            const [near, size] = isX ? [box.y, box.height] : [box.x, box.width];
+            return outward > 0 ? near + size : near;
+        };
+        const labelReach = this.labels
+            .filter((label) => label.visible)
+            .map((label) => outward * (outerEdge(label.getBBox()) - origin));
+        const reach = Math.max(context.thickness, ...labelReach);
+        const from = outward > 0 ? origin : origin - reach;
         const along = end - start;
         if (isX) {
-            const near = seriesRect.y - thickness;
-            const far = seriesRect.y + seriesRect.height + thickness;
-            const top =
-                position === 'top'
-                    ? Math.min(near, ...labelBoxes.map((box) => box.y))
-                    : seriesRect.y + seriesRect.height;
-            const bottom =
-                position === 'top' ? seriesRect.y : Math.max(far, ...labelBoxes.map((box) => box.y + box.height));
-            shading.x = seriesRect.x + start;
-            shading.y = top;
-            shading.width = along;
-            shading.height = bottom - top;
+            shading.setProperties({ x: seriesRect.x + start, y: from, width: along, height: reach });
         } else {
-            const near = seriesRect.x - thickness;
-            const far = seriesRect.x + seriesRect.width + thickness;
-            const left =
-                position === 'left'
-                    ? Math.min(near, ...labelBoxes.map((box) => box.x))
-                    : seriesRect.x + seriesRect.width;
-            const right =
-                position === 'left' ? seriesRect.x : Math.max(far, ...labelBoxes.map((box) => box.x + box.width));
-            shading.x = left;
-            shading.y = seriesRect.y + start;
-            shading.width = right - left;
-            shading.height = along;
+            shading.setProperties({ x: from, y: seriesRect.y + start, width: reach, height: along });
         }
 
         shading.fill = axisShading.fill ?? axisLabel.fill;

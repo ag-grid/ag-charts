@@ -1493,9 +1493,10 @@ describe('Annotations', () => {
         });
 
         // The band of shading along each axis, the wider of the two being the one along the x axis.
+        const canvasBox = (node: Node) => Transformable.toCanvas(node);
         const shadingBands = () => {
             const [horizontal, vertical] = visibleShading()
-                .map((node) => node.getBBox())
+                .map(canvasBox)
                 .sort((a, b) => b.width - a.width);
             return { horizontal, vertical };
         };
@@ -1548,18 +1549,14 @@ describe('Annotations', () => {
 
             await clickDatum(50, 50);
 
-            const canvasBoxes = (predicate: (node: Node) => boolean) =>
-                findSceneNodes(chart, predicate).map((node) => Transformable.toCanvas(node));
             const tickLabels = (pattern: RegExp) =>
-                canvasBoxes((node) => node instanceof Text && pattern.test(String(node.text)));
+                findSceneNodes(chart, (node) => node instanceof Text && pattern.test(String(node.text))).map(canvasBox);
             const xTicks = tickLabels(/^[A-Z][a-z]{2}\s+\d{1,2}$/);
             const yTicks = tickLabels(/^(0|20|40|60|80|100)$/);
-            const axisLabels = visibleAxisLabels().map((node) => Transformable.toCanvas(node));
+            const axisLabels = visibleAxisLabels().map(canvasBox);
             const [xTitle] = tickLabels(/^Date$/);
             const [yTitle] = tickLabels(/^Price$/);
-            const [horizontal, vertical] = visibleShading()
-                .map((node) => Transformable.toCanvas(node))
-                .sort((a, b) => b.width - a.width);
+            const { horizontal, vertical } = shadingBands();
 
             const bottomEdge = Math.max(...[...xTicks, ...axisLabels].map((box) => box.y + box.height));
             const leftEdge = Math.min(...[...yTicks, ...axisLabels].map((box) => box.x));
