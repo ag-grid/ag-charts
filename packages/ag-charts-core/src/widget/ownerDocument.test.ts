@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { ButtonWidget } from './buttonWidget';
 import { CodeWidget } from './codeWidget';
 import { ContainerWidget } from './containerWidget';
+import { LabelWidget } from './labelWidget';
+import { SwitchWidget } from './switchWidget';
 import { TextSpanWidget } from './textSpanWidget';
 
 // A chart in a popup window must create its elements in the popup's document, not the global one.
@@ -22,10 +24,23 @@ describe('widgets created in another document', () => {
         expect(span.getElement().className).toBe('ag-charts-label');
     });
 
+    it('LabelWidget uses the given document and still takes text and class names', () => {
+        const label = new LabelWidget(popupDocument, 'Colour', 'ag-charts-field');
+        expect(label.getElement().ownerDocument).toBe(popupDocument);
+        expect(label.getElement().textContent).toBe('Colour');
+        expect(label.getElement().className).toBe('ag-charts-field');
+    });
+
     it('ButtonWidget uses the given document', () => {
         const button = new ButtonWidget(popupDocument);
         expect(button.getElement().ownerDocument).toBe(popupDocument);
         expect(button.getElement().tagName).toBe('BUTTON');
+    });
+
+    it('SwitchWidget uses the given document', () => {
+        const toggle = new SwitchWidget(popupDocument);
+        expect(toggle.getElement().ownerDocument).toBe(popupDocument);
+        expect(toggle.getElement().getAttribute('role')).toBe('switch');
     });
 
     it('CodeWidget uses the given document for both inline and block code', () => {
@@ -41,7 +56,9 @@ describe('widgets created in another document', () => {
     it('defaults to the global document', () => {
         expect(new ContainerWidget('ag-charts-a').getElement().ownerDocument).toBe(document);
         expect(new TextSpanWidget().getElement().ownerDocument).toBe(document);
+        expect(new LabelWidget('Colour').getElement().ownerDocument).toBe(document);
         expect(new ButtonWidget().getElement().ownerDocument).toBe(document);
+        expect(new SwitchWidget().getElement().ownerDocument).toBe(document);
         expect(CodeWidget.inline('xKey').getElement().ownerDocument).toBe(document);
     });
 });
