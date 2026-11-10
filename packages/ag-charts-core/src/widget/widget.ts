@@ -430,6 +430,17 @@ export abstract class Widget<
         this.addChildToDOM(child, this.getBefore(child));
     }
 
+    prependChild(child: TChildWidget) {
+        this.addChildToDOM(child, this.children.at(0));
+        for (const c of this.children) {
+            c.index++;
+        }
+        this.children.unshift(child);
+        child.index = 0;
+        child.parent = this;
+        this.onChildAdded(child);
+    }
+
     iterateChildren(): Iterable<TChildWidget> {
         return this.children;
     }

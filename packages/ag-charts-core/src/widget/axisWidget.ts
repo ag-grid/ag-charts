@@ -44,7 +44,7 @@ export class AxisWidget extends NativeWidget {
         if (this.title === undefined) {
             this.title = new BoundedTextWidget();
             this.title.parent = this;
-            this.elem.prepend(this.title.getElement());
+            this.prependChild(this.title);
         }
         return this.title;
     }
@@ -55,6 +55,7 @@ export class AxisWidget extends NativeWidget {
                 tickButtons: new ListWidget(),
                 dragInterpreter: new DragInterpreter(this),
             };
+            this.addChild(this.interactions.tickButtons);
         }
         return this.interactions;
     }
