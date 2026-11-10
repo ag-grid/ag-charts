@@ -1335,6 +1335,23 @@ describe('Annotations', () => {
             expect(ctx.snapshot()).toMatchImage(unselected);
         });
 
+        it('shows the axis labels and shading of a newly drawn annotation without reselecting it', async () => {
+            await prepareChart(undefined, {
+                ...withAxes(),
+                annotations: { enabled: true, toolbar: { enabled: true, buttons: [{ value: 'line', label: 'Line' }] } },
+            });
+
+            Array.from(document.querySelectorAll('button'))
+                .find((button) => button.textContent === 'Line')!
+                .click();
+            await waitForChartStability(chart);
+            await clickDatum(20, 25);
+            await clickDatum(80, 75);
+
+            expect(visibleAxisLabels()).toHaveLength(4);
+            expect(visibleShading()).toHaveLength(2);
+        });
+
         it.each([
             ['horizontal-line', { type: 'horizontal-line', value: 60 }, { x: 50, y: 60 }],
             ['vertical-line', { type: 'vertical-line', value: day(60) }, { x: 60, y: 50 }],

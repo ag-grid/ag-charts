@@ -123,6 +123,7 @@ export class Annotations extends AbstractModuleInstance {
     private yAxis?: AnnotationAxis;
 
     private postUpdateFns: Array<() => void> = [];
+    private selectedId?: string;
     private isRestoringMemento = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -252,7 +253,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (previousNode === selectedNode && selectedNode != null) return;
 
                 previousNode?.toggleActive(false);
-                previousNode?.toggleSelected(false);
+                this.selectedId = undefined;
 
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
@@ -260,7 +261,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
-                    selectedNode.toggleSelected(true);
+                    this.selectedId = selectedDatum?.id;
                     if (!isEphemeralType(selectedDatum)) {
                         optionsToolbar.updateButtons(this.annotationData.at(index!)!);
                         this.postUpdateFns.push(() => {
@@ -283,6 +284,8 @@ export class Annotations extends AbstractModuleInstance {
 
             selectLast: () => {
                 this.pushAnnotationState(InteractionState.AnnotationsSelected);
+                this.selectedId = this.annotationData.at(-1)?.id;
+                this.update();
                 return this.annotationData.length - 1;
             },
 
@@ -953,6 +956,7 @@ export class Annotations extends AbstractModuleInstance {
                 }
 
                 node.setAxisLabelVisible(true);
+                node.toggleSelected(datum.id === this.selectedId);
                 updateAnnotation(node, datum, context);
             });
 

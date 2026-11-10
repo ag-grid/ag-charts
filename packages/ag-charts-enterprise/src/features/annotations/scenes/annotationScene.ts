@@ -32,13 +32,7 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
     public abstract getCursor(): string | undefined;
     public abstract getNodeAtCoords(x: number, y: number): string | undefined;
 
-    /**
-     * Whether the annotation is the selected one. A selected annotation with two or more points shows an axis label
-     * for each of its handles, and shading between them, on both axes.
-     *
-     * This only records the state: the labels and shading are drawn by the next `updateSelectionAxes`, so a caller
-     * that selects an annotation has to update it afterwards, as the `select` handler does.
-     */
+    /** A selected annotation with two or more points shows an axis label per handle, and shading between them, on both axes. */
     public toggleSelected(selected: boolean) {
         this.selected = selected;
         if (!selected) {
