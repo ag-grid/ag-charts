@@ -13,7 +13,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, type Node, Text } from 'ag-charts-core';
+import { Group, type Node, Text, Transformable } from 'ag-charts-core';
 import type { AgHorizontalLineAnnotation } from 'ag-charts-types';
 
 import {
@@ -1483,6 +1483,42 @@ describe('Annotations', () => {
             const { horizontal } = shadingBands();
             expect(horizontal.x).toBeCloseTo(x, 0);
             expect(horizontal.width).toBeCloseTo(width, 0);
+        });
+
+        it('shades out to the outer edge of the tick labels and stops short of the axis titles', async () => {
+            const { axes, ...options } = withAxes();
+            await prepareChart(
+                { annotations: [LINE] },
+                {
+                    ...options,
+                    axes: {
+                        x: { ...axes.x, title: { text: 'Date' } },
+                        y: { ...axes.y, title: { text: 'Price' } },
+                    },
+                }
+            );
+
+            await clickDatum(50, 50);
+
+            const canvasBoxes = (predicate: (node: Text) => boolean) =>
+                findSceneNodes<Text>(chart, (node): node is Text => node instanceof Text && predicate(node)).map(
+                    (node) => Transformable.toCanvas(node)
+                );
+            const xTicks = canvasBoxes((node) => /^[A-Z][a-z]{2}\s+\d{1,2}$/.test(String(node.text)));
+            const yTicks = canvasBoxes((node) => /^(0|20|40|60|80|100)$/.test(String(node.text)));
+            const [xTitle] = canvasBoxes((node) => node.text === 'Date');
+            const [yTitle] = canvasBoxes((node) => node.text === 'Price');
+            const [horizontal, vertical] = visibleShading()
+                .map((node) => Transformable.toCanvas(node))
+                .sort((a, b) => b.width - a.width);
+
+            expect(horizontal.y + horizontal.height).toBeCloseTo(
+                Math.max(...xTicks.map((box) => box.y + box.height)),
+                0
+            );
+            expect(vertical.x).toBeCloseTo(Math.min(...yTicks.map((box) => box.x)), 0);
+            expect(horizontal.y + horizontal.height).toBeLessThanOrEqual(xTitle.y);
+            expect(vertical.x).toBeGreaterThanOrEqual(yTitle.x + yTitle.width);
         });
 
         it.each([

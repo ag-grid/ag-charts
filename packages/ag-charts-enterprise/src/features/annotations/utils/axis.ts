@@ -15,7 +15,7 @@ export function calculateAxisLabelPadding(axisLayout: _ModuleSupport.AxisLayout)
     );
 }
 
-/** Distance from the edge of the series area to the outer edge of the axis's tick labels, excluding its title. */
+/** Distance from the axis line to the outer edge of the axis's tick labels, excluding its title. */
 export function calculateAxisThickness(axisLayout: _ModuleSupport.AxisLayout) {
-    return calculateAxisLabelPadding(axisLayout) + (axisLayout.labelThickness ?? 0);
+    return axisLayout.labelThickness ?? 0;
 }
