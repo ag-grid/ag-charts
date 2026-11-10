@@ -133,7 +133,6 @@
     color: var(--link-color);
     transition: color $transition-default-timing;
     font-weight: 500;
-    font-size: inherit;
 
     &:hover,
     &:global(.active) {

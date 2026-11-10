@@ -156,7 +156,7 @@
 }
 
 .featureDetail {
-    font-size: inherit;
+    font-size: var(--text-fs-base);
     margin-bottom: $spacing-size-2;
     color: var(--color-fg-secondary);
     line-height: 1.5;
