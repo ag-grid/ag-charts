@@ -123,7 +123,6 @@ export class Annotations extends AbstractModuleInstance {
     private yAxis?: AnnotationAxis;
 
     private postUpdateFns: Array<() => void> = [];
-    private selectedId?: string;
     private isRestoringMemento = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -253,7 +252,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (previousNode === selectedNode && selectedNode != null) return;
 
                 previousNode?.toggleActive(false);
-                this.selectedId = undefined;
+                previousNode?.toggleSelected(false);
 
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
@@ -261,7 +260,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
-                    this.selectedId = selectedDatum?.id;
+                    selectedNode.toggleSelected(true);
                     if (!isEphemeralType(selectedDatum)) {
                         optionsToolbar.updateButtons(this.annotationData.at(index!)!);
                         this.postUpdateFns.push(() => {
@@ -284,8 +283,10 @@ export class Annotations extends AbstractModuleInstance {
 
             selectLast: () => {
                 this.pushAnnotationState(InteractionState.AnnotationsSelected);
-                this.selectedId = this.annotationData.at(-1)?.id;
-                return this.annotationData.length - 1;
+                const index = this.annotationData.length - 1;
+                // A drawn annotation's scene does not exist until the next update, and no `select` reaches it.
+                this.postUpdateFns.push(() => this.annotations.at(index)?.toggleSelected(true));
+                return index;
             },
 
             startInteracting: () => {
@@ -955,7 +956,6 @@ export class Annotations extends AbstractModuleInstance {
                 }
 
                 node.setAxisLabelVisible(true);
-                node.toggleSelected(this.selectedId != null && datum.id === this.selectedId);
                 updateAnnotation(node, datum, context);
             });
 
