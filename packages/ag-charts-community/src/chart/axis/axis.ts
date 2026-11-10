@@ -75,8 +75,8 @@ import type {
     AxisBandMeasurement,
     AxisContext,
     AxisFormattableLabel,
-    AxisTickData,
-    AxisTickDataIterator,
+    AxisA11YTickData,
+    AxisA11YTickDataIterator,
     AxisValuePick,
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
@@ -1455,25 +1455,25 @@ export abstract class Axis<
             pickValue: (point) => this.pickValue(point),
             pickBand: (point) => this.pickBand(point),
             measureBand: (value) => this.measureBand(value),
-            iterateTickData: () => this.iterateTickData(),
+            iterateA11YTickData: () => this.iterateA11TTickData(),
         };
     }
 
-    protected iterateTickData(): AxisTickDataIterator {
+    protected iterateA11TTickData(): AxisA11YTickDataIterator {
         const labels: { node: TransformableText<LabelNodeDatum>; datum: LabelNodeDatum }[] = [];
         const groupVisible = this.tickLabelGroup.visible;
         for (const node of groupVisible ? this.tickLabelGroupSelection.nodes() : []) {
             const { datum } = node;
             if (node.visible && datum?.visible) labels.push({ node, datum });
         }
-        const toTickData = ({ node, datum }: (typeof labels)[number]): AxisTickData => ({
+        const toTickData = ({ node, datum }: (typeof labels)[number]): AxisA11YTickData => ({
             ariaLabel: datum.textUntruncated ?? toPlainText(datum.text),
             focusBounds: Transformable.toCanvas(node),
         });
         let index = 0;
         return {
             length: labels.length,
-            next(): IteratorResult<AxisTickData> {
+            next(): IteratorResult<AxisA11YTickData> {
                 if (index >= labels.length) return { done: true, value: undefined };
                 return { done: false, value: toTickData(labels[index++]) };
             },

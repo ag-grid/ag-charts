@@ -510,7 +510,7 @@ export class AxisInteraction extends AbstractModuleInstance {
 
         // Update keyboard navigation ticks
         const tabIndex = needsTabStop(chartService, axisCtx) ? 0 : -1;
-        const tickDataIt = axisCtx.iterateTickData();
+        const tickDataIt = axisCtx.iterateA11YTickData();
         const tickButtonList = axis.div.acquireInteractions().tickButtons;
         tickButtonList.setTabIndex(tabIndex);
         tickButtonList.resize(tickDataIt.length);

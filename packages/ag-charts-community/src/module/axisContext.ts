@@ -56,12 +56,12 @@ export interface AxisBandDatum extends AxisBandMeasurement {
     readonly position: number;
 }
 
-export interface AxisTickData {
+export interface AxisA11YTickData {
     readonly ariaLabel: string;
     readonly focusBounds: BBox;
 }
 
-export interface AxisTickDataIterator extends IterableIterator<AxisTickData> {
+export interface AxisA11YTickDataIterator extends IterableIterator<AxisA11YTickData> {
     readonly length: number;
 }
 
@@ -116,7 +116,7 @@ export interface AxisContext {
     pickValue(point: CanvasPoint): AxisValuePick | undefined;
     pickBand(point: Point): AxisBandDatum | undefined;
     measureBand(value: string): AxisBandMeasurement | undefined;
-    iterateTickData(): AxisTickDataIterator;
+    iterateA11YTickData(): AxisA11YTickDataIterator;
     /** Defined only on polar axes; cartesian axes leave it undefined. */
     getPolarLayout?(): PolarAxisLayout;
 }
