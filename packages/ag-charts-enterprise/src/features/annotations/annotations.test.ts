@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgAnnotation, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
+import type { AgAnnotation, AgAnnotationsEvent, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
     clickAction,
     deproxy,
@@ -1160,6 +1160,79 @@ describe('Annotations', () => {
             await pressKey(chart, 'z', { ctrlKey: true });
             expect(chart.getState().annotations).toMatchObject([{ type: 'horizontal-line', value: 50 }]);
             expect(input.value).toBe('50');
+        });
+    });
+
+    describe('annotations event source', () => {
+        const sources = (listener: ReturnType<typeof vi.fn>) =>
+            listener.mock.calls.map(([event]) => (event as AgAnnotationsEvent).source);
+
+        async function prepareChartWithListener() {
+            const listener = vi.fn();
+            await prepareChart(
+                { annotations: [{ type: 'horizontal-line', value: 50 }] },
+                {
+                    ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                    listeners: { annotations: listener },
+                }
+            );
+            return listener;
+        }
+
+        async function editSelectedValue(value: string) {
+            const { x, y, width, height } = getSeriesRect(chart);
+            await hoverAction(x + width / 2, y + height / 2)(chart);
+            await clickAction(x + width / 2, y + height / 2)(chart);
+            await waitForChartStability(chart);
+
+            const { body } = deproxy(chart).ctx.agDocument;
+            body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
+            await waitForChartStability(chart);
+
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value Y"]')!;
+            input.value = value;
+            input.dispatchEvent(new Event('change'));
+            await waitForChartStability(chart);
+        }
+
+        it('reports the initial state as an api-call', async () => {
+            const listener = await prepareChartWithListener();
+            expect(sources(listener)).toEqual(['api-call']);
+        });
+
+        it('reports a direct edit as a user-interaction', async () => {
+            const listener = await prepareChartWithListener();
+            listener.mockClear();
+
+            await editSelectedValue('60');
+
+            expect(sources(listener)).toEqual(['user-interaction']);
+        });
+
+        it.each([
+            ['undo', false, { ctrlKey: true }],
+            ['redo', true, { ctrlKey: true, shiftKey: true }],
+        ])('reports %s as a user-interaction', async (_name, undoFirst, modifiers) => {
+            const listener = await prepareChartWithListener();
+            await editSelectedValue('60');
+            if (undoFirst) {
+                await pressKey(chart, 'z', { ctrlKey: true });
+            }
+            listener.mockClear();
+
+            await pressKey(chart, 'z', modifiers);
+
+            expect(sources(listener)).toEqual(['user-interaction']);
+        });
+
+        it('reports setState as an api-call', async () => {
+            const listener = await prepareChartWithListener();
+            listener.mockClear();
+
+            await chart.setState({ ...chart.getState(), annotations: [{ type: 'horizontal-line', value: 70 }] });
+            await waitForChartStability(chart);
+
+            expect(sources(listener)).toEqual(['api-call']);
         });
     });
 
