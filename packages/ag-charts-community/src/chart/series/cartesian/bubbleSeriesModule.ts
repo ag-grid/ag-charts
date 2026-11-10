@@ -68,7 +68,7 @@ export const BUBBLE_SCATTER_GRADIENT_LEGEND_THEME: WithThemeParams<AgGradientLeg
 const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
-        shape: { $palette: 'markerShape' },
+        shape: 'circle',
         minSize: 7,
         maxSize: 30,
         sizeMode: 'diameter',

@@ -1144,7 +1144,6 @@ describe('ChartTheme', () => {
             { type: 'line', setShape: (shape: unknown) => ({ marker: { shape } }) },
             { type: 'area', setShape: (shape: unknown) => ({ marker: { shape } }) },
             { type: 'scatter', setShape: (shape: unknown) => ({ shape }) },
-            { type: 'bubble', setShape: (shape: unknown) => ({ shape }) },
         ] as const;
 
         const prepareOptions = () => ({
@@ -1158,7 +1157,7 @@ describe('ChartTheme', () => {
         });
 
         const createShapeChart = (
-            type: (typeof cases)[number]['type'],
+            type: (typeof cases)[number]['type'] | 'bubble',
             theme: AgChartTheme,
             seriesOverrides: Record<string, unknown>[] = [{}, {}, {}]
         ) =>
@@ -1230,6 +1229,42 @@ describe('ChartTheme', () => {
                 const legendShapes = getLegendItemNodes(chart).map((node) => node.marker?.shape);
                 expect(legendShapes).toEqual(resolvedShapes());
                 expect(legendShapes).toEqual(['square', customShapeFn, 'square']);
+            });
+        });
+
+        describe('bubble', () => {
+            it('keeps circle in the series and legend', async () => {
+                chart = createShapeChart('bubble', { palette: { markerShapes: ['square', 'triangle'] } });
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['circle', 'circle', 'circle']);
+                expect(getLegendItemNodes(chart).map((node) => node.marker?.shape)).toEqual([
+                    'circle',
+                    'circle',
+                    'circle',
+                ]);
+            });
+
+            it('prefers an explicit series shape', async () => {
+                chart = createShapeChart('bubble', { palette: { markerShapes: ['square', 'triangle'] } }, [
+                    {},
+                    { shape: 'diamond' },
+                    {},
+                ]);
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['circle', 'diamond', 'circle']);
+            });
+
+            it('still counts towards the series index of other series', async () => {
+                chart = createShapeChart('line', { palette: { markerShapes: ['square', 'triangle', 'diamond'] } }, [
+                    {},
+                    { type: 'bubble', sizeKey: 's' },
+                    {},
+                ]);
+                await waitForChartStability(chart);
+
+                expect(resolvedShapes()).toEqual(['square', 'circle', 'diamond']);
             });
         });
 
