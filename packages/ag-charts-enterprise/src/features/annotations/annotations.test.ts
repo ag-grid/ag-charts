@@ -1307,6 +1307,37 @@ describe('Annotations', () => {
             }
         );
 
+        it.each(SELECTABLE)(
+            'lets the datum and the theme switch off the labels and shading of a selected $name',
+            async ({ name, annotation, body }) => {
+                const off = { axisLabel: { enabled: false }, axisShading: { enabled: false } };
+                const select = async (options: AgCartesianChartOptions, datum: AgAnnotation) => {
+                    await prepareChart({ annotations: [datum] }, options);
+                    await clickDatum(body.x, body.y);
+                    expect(visibleAxisLabels()).toHaveLength(0);
+                    expect(visibleShading()).toHaveLength(0);
+                    chart.destroy();
+                };
+
+                await select(withAxes(), { ...annotation, ...off });
+                await select(
+                    { ...withAxes(), theme: { overrides: { common: { annotations: { [name]: off } } } } },
+                    annotation
+                );
+            }
+        );
+
+        it('draws one label and no shading along an axis where the handles share a position', async () => {
+            // The two ends are well under a pixel apart along x, so they collapse to one position there.
+            const line = { type: 'line', start: { x: day(50), y: 25 }, end: { x: day(50.01), y: 75 } } as AgAnnotation;
+            await prepareChart({ annotations: [line] }, withAxes());
+
+            await clickDatum(50, 50);
+
+            expect(axisLabelTexts().sort(byText)).toEqual(['25', '75', 'Feb 20 2024']);
+            expect(visibleShading()).toHaveLength(1);
+        });
+
         it.each(SNAPSHOTTED)(
             'shows axis labels and shading on both axes for a selected $name',
             async ({ annotation, body }) => {
