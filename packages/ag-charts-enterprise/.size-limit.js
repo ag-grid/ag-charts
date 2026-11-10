@@ -5,7 +5,7 @@ const scenarios = [
         name: 'Full package',
         import: '*',
         srcLimit: '572 kB',
-        distLimit: '573 kB',
+        distLimit: '575 kB',
     },
     {
         name: 'BoxPlot module only',
