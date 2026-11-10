@@ -26,7 +26,7 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
         setAttribute(this.elem, 'aria-orientation', orientation === 'both' ? undefined : orientation);
     }
 
-    constructor(initialOrientation: RovingDirection, role: 'toolbar' | 'list' | 'menu') {
+    constructor(initialOrientation: RovingDirection, role: 'toolbar' | 'list' | 'menu' | 'tablist' | 'radiogroup') {
         super(createElement('div'));
         setAttribute(this.elem, 'role', role);
         this.orientation = initialOrientation;

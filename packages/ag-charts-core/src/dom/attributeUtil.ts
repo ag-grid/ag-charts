@@ -125,7 +125,7 @@ export function setAttribute<A extends keyof BaseAttributeTypeMap>(
 ): void;
 
 export function setAttribute<A extends keyof InputAttributeTypeMap>(
-    e: Nullable<HTMLTextAreaElement>,
+    e: Nullable<HTMLInputElement | HTMLTextAreaElement>,
     qualifiedName: A,
     value: InputAttributeTypeMap[A] | undefined
 ): void;

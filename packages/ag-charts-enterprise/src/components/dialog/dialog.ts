@@ -1,33 +1,23 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type {
-    BBox,
-    ContainerWidget,
-    CheckboxOptions as CoreCheckboxOptions,
-    InputOptions as CoreInputOptions,
-    SelectOptions as CoreSelectOptions,
-    TextAreaOptions as CoreTextAreaOptions,
-    DynamicContext,
-} from 'ag-charts-core';
+import type { BBox, DynamicContext, ElementID, InputWidgetType, SelectWidgetOption } from 'ag-charts-core';
 import {
+    CheckboxWidget,
     Color,
-    type ElementID,
-    NativeWidget,
+    ContainerWidget,
+    IconWidget,
+    InputButtonWidget,
+    InputWidget,
+    LabelWidget,
     type Point,
+    RadioGroupWidget,
+    SelectWidget,
+    TabListWidget,
+    TextAreaWidget,
     Vec2,
     type Widget,
-    createButton,
-    createCheckbox,
-    createElement,
     createElementId,
-    createInput,
-    createSelect,
-    createTextArea,
     entries,
-    getIconClassNames,
-    initRovingTabIndex,
     mapValues,
-    setAttribute,
-    setAttributes,
 } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
@@ -44,24 +34,37 @@ interface RadioGroupOptions<T extends string> {
     onChange: (value: T) => void;
 }
 
-interface SelectOptions extends CoreSelectOptions {
+interface SelectOptions {
     altText: string;
     label: string;
+    options: SelectWidgetOption[];
+    value: string;
+    onChange: (value: string, event: Event) => void;
 }
 
-interface InputOptions extends CoreInputOptions {
+interface InputOptions {
     /** Already translated, as it is built from more than one locale string. */
     ariaLabel: string;
+    type: InputWidgetType;
+    value: string;
+    /** The granularity of a `datetime-local` input, in seconds. */
+    step?: number;
     /** The id of the datalist the input suggests from. */
     list?: ElementID;
+    /** Called when the user commits a value; a `datetime-local` input may commit a value that has not changed. */
+    onChange: (value: string, event: Event) => void;
 }
 
-interface TextAreaOptions extends CoreTextAreaOptions {
+interface TextAreaOptions {
     placeholder: string;
+    value: string;
+    onChange: (value: string, event: Event) => void;
 }
 
-interface CheckboxOptions extends CoreCheckboxOptions {
+interface CheckboxOptions {
     label: string;
+    checked: boolean;
+    onChange: (checked: boolean, event: Event) => void;
 }
 
 interface ColorPickerOptions {
@@ -88,7 +91,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     override dragHandleDraggingClass = 'ag-charts-dialog__drag-handle--dragging';
 
     private readonly colorPicker = new ColorPicker(this.ctx, { detached: true });
-    private colorPickerAnchorElement?: HTMLElement;
+    private colorPickerAnchor?: Widget;
+    private colorPickerButtonMouseDown?: Event;
     private seriesRect?: BBox;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id: string) {
@@ -101,8 +105,9 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         popover.addClass('ag-charts-dialog');
         popover.setAriaRole('dialog');
 
-        popover.getElement().addEventListener('mousedown', (event) => {
-            if ((event.target as any).classList?.contains('ag-charts-dialog__color-picker-button')) return;
+        popover.addListener('mousedown', ({ sourceEvent }) => {
+            // A colour picker button toggles the picker from its own click listener.
+            if (sourceEvent === this.colorPickerButtonMouseDown) return;
             this.colorPicker.hide();
         });
         popover.addListener('keydown', ({ sourceEvent }) => this.onKeyDown(sourceEvent));
@@ -127,124 +132,106 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     /**************
      * Containers *
      **************/
-    protected createTabs<T extends Record<string, { label: string; panel: HTMLElement; onShow?: () => void }>>(
+    protected createTabs<T extends Record<string, { label: string; panel: Widget; onShow?: () => void }>>(
         tablistLabel: string,
         initial: keyof T,
         tabs: T
     ) {
-        const element = createElement('div', 'ag-charts-dialog__tabs');
+        const element = new ContainerWidget('ag-charts-dialog__tabs');
 
         const tabButtonIds = mapValues(tabs, () => createElementId());
         const tabPanelIds = mapValues(tabs, () => createElementId());
 
         for (const [key, tab] of entries(tabs)) {
-            setAttributes(tab.panel, {
-                id: tabPanelIds[key],
-                role: 'tabpanel',
-                'aria-labelledby': tabButtonIds[key],
-            });
+            tab.panel.id = tabPanelIds[key];
+            tab.panel.setAriaRole('tabpanel');
+            tab.panel.setAriaLabelledBy(tabButtonIds[key]);
         }
 
         const onPressTab = (active: keyof T) => {
             for (const [key, tab] of entries(tabs)) {
-                tab.panel.classList.toggle('ag-charts-dialog__tab-panel--active', key === active);
-                tabButtons[key].classList.toggle('ag-charts-dialog__tab-button--active', key === active);
-                setAttribute(tabButtons[key], 'aria-selected', key === active);
+                tab.panel.toggleClass('ag-charts-dialog__tab-panel--active', key === active);
+                tabButtons[key].toggleClass('ag-charts-dialog__tab-button--active', key === active);
+                tabButtons[key].setAriaSelected(key === active);
                 if (key === active) tab.onShow?.();
             }
         };
 
-        const header = new NativeWidget(createElement('div', 'ag-charts-dialog__header'));
+        const header = new ContainerWidget('ag-charts-dialog__header');
         const dragHandle = new DragHandleWidget();
         this.setDragHandle(dragHandle);
-        const tabButtons = mapValues(tabs, (tab, key) =>
-            createButton(
-                {
-                    label: this.ctx.localeManager.t(tab.label),
-                    onPress: () => onPressTab(key),
-                },
-                {
-                    id: tabButtonIds[key],
-                    class: 'ag-charts-dialog__tab-button',
-                    role: 'tab',
-                    'aria-controls': tabPanelIds[key],
-                }
-            )
-        );
+        const tabButtons = mapValues(tabs, (tab, key) => {
+            const button = new InputButtonWidget(
+                { label: this.ctx.localeManager.t(tab.label) },
+                'ag-charts-dialog__tab-button'
+            );
+            button.id = tabButtonIds[key];
+            button.setAriaRole('tab');
+            button.setAriaControls(tabPanelIds[key]);
+            button.addListener('click', () => onPressTab(key));
+            return button;
+        });
 
-        const tabList = createElement('div', 'ag-charts-dialog__tab-list');
-        setAttributes(tabList, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
-        tabList.append(...Object.values(tabButtons));
+        const tabList = new TabListWidget();
+        tabList.addClass('ag-charts-dialog__tab-list');
+        tabList.setAriaLabel(this.ctx.localeManager.t(tablistLabel));
+        for (const button of Object.values(tabButtons)) {
+            tabList.addChild(button);
+        }
 
-        const closeButton = this.createHeaderCloseButton();
-
-        header.getElement().append(dragHandle.getElement(), tabList, closeButton);
-        element.append(header.getElement(), ...Object.values(tabs).map((t) => t.panel));
+        header.addChild(dragHandle);
+        header.addChild(tabList);
+        header.addChild(this.createHeaderCloseButton());
+        element.addChild(header);
+        for (const tab of Object.values(tabs)) {
+            element.addChild(tab.panel);
+        }
 
         onPressTab(initial);
-        initRovingTabIndex({ orientation: 'horizontal', buttons: Object.values(tabButtons) });
 
-        // TODO: Phase 3 "Common Widget Ancestor" - the tabs are still built from raw elements
-        return { tabs: new NativeWidget(element), initialFocus: new NativeWidget(tabButtons[initial]) };
+        return { tabs: element, initialFocus: tabButtons[initial] };
     }
 
     protected createTabPanel() {
-        return createElement('div', 'ag-charts-dialog__tab-panel');
+        return new ContainerWidget('ag-charts-dialog__tab-panel');
     }
 
     /**********
      * Inputs *
      **********/
     protected createInputGroupLine() {
-        return createElement('div', 'ag-charts-dialog__input-group-line');
+        return new ContainerWidget('ag-charts-dialog__input-group-line');
     }
 
     protected createRadioGroup<T extends string>({ label, options, value, onChange }: RadioGroupOptions<T>) {
-        const group = this.createInputGroup(label);
-        setAttributes(group, {
-            role: 'radiogroup',
-            tabindex: -1,
-            'aria-label': this.ctx.localeManager.t(label),
-        });
+        const group = new RadioGroupWidget(this.createInputGroupLabel(label));
+        group.addClass('ag-charts-dialog__input-group');
+        group.setTabIndex(-1);
+        group.setAriaLabel(this.ctx.localeManager.t(label));
 
         const activeClass = 'ag-charts-dialog__button--active';
-        const buttons: HTMLButtonElement[] = [];
+        const buttons: InputButtonWidget[] = [];
 
-        for (const button of options) {
-            const { icon, altText: altTextKey } = button;
-            const altText = this.ctx.localeManager.t(altTextKey);
-
-            const buttonEl = createButton(
-                {
-                    icon,
-                    altText,
-                    onPress: () => {
-                        for (const b of Array.from(group.children)) {
-                            b.classList.remove(activeClass);
-                            b.ariaChecked = 'false';
-                        }
-                        buttonEl.classList.add(activeClass);
-                        buttonEl.ariaChecked = 'true';
-                        onChange(button.value);
-                    },
-                },
-                {
-                    'aria-checked': button.value === value,
-                    class: 'ag-charts-dialog__button',
-                    role: 'radio',
-                    title: altText,
+        for (const option of options) {
+            const altText = this.ctx.localeManager.t(option.altText);
+            const button = new InputButtonWidget({ icon: option.icon, altText }, 'ag-charts-dialog__button');
+            button.setAriaChecked(option.value === value);
+            button.setAriaRole('radio');
+            button.setTitle(altText);
+            button.toggleClass(activeClass, option.value === value);
+            button.addListener('click', () => {
+                for (const b of buttons) {
+                    b.removeClass(activeClass);
+                    b.setAriaChecked(false);
                 }
-            );
+                button.addClass(activeClass);
+                button.setAriaChecked(true);
+                onChange(option.value);
+            });
 
-            if (button.value === value) {
-                buttonEl.classList.add(activeClass);
-            }
-
-            group.appendChild(buttonEl);
-            buttons.push(buttonEl);
+            group.addChild(button);
+            buttons.push(button);
         }
-
-        initRovingTabIndex({ orientation: 'horizontal', buttons });
 
         return group;
     }
@@ -252,45 +239,56 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     protected createSelect({ altText, label, options, value, onChange }: SelectOptions) {
         const group = this.createInputGroup(label);
         const altTextT = this.ctx.localeManager.t(altText);
-        const select = createSelect(
-            { value, options, onChange },
-            { class: 'ag-charts-dialog__select', 'aria-label': altTextT, title: altTextT }
-        );
-        group.append(select);
+        const select = new SelectWidget(options, 'ag-charts-dialog__select');
+        select.value = value;
+        select.setAriaLabel(altTextT);
+        select.setTitle(altTextT);
+        select.addListener('change', ({ sourceEvent }) => onChange(select.value, sourceEvent));
+        group.addChild(select);
 
         return group;
     }
 
     /** A labelled row of inputs, for values that belong together such as the x and y of one point. */
-    protected createInputRow(label: string, inputs: HTMLElement[]) {
+    protected createInputRow(label: string, inputs: Widget[]) {
         const group = this.createInputGroup(label);
-        group.classList.add('ag-charts-dialog__input-group--inputs');
-        group.append(...inputs);
+        group.addClass('ag-charts-dialog__input-group--inputs');
+        for (const input of inputs) {
+            group.addChild(input);
+        }
         return group;
     }
 
     protected createInput({ ariaLabel, type, value, step, onChange, list }: InputOptions) {
-        return createInput(
-            { type, value, step, onChange },
-            { class: 'ag-charts-dialog__input', 'aria-label': ariaLabel, title: ariaLabel, list }
-        );
+        const input = new InputWidget(type, 'ag-charts-dialog__input');
+        if (step != null) input.setStep(step);
+        input.value = value;
+        input.addCommitListener((event) => onChange(input.value, event));
+        input.setAriaLabel(ariaLabel);
+        input.setTitle(ariaLabel);
+        input.setList(list);
+        return input;
     }
 
     protected createTextArea({ placeholder, value, onChange }: TextAreaOptions) {
-        const placeholderT = placeholder === '' ? undefined : this.ctx.localeManager.t(placeholder);
-        return createTextArea({ value, onChange }, { placeholder: placeholderT });
+        const textArea = new TextAreaWidget();
+        textArea.value = value;
+        textArea.setPlaceholder(placeholder === '' ? undefined : this.ctx.localeManager.t(placeholder));
+        textArea.addListener('input', ({ sourceEvent }) => onChange(textArea.value, sourceEvent));
+        return textArea;
     }
 
     protected createCheckbox({ label, checked, onChange }: CheckboxOptions) {
         const id = createElementId();
-        const group = this.createInputGroup(label, { for: id });
+        const group = this.createInputGroup(label, id);
 
-        const checkbox = createCheckbox(
-            { checked, onChange },
-            { class: 'ag-charts-dialog__checkbox', role: 'switch', id }
-        );
+        const checkbox = new CheckboxWidget('ag-charts-dialog__checkbox');
+        checkbox.checked = checked;
+        checkbox.setAriaRole('switch');
+        checkbox.id = id;
+        checkbox.addListener('change', ({ sourceEvent }) => onChange(checkbox.checked, sourceEvent));
 
-        group.append(checkbox);
+        group.addChild(checkbox);
 
         return group;
     }
@@ -308,55 +306,43 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const group = this.createInputGroup(label);
 
         const altTextT = this.ctx.localeManager.t(altText);
-        const colorEl = createButton(
-            {
-                label: altTextT,
-                onPress: (event) => {
-                    // Retrieve the anchor for this particular color picker element, and use it when repositioning if the chart
-                    // is resized. When a different color picker trigger element is clicked that one will take over this task.
-                    const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
-                    this.colorPicker.show({
-                        anchor,
-                        fallbackAnchor,
-                        color,
-                        opacity,
-                        isMultiColor,
-                        hasMultiColorOption,
-                        sourceEvent: event,
-                        onChange: (
-                            newColorOpacity: string,
-                            newColor: string,
-                            newOpacity: number,
-                            newIsMultiColor: boolean
-                        ) => {
-                            colorEl.style.setProperty('--color', newColorOpacity);
-                            colorEl.classList.toggle(
-                                'ag-charts-dialog__color-picker-button--multi-color',
-                                newIsMultiColor
-                            );
-                            onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
-                        },
-                        onChangeHide,
-                    });
+        const colorEl = new InputButtonWidget({ label: altTextT }, 'ag-charts-dialog__color-picker-button');
+        colorEl.setAriaLabel(altTextT);
+        colorEl.setTabIndex(0);
+        colorEl.setTitle(altTextT);
+        colorEl.addListener('mousedown', ({ sourceEvent }) => {
+            this.colorPickerButtonMouseDown = sourceEvent;
+        });
+        colorEl.addListener('click', ({ sourceEvent }) => {
+            // Retrieve the anchor for this particular color picker element, and use it when repositioning if the chart
+            // is resized. When a different color picker trigger element is clicked that one will take over this task.
+            const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
+            this.colorPicker.show({
+                anchor,
+                fallbackAnchor,
+                color,
+                opacity,
+                isMultiColor,
+                hasMultiColorOption,
+                sourceEvent,
+                onChange: (newColorOpacity: string, newColor: string, newOpacity: number, newIsMultiColor: boolean) => {
+                    colorEl.setCSSVariable('--color', newColorOpacity);
+                    colorEl.toggleClass('ag-charts-dialog__color-picker-button--multi-color', newIsMultiColor);
+                    onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
                 },
-            },
-            {
-                'aria-label': altTextT,
-                tabindex: 0,
-                class: 'ag-charts-dialog__color-picker-button',
-                title: altTextT,
-            }
-        );
+                onChangeHide,
+            });
+        });
 
         if (isMultiColor) {
-            colorEl.classList.toggle('ag-charts-dialog__color-picker-button--multi-color');
+            colorEl.addClass('ag-charts-dialog__color-picker-button--multi-color');
         } else if (color != null && color !== '') {
             const hex = Color.fromString(color);
             const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
-            colorEl.style.setProperty('--color', hexWithOpacity.toHexString());
+            colorEl.setCSSVariable('--color', hexWithOpacity.toHexString());
         }
 
-        group.append(colorEl);
+        group.addChild(colorEl);
 
         this.hideFns.push(() => {
             this.colorPicker.hide();
@@ -370,21 +356,23 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
      ***********/
 
     private createHeaderCloseButton() {
-        return createButton(
-            { icon: 'close', altText: this.ctx.localeManager.t('iconAltTextClose'), onPress: () => this.hide() },
-            { class: 'ag-charts-dialog__close-button' }
+        const button = new InputButtonWidget(
+            { icon: 'close', altText: this.ctx.localeManager.t('iconAltTextClose') },
+            'ag-charts-dialog__close-button'
         );
+        button.addListener('click', () => this.hide());
+        return button;
     }
 
-    private createInputGroup(label: string, options?: { for?: ElementID }) {
-        const group = createElement('div', 'ag-charts-dialog__input-group');
+    private createInputGroupLabel(label: string) {
+        return new LabelWidget(this.ctx.localeManager.t(label), 'ag-charts-dialog__input-group-label');
+    }
 
-        const labelEl = createElement('label', 'ag-charts-dialog__input-group-label');
-        labelEl.innerText = this.ctx.localeManager.t(label);
-        setAttribute(labelEl, 'for', options?.for);
-
-        group.appendChild(labelEl);
-
+    private createInputGroup(label: string, controlId?: ElementID) {
+        const group = new ContainerWidget('ag-charts-dialog__input-group');
+        const labelWidget = this.createInputGroupLabel(label);
+        labelWidget.setFor(controlId);
+        group.addChild(labelWidget);
         return group;
     }
 
@@ -429,11 +417,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         this.updatePosition(position);
     }
 
-    private getColorPickerAnchors(element?: HTMLElement) {
-        if (element) this.colorPickerAnchorElement = element;
-        if (!this.colorPickerAnchorElement) return;
+    private getColorPickerAnchors(anchorWidget?: Widget) {
+        if (anchorWidget) this.colorPickerAnchor = anchorWidget;
+        if (!this.colorPickerAnchor) return;
 
-        const rect = this.colorPickerAnchorElement.getBoundingClientRect();
+        const rect = this.colorPickerAnchor.getBoundingClientRect();
         const canvasRect = this.ctx.domManager.getBoundingClientRect();
 
         const topLeft = Vec2.sub(Vec2.from(rect.x, rect.y), Vec2.from(canvasRect.left, canvasRect.top));
@@ -444,11 +432,9 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 }
 
-class DragHandleWidget extends NativeWidget {
+class DragHandleWidget extends ContainerWidget {
     constructor() {
-        super(createElement('div', 'ag-charts-dialog__drag-handle'));
-        const icon = new NativeWidget<HTMLElement>(createElement('span', getIconClassNames('drag-handle')));
-        icon.setAriaHidden(true);
-        this.addChild(icon);
+        super('ag-charts-dialog__drag-handle');
+        this.addChild(IconWidget.fromName('drag-handle'));
     }
 }

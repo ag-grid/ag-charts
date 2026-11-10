@@ -616,10 +616,12 @@ test.describe(DEMO_ID, () => {
             .getByRole('radiogroup', { name: 'View as: breakdown', exact: true })
             .getByRole('radio', { name: 'Grouped table' })
             .click();
-        await waitForAllChartUpdates(page);
-
+        // Wait for the swap first: a zoneless port re-renders after the click returns, so the
+        // sweep below would otherwise wait on the sunburst as it unmounts.
         const grid = card.locator('.ag-root');
         await expect(grid).toBeVisible();
+        await waitForAllChartUpdates(page);
+
         // The first level is expanded: subcategories open onto their still-collapsed materials.
         const subcategories = grid.locator('.ag-row-group.ag-row-level-0');
         const materials = grid.locator('.ag-row-group.ag-row-level-1');

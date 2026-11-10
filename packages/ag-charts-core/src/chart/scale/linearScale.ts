@@ -10,7 +10,7 @@ import {
     range,
     tickStep,
 } from '../../time/ticks';
-import type { ScaleTickParams } from '../../types/scales';
+import type { ScaleTickParams, ScaleTickResult } from '../../types/scales';
 import { ContinuousScale } from './continuousScale';
 
 /**
@@ -44,7 +44,7 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount }: ScaleTickParams<number>,
         domain: AgNumericValue[] = this.domain,
         visibleRange?: [number, number]
-    ): { ticks: AgNumericValue[]; count: number; firstTickIndex?: number } {
+    ): ScaleTickResult<AgNumericValue> {
         if (domain == null || domain.length < 2 || tickCount < 1) {
             return { ticks: [], count: 0, firstTickIndex: 0 };
         }
@@ -66,15 +66,27 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
 
         const [d0, d1] = numericDomain;
 
+        let intervalIgnored: boolean | undefined;
         if (interval != null && interval !== 0 && !Number.isNaN(interval)) {
             // A custom interval step is a Number concept; bigint full precision applies only to the auto-step path.
             const step = Math.abs(Number(interval));
             if (!isDenseInterval((d1 - d0) / step, this.getPixelRange(), this.logger)) {
                 return range(d0, d1, step, visibleRange);
             }
+            intervalIgnored = true;
         }
 
-        return createTicks(d0, d1, tickCount, minTickCount, maxTickCount, visibleRange);
+        // Attach the flag in place so the auto-tick path allocates nothing extra.
+        const result: ScaleTickResult<AgNumericValue> = createTicks(
+            d0,
+            d1,
+            tickCount,
+            minTickCount,
+            maxTickCount,
+            visibleRange
+        );
+        if (intervalIgnored) result.intervalIgnored = true;
+        return result;
     }
 
     override niceDomain(ticks: ScaleTickParams<number>, domain: AgNumericValue[] = this.domain): AgNumericValue[] {

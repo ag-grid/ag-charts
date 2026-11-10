@@ -175,6 +175,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
     "fill": "#ecf2f9",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -938,6 +945,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -1636,6 +1650,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -2851,6 +2872,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -4172,6 +4200,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -4628,6 +4663,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "footnote": {
@@ -5454,6 +5496,13 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -6463,6 +6512,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -6905,6 +6961,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -7361,6 +7424,13 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -7797,6 +7867,13 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -8236,6 +8313,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -8800,6 +8884,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -9371,6 +9462,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -10589,6 +10687,13 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -12952,6 +13057,13 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -13396,6 +13508,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -14739,6 +14858,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -15438,6 +15564,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -16542,6 +16675,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -17409,6 +17549,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -17727,6 +17874,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -18337,6 +18491,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -18783,6 +18944,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "footnote": {
@@ -19323,6 +19491,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -19779,6 +19954,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -20963,6 +21145,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
     "fill": "#ffffff",
     "visible": true,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
@@ -21786,6 +21975,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
   "background": {
     "fill": "#ffffff",
     "visible": true,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "container": Any<HTMLElement>,
   "data": Any<Array>,
@@ -22751,6 +22947,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
     "fill": "#ffffff",
     "visible": false,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "data": [
     {
       "x": 0,
@@ -23237,6 +23440,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
   "background": {
     "fill": "#ffffff",
     "visible": false,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "data": [
     {
@@ -23725,6 +23935,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
     "fill": "#ffffff",
     "visible": false,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "data": [
     {
       "x": 0,
@@ -24209,6 +24426,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
   "background": {
     "fill": "#ffffff",
     "visible": false,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "data": [
     {
@@ -24696,6 +24920,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
     "fill": "#ffffff",
     "visible": false,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "data": [
     {
       "x": 0,
@@ -25181,6 +25412,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
     "fill": "#ffffff",
     "visible": false,
   },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+  },
   "data": [
     {
       "x": 0,
@@ -25665,6 +25903,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
   "background": {
     "fill": "#ffffff",
     "visible": false,
+  },
+  "border": {
+    "cornerRadius": 4,
+    "enabled": false,
+    "stroke": "#dcdddd",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
   },
   "data": [
     {

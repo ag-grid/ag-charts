@@ -16,7 +16,7 @@ const { LayoutElement, Menu } = _ModuleSupport;
 interface EventMap {
     'cancel-create-annotation': null;
     'pressed-create-annotation': { annotation: AnnotationType };
-    'pressed-place-annotation': { sourceEvent: KeyboardEvent };
+    'pressed-place-annotation': { annotation: AnnotationType; sourceEvent: KeyboardEvent };
     'pressed-clear': null;
     'pressed-show-menu': null;
     'pressed-unrelated': null;
@@ -49,7 +49,6 @@ export class AnnotationsToolbar {
     private enabled: boolean = true;
     private padding: number = 20;
     private buttons: AnnotationsToolbarButtonOptions[] = [];
-    private pendingTool?: { button: AnnotationsToolbarButtonValue; annotation: AnnotationType };
 
     readonly events = new EventEmitter<EventMap>();
 
@@ -127,24 +126,7 @@ export class AnnotationsToolbar {
     }
 
     public clearActiveButton() {
-        this.releasePendingTool();
         this.toolbar.clearActiveButton();
-    }
-
-    /** The annotation of the tool chosen with the keyboard but not yet started, which Enter can place. */
-    public getPendingAnnotation() {
-        return this.pendingTool?.annotation;
-    }
-
-    /** Stops the chosen tool's button placing on Enter, while it stays highlighted for the drawing in progress. */
-    public releasePendingTool() {
-        this.pendingTool = undefined;
-    }
-
-    /** Focus the button the pending tool was chosen from, which a menu's item leaves to its menu button. */
-    public focusPendingToolButton() {
-        const index = this.buttons.findIndex((button) => button.value === this.pendingTool?.button);
-        if (index >= 0) this.toolbar.focusButton(index);
     }
 
     private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
@@ -166,16 +148,6 @@ export class AnnotationsToolbar {
         buttonBounds,
         buttonWidget,
     }: _ModuleSupport.ToolbarEventMap<AnnotationsToolbarButtonOptions>['button-pressed']) {
-        // The button of a chosen tool places its annotation when pressed with the keyboard, rather than choosing the tool again.
-        if (
-            event.device === 'keyboard' &&
-            event.sourceEvent.key === 'Enter' &&
-            button.value === this.pendingTool?.button
-        ) {
-            this.events.emit('pressed-place-annotation', { sourceEvent: event.sourceEvent });
-            return;
-        }
-
         const axisScale = this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y)[0].scale;
 
         switch (button.value) {
@@ -334,10 +306,9 @@ export class AnnotationsToolbar {
         // Must run after the reset, which clears the active button and icons.
         this.updateButtonByIndex(index, { icon: item.icon });
         this.toolbar.toggleActiveButtonByIndex(index);
-        this.holdPendingTool(event, menu, item.value);
         this.annotationMenu.hide();
-        // Hiding destroys the menu before its row can restore focus, which would drop it to the body.
-        this.focusPendingToolButton();
+        // Must run after the menu is hidden, which would otherwise drop the focus placing moves to the chart.
+        this.placeOnKeyboardPress(event, item.value);
     }
 
     private onButtonPressCreateAnnotation(
@@ -348,16 +319,12 @@ export class AnnotationsToolbar {
         const index = this.buttons.findIndex((button) => button.value === item);
         this.events.emit('pressed-create-annotation', { annotation });
         this.toolbar.toggleActiveButtonByIndex(index);
-        this.holdPendingTool(event, item, annotation);
+        this.placeOnKeyboardPress(event, annotation);
     }
 
-    /** Only a tool chosen with the keyboard can be placed with it, and choosing any tool replaces the previous one. */
-    private holdPendingTool(
-        event: ClickWidgetEvent,
-        button: AnnotationsToolbarButtonValue,
-        annotation: AnnotationType
-    ) {
-        this.pendingTool = event.device === 'keyboard' ? { button, annotation } : undefined;
+    private placeOnKeyboardPress(event: ClickWidgetEvent, annotation: AnnotationType) {
+        if (event.device !== 'keyboard') return;
+        this.events.emit('pressed-place-annotation', { annotation, sourceEvent: event.sourceEvent });
     }
 
     private onKeyDown({ sourceEvent }: KeyboardWidgetEvent) {
