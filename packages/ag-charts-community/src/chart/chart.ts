@@ -906,7 +906,9 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         ctx.chartState.flushChanges();
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
-            ctx.animationManager.startBatch(this._performUpdateSkipAnimations);
+            // Updates from the series stage onwards only restyle existing nodes.
+            const restyleOnly = performUpdateType === ChartUpdateType.SERIES_UPDATE;
+            ctx.animationManager.startBatch(this._performUpdateSkipAnimations, restyleOnly);
             ctx.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
         }
 

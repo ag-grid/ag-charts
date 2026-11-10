@@ -36,13 +36,24 @@ export class AnimationBatch {
         return this.controllers.size > 0;
     }
 
+    hasBlockingAnimations() {
+        for (const [phase, controllers] of this.phases) {
+            if (phase !== 'transition' && controllers.length > 0) return true;
+        }
+        return false;
+    }
+
     getActiveControllers(): IAnimation[] {
         return this.phases.get(PHASE_ORDER[this.currentPhase]) ?? [];
     }
 
     checkOverlappingId(id: string) {
-        if (id != null && this.controllers.has(id)) {
-            this.controllers.get(id)!.stop();
+        const existing = id == null ? undefined : this.controllers.get(id);
+        if (existing?.phase === 'transition') {
+            existing.abandon();
+            this.removeAnimation(existing);
+        } else if (existing != null) {
+            existing.stop();
 
             this.debug(`Skipping animation batch due to update of existing animation: ${id}`);
             this.skip();
@@ -131,7 +142,8 @@ export class AnimationBatch {
             progressPhase();
         } while (unusedTime > 0 && !arePhasesComplete());
 
-        if (this.animationTimeConsumed > this.maxAnimationTime) {
+        // Successive restyles can keep a batch of only `transition` animations running indefinitely.
+        if (this.animationTimeConsumed > this.maxAnimationTime && this.hasBlockingAnimations()) {
             this.debug(`Animation batch exceeded max animation time, skipping`, [...this.controllers]);
             this.stop();
         }
@@ -196,6 +208,14 @@ export class AnimationBatch {
                 controller.stop();
                 this.removeAnimation(controller);
             }
+        }
+    }
+
+    abandonTransitions(idPrefix: string) {
+        for (const controller of [...this.phases.get('transition')!]) {
+            if (!controller.id.startsWith(idPrefix)) continue;
+            controller.abandon();
+            this.removeAnimation(controller);
         }
     }
 

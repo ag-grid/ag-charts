@@ -70,6 +70,8 @@ type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     propertyKeys: SeriesDirectionKeysMapping<OptionsOf<TTypes>>;
     propertyNames: SeriesDirectionKeysMapping<OptionsOf<TTypes>>;
     datumSelectionGarbageCollection: boolean;
+    /** False keeps the highlighted items' nodes that are removed until their style animations finish. */
+    highlightSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
     animationAlwaysPopulateNodeData: boolean;
     segmentedDataNodes: boolean;
@@ -98,12 +100,20 @@ type CartesianAnimationEvent<TTypes extends CartesianSeriesTypes> = {
     update: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
     updateData: undefined;
     highlight: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    restyle: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>;
     resize: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
     clear: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
     reset: undefined;
     skip: undefined;
     disable: undefined;
 };
+
+export interface CartesianRestyleData<TDatum extends CartesianSeriesNodeDatum, TNode extends Node<TDatum>> {
+    datumSelection: Selection<TDatum, TNode>;
+    highlightSelection: Selection<TDatum, TNode>;
+    /** Whether this update resolved the styles of `datumSelection`; `highlightSelection` is resolved every update. */
+    datumSelectionRestyled: boolean;
+}
 
 export interface CartesianAnimationData<
     TDatum extends CartesianSeriesNodeDatum,
@@ -147,15 +157,16 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup<LabelOf<TTypes>>({ name: `${this.id}-series-labels` })
     );
-    private datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    protected datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
     protected labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
         Text<LabelOf<TTypes>>
     >(this.labelGroup, RotatableText);
 
-    private highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(
-        this.highlightNodeGroup,
-        () => this.nodeFactory()
-    );
+    protected highlightSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    /** Whether this update resolved the styles of `datumSelection`. */
+    private datumSelectionRestyled = false;
+    /** Whether the highlight selection holds removed nodes still animating out, and no highlighted item. */
+    private highlightNodesLeaving = false;
     protected highlightLabelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
         Text<LabelOf<TTypes>>
     >(this.highlightLabelGroup, RotatableText);
@@ -175,6 +186,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         pathsPerSeries = ['path'],
         pathsZIndexSubOrderOffset = [],
         datumSelectionGarbageCollection = true,
+        highlightSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
         animationAlwaysPopulateNodeData = false,
         segmentedDataNodes = true,
@@ -204,6 +216,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             animationAlwaysUpdateSelections,
             animationAlwaysPopulateNodeData,
             datumSelectionGarbageCollection,
+            highlightSelectionGarbageCollection,
             segmentedDataNodes,
         };
 
@@ -216,6 +229,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             () => this.nodeFactory(),
             datumSelectionGarbageCollection
         );
+        this.highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(
+            this.highlightNodeGroup,
+            () => this.nodeFactory(),
+            highlightSelectionGarbageCollection
+        );
 
         this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent<TTypes>>(
             'empty',
@@ -225,6 +243,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                         target: 'ready',
                         action: (data) => this.animateEmptyUpdateReady(data),
                     },
+                    restyle: (data) => this.restyle(data),
                     reset: 'empty',
                     skip: 'ready',
                     disable: 'disabled',
@@ -233,6 +252,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                     updateData: 'waiting',
                     clear: 'clearing',
                     highlight: (data) => this.animateReadyHighlight(data),
+                    restyle: (data) => this.restyle(data),
                     resize: (data) => this.animateReadyResize(data),
                     reset: 'empty',
                     skip: 'ready',
@@ -249,12 +269,14 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                             }
                         },
                     },
+                    restyle: (data) => this.restyle(data),
                     reset: 'empty',
                     skip: 'ready',
                     disable: 'disabled',
                 },
                 disabled: {
                     update: (data) => this.resetAllAnimation(data),
+                    restyle: (data) => this.restyle(data),
                     reset: 'empty',
                 },
                 clearing: {
@@ -262,6 +284,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                         target: 'empty',
                         action: (data) => this.animateClearingUpdateEmpty(data),
                     },
+                    restyle: (data) => this.restyle(data),
                     reset: 'empty',
                     skip: 'ready',
                 },
@@ -385,13 +408,25 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         });
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
-        if (!animationData) return;
-
-        if (resize) {
-            this.animationState.transition('resize', animationData);
+        if (animationData) {
+            if (resize) {
+                this.animationState.transition('resize', animationData);
+            }
+            this.animationState.transition('update', animationData);
+            this.processedDataUpdated = false;
         }
-        this.animationState.transition('update', animationData);
-        this.processedDataUpdated = false;
+
+        // After `update`, whose resets snap running restyles to their end, so the new styles apply last.
+        this.animationState.transition('restyle', {
+            datumSelection: this.datumSelection,
+            highlightSelection: this.highlightSelection,
+            datumSelectionRestyled: this.datumSelectionRestyled,
+        });
+        this.datumSelectionRestyled = false;
+        if (this.highlightNodesLeaving && this.highlightSelection.length === 0) {
+            this.highlightNodesLeaving = false;
+            this.highlightGroup.visible = false;
+        }
     }
 
     public createStackContext(): StackContextOf<TTypes> | undefined {
@@ -695,7 +730,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.contentGroup.visible = animationEnabled || visible;
         this.annotationGroup.visible = animationEnabled || visible;
 
-        this.highlightGroup.visible = (animationEnabled || visible) && itemHighlighted;
+        this.highlightGroup.visible = (animationEnabled || visible) && (itemHighlighted || this.highlightNodesLeaving);
 
         this.updateDatumStyles({ datumSelection: highlightSelection, isHighlight: true });
         const drawingMode = this.getChartHighlightDrawingMode();
@@ -732,6 +767,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         if (nodeRefresh || redrawAll) {
             this.updateDatumNodes({ datumSelection, isHighlight: false, drawingMode: 'overlay' });
+            this.datumSelectionRestyled = true;
             if (!this.usesPlacedLabels) {
                 this.labelGroup.batchedUpdate(() => {
                     this.updateLabelNodes({ labelSelection, isHighlight: false });
@@ -767,7 +803,18 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         // the overlay — whether the highlight is datum-level is what decides it.
         const item = seriesHighlighted && this.isDatumHighlight(highlightedDatum) ? highlightedDatum : undefined;
 
-        if (item == null) return false;
+        this.highlightNodesLeaving = false;
+        if (item == null) {
+            // Unhighlighted overlay nodes stay as garbage until their `restyle` animation removes them.
+            if (!this.opts.highlightSelectionGarbageCollection && highlightSelection.length > 0) {
+                this.highlightSelection = this.updateHighlightSelectionItem({ items: [], highlightSelection });
+                this.highlightLabelSelection =
+                    this.updateLabelSelection({ labelData: [], labelSelection: highlightLabelSelection }) ??
+                    highlightLabelSelection;
+                this.highlightNodesLeaving = true;
+            }
+            return false;
+        }
 
         const { nodeData, labelData } = contextNodeData;
         const highlightItems = this.getHighlightData(nodeData, item);
@@ -1548,6 +1595,28 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     ) {
         this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
+    }
+
+    /**
+     * Apply the styles this update resolved. A restyle-only update, such as a highlight change, animates them from
+     * what is displayed; any other update snaps them.
+     */
+    private restyle(data: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>) {
+        if (this.ctx.animationManager.isRestyleOnly()) {
+            this.animateRestyle(data);
+        } else {
+            this.resetDatumStyles(data);
+        }
+    }
+
+    /** Override point for series that resolve styles into `Shape.targetStyle`; by default they apply directly. */
+    protected animateRestyle(data: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>) {
+        this.resetDatumStyles(data);
+    }
+
+    /** Override point for series that resolve styles into `Shape.targetStyle`. */
+    protected resetDatumStyles(data: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>) {
+        data.highlightSelection.cleanup();
     }
 
     protected animateReadyHighlight(data: Selection<DatumOf<TTypes>, NodeOf<TTypes>>) {

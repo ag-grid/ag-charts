@@ -35,6 +35,7 @@ export class AnimationManager {
     public maxAnimatableItems = MAX_ANIMATABLE_NODES;
 
     private batch: AnimationBatch;
+    private restyleOnly = false;
 
     private readonly debug = Debug.create(true, 'animation');
     private readonly events = new EventEmitter<AnimationEventMap>();
@@ -80,7 +81,10 @@ export class AnimationManager {
             this.currentAnonymousAnimationId += 1;
         }
 
-        const skip = (this.isSkipped() && !opts.forceAnimation) || opts.phase === 'none';
+        const skip =
+            opts.phase === 'transition'
+                ? this.isTransitionSkipped() || batch.isSkipped()
+                : (this.isSkipped() && !opts.forceAnimation) || opts.phase === 'none';
         if (skip) {
             this.debug('AnimationManager - skipping animation');
         }
@@ -170,8 +174,24 @@ export class AnimationManager {
         return !this.rafAvailable || this.skipAnimations || this.batch.isSkipped();
     }
 
+    /** Whether animations that block interaction are playing; `transition` animations alone do not. */
     public isActive() {
-        return this.isPlaying && this.batch.isActive();
+        return this.isPlaying && this.batch.hasBlockingAnimations();
+    }
+
+    /** Whether the current batch's update only restyles existing nodes, so series animate their new styles. */
+    public isRestyleOnly() {
+        return this.restyleOnly;
+    }
+
+    /** Mocking point for tests; `transition` animations play without `animation.enabled`, but need frames. */
+    public isTransitionSkipped() {
+        return !this.rafAvailable;
+    }
+
+    /** End `transition` animations without jumping to their end, for successors that start from what they display. */
+    public abandonTransitions(idPrefix: string) {
+        this.batch.abandonTransitions(idPrefix);
     }
 
     public getRemainingTime(phase?: AnimationPhase) {
@@ -225,7 +245,9 @@ export class AnimationManager {
                         deltaTime,
                     });
 
-                    this.interactionManager.pushState(InteractionState.Animation);
+                    if (this.batch.hasBlockingAnimations()) {
+                        this.interactionManager.pushState(InteractionState.Animation);
+                    }
 
                     try {
                         this.batch.progress(deltaTime);
@@ -260,10 +282,12 @@ export class AnimationManager {
             });
         };
 
-        this.events.emit('animation-start', {
-            type: 'animation-start',
-            deltaMs: 0,
-        });
+        if (this.batch.hasBlockingAnimations()) {
+            this.events.emit('animation-start', {
+                type: 'animation-start',
+                deltaMs: 0,
+            });
+        }
         this.scheduleAnimationFrame(onAnimationFrame);
     }
 
@@ -287,21 +311,30 @@ export class AnimationManager {
         }
     }
 
-    public startBatch(skipAnimations?: boolean) {
+    public startBatch(skipAnimations?: boolean, restyleOnly = false) {
         this.debug(`AnimationManager - startBatch() with skipAnimations=${skipAnimations}.`);
+        const restyle = restyleOnly && skipAnimations !== true;
+        // A restyle joins a running batch, so its `transition` animations play after the batch's other animations.
+        if (restyle && this.batch.isActive()) {
+            this.restyleOnly = true;
+            return;
+        }
+
         this.reset();
         this.batch.destroy();
         this.batch = new AnimationBatch(this.defaultDuration * 1.5, this.logger);
         if (skipAnimations === true) {
             this.batch.skip();
         }
+        this.restyleOnly = restyle;
     }
 
     public endBatch() {
         if (this.batch.isActive()) {
             this.batch.ready();
             this.requestAnimation();
-        } else {
+        }
+        if (!this.batch.hasBlockingAnimations()) {
             this.interactionManager.popState(InteractionState.Animation);
 
             if (this.batch.isSkipped()) {

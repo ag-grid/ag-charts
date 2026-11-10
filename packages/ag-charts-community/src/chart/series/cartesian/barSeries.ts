@@ -69,6 +69,7 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
+import { groupedFromToMotion } from '../../../motion/groupedFromToMotion';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, extendDomainToZero, fixNumericExtent } from '../../data/dataModel';
@@ -115,6 +116,7 @@ import type { SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { type ErrorBoundSeriesNodeDatum, HighlightState, SelectionState } from '../seriesTypes';
+import { prepareStyleAnimationFunctions, resetStyles } from '../styleMotion';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,
@@ -136,6 +138,7 @@ import {
 } from './barUtil';
 import {
     type CartesianAnimationData,
+    type CartesianRestyleData,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
@@ -386,6 +389,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             ],
             pathsPerSeries: [],
             datumSelectionGarbageCollection: false,
+            highlightSelectionGarbageCollection: false,
             animationAlwaysUpdateSelections: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
@@ -1911,7 +1915,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const { shadow } = this.options;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
-        const fillBBox = this.getShapeFillBBox();
 
         const direction = this.getBarDirection();
         const crispCentreDirection = this.getCategoryCrispDirection();
@@ -1928,7 +1931,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     : undefined;
             const style = datum.style ?? contextStyles[highlightState ?? HighlightState.None];
 
-            rect.setStyleProperties(style, fillBBox);
+            // Applied, or animated to, by the `restyle` animation event.
+            rect.targetStyle = style;
 
             const cornerRadius = style.cornerRadius ?? 0;
             const visible = categoryAlongX
@@ -2200,8 +2204,43 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     override animateReadyHighlight(data: Selection<BarNodeDatum, BarShape<BarNodeDatum>>) {
-        // Use direct reset for phantom selection to bypass resetMotion callback overhead
-        resetBarSelectionsDirect([data, this.phantomHighlightSelection]);
+        // Direct reset bypasses resetMotion overhead; cleanup waits for unhighlighted overlay nodes to fade out.
+        resetBarSelectionsDirect([data, this.phantomHighlightSelection], false);
+    }
+
+    protected override animateRestyle(data: CartesianRestyleData<BarNodeDatum, BarShape<BarNodeDatum>>) {
+        this.restyleDatumNodes(data, true);
+    }
+
+    protected override resetDatumStyles(data: CartesianRestyleData<BarNodeDatum, BarShape<BarNodeDatum>>) {
+        this.restyleDatumNodes(data, false);
+    }
+
+    /**
+     * Apply, or animate to, the styles `updateDatumNodes` resolved. The highlighted items' nodes fade in and out over
+     * the bars beneath them; the in-place bars' removal belongs to their geometry animations.
+     */
+    private restyleDatumNodes(
+        { datumSelection, highlightSelection, datumSelectionRestyled }: CartesianRestyleData<BarNodeDatum, BarShape>,
+        animate: boolean
+    ) {
+        const { animationManager } = this.ctx;
+        const fillBBox = this.getShapeFillBBox();
+
+        const restyle = (subId: string, selections: Selection<BarNodeDatum, BarShape>[], highlight: boolean) => {
+            if (animate) {
+                const fns = prepareStyleAnimationFunctions<BarNodeDatum, BarShape>(fillBBox, highlight);
+                groupedFromToMotion(this.id, subId, animationManager, selections, fns, { cleanupRemoved: highlight });
+            } else {
+                resetStyles(selections, fillBBox, highlight);
+            }
+        };
+
+        if (datumSelectionRestyled) {
+            restyle('style', [datumSelection], false);
+        }
+        restyle('phantom-style', [this.phantomSelection], false);
+        restyle('highlight-style', [highlightSelection, this.phantomHighlightSelection], true);
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {

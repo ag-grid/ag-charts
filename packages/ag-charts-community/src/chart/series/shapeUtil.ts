@@ -6,18 +6,13 @@ import {
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
-    type Shape,
+    type ShapeStyle,
     isGradientFill,
     isImageFill,
     isPatternFill,
 } from 'ag-charts-core';
 
-export type ShapeStyle = Partial<
-    Pick<
-        Shape,
-        'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset' | 'opacity'
-    >
->;
+export type { ShapeStyle };
 
 export interface ShapeFillBBox {
     series: BBox;

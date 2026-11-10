@@ -1470,6 +1470,16 @@ export function focusIndicatorContainsCanvasPoint(chart: ChartOrProxy, point: Re
 export const MIN_UNHIGHLIGHT_DELAY = 150;
 export const MIN_TOOLTIP_HIDE_DELAY = 150;
 
+/**
+ * Make `transition` animations snap to their end, as they otherwise run on jsdom's `requestAnimationFrame` and leave
+ * snapshots mid-animation. Called by the test setup; tests of them opt back in by mocking `isTransitionSkipped`.
+ */
+export function snapTransitionAnimationsByDefault() {
+    AnimationManager.prototype.isTransitionSkipped = function () {
+        return true;
+    };
+}
+
 let activeAnimateCb: ((totalDuration: number, ratio: number) => void) | undefined;
 export function spyOnAnimationManager() {
     const mocks: { mockRestore: () => void }[] = [];
