@@ -1944,6 +1944,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 visible,
                 datum.crisp,
                 series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState),
+                undefined,
                 direction,
                 datum.featherRatio,
                 crispCentreDirection
