@@ -6,8 +6,7 @@ import { DragInterpreter } from '../dom/dragInterpreter';
 type AxisWidgetInteraction = {
     readonly tickButtons: ListWidget;
     readonly dragInterpreter: DragInterpreter;
-
-}
+};
 
 export class AxisWidget extends NativeWidget {
     private title?: BoundedTextWidget;
@@ -17,7 +16,7 @@ export class AxisWidget extends NativeWidget {
         super(createElement('div'));
     }
 
-    protected override destructor():void {
+    protected override destructor(): void {
         this.removeAxisTitle();
         this.removeAxisInteractions();
     }
@@ -33,7 +32,7 @@ export class AxisWidget extends NativeWidget {
         this.checkOwnership();
     }
 
-    private checkOwnership():void {
+    private checkOwnership(): void {
         // AxisWidget owns two things:
         // 1)  non-interactive alt-text for the axis title.
         // 2)  pointer/keyboard interactions on this HTML element.
@@ -70,12 +69,12 @@ export class AxisWidget extends NativeWidget {
             this.interactions = {
                 tickButtons: new ListWidget(),
                 dragInterpreter: new DragInterpreter(this),
-            }
+            };
         }
         return this.interactions;
     }
 
-    releaseInteractions():void {
+    releaseInteractions(): void {
         this.removeAxisInteractions();
         this.checkOwnership();
     }
