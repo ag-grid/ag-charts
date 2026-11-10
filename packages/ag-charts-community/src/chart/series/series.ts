@@ -1427,9 +1427,11 @@ export abstract class Series<
         const recalled = this.recallItemCast(seriesGlow, itemGlow, index);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        // As in getCascadedGlow, the glow of the highlighted series is cast in its own group, on top of the other series.
-        // Set on the interned result, so that a recalled cast allocates nothing per datum.
-        const inGroup = highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem;
+        // As in getCascadedGlow, the glow of the highlighted series is cast in its own group, on top of the other series,
+        // unless the series leaves it to the root. Set on the interned result, so that a recalled cast allocates nothing per datum.
+        const inGroup =
+            (highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem) &&
+            this.castsHighlightGlowInGroup();
         return this.mergeItemGlow(
             seriesGlow,
             index,
