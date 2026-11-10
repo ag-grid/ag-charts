@@ -51,12 +51,13 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
-type Scenario = 'bars' | 'areas' | 'highlight' | 'many-markers' | 'series-glow';
+type Scenario = 'bars' | 'areas' | 'highlight' | 'many-markers' | 'series-glow' | 'series-highlight';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
-// `many-markers` and `series-glow` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
+// `many-markers`, `series-glow` and `series-highlight` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
 // `series-glow` sets the series-level `marker.glow`, which every highlight state inherits, so a hover recasts every series.
+// `series-highlight` sets only `highlightedSeries.glow`, so the glow is cast only while a legend item is hovered.
 /** inScope */
 function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOptions {
     const shadow = <T extends AgDropShadowOptions>(value: T) => (shadowOn ? value : undefined);
@@ -85,6 +86,22 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
                 xKey: 'x',
                 yKey: `y${i}`,
                 marker: { enabled: true, size: 6, glow: shadowOn ? SERIES_GLOW : undefined },
+            })),
+        };
+    }
+
+    if (scenario === 'series-highlight') {
+        return {
+            width: 1400,
+            height: 600,
+            data: getRows(1000, 20, false),
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 20 }, (_, i) => ({
+                type: 'line' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                marker: { enabled: true, size: 6 },
+                highlight: { highlightedSeries: { glow: shadowOn ? SERIES_GLOW : undefined } },
             })),
         };
     }
@@ -162,6 +179,22 @@ async function performRedrawFirstSeries(chartOptions: AgCartesianChartOptions): 
     return performance.now() - start;
 }
 
+// Hovers the legend items in turn, as a pointer entering each does, so that each series is highlighted in its turn.
+/** inScope */
+async function performLegendHover(count: number): Promise<number> {
+    const chart = chartRef.current!;
+    const buttons = container.querySelectorAll('.ag-charts-proxy-legend-toolbar button');
+    if (buttons.length === 0) throw new Error('No legend items found to hover');
+
+    const start = performance.now();
+    for (let i = 0; i < count; i++) {
+        buttons[i % buttons.length].dispatchEvent(new MouseEvent('mouseenter'));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        await chart.waitForUpdate();
+    }
+    return performance.now() - start;
+}
+
 /** inScope */
 function variantsOf(
     scenario: Scenario,
@@ -226,6 +259,11 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     },
                     'Glow'
                 ),
+            },
+            {
+                id: 'series-highlight',
+                label: '20 series x 1,000 points, highlighted series marker glow',
+                variants: variantsOf('series-highlight', { 'Legend hover x10': () => performLegendHover(10) }, 'Glow'),
             },
         ],
         config: {
