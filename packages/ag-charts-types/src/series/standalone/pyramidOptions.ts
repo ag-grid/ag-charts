@@ -1,6 +1,6 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgFunnelSeriesLabelPlacement } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -89,12 +89,14 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext
     stageLabel?: AgPyramidSeriesStageLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the stages. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgPyramidSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual bars, based on the given parameters.*/
-    itemStyler?: Styler<AgPyramidSeriesItemStylerParams<TDatum, TContext>, AgPyramidSeriesStyle>;
+    itemStyler?: Styler<AgPyramidSeriesItemStylerParams<TDatum, TContext>, AgPyramidSeriesStyle & AgItemShadowStyle>;
 }
 
 export interface AgPyramidSeriesOptionsKeys<TDatum = DatumDefault> {

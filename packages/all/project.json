@@ -122,6 +122,7 @@
     },
     "dev": {
       "executor": "nx:run-commands",
+      "cache": false,
       "dependsOn": ["^build:types", "^build:package", "generate"],
       "inputs": [],
       "outputs": [],
@@ -134,6 +135,7 @@
     },
     "dev:lite": {
       "executor": "nx:run-commands",
+      "cache": false,
       "dependsOn": ["^build:types", "^build:package", "generate"],
       "inputs": [],
       "outputs": [],
@@ -146,6 +148,7 @@
     },
     "dev:quick": {
       "executor": "nx:run-commands",
+      "cache": false,
       "dependsOn": ["ag-charts-website-gallery_simple-bar_main.ts:generate-thumbnail"],
       "inputs": [],
       "outputs": [],

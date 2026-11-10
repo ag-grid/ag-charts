@@ -76,6 +76,7 @@
     },
     "dev": {
       "executor": "nx:run-commands",
+      "cache": false,
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
       "inputs": [],
       "outputs": [],
@@ -94,6 +95,7 @@
     "preview": {
       "dependsOn": ["build"],
       "command": "ASTRO_PREVIEW_BACKGROUND=${ASTRO_PREVIEW_BACKGROUND-0} astro preview --port=${PORT}",
+      "cache": false,
       "options": {
         "cwd": "packages/ag-charts-website"
       },
@@ -110,6 +112,7 @@
         }
       ],
       "command": "tsx scripts/csp/preview-csp.ts --port=${PORT}",
+      "cache": false,
       "options": {
         "cwd": "packages/ag-charts-website"
       },
@@ -136,9 +139,24 @@
       ],
       "outputs": []
     },
+    "lint:styles": {
+      "command": "stylelint --config stylelint.config.mjs 'src/**/*.module.scss'",
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}"
+      },
+      "inputs": [
+        "{projectRoot}/src/**/*.{scss,css}",
+        "{projectRoot}/stylelint.config.mjs",
+        "{workspaceRoot}/external/ag-website-shared/src/**/*.{scss,css}",
+        "{workspaceRoot}/external/ag-website-shared/stylelint/**",
+        { "externalDependencies": ["npm:stylelint", "npm:postcss-scss"] }
+      ],
+      "outputs": []
+    },
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint:eslint", "lint:spell", "format:mdoc:check"],
+      "dependsOn": ["lint:eslint", "lint:spell", "lint:styles", "format:mdoc:check"],
       "configurations": {
         "fix": {}
       }

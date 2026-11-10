@@ -1,6 +1,7 @@
 import type {
     AgHeatmapSeriesItemStylerParams,
     AgHeatmapSeriesLabelFormatterParams,
+    AgItemShadowStyle,
     FontStyle,
     FontWeight,
     TextAlign,
@@ -47,6 +48,7 @@ import {
     resolveLabelAvoidance,
     resolveTextAlign,
     upsertNodeDatum,
+    withoutCasts,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type { PlainObject, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
@@ -74,7 +76,7 @@ const {
     updateLabelNode,
 } = _ModuleSupport;
 
-type HeatmapCellStyle = NormalisedHeatmapSeriesStyle & { opacity?: number };
+type HeatmapCellStyle = NormalisedHeatmapSeriesStyle & AgItemShadowStyle & { opacity?: number };
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
@@ -214,9 +216,15 @@ interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
 
 const NO_OVERRIDES: PlainObject = Object.freeze({});
 
-/** Whether `HeatmapCellBatch` paints a cell with this style as a plain `Rect` would: one string fill and no stroke. */
-function isBatchableStyle({ fill, strokeWidth }: HeatmapCellStyle) {
-    return typeof fill === 'string' && ((strokeWidth ?? 0) <= 0 || Number.isNaN(strokeWidth));
+/** Whether `HeatmapCellBatch` paints a cell with this style as a plain `Rect` would: one string fill, no stroke and no cast. */
+function isBatchableStyle({ fill, strokeWidth, shadow, glow }: HeatmapCellStyle) {
+    // The batch casts neither of the slots a styler can set for a cell.
+    return (
+        typeof fill === 'string' &&
+        ((strokeWidth ?? 0) <= 0 || Number.isNaN(strokeWidth)) &&
+        shadow == null &&
+        glow == null
+    );
 }
 
 function itemStylerCacheKey(datumIndex: number, isHighlight: boolean) {
@@ -641,6 +649,23 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     /**
+     * Whether the hovered cell casts a shadow in place, from the `highlightedItem` bucket or from its `Item`-state styler
+     * result. Only that cell does: a heatmap has no category, so `highlight.mode: 'shared'` lights no other cell.
+     */
+    private castsItemShadowInPlace() {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        if (activeHighlight?.series !== this || !this.isDatumHighlight(activeHighlight)) return false;
+        if (this.getHighlightState(activeHighlight, false) === HighlightState.None) return false;
+
+        const bucket = this.getItemShadowBucket();
+        if (bucket != null && bucket.enabled !== false) return true;
+        return (
+            this.options.itemStyler != null &&
+            this.getItemStyle(activeHighlight as HeatmapNodeDatum, true).shadow != null
+        );
+    }
+
+    /**
      * Creates a skeleton HeatmapNodeDatum with minimal required fields.
      * The node will be populated by updateNodeDatum.
      */
@@ -843,14 +868,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     /** Whether every cell can be painted by `cellBatch` exactly as its own `Rect` would be. */
     private canBatchCells() {
-        const { cornerRadius, shadow, highlight } = this.options;
-        // The batch paints no glow, which the cells other than the hovered one cast in place while a highlight is active.
-        const glowsInPlace = highlight?.unhighlightedItem?.glow?.enabled === true && this.isHighlightActive();
+        const { cornerRadius, shadow, glow } = this.options;
+        // The batch paints no glow, which the cells cast in place: the series' own, and a highlight state's while one is active.
+        const glowsInPlace = this.hasInPlaceGlow() && (glow?.enabled === true || this.isHighlightActive());
+        const highlightShadowsInPlace = this.castsItemShadowInPlace();
         return (
             this.unbatchableCells === 0 &&
             ((cornerRadius ?? 0) <= 0 || Number.isNaN(cornerRadius)) &&
             shadow?.enabled !== true &&
-            !glowsInPlace
+            !glowsInPlace &&
+            !highlightShadowsInPlace
         );
     }
 
@@ -872,7 +899,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         { datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>,
         isHighlight: boolean,
         itemStyleContext: HeatmapItemStyleContext = this.createItemStyleContext()
-    ): NormalisedHeatmapSeriesStyle {
+    ): HeatmapCellStyle {
         const { options } = this;
         const { itemStyler, colorKey } = options;
         const { missingDataFill } = options.colorScale;
@@ -1018,13 +1045,32 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             return;
         }
 
-        const { cornerRadius, shadow } = this.options;
+        const { cornerRadius, shadow, glow } = this.options;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         const updateNode = (rect: Rect<HeatmapNodeDatum>, nodeDatum: HeatmapNodeDatum) => {
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+            const castState = this.getItemCastState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(
+                shadow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                castState,
+                undefined,
+                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex, castState)
+                    ? this.getItemStyle(nodeDatum, true).shadow
+                    : style.shadow
+            );
+            rect.fillGlow = this.resolveItemGlow(
+                glow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                castState,
+                undefined,
+                style.glow
+            );
 
             rect.crisp = crisp;
             rect.cornerRadius = cornerRadius;
@@ -1375,7 +1421,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 yName,
                 colorKey,
                 colorName,
-                ...(format as any as Required<ItemStyle>),
+                ...(withoutCasts(format) as any as Required<ItemStyle>),
             }
         );
     }
@@ -1470,8 +1516,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 /** Equivalent to `mergeDefaults(overrides, style)`, writing into the cell's own `style` unless both sides hold an object. */
 function applyOverrides(
     style: Required<NormalisedHeatmapSeriesStyle>,
-    overrides: Partial<NormalisedHeatmapSeriesStyle>
-): Required<NormalisedHeatmapSeriesStyle> {
+    overrides: Partial<NormalisedHeatmapSeriesStyle> & AgItemShadowStyle
+): Required<NormalisedHeatmapSeriesStyle> & AgItemShadowStyle {
     const target = style as Record<string, unknown>;
     for (const key of Object.keys(overrides)) {
         const value = (overrides as Record<string, unknown>)[key];

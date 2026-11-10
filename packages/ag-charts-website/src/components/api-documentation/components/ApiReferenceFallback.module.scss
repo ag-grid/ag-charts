@@ -158,6 +158,7 @@
 }
 
 .required {
+    /* stylelint-disable-next-line color-named -- bespoke pure red required-marker, no matching token */
     color: red;
     font-size: var(--text-fs-sm);
 }

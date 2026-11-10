@@ -50,7 +50,8 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
         yOpen: number,
         yClose: number,
         crisp: boolean,
-        fillShadow: NormalisedDropShadowOptions | undefined
+        fillShadow: NormalisedDropShadowOptions | undefined,
+        fillGlow: NormalisedDropShadowOptions | undefined
     ): void {
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__centerX = centerX;
@@ -61,6 +62,7 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
         this.__yClose = yClose;
         this.__crisp = crisp;
         this.__fillShadow = fillShadow;
+        this.__fillGlow = fillGlow;
 
         // Mark path as dirty since crisp affects path rendering
         this.dirtyPath = true;

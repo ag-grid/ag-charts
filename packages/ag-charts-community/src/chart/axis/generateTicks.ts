@@ -145,18 +145,30 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         rawFirstTickIndex: 0,
     };
 
-    const { autoRotation } = thinTickLabels(
+    // A configured step or explicit values pin the ticks, so the search can only move the domain around them.
+    const fixedInterval = options.interval?.step != null || options.interval?.values != null;
+    // A wider domain only crowds pinned ticks, so later candidates must stay within the first pinned one.
+    let domainLimit: TDatum[] | undefined;
+
+    const { candidate: thinnedTickData, autoRotation } = thinTickLabels(
         () => {
-            if (index > maxIterations) return;
-            ({ tickData, index } = buildTickData(options, tickGenerationType, tickData, index));
-            return tickData;
+            while (index <= maxIterations) {
+                const next = buildTickData(options, tickGenerationType, tickData, index, domainLimit);
+                index = next.index;
+                if (next.tickData == null) continue;
+                tickData = next.tickData;
+                // A step the scale rejected leaves automatic ticks, which the search can still thin.
+                const pinned = fixedInterval && !next.intervalIgnored;
+                if (pinned && ContinuousScale.is(options.scale)) domainLimit ??= tickData.niceDomain;
+                return { candidate: tickData, pinned };
+            }
         },
         checkLabelOverlap,
         avoidCollisions,
         tryAutoRotate ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335) : undefined
     );
 
-    tickData = atRotation(tickData, autoRotation);
+    tickData = atRotation(thinnedTickData ?? tickData, autoRotation);
 
     const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
     const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
@@ -224,10 +236,12 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
     options: GenerateTicksOptions<TScale, TDatum>,
     tickGenerationType: TickGenerationType,
     previousTickData: TickData,
-    index: number
+    index: number,
+    domainLimit: TDatum[] | undefined
 ): {
     index: number;
-    tickData: TickData<TDatum>;
+    tickData: TickData<TDatum> | undefined;
+    intervalIgnored: boolean | undefined;
 } {
     const { step, values } = options.interval ?? {};
 
@@ -241,7 +255,12 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
     // First guess - generate ticks at the current index
     const countParams = { minTickCount, maxTickCount, tickCount: countTicks(index) };
 
-    let nextTicks = calculateRawTicks(options, tickGenerationType, countParams);
+    const nice = calculateNiceDomain(options, tickGenerationType, countParams);
+    if (domainLimit != null && !domainWithin(nice.niceDomain, domainLimit)) {
+        return { index: index + 1, tickData: undefined, intervalIgnored: undefined };
+    }
+
+    let nextTicks = calculateRawTicks(options, tickGenerationType, countParams, nice);
     if (regenerateTicks && ticksEqual(nextTicks.rawTicks, previousTicks)) {
         // Ticks didn't change
         // Use binary search to find the index, as there could be a lot of ticks in some cases
@@ -272,6 +291,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
         alignment,
         fractionDigits,
         timeInterval,
+        intervalIgnored,
     } = nextTicks;
 
     return {
@@ -295,35 +315,27 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
             }),
         },
         index: index + 1,
+        intervalIgnored,
     };
 }
 
-function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+function domainWithin(domain: unknown[], limit: unknown[]): boolean {
+    const [d0, d1] = findMinMax(domain.map(Number));
+    const [l0, l1] = findMinMax(limit.map(Number));
+    return d0 >= l0 && d1 <= l1;
+}
+
+function calculateNiceDomain<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>,
     tickGenerationType: TickGenerationType,
     countParams: CountParams
 ) {
-    const {
-        domain,
-        reverse,
-        visibleRange,
-        scale,
-        interval,
-        primaryLabel,
-        niceMode,
-        primaryTickCount,
-        minimumTimeGranularity,
-    } = options;
+    const { domain, reverse, visibleRange, scale, interval, niceMode, primaryTickCount } = options;
 
     const domainParams: ScaleTickParams<any> = {
         nice: niceMode.map((n) => n === NiceMode.TickAndDomain),
         interval: interval?.step,
         ...countParams,
-    };
-
-    const tickParams = {
-        ...domainParams,
-        nice: niceMode.map((n) => n === NiceMode.TickAndDomain || n === NiceMode.TicksOnly),
     };
 
     let secondaryAxisTicks: { domain: TDatum[]; ticks: number[] } | undefined;
@@ -339,6 +351,23 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
         ? (secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain))
         : domain;
+
+    return { domainParams, secondaryAxisTicks, niceDomain };
+}
+
+function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+    options: GenerateTicksOptions<TScale, TDatum>,
+    tickGenerationType: TickGenerationType,
+    countParams: CountParams,
+    { domainParams, secondaryAxisTicks, niceDomain } = calculateNiceDomain(options, tickGenerationType, countParams)
+) {
+    const { reverse, visibleRange, scale, interval, primaryLabel, niceMode, minimumTimeGranularity } = options;
+
+    const tickParams = {
+        ...domainParams,
+        nice: niceMode.map((n) => n === NiceMode.TickAndDomain || n === NiceMode.TicksOnly),
+    };
+
     let tickDomain: TDatum[] = niceDomain;
     let rawTicks: any[] | undefined;
     let rawTickCount: number | undefined;
@@ -346,6 +375,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     let timeInterval: AnyTimeInterval | undefined;
     let primaryTicksIndices: Set<number> | undefined;
     let alignment: ScaleAlignment | undefined;
+    let intervalIgnored: boolean | undefined;
 
     const generatePrimaryTicks = primaryLabel?.enabled === true && tickParams.interval == null;
 
@@ -376,6 +406,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     const tickGeneration = scale.ticks(tickParams, niceDomain, visibleRange);
                     rawTicks = tickGeneration?.ticks;
                     rawTickCount = tickGeneration?.count;
+                    intervalIgnored = tickGeneration?.intervalIgnored;
                 }
                 break;
 
@@ -437,6 +468,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     rawTicks = tickGeneration?.ticks;
                     rawTickCount = tickGeneration?.count;
                     rawFirstTickIndex = tickGeneration?.firstTickIndex;
+                    intervalIgnored = tickGeneration?.intervalIgnored;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
                         const paramsInterval =
                             typeof tickParams.interval === 'number'
@@ -475,6 +507,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         alignment,
         fractionDigits,
         timeInterval,
+        intervalIgnored,
     };
 }
 

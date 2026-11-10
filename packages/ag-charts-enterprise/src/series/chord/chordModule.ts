@@ -4,6 +4,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
@@ -37,7 +38,9 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
             ...COMMON_SERIES_THEME_DEFAULTS,
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            highlight: withGlowThemeDefaults(SINGLE_SERIES_HIGHLIGHT_STYLE, ITEM_GLOW_BUCKETS),
+            highlight: withGlowThemeDefaults(SINGLE_SERIES_HIGHLIGHT_STYLE, ITEM_GLOW_BUCKETS, {
+                glow: ['/series/$index/node/glow', '/series/$index/link/glow'],
+            }),
             tooltip: SERIES_TOOLTIP_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
@@ -58,6 +61,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
                 shadow: SHADOW_THEME_DEFAULTS,
+                glow: GLOW_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
@@ -65,6 +69,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
                 ...STROKE_STYLE_THEME_DEFAULTS,
                 tension: 0.4,
                 shadow: SHADOW_THEME_DEFAULTS,
+                glow: GLOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

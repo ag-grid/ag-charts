@@ -4,6 +4,7 @@ import {
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
     type AgBoxPlotWhiskerOptions,
+    type AgItemShadowStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type {
@@ -27,6 +28,7 @@ import {
     readDatumKey,
     toNumber,
     upsertNodeDatum,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -666,7 +668,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 minName,
                 maxKey,
                 maxName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }
@@ -843,12 +845,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         highlightState: _ModuleSupport.HighlightState | undefined,
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
-    ): Required<NormalisedBoxPlotSeriesStyle> {
+    ): Required<NormalisedBoxPlotSeriesStyle> & AgItemShadowStyle {
         const { itemStyler } = this.options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex, selectionState, candidateState);
-        let style = mergeDefaults(
+        let style: Required<NormalisedBoxPlotSeriesStyle> & AgItemShadowStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
             this.getStyle(datumIndex === undefined, highlightState, selectionState, candidateState)
@@ -989,14 +991,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const strokeAlignment = this.getStyle(false, HighlightState.None, undefined, undefined).strokeWidth / 2;
 
         const wickStrokeAlignment = options.whisker?.strokeWidth ?? options.strokeWidth;
-        const { shadow } = options;
+        const { shadow, glow } = options;
 
         datumSelection.each((boxPlotNode, nodeDatum) => {
             // Colour refs are resolved at theme-merge, so the style is normalised by render.
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
             const style = (nodeDatum.style ??
-                contextNodeData.styles[
-                    this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)
-                ]) as DeepRequired<NormalisedBoxPlotHighlightStyleOptions>;
+                contextNodeData.styles[highlightState]) as DeepRequired<NormalisedBoxPlotHighlightStyleOptions>;
             boxPlotNode.setFillProperties(style.fill, fillBBox);
 
             const nodeOpacity = style.opacity ?? 1;
@@ -1017,7 +1018,24 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             boxPlotNode.cornerRadius = style.cornerRadius;
 
             boxPlotNode.crisp = true;
-            boxPlotNode.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+            boxPlotNode.fillShadow = this.resolveItemShadow(
+                shadow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                highlightState,
+                undefined,
+                !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex, highlightState)
+                    ? this.getHoveredItemShadow(nodeDatum.datumIndex, (...args) => this.getItemStyle(...args))
+                    : nodeDatum.style?.shadow
+            );
+            boxPlotNode.fillGlow = this.resolveItemGlow(
+                glow,
+                isHighlight,
+                nodeDatum.datumIndex,
+                highlightState,
+                undefined,
+                nodeDatum.style?.glow
+            );
 
             boxPlotNode.horizontal = !isVertical;
             boxPlotNode.center = nodeDatum.scaledValues.xValue;

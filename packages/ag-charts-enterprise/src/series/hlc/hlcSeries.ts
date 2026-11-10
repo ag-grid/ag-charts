@@ -36,6 +36,7 @@ import {
     mergeDefaults,
     minValue,
     toNumber,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { Path, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -228,6 +229,15 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         ) {
             this.markerDirty = true;
         }
+    }
+
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
+    protected override getSeriesGlows() {
+        const { high, low, close } = this.itemMarkers;
+        return [high.glow, low.glow, close.glow];
     }
 
     override createNodeParams(datum: HlcMarkerDatum) {
@@ -1069,16 +1079,17 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         const { itemMarkers } = this;
 
         datumSelection.each((node, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[datum.itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[datum.itemType][highlightState];
             // Style colours are resolved at runtime before reaching the scene node.
             this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, {
                 hideWithSize0,
                 pickInflation,
                 shadow: itemMarkers[datum.itemType].shadow,
+                glow: itemMarkers[datum.itemType].glow,
+                isHighlight,
+                datumIndex: datum.datumIndex,
+                highlightState,
             });
             node.drawingMode = drawingMode;
         });
@@ -1346,7 +1357,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
                 closeKey,
                 closeName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

@@ -58,6 +58,7 @@
     "dev": {
       "dependsOn": ["^build"],
       "command": "vite",
+      "cache": false,
       "options": {
         "cwd": "{projectRoot}"
       }
@@ -65,6 +66,7 @@
     "preview": {
       "dependsOn": ["build"],
       "command": "vite preview",
+      "cache": false,
       "options": {
         "cwd": "{projectRoot}"
       }

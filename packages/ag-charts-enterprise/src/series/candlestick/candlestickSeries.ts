@@ -64,7 +64,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = options.item;
-        const { shadow } = options;
+        const { shadow, glow } = options;
 
         const fillBBox = this.getShapeFillBBox();
 
@@ -84,7 +84,24 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
                 yOpen,
                 yClose,
                 crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState)
+                series.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    !isHighlight && series.isHoveredInPlace(datum.datumIndex, highlightState)
+                        ? series.getItemStyle(datum.datumIndex, true, undefined, datum.itemType).shadow
+                        : datum.style?.shadow
+                ),
+                series.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    datum.style?.glow
+                )
             );
 
             node.setStyleProperties(style, fillBBox);

@@ -1,4 +1,5 @@
 import type {
+    AgItemShadowStyle,
     AgMapShapeSeriesOptions,
     AgMapShapeSeriesStyle,
     AgMapShapeSeriesThemeableOptions,
@@ -12,6 +13,8 @@ import {
     constant,
     fillOptionsDef,
     geoJson,
+    glowOptionsDefs,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelFitOptionsDefs,
     lineDashOptionsDef,
@@ -31,7 +34,8 @@ import {
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
     colorScale: colorScaleOptionsDef,
     padding: positiveNumber,
-    itemStyler: callbackDefs<AgMapShapeSeriesStyle>({
+    itemStyler: callbackDefs<AgMapShapeSeriesStyle & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -43,6 +47,7 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
     },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
+    glow: glowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,

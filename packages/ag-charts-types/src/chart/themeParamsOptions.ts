@@ -528,6 +528,21 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     chartBackgroundColor?: AgCssColorOrRef;
     /**
+     * Border around the outside of the chart. `true` for the default border, `false` to disable, or an object to
+     * customise it.
+     *
+     * @group Borders
+     */
+    chartBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the chart border. Also rounds the chart background while the border is enabled.
+     *
+     * Default: `borderRadius`
+     *
+     * @group Borders
+     */
+    chartBorderRadius?: PixelSize;
+    /**
      * The outer chart padding.
      *
      * @group Spacing & Sizing

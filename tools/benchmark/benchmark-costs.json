@@ -31,6 +31,7 @@
         "high-volume-bigint": 58,
         "high-volume-iso-datetime": 70,
         "integrated-large-scale": 78,
+        "item-styler-shadow-glow": 300,
         "large-dataset": 1394,
         "large-organization": 598,
         "large-scale-multi-series": 166,

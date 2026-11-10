@@ -1,16 +1,18 @@
 import { setAttribute } from '../dom/attributeUtil';
-import { createElement } from '../dom/domElements';
 import type { ElementID } from '../identity/idBranding';
+import { type WithOwnerDocument, splitOwnerDocument } from './ownerDocument';
 import { Widget } from './widget';
 
 /** A `<label>` of visible text. Tie it to a form control with `setFor()` to give that control its accessible name. */
 export class LabelWidget extends Widget<HTMLLabelElement> {
     /**
+     * @param ownerDocument - Optional: the document to create the element in (see `WithOwnerDocument`).
      * @param text - The label text.
      * @param classNames - Class names to add.
      */
-    constructor(text: string, ...classNames: string[]) {
-        super(createElement('label'));
+    constructor(...args: WithOwnerDocument<[text: string, ...classNames: string[]]>) {
+        const [ownerDocument, [text, ...classNames]] = splitOwnerDocument(args);
+        super(ownerDocument.createElement('label'));
         if (classNames.length > 0) this.addClass(...classNames);
         this.setTextContent(text);
     }

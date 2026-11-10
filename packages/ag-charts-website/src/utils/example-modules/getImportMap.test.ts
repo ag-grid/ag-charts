@@ -43,6 +43,17 @@ describe('getImportMap', () => {
         expect(typescript['@angular/core']).toBeUndefined();
     });
 
+    test('resolves the Angular core primitives to their flat fesm2022 entry files', () => {
+        const angular = getImportMap({ framework: 'angular' });
+
+        expect(angular['@angular/core']).toMatch(/\/@angular\/core@21\.\d+\.\d+\/fesm2022\/core\.mjs$/);
+        for (const primitive of ['di', 'event-dispatch', 'signals']) {
+            expect(angular[`@angular/core/primitives/${primitive}`]).toMatch(
+                new RegExp(`/fesm2022/primitives-${primitive}\\.mjs$`)
+            );
+        }
+    });
+
     test('resolves clone for the frameworks whose generated code imports it', () => {
         // Every generator but the plain TypeScript one injects `import clone from 'clone'`
         for (const framework of ['react', 'angular', 'vue3'] as ExampleFramework[]) {

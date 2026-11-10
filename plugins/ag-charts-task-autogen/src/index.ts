@@ -1,4 +1,5 @@
-import type { CreateDependencies, CreateNodes, TargetConfiguration } from '@nx/devkit';
+import { createNodesFromFiles } from '@nx/devkit';
+import type { CreateDependencies, CreateNodes, CreateNodesResult, TargetConfiguration } from '@nx/devkit';
 import { readFileSync } from 'fs';
 import { dirname } from 'path';
 
@@ -19,52 +20,54 @@ function generateThumbnails(projectName: string) {
 
 export const createNodes: CreateNodes = [
     'packages/*/src/**/_examples/*/main.ts',
-    (configFilePath, _options, _context) => {
-        const parentProject = PROJECTS.find((p) => configFilePath.startsWith(`packages/${p}`));
+    (configFilePaths, options, context) => createNodesFromFiles(createExampleNodes, configFilePaths, options, context),
+];
 
-        if (!parentProject) {
-            return {};
-        }
+function createExampleNodes(configFilePath: string): CreateNodesResult {
+    const parentProject = PROJECTS.find((p) => configFilePath.startsWith(`packages/${p}`));
 
-        const uniqueName = configFilePath
-            .split('/')
-            .slice(2)
-            .filter((p) => !NON_UNIQUE_PATH_ELEMENTS.has(p))
-            .join('_')
-            .replace(' ', '-');
-        const examplePath = dirname(configFilePath).replace(`packages/${parentProject}/`, '{projectRoot}/');
-        const projectRelativeInputPath = examplePath.split('/').slice(2).join('/');
-        const srcRelativeInputPath = projectRelativeInputPath.split('/').slice(1).join('/');
+    if (!parentProject) {
+        return {};
+    }
 
-        const projectName = `${parentProject}-${uniqueName}`;
-        const thumbnails = generateThumbnails(projectName);
+    const uniqueName = configFilePath
+        .split('/')
+        .slice(2)
+        .filter((p) => !NON_UNIQUE_PATH_ELEMENTS.has(p))
+        .join('_')
+        .replace(' ', '-');
+    const examplePath = dirname(configFilePath).replace(`packages/${parentProject}/`, '{projectRoot}/');
+    const projectRelativeInputPath = examplePath.split('/').slice(2).join('/');
+    const srcRelativeInputPath = projectRelativeInputPath.split('/').slice(1).join('/');
 
-        // Check if the main.ts file contains @ag-options-extract annotation
-        const mainTsContent = readFileSync(configFilePath, 'utf-8');
-        const hasOptionsExtract = mainTsContent.includes('@ag-options-extract');
-        const tags = [`scope:${parentProject}`, 'type:generated-example'];
-        if (hasOptionsExtract) {
-            tags.push('skip-gha-cache');
-        }
+    const projectName = `${parentProject}-${uniqueName}`;
+    const thumbnails = generateThumbnails(projectName);
 
-        const projectRoot = dirname(configFilePath);
-        return {
-            projects: {
-                [projectName]: {
-                    root: projectRoot,
-                    name: projectName,
-                    tags,
-                    targets: {
-                        ...createGenerateTarget(thumbnails),
-                        ...createTypecheckTarget(),
-                        ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath, projectRoot),
-                        ...(thumbnails ? generateChartThumbnails.createTask(parentProject, srcRelativeInputPath) : {}),
-                    },
+    // Check if the main.ts file contains @ag-options-extract annotation
+    const mainTsContent = readFileSync(configFilePath, 'utf-8');
+    const hasOptionsExtract = mainTsContent.includes('@ag-options-extract');
+    const tags = [`scope:${parentProject}`, 'type:generated-example'];
+    if (hasOptionsExtract) {
+        tags.push('skip-gha-cache');
+    }
+
+    const projectRoot = dirname(configFilePath);
+    return {
+        projects: {
+            [projectName]: {
+                root: projectRoot,
+                name: projectName,
+                tags,
+                targets: {
+                    ...createGenerateTarget(thumbnails),
+                    ...createTypecheckTarget(),
+                    ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath, projectRoot),
+                    ...(thumbnails ? generateChartThumbnails.createTask(parentProject, srcRelativeInputPath) : {}),
                 },
             },
-        };
-    },
-];
+        },
+    };
+}
 
 export const createDependencies: CreateDependencies = async (opts, ctx) => {
     return [...(await generateExampleFiles.createDependencies(opts, ctx))];

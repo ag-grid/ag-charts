@@ -1,5 +1,6 @@
 import type {
     AgColorType,
+    AgItemShadowStyle,
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesStyle,
     AgRadialSeriesStylerParams,
@@ -22,7 +23,7 @@ const { createDatumId, toHighlightString, toSelectionString } = _ModuleSupport;
 
 type BaseNodeDatum = _ModuleSupport.DataModelSeriesNodeDatum;
 
-export interface RadialSeriesStyleResult extends Required<Omit<AgRadialSeriesStyle, 'fill'>> {
+export interface RadialSeriesStyleResult extends Required<Omit<AgRadialSeriesStyle, 'fill'>>, AgItemShadowStyle {
     fill: InternalAgColorType;
     opacity: 1;
 }
@@ -45,7 +46,7 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         readonly cornerRadius: number;
         readonly stackGroup?: string;
         readonly styler?: Styler<AgRadialSeriesStylerParams<unknown, unknown>, AgRadialSeriesStyle>;
-        readonly itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
+        readonly itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle & AgItemShadowStyle>;
     };
     callWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F>;
     cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined;
@@ -195,7 +196,7 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
         highlightStyle,
         getStyle(series, nodeDatum === undefined, highlightState, selectionState, candidateState)
     );
-    let style = baseStyle;
+    let style: RadialSeriesStyleResult = baseStyle;
 
     if (itemStyler != null && nodeDatum != null) {
         const overrides = series.cachedDatumCallback(

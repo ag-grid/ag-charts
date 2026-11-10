@@ -63,7 +63,7 @@
     "remark-breaks": "^4.0.0",
     "sass": "1.106.1",
     "sirv": "^3.0.2",
-    "typescript": "~5.8.3",
+    "typescript": "~5.9.3",
     "vite": "^8.3.4",
     "vite-plugin-mkcert": "^2.1.0",
     "vite-plugin-svgr": "^5.2.0",

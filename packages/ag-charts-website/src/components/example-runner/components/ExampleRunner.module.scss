@@ -4,7 +4,7 @@
     --example-border-color: color-mix(in srgb, var(--color-border-secondary), var(--color-border-primary));
 
     #{$selector-darkmode} & {
-        --example-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
+        --example-border-color: color-mix(in srgb, var(--color-bg-primary), var(--color-white) 10%);
     }
 
     :global(.largeExamples) & {

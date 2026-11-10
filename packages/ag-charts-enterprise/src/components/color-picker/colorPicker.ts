@@ -1,7 +1,18 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Color, type DynamicContext, NativeWidget, clamp, isFocused, setAttribute } from 'ag-charts-core';
-
-import colorPickerTemplate from './colorPickerTemplate.html';
+import {
+    Color,
+    ContainerWidget,
+    type DragWidgetEvent,
+    type DynamicContext,
+    type KeyboardWidgetEvent,
+    LabelWidget,
+    RangeInputWidget,
+    Slider2DWidget,
+    SwitchWidget,
+    TextFieldWidget,
+    TextSpanWidget,
+    clamp,
+} from 'ag-charts-core';
 
 export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOptions {
     color?: string;
@@ -41,10 +52,8 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         this.hasChanged = false;
         this.onChangeHide = options.onChangeHide;
 
-        const { element, initialFocus } = this.createColorPicker(options);
-        // TODO: Phase 3 "Common Widget Ancestor" - the colour picker content is still built from raw elements
-        const content = new NativeWidget(element);
-        const popover = this.showWithChildren([content], { initialFocus: new NativeWidget(initialFocus), ...options });
+        const { content, initialFocus } = this.createColorPicker(options);
+        const popover = this.showWithChildren([content], { initialFocus, ...options });
         popover.addClass('ag-charts-color-picker');
         popover.setAriaRole('dialog');
     }
@@ -55,65 +64,85 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
 
-        const doc = this.ctx.agDocument;
-        const colorPicker = doc.createElement('div', 'ag-charts-color-picker__content');
-        colorPicker.innerHTML = colorPickerTemplate;
-        colorPicker.ariaLabel = this.ctx.localeManager.t('ariaLabelColorPicker');
+        const doc = this.ctx.agDocument.document;
+        const colorPicker = new ContainerWidget(doc, 'ag-charts-color-picker__content');
+        colorPicker.setAriaLabel(localeManager.t('ariaLabelColorPicker'));
 
-        const paletteInput = colorPicker.querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!;
-        const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;
-        const multiColorButton = colorPicker.querySelector<HTMLButtonElement>(
-            '.ag-charts-color-picker__multi-color-button'
-        )!;
-        const alphaInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__alpha-input')!;
-        const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
-        const colorInputLabel = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-label')!;
+        const paletteInput = new Slider2DWidget(doc, 'ag-charts-color-picker__palette');
+
+        const colorRow = new ContainerWidget(doc, 'ag-charts-color-picker__color-row');
+        colorRow.setAriaRole('presentation');
+        const multiColorButton = new SwitchWidget(doc);
+        multiColorButton.setType('button');
+        multiColorButton.addClass('ag-charts-color-picker__multi-color-button');
+        multiColorButton.setTabIndex(0);
+        const hueInput = new RangeInputWidget(doc, 'ag-charts-color-picker__hue-input');
+        hueInput.setRange(0, 360);
+        hueInput.setTabIndex(0);
+        colorRow.addChild(multiColorButton);
+        colorRow.addChild(hueInput);
+
+        const alphaInput = new RangeInputWidget(doc, 'ag-charts-color-picker__alpha-input');
+        alphaInput.setRange(0, 1, 0.01);
+        alphaInput.setTabIndex(0);
+
+        // The <label> wraps the input, so pointer presses on the swatch focus the input.
+        const colorField = new LabelWidget(doc, '', 'ag-charts-color-picker__color-field');
+        colorField.setAriaRole('presentation');
+        const colorInputLabel = new TextSpanWidget(doc, undefined, 'ag-charts-color-picker__color-label');
+        colorInputLabel.setAriaHidden(true);
+        const colorInput = new TextFieldWidget(doc, 'ag-charts-color-picker__color-input');
+        colorInput.setTabIndex(0);
+        colorField.addChild(colorInputLabel);
+        colorField.addChild(colorInput);
+
+        colorPicker.addChild(paletteInput);
+        colorPicker.addChild(colorRow);
+        colorPicker.addChild(alphaInput);
+        colorPicker.addChild(colorField);
 
         // Update the 2D-slider to with the new S and V values. By default, announce S first followed by V. If the user
         // is arrowing up or down, then announce V first because it's more relevant.
         const updatePaletteInputAriaValue = (first: 's' | 'v') => {
             const key = ({ s: 'ariaValueColorPalette', v: 'ariaValueColorPaletteFirstV' } as const)[first];
-            paletteInput.ariaValueText = localeManager.t(key, { s, v });
+            paletteInput.setAriaValueText(localeManager.t(key, { s, v }));
         };
 
         this.i18nUpdater = () => {
-            paletteInput.ariaRoleDescription = localeManager.t('ariaRoleDescription2DSlider');
-            paletteInput.ariaLabel = localeManager.t('ariaLabelColorPickerPalette');
-            hueInput.ariaLabel = localeManager.t('ariaLabelColorPickerHue');
-            multiColorButton.ariaLabel = localeManager.t('ariaLabelColorPickerMultiColor');
-            alphaInput.ariaLabel = localeManager.t('ariaLabelColorPickerAlpha');
-            colorInput.ariaLabel = localeManager.t('ariaLabelColor');
+            paletteInput.setAriaRoleDescription(localeManager.t('ariaRoleDescription2DSlider'));
+            paletteInput.setAriaLabel(localeManager.t('ariaLabelColorPickerPalette'));
+            hueInput.setAriaLabel(localeManager.t('ariaLabelColorPickerHue'));
+            multiColorButton.setAriaLabel(localeManager.t('ariaLabelColorPickerMultiColor'));
+            alphaInput.setAriaLabel(localeManager.t('ariaLabelColorPickerAlpha'));
+            colorInput.setAriaLabel(localeManager.t('ariaLabelColor'));
             updatePaletteInputAriaValue('s');
         };
         this.i18nUpdater();
 
-        multiColorButton.classList.toggle(
-            'ag-charts-color-picker__multi-color-button--hidden',
-            !opts.hasMultiColorOption
-        );
+        multiColorButton.toggleClass('ag-charts-color-picker__multi-color-button--hidden', !opts.hasMultiColorOption);
 
         const update = (trackChange = true) => {
             const color = Color.fromHSB(h, s, v, a);
             const colorString = color.toHexString();
 
-            colorPicker.style.setProperty('--h', `${h}`);
-            colorPicker.style.setProperty('--s', `${s}`);
-            colorPicker.style.setProperty('--v', `${v}`);
-            colorPicker.style.setProperty('--a', `${a}`);
-            colorPicker.style.setProperty('--color', colorString.slice(0, 7));
-            colorPicker.style.setProperty('--color-a', colorString);
+            colorPicker.setCSSVariable('--h', `${h}`);
+            colorPicker.setCSSVariable('--s', `${s}`);
+            colorPicker.setCSSVariable('--v', `${v}`);
+            colorPicker.setCSSVariable('--a', `${a}`);
+            colorPicker.setCSSVariable('--color', colorString.slice(0, 7));
+            colorPicker.setCSSVariable('--color-a', colorString);
 
-            hueInput.value = `${h}`;
-            alphaInput.value = `${a}`;
+            hueInput.value = h;
+            alphaInput.value = a;
 
-            alphaInput.classList.toggle('ag-charts-color-picker__alpha-input--opaque', a === 1);
+            alphaInput.toggleClass('ag-charts-color-picker__alpha-input--opaque', a === 1);
 
-            multiColorButton.classList.toggle('ag-charts-color-picker__multi-color-button--active', isMultiColor);
+            multiColorButton.toggleClass('ag-charts-color-picker__multi-color-button--active', isMultiColor);
 
-            colorInputLabel.classList.toggle('ag-charts-color-picker__color-label--multi-color', isMultiColor);
+            colorInputLabel.toggleClass('ag-charts-color-picker__color-label--multi-color', isMultiColor);
 
-            if (!isFocused(colorInput)) {
-                multiColorButton.ariaChecked = isMultiColor.toString();
+            if (!colorInput.isFocused()) {
+                multiColorButton.setChecked(isMultiColor);
                 colorInput.value = isMultiColor
                     ? localeManager.t('ariaLabelColorPickerMultiColor')
                     : colorString.toUpperCase();
@@ -129,27 +158,19 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
         update(false);
 
-        const preventDefault = (event: Event) => event.preventDefault();
-        const beginPaletteInteraction = (e: PointerEvent) => {
-            const currentTarget = e.currentTarget as HTMLDivElement;
-            currentTarget.focus();
-            const rect = currentTarget.getBoundingClientRect();
-
-            const pointerMove = ({ clientX, clientY }: PointerEvent) => {
-                isMultiColor = false;
-                s = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
-                v = 1 - Math.min(Math.max((clientY - rect.top) / rect.height, 0), 1);
-                update();
-                updatePaletteInputAriaValue('s');
-            };
-            pointerMove(e);
-
-            const removeListener = doc.attachListener('pointermove', pointerMove);
-            doc.attachListener('pointerup', () => removeListener(), { once: true });
+        const preventDefault = (event: { sourceEvent: Event }) => event.sourceEvent.preventDefault();
+        let paletteRect: DOMRect | undefined;
+        const pickFromPalette = ({ clientX, clientY }: DragWidgetEvent) => {
+            if (paletteRect == null) return;
+            isMultiColor = false;
+            s = Math.min(Math.max((clientX - paletteRect.left) / paletteRect.width, 0), 1);
+            v = 1 - Math.min(Math.max((clientY - paletteRect.top) / paletteRect.height, 0), 1);
+            update();
+            updatePaletteInputAriaValue('s');
         };
 
-        colorPicker.addEventListener('keydown', (e) => {
-            switch (e.key) {
+        colorPicker.addListener('keydown', ({ sourceEvent }: KeyboardWidgetEvent) => {
+            switch (sourceEvent.key) {
                 case 'Enter':
                 case 'Escape':
                     this.hide();
@@ -157,66 +178,70 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
                 default:
                     return;
             }
-            e.preventDefault();
+            sourceEvent.preventDefault();
         });
-        paletteInput.addEventListener('pointerdown', beginPaletteInteraction);
-        paletteInput.addEventListener('mousedown', preventDefault);
-        paletteInput.addEventListener('touchstart', preventDefault, { passive: false });
-        paletteInput.addEventListener('touchmove', preventDefault, { passive: false });
-        paletteInput.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
+        paletteInput.addListener('drag-start', (event) => {
+            paletteInput.focus();
+            paletteRect = paletteInput.getBoundingClientRect();
+            pickFromPalette(event);
+        });
+        paletteInput.addListener('drag-move', pickFromPalette);
+        paletteInput.addListener('mousedown', preventDefault);
+        paletteInput.addListener('touchstart', preventDefault);
+        paletteInput.addListener('touchmove', preventDefault);
+        paletteInput.addListener('keydown', ({ sourceEvent }) => {
+            if (sourceEvent.key === 'ArrowLeft') {
                 s = clamp(0, s - 0.01, 1);
                 updatePaletteInputAriaValue('s');
-            } else if (e.key === 'ArrowRight') {
+            } else if (sourceEvent.key === 'ArrowRight') {
                 s = clamp(0, s + 0.01, 1);
                 updatePaletteInputAriaValue('s');
-            } else if (e.key === 'ArrowUp') {
+            } else if (sourceEvent.key === 'ArrowUp') {
                 v = clamp(0, v + 0.01, 1);
                 updatePaletteInputAriaValue('v');
-            } else if (e.key === 'ArrowDown') {
+            } else if (sourceEvent.key === 'ArrowDown') {
                 v = clamp(0, v - 0.01, 1);
                 updatePaletteInputAriaValue('v');
             } else {
                 return;
             }
-            e.preventDefault();
+            sourceEvent.preventDefault();
             update();
         });
-        paletteInput.addEventListener('focus', () => {
+        paletteInput.addListener('focus', () => {
             updatePaletteInputAriaValue('s');
         });
-        multiColorButton.addEventListener('click', () => {
+        multiColorButton.addListener('click', (event) => {
+            // Enter closes the picker instead (see the keydown listener above), as it did on the native button.
+            if (event.device === 'keyboard' && event.sourceEvent.key === 'Enter') return;
             isMultiColor = !isMultiColor;
             update();
         });
-        hueInput.addEventListener('input', (e) => {
+        hueInput.addListener('input', () => {
             isMultiColor = false;
-            h = (e.currentTarget as HTMLInputElement).valueAsNumber ?? 0;
+            h = hueInput.value;
             update();
         });
-        setAttribute(hueInput, 'data-preventdefault', false); // TODO(AG-18361) Use Widget.setPreventsDefault(false)
-        alphaInput.addEventListener('input', (e) => {
+        alphaInput.addListener('input', () => {
             isMultiColor = false;
-            a = (e.currentTarget as HTMLInputElement).valueAsNumber ?? 0;
+            a = alphaInput.value;
             update();
         });
-        setAttribute(alphaInput, 'data-preventdefault', false); // TODO(AG-18361) Use Widget.setPreventsDefault(false)
-        colorInput.addEventListener('input', (e) => {
+        colorInput.addListener('input', () => {
             isMultiColor = false;
-            const hsva = getHsva((e.currentTarget as HTMLInputElement).value);
+            const hsva = getHsva(colorInput.value);
             if (hsva == null) return;
             [h, s, v, a] = hsva;
             update();
         });
-        setAttribute(colorInput, 'data-preventdefault', false); // TODO(AG-18361) Use Widget.setPreventsDefault(false)
-        colorInput.addEventListener('blur', () => update());
-        colorInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                (e.currentTarget as HTMLInputElement).blur();
+        colorInput.addListener('blur', () => update());
+        colorInput.addListener('keydown', ({ sourceEvent }) => {
+            if (sourceEvent.key === 'Enter') {
+                colorInput.blur();
                 update();
             }
         });
 
-        return { element: colorPicker, initialFocus: paletteInput };
+        return { content: colorPicker, initialFocus: paletteInput };
     }
 }

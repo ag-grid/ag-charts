@@ -57,7 +57,7 @@
     color: var(--color-fg-primary);
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
-        font-size: var(--text-fs-md);
+        font-size: var(--text-fs-base);
     }
 }
 
@@ -115,7 +115,7 @@
     flex: 1;
     padding: $spacing-size-3 $spacing-size-4;
     padding-left: $spacing-size-6;
-    font-size: var(--text-fs-md);
+    font-size: var(--text-fs-base);
     color: var(--color-fg-primary);
     min-width: 200px;
 
@@ -205,7 +205,7 @@
     border-top: 1px solid var(--color-border-secondary);
     cursor: pointer;
     font-size: var(--text-fs-sm);
-    font-weight: var(--text-medium);
+    font-weight: var(--text-regular);
     color: var(--color-link);
     transition: background-color 0.15s ease;
 

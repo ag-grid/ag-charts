@@ -98,8 +98,8 @@ type Variants = BenchmarkConfig['testCases'][number]['variants'];
 // they are skipped there, or they would do less work than this version does. Builds that still report 14.2.0 skip them too.
 const SHADOW_MIN_VERSION = '14.3.0';
 const SHADOWS: Record<'on' | 'spread', AgDropShadowOptions> = {
-    on: { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4 },
-    spread: { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4, spread: 2 },
+    on: { enabled: true, fill: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4 },
+    spread: { enabled: true, fill: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4, spread: 2 },
 };
 const SHADOW_LABELS: Record<'on' | 'spread', string> = { on: 'On', spread: 'On, with spread' };
 

@@ -5,7 +5,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
@@ -124,7 +124,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular Sunburst sector based on the input parameters. */
-    itemStyler?: Styler<AgSunburstSeriesItemStylerParams<TDatum, TContext>, AgSunburstSeriesStyle>;
+    itemStyler?: Styler<AgSunburstSeriesItemStylerParams<TDatum, TContext>, AgSunburstSeriesStyle & AgItemShadowStyle>;
     /** Highlight configuration for the series. */
     highlight?: AgSunburstSeriesHighlightOptions;
 }

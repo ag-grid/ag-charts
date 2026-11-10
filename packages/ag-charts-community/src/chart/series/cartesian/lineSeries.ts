@@ -29,6 +29,7 @@ import {
     mergeDefaults,
     placedLabelFit,
     toNumber,
+    withoutCasts,
 } from 'ag-charts-core';
 import {
     type AgDrawingMode,
@@ -1017,6 +1018,14 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         );
     }
 
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
+    protected override getSeriesGlows() {
+        return [this.options.marker.glow];
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
@@ -1041,22 +1050,23 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
-        const { shadow } = this.options.marker;
+        const { shadow, glow } = this.options.marker;
 
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
             // updateDatumStyles populates datum.style for non-garbage nodes; the fallback below is rare.
-            const style =
-                datum.style ??
-                contextNodeData.styles[thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[highlightState];
             thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyPosition,
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0: hideMarkerWithSize0(hideWithSize0, selectedOnly, datum),
                 pickInflation,
                 shadow,
+                glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
+                highlightState,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);
@@ -1216,7 +1226,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 xName,
                 yKey,
                 yName,
-                ...format,
+                ...withoutCasts(format),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

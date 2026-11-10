@@ -1,6 +1,7 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_CONIC_SERIES_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_TYPE,
@@ -25,6 +26,7 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         shadow: SHADOW_THEME_DEFAULTS,
+        glow: GLOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
