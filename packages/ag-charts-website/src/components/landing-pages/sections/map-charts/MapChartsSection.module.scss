@@ -1,4 +1,5 @@
 @use 'design-system' as *;
+@use '../../../../styles/bespoke-colors' as bespoke;
 
 .mapChartsGrid {
     display: flex;
@@ -26,7 +27,7 @@
             pointer-events: none;
 
             #{$selector-darkmode} & {
-                border-color: #192232;
+                border-color: bespoke.$chart-dark-bg;
             }
         }
     }
@@ -40,11 +41,11 @@
     border: 1px solid var(--color-util-gray-200);
     border-radius: var(--radius-lg);
     padding: $spacing-size-4;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--color-black) 10%, transparent);
 
     #{$selector-darkmode} & {
         border-color: var(--color-util-gray-300);
-        background-color: #192232;
+        background-color: bespoke.$chart-dark-bg;
     }
 
     h4 {

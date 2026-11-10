@@ -52,7 +52,7 @@ import {
     getSolidColour,
     withShadowFill,
 } from '../shadowColour';
-import { shadowPass } from '../shadowPass';
+import { type ShadowSlot, shadowPass } from '../shadowPass';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
@@ -176,6 +176,20 @@ function setSpreadRegion(): boolean {
     spreadRegion.maxWidth = canvasWidth == null ? width : canvasWidth + 2 * blurReach;
     spreadRegion.maxHeight = canvasHeight == null ? height : canvasHeight + 2 * blurReach;
     return true;
+}
+
+/** The shadow that {@link Shape.getCastShadow} resolved, with the shadow and paint that it resolved it from. */
+interface CastMemo {
+    shadow: NormalisedDropShadowOptions;
+    fill: unknown;
+    fillOpacity: number;
+    stroke: unknown;
+    strokeOpacity: number;
+    resolved: ResolvedDropShadowOptions | undefined;
+    /** The colour of the shadow with no alpha, which a batch draws the silhouette in, as the alpha is its strength. */
+    tint: string;
+    /** The alpha that the shadow's colour has, which a batch casts the silhouette at, as a shadow drawn by the shape does. */
+    tintAlpha: number;
 }
 
 /**
@@ -420,23 +434,21 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fillShadow: NormalisedDropShadowOptions | undefined;
     declare __fillShadow: NormalisedDropShadowOptions | undefined; // optimised field accessor
 
+    /**
+     * A second shadow that the shape casts, beside its {@link fillShadow}, so that it can cast a shadow and a glow together.
+     * Only a shadow root casts it, after the shadows of every shape beneath that root.
+     */
+    @SceneObjectChangeDetection({ equals: TRIPLE_EQ })
+    fillGlow: NormalisedDropShadowOptions | undefined;
+    declare __fillGlow: NormalisedDropShadowOptions | undefined; // optimised field accessor
+
     @DeclaredSceneChangeDetection({ changeCb: (s: Shape) => s.onShadowModeChange() })
     shadowMode: ShapeShadowMode = 'fill';
     declare __shadowMode: ShapeShadowMode; // optimised field accessor
 
-    /** The shadow that {@link getCastShadow} resolved, with the shadow and paint that it resolved it from. */
-    private castShadowMemo?: {
-        shadow: NormalisedDropShadowOptions;
-        fill: unknown;
-        fillOpacity: number;
-        stroke: unknown;
-        strokeOpacity: number;
-        resolved: ResolvedDropShadowOptions | undefined;
-        /** The colour of the shadow with no alpha, which a batch draws the silhouette in, as the alpha is its strength. */
-        tint: string;
-        /** The alpha that the shadow's colour has, which a batch casts the silhouette at, as a shadow drawn by the shape does. */
-        tintAlpha: number;
-    };
+    /** What {@link getCastShadow} resolved, one memo per slot, so that a shape that casts both can ask each often. */
+    private castShadowMemo?: CastMemo;
+    private castGlowMemo?: CastMemo;
 
     /** How much wider than the shape the spread shadow's stroke is drawn. Zero except while that stroke is drawn. */
     protected shadowStrokeGrowth: number = 0;
@@ -473,7 +485,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         fillBBoxOverride?: BBox
     ) {
         if (shadowPass.state === 'mask') {
-            this.renderShadowMask(ctx, logger, path, bboxOverride, fillBBoxOverride);
+            this.renderShadowMask(shadowPass.slot, ctx, logger, path, bboxOverride, fillBBoxOverride);
             return;
         }
 
@@ -503,18 +515,25 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (!this.castsOwnShadow() || shadow == null) return false;
         const mode = this.__shadowMode;
         return (
-            mode === 'silhouette' || (shadow.spread ?? 0) > 0 || (mode === 'fill' && this.getShadowMode() === 'stroke')
+            mode === 'silhouette' ||
+            (shadow.spread ?? 0) > 0 ||
+            (mode === 'fill' && this.getShadowMode('shadow') === 'stroke')
         );
     }
 
+    /** The options of a slot: {@link fillShadow} or {@link fillGlow}, enabled or not. */
+    private getSlot(slot: ShadowSlot): NormalisedDropShadowOptions | undefined {
+        return slot === 'glow' ? this.__fillGlow : this.__fillShadow;
+    }
+
     /** A glow with no `fill` takes the shape's fill, else its stroke; kept per shadow and paint, as it is asked often. */
-    getCastShadow(): ResolvedDropShadowOptions | undefined {
-        const shadow = this.__fillShadow;
+    getCastShadow(slot: ShadowSlot = 'shadow'): ResolvedDropShadowOptions | undefined {
+        const shadow = this.getSlot(slot);
         if (shadow?.enabled !== true) return;
         if (shadow.fill != null) return shadow as ResolvedDropShadowOptions;
 
         const { __fill: fill, __fillOpacity: fillOpacity, __stroke: stroke, __strokeOpacity: strokeOpacity } = this;
-        let cast = this.castShadowMemo;
+        let cast = slot === 'glow' ? this.castGlowMemo : this.castShadowMemo;
         if (
             cast?.shadow !== shadow ||
             cast.fill !== fill ||
@@ -527,7 +546,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             const resolved = colour == null ? undefined : withShadowFill(shadow, colour);
             const tint = colour == null ? '#000' : getOpaqueColour(colour);
             const tintAlpha = colour == null ? 1 : getColourAlpha(colour);
-            cast = this.castShadowMemo = {
+            cast = {
                 shadow,
                 fill,
                 fillOpacity,
@@ -537,6 +556,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 tint,
                 tintAlpha,
             };
+            if (slot === 'glow') {
+                this.castGlowMemo = cast;
+            } else {
+                this.castShadowMemo = cast;
+            }
         }
         return cast.resolved;
     }
@@ -545,20 +569,23 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * The shadow that a batch keys this shape by. A glow with no `fill` is keyed without one, so that the glows of items
      * of every colour share a mask and a blur: each silhouette is drawn in its colour, see {@link getCastTint}.
      */
-    getBatchShadow(): NormalisedDropShadowOptions | undefined {
-        return this.isBatchTinted() ? this.__fillShadow : this.getCastShadow();
+    getBatchShadow(slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
+        const shadow = this.getSlot(slot);
+        if (shadow?.enabled !== true) return;
+
+        return this.isBatchTinted(slot) ? shadow : this.getCastShadow(slot);
     }
 
     /**
      * Whether a batch casts this shape's glow in the shape's own colour, rather than keyed by it. A tinted mask draws one
      * solid silhouette, so a shape whose ordinary mask draws its real paint is keyed by its colour and draws that paint.
      */
-    private isBatchTinted(): boolean {
+    private isBatchTinted(slot: ShadowSlot): boolean {
         return (
-            this.__fillShadow?.fill == null &&
-            this.getCastShadow() != null &&
+            this.getSlot(slot)?.fill == null &&
+            this.getCastShadow(slot) != null &&
             canTintShadows() &&
-            !this.drawsRealPaintWithoutSpread()
+            !this.drawsRealPaintWithoutSpread(slot)
         );
     }
 
@@ -566,33 +593,40 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * Whether, without a `spread`, the mask draws the shape's real paint rather than a solid silhouette: a stroke (which may
      * be dashed) or extras drawn over the fill, or a fill with alpha that varies across the shape (a gradient, pattern or image).
      */
-    private drawsRealPaintWithoutSpread(): boolean {
-        if ((this.__fillShadow?.spread ?? 0) > 0) return false;
+    private drawsRealPaintWithoutSpread(slot: ShadowSlot): boolean {
+        if ((this.getSlot(slot)?.spread ?? 0) > 0) return false;
 
         return (
-            this.castsShadowFromStroke() ||
-            this.castsShadowFromExtras() ||
-            (this.castsShadowFromFill() && typeof this.__fill !== 'string')
+            this.castsShadowFromStroke(slot) ||
+            this.castsShadowFromExtras(slot) ||
+            (this.castsShadowFromFill(slot) && typeof this.__fill !== 'string')
         );
     }
 
+    /** What {@link getCastShadow} last resolved for the slot, or undefined if the slot casts nothing. */
+    private getCastMemo(slot: ShadowSlot): CastMemo | undefined {
+        if (this.getCastShadow(slot) == null) return;
+
+        return slot === 'glow' ? this.castGlowMemo : this.castShadowMemo;
+    }
+
     /** The alpha that the colour of this shape's glow has. */
-    private getCastAlpha(): number {
-        return this.getCastShadow() == null ? 1 : this.castShadowMemo!.tintAlpha;
+    private getCastAlpha(slot: ShadowSlot): number {
+        return this.getCastMemo(slot)?.tintAlpha ?? 1;
     }
 
     /** The colour that this shape draws its silhouette in, in a mask whose shadow takes the colour of each caster. */
-    private getCastTint(): string {
-        return this.getCastShadow() == null ? '#000' : this.castShadowMemo!.tint;
+    private getCastTint(slot: ShadowSlot): string {
+        return this.getCastMemo(slot)?.tint ?? '#000';
     }
 
     /**
      * The mode that the shadow is cast in. A glow around an item with no visible fill casts from the item's stroke, whatever
      * the source of the glow's colour. A drop shadow does not: it casts nothing around an item that has no fill.
      */
-    private getShadowMode(): ShapeShadowMode {
+    private getShadowMode(slot: ShadowSlot): ShapeShadowMode {
         const mode = this.__shadowMode;
-        const shadow = this.__fillShadow;
+        const shadow = this.getSlot(slot);
         if (mode !== 'fill' || shadow?.enabled !== true || shadow.glow !== true) return mode;
 
         return !this.hasCastableFill() && this.hasCastableStroke() ? 'stroke' : mode;
@@ -626,28 +660,29 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * only in the `stroke` and `silhouette` modes. With a `spread` see {@link renderSpreadMask}.
      */
     private renderShadowMask(
+        slot: ShadowSlot,
         ctx: CanvasContext,
         logger: Logger,
         path?: Path2D,
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
-        const shadow = this.__fillShadow;
+        const shadow = this.getSlot(slot);
         if (shadow?.enabled !== true) return;
 
         const spread = shadow.spread ?? 0;
-        const drawsFill = this.castsShadowFromFill();
-        const drawsStroke = this.castsShadowFromStroke();
-        const hasExtras = this.castsShadowFromExtras();
+        const drawsFill = this.castsShadowFromFill(slot);
+        const drawsStroke = this.castsShadowFromStroke(slot);
+        const hasExtras = this.castsShadowFromExtras(slot);
 
         if ((spread > 0 || shadowPass.opaque || shadowPass.tinted) && path != null) {
-            this.renderSpreadMask(ctx, path, spread, drawsFill, drawsStroke, hasExtras, bboxOverride);
+            this.renderSpreadMask(slot, ctx, path, spread, drawsFill, drawsStroke, hasExtras, bboxOverride);
             return;
         }
 
         // The paint is drawn as it is, with its own alpha, so a tinted batch casts the alpha of the glow's colour on top of it.
         const maskAlpha = ctx.globalAlpha;
-        if (shadowPass.tinted) ctx.globalAlpha *= this.getCastAlpha();
+        if (shadowPass.tinted) ctx.globalAlpha *= this.getCastAlpha(slot);
 
         if (drawsFill) {
             this.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
@@ -657,7 +692,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 // Without a Path2D there is no silhouette to dilate, so the stroke itself is drawn wider.
                 const globalAlpha = ctx.globalAlpha;
                 this.applyStrokeAndAlpha(ctx, bboxOverride);
-                this.setDilationStyle(ctx, spread, true);
+                this.setDilationStyle(slot, ctx, spread, true);
                 this.shadowStrokeGrowth = spread * 2;
                 try {
                     this.executeStroke(ctx, path);
@@ -676,18 +711,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /** Whether the fill is part of the silhouette that casts the shadow. A fill with no alpha casts nothing. */
-    private castsShadowFromFill(): boolean {
-        return this.getShadowMode() !== 'stroke' && this.hasCastableFill();
+    private castsShadowFromFill(slot: ShadowSlot): boolean {
+        return this.getShadowMode(slot) !== 'stroke' && this.hasCastableFill();
     }
 
     /** Whether the stroke is part of the silhouette that casts the shadow. A transparent stroke colour casts nothing. */
-    private castsShadowFromStroke(): boolean {
-        return this.getShadowMode() !== 'fill' && this.hasCastableStroke();
+    private castsShadowFromStroke(slot: ShadowSlot): boolean {
+        return this.getShadowMode(slot) !== 'fill' && this.hasCastableStroke();
     }
 
     /** Whether the extras, such as a candlestick's wicks, are part of the silhouette that casts the shadow. */
-    private castsShadowFromExtras(): boolean {
-        return this.getShadowMode() !== 'fill' && this.getSilhouetteExtrasOpacity() > 0;
+    private castsShadowFromExtras(slot: ShadowSlot): boolean {
+        return this.getShadowMode(slot) !== 'fill' && this.getSilhouetteExtrasOpacity() > 0;
     }
 
     /**
@@ -695,7 +730,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * strongest alpha, else the stroke's, else the extras', or 0 if the shape casts nothing. A silhouette drawn for a
      * tinted batch also casts at the alpha of its colour, which the colour of a shadow that the shape casts itself keeps.
      */
-    private getSpreadStrength(drawsFill: boolean, drawsStroke: boolean, hasExtras: boolean, tinted: boolean): number {
+    private getSpreadStrength(
+        slot: ShadowSlot,
+        drawsFill: boolean,
+        drawsStroke: boolean,
+        hasExtras: boolean,
+        tinted: boolean
+    ): number {
         const { __opacity: opacity = 1, __fillOpacity: fillOpacity = 1, __strokeOpacity: strokeOpacity = 1 } = this;
         let strength: number;
         if (drawsFill) {
@@ -708,7 +749,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             return 0;
         }
         strength *= this.getPaintOpacityScale();
-        return tinted ? strength * this.getCastAlpha() : strength;
+        return tinted ? strength * this.getCastAlpha(slot) : strength;
     }
 
     /**
@@ -719,16 +760,16 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * that casts from a plain colour alone, as a stroke or extras drawn over the fill add to it, and the alpha of a
      * gradient, pattern or image varies across the shape, where its strongest alpha is not that of every pixel.
      */
-    getSpreadMaskStrength(): number | undefined {
-        const shadow = this.__fillShadow;
+    getSpreadMaskStrength(slot: ShadowSlot = 'shadow'): number | undefined {
+        const shadow = this.getSlot(slot);
         if (shadow?.enabled !== true || !this.hasSpreadMaskPath()) return;
 
-        if (this.drawsRealPaintWithoutSpread()) return;
+        if (this.drawsRealPaintWithoutSpread(slot)) return;
 
-        const drawsFill = this.castsShadowFromFill();
-        const drawsStroke = this.castsShadowFromStroke();
-        const hasExtras = this.castsShadowFromExtras();
-        const strength = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras, this.isBatchTinted());
+        const drawsFill = this.castsShadowFromFill(slot);
+        const drawsStroke = this.castsShadowFromStroke(slot);
+        const hasExtras = this.castsShadowFromExtras(slot);
+        const strength = this.getSpreadStrength(slot, drawsFill, drawsStroke, hasExtras, this.isBatchTinted(slot));
         return isFiniteNumber(strength) ? strength : undefined;
     }
 
@@ -746,6 +787,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * parts overlap they don't darken the shadow.
      */
     private renderSpreadMask(
+        slot: ShadowSlot,
         ctx: CanvasContext,
         path: Path2D,
         spread: number,
@@ -754,7 +796,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         hasExtras: boolean,
         bboxOverride?: BBox
     ) {
-        const base = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras, shadowPass.tinted);
+        const base = this.getSpreadStrength(slot, drawsFill, drawsStroke, hasExtras, shadowPass.tinted);
         // A batch that casts at its casters' shared strength draws each silhouette solid. See `getSpreadMaskStrength`.
         const strength = shadowPass.opaque && base > 0 ? 1 : base * ctx.globalAlpha;
         if (strength <= 0 || !isFiniteNumber(strength)) return;
@@ -762,7 +804,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (strength >= 1) {
             ctx.save();
             try {
-                this.drawSpreadSilhouette(ctx, path, spread, drawsFill, drawsStroke);
+                this.drawSpreadSilhouette(slot, ctx, path, spread, drawsFill, drawsStroke);
             } finally {
                 ctx.restore();
             }
@@ -771,7 +813,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         const matrix = ctx.getTransform();
         const canvas = hasCanvas(ctx) ? ctx.canvas : undefined;
-        if (!this.measureSilhouette(matrix, spread, silhouetteBounds, bboxOverride)) return;
+        if (!this.measureSilhouette(slot, matrix, spread, silhouetteBounds, bboxOverride)) return;
         const left = Math.max(0, Math.floor(silhouetteBounds.minX));
         const top = Math.max(0, Math.floor(silhouetteBounds.minY));
         const right = Math.min(canvas?.width ?? Infinity, Math.ceil(silhouetteBounds.maxX));
@@ -791,7 +833,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         scratch.clearRect(0, 0, width, height);
         scratch.save();
         scratch.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e - left, matrix.f - top);
-        this.drawSpreadSilhouette(scratch, path, spread, drawsFill, drawsStroke);
+        this.drawSpreadSilhouette(slot, scratch, path, spread, drawsFill, drawsStroke);
         scratch.restore();
 
         ctx.save();
@@ -809,6 +851,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * when the shape has no bounds to measure.
      */
     private measureSilhouette(
+        slot: ShadowSlot,
         matrix: Readonly<MatrixFrame>,
         spread: number,
         out: SilhouetteBounds,
@@ -819,7 +862,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (localBBox == null) return false;
 
         const { a, b, c, d, e, f } = matrix;
-        const strokeReach = this.getShadowStrokeReach(spread);
+        const strokeReach = this.getShadowStrokeReach(slot, spread);
         const halfWidth = localBBox.width / 2 + strokeReach;
         const halfHeight = localBBox.height / 2 + strokeReach;
         const centreX = localBBox.x + localBBox.width / 2;
@@ -839,10 +882,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /** Sets how the stroke that dilates the shape by a `spread` is drawn: solid, and capped so that open ends spread too. */
-    private setDilationStyle(ctx: CanvasContext, spread: number, drawsStroke: boolean) {
+    private setDilationStyle(slot: ShadowSlot, ctx: CanvasContext, spread: number, drawsStroke: boolean) {
         const lineCap = this.__lineCap;
         let dilationCap: ShapeLineCap = lineCap == null || lineCap === 'butt' ? 'square' : lineCap;
-        if (this.getShadowMode() === 'fill') dilationCap = 'round';
+        if (this.getShadowMode(slot) === 'fill') dilationCap = 'round';
         ctx.lineCap = dilationCap;
         ctx.lineJoin = drawsStroke ? (this.__lineJoin ?? 'miter') : 'miter';
         ctx.miterLimit = drawsStroke ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
@@ -854,16 +897,17 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * the fill's outline stroked by it) and its extras. Where those overlap they only cover each other.
      */
     private drawSpreadSilhouette(
+        slot: ShadowSlot,
         ctx: CanvasContext,
         path: Path2D,
         spread: number,
         drawsFill: boolean,
         drawsStroke: boolean
     ) {
-        const tint = shadowPass.tinted ? this.getCastTint() : '#000';
+        const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
         ctx.fillStyle = tint;
         ctx.strokeStyle = tint;
-        this.setDilationStyle(ctx, spread, drawsStroke);
+        this.setDilationStyle(slot, ctx, spread, drawsStroke);
 
         if (drawsFill) {
             this.executeFill(ctx, path);
@@ -878,7 +922,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } else if (drawsFill && spread > 0) {
             this.dilateFill(ctx, path);
         }
-        if (this.getShadowMode() !== 'fill' && spread > 0) {
+        if (this.getShadowMode(slot) !== 'fill' && spread > 0) {
             this.dilateSilhouetteExtras(ctx, spread * 2);
         }
     }
@@ -894,7 +938,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * `parent`: the same measurement the shadow's mask is cleared by. Returns false if the bounds can't be told, or are
      * not fixed by the shape and its transform.
      */
-    getShadowSilhouetteBounds(parent: Readonly<MatrixFrame>, spread: number, out: SilhouetteBounds): boolean {
+    getShadowSilhouetteBounds(
+        parent: Readonly<MatrixFrame>,
+        spread: number,
+        out: SilhouetteBounds,
+        slot: ShadowSlot = 'shadow'
+    ): boolean {
         if (!this.hasBoundedSilhouette()) return false;
 
         let frame = parent;
@@ -902,12 +951,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             this.composeTransform(parent, silhouetteFrame);
             frame = silhouetteFrame;
         }
-        return this.measureSilhouette(frame, spread, out);
+        return this.measureSilhouette(slot, frame, spread, out);
     }
 
     /** How far the pre-pass's strokes reach past the shape's bounds, in the shape's own units. */
-    private getShadowStrokeReach(spread: number): number {
-        const fillOnly = this.getShadowMode() === 'fill';
+    private getShadowStrokeReach(slot: ShadowSlot, spread: number): number {
+        const fillOnly = this.getShadowMode(slot) === 'fill';
         const halfStroke = (fillOnly ? 0 : this.getSilhouetteStrokeWidth() / 2) + spread;
         // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
         const miterLimit = fillOnly ? DILATION_MITER_LIMIT : (this.__miterLimit ?? 10);
@@ -952,7 +1001,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         let minY = 0;
         let maxX = (canvasWidth ?? 0) + spread * pixelRatio;
         let maxY = canvasHeight ?? 0;
-        if (this.measureSilhouette(matrix, spread, silhouetteBounds, bboxOverride)) {
+        if (this.measureSilhouette('shadow', matrix, spread, silhouetteBounds, bboxOverride)) {
             ({ minX, minY, maxX, maxY } = silhouetteBounds);
 
             if (canvasWidth != null && canvasHeight != null) {
@@ -999,7 +1048,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.applyShadow(ctx);
         ctx.shadowOffsetX += distance;
 
-        if (fill != null && fill !== 'none' && fillOpacity > 0 && this.getShadowMode() !== 'stroke') {
+        if (fill != null && fill !== 'none' && fillOpacity > 0 && this.getShadowMode('shadow') !== 'stroke') {
             const globalAlpha = ctx.globalAlpha;
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
             this.executeFill(ctx, path);
@@ -1026,7 +1075,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         fillBBoxOverride?: BBox
     ) {
         const { __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
-        const mode = this.getShadowMode();
+        const mode = this.getShadowMode('shadow');
         const { x, y, width, height, maxWidth, maxHeight } = spreadRegion;
 
         // The strength is worked out as it is for a shadow batch's mask, so that paint casting nothing there casts nothing here.
@@ -1060,7 +1109,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         scratch.clearRect(0, 0, width, height);
         scratch.save();
         scratch.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e - x, matrix.f - y);
-        this.drawSpreadSilhouette(scratch, path, spread, drawsFill, drawsStroke);
+        this.drawSpreadSilhouette('shadow', scratch, path, spread, drawsFill, drawsStroke);
         scratch.restore();
 
         ctx.save();
@@ -1137,7 +1186,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
             const shadowed =
-                this.getShadowMode() === 'fill' &&
+                this.getShadowMode('shadow') === 'fill' &&
                 this.castsOwnShadow() &&
                 (path == null || !this.castsShadowFromPrePass());
             if (shadowed) {
@@ -1271,7 +1320,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
             // Silhouette mode without a Path2D has no pre-pass, so the stroke casts the shadow.
             const shadowed =
-                this.getShadowMode() !== 'fill' &&
+                this.getShadowMode('shadow') !== 'fill' &&
                 this.castsOwnShadow() &&
                 (path == null || !this.castsShadowFromPrePass());
             if (shadowed) {

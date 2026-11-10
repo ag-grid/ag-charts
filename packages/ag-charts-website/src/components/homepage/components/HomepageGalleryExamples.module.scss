@@ -1,4 +1,5 @@
 @use 'design-system' as *;
+@use '../../../styles/bespoke-colors' as bespoke;
 
 .container {
     display: flex;
@@ -87,12 +88,11 @@
 }
 
 .exampleContainer {
-    --chart-bg: #fff;
-    --chart-border: #d0d5dd;
+    --chart-bg: var(--color-white);
+    --chart-border: var(--color-border-primary);
 
     [data-dark-mode='true'] & {
-        --chart-bg: #192232;
-        --chart-border: #344054;
+        --chart-bg: #{bespoke.$chart-dark-bg};
     }
 
     position: relative;

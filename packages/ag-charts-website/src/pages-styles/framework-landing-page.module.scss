@@ -1,4 +1,5 @@
 @use 'design-system' as *;
+@use '../styles/bespoke-colors' as bespoke;
 @use './framework-shared' as frameworkShared;
 
 .heroSection {
@@ -21,32 +22,36 @@
     transform: translate(-50%, -50%);
     width: 97.5vw;
     height: 150%;
-    background: linear-gradient(0deg, #dde9f9 -61.34%, #ffffff 89.79%);
+    background: linear-gradient(0deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border-left: 1px solid linear-gradient(0deg, #dde9f9 -61.34%, #0e449126 89.79%);
-    border-right: 1px solid linear-gradient(0deg, #dde9f9 -61.34%, #0e449126 89.79%);
-    border-bottom: 1px solid #0e449126;
+    border-bottom: 1px solid bespoke.$hero-border;
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         position: absolute;
         bottom: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(0deg, #dde9f9 -61.34%, #ffffff 89.79%);
+        background: linear-gradient(0deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
         z-index: -999;
         border-radius: 8px;
         border: none;
     }
 
     #{$selector-darkmode} & {
-        background: linear-gradient(0deg, #29384b -61.34%, #141d2c 89.79%);
-        border-left: 1px solid linear-gradient(0deg, #29384b -61.34%, #f1bbde26 89.79%);
-        border-right: 1px solid linear-gradient(0deg, #29384b -61.34%, #f1bbde26 89.79%);
-        border-bottom: 1px solid #f1bbde26;
+        background: linear-gradient(
+            0deg,
+            bespoke.$hero-gradient-dark-start -61.34%,
+            bespoke.$hero-gradient-dark-end 89.79%
+        );
+        border-bottom: 1px solid bespoke.$hero-border-dark;
 
         @media screen and (max-width: $breakpoint-landing-page-medium) {
-            background: linear-gradient(0deg, #29384b -61.34%, #141d2c 89.79%);
+            background: linear-gradient(
+                0deg,
+                bespoke.$hero-gradient-dark-start -61.34%,
+                bespoke.$hero-gradient-dark-end 89.79%
+            );
             border: none;
         }
     }
@@ -117,7 +122,7 @@
     cursor: pointer;
     align-self: center;
     background-color: var(--color-brand-200);
-    font-weight: var(--text-base);
+    font-weight: inherit;
 
     #{$selector-darkmode} & {
         background-color: var(--color-bg-secondary);
@@ -154,7 +159,6 @@
     align-items: center;
     padding: 0px $spacing-size-2;
     font-size: var(--text-fs-sm);
-    font-weight: var(--text-base);
     color: var(--color-brand-500);
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
@@ -164,7 +168,7 @@
     }
 
     #{$selector-darkmode} & {
-        color: white;
+        color: var(--color-white);
     }
 
     span {

@@ -1,8 +1,5 @@
 @use 'design-system' as *;
-
-$z-index-base: 10000; // For automated example mouse
-$z-index-debug-canvas: $z-index-base + 10;
-$z-index-debug-panel: $z-index-debug-canvas + 200;
+@use '../styles/bespoke-colors' as bespoke;
 
 .container {
     display: flex;
@@ -210,7 +207,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
 }
 
 .galleryScrollerExample {
-    background: white;
+    background: var(--color-white);
 
     #{$selector-darkmode} & {
         background: var(--color-bg-primary);
@@ -266,10 +263,10 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     transform: translate(-85%, -65%);
     width: 97.5%;
     height: 50%;
-    background: linear-gradient(180deg, #dde9f9 -61.34%, #ffffff 89.79%);
+    background: linear-gradient(180deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border: 1px solid #0e449126;
+    border: 1px solid bespoke.$hero-border;
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
@@ -283,10 +280,10 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     transform: translate(85%, -65%);
     width: 97.5%;
     height: 50%;
-    background: linear-gradient(180deg, #dde9f9 -61.34%, #ffffff 89.79%);
+    background: linear-gradient(180deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border: 1px solid #0e449126;
+    border: 1px solid bespoke.$hero-border;
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
@@ -300,19 +297,17 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     transform: translate(-50%, -50%);
     width: 97.5%;
     height: 50%;
-    background: linear-gradient(0deg, #dde9f9 -61.34%, #ffffff 89.79%);
+    background: linear-gradient(0deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
     z-index: -999;
     border-radius: 8px;
-    border-left: 1px solid linear-gradient(0deg, #dde9f9 -61.34%, #0e449126 89.79%);
-    border-right: 1px solid linear-gradient(0deg, #dde9f9 -61.34%, #0e449126 89.79%);
-    border-bottom: 1px solid #0e449126;
+    border-bottom: 1px solid bespoke.$hero-border;
 
     @media screen and (max-width: $breakpoint-landing-page-medium) {
         position: absolute;
         bottom: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(0deg, #dde9f9 -61.34%, #ffffff 89.79%);
+        background: linear-gradient(0deg, bespoke.$hero-gradient-stop -61.34%, var(--color-white) 89.79%);
         z-index: -999;
         border-radius: 8px;
         border: none;
@@ -347,14 +342,12 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
             margin: $spacing-size-1;
             padding: 0 $spacing-size-2;
             font-size: var(--text-fs-sm);
-            font-weight: var(--text-base);
             color: var(--color-brand-500);
         }
 
         .whatsNewText {
             padding: 0 $spacing-size-2;
             font-size: var(--text-fs-sm);
-            font-weight: var(--text-base);
             color: var(--color-brand-500);
             line-height: 100%;
         }
@@ -511,7 +504,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
             pointer-events: none;
 
             #{$selector-darkmode} & {
-                border-color: #192232;
+                border-color: bespoke.$chart-dark-bg;
             }
         }
     }
@@ -525,11 +518,11 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     border: 1px solid var(--color-util-gray-200);
     border-radius: var(--radius-lg);
     padding: $spacing-size-4;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--color-black) 10%, transparent);
 
     #{$selector-darkmode} & {
         border-color: var(--color-util-gray-300);
-        background-color: #192232;
+        background-color: bespoke.$chart-dark-bg;
     }
 
     h4 {
@@ -649,110 +642,6 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     @media screen and (max-width: $breakpoint-hero-small) {
         flex-direction: column;
     }
-}
-
-.automatedExampleDebugPanel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 220px;
-    height: fit-content;
-    border-left: 1px solid var(--color-border-primary);
-    border-bottom: 1px solid var(--color-border-primary);
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: $spacing-size-4;
-    z-index: $z-index-debug-panel;
-
-    :global(.disabled) {
-        h2 {
-            color: var(--color-text-tertiary);
-
-            &::after {
-                content: ' (disabled)';
-            }
-        }
-    }
-
-    h2 {
-        font-size: var(--text-fs-base);
-        margin-bottom: $spacing-size-1;
-        margin-top: $spacing-size-2;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    :global(.state) {
-        &::before {
-            content: 'State: ';
-            color: var(--color-text-tertiary);
-        }
-    }
-
-    :global(.step) {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-
-        :global(.index) {
-            &::after {
-                content: ':';
-            }
-        }
-    }
-
-    :global(.paused-state) {
-        &::before {
-            content: 'Paused at: ';
-            color: var(--color-text-tertiary);
-        }
-    }
-
-    :global(.controls) {
-        display: flex;
-        justify-content: space-between;
-
-        button:not([class^='ag-']) {
-            padding: $spacing-size-1;
-            line-height: var(--text-lh-ratio-ultra-tight);
-        }
-    }
-
-    :global(.draw-checkbox) {
-        margin-top: $spacing-size-2;
-        cursor: pointer;
-    }
-
-    :global(.mouse-position) {
-        margin-top: $spacing-size-2;
-        cursor: pointer;
-
-        &::before {
-            content: 'Mouse: ';
-            color: var(--color-text-tertiary);
-        }
-    }
-
-    :global(.manager-state) {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-
-        &::before {
-            content: 'Manager: ';
-            color: var(--color-text-tertiary);
-        }
-    }
-}
-
-.automatedExampleDebugCanvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: $z-index-debug-canvas;
 }
 
 // LandingPageSection renders a single CTA, so this row is rendered as the section's first child

@@ -84,6 +84,7 @@ const HLC_ITEM_MARKER: WithThemeParams<HlcItemMarkerOptions> = {
         xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
         yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
         blur: { $path: '/series/$index/marker/shadow/blur' },
+        spread: { $path: '/series/$index/marker/shadow/spread' },
     },
     shape: { $path: '/series/$index/marker/shape' },
     size: { $path: ['/series/$index/marker/size', 6] },

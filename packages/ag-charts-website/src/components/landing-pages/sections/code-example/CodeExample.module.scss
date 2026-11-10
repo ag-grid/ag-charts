@@ -33,6 +33,7 @@
     border-radius: 50%;
 }
 
+/* stylelint-disable color-no-hex -- macOS window traffic-light colours, no matching tokens */
 .trafficLightRed {
     background-color: #ff5f57;
 }
@@ -44,6 +45,7 @@
 .trafficLightGreen {
     background-color: #28c840;
 }
+/* stylelint-enable color-no-hex */
 
 .fileName {
     flex: 1;
