@@ -11,6 +11,7 @@ import {
     mouseDownAction,
     mouseUpAction,
     pressKey,
+    releaseKey,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -1484,7 +1485,7 @@ describe('Annotations', () => {
         });
     });
 
-    describe('setState while an annotation is selected (AG-17162)', () => {
+    describe('setState while an annotation is selected', () => {
         // The target state differs from the chart's current zoom (full range) and annotation (value 50).
         const restoredZoom = { ratioX: { start: 0.25, end: 0.75 } };
         const restoredAnnotations: AgAnnotation[] = [{ type: 'horizontal-line', value: 30 }];
@@ -1502,7 +1503,6 @@ describe('Annotations', () => {
         };
         const centre = () => at(0.5, 0.5);
         const body = () => deproxy(chart).ctx.agDocument.body;
-        const seriesArea = () => document.querySelector<HTMLElement>('.ag-charts-series-area')!;
 
         async function prepareZoomableChart(annotations: AgAnnotation[] = [{ type: 'horizontal-line', value: 50 }]) {
             await prepareChart(
@@ -1588,12 +1588,7 @@ describe('Annotations', () => {
                     await selectAtCentre();
                     await pressKey(chart, 'ArrowUp');
                 },
-                async () => {
-                    seriesArea().dispatchEvent(
-                        new KeyboardEvent('keyup', { key: 'ArrowUp', code: 'ArrowUp', bubbles: true })
-                    );
-                    await waitForChartStability(chart);
-                },
+                () => releaseKey(chart, 'ArrowUp'),
             ],
             [
                 "having the annotation's settings dialog open",
@@ -1621,7 +1616,7 @@ describe('Annotations', () => {
             ],
         ] as const;
 
-        describe('is ignored while the annotation is being edited (AG-16092)', () => {
+        describe('is ignored while the annotation is being edited', () => {
             it.each(edits)('ignores it while %s, then applies it once that ends', async (_name, begin, end) => {
                 await prepareZoomableChart();
 
