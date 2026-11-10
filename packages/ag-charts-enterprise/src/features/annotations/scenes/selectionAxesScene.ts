@@ -109,17 +109,35 @@ class SelectionAxisScene {
         shading.visible = (axisShading.enabled ?? true) && positions.length >= 2 && end > start;
         if (!shading.visible) return;
 
+        // The shading reaches the further of the tick labels and the annotation's own labels, which sit beyond them.
+        const labelBoxes = this.labels.filter((label) => label.visible).map((label) => label.getBBox());
         const { thickness } = context;
         const along = end - start;
         if (isX) {
+            const near = seriesRect.y - thickness;
+            const far = seriesRect.y + seriesRect.height + thickness;
+            const top =
+                position === 'top'
+                    ? Math.min(near, ...labelBoxes.map((box) => box.y))
+                    : seriesRect.y + seriesRect.height;
+            const bottom =
+                position === 'top' ? seriesRect.y : Math.max(far, ...labelBoxes.map((box) => box.y + box.height));
             shading.x = seriesRect.x + start;
-            shading.y = position === 'top' ? seriesRect.y - thickness : seriesRect.y + seriesRect.height;
+            shading.y = top;
             shading.width = along;
-            shading.height = thickness;
+            shading.height = bottom - top;
         } else {
-            shading.x = position === 'left' ? seriesRect.x - thickness : seriesRect.x + seriesRect.width;
+            const near = seriesRect.x - thickness;
+            const far = seriesRect.x + seriesRect.width + thickness;
+            const left =
+                position === 'left'
+                    ? Math.min(near, ...labelBoxes.map((box) => box.x))
+                    : seriesRect.x + seriesRect.width;
+            const right =
+                position === 'left' ? seriesRect.x : Math.max(far, ...labelBoxes.map((box) => box.x + box.width));
+            shading.x = left;
             shading.y = seriesRect.y + start;
-            shading.width = thickness;
+            shading.width = right - left;
             shading.height = along;
         }
 

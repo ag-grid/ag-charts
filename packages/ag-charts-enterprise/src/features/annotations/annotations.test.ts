@@ -1502,7 +1502,7 @@ describe('Annotations', () => {
             expect(horizontal.width).toBeCloseTo(width, 0);
         });
 
-        it('shades out to the outer edge of the tick labels and stops short of the axis titles', async () => {
+        it('shades out to the further edge of the tick labels and axis labels, and stops short of the axis titles', async () => {
             const { axes, ...options } = withAxes();
             await prepareChart(
                 { annotations: [LINE] },
@@ -1517,23 +1517,23 @@ describe('Annotations', () => {
 
             await clickDatum(50, 50);
 
-            const canvasBoxes = (predicate: (node: Text) => boolean) =>
-                findSceneNodes<Text>(chart, (node): node is Text => node instanceof Text && predicate(node)).map(
-                    (node) => Transformable.toCanvas(node)
-                );
-            const xTicks = canvasBoxes((node) => /^[A-Z][a-z]{2}\s+\d{1,2}$/.test(String(node.text)));
-            const yTicks = canvasBoxes((node) => /^(0|20|40|60|80|100)$/.test(String(node.text)));
-            const [xTitle] = canvasBoxes((node) => node.text === 'Date');
-            const [yTitle] = canvasBoxes((node) => node.text === 'Price');
+            const canvasBoxes = (predicate: (node: Node) => boolean) =>
+                findSceneNodes(chart, predicate).map((node) => Transformable.toCanvas(node));
+            const tickLabels = (pattern: RegExp) =>
+                canvasBoxes((node) => node instanceof Text && pattern.test(String(node.text)));
+            const xTicks = tickLabels(/^[A-Z][a-z]{2}\s+\d{1,2}$/);
+            const yTicks = tickLabels(/^(0|20|40|60|80|100)$/);
+            const axisLabels = visibleAxisLabels().map((node) => Transformable.toCanvas(node));
+            const [xTitle] = tickLabels(/^Date$/);
+            const [yTitle] = tickLabels(/^Price$/);
             const [horizontal, vertical] = visibleShading()
                 .map((node) => Transformable.toCanvas(node))
                 .sort((a, b) => b.width - a.width);
 
-            expect(horizontal.y + horizontal.height).toBeCloseTo(
-                Math.max(...xTicks.map((box) => box.y + box.height)),
-                0
-            );
-            expect(vertical.x).toBeCloseTo(Math.min(...yTicks.map((box) => box.x)), 0);
+            const bottomEdge = Math.max(...[...xTicks, ...axisLabels].map((box) => box.y + box.height));
+            const leftEdge = Math.min(...[...yTicks, ...axisLabels].map((box) => box.x));
+            expect(horizontal.y + horizontal.height).toBeCloseTo(bottomEdge, 0);
+            expect(vertical.x).toBeCloseTo(leftEdge, 0);
             expect(horizontal.y + horizontal.height).toBeLessThanOrEqual(xTitle.y);
             expect(vertical.x).toBeGreaterThanOrEqual(yTitle.x + yTitle.width);
         });
