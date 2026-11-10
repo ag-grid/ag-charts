@@ -285,7 +285,6 @@ export class Annotations extends AbstractModuleInstance {
             selectLast: () => {
                 this.pushAnnotationState(InteractionState.AnnotationsSelected);
                 this.selectedId = this.annotationData.at(-1)?.id;
-                this.update();
                 return this.annotationData.length - 1;
             },
 
@@ -956,7 +955,7 @@ export class Annotations extends AbstractModuleInstance {
                 }
 
                 node.setAxisLabelVisible(true);
-                node.toggleSelected(datum.id === this.selectedId);
+                node.toggleSelected(this.selectedId != null && datum.id === this.selectedId);
                 updateAnnotation(node, datum, context);
             });
 
