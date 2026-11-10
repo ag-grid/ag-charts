@@ -10,6 +10,8 @@ import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { shapesOf } from '../test/shadowFixtures';
 import {
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+    chartPixelAt,
+    countChartPixels,
     createChart,
     deproxy,
     hoverLegendItem,
@@ -65,10 +67,11 @@ describe('a highlight glow of the markers of a series', () => {
         const from = Transformable.toCanvas(a).computeCenter();
         const to = Transformable.toCanvas(b).computeCenter();
         const x = Math.round((from.x + to.x) / 2);
-        const pixelAt = (px: number, py: number) => [
-            ...chart.ctx.scene.canvas.context.getImageData(px, Math.round(py), 1, 1).data,
-        ];
-        return { line: pixelAt(x, from.y), fill: pixelAt(x, from.y + 14), beside: pixelAt(x, from.y - 14) };
+        return {
+            line: chartPixelAt(chart, x, from.y),
+            fill: chartPixelAt(chart, x, from.y + 14),
+            beside: chartPixelAt(chart, x, from.y - 14),
+        };
     };
 
     // A marker with a shadow is a caster of the root, and its glow must still reach the group that casts it.
@@ -99,13 +102,7 @@ describe('a highlight glow of the markers of a series', () => {
             await hoverLegendItem(chart, 0);
             await waitForChartStability(chart);
 
-            const { width, height } = chart.ctx.scene.canvas;
-            const { data } = chart.ctx.scene.canvas.context.getImageData(0, 0, width, height);
-            let glowPixels = 0;
-            for (let i = 0; i < data.length; i += 4) {
-                if (data[i] === 0 && data[i + 1] === 255 && data[i + 2] === 0 && data[i + 3] === 255) glowPixels++;
-            }
-            expect(glowPixels).toBeGreaterThan(0);
+            expect(countChartPixels(chart, GREEN)).toBeGreaterThan(0);
         }
     );
 
@@ -167,12 +164,10 @@ describe('a highlight glow of the sectors of a donut', () => {
         const { innerRadius } = shapesOf(donut.contentGroup, Sector)[1];
         const { startAngle, endAngle, outerRadius } = shapesOf(donut.contentGroup, Sector)[1];
         const middle = (startAngle + endAngle) / 2;
-        const pixelAt = (x: number, y: number) => [
-            ...chart.ctx.scene.canvas.context.getImageData(Math.round(x), Math.round(y), 1, 1).data,
-        ];
         return {
-            inner: pixelAt(centre.x, centre.y - innerRadius + 6),
-            outside: pixelAt(
+            inner: chartPixelAt(chart, centre.x, centre.y - innerRadius + 6),
+            outside: chartPixelAt(
+                chart,
                 centre.x + (outerRadius + 6) * Math.cos(middle),
                 centre.y + (outerRadius + 6) * Math.sin(middle)
             ),

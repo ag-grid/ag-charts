@@ -672,6 +672,17 @@ export function inheritedShadowFillTheme(seriesShadowPath: string) {
     return shadowFillTheme({ $path: `${seriesShadowPath}/fill` }, { $path: `${seriesShadowPath}/fillOpacity` });
 }
 
+/** The `glow` of a part of a series, every field taken from the `glow` of the series at `seriesGlowPath`. */
+export function inheritedGlowTheme(seriesGlowPath: string) {
+    return {
+        enabled: { $path: `${seriesGlowPath}/enabled` },
+        fill: { $path: `${seriesGlowPath}/fill` },
+        fillOpacity: { $path: `${seriesGlowPath}/fillOpacity` },
+        blur: { $path: `${seriesGlowPath}/blur` },
+        spread: { $path: `${seriesGlowPath}/spread` },
+    };
+}
+
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
 export const SHADOW_THEME_DEFAULTS = {
     enabled: false,

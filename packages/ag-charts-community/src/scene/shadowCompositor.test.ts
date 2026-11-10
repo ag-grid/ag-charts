@@ -1158,9 +1158,10 @@ describe('Group shadow compositor', () => {
                 box(200, 90, 60, 40, { fill: 'rgba(0, 0, 255, 0.5)', drawingMode: 'cutout', ...options });
 
             it('should cast its own glow as it casts its own shadow, once', () => {
-                renderNodes([box(100, 90, 40, 40, { fillShadow: RED_HALF }), cutoutWith({ fillShadow: RED_HALF })]);
+                const CAST = { ...RED_HALF, ...extra };
+                renderNodes([box(100, 90, 40, 40, { fillShadow: CAST }), cutoutWith({ fillShadow: CAST })]);
                 const asShadow = pixels();
-                renderNodes([box(100, 90, 40, 40, { fillShadow: RED_HALF }), cutoutWith({ fillGlow: RED_HALF })]);
+                renderNodes([box(100, 90, 40, 40, { fillShadow: CAST }), cutoutWith({ fillGlow: CAST })]);
 
                 expect(pixels()).toEqual(asShadow);
                 // Cast by the cutout alone, at the strength of its fill: the batch would stack a second glow over it.

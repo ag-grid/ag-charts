@@ -55,7 +55,8 @@ export function renderChildrenWithShadowBatches(
         if (castShadows({ scene, user, keys, index: casts++ }, renderCtx)) {
             renderShadowless(members, renderCtx);
         } else {
-            // The shadow can't be cast (no context, an empty layer or a non-finite shadow): the casters cast for themselves.
+            // The shadow can't be cast (no context, an empty layer or a non-finite shadow): each member casts its own
+            // shadow. Only a cutout casts its own glow, so the run's glow is dropped here.
             for (const caster of members) caster.isolatedRender(renderCtx);
         }
         run = undefined;

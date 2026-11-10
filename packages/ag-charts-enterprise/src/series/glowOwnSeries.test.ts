@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgChartInstance, AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+    countChartPixels,
     deproxy,
     setupMockCanvas,
     setupMockConsole,
@@ -47,20 +48,11 @@ describe('a highlight glow of a series with links and nodes', () => {
             ],
         } as AgChartOptions);
         await waitForChartStability(chart);
-        const { ctx, id, scene } = Object.assign(deproxy(chart), { scene: deproxy(chart).ctx.scene });
+        const { ctx, id } = deproxy(chart);
         ctx.highlightManager.updateHighlight(id, getFlowNodeData(chart)[0] as HighlightNodeDatum);
         await waitForChartStability(chart);
 
-        const { width, height } = scene.canvas;
-        const data = scene.canvas.context.getImageData(0, 0, width, height).data;
-        const count = (colour: number[]) => {
-            let found = 0;
-            for (let i = 0; i < data.length; i += 4) {
-                if (colour.every((value, offset) => data[i + offset] === value)) found++;
-            }
-            return found;
-        };
-        return { links: count(LINK), glow: count(GLOW) };
+        return { links: countChartPixels(chart, LINK), glow: countChartPixels(chart, GLOW) };
     };
 
     it.each(['sankey', 'chord'] as const)(

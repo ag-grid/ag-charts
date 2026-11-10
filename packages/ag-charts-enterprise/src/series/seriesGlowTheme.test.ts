@@ -13,47 +13,41 @@ const ITEM = ['highlightedItem', 'unhighlightedItem'];
 const SERIES = ['highlightedSeries', 'unhighlightedSeries'];
 
 // Each series' buckets take their `enabled` from the series-level `glow`, wherever the series keeps it.
-const CASES: Array<[string, object, object[], (options: any) => any, string[]]> = [
+const CASES: Array<[string, object, object[], string[]]> = [
     [
         'sankey node',
         { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', node: { glow: ON } },
         FLOW_DATA,
-        (o) => o.highlight,
         ITEM,
     ],
     [
         'sankey link',
         { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', link: { glow: ON } },
         FLOW_DATA,
-        (o) => o.highlight,
         ITEM,
     ],
     [
         'chord node',
         { type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size', node: { glow: ON } },
         FLOW_DATA,
-        (o) => o.highlight,
         ITEM,
     ],
     [
         'chord link',
         { type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size', link: { glow: ON } },
         FLOW_DATA,
-        (o) => o.highlight,
         ITEM,
     ],
     [
         'waterfall positive',
         { type: 'waterfall', xKey: 'x', yKey: 'y', item: { positive: { glow: ON } } },
         WATERFALL_DATA,
-        (o) => o.highlight,
         ITEM,
     ],
     [
         'waterfall total',
         { type: 'waterfall', xKey: 'x', yKey: 'y', item: { total: { glow: ON } } },
         WATERFALL_DATA,
-        (o) => o.highlight,
         ITEM,
     ],
     [
@@ -68,42 +62,31 @@ const CASES: Array<[string, object, object[], (options: any) => any, string[]]> 
             glow: ON,
         },
         OHLC_DATA,
-        (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
-    [
-        'heatmap',
-        { type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', glow: ON },
-        HEATMAP,
-        (o) => o.highlight,
-        ITEM,
-    ],
+    ['heatmap', { type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', glow: ON }, HEATMAP, ITEM],
     [
         'hlc marker',
         { type: 'hlc', xKey: 'x', highKey: 'high', lowKey: 'low', closeKey: 'close', marker: MARKER },
         OHLC_DATA,
-        (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
     [
         'range-area marker',
         { type: 'range-area', xKey: 'x', yLowKey: 'low', yHighKey: 'high', marker: MARKER },
         OHLC_DATA,
-        (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
     [
         'radar-area marker',
         { type: 'radar-area', angleKey: 'x', radiusKey: 'high', marker: MARKER },
         OHLC_DATA,
-        (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
     [
         'radar-line marker',
         { type: 'radar-line', angleKey: 'x', radiusKey: 'high', marker: MARKER },
         OHLC_DATA,
-        (o) => o.highlight,
         [...ITEM, ...SERIES],
     ],
 ];
@@ -135,41 +118,35 @@ describe('series glow theme', () => {
     const SINGLE_PART = CASES.filter(([name]) => !PER_PART.has(name));
     const MULTI_PART = CASES.filter(([name]) => PER_PART.has(name));
 
-    it.each(SINGLE_PART)(
-        '%s turns on the buckets it falls back to',
-        async (_name, series, data, highlightOf, buckets) => {
-            const chart: any = await create(series, data);
-            const highlight = highlightOf(getSeriesOptions<any>(chart));
-            expect(buckets.map((bucket) => [bucket, highlight[bucket].glow.enabled])).toEqual(
-                buckets.map((bucket) => [bucket, true])
-            );
-            chart.destroy();
-        }
-    );
+    it.each(SINGLE_PART)('%s turns on the buckets it falls back to', async (_name, series, data, buckets) => {
+        const chart: any = await create(series, data);
+        const highlight = getSeriesOptions<any>(chart).highlight;
+        expect(buckets.map((bucket) => [bucket, highlight[bucket].glow.enabled])).toEqual(
+            buckets.map((bucket) => [bucket, true])
+        );
+        chart.destroy();
+    });
 
     // A bucket that has no `glow` of its own has no one value to follow, so it leaves each part to its own `glow`.
-    it.each(MULTI_PART)(
-        '%s leaves a bucket with no glow to each part',
-        async (_name, series, data, highlightOf, buckets) => {
-            const chart: any = await create(series, data);
-            const highlight = highlightOf(getSeriesOptions<any>(chart));
-            expect(buckets.map((bucket) => [bucket, highlight[bucket]?.glow?.enabled])).toEqual(
-                buckets.map((bucket) => [bucket, undefined])
-            );
-            chart.destroy();
-        }
-    );
+    it.each(MULTI_PART)('%s leaves a bucket with no glow to each part', async (_name, series, data, buckets) => {
+        const chart: any = await create(series, data);
+        const highlight = getSeriesOptions<any>(chart).highlight;
+        expect(buckets.map((bucket) => [bucket, highlight[bucket]?.glow?.enabled])).toEqual(
+            buckets.map((bucket) => [bucket, undefined])
+        );
+        chart.destroy();
+    });
 
     // The theme cannot tell a user's `enabled` from its own, so it is left to the options graph to enable a bucket that
     // the user gave a `glow`, whatever the parts do.
     it.each(MULTI_PART)(
         '%s turns on a bucket that the user gives a glow, and only that one',
-        async (_name, series, data, highlightOf, buckets) => {
+        async (_name, series, data, buckets) => {
             const chart: any = await create(
                 { ...series, highlight: { [buckets[0]]: { glow: { fill: 'red' } } } },
                 data
             );
-            const highlight = highlightOf(getSeriesOptions<any>(chart));
+            const highlight = getSeriesOptions<any>(chart).highlight;
             expect(buckets.map((bucket) => [bucket, highlight[bucket]?.glow?.enabled])).toEqual(
                 buckets.map((bucket, index) => [bucket, index === 0 ? true : undefined])
             );
@@ -178,12 +155,12 @@ describe('series glow theme', () => {
     );
 
     it('keeps the explicit enabled of a bucket glow', async () => {
-        const [, series, data, highlightOf] = MULTI_PART[0];
+        const [, series, data] = MULTI_PART[0];
         const chart: any = await create(
             { ...series, highlight: { highlightedItem: { glow: { enabled: false, fill: 'red' } } } },
             data
         );
-        expect(highlightOf(getSeriesOptions<any>(chart)).highlightedItem.glow.enabled).toBe(false);
+        expect(getSeriesOptions<any>(chart).highlight.highlightedItem.glow.enabled).toBe(false);
         chart.destroy();
     });
 

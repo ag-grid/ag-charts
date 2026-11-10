@@ -20,6 +20,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
+    inheritedGlowTheme,
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
     themeLineHeight,
@@ -104,13 +105,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
             blur: { $path: '/series/$index/marker/shadow/blur' },
             spread: { $path: '/series/$index/marker/shadow/spread' },
         },
-        glow: {
-            enabled: { $path: '/series/$index/marker/glow/enabled' },
-            fill: { $path: '/series/$index/marker/glow/fill' },
-            fillOpacity: { $path: '/series/$index/marker/glow/fillOpacity' },
-            blur: { $path: '/series/$index/marker/glow/blur' },
-            spread: { $path: '/series/$index/marker/glow/spread' },
-        },
+        glow: inheritedGlowTheme('/series/$index/marker/glow'),
         shape: {
             $path: '/series/$index/marker/shape',
         },

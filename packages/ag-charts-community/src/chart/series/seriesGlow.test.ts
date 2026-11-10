@@ -136,7 +136,7 @@ describe.each(SERIES)('series-level glow ($name)', ({ series, kind, sharesCatego
             }
         });
 
-        it('has the series-level glow win over the buckets that it would otherwise fall back to', async () => {
+        it('leaves the resting series glow unchanged by the highlight buckets, which apply only on hover', async () => {
             const { inPlace } = await create([
                 series('v', SERIES_GLOW, {
                     highlight: {

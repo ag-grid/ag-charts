@@ -18,7 +18,7 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
-/** The shape of alan's plunk: several grouped bar series, each with a `glow`, and a glow for each highlight state. */
+/** Several grouped bar series, each with a `glow`, and a glow for each highlight state. */
 const DATA = [
     { quarter: 'Q1', mac: 3, ipad: 5, iphone: 4 },
     { quarter: 'Q2', mac: 6, ipad: 4, iphone: 7 },
@@ -33,7 +33,7 @@ const HIGHLIGHT_GLOWS = {
     unhighlightedItem: { glow: { enabled: true, fill: '#7ed321', fillOpacity: 0.6, blur: 12, spread: 14 } },
 };
 
-const SERIES_GLOW = { enabled: true, fill: '#4a90e2', fillOpacity: 0.3, blur: 4, spread: 3 };
+const BAR_SERIES_GLOW = { enabled: true, fill: '#4a90e2', fillOpacity: 0.3, blur: 4, spread: 3 };
 
 const options = (): AgChartOptions => ({
     data: DATA,
@@ -44,7 +44,7 @@ const options = (): AgChartOptions => ({
         type: 'bar',
         xKey: 'quarter',
         yKey,
-        glow: SERIES_GLOW,
+        glow: BAR_SERIES_GLOW,
         highlight: HIGHLIGHT_GLOWS,
     })),
 });

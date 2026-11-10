@@ -75,7 +75,9 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
         };
     }
 
-    if (scenario === 'series-glow') {
+    if (scenario === 'series-glow' || scenario === 'series-highlight') {
+        const atRest = scenario === 'series-glow';
+        const glow = shadowOn ? SERIES_GLOW : undefined;
         return {
             width: 1400,
             height: 600,
@@ -85,23 +87,8 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
                 type: 'line' as const,
                 xKey: 'x',
                 yKey: `y${i}`,
-                marker: { enabled: true, size: 6, glow: shadowOn ? SERIES_GLOW : undefined },
-            })),
-        };
-    }
-
-    if (scenario === 'series-highlight') {
-        return {
-            width: 1400,
-            height: 600,
-            data: getRows(1000, 20, false),
-            axes: { x: { type: 'number' }, y: { type: 'number' } },
-            series: Array.from({ length: 20 }, (_, i) => ({
-                type: 'line' as const,
-                xKey: 'x',
-                yKey: `y${i}`,
-                marker: { enabled: true, size: 6 },
-                highlight: { highlightedSeries: { glow: shadowOn ? SERIES_GLOW : undefined } },
+                marker: { enabled: true, size: 6, ...(atRest ? { glow } : undefined) },
+                ...(atRest ? undefined : { highlight: { highlightedSeries: { glow } } }),
             })),
         };
     }
