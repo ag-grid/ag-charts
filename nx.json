@@ -280,5 +280,6 @@
   "cacheDirectory": ".nx/cache",
   "affected": {
     "legacy": true
-  }
+  },
+  "analytics": false
 }
