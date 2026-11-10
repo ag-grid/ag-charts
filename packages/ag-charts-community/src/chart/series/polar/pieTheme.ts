@@ -13,10 +13,15 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
+    interactionModeThemeDefaults,
     themeLineHeight,
     withSeriesGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
+
+const PIE_INTERACTION_MODE_DEFAULTS = interactionModeThemeDefaults({
+    $and: [{ $greaterThan: [{ $size: { $path: '/series' } }, 1] }, { $lessThan: [{ $size: { $path: '/series' } }, 4] }],
+});
 
 export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
     series: {
@@ -112,18 +117,6 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         selection: SERIES_SELECTION_THEME,
     },
     legend: { enabled: true },
-    tooltip: {
-        mode: {
-            $if: [
-                {
-                    $and: [
-                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                        { $lessThan: [{ $size: { $path: '/series' } }, 4] },
-                    ],
-                },
-                'shared',
-                'single',
-            ],
-        },
-    },
+    highlight: { mode: PIE_INTERACTION_MODE_DEFAULTS.highlightMode },
+    tooltip: { mode: PIE_INTERACTION_MODE_DEFAULTS.tooltipMode },
 };

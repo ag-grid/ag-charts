@@ -769,17 +769,35 @@ describe('OrdinalTimeScale', () => {
             ]);
         });
     });
+    const tickParams = (tickCount: number, interval?: AgTimeInterval | AgTimeIntervalUnit) => ({
+        nice: [true, true] as [boolean, boolean],
+        interval,
+        tickCount,
+        minTickCount: 0,
+        maxTickCount: Infinity,
+    });
+
+    // A scale that drops its interval must say so, or the axis stops thinning its automatic ticks.
+    describe('intervalIgnored', () => {
+        const weeklyScale = (range: [number, number]) => {
+            const scale = new OrdinalTimeScale();
+            scale.domain = Array.from({ length: 52 }, (_, i) => new Date(2024, 0, i * 7 + 1));
+            scale.range = range;
+            return scale;
+        };
+        it('is unset when the interval is honoured', () => {
+            expect(weeklyScale([0, 1000]).ticks(tickParams(5, 'month'))?.intervalIgnored).toBeUndefined();
+        });
+
+        it('is set when the interval is rejected as too dense', () => {
+            // A day interval over a year is more than one tick per pixel of this 50px range.
+            expect(weeklyScale([0, 50]).ticks(tickParams(5, 'day'))?.intervalIgnored).toBe(true);
+        });
+    });
+
     // A scale that was narrowed to a temporary domain and restored must answer exactly as one that never left
     // its domain: the cached band arrays are an optimisation, so no result may depend on them.
     describe('results after a temporary domain round trip', () => {
-        const tickParams = (tickCount: number, interval?: AgTimeInterval | AgTimeIntervalUnit) => ({
-            nice: [true, true] as [boolean, boolean],
-            interval,
-            tickCount,
-            minTickCount: 0,
-            maxTickCount: Infinity,
-        });
-
         function pair(domain: Date[], temporary: Date[]) {
             const control = new OrdinalTimeScale();
             control.domain = domain;

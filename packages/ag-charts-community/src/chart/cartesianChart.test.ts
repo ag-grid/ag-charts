@@ -11,6 +11,7 @@ import * as examples from './test/examples';
 import { getSeriesContextNodeData } from './test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     compareImageSnapshot,
     createChart,
     deproxy,
@@ -205,8 +206,11 @@ describe('CartesianChart', () => {
 
     describe.each([
         ['Series Highlighting', OPTIONS],
-        ['Line Series Highlighting', examples.SIMPLE_LINE_CHART_EXAMPLE],
-        ['Grouped Bar Series Highlighting', examples.GROUPED_BAR_CHART_EXAMPLE],
+        ['Line Series Highlighting', { ...examples.SIMPLE_LINE_CHART_EXAMPLE, ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP }],
+        [
+            'Grouped Bar Series Highlighting',
+            { ...examples.GROUPED_BAR_CHART_EXAMPLE, ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP },
+        ],
         ['Stacked Bar Series Highlighting', examples.STACKED_BAR_CHART_EXAMPLE],
         ['Stacked Area Series Highlighting', examples.STACKED_AREA_GRAPH_EXAMPLE],
         ['Area Series Highlighting', examples.AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE],

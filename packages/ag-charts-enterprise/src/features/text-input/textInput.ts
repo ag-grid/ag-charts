@@ -2,18 +2,17 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     BBox,
     CleanupRegistry,
+    ContentEditableWidget,
     type DynamicContext,
+    type KeyboardWidgetEvent,
+    NativeWidget,
     type NormalisedTextOptions,
     type Point,
-    attachListener,
     ceilTo,
-    focusCursorAtEnd,
-    setAttributes,
 } from 'ag-charts-core';
 import type { TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
-import textInputTemplate from './textInputTemplate.html';
 
 const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
@@ -28,7 +27,8 @@ export interface TextInputLayout {
 
 export class TextInput {
     private readonly cleanup = new CleanupRegistry();
-    private readonly element: HTMLElement;
+    private readonly container: NativeWidget;
+    private textArea?: ContentEditableWidget;
     private layout: TextInputLayout = {
         getTextInputCoords: () => ({ x: 0, y: 0 }),
         getTextPosition: () => 'center',
@@ -38,14 +38,17 @@ export class TextInput {
     private visible = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
-        this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
-        this.element.classList.add('ag-charts-text-input');
+        // TODO: Phase 3 "Common Widget Ancestor" - DOMManager hands out this container as an element, not a Widget
+        this.container = new NativeWidget(ctx.domManager.addChild(canvasOverlay, moduleId));
+        this.container.addClass('ag-charts-text-input');
 
         this.cleanup.register(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
     }
 
     public setKeyDownHandler(handler: (e: KeyboardEvent) => unknown) {
-        this.cleanup.register(attachListener(this.element, 'keydown', handler));
+        this.cleanup.register(
+            this.container.addListener('keydown', ({ sourceEvent }: KeyboardWidgetEvent) => handler(sourceEvent))
+        );
     }
 
     public show(opts: {
@@ -58,38 +61,35 @@ export class TextInput {
         onChange?: (text: string, bbox: BBox) => void;
         onClose?: (text: string) => void;
     }) {
-        this.element.innerHTML = textInputTemplate;
+        // A fresh text area per edit, so no inline style or listener carries over from the previous one.
+        this.textArea?.destroy();
+        const textArea = new ContentEditableWidget(this.ctx.agDocument.document, 'ag-charts-text-input__textarea');
+        this.textArea = textArea;
+        this.container.addChild(textArea);
 
-        const textArea = this.element.firstElementChild! as HTMLDivElement;
-        setAttributes(textArea, {
-            role: 'textbox', // AG-15233
-            'aria-label': opts.ariaLabel,
-            'data-preventdefault': false, // AG-13715
-        });
-
-        textArea.setAttribute(
-            'placeholder',
-            this.ctx.localeManager.t(opts.placeholderText ?? 'inputTextareaPlaceholder')
-        );
+        textArea.setAriaLabel(opts.ariaLabel);
+        textArea.setPlaceholder(this.ctx.localeManager.t(opts.placeholderText ?? 'inputTextareaPlaceholder'));
 
         if (opts.styles?.placeholderColor != null) {
-            textArea.style.setProperty('--placeholder-text-color', opts.styles?.placeholderColor);
+            textArea.setCSSVariable('--placeholder-text-color', opts.styles?.placeholderColor);
         }
 
-        textArea.innerText = opts.text ?? '';
-        textArea.style.color = opts.styles?.color ?? 'inherit';
-        textArea.style.fontFamily = opts.styles?.fontFamily ?? 'inherit';
-        textArea.style.fontSize = opts.styles?.fontSize == null ? 'inherit' : `${opts.styles.fontSize}px`;
-        textArea.style.fontStyle = opts.styles?.fontStyle ?? 'inherit';
-        textArea.style.lineHeight = opts.styles?.lineHeight == null ? '' : `${opts.styles.lineHeight}px`;
-        textArea.style.fontWeight =
-            typeof opts.styles?.fontWeight === 'number'
-                ? `${opts.styles.fontWeight}`
-                : (opts.styles?.fontWeight ?? 'inherit');
+        textArea.text = opts.text ?? '';
+        textArea.setTextStyle({
+            color: opts.styles?.color ?? 'inherit',
+            fontFamily: opts.styles?.fontFamily ?? 'inherit',
+            fontSize: opts.styles?.fontSize == null ? 'inherit' : `${opts.styles.fontSize}px`,
+            fontStyle: opts.styles?.fontStyle ?? 'inherit',
+            lineHeight: opts.styles?.lineHeight == null ? '' : `${opts.styles.lineHeight}px`,
+            fontWeight:
+                typeof opts.styles?.fontWeight === 'number'
+                    ? `${opts.styles.fontWeight}`
+                    : (opts.styles?.fontWeight ?? 'inherit'),
+        });
 
-        focusCursorAtEnd(textArea);
+        textArea.focusCursorAtEnd();
 
-        textArea.addEventListener('input', () => {
+        textArea.addListener('input', () => {
             this.updatePosition();
             opts.onChange?.(this.getValue()!, this.getBBox());
         });
@@ -104,7 +104,8 @@ export class TextInput {
     }
 
     public hide() {
-        this.element.innerHTML = '';
+        this.textArea?.destroy();
+        this.textArea = undefined;
         this.layout = {
             getTextInputCoords: () => ({ x: 0, y: 0 }),
             getTextPosition: () => 'center',
@@ -119,27 +120,26 @@ export class TextInput {
     }
 
     public updateColor(color: string) {
-        if (!this.element.firstElementChild) return;
-        (this.element.firstElementChild as HTMLDivElement).style.color = color;
+        this.textArea?.setTextStyle({ color });
     }
 
     public updateFontSize(fontSize: number, lineHeight: number | undefined) {
-        const textArea = this.element.firstElementChild as HTMLDivElement | null;
+        const { textArea } = this;
         if (!textArea) return;
-        textArea.style.fontSize = `${fontSize}px`;
-        textArea.style.lineHeight = lineHeight == null ? '' : `${lineHeight}px`;
+        textArea.setTextStyle({
+            fontSize: `${fontSize}px`,
+            lineHeight: lineHeight == null ? '' : `${lineHeight}px`,
+        });
         this.updatePosition();
         return this.getBBox();
     }
 
     public getValue() {
-        if (!this.element.firstElementChild) return;
-        return (this.element.firstElementChild as HTMLDivElement).innerText.trim();
+        return this.textArea?.text.trim();
     }
 
     private updatePosition() {
-        const { element } = this;
-        const textArea = element.firstElementChild as HTMLDivElement | undefined;
+        const { container, textArea } = this;
 
         if (!textArea) return;
 
@@ -147,7 +147,7 @@ export class TextInput {
         const { width, getTextInputCoords, getTextPosition, alignment, textAlign } = this.layout;
 
         // must be set before getting `textArea` bounding rect
-        element.style.setProperty('width', width == null || width === 0 ? 'unset' : `${width}px`);
+        container.setWidth(width == null || width === 0 ? undefined : width);
 
         const textRect = textArea.getBoundingClientRect();
 
@@ -167,15 +167,14 @@ export class TextInput {
             verticalPosition -= textRect.height;
         }
 
-        element.style.setProperty('top', `${verticalPosition}px`);
-        element.style.setProperty('left', `${horizontalPosition}px`);
-        element.style.setProperty('max-width', `${sceneRect.width - horizontalPosition}px`);
-        element.style.setProperty('text-align', alignment);
-        textArea.style.setProperty('text-align', textAlign);
+        container.setCssOffset({ x: horizontalPosition, y: verticalPosition });
+        container.setMaxWidth(sceneRect.width - horizontalPosition);
+        container.setTextAlign(alignment);
+        textArea.setTextAlign(textAlign);
     }
 
     public getBBox() {
-        const { left, top, width, height } = this.element.getBoundingClientRect();
+        const { left, top, width, height } = this.container.getBoundingClientRect();
         // Ceil the width to 2dp to fix floating point issues with dropping last character onto next line after
         // converting text to canvas.
         return new BBox(left, top, ceilTo(width, 2), height);

@@ -44,6 +44,11 @@ type Dirtiness = 'clean' | 'partial' | 'full';
 
 const NO_GROUPS: readonly Group[] = [];
 
+/** Whether the node casts through its root in either slot of its shape, a shadow or a glow. */
+function castsThroughRoot(node: Node): boolean {
+    return getRootShadow(node) != null || getRootShadow(node, 'glow') != null;
+}
+
 export class Group<TDatum = unknown> extends Node<TDatum> {
     static override readonly className: string = 'Group';
 
@@ -775,12 +780,12 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * Whether the child casts a shadow that the group batches, or, if `shared`, that its root casts, which a cutout may.
+     * Whether the child casts a shadow that the group batches, or, if `shared`, a shadow or glow that its root casts.
      * A cutout is counted whether or not the group is in a layer, as that is known only when the root gathers its frames.
      * Outside a layer the root casts nothing for the cutout, so a group of only cutouts is gathered as a frame without keys.
      */
     private castsShadow(child: Node, shared: boolean): boolean {
-        return (shared ? (getRootShadow(child) ?? getRootShadow(child, 'glow')) : getBatchedShadow(child)) != null;
+        return shared ? castsThroughRoot(child) : getBatchedShadow(child) != null;
     }
 
     /** Renders the children in order, with each run that shares a shadow batched if {@link batchShadows} is on. */

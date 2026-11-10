@@ -132,7 +132,7 @@ export interface AgSeriesLabelCollideWithOptions {
     /**
      * Whether labels may overlap axis labels.
      *
-     * Default: `true`
+     * Default: `false`
      */
     axisLabels?: boolean;
 }

@@ -1,0 +1,8 @@
+$chart-dark-bg: #192232; // AG Charts dark-theme chart background
+$hero-gradient-stop: #dde9f9;
+$hero-gradient-dark-start: #29384b;
+// A color-mix() stop here would switch the gradient's interpolation to Oklab.
+$hero-gradient-dark-end: #141d2c;
+$hero-border-dark: #f1bbde26;
+
+$hero-border: color-mix(in srgb, var(--color-util-brand-500) 14.9%, transparent);

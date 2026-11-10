@@ -1,3 +1,5 @@
+import type { TextAlign } from 'ag-charts-types';
+
 import type { BaseAttributeTypeMap, BaseStyleTypeMap } from '../dom/attributeUtil';
 import { getAttribute, setAttribute, setElementStyle, setElementStyles } from '../dom/attributeUtil';
 import { getElementBBox, isFocused, setElementBBox } from '../dom/domUtil';
@@ -185,6 +187,18 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
     }
 
+    setAriaChecked(ariaChecked: BaseAttributeTypeMap['aria-checked'] | undefined) {
+        setAttribute(this.elem, 'aria-checked', ariaChecked);
+    }
+
+    setAriaSelected(ariaSelected: BaseAttributeTypeMap['aria-selected'] | undefined) {
+        setAttribute(this.elem, 'aria-selected', ariaSelected);
+    }
+
+    setAriaLabelledBy(ariaLabelledBy: BaseAttributeTypeMap['aria-labelledby'] | undefined) {
+        setAttribute(this.elem, 'aria-labelledby', ariaLabelledBy);
+    }
+
     /** Sets the `title` attribute (the native tooltip), or removes it when `undefined` or empty. */
     setTitle(title: BaseAttributeTypeMap['title'] | undefined) {
         setAttribute(this.elem, 'title', title);
@@ -230,6 +244,33 @@ export abstract class Widget<
             this.elem.style.removeProperty('min-width');
         } else {
             this.elem.style.setProperty('min-width', `${minWidth}px`);
+        }
+    }
+
+    /** Sets the inline `width` in CSS pixels, or removes it when `undefined`. */
+    setWidth(width: number | undefined) {
+        if (width == null) {
+            this.elem.style.removeProperty('width');
+        } else {
+            this.elem.style.setProperty('width', `${width}px`);
+        }
+    }
+
+    /** Sets the inline `max-width` in CSS pixels, or removes it when `undefined`. */
+    setMaxWidth(maxWidth: number | undefined) {
+        if (maxWidth == null) {
+            this.elem.style.removeProperty('max-width');
+        } else {
+            this.elem.style.setProperty('max-width', `${maxWidth}px`);
+        }
+    }
+
+    /** Sets the inline `text-align`, or removes it when `undefined`. */
+    setTextAlign(textAlign: TextAlign | undefined) {
+        if (textAlign == null) {
+            this.elem.style.removeProperty('text-align');
+        } else {
+            this.elem.style.setProperty('text-align', textAlign);
         }
     }
 

@@ -11,7 +11,7 @@
     margin-left: calc(var(--layout-horizontal-margins) * -1);
 
     @media screen and (max-width: $breakpoint-options-medium) {
-        margin-left: var(--layout--horizontal-margins);
+        margin-left: 0;
         padding-top: $spacing-size-5;
     }
 

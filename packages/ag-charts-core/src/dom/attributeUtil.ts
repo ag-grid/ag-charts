@@ -23,6 +23,7 @@ type AriaRole =
     | 'radiogroup'
     | 'region'
     | 'separator'
+    | 'slider'
     | 'status'
     | 'switch'
     | 'tab'
@@ -44,6 +45,7 @@ export type BaseAttributeTypeMap = {
     'aria-labelledby': ElementID;
     'aria-live': 'assertive' | 'polite';
     'aria-orientation': Direction;
+    'aria-roledescription': string;
     'aria-selected': boolean;
     'aria-valuemax': number;
     'aria-valuemin': number;
@@ -52,6 +54,7 @@ export type BaseAttributeTypeMap = {
     'data-focus-visible-override': boolean;
     'data-preventdefault': boolean;
     class: string;
+    contenteditable: 'plaintext-only';
     for: ElementID;
     id: ElementID;
     tabindex: 0 | -1;
@@ -59,6 +62,7 @@ export type BaseAttributeTypeMap = {
 };
 
 type InputAttributeTypeMap = BaseAttributeTypeMap & {
+    list: ElementID;
     placeholder: string;
 };
 
@@ -86,6 +90,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'aria-labelledby': stringParser<ElementID>,
     'aria-live': stringParser<BaseAttributeTypeMap['aria-live']>,
     'aria-orientation': stringParser<Direction>,
+    'aria-roledescription': stringParser,
     'aria-selected': booleanParser,
     'aria-valuemax': numberParser,
     'aria-valuemin': numberParser,
@@ -94,10 +99,12 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'data-focus-visible-override': booleanParser,
     'data-preventdefault': booleanParser,
     class: stringParser,
+    contenteditable: stringParser<'plaintext-only'>,
     for: stringParser<ElementID>,
     id: stringParser<ElementID>,
     tabindex: numberParser<0 | -1>,
     title: stringParser,
+    list: stringParser<ElementID>,
     placeholder: stringParser,
 };
 
@@ -123,7 +130,7 @@ export function setAttribute<A extends keyof BaseAttributeTypeMap>(
 ): void;
 
 export function setAttribute<A extends keyof InputAttributeTypeMap>(
-    e: Nullable<HTMLTextAreaElement>,
+    e: Nullable<HTMLInputElement | HTMLTextAreaElement>,
     qualifiedName: A,
     value: InputAttributeTypeMap[A] | undefined
 ): void;

@@ -9,14 +9,14 @@
     "preview": "ng serve --configuration production"
   },
   "dependencies": {
-    "@angular/cdk": "^20.2.0",
-    "@angular/common": "^20.0.0",
-    "@angular/compiler": "^20.0.0",
-    "@angular/core": "^20.0.0",
-    "@angular/platform-browser": "^20.0.0",
-    "ag-charts-angular": "14.3.0",
-    "ag-charts-community": "14.3.0",
-    "ag-charts-enterprise": "14.3.0",
+    "@angular/cdk": "^21.0.0",
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "ag-charts-angular": "latest",
+    "ag-charts-community": "latest",
+    "ag-charts-enterprise": "latest",
     "ag-grid-angular": "~36.2.0",
     "ag-grid-community": "~36.2.0",
     "rxjs": "~7.8.2",
@@ -24,9 +24,9 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular/build": "^20.0.0",
-    "@angular/cli": "^20.0.0",
-    "@angular/compiler-cli": "^20.0.0",
-    "typescript": "~5.8.3"
+    "@angular/build": "^21.0.0",
+    "@angular/cli": "^21.0.0",
+    "@angular/compiler-cli": "^21.0.0",
+    "typescript": "~5.9.3"
   }
 }

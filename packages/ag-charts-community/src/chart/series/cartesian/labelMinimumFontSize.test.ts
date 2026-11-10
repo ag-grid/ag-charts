@@ -317,6 +317,7 @@ describe('label minimumFontSize', () => {
                     type,
                     xKey: 'x',
                     yKey: 'y',
+                    ...(type === 'scatter' ? { labelKey: 'y' } : {}),
                     label: {
                         enabled: true,
                         fontSize: FONT_SIZE,
@@ -448,6 +449,7 @@ describe('label minimumFontSize', () => {
                     xKey: 'x',
                     yKey: 'y',
                     sizeKey: 'size',
+                    labelKey: 'size',
                     label: {
                         enabled: true,
                         fontSize: FONT_SIZE,
@@ -492,6 +494,7 @@ describe('label minimumFontSize', () => {
                 type: 'scatter',
                 xKey: 'x',
                 yKey,
+                labelKey: yKey,
                 label: {
                     enabled: true,
                     fontSize: FONT_SIZE,

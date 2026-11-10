@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-locale",
-  "version": "14.3.0",
+  "version": "14.3.0-beta.20261108",
   "sideEffects": false,
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -52,7 +52,7 @@
   "homepage": "https://www.ag-grid.com/charts/",
   "devDependencies": {
     "@types/node": "^16.0.0",
-    "typescript": "~5.8.3"
+    "typescript": "~5.9.3"
   },
   "publishConfig": {
     "access": "public"

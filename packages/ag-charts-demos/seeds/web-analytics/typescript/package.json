@@ -9,13 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "ag-charts-community": "14.3.0",
-    "ag-charts-enterprise": "14.3.0",
+    "ag-charts-community": "latest",
+    "ag-charts-enterprise": "latest",
     "ag-grid-community": "~36.2.0",
     "ag-grid-enterprise": "~36.2.0"
   },
   "devDependencies": {
-    "typescript": "~5.8.3",
+    "typescript": "~5.9.3",
     "vite": "^8.3.0"
   }
 }

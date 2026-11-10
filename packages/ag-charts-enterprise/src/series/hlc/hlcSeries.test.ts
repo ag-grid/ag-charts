@@ -53,7 +53,12 @@ import {
     getNavigatorMiniChartSeriesTypes,
     getSeriesInstance,
 } from '../../test/enterpriseSeriesAccessors';
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    createEnterpriseChart,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+    shadowedShapes,
+} from '../../test/utils';
 import { HlcSeries } from './hlcSeries';
 import type { HlcMarkerDatum } from './hlcUtil';
 
@@ -184,6 +189,17 @@ describe('HlcSeries', () => {
                 })
             );
             await compare();
+        });
+
+        it('passes the marker shadow spread to the item markers', async () => {
+            const series = await renderSeries(
+                withSeries({
+                    marker: { enabled: true, shadow: { enabled: true, fill: '#000000', blur: 0, spread: 3 } },
+                })
+            );
+            const shadowed = shadowedShapes(series.contentGroup);
+            expect(shadowed.length).toBeGreaterThan(0);
+            expect(shadowed.map((shape) => shape.fillShadow?.spread)).toEqual(shadowed.map(() => 3));
         });
 
         it.each(['xKey', 'highKey', 'lowKey', 'closeKey'])('reports a missing %s', async (key) => {
@@ -483,6 +499,7 @@ describe('HlcSeries', () => {
     describe('mixed chart', () => {
         const MIXED_OPTIONS: AgCartesianChartOptions = {
             data: DATA.map((d) => ({ ...d, volume: d.high - d.low, mean: (d.high + d.low) / 2 })),
+            highlight: { mode: 'single' },
             tooltip: { mode: 'shared' },
             legend: { enabled: true },
             series: [

@@ -20,6 +20,7 @@ import type { Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type {
     AgAnnotationsToolbarButton,
+    AgCartesianChartOptions,
     AgChartInstance,
     AgChartTheme,
     AgFinancialChartOptions,
@@ -150,6 +151,15 @@ describe('priceVolumePreset', () => {
         await waitForChartStability(chart);
 
         expect(ids()).toEqual(['price', 'volume']);
+    });
+
+    it('keeps single highlighting alongside its shared tooltip', async () => {
+        chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ ...EXAMPLES.candlestick }));
+        await waitForChartStability(chart);
+
+        const { processedOptions } = deproxy(chart).chartOptions;
+        expect(processedOptions.tooltip?.mode).toBe('shared');
+        expect((processedOptions as AgCartesianChartOptions).highlight?.mode).toBe('single');
     });
 
     it('gives the price, volume and volume profile series four distinct fixed ids', async () => {

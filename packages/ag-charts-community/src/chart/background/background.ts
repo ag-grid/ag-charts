@@ -2,6 +2,7 @@ import { AbstractModuleInstance, type DynamicContext, Group, Rect, Text, ZIndexM
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
+import { chartBorderOuterRadius } from './chartBorder';
 
 export class Background extends AbstractModuleInstance {
     protected readonly node;
@@ -24,6 +25,10 @@ export class Background extends AbstractModuleInstance {
         const opts = this.ctx.chartState.getValue('options', 'background');
         this.node.visible = opts.visible;
         this.rectNode.fill = opts.fill;
+        const border = this.ctx.chartState.getValue('options', 'border');
+        this.rectNode.cornerRadius = border.enabled
+            ? chartBorderOuterRadius(border.cornerRadius, border.strokeWidth)
+            : 0;
     }
 
     protected createNode() {

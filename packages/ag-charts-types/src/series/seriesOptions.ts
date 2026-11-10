@@ -1,7 +1,7 @@
 import type { AgDropShadowOptions, AgGlowOptions } from '../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
-import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
+import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity, PixelSize } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
 export interface AgMultiSeriesHighlightOptions<
@@ -73,6 +73,17 @@ export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyle
     unhighlightedItem?: ItemHighlightStyleOptions;
 }
 export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
+
+export interface AgMarkerHighlightSizeOptions {
+    /**
+     * The size in pixels of the markers while this highlight state applies.
+     *
+     * Default: the size of the marker outside a highlight
+     */
+    size?: PixelSize;
+}
+
+export interface AgMarkerHighlightStyleOptions extends AgHighlightStyleOptions, AgMarkerHighlightSizeOptions {}
 
 export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOptions {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

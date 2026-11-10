@@ -58,10 +58,10 @@ export type ShadowScope = 'run' | 'layer' | 'root';
 
 /** The casters that share their shadow options and clip, and so one mask and one blur. */
 export interface ShadowKey {
+    /** Which of its casters' two slots the key casts. A caster that casts both is in a key of each. */
+    readonly slot: ShadowSlot;
     /** The shadow options of its casters. A glow with no `fill` keeps none: each caster's silhouette has its own colour. */
     readonly shadow: NormalisedDropShadowOptions;
-    /** Which of its casters' shadows this key casts. */
-    readonly slot: ShadowSlot;
     /** The clip of a local key, in the coordinates of the group. A `root` key has {@link clips} instead. */
     readonly clip: ShadowClip | undefined;
     readonly casters: ShadowCaster[];
@@ -71,15 +71,15 @@ export interface ShadowKey {
     readonly clips?: readonly ShadowRegion[];
 }
 
-/** The shadow options that a node casts through a shadow root, which a cutout may, or undefined if it casts none. */
+/** The options that a node casts in a slot through a shadow root, which a cutout may, or undefined if it casts none. */
 export function getRootShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
-    return node instanceof Shape ? node.getBatchShadowOf(slot) : undefined;
+    return node instanceof Shape ? node.getBatchShadow(slot) : undefined;
 }
 
-/** The shadow options that a node casts through the engine, or undefined if it casts none. */
-export function getBatchedShadow(node: Node): NormalisedDropShadowOptions | undefined {
+/** The options that a node casts in a slot through the engine, or undefined if it casts none. */
+export function getBatchedShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
     // A cutout erases the layer beneath it, and so also what the engine's shadow put there. It casts for itself.
-    return node instanceof Shape && node.__drawingMode === 'cutout' ? undefined : getRootShadow(node);
+    return node instanceof Shape && node.__drawingMode === 'cutout' ? undefined : getRootShadow(node, slot);
 }
 
 export function getShadowClip(node: Node): ShadowClip | undefined {
@@ -141,10 +141,9 @@ export function joinsShadowKey(
     shadow: NormalisedDropShadowOptions,
     clip: ShadowClip | undefined,
     scope: ShadowScope,
-    clips?: readonly ShadowRegion[],
-    slot: ShadowSlot = 'shadow'
+    clips?: readonly ShadowRegion[]
 ) {
-    if (key.slot !== slot || !sameShadow(key.shadow, shadow)) return false;
+    if (!sameShadow(key.shadow, shadow)) return false;
     if (scope === 'root') return sameRegions(key.clips, clips);
     return sameClip(key.clip, clip) && (scope !== 'layer' || sameLayer(key.casters[0], next));
 }
@@ -311,7 +310,7 @@ function matchSignature(
     putSignature(cache, transform.f);
     if (unchanged && cache.signature.length > cache.cursor) return !cache.changed;
 
-    for (const { shadow, slot, clip, clips, casters, frames } of keys) {
+    for (const { slot, shadow, clip, clips, casters, frames } of keys) {
         putSignature(cache, slot);
         putSignature(cache, shadow.gap ?? -1);
         putSignature(cache, shadow.fill ?? '');
@@ -383,7 +382,7 @@ function getShadowExtent(
     let maxX = -Infinity;
     let maxY = -Infinity;
 
-    for (const { shadow, casters, frames } of keys) {
+    for (const { slot, shadow, casters, frames } of keys) {
         const spread = getShadowSpread(shadow);
         const offsetX = shadow.xOffset * devicePixelRatio;
         const offsetY = shadow.yOffset * devicePixelRatio;
@@ -399,7 +398,7 @@ function getShadowExtent(
                 const [a, b, c, d, e, f] = next.matrix;
                 frameTransform = { a, b, c, d, e, f };
             }
-            if (!caster.getShadowSilhouetteBounds(frameTransform, spread, silhouette)) return layer;
+            if (!caster.getShadowSilhouetteBounds(frameTransform, spread, silhouette, slot)) return layer;
 
             minX = Math.min(minX, silhouette.minX + offsetX - blurReach);
             maxX = Math.max(maxX, silhouette.maxX + offsetX + blurReach);
@@ -487,23 +486,23 @@ function renderPass(
     casters: readonly Node[],
     renderCtx: RenderContext,
     state: 'mask' | 'suppress',
+    slot: ShadowSlot = 'shadow',
     opaque: boolean = false,
     tinted: boolean = false,
     resolution: { x: number; y: number } = FULL_RESOLUTION,
     before?: (index: number) => void,
-    slot: ShadowSlot = 'shadow',
     erase?: number
 ): boolean {
     let rendered = true;
     const previousState = shadowPass.state;
+    const previousSlot = shadowPass.slot;
+    const previousErase = shadowPass.erase;
     const previousOpaque = shadowPass.opaque;
     const previousTinted = shadowPass.tinted;
     const previousResolution = shadowPass.resolution;
-    const previousSlot = shadowPass.slot;
-    const previousErase = shadowPass.erase;
+    shadowPass.state = state;
     shadowPass.slot = slot;
     shadowPass.erase = erase;
-    shadowPass.state = state;
     shadowPass.opaque = opaque;
     shadowPass.tinted = tinted;
     shadowPass.resolution = resolution;
@@ -514,11 +513,11 @@ function renderPass(
         }
     } finally {
         shadowPass.state = previousState;
+        shadowPass.slot = previousSlot;
+        shadowPass.erase = previousErase;
         shadowPass.opaque = previousOpaque;
         shadowPass.tinted = previousTinted;
         shadowPass.resolution = previousResolution;
-        shadowPass.slot = previousSlot;
-        shadowPass.erase = previousErase;
     }
     return rendered;
 }
@@ -529,10 +528,10 @@ export function renderShadowless(casters: readonly Node[], renderCtx: RenderCont
 }
 
 /** The strength all casters of a key cast at (0 if none), or undefined if they differ or one draws another way. */
-function getUniformSpreadStrength({ casters, frames }: ShadowKey): number | undefined {
+function getUniformSpreadStrength({ slot, casters, frames }: ShadowKey): number | undefined {
     let uniform = 0;
     for (let i = 0; i < casters.length; i++) {
-        const base = casters[i].getSpreadMaskStrength();
+        const base = casters[i].getSpreadMaskStrength(slot);
         if (base == null) return;
         const strength = base * (frames?.[i].alpha ?? 1);
         if (strength <= 0) continue;
@@ -715,11 +714,11 @@ function castPlan(
                 dirtyRegion: undefined,
             },
             'mask',
+            key.slot,
             opaque,
             tinted,
             { x: scaleX, y: scaleY },
-            before,
-            key.slot
+            before
         );
     } finally {
         context.restore();
@@ -829,6 +828,7 @@ function castPlan(
                         dirtyRegion: undefined,
                     },
                     'mask',
+                    key.slot,
                     true,
                     false,
                     FULL_RESOLUTION,
@@ -841,7 +841,6 @@ function castPlan(
                               place(frame.matrix);
                               erase.globalAlpha = frame.alpha > 0 ? 1 : 0;
                           },
-                    key.slot,
                     gap
                 ) && rendered;
         } finally {
@@ -879,7 +878,7 @@ export interface ShadowCast {
     readonly scene: object | undefined;
     /** The group that casts, which holds the scratch canvas and its kept shadows until it releases them. */
     readonly user: object;
-    /** The keys whose shadows to cast, in the order of their first caster. */
+    /** The keys whose shadows to cast, in the order to draw them. */
     readonly keys: readonly ShadowKey[];
     /** Which of the user's casts of this frame this is, to match it with the same cast of the last frame. */
     readonly index: number;

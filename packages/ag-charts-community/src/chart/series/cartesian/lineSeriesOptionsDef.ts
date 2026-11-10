@@ -9,15 +9,15 @@ import {
     errorBarThemeableOptionsDefs,
     interpolationOptionsDefs,
     lineDashOptionsDef,
-    lineHighlightOptionsDef,
+    lineMarkerHighlightOptionsDef,
     lineSegmentation,
+    markerHighlightOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
     multiSeriesGlowHighlightOptionsDef,
     number,
     placedSeriesLabelOptionsDefs,
     required,
-    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
@@ -25,7 +25,7 @@ import {
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, AgLineSeriesStylerResult, AgLineSeriesThemeableOptions } from 'ag-charts-types';
 
-const highlight = multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef);
+const highlight = multiSeriesGlowHighlightOptionsDef(markerHighlightOptionsDef, lineMarkerHighlightOptionsDef);
 
 const lineStyler = callbackDefs<AgLineSeriesStylerResult>({
     ...strokeOptionsDef,

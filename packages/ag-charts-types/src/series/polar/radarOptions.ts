@@ -14,7 +14,8 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOption
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
-    AgHighlightStyleOptions,
+    AgMarkerHighlightSizeOptions,
+    AgMarkerHighlightStyleOptions,
     AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgRadialSeriesOptionsKeys, AgRadialSeriesOptionsNames } from './radialOptions';
@@ -41,13 +42,14 @@ export interface AgRadarSeriesThemeableOptions<
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<TStylerParams, TStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgRadarHighlightStyleOptions<TStyle>>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgMarkerHighlightStyleOptions, AgRadarHighlightStyleOptions<TStyle>>;
 }
 
-export type AgRadarHighlightStyleOptions<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'marker'> & {
-    /** The opacity of the whole series (line, fill, labels and markers, if any) */
-    opacity?: Opacity;
-};
+export type AgRadarHighlightStyleOptions<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'marker'> &
+    AgMarkerHighlightSizeOptions & {
+        /** The opacity of the whole series (line, fill, labels and markers, if any) */
+        opacity?: Opacity;
+    };
 
 export interface AgBaseRadarSeriesOptions<
     TDatum = DatumDefault,

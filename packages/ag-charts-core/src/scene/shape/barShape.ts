@@ -36,6 +36,7 @@ export class BarShape<D = any> extends Rect<D> {
         visible: boolean,
         crisp: boolean,
         fillShadow: NormalisedDropShadowOptions | undefined,
+        fillGlow: NormalisedDropShadowOptions | undefined,
         direction?: 'x' | 'y',
         featherRatio?: number,
         crispCentreDirection?: 'x' | 'y'
@@ -59,7 +60,8 @@ export class BarShape<D = any> extends Rect<D> {
             bottomLeftCornerRadius,
             visible,
             crisp,
-            fillShadow
+            fillShadow,
+            fillGlow
         );
         if (ownChanged) {
             // All three shape the path.

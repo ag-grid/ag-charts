@@ -3,7 +3,7 @@
     "framework": "react",
     "sourceHash": "sha256-2467be29e812b1467a547ccd81e274dea6a68be6081a574bdbf5d1037b9aac35",
     "sourceCommit": "bd22a8dcfe4379f181bba7367911d47d0e33ec36",
-    "pinnedVersion": "14.3.0",
-    "pinSource": "release",
+    "pinnedVersion": "latest",
+    "pinSource": "dist-tag",
     "vendored": ["web-analytics/topology.ts"]
 }

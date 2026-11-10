@@ -1960,16 +1960,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     highlightState,
                     datum.style?.shadow
                 ),
+                series.resolveGlowSlot(glow, isHighlight, datum.datumIndex, highlightState, datum.style?.glow),
                 direction,
                 datum.featherRatio,
                 crispCentreDirection
-            );
-            rect.fillGlow = series.resolveGlowSlot(
-                glow,
-                isHighlight,
-                datum.datumIndex,
-                highlightState,
-                datum.style?.glow
             );
         }
 

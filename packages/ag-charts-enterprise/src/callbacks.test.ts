@@ -1069,6 +1069,7 @@ describe('AG-15850 labels', () => {
                         xKey: 'myValue',
                         yKey: 'myValue2',
                         sizeKey: 'mySize',
+                        labelKey: 'mySize',
                         label: {
                             formatter: mockFormatter.frozen,
                             itemStyler: mockItemStyler.frozen,

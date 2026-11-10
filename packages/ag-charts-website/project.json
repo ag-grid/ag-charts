@@ -136,9 +136,24 @@
       ],
       "outputs": []
     },
+    "lint:styles": {
+      "command": "stylelint --config stylelint.config.mjs 'src/**/*.module.scss'",
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}"
+      },
+      "inputs": [
+        "{projectRoot}/src/**/*.{scss,css}",
+        "{projectRoot}/stylelint.config.mjs",
+        "{workspaceRoot}/external/ag-website-shared/src/**/*.{scss,css}",
+        "{workspaceRoot}/external/ag-website-shared/stylelint/**",
+        { "externalDependencies": ["npm:stylelint", "npm:postcss-scss"] }
+      ],
+      "outputs": []
+    },
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint:eslint", "lint:spell", "format:mdoc:check"],
+      "dependsOn": ["lint:eslint", "lint:spell", "lint:styles", "format:mdoc:check"],
       "configurations": {
         "fix": {}
       }

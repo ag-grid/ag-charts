@@ -933,3 +933,28 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
         },
     },
 };
+
+/**
+ * Theme defaults for `highlight.mode` and `tooltip.mode`. When only one of them is set, the other follows it
+ * (a `'compact'` tooltip gives `'single'` highlighting). Otherwise both resolve to `'shared'` when `sharedCondition`
+ * holds and `'single'` when it does not. Each `$path` to the other option is guarded by `$isUserOption` so that
+ * neither default can resolve through the other.
+ */
+export function interactionModeThemeDefaults(sharedCondition: Operation): {
+    highlightMode: Operation;
+    tooltipMode: Operation;
+} {
+    const seriesCountDefault: Operation = { $if: [sharedCondition, 'shared', 'single'] };
+    return {
+        highlightMode: {
+            $isUserOption: [
+                '/tooltip/mode',
+                { $if: [{ $eq: [{ $path: '/tooltip/mode' }, 'shared'] }, 'shared', 'single'] },
+                seriesCountDefault,
+            ],
+        },
+        tooltipMode: {
+            $isUserOption: ['/highlight/mode', { $path: '/highlight/mode' }, seriesCountDefault],
+        },
+    };
+}

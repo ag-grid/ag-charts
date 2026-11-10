@@ -22,7 +22,7 @@ import {
     getNavigator,
     getSeriesPlacedLabels,
 } from '../../test/featureAccessors';
-import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
+import { SHADOW, createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const xyData = (ys: number[], key = 'y') => ys.map((y, x) => ({ x, [key]: y }));
 
@@ -744,7 +744,6 @@ describe('Navigator', () => {
     });
 
     describe('mini chart shadow inheritance', () => {
-        const SHADOW = { enabled: true, fill: '#000000', xOffset: 3, yOffset: 3, blur: 5 };
         const ohlcData = Array.from({ length: 8 }, (_, i) => ({
             date: new Date(2024, 0, i + 1),
             open: 10 + i,

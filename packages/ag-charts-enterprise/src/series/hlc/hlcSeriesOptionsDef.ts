@@ -19,12 +19,12 @@ import {
     glowOptionsDefs,
     interpolationOptionsDefs,
     lineDashOptionsDef,
+    markerHighlightOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
     required,
     shadowOptionsDefs,
-    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
@@ -80,7 +80,7 @@ export const hlcSeriesThemeableOptionsDef: OptionsDefs<AgHlcSeriesThemeableOptio
             close: { ...hlcSeriesLineStyleDef },
         },
     }),
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesHighlightOptionsDef(markerHighlightOptionsDef, markerHighlightOptionsDef),
 };
 
 export const hlcSeriesOptionsDef: OptionsDefs<AgHlcSeriesOptions> = {

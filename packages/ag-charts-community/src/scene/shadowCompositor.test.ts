@@ -2462,8 +2462,8 @@ describe('Group shadow compositor', () => {
         });
 
         const keyOf = (caster: Shape, shadow: ResolvedDropShadowOptions): ShadowKey => ({
-            shadow,
             slot: 'shadow',
+            shadow,
             clip: undefined,
             casters: [caster],
         });

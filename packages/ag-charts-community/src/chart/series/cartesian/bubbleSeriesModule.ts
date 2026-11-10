@@ -68,7 +68,7 @@ export const BUBBLE_SCATTER_GRADIENT_LEGEND_THEME: WithThemeParams<AgGradientLeg
 const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
-        shape: { $palette: 'markerShape' },
+        shape: 'circle',
         minSize: 7,
         maxSize: 30,
         sizeMode: 'diameter',
@@ -82,7 +82,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
-            enabled: { $isUserOption: '../labelKey' },
+            enabled: true,
             fontSize: { $ref: 'seriesLabelFontSize' },
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
