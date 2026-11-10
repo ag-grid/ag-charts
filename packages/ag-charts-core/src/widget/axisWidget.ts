@@ -1,7 +1,10 @@
-import type { Widget, Writeable } from 'ag-charts-core';
-import { BoundedTextWidget, NativeWidget, ListWidget, createElement } from 'ag-charts-core';
-
+import { createElement } from '../dom/domElements';
 import { DragInterpreter } from '../dom/dragInterpreter';
+import type { Writeable } from '../types/global';
+import { BoundedTextWidget } from './boundedTextWidget';
+import { ListWidget } from './listWidget';
+import { NativeWidget } from './nativeWidget';
+import type { Widget } from './widget';
 
 type AxisWidgetInteraction = {
     readonly tickButtons: ListWidget;
