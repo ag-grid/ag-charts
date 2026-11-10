@@ -313,6 +313,28 @@ describe.each(SERIES)('series-level glow ($name)', ({ series, kind, sharesCatego
             const glow = getSeriesOptions<{ glow?: AgGlowOptions; marker?: { glow?: AgGlowOptions } }>(chart);
             expect((glow.glow ?? glow.marker?.glow)?.spread).toBe(THEME_GLOW.spread);
         });
+
+        it('warns about a negative gap and drops it, leaving the glow cast like a shadow', async () => {
+            const { inPlace } = await create([series('v', { ...SERIES_GLOW, gap: -3 })]);
+
+            expectWarningMessages([expect.stringContaining('glow.gap')]);
+            for (const shape of inPlace()) expect(shape.fillGlow?.gap).toBeUndefined();
+        });
+    });
+
+    describe('gap', () => {
+        it('leaves the gap unset by default, which casts the glow like a shadow', async () => {
+            const { inPlace } = await create([series('v', SERIES_GLOW)]);
+
+            for (const shape of inPlace()) expect(shape.fillGlow?.gap).toBeUndefined();
+        });
+
+        it.each([0, 4])('carries a gap of %s to the glow of every item', async (gap) => {
+            const { inPlace } = await create([series('v', { ...SERIES_GLOW, gap })]);
+
+            expect(inPlace()).toHaveLength(XY_DATA.length);
+            for (const shape of inPlace()) expect(shape.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, gap }));
+        });
     });
 });
 
