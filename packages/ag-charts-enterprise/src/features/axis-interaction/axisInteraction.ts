@@ -12,6 +12,15 @@ import type {
 } from 'ag-charts-core';
 import { AbstractModuleInstance, BBox, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
 
+type AxisContext = _ModuleSupport.AxisContext;
+type ChartService = _ModuleSupport.ChartService;
+type ChartRegistry = _ModuleSupport.ChartRegistry;
+type LayoutCompleteEvent = _ModuleSupport.LayoutCompleteEvent;
+type AxisInteractionUpdateEvent = _ModuleSupport.AxisInteractionUpdateEvent;
+type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
+type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
+type SeriesAreaContextMenuEvent = _ModuleSupport.SeriesAreaContextMenuEvent;
+
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
 type ProxyAxis = {
@@ -21,26 +30,22 @@ type ProxyAxis = {
     bounds?: BBox;
 };
 
-function hasAxisListener(
-    chartService: _ModuleSupport.ChartService,
-    axisCtx: _ModuleSupport.AxisContext,
-    isDoubleClick: boolean
-): boolean {
+function hasAxisListener(chartService: ChartService, axisCtx: AxisContext, isDoubleClick: boolean): boolean {
     return isDoubleClick
         ? chartService.listeners.axisDoubleClick != null || axisCtx.listeners?.doubleClick != null
         : chartService.listeners.axisClick != null || axisCtx.listeners?.click != null;
 }
 
-function hasAxisClickListener(chartService: _ModuleSupport.ChartService, axisCtx: _ModuleSupport.AxisContext): boolean {
+function hasAxisClickListener(chartService: ChartService, axisCtx: AxisContext): boolean {
     return hasAxisListener(chartService, axisCtx, false) || hasAxisListener(chartService, axisCtx, true);
 }
 
-function hasDraggableAxes(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): boolean {
+function hasDraggableAxes(ctx: DynamicContext<ChartRegistry>): boolean {
     const options = ctx.chartState.getValue('options');
     return !!(options?.zoom?.enabled && options.zoom.enableAxisDragging);
 }
 
-function needsTabStop(chartService: _ModuleSupport.ChartService, axisCtx: _ModuleSupport.AxisContext): boolean {
+function needsTabStop(chartService: ChartService, axisCtx: AxisContext): boolean {
     return hasAxisListener(chartService, axisCtx, false);
 }
 
@@ -68,7 +73,7 @@ export class AxisInteraction extends AbstractModuleInstance {
 
     private seriesRect: BBox | undefined;
 
-    constructor(readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         if (ctx.widgets.seriesDragInterpreter) {
@@ -97,12 +102,12 @@ export class AxisInteraction extends AbstractModuleInstance {
         this.axes.length = 0;
     }
 
-    private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+    private onLayoutComplete(event: LayoutCompleteEvent) {
         this.seriesRect = event.series.rect;
         this.refresh();
     }
 
-    private onUpdate(event: _ModuleSupport.AxisInteractionUpdateEvent) {
+    private onUpdate(event: AxisInteractionUpdateEvent) {
         const { enabled, enableDoubleClick, enableDragging, enableScrolling, enableContextMenu, source } = event;
 
         this.enabled.set(source, enabled);
@@ -181,7 +186,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         }
     }
 
-    private onSeriesAreaHover(event: _ModuleSupport.SeriesAreaHoverEvent) {
+    private onSeriesAreaHover(event: SeriesAreaHoverEvent) {
         // Ignore events that have already been consumed elsewhere.
         if (event.consumed) {
             if (this.hoveredAxisId != null) {
@@ -211,7 +216,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         }
     }
 
-    private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent) {
+    private onSeriesAreaClick(event: SeriesAreaClickEvent) {
         if (event.sourceEvent.type !== 'dblclick') return;
 
         // Ignore events that have already been consumed elsewhere.
@@ -231,7 +236,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
     }
 
-    private onSeriesAreaContextMenu(event: _ModuleSupport.SeriesAreaContextMenuEvent) {
+    private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent) {
         if (!this.isEnabled() || !this.isEnabledContextMenu()) return;
 
         // Only continue if we know we have axes that overlap the series area.
@@ -501,12 +506,12 @@ export class AxisInteraction extends AbstractModuleInstance {
         return { axisId, div, direction };
     }
 
-    private diffAxisIds(axesCtx: _ModuleSupport.AxisContext[]) {
+    private diffAxisIds(axesCtx: AxisContext[]) {
         const currentIds = this.axes.map((entry) => entry.axisId);
         const ctxIds = axesCtx.map((ctx) => ctx.axisId);
 
         const removed: string[] = currentIds.filter((id) => !ctxIds.includes(id));
-        const added: _ModuleSupport.AxisContext[] = axesCtx.filter((ac) => !currentIds.includes(ac.axisId));
+        const added: AxisContext[] = axesCtx.filter((ac) => !currentIds.includes(ac.axisId));
 
         return { removed, added };
     }
