@@ -297,8 +297,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             },
             clipFocusBox: false,
         });
-        // The fill is drawn first, so the group glows of the markers are cast beneath it, as they are beneath the line.
-        this.backgroundGroup.castGroupGlowsOf([this.contentGroup]);
     }
 
     override renderToOffscreenCanvas(): boolean {
@@ -1595,6 +1593,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             compute: AreaSeries.computeStylerStyle,
             apply: AreaSeries.applyStylerDatum,
         });
+    }
+
+    protected override castsHighlightGlowInGroup() {
+        return false;
     }
 
     protected override getSeriesGlows() {

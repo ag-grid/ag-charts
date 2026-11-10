@@ -22,6 +22,7 @@ import type { DonutSeries } from './polar/donutSeries';
 const DATA = Array.from({ length: 30 }, (_, i) => ({ x: `P${i}`, y: 5 }));
 
 const STROKE = [255, 0, 0, 255];
+const GREEN = [0, 255, 0, 255];
 const GLOW = { enabled: true, fill: '#00ff00', fillOpacity: 1, spread: 14, blur: 0 };
 
 /** A series whose line and area fill are opaque, with a `marker.glow` for its other items when one is hovered. */
@@ -130,8 +131,11 @@ describe('a highlight glow of the sectors of a donut', () => {
         chart?.destroy();
     });
 
-    /** The pixel a little inside the inner edge of the ring, where the glow of its sectors reaches over the inner circle. */
-    const hoverInnerCircle = async (glow: object | undefined) => {
+    /**
+     * The pixel a little inside the inner edge of the ring, where the glow of its sectors would reach over the inner circle,
+     * and the pixel a little outside the ring at the middle of a sector that is not hovered, where the glow shows.
+     */
+    const hoverRing = async (glow: object | undefined) => {
         chart = deproxy(
             await createChart({
                 data: [
@@ -161,22 +165,28 @@ describe('a highlight glow of the sectors of a donut', () => {
         const donut = getSeriesAt(chart) as DonutSeries;
         const centre = Transformable.toCanvas(donut.innerCircleSelection.nodes()[0]).computeCenter();
         const { innerRadius } = shapesOf(donut.contentGroup, Sector)[1];
-        return [
-            ...chart.ctx.scene.canvas.context.getImageData(
-                Math.round(centre.x),
-                Math.round(centre.y - innerRadius + 6),
-                1,
-                1
-            ).data,
+        const { startAngle, endAngle, outerRadius } = shapesOf(donut.contentGroup, Sector)[1];
+        const middle = (startAngle + endAngle) / 2;
+        const pixelAt = (x: number, y: number) => [
+            ...chart.ctx.scene.canvas.context.getImageData(Math.round(x), Math.round(y), 1, 1).data,
         ];
+        return {
+            inner: pixelAt(centre.x, centre.y - innerRadius + 6),
+            outside: pixelAt(
+                centre.x + (outerRadius + 6) * Math.cos(middle),
+                centre.y + (outerRadius + 6) * Math.sin(middle)
+            ),
+        };
     };
 
-    it('does not cover the inner circle of its own series', async () => {
-        const without = await hoverInnerCircle(undefined);
+    it('does not cover the inner circle of its own series, and shows beside the ring', async () => {
+        const without = await hoverRing(undefined);
         chart.destroy();
-        const withGlow = await hoverInnerCircle(GLOW);
+        const withGlow = await hoverRing(GLOW);
 
-        expect(without).toEqual(STROKE);
-        expect(withGlow).toEqual(without);
+        expect(without.inner).toEqual(STROKE);
+        expect(withGlow.inner).toEqual(without.inner);
+        expect(without.outside).not.toEqual(GREEN);
+        expect(withGlow.outside).toEqual(GREEN);
     });
 });

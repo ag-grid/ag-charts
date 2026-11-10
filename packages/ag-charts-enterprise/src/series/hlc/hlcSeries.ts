@@ -231,6 +231,10 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         }
     }
 
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
     protected override getSeriesGlows() {
         const { high, low, close } = this.itemMarkers;
         return [high.glow, low.glow, close.glow];

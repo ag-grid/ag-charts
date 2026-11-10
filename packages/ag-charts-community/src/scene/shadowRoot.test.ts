@@ -1121,7 +1121,11 @@ describe('Shadow root', () => {
         });
 
         it('should not walk the groups of a series that casts no glow, where it casts group glows', () => {
-            const collect = vi.spyOn(Group.prototype as any, 'collectChildGroups');
+            // The walk is private and leaves nothing else to observe, so the test names it by its method.
+            const collect = vi.spyOn(
+                Group.prototype as unknown as { collectChildGroups: () => void },
+                'collectChildGroups'
+            );
 
             draw(true, () =>
                 Array.from({ length: 20 }, () => {

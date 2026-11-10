@@ -1094,13 +1094,22 @@ export abstract class Series<
             // The glow of the highlighted series is cast beneath its own items, which sit above the other series.
             if (
                 glow != null &&
-                (highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem)
+                (highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem) &&
+                this.castsHighlightGlowInGroup()
             ) {
                 glow = { ...glow, inGroup: true };
             }
             cascade.byState[highlightState] = glow;
         }
         return glow ?? undefined;
+    }
+
+    /**
+     * Whether the glow of the highlighted series is cast in the content group, beneath its items. A series whose items are not
+     * the only content, or are in other groups, leaves it to the root, which casts it beneath every series.
+     */
+    protected castsHighlightGlowInGroup(): boolean {
+        return true;
     }
 
     /** Whether any highlight state casts a glow, over any series-level `glow`; when none does, no glow is resolved per datum. */

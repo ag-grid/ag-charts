@@ -1017,6 +1017,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         );
     }
 
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
     protected override getSeriesGlows() {
         return [this.options.marker.glow];
     }

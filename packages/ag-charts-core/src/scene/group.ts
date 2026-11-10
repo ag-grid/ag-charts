@@ -107,11 +107,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      */
     private sharedShadowCover: ReadonlyMap<object, boolean> | undefined = undefined;
 
-    /** Whether the group casts the {@link getGroupGlow} of the `shared` groups below it and of {@link groupGlowSources}. */
-    private castsGroupGlows: boolean;
-
-    /** Groups outside this one whose group glows it casts too, as the group of a series that draws first is not its parent. */
-    private groupGlowSources: readonly Group[] = [];
+    /** Whether the group casts the {@link getGroupGlow} of the `shared` groups below it. */
+    private readonly castsGroupGlows: boolean;
 
     /** What the group's cast of those glows is kept under, or undefined while it has none. */
     private groupGlowUser: object | undefined = undefined;
@@ -881,23 +878,12 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         return this.shadowCasterCount;
     }
 
-    /** Makes the group cast the group glows of `sources`, which it draws before, in place of their own cast. */
-    castGroupGlowsOf(sources: readonly Group[]) {
-        this.castsGroupGlows = true;
-        this.groupGlowSources = sources;
-        for (const source of sources) source.castsGroupGlows = false;
-    }
-
     /**
-     * The children of the `shared` groups at or below this group and its sources that cast a group glow.
+     * The children of the `shared` groups at or below this group that cast a group glow.
      * A group with no shared caster below it is not walked, so a chart with nothing cast allocates nothing here.
      */
     private getSharedGroupGlowCount(): number {
-        let count = this.getSharedCasterCount() > 0 ? this.countOwnGroupGlows() : 0;
-        for (const source of this.groupGlowSources) {
-            if (source.visible && source.getSharedCasterCount() > 0) count += source.countOwnGroupGlows();
-        }
-        return count;
+        return this.getSharedCasterCount() > 0 ? this.countOwnGroupGlows() : 0;
     }
 
     private countOwnGroupGlows(): number {
@@ -926,9 +912,6 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         try {
             const collector = new ShadowCollector(ctx, ctx.globalAlpha);
             this.gatherShadowChildren(collector);
-            for (const source of this.groupGlowSources) {
-                if (source.visible && source.getSharedCasterCount() > 0) source.gatherShadows(collector);
-            }
             this.groupGlowUser ??= {};
             castGroupGlows(collector.frames, this.scene, this.groupGlowUser, renderCtx);
         } catch (e) {

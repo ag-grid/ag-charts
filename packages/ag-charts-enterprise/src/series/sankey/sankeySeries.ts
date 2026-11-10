@@ -1136,6 +1136,10 @@ export class SankeySeries extends FlowProportionSeries<
         } satisfies CallbackParamRules<AgSankeySeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
     protected override getSeriesGlows() {
         const { node, link } = this.options;
         return [node.glow, link.glow];
