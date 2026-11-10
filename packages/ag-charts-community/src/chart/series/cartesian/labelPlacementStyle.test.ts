@@ -162,6 +162,35 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             }
         );
 
+        it('floats rotated vertical outside-end labels clear of and centred on the bar under fit options', async () => {
+            const series = [
+                { padding: ROTATED_PADDINGS['wide left'], truncate: true },
+                { padding: ROTATED_PADDINGS['wide right'], wrapping: 'on-space' as const },
+                { padding: ROTATED_PADDINGS['tall + asymmetric'], truncate: true, wrapping: 'on-space' as const },
+            ].map((fit, i) => ({
+                type: 'bar' as const,
+                xKey: 'cat',
+                yKey: 'value',
+                yName: `Series ${i + 1}`,
+                label: {
+                    enabled: true,
+                    placement: 'outside-end' as const,
+                    orientation: 'vertical' as const,
+                    fill: 'khaki',
+                    ...fit,
+                },
+            }));
+            await renderAndSnapshot({
+                data: barData,
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', max: 150 },
+                },
+                series,
+            });
+        });
+
         it('resolves fill independently per placement while label.color stays pinned', async () => {
             await renderAndSnapshot(
                 barOptions({

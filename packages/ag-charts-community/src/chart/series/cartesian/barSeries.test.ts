@@ -4827,7 +4827,7 @@ describe('BarSeries', () => {
 
         // A rotated label's box turns a quarter-turn about its own centre, so per-side padding must not move the
         // rendered text: constant along-axis gap from the bar, glyph still centred cross-axis.
-        const rotatedLabelGeometry = async (padding: Padding) => {
+        const rotatedLabelGeometry = async (padding: Padding, fit: { truncate?: boolean; wrapping?: 'on-space' }) => {
             const p =
                 typeof padding === 'number'
                     ? { top: padding, right: padding, bottom: padding, left: padding }
@@ -4837,7 +4837,8 @@ describe('BarSeries', () => {
                 legend: { enabled: false },
                 axes: {
                     x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
+                    // Headroom keeps the label inside the series area, where a hideable fitted label must fit.
+                    y: { type: 'number', position: 'left', max: 100 },
                 },
                 series: [
                     {
@@ -4851,12 +4852,14 @@ describe('BarSeries', () => {
                             fill: '#eeeeee',
                             padding,
                             orientation: 'vertical',
+                            ...fit,
                         },
                     },
                 ],
             };
             chart = await createChart(options);
             const [node] = getVisibleLabelTextNodes(chart);
+            expect(node, 'label drawn').toBeDefined();
             const bar = getBarSeriesContextNodeData(chart).nodeData[0];
             const box = node.getTextMeasureBBox();
             const r = node.rotation;
@@ -4869,21 +4872,28 @@ describe('BarSeries', () => {
             return { clearance: bar.y - boxBottom, glyphOffset: glyphX - (bar.x + bar.width / 2) };
         };
 
-        it('keeps a rotated outside-end label clear of and centred on the bar for any per-side padding', async () => {
-            const scalar = await rotatedLabelGeometry(10);
-            chart.destroy();
-            const wideLeft = await rotatedLabelGeometry({ top: 0, bottom: 0, left: 50, right: 10 });
-            chart.destroy();
-            const wideRight = await rotatedLabelGeometry({ top: 0, bottom: 0, left: 10, right: 50 });
-            chart.destroy();
-            const tallAsym = await rotatedLabelGeometry({ top: 40, bottom: 4, left: 50, right: 10 });
-            for (const variant of [scalar, wideLeft, wideRight, tallAsym]) {
-                // Clear of the bar by the same gap as scalar padding...
-                expect(variant.clearance).toBeCloseTo(scalar.clearance, 0);
-                // ...and the glyph stays centred on the bar regardless of padding distribution.
-                expect(variant.glyphOffset).toBeCloseTo(0, 0);
+        it.each([
+            ['without fit options', {}],
+            ['with truncate', { truncate: true }],
+            ['with wrapping', { wrapping: 'on-space' as const }],
+        ])(
+            'keeps a rotated outside-end label clear of and centred on the bar for any per-side padding %s',
+            async (_name, fit) => {
+                const scalar = await rotatedLabelGeometry(10, fit);
+                chart.destroy();
+                const wideLeft = await rotatedLabelGeometry({ top: 0, bottom: 0, left: 50, right: 10 }, fit);
+                chart.destroy();
+                const wideRight = await rotatedLabelGeometry({ top: 0, bottom: 0, left: 10, right: 50 }, fit);
+                chart.destroy();
+                const tallAsym = await rotatedLabelGeometry({ top: 40, bottom: 4, left: 50, right: 10 }, fit);
+                for (const variant of [scalar, wideLeft, wideRight, tallAsym]) {
+                    // Clear of the bar by the same gap as scalar padding...
+                    expect(variant.clearance).toBeCloseTo(scalar.clearance, 0);
+                    // ...and the glyph stays centred on the bar regardless of padding distribution.
+                    expect(variant.glyphOffset).toBeCloseTo(0, 0);
+                }
             }
-        });
+        );
     });
     describe('AG-14101 ArrowDown into a series with a missing datum', () => {
         function twoSeriesOptions(data: Array<{ x: number; y1: number; y2?: number }>): AgCartesianChartOptions {

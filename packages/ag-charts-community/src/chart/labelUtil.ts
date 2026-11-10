@@ -53,6 +53,7 @@ import {
     rotatedGlyphDrift,
     rotatedLabelInset,
     stylerLineHeightOverrides,
+    toRadians,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type {
@@ -1105,8 +1106,11 @@ function positionBarLabelCandidate<TPlacement extends string>(
     const isInside = placement.startsWith('inside');
     const boxPadding = style?.boxPadding ?? placementBox;
     const glyph = style == null || text == null ? undefined : measureLabelText(text, style.font);
-    const width = (glyph?.width ?? spec.textWidth) + boxPadding.left + boxPadding.right;
-    const height = (glyph?.height ?? spec.textHeight) + boxPadding.top + boxPadding.bottom;
+    const labelWidth = glyph?.width ?? spec.textWidth;
+    const labelHeight = glyph?.height ?? spec.textHeight;
+    const width = labelWidth + boxPadding.left + boxPadding.right;
+    const height = labelHeight + boxPadding.top + boxPadding.bottom;
+    const rotationDeg = orientationAngles[orientation];
     const anchor = adjustLabelPlacement({
         isUpward: spec.isUpward,
         isVertical: spec.isVertical,
@@ -1114,10 +1118,12 @@ function positionBarLabelCandidate<TPlacement extends string>(
         spacing: barPlacementSpacing(spec.spacing, placement, spec.endOverhang),
         boxPadding,
         rect: spec.rect,
+        rotation: toRadians(rotationDeg),
+        labelWidth,
+        labelHeight,
         crossReversed: spec.crossReversed ?? false,
     });
     const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
-    const rotationDeg = orientationAngles[orientation];
     const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
     return {
         box: { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh },
