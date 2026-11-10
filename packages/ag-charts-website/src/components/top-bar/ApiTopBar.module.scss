@@ -72,6 +72,7 @@
     gap: 4px;
 
     :global(.icon) {
+        /* stylelint-disable-next-line color-no-hex -- bespoke pure red video icon (light mode only), no matching token */
         fill: #f00;
 
         #{$selector-darkmode} & {

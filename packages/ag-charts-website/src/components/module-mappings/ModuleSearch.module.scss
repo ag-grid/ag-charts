@@ -12,7 +12,7 @@
             background: color-mix(in srgb, var(--color-bg-primary), var(--color-fg-primary) 6%);
 
             &::placeholder {
-                color: rgba(255, 255, 255, 0.6);
+                color: color-mix(in srgb, var(--color-white) 60%, transparent);
             }
         }
     }
