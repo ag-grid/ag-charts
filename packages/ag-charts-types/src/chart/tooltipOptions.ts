@@ -39,11 +39,11 @@ export interface AgChartTooltipOptions {
     enabled?: boolean;
     /**
      * Determines which series are shown in the tooltip.
-     * - `'single'` shows the hovered item only.
-     * - `'shared'` groups the items of every series that share the hovered item's category into the same tooltip.
-     * - `'compact'` shows the hovered item with fewer data fields and less padding.
+     * - `'single'` shows the active item only.
+     * - `'shared'` groups the items of every series that share the active item's category.
+     * - `'compact'` shows the active item with fewer data fields and less padding.
      *
-     * When only `highlight.mode` is set, this follows it. When neither is set, this is `'shared'` for 2 or 3 series, except on scatter and bubble charts, and `'single'` otherwise.
+     * Defaults to `'shared'` for most charts with 2 or 3 series otherwise `'single'`. Follows `highlight.mode` if specified.
      */
     mode?: AgTooltipMode;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
