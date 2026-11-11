@@ -142,6 +142,7 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     minWidth: defined,
     padding: defined,
     selection: defined,
+    styleNonce: string,
     subtitle: defined,
     suppressFieldDotNotation: boolean,
     title: defined,
