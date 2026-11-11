@@ -1,4 +1,4 @@
-import type { GlowPlacement, GlowSeriesCase } from 'ag-charts-community-test';
+import { type GlowPlacement, type GlowSeriesCase, onMarker, onSeries } from 'ag-charts-community-test';
 
 import { ukData } from '../series/map-test/ukData';
 import ukTopology from '../series/map-test/ukTopology.json';
@@ -32,10 +32,6 @@ export const BOX_PLOT = [
     { x: 'Q2', min: 4, q1: 5, median: 6, q3: 7, max: 8 },
 ];
 
-const onSeries = ({ shadow, glow, itemStyler }: GlowPlacement) => ({ shadow, glow, itemStyler });
-const onMarker = ({ shadow, glow, itemStyler }: GlowPlacement) => ({
-    marker: { enabled: true, shadow, glow, itemStyler },
-});
 const onPart =
     (part: 'node' | 'link') =>
     ({ shadow, glow, itemStyler }: GlowPlacement) => ({ [part]: { shadow, glow, itemStyler } });
@@ -101,6 +97,8 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'funnel',
+        itemHighlightOnly: true,
+        singleSeries: true,
         type: 'funnel',
         data: STAGES,
         hoverable: true,
@@ -117,6 +115,8 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'pyramid',
+        itemHighlightOnly: true,
+        singleSeries: true,
         type: 'pyramid',
         data: STAGES,
         hoverable: true,
@@ -125,6 +125,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'heatmap',
+        itemHighlightOnly: true,
         type: 'heatmap',
         data: GRID,
         hoverable: true,
@@ -199,8 +200,11 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'waterfall',
+        itemHighlightOnly: true,
+        singleSeries: true,
         type: 'waterfall',
         data: [...WATERFALL_DATA, { x: 'Total', y: 12 }],
+        hoverable: true,
         base: {
             type: 'waterfall',
             xKey: 'x',
@@ -211,6 +215,8 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'sankey nodes',
+        itemHighlightOnly: true,
+        singleSeries: true,
         reachesOtherParts: true,
         type: 'sankey',
         data: FLOW_DATA,
@@ -221,6 +227,8 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'sankey links',
+        itemHighlightOnly: true,
+        singleSeries: true,
         reachesOtherParts: true,
         type: 'sankey',
         data: FLOW_DATA,
@@ -231,6 +239,8 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'chord nodes',
+        itemHighlightOnly: true,
+        singleSeries: true,
         reachesOtherParts: true,
         type: 'chord',
         data: FLOW_DATA,
@@ -241,6 +251,8 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'chord links',
+        itemHighlightOnly: true,
+        singleSeries: true,
         reachesOtherParts: true,
         type: 'chord',
         data: FLOW_DATA,

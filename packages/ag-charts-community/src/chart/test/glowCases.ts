@@ -30,6 +30,10 @@ export interface GlowSeriesCase {
      * `unhighlightedItem` glow is cast by the links as well as the nodes, a node's styler by the nodes alone.
      */
     reachesOtherParts?: boolean;
+    /** The `highlight` of the series has `highlightedItem` and `unhighlightedItem`, and no states of the series as a whole. */
+    itemHighlightOnly?: boolean;
+    /** The chart takes no other series beside this one, so no other series is unhighlighted while it is hovered. */
+    singleSeries?: boolean;
     /** The series takes no `itemStyler` where this case places it. */
     noItemStyler?: boolean;
     /** The datum to hover where it is not the first of the series' node data. */
@@ -58,9 +62,9 @@ export function glowThemeOptions(testCase: GlowSeriesCase, placement: GlowPlacem
     };
 }
 
-const onSeries = ({ shadow, glow, itemStyler }: GlowPlacement) => ({ shadow, glow, itemStyler });
+export const onSeries = ({ shadow, glow, itemStyler }: GlowPlacement) => ({ shadow, glow, itemStyler });
 
-const onMarker = ({ shadow, glow, itemStyler }: GlowPlacement) => ({
+export const onMarker = ({ shadow, glow, itemStyler }: GlowPlacement) => ({
     marker: { enabled: true, shadow, glow, itemStyler },
 });
 

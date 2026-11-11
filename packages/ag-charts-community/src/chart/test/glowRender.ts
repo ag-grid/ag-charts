@@ -50,6 +50,19 @@ export function hoverDatum(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0, dat
     );
 }
 
+/** Raises the highlight on a series as a whole, as a hover of its legend item would. */
+export async function hoverSeries(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0) {
+    const chart: Chart = deproxy(chartOrProxy);
+    const series = chart.series[seriesIndex];
+    chart.ctx.highlightManager.updateHighlight(chart.id, {
+        series,
+        itemId: undefined,
+        datum: undefined,
+        datumIndex: Number.NaN,
+    });
+    await waitForChartStability(chart);
+}
+
 /** Ends the highlight, as the pointer leaving the item would. */
 export async function endHover(chartOrProxy: ChartOrProxy<any>) {
     const chart: Chart = deproxy(chartOrProxy);

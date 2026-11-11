@@ -12,6 +12,7 @@ import {
     endHover,
     hoverDatum,
     hoverNode,
+    hoverSeries,
 } from './glowRender';
 import { HIGHLIGHT_GLOW, HIGHLIGHT_SHADOW, SERIES_GLOW, SERIES_SHADOW } from './shadowFixtures';
 import { compareImageSnapshot, setupMockCanvas, setupMockConsole, waitForChartStability } from './utils';
@@ -19,8 +20,30 @@ import { compareImageSnapshot, setupMockCanvas, setupMockConsole, waitForChartSt
 const CAST: GlowPlacement = { shadow: SERIES_SHADOW, glow: SERIES_GLOW };
 const HOVERED_ITEM = { shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW };
 
-const hoverCase = (chart: AgChartInstance, { hoverDatum: datumOf }: GlowSeriesCase) =>
-    datumOf ? hoverNode(chart, datumOf(chart)) : hoverDatum(chart);
+/** The second series of a chart: its legend item is hidden, as it would share a label with the first and differ in fill. */
+const otherSeries = (
+    testCase: GlowSeriesCase,
+    { placement = {}, highlight }: { placement?: GlowPlacement; highlight?: object }
+) => ({
+    ...glowSeries(testCase, placement, highlight),
+    ...(testCase.itemHighlightOnly ? {} : { showInLegend: false }),
+});
+
+/** What is hovered: the first item of the series, or the series as a whole, as its legend item would. */
+type Hover = true | 'series';
+
+const hoverCase = (chart: AgChartInstance, { hoverDatum: datumOf }: GlowSeriesCase, hover: Hover = true) => {
+    if (hover === 'series') return hoverSeries(chart);
+    return datumOf ? hoverNode(chart, datumOf(chart)) : hoverDatum(chart);
+};
+
+/** Each highlight state of a series: as an `itemStyler` is given it, the `highlight` option that sets it, and how it is raised. */
+const HIGHLIGHT_STATES: { state: string; bucket: string; hover: Hover; onOtherSeries?: true }[] = [
+    { state: 'highlighted-item', bucket: 'highlightedItem', hover: true },
+    { state: 'unhighlighted-item', bucket: 'unhighlightedItem', hover: true },
+    { state: 'highlighted-series', bucket: 'highlightedSeries', hover: 'series' },
+    { state: 'unhighlighted-series', bucket: 'unhighlightedSeries', hover: true, onOtherSeries: true },
+];
 
 /**
  * Draws the charts of a render test through `factory`, one at a time, and compares or reads what they draw. Call it in the
@@ -52,10 +75,24 @@ export function useGlowCharts(factory: (options: AgChartOptions) => Promise<AgCh
         render: async (
             testCase: GlowSeriesCase,
             placement: GlowPlacement,
-            { highlight, hover, themed = false }: { highlight?: object; hover?: boolean; themed?: boolean } = {}
+            {
+                highlight,
+                hover,
+                themed = false,
+                other,
+            }: {
+                highlight?: object;
+                hover?: Hover;
+                themed?: boolean;
+                /** A second series, the same as the first, that the first is hovered beside, with its own placement and highlight. */
+                other?: { placement?: GlowPlacement; highlight?: object };
+            } = {}
         ) => {
             await create(
-                [themed ? glowSeries(testCase, {}) : glowSeries(testCase, placement, highlight)],
+                [
+                    themed ? glowSeries(testCase, {}) : glowSeries(testCase, placement, highlight),
+                    ...(other ? [otherSeries(testCase, other)] : []),
+                ],
                 testCase.data,
                 {
                     ...RENDER_OPTIONS,
@@ -63,7 +100,7 @@ export function useGlowCharts(factory: (options: AgChartOptions) => Promise<AgCh
                     ...(themed ? glowThemeOptions(testCase, placement, highlight) : {}),
                 }
             );
-            if (hover) await hoverCase(chart!, testCase);
+            if (hover !== undefined) await hoverCase(chart!, testCase, hover);
             return canvasImage(chart!);
         },
     };
@@ -82,6 +119,10 @@ export function describeGlowSeries(
         const hoverable = testCase.hoverable === true;
         const seriesShadowOnly = testCase.seriesShadowOnly === true;
         const noItemStyler = testCase.noItemStyler === true;
+        const stylerStates = HIGHLIGHT_STATES.filter(({ onOtherSeries }) => !onOtherSeries || !testCase.singleSeries);
+        const bucketStates = stylerStates.filter(
+            ({ bucket }) => !testCase.itemHighlightOnly || !bucket.endsWith('Series')
+        );
         const glows = !seriesShadowOnly;
         const placement: GlowPlacement = glows ? CAST : { shadow: SERIES_SHADOW };
         const hoveredItem = glows ? HOVERED_ITEM : { shadow: HIGHLIGHT_SHADOW };
@@ -143,17 +184,24 @@ export function describeGlowSeries(
             expectSamePixels(await render(testCase, placement, { highlight, hover: true, themed: true }), series);
         });
 
-        it.skipIf(!hoverable)(
-            'renders the glow of each state of the items, as it renders none without it',
-            async () => {
-                const hoveredPlain = await render(testCase, {}, { hover: true });
-                for (const state of ['highlightedItem', 'unhighlightedItem']) {
-                    const highlight = { [state]: { glow: HIGHLIGHT_GLOW } };
-                    const glowing = await render(testCase, {}, { highlight, hover: true });
-                    expect(differingBytes(glowing, hoveredPlain), state).toBeGreaterThan(0);
-                }
+        // A state of the other series is reached by hovering the first series beside it.
+        const renderState = (
+            { onOtherSeries, hover }: (typeof HIGHLIGHT_STATES)[number],
+            styled: GlowPlacement,
+            highlight: object | undefined,
+            hovered: boolean
+        ) =>
+            onOtherSeries
+                ? render(testCase, {}, { hover: hovered ? hover : undefined, other: { placement: styled, highlight } })
+                : render(testCase, styled, { highlight, hover: hovered ? hover : undefined });
+
+        it.skipIf(!hoverable)('renders the glow of each highlight state, as it renders none without it', async () => {
+            for (const step of bucketStates) {
+                const plain = await renderState(step, {}, undefined, true);
+                const glowing = await renderState(step, {}, { [step.bucket]: { glow: HIGHLIGHT_GLOW } }, true);
+                expect(differingBytes(glowing, plain), step.state).toBeGreaterThan(0);
             }
-        );
+        });
 
         it.skipIf(!hoverable || noItemStyler)(
             'renders the glow that an itemStyler returns for a highlight state only while that state holds',
@@ -162,20 +210,19 @@ export function describeGlowSeries(
                     itemStyler: ({ highlightState }: { highlightState?: string }) =>
                         highlightState === wanted ? { glow: HIGHLIGHT_GLOW } : {},
                 });
-                const rest = await render(testCase, {});
-                const hoveredPlain = await render(testCase, {}, { hover: true });
-                for (const [state, bucket] of [
-                    ['highlighted-item', 'highlightedItem'],
-                    ['unhighlighted-item', 'unhighlightedItem'],
-                ]) {
-                    expectSamePixels(await render(testCase, byState(state)), rest);
-                    const styled = await render(testCase, byState(state), { hover: true });
+                for (const step of stylerStates) {
+                    const { state, bucket } = step;
+                    const rest = await renderState(step, {}, undefined, false);
+                    const hoveredPlain = await renderState(step, {}, undefined, true);
+                    expectSamePixels(await renderState(step, byState(state), undefined, false), rest);
+                    const styled = await renderState(step, byState(state), undefined, true);
                     expect(differingBytes(styled, hoveredPlain), state).toBeGreaterThan(0);
 
                     // The same glow, set on the highlight state of the series instead.
-                    if (testCase.reachesOtherParts && bucket === 'unhighlightedItem') continue;
+                    if (!bucketStates.includes(step)) continue;
+                    if (testCase.reachesOtherParts && bucket.startsWith('unhighlighted')) continue;
                     const highlight = { [bucket]: { glow: HIGHLIGHT_GLOW } };
-                    expectSamePixels(await render(testCase, {}, { highlight, hover: true }), styled);
+                    expectSamePixels(await renderState(step, {}, highlight, true), styled);
                 }
             }
         );

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { AgChartInstance } from 'ag-charts-community';
 import {
+    CATEGORY_DATA,
     RENDER_OPTIONS,
     SERIES_GLOW,
     SERIES_SHADOW,
@@ -17,12 +18,6 @@ import {
 import { type Rect, Transformable } from 'ag-charts-core';
 
 import { createEnterpriseChart } from '../../test/utils';
-
-const DATA = [
-    { category: 'A', value: 5 },
-    { category: 'B', value: 8 },
-    { category: 'C', value: 3 },
-];
 
 const OPTIONS = { ...RENDER_OPTIONS, selection: { enabled: true } };
 
@@ -62,7 +57,7 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
     const selectedWith = async (style: object) => {
         await create(
             bars(() => style),
-            DATA,
+            CATEGORY_DATA,
             OPTIONS
         );
         await selectFirst(chart());
@@ -70,7 +65,7 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
     };
 
     const atRest = async (series: object[]) => {
-        await create(series, DATA, OPTIONS);
+        await create(series, CATEGORY_DATA, OPTIONS);
         return canvasImage(chart());
     };
 
@@ -78,7 +73,7 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
     const selected = async (state?: string) => {
         await create(
             bars(({ selectionState }) => (state !== undefined && selectionState === state ? STYLE : {})),
-            DATA,
+            CATEGORY_DATA,
             OPTIONS
         );
         await selectFirst(chart());
@@ -100,7 +95,7 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
     );
 
     it('renders as at rest once the selection has been cleared', async () => {
-        await create(bars(), DATA, OPTIONS);
+        await create(bars(), CATEGORY_DATA, OPTIONS);
         const rest = canvasImage(chart());
         await selectFirst(chart());
         expect(differingBytes(canvasImage(chart()), rest)).toBeGreaterThan(0);
@@ -111,7 +106,7 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
     });
 
     it('renders the glow it returns on no highlight as the series glow', async () => {
-        await create([{ ...bars()[0], glow: SERIES_GLOW }], DATA, OPTIONS);
+        await create([{ ...bars()[0], glow: SERIES_GLOW }], CATEGORY_DATA, OPTIONS);
         const series = canvasImage(chart());
         expect(differingBytes(series, await atRest(bars()))).toBeGreaterThan(0);
 
@@ -138,14 +133,14 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
                 await clickBar(chart());
                 const styled = canvasImage(chart());
 
-                await create(bars(), DATA, OPTIONS);
+                await create(bars(), CATEGORY_DATA, OPTIONS);
                 await clickBar(chart());
                 expect(differingBytes(styled, canvasImage(chart()))).toBeGreaterThan(0);
             }
         );
 
         it('renders the shadow and glow of an itemStyler for the selected item', async () => {
-            await create(styledFor('selected-item', STYLE), DATA, OPTIONS);
+            await create(styledFor('selected-item', STYLE), CATEGORY_DATA, OPTIONS);
             await clickBar(chart());
             await snapshot();
         });
@@ -161,7 +156,7 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
                 selection: { enabled: true },
                 itemStyler,
             });
-            const data = DATA.map((datum) => ({ ...datum, other: datum.value + 1 }));
+            const data = CATEGORY_DATA.map((datum) => ({ ...datum, other: datum.value + 1 }));
             await create(
                 [
                     series('value'),
