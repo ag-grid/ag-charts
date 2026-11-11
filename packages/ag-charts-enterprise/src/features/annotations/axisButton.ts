@@ -24,6 +24,8 @@ export class AxisButton extends AbstractModuleInstance {
     private padding: number = 0;
     private snapInterval?: number;
     private coords?: Point;
+    private crosshairPosition?: number;
+    private shownFor?: CurrentPoint & { sourceEvent: MouseEvent | TouchEvent };
 
     constructor(
         private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
@@ -48,6 +50,7 @@ export class AxisButton extends AbstractModuleInstance {
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.hide()),
             ctx.eventsHub.on('zoom:change-complete', () => this.hide()),
+            ctx.eventsHub.on('crosshair:position-change', (e) => this.onCrosshairPositionChange(e)),
             () => this.destroyElements(),
             () => this.button.destroy()
         );
@@ -98,6 +101,7 @@ export class AxisButton extends AbstractModuleInstance {
         }
 
         this.toggleVisibility(true);
+        this.shownFor = event;
 
         const snappedY = this.snapToInterval(y);
         const buttonCoords = this.getButtonCoordinates({ x, y: snappedY ?? y });
@@ -114,10 +118,17 @@ export class AxisButton extends AbstractModuleInstance {
         if (snapInterval == null || !axisCtx.continuous || axisCtx.direction !== ChartAxisDirection.Y) {
             return;
         }
-        return snapPositionToInterval(axisCtx, y, snapInterval).position;
+        return this.crosshairPosition ?? snapPositionToInterval(axisCtx, y, snapInterval).position;
+    }
+
+    private onCrosshairPositionChange({ axisId, position }: { axisId: string; position: number | undefined }) {
+        if (axisId !== this.axisCtx.axisId) return;
+        this.crosshairPosition = position;
+        if (this.shownFor != null) this.show(this.shownFor);
     }
 
     private hide() {
+        this.shownFor = undefined;
         this.toggleVisibility(false);
     }
 

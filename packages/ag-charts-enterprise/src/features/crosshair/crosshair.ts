@@ -27,7 +27,7 @@ import {
 } from 'ag-charts-core';
 import type { ClickWidgetEvent, DragWidgetEvent, MouseWidgetEvent } from 'ag-charts-core';
 
-import { snapPositionToInterval } from '../../utils/axisSnap';
+import { type SnapInterval, snapPositionToInterval, snapValueToInterval } from '../../utils/axisSnap';
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel } from './crosshairLabel';
 
@@ -83,6 +83,7 @@ export class Crosshair
     private highlightSnapNearest: boolean = false;
     private snapsWithoutHighlight: boolean = true;
     private lastPointer: CurrentPoint | undefined = undefined;
+    private emittedPosition: number | undefined = undefined;
     // Set for the duration of a drag of a cross-line annotation whose own axis label is on this axis.
     private annotationLabelDragging: boolean = false;
 
@@ -265,12 +266,18 @@ export class Crosshair
         });
     }
 
-    /** A snap interval keeps a snapping crosshair on the pointer, snapped to the interval, rather than on the highlight. */
     private followsPointer(): boolean {
-        const snap = this.options?.snap;
-        if (snap === false || this.snapInterval() != null) return true;
+        const snap = this.snap();
+        if (snap === false) return true;
         if (this.activeHighlight) return this.highlightSnapKeys === 'pointer';
+        // With nothing highlighted, a snap interval rounds the pointer rather than hiding the crosshair.
+        if (this.snapInterval() != null) return true;
         return snap == null && !this.snapsWithoutHighlight;
+    }
+
+    /** A snap interval turns snapping on when `snap` is unset. */
+    private snap(): boolean | undefined {
+        return this.options?.snap ?? (this.snapInterval() == null ? undefined : true);
     }
 
     private computeSnapsWithoutHighlight(): boolean {
@@ -298,7 +305,7 @@ export class Crosshair
         const { snapTo, mode } = config;
         let keys: readonly string[] = keyProperties;
         if (snapTo == null) {
-            if (this.options?.snap !== true) keys = [];
+            if (this.snap() !== true) keys = [];
         } else {
             keys = keyProperties.filter((key) => snapTo.includes(key));
         }
@@ -312,9 +319,29 @@ export class Crosshair
         return this.isVertical() ? lastPointer.currentX : lastPointer.currentY;
     }
 
-    private snapInterval(): number | undefined {
+    private snapInterval(): SnapInterval | undefined {
         const options = this.options;
-        return options?.snap && this.axisCtx.continuous ? options.snapInterval : undefined;
+        return options?.snap !== false && this.axisCtx.continuous ? options?.snapInterval : undefined;
+    }
+
+    private isTimeAxis(): boolean {
+        return this.axisCtx.axisType === 'time';
+    }
+
+    private snapDataToInterval(data: CrosshairData): CrosshairData {
+        const snapInterval = this.snapInterval();
+        if (snapInterval == null) return data;
+
+        const isTime = this.isTimeAxis();
+        const snapped: CrosshairData = {};
+        const positions = new Set<number>();
+        for (const key of Object.keys(data)) {
+            const lineData = snapValueToInterval(this.axisCtx, data[key].value, snapInterval, isTime) ?? data[key];
+            if (positions.has(lineData.position)) continue;
+            positions.add(lineData.position);
+            snapped[key] = lineData;
+        }
+        return snapped;
     }
 
     private isVertical(): boolean {
@@ -472,6 +499,9 @@ export class Crosshair
     }
 
     private updatePositions(data: { [key: string]: { value: any; position: number } }) {
+        const lines = Object.values(data);
+        this.emitPosition(lines.length === 1 ? lines[0].position : undefined);
+
         const { seriesRect, lineGroupSelection } = this;
         const labelEnabled = (this.options?.label.enabled ?? false) && !this.annotationLabelDragging;
         lineGroupSelection.each((line, key) => {
@@ -526,10 +556,14 @@ export class Crosshair
             return { [key]: { position, value: axisCtx.scaleInvert(position) } };
         }
 
-        return { [key]: snapPositionToInterval(axisCtx, position, snapInterval) };
+        return { [key]: snapPositionToInterval(axisCtx, position, snapInterval, this.isTimeAxis()) };
     }
 
     private getActiveHighlightData(activeHighlight: ActiveHighlight): CrosshairData {
+        return this.snapDataToInterval(this.readActiveHighlightData(activeHighlight));
+    }
+
+    private readActiveHighlightData(activeHighlight: ActiveHighlight): CrosshairData {
         const { highlightSnapKeys } = this;
         if (Array.isArray(highlightSnapKeys)) {
             return this.getSnapKeysData(activeHighlight, highlightSnapKeys);
@@ -671,7 +705,14 @@ export class Crosshair
         }
     }
 
+    private emitPosition(position: number | undefined) {
+        if (position === this.emittedPosition) return;
+        this.emittedPosition = position;
+        this.ctx.eventsHub.emit('crosshair:position-change', { axisId: this.axisCtx.axisId, position });
+    }
+
     private hideCrosshairs() {
+        this.emitPosition(undefined);
         this.crosshairGroup.visible = false;
         for (const key of Object.keys(this.labels)) {
             this.hideLabel(key);

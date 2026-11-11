@@ -392,7 +392,6 @@ export function cartesianAxisCrosshairOptions(
         label: crosshairLabel ?? baseCrosshairLabel,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
-        ...undocumentedDefs({ snapInterval: positiveNumberNonZero }),
     };
 }
 
@@ -509,7 +508,7 @@ export const numberAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgNumber
     ...continuousAxisOptions(numericValue),
     type: constant('number'),
     label: cartesianNumericAxisLabel,
-    crosshair: cartesianAxisCrosshairOptions(true),
+    crosshair: { ...cartesianAxisCrosshairOptions(true), snapInterval: positiveNumberNonZero },
     ...undocumentedDefs({ axisInsetValue: axisInsetValueOptionsDefs }),
 };
 
@@ -522,7 +521,7 @@ export const logAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgLogAxisOp
         attachDescription((value) => value !== 1, 'not equal to 1')
     ),
     label: cartesianNumericAxisLabel,
-    crosshair: cartesianAxisCrosshairOptions(true),
+    crosshair: { ...cartesianAxisCrosshairOptions(true), snapInterval: positiveNumberNonZero },
 };
 
 export const timeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgTimeAxisOptions>> = {
@@ -531,7 +530,10 @@ export const timeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgTimeAxis
     type: constant('time'),
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
-    crosshair: cartesianAxisCrosshairOptions(true, true),
+    crosshair: {
+        ...cartesianAxisCrosshairOptions(true, true),
+        snapInterval: or(positiveNumberNonZero, timeIntervalUnit, timeInterval),
+    },
 };
 
 export const unitTimeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgUnitTimeAxisOptions>> = {
