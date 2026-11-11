@@ -8,7 +8,10 @@ import {
     getAxisLayoutState,
     getSeriesRect,
     hoverAction,
+    mouseDownAction,
+    mouseUpAction,
     pressKey,
+    releaseKey,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -1574,6 +1577,208 @@ describe('Annotations', () => {
             expectWarningsCalls().toEqual([
                 ['AG Charts - invalid value of type [object] for [ScatterSeries-1 / yValue] ignored:', '[null]'],
             ]);
+        });
+    });
+
+    describe('setState while an annotation is selected', () => {
+        // The target state differs from the chart's current zoom (full range) and annotation (value 50).
+        const restoredZoom = { ratioX: { start: 0.25, end: 0.75 } };
+        const restoredAnnotations: AgAnnotation[] = [{ type: 'horizontal-line', value: 30 }];
+
+        const textAnnotation: AgAnnotation = {
+            type: 'text',
+            text: 'Hello',
+            x: { __type: 'date', value: '2024-07-01' },
+            y: 75,
+        };
+
+        const at = (fractionX: number, fractionY: number) => {
+            const { x, y, width, height } = getSeriesRect(chart);
+            return { x: x + width * fractionX, y: y + height * fractionY };
+        };
+        const centre = () => at(0.5, 0.5);
+        const body = () => deproxy(chart).ctx.agDocument.body;
+
+        async function prepareZoomableChart(annotations: AgAnnotation[] = [{ type: 'horizontal-line', value: 50 }]) {
+            await prepareChart(
+                { annotations },
+                {
+                    ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                    annotations: { ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations, toolbar: { enabled: true } },
+                    zoom: { enabled: true },
+                }
+            );
+        }
+
+        async function click({ x, y }: { x: number; y: number }) {
+            await hoverAction(x, y)(chart);
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        async function selectAtCentre() {
+            await click(centre());
+            // Guard: the click really selected the annotation, which shows its options toolbar.
+            expect(body().querySelector('button[title="Settings"]')).not.toBeNull();
+        }
+
+        async function setRestoredState() {
+            await chart.setState({ ...chart.getState(), zoom: restoredZoom, annotations: restoredAnnotations });
+            await waitForChartStability(chart);
+            return chart.getState();
+        }
+
+        function expectRestored({ zoom, annotations }: ReturnType<AgChartInstance['getState']>) {
+            expect(zoom?.ratioX?.start).toBeCloseTo(restoredZoom.ratioX.start);
+            expect(zoom?.ratioX?.end).toBeCloseTo(restoredZoom.ratioX.end);
+            expect(annotations).toMatchObject(restoredAnnotations);
+        }
+
+        // The state just before is the reference: editing can itself change the annotation, e.g. dragging a line.
+        async function expectIgnored() {
+            const before = chart.getState();
+            const after = await setRestoredState();
+            expect(after.annotations).toEqual(before.annotations);
+            expect(after.zoom).toEqual(before.zoom);
+        }
+
+        describe('is applied when the annotation is only selected, not being edited', () => {
+            it.each([
+                ['selected', true],
+                ['not selected', false],
+            ])('restores the zoom and annotations when the annotation is %s', async (_name, select) => {
+                await prepareZoomableChart();
+                if (select) await selectAtCentre();
+
+                expectRestored(await setRestoredState());
+            });
+
+            it('restores them after clicking the selected annotation again without dragging', async () => {
+                await prepareZoomableChart();
+                await selectAtCentre();
+                await click(centre());
+
+                expectRestored(await setRestoredState());
+            });
+        });
+
+        describe('updates the selection to match the restored annotation', () => {
+            async function restoreWhileSelected(annotation: AgAnnotation) {
+                await prepareZoomableChart();
+                await selectAtCentre();
+                await chart.setState({ ...chart.getState(), annotations: [annotation] });
+                await waitForChartStability(chart);
+            }
+
+            it('deselects it when the restored annotation is read-only', async () => {
+                await restoreWhileSelected({ type: 'horizontal-line', value: 50, readOnly: true });
+
+                await pressKey(chart, 'Delete');
+
+                expect(chart.getState().annotations).toHaveLength(1);
+            });
+
+            it('shows it as locked when the restored annotation is locked', async () => {
+                await restoreWhileSelected({ type: 'horizontal-line', value: 50, locked: true });
+
+                const lockSwitch = body().querySelector<HTMLElement>('button[aria-checked]');
+                expect(lockSwitch?.getAttribute('aria-checked')).toBe('true');
+            });
+        });
+
+        // Each begins an edit and ends it again, returning the chart to idle.
+        const edits = [
+            [
+                'dragging the annotation',
+                async () => {
+                    await selectAtCentre();
+                    const { x, y } = centre();
+                    await mouseDownAction(x, y)(chart);
+                    await hoverAction(x, y + 20)(chart);
+                },
+                async () => {
+                    const { x, y } = centre();
+                    await mouseUpAction(x, y + 20)(chart);
+                },
+            ],
+            [
+                'moving the annotation with the arrow keys',
+                async () => {
+                    await selectAtCentre();
+                    await pressKey(chart, 'ArrowUp');
+                },
+                () => releaseKey(chart, 'ArrowUp'),
+            ],
+            [
+                "having the annotation's settings dialog open",
+                async () => {
+                    await selectAtCentre();
+                    body().querySelector<HTMLElement>('button[title="Settings"]')!.click();
+                    await waitForChartStability(chart);
+                    expect(body().querySelector('.ag-charts-dialog')).not.toBeNull();
+                },
+                async () => {
+                    body().querySelector<HTMLElement>('.ag-charts-dialog__close-button')!.click();
+                    await waitForChartStability(chart);
+                },
+            ],
+            [
+                'having the colour picker open',
+                async () => {
+                    await selectAtCentre();
+                    body().querySelector<HTMLElement>('button[title="Line Color"]')!.click();
+                    await waitForChartStability(chart);
+                    expect(body().querySelector('.ag-charts-color-picker')).not.toBeNull();
+                },
+                () => pressKey(chart, 'Escape'),
+            ],
+            [
+                'having the line style menu open',
+                async () => {
+                    await selectAtCentre();
+                    body().querySelector<HTMLElement>('button[title="Line Style"]')!.click();
+                    await waitForChartStability(chart);
+                    expect(body().querySelector('.ag-charts-annotations__line-style-type-menu')).not.toBeNull();
+                },
+                () => pressKey(chart, 'Escape'),
+            ],
+            [
+                'creating an annotation',
+                async () => {
+                    body().querySelector<HTMLElement>('button[title="Trend Lines"]')!.click();
+                    await waitForChartStability(chart);
+                    const rows = Array.from(body().querySelectorAll<HTMLElement>('.ag-charts-menu__row'));
+                    rows.find((row) => row.textContent === 'Trend Line')!.click();
+                    await waitForChartStability(chart);
+                },
+                () => pressKey(chart, 'Escape'),
+            ],
+        ] as const;
+
+        describe('is ignored while the annotation is being edited', () => {
+            it.each(edits)('ignores it while %s, then applies it once that ends', async (_name, begin, end) => {
+                await prepareZoomableChart();
+
+                await begin();
+                await expectIgnored();
+
+                await end();
+                expectRestored(await setRestoredState());
+            });
+
+            it('ignores it while typing in a text annotation, then applies it once that ends', async () => {
+                await prepareZoomableChart([textAnnotation]);
+                const text = at(0.5, 0.25);
+                await click(text); // selects it
+                await click(text); // starts editing its text
+                expect(body().querySelector('.ag-charts-text-input__textarea')).not.toBeNull();
+
+                await expectIgnored();
+
+                await click(at(0.1, 0.9)); // saves the text and leaves the annotation
+                expect(body().querySelector('.ag-charts-text-input__textarea')).toBeNull();
+                expectRestored(await setRestoredState());
+            });
         });
     });
 });

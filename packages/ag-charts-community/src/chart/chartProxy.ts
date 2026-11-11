@@ -25,7 +25,6 @@ import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
 import { replaceDataSet } from './data/dataSetUtil';
 import { findExpectedModuleName } from './factory/expectedModules';
-import { InteractionState } from './interaction/interactionManager';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
 
@@ -233,11 +232,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
     async setState(state: AgChartState) {
         if (!this.chart) return;
 
-        const { interactionManager, legendManager, zoomManager } = this.chart.ctx;
+        const { annotationManager, legendManager, zoomManager } = this.chart.ctx;
         const originators = this.getEnabledOriginators();
         const originatorsSet = new Set(originators);
 
-        if (interactionManager.isState(InteractionState.AnnotationsSelected)) return;
+        if (annotationManager?.isEditing()) return;
 
         // TODO: CRT-633 - The zoom state depends on the legend state and so must be restored after the legend state
         // has updated the axis scale domains.

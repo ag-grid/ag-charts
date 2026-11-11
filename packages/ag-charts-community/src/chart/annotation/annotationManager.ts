@@ -11,11 +11,25 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
 
     private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
+    private editingProbe?: () => boolean;
 
     constructor(
         private readonly ctx: DynamicContext<ChartRegistry>,
         private readonly stateDefs: OptionsDefs<AgAnnotation>
     ) {}
+
+    public setEditingProbe(probe: () => boolean) {
+        this.editingProbe = probe;
+        return () => {
+            if (this.editingProbe === probe) {
+                this.editingProbe = undefined;
+            }
+        };
+    }
+
+    public isEditing() {
+        return this.editingProbe?.() ?? false;
+    }
 
     public createMemento() {
         return this.annotations;
