@@ -1455,11 +1455,11 @@ export abstract class Axis<
             pickValue: (point) => this.pickValue(point),
             pickBand: (point) => this.pickBand(point),
             measureBand: (value) => this.measureBand(value),
-            iterateA11YTickData: () => this.iterateA11TTickData(),
+            iterateA11YTickData: () => this.iterateA11YTickData(),
         };
     }
 
-    protected iterateA11TTickData(): AxisA11YTickDataIterator {
+    protected iterateA11YTickData(): AxisA11YTickDataIterator {
         const labels: { node: TransformableText<LabelNodeDatum>; datum: LabelNodeDatum }[] = [];
         const groupVisible = this.tickLabelGroup.visible;
         for (const node of groupVisible ? this.tickLabelGroupSelection.nodes() : []) {
