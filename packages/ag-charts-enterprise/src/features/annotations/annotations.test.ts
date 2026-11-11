@@ -1202,59 +1202,24 @@ describe('Annotations', () => {
         const visibleAxisLabels = () =>
             findSceneNodes(chart, (node) => node.name === ANNOTATION_AXIS_LABEL_GROUP && node.visible);
 
-        // Each annotation with a point on its body to click it by.
-        interface Selectable {
-            name: string;
-            annotation: AgAnnotation;
-            body: { x: number; y: number };
-        }
         const [START, END] = [
             { x: day(20), y: 25 },
             { x: day(80), y: 75 },
         ];
-        const SELECTABLE: Selectable[] = [
-            {
-                name: 'line',
-                annotation: { type: 'line', start: START, end: END },
-                body: { x: 50, y: 50 },
-            },
-            {
-                name: 'fibonacci-retracement',
-                annotation: { type: 'fibonacci-retracement', start: START, end: END },
-                // On the 0.5 level, which is drawn between the two x positions.
-                body: { x: 50, y: 50 },
-            },
-            {
-                name: 'parallel-channel',
-                annotation: {
-                    type: 'parallel-channel',
-                    start: { x: day(20), y: 30 },
-                    end: { x: day(80), y: 60 },
-                    height: 20,
-                },
-                // Its four corners are labelled, not the middle handles that only move an edge.
-                body: { x: 50, y: 45 },
-            },
-            {
-                name: 'disjoint-channel',
-                annotation: {
-                    type: 'disjoint-channel',
-                    start: { x: day(20), y: 30 },
-                    end: { x: day(80), y: 60 },
-                    startHeight: 10,
-                    endHeight: 20,
-                },
-                // All four handles are labelled, including the univariant one at the end of the bottom line.
-                body: { x: 50, y: 45 },
-            },
-            ...(['price-range', 'quick-date-price-range'] as const).map((type): Selectable => ({
-                name: type,
-                annotation: { type, start: START, end: END },
-                body: { x: 50, y: 50 },
-            })),
+        const [CHANNEL_START, CHANNEL_END] = [
+            { x: day(20), y: 30 },
+            { x: day(80), y: 60 },
         ];
-        const { annotation: LINE, body: LINE_BODY } = SELECTABLE[0];
-        const PARALLEL_CHANNEL = SELECTABLE.find(({ name }) => name === 'parallel-channel')!;
+        const LINE: AgAnnotation = { type: 'line', start: START, end: END };
+        const PARALLEL_CHANNEL: AgAnnotation = {
+            type: 'parallel-channel',
+            start: CHANNEL_START,
+            end: CHANNEL_END,
+            height: 20,
+        };
+        // A point on each annotation's body to click it by.
+        const LINE_BODY = { x: 50, y: 50 };
+        const CHANNEL_BODY = { x: 50, y: 45 };
         // Away from every annotation above, so that clicking it deselects.
         const EMPTY = { x: 10, y: 95 };
 
@@ -1264,7 +1229,7 @@ describe('Annotations', () => {
                 {
                     annotations: [
                         { type: 'horizontal-line', value: 73, axisLabel: { fill: '#ff0000' } },
-                        { ...LINE, axisShading: { fillOpacity: 0.5 } } as AgAnnotation,
+                        { ...LINE, axisShading: { fillOpacity: 0.5 } },
                     ],
                 },
                 withAxes()
@@ -1275,91 +1240,99 @@ describe('Annotations', () => {
             await compare();
         });
 
-        describe('colours', () => {
-            const RED = '#ff0000';
-            const GREEN = '#00aa00';
-            const BLUE = '#0000ff';
+        const RED = '#ff0000';
+        const GREEN = '#00aa00';
+        const BLUE = '#0000ff';
 
-            // Each is snapshotted, as one annotation is selected at a time: the labels take the line colour and the
-            // shading the background, or the line colour where there is none.
-            const colourCases: Array<{ name: string; annotation: AgAnnotation; body: { x: number; y: number } }> = [
-                {
-                    name: 'a line follows its line colour',
-                    annotation: { type: 'line', start: START, end: END, stroke: RED },
-                    body: LINE_BODY,
+        // The labels take the line colour and the shading the background, or the line colour where there is none.
+        // Each case is snapshotted, as one annotation is selected at a time.
+        const selectedCases: Array<{ name: string; annotation: AgAnnotation; body: { x: number; y: number } }> = [
+            {
+                name: 'a line that follows its line colour',
+                annotation: { ...LINE, stroke: RED },
+                body: LINE_BODY,
+            },
+            {
+                name: 'a line that yields to the fills set on its axis label and shading',
+                annotation: {
+                    ...LINE,
+                    stroke: RED,
+                    axisLabel: { fill: GREEN },
+                    axisShading: { fill: BLUE, fillOpacity: 0.5 },
                 },
-                {
-                    name: 'a channel labels with its line colour and shades with its background',
-                    annotation: {
-                        type: 'parallel-channel',
-                        start: { x: day(20), y: 30 },
-                        end: { x: day(80), y: 60 },
-                        height: 20,
-                        stroke: RED,
-                        background: { fill: BLUE, fillOpacity: 0.3 },
-                    },
-                    body: { x: 50, y: 45 },
+                body: LINE_BODY,
+            },
+            {
+                name: 'a parallel channel that labels with its line colour and shades with its background',
+                // Its four corners are labelled, not the middle handles that only move an edge.
+                annotation: { ...PARALLEL_CHANNEL, stroke: RED, background: { fill: BLUE, fillOpacity: 0.3 } },
+                body: CHANNEL_BODY,
+            },
+            {
+                name: 'a disjoint channel with the default colours',
+                // All four handles are labelled, including the univariant one at the end of the bottom line.
+                annotation: {
+                    type: 'disjoint-channel',
+                    start: CHANNEL_START,
+                    end: CHANNEL_END,
+                    startHeight: 10,
+                    endHeight: 20,
                 },
-                {
-                    name: 'a fibonacci follows its range stroke',
-                    annotation: { type: 'fibonacci-retracement', start: START, end: END, rangeStroke: GREEN },
-                    body: { x: 50, y: 50 },
+                body: CHANNEL_BODY,
+            },
+            {
+                name: 'a Fibonacci retracement that follows its range stroke',
+                annotation: { type: 'fibonacci-retracement', start: START, end: END, rangeStroke: GREEN },
+                // On the 0.5 level, which is drawn between the two x positions.
+                body: LINE_BODY,
+            },
+            {
+                name: 'a price range with the default colours',
+                annotation: { type: 'price-range', start: START, end: END },
+                body: LINE_BODY,
+            },
+            {
+                name: 'a quick range measuring up that follows its up styles',
+                annotation: {
+                    type: 'quick-date-price-range',
+                    start: START,
+                    end: END,
+                    up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
+                    down: { stroke: BLUE, fill: BLUE, fillOpacity: 0.1 },
                 },
-                {
-                    name: 'a line yields to the fills set on its axis label and shading',
-                    annotation: {
-                        type: 'line',
-                        start: START,
-                        end: END,
-                        stroke: RED,
-                        axisLabel: { fill: GREEN },
-                        axisShading: { fill: BLUE, fillOpacity: 0.5 },
-                    },
-                    body: LINE_BODY,
+                body: LINE_BODY,
+            },
+            {
+                name: 'a quick range measuring down that follows its down styles',
+                annotation: {
+                    type: 'quick-date-price-range',
+                    start: END,
+                    end: START,
+                    up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
+                    down: { stroke: BLUE, fill: GREEN, fillOpacity: 0.1 },
                 },
-                {
-                    name: 'a quick range measuring up follows its up styles',
-                    annotation: {
-                        type: 'quick-date-price-range',
-                        start: START,
-                        end: END,
-                        up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
-                        down: { stroke: BLUE, fill: BLUE, fillOpacity: 0.1 },
-                    },
-                    body: LINE_BODY,
-                },
-                {
-                    name: 'a quick range measuring down follows its down styles',
-                    annotation: {
-                        type: 'quick-date-price-range',
-                        start: END,
-                        end: START,
-                        up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
-                        down: { stroke: BLUE, fill: GREEN, fillOpacity: 0.1 },
-                    },
-                    body: LINE_BODY,
-                },
-            ];
+                body: LINE_BODY,
+            },
+        ];
 
-            it.each(colourCases)('colours the axes for $name', async ({ annotation, body }) => {
-                await prepareChart({ annotations: [annotation] }, withAxes());
+        it.each(selectedCases)('shows axis labels and shading on both axes for $name', async ({ annotation, body }) => {
+            await prepareChart({ annotations: [annotation] }, withAxes());
+            expect(visibleAxisLabels()).toHaveLength(0);
 
-                await clickDatum(body.x, body.y);
+            await clickDatum(body.x, body.y);
 
-                expect(visibleAxisLabels().length).toBeGreaterThan(0);
-                await compare();
-            });
+            expect(visibleAxisLabels().length).toBeGreaterThan(0);
+            await compare();
         });
 
         it('lets the theme switch off the labels and shading of a selected parallel channel', async () => {
-            const { annotation, body } = PARALLEL_CHANNEL;
             const off = { axisLabel: { enabled: false }, axisShading: { enabled: false } };
             await prepareChart(
-                { annotations: [annotation] },
+                { annotations: [PARALLEL_CHANNEL] },
                 { ...withAxes(), theme: { overrides: { common: { annotations: { 'parallel-channel': off } } } } }
             );
 
-            await clickDatum(body.x, body.y);
+            await clickDatum(CHANNEL_BODY.x, CHANNEL_BODY.y);
 
             await compare();
         });
@@ -1373,21 +1346,6 @@ describe('Annotations', () => {
 
             await compare();
         });
-
-        // The line, parallel channel, Fibonacci and quick range are selected in the colours cases above.
-        const NOT_IN_COLOURS = SELECTABLE.filter(({ name }) => ['disjoint-channel', 'price-range'].includes(name));
-        it.each(NOT_IN_COLOURS)(
-            'shows axis labels and shading on both axes for a selected $name',
-            async ({ annotation, body }) => {
-                await prepareChart({ annotations: [annotation] }, withAxes());
-                expect(visibleAxisLabels()).toHaveLength(0);
-
-                await clickDatum(body.x, body.y);
-
-                expect(visibleAxisLabels().length).toBeGreaterThan(0);
-                await compare();
-            }
-        );
 
         it('removes the axis labels and shading when the annotation is deselected', async () => {
             await prepareChart({ annotations: [LINE] }, withAxes());
