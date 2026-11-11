@@ -1,5 +1,5 @@
+import { moveViteClientToEndOfBody } from '@ag-website-shared/utils/moveViteClientToEndOfBody';
 import { getIsDev } from '@utils/env';
-import { moveViteClientToEndOfBody } from '@utils/example-modules/moveViteClientToEndOfBody';
 import { defineMiddleware } from 'astro/middleware';
 import { parse } from 'node-html-parser';
 import { basename, extname } from 'path';
