@@ -1109,6 +1109,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "direction": "vertical",
       "fill": "#c16068",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -1242,6 +1243,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "direction": "vertical",
       "fill": "#a2bf8a",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -3131,6 +3133,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#5090dc",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -3265,6 +3268,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#ffa03a",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -3399,6 +3403,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#459d55",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -3533,6 +3538,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#34bfe1",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -3667,6 +3673,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#e1cc00",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -3801,6 +3808,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#9669cb",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -3935,6 +3943,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#b5b5b5",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -4069,6 +4078,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#bd5aa7",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -6932,6 +6942,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       "direction": "horizontal",
       "fill": "#5090dc",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -7390,6 +7401,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
       "direction": "horizontal",
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -8764,6 +8776,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "direction": "vertical",
       "fill": "#19A0AA",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -8895,6 +8908,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "direction": "vertical",
       "fill": "#F15F36",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -9351,6 +9365,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "direction": "horizontal",
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -9485,6 +9500,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "direction": "horizontal",
       "fill": "rgba(226, 188, 34, 0.9)",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -9945,6 +9961,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "direction": "vertical",
       "fill": "#5090dc",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -10079,6 +10096,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "direction": "vertical",
       "fill": "#ffa03a",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -10213,6 +10231,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "direction": "vertical",
       "fill": "#459d55",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -10347,6 +10366,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "direction": "vertical",
       "fill": "#34bfe1",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -10481,6 +10501,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "direction": "vertical",
       "fill": "#e1cc00",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -10615,6 +10636,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "direction": "vertical",
       "fill": "#9669cb",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -10749,6 +10771,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "direction": "vertical",
       "fill": "#b5b5b5",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -15622,6 +15645,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "direction": "horizontal",
       "fill": "#00c851",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -15757,6 +15781,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "direction": "horizontal",
       "fill": "#ffbb33",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -15892,6 +15917,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "direction": "horizontal",
       "fill": "#ff4444",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -16353,6 +16379,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "direction": "vertical",
       "fill": "#f1c40f",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -16487,6 +16514,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "direction": "vertical",
       "fill": "#e67e22",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -16621,6 +16649,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "direction": "vertical",
       "fill": "#2ecc71",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -16755,6 +16784,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "direction": "vertical",
       "fill": "#3498db",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -16889,6 +16919,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "direction": "vertical",
       "fill": "#9b59b6",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -17023,6 +17054,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "direction": "vertical",
       "fill": "#34495e",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -18425,6 +18457,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#0084e7",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -22129,6 +22162,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "direction": "horizontal",
       "fill": "#5090dc",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -22263,6 +22297,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "direction": "horizontal",
       "fill": "#ffa03a",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -22397,6 +22432,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "direction": "horizontal",
       "fill": "#459d55",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -22531,6 +22567,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "direction": "horizontal",
       "fill": "#34bfe1",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -22992,6 +23029,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "direction": "vertical",
       "fill": "#5BC0EB",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -23126,6 +23164,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "direction": "vertical",
       "fill": "#FDE74C",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -23260,6 +23299,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "direction": "vertical",
       "fill": "#9BC53D",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -23394,6 +23434,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "direction": "vertical",
       "fill": "#E55934",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -23528,6 +23569,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "direction": "vertical",
       "fill": "#FA7921",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -24014,6 +24056,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "direction": "vertical",
       "fill": "#fac858",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -24516,6 +24559,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "direction": "vertical",
       "fill": "#fac858",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -25018,6 +25062,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
       "direction": "horizontal",
       "fill": "#5470c6",
       "fillOpacity": 1,
+      "gap": 0,
       "glow": {
         "blur": 2,
         "enabled": false,
