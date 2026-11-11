@@ -12,7 +12,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import { imageSegmentStyle } from './overlay';
+import { toImageBox } from './overlay';
 
 describe('Overlay', () => {
     setupMockConsole();
@@ -582,38 +582,76 @@ HTMLCollection [
     });
 });
 
-describe('imageSegmentStyle', () => {
-    const base = { type: 'image', url: 'icon.svg', width: 20, height: 20 } as const;
+describe('Overlay text segments', () => {
+    setupMockConsole();
+    setupMockCanvas();
 
-    it('maps box dimensions and contain-fit defaults', () => {
-        const style = imageSegmentStyle({ ...base });
-        expect(style.width).toEqual('20px');
-        expect(style.height).toEqual('20px');
-        expect(style.boxSizing).toEqual('border-box');
-        expect(style.objectFit).toEqual('contain');
-        expect(style.verticalAlign).toEqual('middle');
-        // No decoration requested — background/radius resolve to empty.
-        expect(style.backgroundColor).toEqual('');
-        expect(style.borderRadius).toEqual('');
-        expect(style.padding).toEqual('0px 0px 0px 0px');
+    let chart: Chart;
+
+    afterEach(() => {
+        if (chart != null) {
+            chart.destroy();
+        }
     });
 
-    it('maps padding, background and corner radius decoration', () => {
-        const style = imageSegmentStyle({
-            ...base,
-            padding: 2,
-            backgroundFill: 'red',
+    const noDataOverlayWith = async (text: NonNullable<NonNullable<AgChartOptions['overlays']>['noData']>['text']) => {
+        chart = deproxy(
+            await createChart({
+                data: [],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                overlays: { noData: { text } },
+            })
+        );
+        return chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
+    };
+
+    it('renders each text segment with its own font', async () => {
+        const overlay = await noDataOverlayWith([
+            { text: 'Nothing ', fontSize: 14, fontWeight: 'bold', color: 'red', fontStyle: 'italic', lineHeight: 20 },
+            { text: 'here', fontFamily: 'Verdana' },
+        ]);
+
+        const spans = Array.from(overlay?.querySelectorAll('span') ?? []);
+        expect(spans.map((span) => span.innerText)).toEqual(['Nothing ', 'here']);
+        expect(spans[0].style.fontSize).toEqual('14px');
+        expect(spans[0].style.fontWeight).toEqual('bold');
+        expect(spans[0].style.color).toEqual('red');
+        expect(spans[0].style.fontStyle).toEqual('italic');
+        expect(spans[0].style.lineHeight).toEqual('20px');
+        expect(spans[1].style.fontFamily).toEqual('Verdana');
+    });
+
+    it('lets a text segment without a font family inherit the overlay font', async () => {
+        const overlay = await noDataOverlayWith([{ text: 'Nothing here' }]);
+
+        expect(overlay?.querySelector('span')?.style.fontFamily).toEqual('inherit');
+    });
+});
+
+describe('toImageBox', () => {
+    const base = { type: 'image', url: 'icon.svg', width: 20, height: 16 } as const;
+
+    it('maps the box dimensions, centred and undecorated by default', () => {
+        expect(toImageBox({ ...base })).toEqual({
+            width: 20,
+            height: 16,
+            padding: { top: 0, right: 0, bottom: 0, left: 0 },
+            verticalAlign: 'middle',
+            backgroundColor: undefined,
+            cornerRadius: undefined,
+        });
+    });
+
+    it('maps padding, background fill, corner radius and vertical alignment', () => {
+        expect(
+            toImageBox({ ...base, padding: 2, backgroundFill: 'red', cornerRadius: 4, verticalAlign: 'top' })
+        ).toEqual({
+            width: 20,
+            height: 16,
+            padding: { top: 2, right: 2, bottom: 2, left: 2 },
+            verticalAlign: 'top',
+            backgroundColor: 'red',
             cornerRadius: 4,
         });
-        expect(style.padding).toEqual('2px 2px 2px 2px');
-        expect(style.backgroundColor).toEqual('red');
-        expect(style.borderRadius).toEqual('4px');
-    });
-
-    it('maps each verticalAlign to a CSS equivalent', () => {
-        expect(imageSegmentStyle({ ...base, verticalAlign: 'top' }).verticalAlign).toEqual('top');
-        expect(imageSegmentStyle({ ...base, verticalAlign: 'bottom' }).verticalAlign).toEqual('bottom');
-        expect(imageSegmentStyle({ ...base, verticalAlign: 'baseline' }).verticalAlign).toEqual('baseline');
-        expect(imageSegmentStyle({ ...base, verticalAlign: 'middle' }).verticalAlign).toEqual('middle');
     });
 });
