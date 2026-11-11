@@ -160,4 +160,21 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
             [0, 0.87],
         ]);
     },
+    'triangle-down'(params) {
+        drawMarkerUnitPolygon(params, [
+            [0, 0.13],
+            [1, 0.13],
+            [0.5, 1],
+        ]);
+    },
+    hourglass(params) {
+        drawMarkerUnitPolygon(params, [
+            [0, 0],
+            [1, 0],
+            [0.5, 0.5],
+            [1, 1],
+            [0, 1],
+            [0.5, 0.5],
+        ]);
+    },
 };
