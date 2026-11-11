@@ -1,5 +1,6 @@
 import type { AgChartLabelOrientation, PaddingOptions, TextWrap } from 'ag-charts-types';
 
+import { isNumberEqual } from '../data/numbers';
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedChartLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
@@ -1604,7 +1605,7 @@ function swapImproves(
     cost: number
 ): boolean {
     const swappedCost = displacementCost(moved, heldFirst);
-    if (swappedCost !== cost) return swappedCost < cost;
+    if (!isNumberEqual(swappedCost, cost, 1e-6)) return swappedCost < cost;
     return (
         placed != null &&
         labelsCrossed(heldFirst, labelObstacleBox(held), first, labelObstacleBox(placed)) &&

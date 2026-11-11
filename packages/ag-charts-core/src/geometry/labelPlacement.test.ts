@@ -3583,10 +3583,41 @@ describe('placeLabels (positioned candidates)', () => {
     });
 
     it.each([
-        ['displaces the pair less', [234, 254, 280]],
-        ['displaces it equally without one label jumping the other', [234, 256]],
-    ])('trades a first-choice slot with the one earlier label holding it when that %s', (_, blockedYs) => {
+        ['displaces the pair less', [234, 254, 280], 0],
+        ['displaces it equally without one label jumping the other', [234, 256], 0],
+        ['displaces it equally at fractional pixel positions', [234, 256], 8.083],
+    ])('trades a first-choice slot with the one earlier label holding it when that %s', (_, blockedYs, offset) => {
         const avoid = { marker: true, label: true, shape: true };
+        const barDatum = (text: string, ownTop: number, ownHeight: number, ys: number[]) => {
+            const ownBox = { x: 0, y: ownTop + offset, width: 50, height: ownHeight };
+            return buildBarPositionedLabelDatum(
+                text,
+                30,
+                16,
+                ys.map((y, i) => ({
+                    box: { x: 10, y: y + offset, width: 30, height: 16 },
+                    region: i === 0 ? ownBox : undefined,
+                })),
+                {} as BarLabelTarget,
+                ownBox,
+                false,
+                avoid,
+                0,
+                true
+            );
+        };
+        const held = barDatum('held', 100, 160, [240, 262]);
+        const blocked = barDatum('blocked', 150, 102, blockedYs);
+
+        const [labels] = placeLabels(new Map([['s', seriesLabels([held, blocked])]]), bounds, 5).values();
+
+        expect(labels.map(({ text, y }) => ({ text, y }))).toEqual([
+            { text: 'held', y: 262 + offset },
+            { text: 'blocked', y: 234 + offset },
+        ]);
+    });
+
+    it('keeps a label in place when trading its slot would displace the pair more, and later labels still avoid it', () => {
         const barDatum = (text: string, ownBox: BoxBounds, ys: number[]) =>
             buildBarPositionedLabelDatum(
                 text,
@@ -3596,18 +3627,20 @@ describe('placeLabels (positioned candidates)', () => {
                 {} as BarLabelTarget,
                 ownBox,
                 false,
-                avoid,
+                { marker: true, label: true, shape: true },
                 0,
                 true
             );
-        const held = barDatum('held', { x: 0, y: 100, width: 50, height: 160 }, [240, 262]);
-        const blocked = barDatum('blocked', { x: 0, y: 150, width: 50, height: 102 }, blockedYs);
+        const held = barDatum('held', { x: 0, y: 100, width: 50, height: 160 }, [240, 290]);
+        const blocked = barDatum('blocked', { x: 0, y: 150, width: 50, height: 102 }, [234, 256]);
+        const later = barDatum('later', { x: 0, y: 200, width: 50, height: 100 }, [240, 274]);
 
-        const [labels] = placeLabels(new Map([['s', seriesLabels([held, blocked])]]), bounds, 5).values();
+        const [labels] = placeLabels(new Map([['s', seriesLabels([held, blocked, later])]]), bounds, 5).values();
 
         expect(labels.map(({ text, y }) => ({ text, y }))).toEqual([
-            { text: 'held', y: 262 },
-            { text: 'blocked', y: 234 },
+            { text: 'held', y: 240 },
+            { text: 'blocked', y: 256 },
+            { text: 'later', y: 274 },
         ]);
     });
 
