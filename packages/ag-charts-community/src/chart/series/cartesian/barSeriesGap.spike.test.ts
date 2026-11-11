@@ -1,3 +1,4 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions } from 'ag-charts-types';
@@ -139,6 +140,32 @@ async function updated(chart: Awaited<ReturnType<typeof open>>, options: AgCarte
     await chart.update(prepareTestOptions({ ...options }) as any);
     await waitForChartStability(chart);
     return ctx.snapshot();
+}
+
+const SHOTS = process.env.SPIKE_SHOTS;
+
+function withVisibleAxes(o: AgCartesianChartOptions, title: string): AgCartesianChartOptions {
+    const axes = (o as any).axes as any[];
+    const vertical = axes[0].position === 'bottom';
+    return {
+        ...o,
+        width: 520,
+        height: 380,
+        padding: { top: 10, right: 10, bottom: 10, left: 10 },
+        background: { fill: '#ffffff' },
+        title: { text: title },
+        axes: [
+            { type: 'category', position: vertical ? 'bottom' : 'left' },
+            { type: 'number', position: vertical ? 'left' : 'bottom', nice: false },
+        ],
+    } as unknown as AgCartesianChartOptions;
+}
+
+async function shot(name: string, options: AgCartesianChartOptions, title: string) {
+    if (SHOTS == null || SHOTS === '') return;
+    mkdirSync(SHOTS, { recursive: true });
+    await open(withVisibleAxes(options, title));
+    writeFileSync(`${SHOTS}/${name}.png`, await ctx.nodeCanvas.toBuffer('png'));
 }
 
 describe('bar gap spike', () => {
@@ -363,21 +390,45 @@ describe('bar gap spike', () => {
         expect(true).toBe(true);
     });
 
+    describe('screenshots', () => {
+        const negData = [
+            { c: 'A', a: 10, b: -20, d: -30 },
+            { c: 'B', a: -15, b: 15, d: 15 },
+            { c: 'C', a: -5, b: -25, d: 20 },
+        ];
+        it('tc1', async () =>
+            shot('tc1-stacked-column-gap4', stackOptions({ gaps: [4, 4, 4] }), 'TC1: gap 4 on every series'));
+        it('neg-h', async () =>
+            shot(
+                'horizontal-negative-gap4',
+                stackOptions({ gaps: [4, 4, 4], data: negData, direction: 'horizontal' }),
+                'Horizontal, negative values, gap 4'
+            ));
+        it('norm', async () =>
+            shot('normalised-gap4', stackOptions({ gaps: [4, 4, 4], normalizedTo: 100 }), 'Normalised to 100, gap 4'));
+        it('mixed', async () =>
+            shot('mixed-gap-4-0-4', stackOptions({ gaps: [4, 0, 4] }), 'gap 4 / 0 / 4 (bottom to top)'));
+    });
+
     describe('Q3 aggregation', () => {
         const N = 5000;
         const T0 = Date.UTC(2024, 0, 1);
-        function aggData(shape: 'full' | 'nullTop' | 'zeroTop' | 'negTop') {
+        function aggData(shape: 'full' | 'nullTop' | 'zeroTop' | 'negTop' | 'const') {
             return Array.from({ length: N }, (_, i) => {
                 const row: any = { t: new Date(T0 + i * 60000), a: 10 + (i % 7), b: 20 + (i % 5), d: 30 + (i % 3) };
+                if (shape === 'const') Object.assign(row, { a: 10, b: 20, d: 30 });
                 if (shape === 'nullTop' && i % 2 === 0) row.d = null;
                 if (shape === 'zeroTop' && i % 2 === 0) row.d = 0;
                 if (shape === 'negTop' && i % 2 === 0) row.d = -(30 + (i % 3));
                 return row;
             });
         }
-        function aggOptions(shape: 'full' | 'nullTop' | 'zeroTop' | 'negTop', gap: number): AgCartesianChartOptions {
+        function aggOptions(
+            shape: 'full' | 'nullTop' | 'zeroTop' | 'negTop' | 'const',
+            gap: number
+        ): AgCartesianChartOptions {
             const base = stackOptions({ gaps: [gap, gap, gap], data: aggData(shape) }) as any;
-            base.series.forEach((se: any) => (se.xKey = 't'));
+            for (const se of base.series) se.xKey = 't';
             base.axes[0] = { ...base.axes[0], type: 'unit-time' };
             return base;
         }
@@ -397,6 +448,15 @@ describe('bar gap spike', () => {
                 },
             };
         };
+
+        it('screenshot aggregated', async () =>
+            shot('aggregated-gap4-varying', aggOptions('full', 4), '5000 points, aggregated, varying values, gap 4'));
+        it('screenshot aggregated constant', async () =>
+            shot(
+                'aggregated-gap4-constant',
+                aggOptions('const', 4),
+                '5000 points, aggregated, constant values, gap 4'
+            ));
 
         for (const shape of ['full', 'nullTop', 'zeroTop', 'negTop'] as const) {
             it(`Q3 ${shape}: aggregated bucket stack ends`, async () => {

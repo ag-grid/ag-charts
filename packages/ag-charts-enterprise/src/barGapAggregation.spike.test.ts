@@ -44,7 +44,9 @@ describe('bar gap bench path spike', () => {
                     for (const nd of se.contextNodeData?.nodeData ?? []) {
                         if (nd.clipBBox == null || nd.pickBBox == null) continue;
                         const low = Math.round(nd.clipBBox.y - nd.pickBBox.y);
-                        const high = Math.round(nd.pickBBox.y + nd.pickBBox.height - (nd.clipBBox.y + nd.clipBBox.height));
+                        const high = Math.round(
+                            nd.pickBBox.y + nd.pickBBox.height - (nd.clipBBox.y + nd.clipBBox.height)
+                        );
                         const key = `low${low}/high${high}`;
                         hist[key] = (hist[key] ?? 0) + 1;
                     }
