@@ -7,6 +7,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
+    glowOptionsDefs,
     lineDashOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
     number,
@@ -20,15 +21,16 @@ import {
     undocumentedDefs,
 } from 'ag-charts-core';
 
-import { radialSeriesStylerDef } from '../radial-column/radialColumnSeriesOptionsDef';
+import { radialSeriesItemStylerDef, radialSeriesStylerDef } from '../radial-column/radialColumnSeriesOptionsDef';
 
 export const radialBarSeriesThemeableOptionsDef: OptionsDefs<AgRadialBarSeriesThemeableOptions> = {
     cornerRadius: positiveNumber,
     styler: radialSeriesStylerDef,
-    itemStyler: radialSeriesStylerDef,
+    itemStyler: radialSeriesItemStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
+    glow: glowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,

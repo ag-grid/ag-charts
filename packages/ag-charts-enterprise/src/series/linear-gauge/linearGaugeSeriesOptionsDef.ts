@@ -44,7 +44,20 @@ export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
     value: required(numericValue),
     text: string,
     shape: or(
-        union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
+        union(
+            'circle',
+            'cross',
+            'diamond',
+            'heart',
+            'plus',
+            'pin',
+            'square',
+            'star',
+            'triangle',
+            'triangle-down',
+            'hourglass',
+            'line'
+        ),
         callback
     ),
     placement: union('before', 'after', 'middle'),

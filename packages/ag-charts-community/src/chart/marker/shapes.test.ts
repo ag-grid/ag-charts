@@ -95,4 +95,40 @@ describe('Marker Shapes', () => {
             await compare();
         });
     });
+
+    describe('triangle-down and hourglass', () => {
+        it('should render both shapes on series markers and legend items', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, a: 10, b: 30 },
+                    { x: 1, a: 20, b: 25 },
+                    { x: 2, a: 15, b: 35 },
+                ],
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'a',
+                        shape: 'triangle-down',
+                        size: 30,
+                        fill: 'orange',
+                        stroke: 'maroon',
+                        strokeWidth: 3,
+                    },
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'b',
+                        shape: 'hourglass',
+                        size: 30,
+                        fill: 'teal',
+                        stroke: 'navy',
+                        strokeWidth: 3,
+                    },
+                ],
+            };
+            chart = await createChart(options);
+            await compare();
+        });
+    });
 });

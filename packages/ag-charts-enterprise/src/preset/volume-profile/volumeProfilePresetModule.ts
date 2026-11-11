@@ -48,6 +48,7 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     formatter: defined,
     enableRtl: boolean,
     suppressFieldDotNotation: boolean,
+    styleNonce: string,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
         foreground: defined,

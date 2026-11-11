@@ -1,5 +1,6 @@
 import {
     type AgActiveItemState,
+    type AgItemShadowStyle,
     type FillOptions,
     type LineDashOptions,
     type StrokeOptions,
@@ -20,7 +21,7 @@ import type {
     Point,
     Text,
 } from 'ag-charts-core';
-import { Group, Selection, TransformableText } from 'ag-charts-core';
+import { Group, Selection, TransformableText, withoutCasts } from 'ag-charts-core';
 
 import {
     type FlowLinkDatumIndex,
@@ -142,8 +143,10 @@ export abstract class FlowProportionSeries<
     private readonly focusNodeGroup = this.highlightGroup.appendChild(
         new Group({ name: 'nodeGroup', batchShadows: true })
     );
-    // This copy of the hovered link casts only its `glow`, never its `shadow`, and holds one link: nothing to batch.
-    private readonly highlightLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
+    // This copy of the hovered link casts only its `glow`, never its `shadow`, which only a batch casts.
+    private readonly highlightLinkGroup = this.highlightGroup.appendChild(
+        new Group({ name: 'linkGroup', batchShadows: true })
+    );
 
     protected labelSelection: Selection<TLabel, TransformableText<TLabel>> = Selection.select(
         this.labelGroup,
@@ -354,14 +357,14 @@ export abstract class FlowProportionSeries<
         nodeDatum: Partial<TNodeDatum>,
         fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
-    ): Required<NormalisedNodeStyle>;
+    ): Required<NormalisedNodeStyle> & AgItemShadowStyle;
 
     protected abstract getLinkStyle(
         datum: TLinkDatum['datum'],
         datumIndex: FlowLinkDatumIndex,
         fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
-    ): Required<NormalisedNodeStyle>;
+    ): Required<NormalisedNodeStyle> & AgItemShadowStyle;
 
     protected getNodeGraph(
         createNode: (node: FlowProportionNodeDatum<TNodeDatum, TLinkDatum>) => TNodeDatum,
@@ -600,7 +603,9 @@ export abstract class FlowProportionSeries<
 
     /**
      * `focusedDatum` is the hovered item when `datumSelection` is the focus layer, which redraws it among its
-     * neighbours. That copy casts no shadow: the hovered item's shadow is cast by exactly one other copy.
+     * neighbours. That copy casts no shadow: the hovered item's shadow is cast by exactly one other copy. The focus layer
+     * casts no glow at all: the in-place copy of each neighbour casts its own, and the hovered item's is cast by its
+     * highlight copy.
      */
     protected abstract updateNodeNodes(opts: {
         datumSelection: Selection<TNodeDatum, TNode>;
@@ -827,7 +832,7 @@ export abstract class FlowProportionSeries<
         const datum = this.readUserDatum(datumIndex);
         const size = seriesDatum.size;
 
-        let format: Required<NormalisedNodeStyle>;
+        let format: Required<NormalisedNodeStyle> & AgItemShadowStyle;
         if (seriesDatum.type === FlowProportionDatumType.Link) {
             format = this.getLinkStyle(datum, seriesDatum.datumIndex, nodeIndex, false);
         } else {
@@ -869,7 +874,7 @@ export abstract class FlowProportionSeries<
                 sizeKey,
                 sizeName,
                 size,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

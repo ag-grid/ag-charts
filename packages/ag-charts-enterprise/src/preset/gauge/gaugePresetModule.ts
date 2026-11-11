@@ -5,6 +5,7 @@ import {
     boolean,
     defined,
     positiveNumber,
+    string,
     typeUnion,
     undocumentedDefs,
     without,
@@ -34,6 +35,7 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
     subtitle: defined,
     footnote: defined,
     padding: defined,
+    styleNonce: string,
     tooltip: gaugeTooltipOptionsDef,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,

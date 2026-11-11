@@ -40,6 +40,13 @@ name: Release Review
 #   Repository secrets:   ANTHROPIC_API_KEY, SLACK_BOT_OAUTH_TOKEN,
 #                         JIRA_AGENT_APP_PRIVATE_KEY
 #   Repository variables: JIRA_AGENT_APP_ID
+#
+# Google Doc publishing (optional; with any of these unset the review still runs
+# and Slack gets the run link only):
+#   Repository variables: RELEASE_REVIEW_GCP_WIF_PROVIDER,
+#                         RELEASE_REVIEW_GCP_SERVICE_ACCOUNT,
+#                         RELEASE_REVIEW_DRIVE_FOLDER_ID
+#   No new secret. The review jobs need `id-token: write`, set per job below.
 # ============================================================================
 
 on:
@@ -118,6 +125,11 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && (inputs.review == 'docs' || inputs.review == 'both')
         runs-on: ubuntu-latest
         timeout-minutes: 120
+        permissions:
+            # Job-level permissions replace the workflow-level ones, so restate them.
+            contents: read
+            packages: read
+            id-token: write
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -158,12 +170,20 @@ jobs:
                   current_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.current_branch || '' }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   slack_bot_oauth_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  gcp_workload_identity_provider: ${{ vars.RELEASE_REVIEW_GCP_WIF_PROVIDER }}
+                  gcp_service_account: ${{ vars.RELEASE_REVIEW_GCP_SERVICE_ACCOUNT }}
+                  drive_folder_id: ${{ vars.RELEASE_REVIEW_DRIVE_FOLDER_ID }}
 
     options-review:
         name: Options (API) review
         if: github.event_name == 'workflow_dispatch' && (inputs.review == 'options' || inputs.review == 'both')
         runs-on: ubuntu-latest
         timeout-minutes: 60
+        permissions:
+            # Job-level permissions replace the workflow-level ones, so restate them.
+            contents: read
+            packages: read
+            id-token: write
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -203,3 +223,6 @@ jobs:
                   current_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.current_branch || '' }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   slack_bot_oauth_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  gcp_workload_identity_provider: ${{ vars.RELEASE_REVIEW_GCP_WIF_PROVIDER }}
+                  gcp_service_account: ${{ vars.RELEASE_REVIEW_GCP_SERVICE_ACCOUNT }}
+                  drive_folder_id: ${{ vars.RELEASE_REVIEW_DRIVE_FOLDER_ID }}

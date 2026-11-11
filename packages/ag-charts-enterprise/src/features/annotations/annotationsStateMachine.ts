@@ -59,6 +59,8 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
         return ANNOTATIONS_STATE_MACHINE_INHERITED_PROPERTIES;
     }
 
+    private idle = true;
+
     constructor(ctx: AnnotationsStateMachineContext) {
         super(
             new SnappingStateMachine((snapping) => {
@@ -67,12 +69,22 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
             new UpdateMachine(() => {
                 this.node = this.active == null ? undefined : ctx.node(this.active);
             }),
-            new AnnotationsMainStateMachine(ctx, (index) => {
-                this.active = index;
-                this.datum = this.active == null ? undefined : ctx.datum(this.active);
-                this.node = this.active == null ? undefined : ctx.node(this.active);
-            })
+            new AnnotationsMainStateMachine(
+                ctx,
+                (index) => {
+                    this.active = index;
+                    this.datum = this.active == null ? undefined : ctx.datum(this.active);
+                    this.node = this.active == null ? undefined : ctx.node(this.active);
+                },
+                (idle) => {
+                    this.idle = idle;
+                }
+            )
         );
+    }
+
+    public isIdle() {
+        return this.idle;
     }
 
     // TODO: remove this leak
@@ -154,7 +166,8 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
     constructor(
         ctx: AnnotationsStateMachineContext,
-        private readonly setActive: (index?: number) => void
+        private readonly setActive: (index?: number) => void,
+        setIdle: (idle: boolean) => void
     ) {
         const createDatum =
             <T extends AnnotationDatum>(type: AnnotationType) =>
@@ -299,12 +312,15 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
         super(States.Idle, {
             [States.Idle]: {
                 onEnter: () => {
+                    setIdle(true);
                     ctx.select(this.active, this.active);
 
                     if (this.hoverCoords) {
                         this.hovered = ctx.hoverAtCoords(this.hoverCoords, this.active, this.hovered);
                     }
                 },
+
+                onExit: () => setIdle(false),
 
                 hover: ({ offset }) => {
                     this.hovered = ctx.hoverAtCoords(offset, this.active, this.hovered);

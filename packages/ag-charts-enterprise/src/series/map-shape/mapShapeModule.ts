@@ -2,6 +2,7 @@ import { type AgMapShapeSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_GLOW_BUCKETS,
@@ -41,6 +42,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             fill: applyMapPalette(fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS)),
             stroke: { $ref: 'chartBackgroundColor' },
             shadow: SHADOW_THEME_DEFAULTS,
+            glow: GLOW_THEME_DEFAULTS,
             colorScale: MAP_COLOR_SCALE_THEME,
             fillOpacity: 1,
             strokeWidth: 1,

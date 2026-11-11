@@ -250,7 +250,10 @@ if [ "$1" == "--host" ] ; then
     done
   fi
 
+  # Chromium's start-up setenv of these races other threads' getenv (launch SIGSEGV); presetting overwrites in place.
   docker run -d --rm --ipc=host --init \
+    -e DBUS_SESSION_BUS_ADDRESS=disabled: \
+    -e FC_FONTATIONS=1 \
     -v $(pwd):/data:ro \
     -v $(pwd)/reports:/data/reports \
     -v $(pwd)/packages/ag-charts-website:/data/packages/ag-charts-website \

@@ -5,6 +5,7 @@ import {
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
@@ -51,6 +52,7 @@ function itemTheme(
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         shadow: SHADOW_THEME_DEFAULTS,
+        glow: GLOW_THEME_DEFAULTS,
         label: {
             enabled: inherited('enabled'),
             fill: inherited('fill'),
@@ -178,7 +180,9 @@ export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
             strokeWidth: 2,
         },
         tooltip: SERIES_TOOLTIP_THEME,
-        highlight: withGlowThemeDefaults(SINGLE_SERIES_HIGHLIGHT_STYLE, ITEM_GLOW_BUCKETS),
+        highlight: withGlowThemeDefaults(SINGLE_SERIES_HIGHLIGHT_STYLE, ITEM_GLOW_BUCKETS, {
+            glow: ['positive', 'negative', 'total'].map((item) => `/series/$index/item/${item}/glow`),
+        }),
     },
     legend: {
         enabled: true,

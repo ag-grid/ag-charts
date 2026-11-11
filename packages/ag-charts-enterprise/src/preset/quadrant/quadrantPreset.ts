@@ -168,6 +168,7 @@ export function createQuadrant(
         'overrideDevicePixelRatio',
         'padding',
         'selection',
+        'styleNonce',
         'subtitle',
         'suppressFieldDotNotation',
         'title',

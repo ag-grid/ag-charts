@@ -102,6 +102,7 @@ export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = Pick<
     | 'formatter'
     | 'enableRtl'
     | 'suppressFieldDotNotation'
+    | 'styleNonce'
 >;
 
 export type AgBaseSparklinePresetThemeOptions<TDatum = DatumDefault> = AgSparklineBaseThemeableOptions<TDatum> &
@@ -133,6 +134,15 @@ export interface AgBaseGaugePresetOptions<
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
+    /**
+     * A nonce to be used by any dynamically injected CSS `<style>` tags to assist with Content Security Policy.
+     *
+     *
+     * See [https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/nonce](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/nonce).
+     *
+     * Default: `undefined`
+     */
+    styleNonce?: string;
 }
 
 export type AgLinearGaugeOptions<TDatum = DatumDefault, TContext = ContextDefault> = AgBaseGaugePresetOptions<
@@ -184,6 +194,7 @@ export type AgBaseQuadrantChartOptions<TDatum = DatumDefault, TContext = Context
     | 'title'
     | 'theme'
     | 'selection'
+    | 'styleNonce'
     | 'suppressFieldDotNotation'
     | 'width'
 >;

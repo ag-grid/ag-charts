@@ -2,6 +2,7 @@ import {
     CARTESIAN_AXIS_TYPE,
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     NEAREST_TOOLTIP_THEME,
     SAFE_FILLS_OPERATION,
@@ -44,6 +45,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         shadow: SHADOW_THEME_DEFAULTS,
+        glow: GLOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             wrapping: 'on-space',

@@ -34,4 +34,22 @@ export const shadowPass: {
      * below 1 for a layer too large to mask at full resolution, and 1 otherwise.
      */
     resolution: { x: number; y: number };
-} = { state: 'none', slot: 'shadow', opaque: false, tinted: false, resolution: { x: 1, y: 1 } };
+    /**
+     * During a `mask` pass that erases the footprint of a glow's `gap`, how far the footprints are dilated, in pixels. Casters
+     * then draw the geometry of the item, whatever its paint, and the pass erases it from the glow that was blurred.
+     */
+    erase: number | undefined;
+} = { state: 'none', slot: 'shadow', opaque: false, tinted: false, resolution: { x: 1, y: 1 }, erase: undefined };
+
+/** How far a shadow's silhouette is dilated: its `spread`, moved outwards by its glow's `gap`, which is then cut out. */
+export function getShadowSpread(shadow: { spread?: number; gap?: number }): number {
+    return (shadow.spread ?? 0) + (shadow.gap ?? 0);
+}
+
+/**
+ * Whether the silhouette is drawn dilated, as a copy of the item's geometry. A set `gap` does so even at `0`, as the item
+ * is then cast at its own strength, whatever its paint, and its footprint cut out of that.
+ */
+export function dilatesShadow(shadow: { spread?: number; gap?: number }): boolean {
+    return shadow.gap != null || (shadow.spread ?? 0) > 0;
+}

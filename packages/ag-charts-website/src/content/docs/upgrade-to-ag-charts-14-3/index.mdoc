@@ -111,6 +111,8 @@ There are no deprecations in AG Charts version {% migrationVersion() %}.
 - Cross line `label.position` is deprecated. Use `label.placement` instead.
 - Axis `line.width` is deprecated. Use `line.strokeWidth` instead.
 - Linear Gauge `label.avoidCollisions` is deprecated. Use `label.collision.alwaysShow` instead. The sense is inverted: `collision.alwaysShow: true` is the closest replacement for `avoidCollisions: false`.
+- `AllCartesianModule`, `AllCartesianAxesModule`, `AllCartesianSeriesModule`, `AllPolarModule`, `AllGaugeModule` and `AllMapSeriesModule` are deprecated. Use `AllCommunityModule` / `AllEnterpriseModule`, or register the individual modules instead.
+- `AxisInteractionModule` is deprecated. The Enterprise axis modules already include it.
 
 {% /expandingSection %}
 

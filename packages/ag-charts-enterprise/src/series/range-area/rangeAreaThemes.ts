@@ -6,6 +6,7 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
@@ -17,6 +18,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
+    inheritedGlowTheme,
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
     themeLineHeight,
@@ -101,6 +103,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
             blur: { $path: '/series/$index/marker/shadow/blur' },
             spread: { $path: '/series/$index/marker/shadow/spread' },
         },
+        glow: inheritedGlowTheme('/series/$index/marker/glow'),
         shape: {
             $path: '/series/$index/marker/shape',
         },
@@ -138,6 +141,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         marker: {
             enabled: false,
             shadow: SHADOW_THEME_DEFAULTS,
+            glow: GLOW_THEME_DEFAULTS,
             fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             shape: { $palette: 'markerShape' },
             stroke: { $palette: 'stroke' },
@@ -171,7 +175,13 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         interpolation: interpolationThemeTemplate(),
         shadow: { ...SHADOW_THEME_DEFAULTS, xOffset: 0, yOffset: 0 },
         tooltip: NEAREST_TOOLTIP_THEME,
-        highlight: withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
+        highlight: withGlowThemeDefaults(
+            { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+            SERIES_GLOW_BUCKETS,
+            {
+                glow: ['low', 'high'].map((item) => `/series/$index/item/${item}/marker/glow`),
+            }
+        ),
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
         invertedStyle: {

@@ -1,4 +1,5 @@
 import type {
+    AgItemShadowStyle,
     AgSankeySeriesLinkStyle,
     AgSankeySeriesNodeStyle,
     AgSankeySeriesOptions,
@@ -21,6 +22,8 @@ import {
     fillOptionsDef,
     fillPatternDefaults,
     glowHighlightOptionsDef,
+    glowOptionsDefs,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     lessThanOrEqual,
@@ -51,7 +54,9 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     },
     link: {
         shadow: shadowOptionsDefs,
-        itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
+        glow: glowOptionsDefs,
+        itemStyler: callbackDefs<AgSankeySeriesLinkStyle & AgItemShadowStyle>({
+            ...itemStylerCastDefs,
             ...fillOptionsDef,
             ...strokeOptionsDef,
             ...lineDashOptionsDef,
@@ -62,6 +67,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     },
     node: {
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         width: positiveNumber,
         spacing: positiveNumber,
         minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),
@@ -69,7 +75,8 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         alignment: union('left', 'center', 'right', 'justify'),
         verticalAlignment: union('top', 'bottom', 'center'),
         sort: union('data', 'ascending', 'descending', 'auto'),
-        itemStyler: callbackDefs<AgSankeySeriesNodeStyle>({
+        itemStyler: callbackDefs<AgSankeySeriesNodeStyle & AgItemShadowStyle>({
+            ...itemStylerCastDefs,
             ...fillOptionsDef,
             ...strokeOptionsDef,
             ...lineDashOptionsDef,

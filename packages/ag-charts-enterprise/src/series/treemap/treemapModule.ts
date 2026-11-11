@@ -14,7 +14,7 @@ import {
     seriesLabelFontWeightOr,
     themeLineHeight,
     undocumentedThemeOptions,
-    withGlowThemeDefaults,
+    withDisabledGlowThemeDefaults,
 } from 'ag-charts-core';
 
 import { TreemapSeries } from './treemapSeries';
@@ -74,7 +74,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 padding: 4,
                 gap: 2,
                 interactive: true,
-                highlight: withGlowThemeDefaults(
+                highlight: withDisabledGlowThemeDefaults(
                     {
                         enabled: { $circular: { $path: '/highlight/enabled' } },
                         unhighlightedItem: {
@@ -127,7 +127,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 shadow: SHADOW_THEME_DEFAULTS,
                 padding: 3,
                 gap: 1,
-                highlight: withGlowThemeDefaults(
+                highlight: withDisabledGlowThemeDefaults(
                     {
                         enabled: { $circular: { $path: '/highlight/enabled' } },
                         unhighlightedItem: {

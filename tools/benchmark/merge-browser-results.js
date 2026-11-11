@@ -12,15 +12,18 @@
  *
  * `--exclude excluded.json` (the file written by `shard-failures.js excluded`) drops the listed examples,
  * so an example that failed in any pass is left out of every run rather than compared on fewer runs.
+ * With `--side head`, entries marked `baseOnly` (failed only on the base) are kept; otherwise all are dropped.
  *
  * Usage:
- *   node merge-browser-results.js --output merged.json [--exclude excluded.json] shard1.json shard2.json ...
+ *   node merge-browser-results.js --output merged.json [--exclude excluded.json [--side head|base]] shard1.json shard2.json ...
  */
 
 const fs = require('fs');
 const path = require('path');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
+
+const { isBaseOnly } = require('./shard-failures');
 
 const argv = yargs(hideBin(process.argv))
     .option('output', {
@@ -32,6 +35,11 @@ const argv = yargs(hideBin(process.argv))
         type: 'string',
         describe: 'JSON file listing examples ({ example }[]) to leave out of the merged report',
     })
+    .option('side', {
+        type: 'string',
+        choices: ['head', 'base'],
+        describe: 'Which side these reports are from. With head, base-only entries in --exclude are kept.',
+    })
     .demandCommand(1, 'At least one input report is required')
     .help()
     .parse();
@@ -40,7 +48,11 @@ const inputPaths = argv._.map(String);
 const reports = inputPaths.map((p) => JSON.parse(fs.readFileSync(p, 'utf8')));
 
 const excluded = new Set(
-    argv.exclude ? JSON.parse(fs.readFileSync(argv.exclude, 'utf8')).map(({ example }) => example) : []
+    argv.exclude
+        ? JSON.parse(fs.readFileSync(argv.exclude, 'utf8'))
+              .filter((entry) => !(argv.side === 'head' && isBaseOnly(entry)))
+              .map(({ example }) => example)
+        : []
 );
 
 const memoryShards = reports.filter((r) => r.memoryPass).length;

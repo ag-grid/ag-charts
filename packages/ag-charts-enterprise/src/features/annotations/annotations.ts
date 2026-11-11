@@ -3,6 +3,7 @@ import {
     type AgAnnotationFollow,
     type AgAnnotationFollowName,
     type AgAnnotationLineStyleType,
+    type AgAnnotationsEventSource,
     type Direction,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -139,6 +140,7 @@ export class Annotations extends AbstractModuleInstance {
         this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
 
         this.cleanup.register(
+            ctx.annotationManager?.setEditingProbe(() => this.isEditing()),
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'annotations');
                 const enabled = opts?.enabled ?? false;
@@ -741,10 +743,10 @@ export class Annotations extends AbstractModuleInstance {
         return annotationConfigs[datum.type].copy(node, datum, newDatum, context);
     }
 
-    private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
+    private onRestoreAnnotations(event: { annotations: Array<AgAnnotation>; source: AgAnnotationsEventSource }) {
         if (!(this.opts.enabled ?? true)) return;
 
-        const { annotations } = event;
+        const { annotations, source } = event;
         const canPatchInPlace =
             this.annotationData.length === annotations.length &&
             annotations.every((annotation, index) => {
@@ -759,6 +761,7 @@ export class Annotations extends AbstractModuleInstance {
                     const current = this.annotationData[i];
                     resetAnnotationDatum(current, annotationDatums[current.type].create(), annotations[i]);
                 }
+                this.syncSelection();
             } else {
                 this.reset();
                 this.annotationData = annotations.map((annotation) => this.createAnnotationDatum(annotation));
@@ -768,9 +771,19 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         this.postUpdateFns.push(() => {
-            this.ctx.annotationManager?.fireChangedEvent();
+            this.ctx.annotationManager?.fireChangedEvent(source);
         });
         this.update();
+    }
+
+    private syncSelection() {
+        const active = this.state.getActive();
+        const datum = active == null ? undefined : this.annotationData.at(active);
+        if (datum?.readOnly) {
+            this.reset();
+        } else if (datum) {
+            this.optionsToolbar.refreshButtons(datum);
+        }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -895,7 +908,7 @@ export class Annotations extends AbstractModuleInstance {
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
             historyManager.record(label, ...originators);
-            annotationManager.fireChangedEvent();
+            annotationManager.fireChangedEvent('user-interaction');
         });
     }
 
@@ -1308,6 +1321,10 @@ export class Annotations extends AbstractModuleInstance {
     ) {
         this.ctx.interactionManager.popState(state);
         this.ctx.tooltipManager.unsuppressTooltip('annotations');
+    }
+
+    private isEditing() {
+        return !this.state.isIdle() || this.settingsDialog.isVisible() || this.optionsToolbar.isMenuVisible();
     }
 
     private isAnnotationState() {

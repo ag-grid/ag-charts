@@ -1,4 +1,5 @@
 import type {
+    AgItemShadowStyle,
     AgWaterfallSeriesItemOptions,
     AgWaterfallSeriesOptions,
     AgWaterfallSeriesStyle,
@@ -15,6 +16,8 @@ import {
     constant,
     fillOptionsDef,
     glowHighlightOptionsDef,
+    glowOptionsDefs,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelOrientationDef,
@@ -56,7 +59,8 @@ const waterfallSeriesLabelOptionsDef = {
 const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {
     name: string,
     cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgWaterfallSeriesStyle>({
+    itemStyler: callbackDefs<AgWaterfallSeriesStyle & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -65,6 +69,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
     label: waterfallSeriesLabelOptionsDef,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
+    glow: glowOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,

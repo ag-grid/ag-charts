@@ -1,4 +1,5 @@
 import type {
+    AgItemShadowStyle,
     AgSunburstInnerLabel,
     AgSunburstSeriesOptions,
     AgSunburstSeriesStyle,
@@ -20,6 +21,7 @@ import {
     constant,
     fillOptionsDef,
     fontOptionsDef,
+    itemStylerCastDefs,
     labelBoxOptionsDef,
     positiveNumber,
     positiveNumberNonZero,
@@ -55,7 +57,8 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
         ...fontOptionsDef,
         ...labelBoxOptionsDef,
     },
-    itemStyler: callbackDefs<AgSunburstSeriesStyle>({
+    itemStyler: callbackDefs<AgSunburstSeriesStyle & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...fillOptionsDef,
         ...strokeOptionsDef,
     }),

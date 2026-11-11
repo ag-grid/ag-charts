@@ -653,6 +653,18 @@ export function inheritedShadowFillTheme(seriesShadowPath: string) {
     return shadowFillTheme({ $path: `${seriesShadowPath}/fill` }, { $path: `${seriesShadowPath}/fillOpacity` });
 }
 
+/** The `glow` of a part of a series, every field taken from the `glow` of the series at `seriesGlowPath`. */
+export function inheritedGlowTheme(seriesGlowPath: string) {
+    return {
+        enabled: { $path: `${seriesGlowPath}/enabled` },
+        fill: { $path: `${seriesGlowPath}/fill` },
+        fillOpacity: { $path: `${seriesGlowPath}/fillOpacity` },
+        blur: { $path: `${seriesGlowPath}/blur` },
+        spread: { $path: `${seriesGlowPath}/spread` },
+        gap: { $path: `${seriesGlowPath}/gap` },
+    };
+}
+
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
 export const SHADOW_THEME_DEFAULTS = {
     enabled: false,
@@ -682,8 +694,11 @@ export const SERIES_GLOW_BUCKETS = ['highlightedSeries', 'unhighlightedSeries'] 
 /** The highlight states of a hierarchy series, where branch states take the place of the series states. */
 export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] as const;
 
-/** Adds the disabled {@link GLOW_THEME_DEFAULTS} to each of the `buckets` of a highlight theme, keeping what they hold. */
-export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: readonly string[]): T {
+/**
+ * Adds the disabled {@link GLOW_THEME_DEFAULTS} to each of the `buckets` of a highlight theme, keeping what they hold. For
+ * a series with no series-level `glow` for its buckets to follow, such as treemap and sunburst.
+ */
+export function withDisabledGlowThemeDefaults<T extends object>(highlight: T, buckets: readonly string[]): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
     for (const bucket of buckets) {
         result[bucket] = { ...(result[bucket] as object | undefined), glow: GLOW_THEME_DEFAULTS };
@@ -691,24 +706,70 @@ export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: r
     return result as T;
 }
 
+/** Where the `glow` that a highlight falls back to is in the theme. */
+export interface GlowThemePaths {
+    /**
+     * The series-level `glow`, such as `marker.glow`. A series with a `glow` on more than one part, such as
+     * the links and nodes of a flow, lists them all: a bucket's `enabled` is then left unset unless the user sets its `glow`.
+     */
+    readonly glow?: string | readonly string[];
+}
+
+/**
+ * Gives each highlight bucket a `glow` whose `enabled` follows the one it falls back to, so that the bucket's other options
+ * come from the series-level `glow`. A bucket with a `glow` of its own is enabled by it alone, as a user's `enabled` is
+ * declared at that path; and a bucket without one has the series, on or off.
+ *
+ * A series with a `glow` on more than one part has no one value for a bucket without a `glow` of its own to follow, so
+ * its `enabled` is left unset there, and each part keeps its own.
+ *
+ * The item buckets fall back to the `highlightedSeries` bucket if it is among `buckets`, and the others to the
+ * series-level `glow`. `buckets` are the states of the series that the item states fall back to.
+ */
+export function withGlowThemeDefaults<T extends object>(
+    highlight: T,
+    buckets: readonly string[],
+    { glow = '/series/$index/glow' }: GlowThemePaths = {}
+): T {
+    const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
+    const glowPaths = typeof glow === 'string' ? [glow] : glow;
+    const perPart = glowPaths.length > 1;
+    const follow = (bucket: string, enabled: object) => {
+        result[bucket] = {
+            ...(result[bucket] as object | undefined),
+            glow: { enabled: perPart ? { $isUserOption: ['./', enabled, undefined] } : enabled },
+        };
+    };
+    const enabledPaths = glowPaths.map((path) => ({ $path: `${path}/enabled` }));
+    const seriesEnabled = enabledPaths.length === 1 ? enabledPaths[0] : { $or: enabledPaths };
+    for (const bucket of buckets) {
+        if (!ITEM_GLOW_BUCKETS.includes(bucket as (typeof ITEM_GLOW_BUCKETS)[number])) follow(bucket, seriesEnabled);
+    }
+    const itemEnabled = buckets.includes('highlightedSeries')
+        ? { $path: '/series/$index/highlight/highlightedSeries/glow/enabled' }
+        : seriesEnabled;
+    for (const bucket of ITEM_GLOW_BUCKETS) follow(bucket, itemEnabled);
+    return result as T;
+}
+
 /** The offset-free shadow that casts a `glow`. A glow with no `fill` leaves it unset, for the shape to fill in. */
 export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
     if (glow?.enabled !== true) return;
 
-    const { fill, fillOpacity, blur, spread } = glow;
+    const { fill, fillOpacity, blur, spread, gap } = glow;
     if (blur == null) return;
 
-    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread, glow: true };
+    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread, gap, glow: true };
 }
 
 /**
- * `style` without its `glow`, which the highlight layer casts and no item is drawn or styled by. A highlight style
- * reaches item stylers and node styles through this, so the theme's disabled `glow` never appears in either.
+ * `style` without its `glow` and `shadow`, which the series casts and no item style or styler takes, so that neither
+ * reaches them from a highlight style.
  */
-export function withoutGlow<T extends object>(style: T): T {
-    if (!('glow' in style)) return style;
+export function withoutCasts<T extends object>(style: T): T {
+    if (!('glow' in style) && !('shadow' in style)) return style;
 
-    const { glow: _glow, ...rest } = style;
+    const { glow: _glow, shadow: _shadow, ...rest } = style as T & { glow?: unknown; shadow?: unknown };
     return rest as T;
 }
 

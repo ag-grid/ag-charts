@@ -34,17 +34,16 @@
     }
 
     &.modified {
-        border-color: currentcolor;
-        box-shadow: none;
+        border-color: var(--color-text-brand-primary);
+        box-shadow: 0 0 0 1px var(--color-text-brand-primary);
 
         .label {
-            border-top-color: currentcolor;
+            border-top-color: var(--color-text-brand-primary);
         }
 
         &:hover {
-            border-color: currentcolor;
-            /* stylelint-disable-next-line function-disallowed-list -- old brand blue (#3892f9) glow, no matching token */
-            box-shadow: 0 0 8px rgba(56, 146, 249, 0.3);
+            border-color: var(--color-text-brand-primary);
+            box-shadow: 0 0 8px color-mix(in srgb, var(--color-text-brand-primary) 30%, transparent);
         }
     }
 }
@@ -89,7 +88,7 @@
 }
 
 .modifiedIndicator {
-    color: inherit;
+    color: var(--color-text-brand-primary);
     margin-left: $spacing-size-1;
     font-weight: bold;
     font-size: 14px;

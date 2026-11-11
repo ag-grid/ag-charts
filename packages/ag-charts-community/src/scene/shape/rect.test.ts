@@ -510,7 +510,6 @@ describe('Rect', () => {
             ['a clip', { clip: true, clipX: 15, clipY: 10 }],
             ['a cutout', { drawingMode: 'cutout' as const }],
             ['a shadow', { fillShadow: { enabled: true, fill: 'black', xOffset: 2, yOffset: 2, blur: 3 } }],
-            ['a glow', { fillGlow: { enabled: true, fill: 'black', xOffset: 2, yOffset: 2, blur: 3 } }],
             [
                 'a gradient fill',
                 {

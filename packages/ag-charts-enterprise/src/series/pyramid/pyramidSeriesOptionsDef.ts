@@ -1,4 +1,5 @@
 import type {
+    AgItemShadowStyle,
     AgPyramidSeriesOptions,
     AgPyramidSeriesStyle,
     AgPyramidSeriesThemeableOptions,
@@ -15,6 +16,8 @@ import {
     constant,
     fillOptionsDef,
     glowHighlightOptionsDef,
+    glowOptionsDefs,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelPlacementStyleDefs,
@@ -38,7 +41,8 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
     aspectRatio: positiveNumber,
     spacing: positiveNumber,
     reverse: boolean,
-    itemStyler: callbackDefs<AgPyramidSeriesStyle>({
+    itemStyler: callbackDefs<AgPyramidSeriesStyle & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -60,6 +64,7 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
     },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
+    glow: glowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: glowHighlightOptionsDef(shapeHighlightOptionsDef),
     ...without(fillOptionsDef, ['fill']),

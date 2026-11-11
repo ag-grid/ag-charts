@@ -2,6 +2,7 @@ import { type AgMapMarkerSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_GLOW_BUCKETS,
@@ -50,6 +51,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
             shadow: SHADOW_THEME_DEFAULTS,
+            glow: GLOW_THEME_DEFAULTS,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 wrapping: 'on-space',

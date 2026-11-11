@@ -464,6 +464,17 @@ async function performClickToggle(nodes: number, operation: 'Collapse' | 'Expand
     return elapsed;
 }
 
+// Updates the chart with a copy of its data, which marks every node changed, with no highlight or glow set.
+/** inScope */
+async function performDataUpdate(nodes: number): Promise<number> {
+    await ensureChart(nodes);
+    const data = dataFor(nodes).map((datum) => ({ ...datum }));
+
+    const start = performance.now();
+    await chartRef.current!.update({ ...optionsFor(nodes), data });
+    return performance.now() - start;
+}
+
 /** inScope */
 function nodeLabel(nodes: number): string {
     return nodes.toLocaleString('en-GB');
@@ -500,6 +511,11 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'hover',
                 label: 'Hover',
                 variants: variants(performHover, { Hovers: String(HOVER_STEPS) }),
+            },
+            {
+                id: 'data-update',
+                label: 'Data Update',
+                variants: variants(performDataUpdate, { Operation: 'Chart Update' }),
             },
             {
                 id: 'click-toggle',
