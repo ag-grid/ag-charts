@@ -1,4 +1,5 @@
 import type {
+    AgItemShadowStyle,
     AgWaterfallSeriesItemStylerParams,
     AgWaterfallSeriesItemType,
     AgWaterfallSeriesLabelFormatterParams,
@@ -55,6 +56,7 @@ import {
     toArray,
     upsertNodeDatum,
     withDatumKey,
+    withoutCasts,
     zeroLike,
 } from 'ag-charts-core';
 import type { BBox, Path, Selection, Text } from 'ag-charts-core';
@@ -139,7 +141,7 @@ export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDa
     readonly crisp: boolean;
     readonly clipBBox?: BBox;
     readonly opacity?: number;
-    style?: Required<AgWaterfallSeriesStyle>;
+    style?: Required<AgWaterfallSeriesStyle> & AgItemShadowStyle;
 }
 
 interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
@@ -969,6 +971,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return datumType ?? (isPositive ? 'positive' : 'negative');
     }
 
+    protected override getSeriesGlows() {
+        const { positive, negative, total } = this.options.item;
+        return [positive.glow, negative.glow, total.glow];
+    }
+
     private getItemConfig(seriesItemType: AgWaterfallSeriesItemType): NormalisedWaterfallSeriesItemOptions {
         switch (seriesItemType) {
             case 'positive': {
@@ -1021,7 +1028,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         highlightState?: _ModuleSupport.HighlightState,
         itemType: AgWaterfallSeriesItemType = 'total',
         selectionState?: _ModuleSupport.SelectionState
-    ): Required<AgWaterfallSeriesStyle> {
+    ): Required<AgWaterfallSeriesStyle> & AgItemShadowStyle {
         const { datumIndex = 0, datum, totalValue } = nodeDatum ?? {};
 
         const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
@@ -1033,7 +1040,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const { itemStyler } = item;
 
-        let style = baseStyle;
+        let style: Required<AgWaterfallSeriesStyle> & AgItemShadowStyle = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
             const itemId = getItemId(nodeDatum, this.data);
@@ -1110,7 +1117,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         if (!hasItemStyler) {
             // No itemStyler: style is a pure function of (itemType, highlightState, selectionState).
-            const styleByState = new Map<string, Required<AgWaterfallSeriesStyle>>();
+            const styleByState = new Map<string, Required<AgWaterfallSeriesStyle> & AgItemShadowStyle>();
             const thisSeries = this;
 
             datumSelection.each(function updateDatumSelectionStyles(_, datum) {
@@ -1156,19 +1163,30 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[datum.itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[datum.itemType][highlightState];
             // `style` is fully resolved by render time; narrow it to the shape-compatible normalised style.
             rect.setStyleProperties(style as Required<NormalisedWaterfallSeriesStyle>, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
+            const { shadow, glow } = this.getItemConfig(datum.itemType);
             rect.fillShadow = this.resolveItemShadow(
-                this.getItemConfig(datum.itemType).shadow,
+                shadow,
                 isHighlight,
-                datum.datumIndex
+                datum.datumIndex,
+                highlightState,
+                undefined,
+                !isHighlight && this.isHoveredInPlace(datum.datumIndex, highlightState)
+                    ? this.getItemStyle(datum, true, undefined, datum.itemType).shadow
+                    : datum.style?.shadow
+            );
+            rect.fillGlow = this.resolveItemGlow(
+                glow,
+                isHighlight,
+                datum.datumIndex,
+                highlightState,
+                undefined,
+                datum.style?.glow
             );
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
@@ -1475,7 +1493,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 xName,
                 yKey,
                 yName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

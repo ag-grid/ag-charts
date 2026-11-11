@@ -186,7 +186,7 @@ describe('MapShapeSeries', () => {
 
                 const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
                 expect(highlighted.drawingMode).toBe('cutout');
-                expect(highlighted.fillShadow).toMatchObject({ enabled: true, xOffset: 0, yOffset: 0, blur: 6 });
+                expect(highlighted.fillGlow).toMatchObject({ enabled: true, xOffset: 0, yOffset: 0, blur: 6 });
                 await compare();
             });
 
@@ -195,7 +195,7 @@ describe('MapShapeSeries', () => {
 
                 const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
                 expect(highlighted.drawingMode).toBe('cutout');
-                expect(highlighted.fillShadow).toMatchObject({
+                expect(highlighted.fillGlow).toMatchObject({
                     enabled: true,
                     xOffset: 0,
                     yOffset: 0,
@@ -203,7 +203,7 @@ describe('MapShapeSeries', () => {
                     spread: 4,
                     fillOpacity: 0.4,
                 });
-                expect(highlighted.getCastShadow()?.fill).toBe('blue');
+                expect(highlighted.getCastShadow('glow')?.fill).toBe('blue');
                 await compare();
             });
         });

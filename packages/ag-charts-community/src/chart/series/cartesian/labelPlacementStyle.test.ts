@@ -162,6 +162,111 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             }
         );
 
+        it('floats rotated vertical outside-end labels clear of and centred on the bar under fit options', async () => {
+            const series = [
+                { padding: ROTATED_PADDINGS['wide left'], truncate: true },
+                { padding: ROTATED_PADDINGS['wide right'], wrapping: 'on-space' as const },
+                { padding: ROTATED_PADDINGS['tall + asymmetric'], truncate: true, wrapping: 'on-space' as const },
+            ].map((fit, i) => ({
+                type: 'bar' as const,
+                xKey: 'cat',
+                yKey: 'value',
+                yName: `Series ${i + 1}`,
+                label: {
+                    enabled: true,
+                    placement: 'outside-end' as const,
+                    orientation: 'vertical' as const,
+                    fill: 'khaki',
+                    ...fit,
+                },
+            }));
+            await renderAndSnapshot({
+                data: barData,
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', max: 150 },
+                },
+                series,
+            });
+        });
+
+        // Full-width up/down bars per placement; outside-start splits by sign, as the opposite bar paints over it.
+        const boxedPlacementChart = (
+            direction: 'vertical' | 'horizontal',
+            placements: AgBarSeriesLabelPlacement[],
+            orientation: 'horizontal' | 'vertical'
+        ): AgCartesianChartOptions => {
+            const fits = [{}, { truncate: true }, { wrapping: 'on-space' as const }];
+            return {
+                data: placements.flatMap((placement, i) =>
+                    placement === 'outside-start'
+                        ? [
+                              { cat: `${placement} (up)`, [`up${i}`]: 60 },
+                              { cat: `${placement} (down)`, [`down${i}`]: -60 },
+                          ]
+                        : [{ cat: placement, [`up${i}`]: 60, [`down${i}`]: -60 }]
+                ),
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'category', position: direction === 'vertical' ? 'bottom' : 'left' },
+                    y: { type: 'number', position: direction === 'vertical' ? 'left' : 'bottom', min: -100, max: 100 },
+                },
+                series: placements.flatMap((placement, i) =>
+                    ['up', 'down'].map((sign) => ({
+                        type: 'bar' as const,
+                        direction,
+                        grouped: false,
+                        xKey: 'cat',
+                        yKey: `${sign}${i}`,
+                        label: {
+                            enabled: true,
+                            placement,
+                            orientation,
+                            fill: 'khaki',
+                            border: { enabled: true, stroke: 'black', strokeWidth: 1 },
+                            padding: { top: 12, bottom: 2, left: 24, right: 4 },
+                            // Only box geometry is under test, so a beside label may touch the neighbouring bar.
+                            collision: { collideWith: { shapes: true } },
+                            ...fits[i % fits.length],
+                        },
+                    }))
+                ),
+            };
+        };
+
+        it.each(
+            (['vertical', 'horizontal'] as const).flatMap((direction) =>
+                (['horizontal', 'vertical'] as const).map((orientation) => [direction, orientation] as const)
+            )
+        )('centres asymmetric label boxes on %s bars for every placement (%s text)', async (direction, orientation) => {
+            await renderAndSnapshot(
+                boxedPlacementChart(
+                    direction,
+                    ['inside-start', 'inside-center', 'inside-end', 'outside-start', 'outside-end'],
+                    orientation
+                )
+            );
+        });
+
+        it('centres asymmetric label boxes along the bar for beside placements', async () => {
+            await renderAndSnapshot(
+                boxedPlacementChart(
+                    'vertical',
+                    // After-first, so the end categories float their labels into the chart, not off its edge.
+                    [
+                        'beside-after-start',
+                        'beside-after-center',
+                        'beside-after-end',
+                        'beside-before-start',
+                        'beside-before-center',
+                        'beside-before-end',
+                    ],
+                    'vertical'
+                )
+            );
+        });
+
         it('resolves fill independently per placement while label.color stays pinned', async () => {
             await renderAndSnapshot(
                 barOptions({

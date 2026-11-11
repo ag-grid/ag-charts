@@ -7,14 +7,18 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     NEAREST_TOOLTIP_THEME,
     type NonNullablePath,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    inheritedGlowTheme,
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 
 type HlcItemOptions = NonNullablePath<AgChartThemeOverrides, 'hlc', 'series', 'item'>;
@@ -84,7 +88,9 @@ const HLC_ITEM_MARKER: WithThemeParams<HlcItemMarkerOptions> = {
         xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
         yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
         blur: { $path: '/series/$index/marker/shadow/blur' },
+        spread: { $path: '/series/$index/marker/shadow/spread' },
     },
+    glow: inheritedGlowTheme('/series/$index/marker/glow'),
     shape: { $path: '/series/$index/marker/shape' },
     size: { $path: ['/series/$index/marker/size', 6] },
     stroke: { $path: ['/series/$index/marker/stroke', { $path: '../stroke' }] },
@@ -123,6 +129,7 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
         marker: {
             enabled: false,
             shadow: SHADOW_THEME_DEFAULTS,
+            glow: GLOW_THEME_DEFAULTS,
             shape: { $palette: 'markerShape' },
             size: 6,
             fillOpacity: 1,
@@ -144,7 +151,13 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
         connectMissingData: false,
         interpolation: interpolationThemeTemplate(),
         tooltip: NEAREST_TOOLTIP_THEME,
-        highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults(
+            { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+            SERIES_GLOW_BUCKETS,
+            {
+                glow: ['high', 'low', 'close'].map((item) => `/series/$index/item/${item}/marker/glow`),
+            }
+        ),
         selection: SERIES_SELECTION_THEME,
     },
     axes: {

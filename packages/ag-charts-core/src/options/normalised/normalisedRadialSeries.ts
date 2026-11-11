@@ -1,5 +1,6 @@
 import type {
     AgBaseRadialColumnSeriesOptions,
+    AgGlowOptions,
     AgNightingaleSeriesOptions,
     AgRadialBarSeriesOptions,
     AgRadialColumnSeriesOptions,
@@ -58,7 +59,7 @@ export type NormalisedRadialColumnSeriesBaseOwnOptions = Normalised<
     RadialRequiredKeys,
     RadialOverrides
 > &
-    RadialAxisKeys & { shadow: NormalisedDropShadowOptions };
+    RadialAxisKeys & { shadow: NormalisedDropShadowOptions; glow?: AgGlowOptions };
 
 export type NormalisedRadialColumnSeriesOwnOptions = Normalised<
     AgRadialColumnSeriesOptions,

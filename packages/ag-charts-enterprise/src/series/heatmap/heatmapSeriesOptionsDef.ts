@@ -3,6 +3,7 @@ import type {
     AgHeatmapSeriesOptions,
     AgHeatmapSeriesStyle,
     AgHeatmapSeriesThemeableOptions,
+    AgItemShadowStyle,
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
@@ -16,6 +17,8 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     glowHighlightOptionsDef,
+    glowOptionsDefs,
+    itemStylerCastDefs,
     labelBoxOptionsDef,
     positiveNumber,
     required,
@@ -34,8 +37,10 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
     shadow: shadowOptionsDefs,
-    itemStyler: callbackDefs<AgHeatmapSeriesStyle>(
+    glow: glowOptionsDefs,
+    itemStyler: callbackDefs<AgHeatmapSeriesStyle & AgItemShadowStyle>(
         {
+            ...itemStylerCastDefs,
             ...fillOptionsDef,
             ...strokeOptionsDef,
         },

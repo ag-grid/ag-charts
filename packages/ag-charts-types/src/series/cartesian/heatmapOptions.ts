@@ -1,5 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedSecondaryLabelOptions,
     AgChartLabelStyleOptions,
@@ -77,12 +77,14 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     cornerRadius?: PixelSize;
     /** Configuration for the shadow used behind the cells. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the cells. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Function used to return formatting for individual heatmap cells, based on the given parameters.*/
-    itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<TDatum, TContext>, AgHeatmapSeriesStyle>;
+    itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<TDatum, TContext>, AgHeatmapSeriesStyle & AgItemShadowStyle>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for colour scale with fills, domain, and mode. */

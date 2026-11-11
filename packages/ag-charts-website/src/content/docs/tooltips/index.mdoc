@@ -232,7 +232,7 @@ In this configuration:
 - The `renderer` receives values associated with the highlighted data point. The actual type of the `params` object passed into the tooltip renderer will depend on the series type being used.
 - The `renderer` returns an object with optional `heading`, `title`, `symbol`, and `data` fields.
 - The `heading` and `title` must be plain text.
-- The `data` field consists of an array of `label` and `value` fields, which are both plain text.
+- The `data` field consists of an array of rows, each with an optional `label` and an optional `value`, both plain text. A row with neither is skipped.
 - Returning an empty string for any field will cause it to be omitted from the rendered tooltip.
 
 ### Modifying the Symbol

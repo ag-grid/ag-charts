@@ -46,7 +46,8 @@ async function focusChart(page: Page) {
 }
 
 test.describe('axe accessibility scan', () => {
-    test.describe.configure({ retries: 0 });
+    // Covers a Chromium launch crash, not axe findings (those never fail a test).
+    test.describe.configure({ retries: 1 });
 
     for (const { pageName, example, url } of selectA11yExamples()) {
         test(`axe scan: ${pageName}/${example}`, async ({ page }) => {

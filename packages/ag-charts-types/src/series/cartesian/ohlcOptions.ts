@@ -1,6 +1,6 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
@@ -57,10 +57,12 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     crosshairSnapMode?: AgCrosshairSnapMode;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the items. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual items, based on the given parameters.*/
-    itemStyler?: Styler<AgOhlcSeriesItemStylerParams<TDatum, TContext>, AgOhlcSeriesItemOptions>;
+    itemStyler?: Styler<AgOhlcSeriesItemStylerParams<TDatum, TContext>, AgOhlcSeriesItemOptions & AgItemShadowStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesGlowHighlightOptions<AgOhlcHighlightStyleOptions, AgOhlcHighlightStyleOptions>;
 }

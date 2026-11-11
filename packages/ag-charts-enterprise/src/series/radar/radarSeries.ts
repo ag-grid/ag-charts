@@ -34,6 +34,7 @@ import {
     polarLabelData,
     polarLabelsBBox,
     resolveLabelFitDescriptors,
+    withoutCasts,
     writePlacedPolarLabels,
 } from 'ag-charts-core';
 
@@ -528,6 +529,14 @@ export abstract class RadarSeries<
         );
     }
 
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
+    protected override getSeriesGlows() {
+        return [this.options.marker.glow];
+    }
+
     protected updateMarkers(
         selection: Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean,
@@ -545,19 +554,21 @@ export abstract class RadarSeries<
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
-        const { shadow } = this.options.marker;
+        const { shadow, glow } = this.options.marker;
 
         selection.each((node, datum) => {
             // datum.style is populated from resolved (ref-free) marker styles by the style passes.
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const style =
-                (datum.style as NormalisedSeriesMarkerStyle | undefined) ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+                (datum.style as NormalisedSeriesMarkerStyle | undefined) ?? contextNodeData.styles[highlightState];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 hideWithSize0,
                 pickInflation,
                 shadow,
+                glow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
+                highlightState,
             });
 
             node.drawingMode = drawingMode;
@@ -662,7 +673,7 @@ export abstract class RadarSeries<
                 angleName,
                 radiusName,
                 legendItemName,
-                ...(activeStyle as RequireOptional<AgSeriesMarkerStyle>),
+                ...withoutCasts(activeStyle as RequireOptional<AgSeriesMarkerStyle>),
             }
         );
     }

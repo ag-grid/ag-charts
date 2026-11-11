@@ -1,4 +1,5 @@
 import type { NormalisedSeriesMarkerStyle } from 'ag-charts-core';
+import type { AgItemShadowStyle } from 'ag-charts-types';
 
 /** Outer diameter a marker reserves: its size plus the stroke drawn around it. */
 export function markerDiameter(marker: { size: number; strokeWidth: number }): number {
@@ -74,11 +75,11 @@ export function mergeMarkerStyles(
 
 /** Two-source flat merge: applied after itemStyler resolution to overlay the user style on the base. */
 export function mergeMarkerStylesPair(
-    resolved: MergeMarkerStyleSource | undefined,
+    resolved: (MergeMarkerStyleSource & AgItemShadowStyle) | undefined,
     base: MergeMarkerStyleResult
-): MergeMarkerStyleResult {
+): MergeMarkerStyleResult & AgItemShadowStyle {
     if (resolved == null) return base;
-    return {
+    const merged: MergeMarkerStyleResult & AgItemShadowStyle = {
         size: resolved.size ?? base.size,
         shape: resolved.shape ?? base.shape,
         fill: resolved.fill ?? base.fill,
@@ -90,4 +91,8 @@ export function mergeMarkerStylesPair(
         lineDashOffset: resolved.lineDashOffset ?? base.lineDashOffset,
         opacity: resolved.opacity ?? base.opacity,
     };
+    // Not per-datum style: a marker's `shadow` and `glow` are cast by the series, which reads these only when a styler set them.
+    if (resolved.shadow != null) merged.shadow = resolved.shadow;
+    if (resolved.glow != null) merged.glow = resolved.glow;
+    return merged;
 }

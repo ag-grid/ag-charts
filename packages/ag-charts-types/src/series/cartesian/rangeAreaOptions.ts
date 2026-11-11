@@ -7,7 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -102,7 +102,7 @@ export interface AgRangeAreaMarker<TDatum, TContext> extends AgSeriesMarkerOptio
     TContext
 > {
     /** Function used to return formatting for individual markers, based on the supplied information.*/
-    itemStyler?: Styler<AgRangeAreaSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<AgRangeAreaSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle & AgItemShadowStyle>;
 }
 
 export interface AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext> extends StrokeOptions, LineDashOptions {

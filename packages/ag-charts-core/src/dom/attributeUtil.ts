@@ -23,6 +23,7 @@ type AriaRole =
     | 'radiogroup'
     | 'region'
     | 'separator'
+    | 'slider'
     | 'status'
     | 'switch'
     | 'tab'
@@ -44,6 +45,7 @@ export type BaseAttributeTypeMap = {
     'aria-labelledby': ElementID;
     'aria-live': 'assertive' | 'polite';
     'aria-orientation': Direction;
+    'aria-roledescription': string;
     'aria-selected': boolean;
     'aria-valuemax': number;
     'aria-valuemin': number;
@@ -52,6 +54,7 @@ export type BaseAttributeTypeMap = {
     'data-focus-visible-override': boolean;
     'data-preventdefault': boolean;
     class: string;
+    contenteditable: 'plaintext-only';
     for: ElementID;
     id: ElementID;
     tabindex: 0 | -1;
@@ -87,6 +90,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'aria-labelledby': stringParser<ElementID>,
     'aria-live': stringParser<BaseAttributeTypeMap['aria-live']>,
     'aria-orientation': stringParser<Direction>,
+    'aria-roledescription': stringParser,
     'aria-selected': booleanParser,
     'aria-valuemax': numberParser,
     'aria-valuemin': numberParser,
@@ -95,6 +99,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'data-focus-visible-override': booleanParser,
     'data-preventdefault': booleanParser,
     class: stringParser,
+    contenteditable: stringParser<'plaintext-only'>,
     for: stringParser<ElementID>,
     id: stringParser<ElementID>,
     tabindex: numberParser<0 | -1>,

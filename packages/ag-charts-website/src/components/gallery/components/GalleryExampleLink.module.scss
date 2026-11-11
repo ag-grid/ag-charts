@@ -1,4 +1,5 @@
 @use 'design-system' as *;
+@use '../../../styles/bespoke-colors' as bespoke;
 
 .link {
     position: relative;
@@ -29,20 +30,20 @@
     }
 
     #{$selector-darkmode} & {
-        background-color: #192232; // Dark themes background color
+        background-color: bespoke.$chart-dark-bg;
     }
 
     &.modified {
-        border-color: var(--color-brand-primary);
-        box-shadow: 0 0 0 1px var(--color-brand-primary);
+        border-color: var(--color-text-brand-primary);
+        box-shadow: 0 0 0 1px var(--color-text-brand-primary);
 
         .label {
-            border-top-color: var(--color-brand-primary);
+            border-top-color: var(--color-text-brand-primary);
         }
 
         &:hover {
-            border-color: var(--color-brand-primary);
-            box-shadow: 0 0 8px rgba(56, 146, 249, 0.3);
+            border-color: var(--color-text-brand-primary);
+            box-shadow: 0 0 8px color-mix(in srgb, var(--color-text-brand-primary) 30%, transparent);
         }
     }
 }
@@ -87,7 +88,7 @@
 }
 
 .modifiedIndicator {
-    color: var(--color-brand-primary);
+    color: var(--color-text-brand-primary);
     margin-left: $spacing-size-1;
     font-weight: bold;
     font-size: 14px;

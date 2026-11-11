@@ -3465,6 +3465,18 @@ describe('HeatmapSeries', () => {
                 expect(rectCellCount(chart)).toBe(0);
             });
 
+            it('stays batched while a cell is hovered when only the hovered cell glows', async () => {
+                await create({
+                    highlight: { highlightedItem: { glow: { enabled: true } } },
+                    tooltip: { enabled: false },
+                });
+
+                await hoverDatumByIndex(chart, 0, 3);
+
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+            });
+
             it('leaves the batch only while a highlight is active when the other cells glow in place', async () => {
                 await create({
                     highlight: { unhighlightedItem: { glow: { enabled: true } } },
@@ -3475,7 +3487,7 @@ describe('HeatmapSeries', () => {
 
                 await hoverDatumByIndex(chart, 0, 3);
                 expect(isBatched(chart)).toBe(false);
-                const glowing = cellShapes(chart).filter((shape) => shape.fillShadow?.enabled === true);
+                const glowing = cellShapes(chart).filter((shape) => shape.fillGlow?.enabled === true);
                 expect(glowing).toHaveLength(GRID.length - 1);
 
                 await hoverAction(1, 1)(chart);

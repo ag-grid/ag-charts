@@ -22,7 +22,7 @@ export type ExampleFramework = 'typescript' | 'react' | 'angular' | 'vue3';
  * The framework versions examples run against, deliberately independent of the versions the
  * docs site itself is built with. Kept in step with what the SystemJS boilerplate loaded.
  */
-const ANGULAR_VERSION = '20.0.0';
+const ANGULAR_VERSION = '21.0.0';
 const CLONE_VERSION = '2.1.2';
 const REACT_VERSION = '19.2.4';
 const RXJS_VERSION = '7.8.1';
@@ -61,9 +61,9 @@ const ANGULAR_IMPORTS: ImportMap = {
     '@angular/common/http': angularPackage('common', 'http'),
     '@angular/compiler': angularPackage('compiler'),
     '@angular/core': angularPackage('core'),
-    '@angular/core/primitives/di': angularPackage('core', 'primitives/di'),
-    '@angular/core/primitives/event-dispatch': angularPackage('core', 'primitives/event-dispatch'),
-    '@angular/core/primitives/signals': angularPackage('core', 'primitives/signals'),
+    '@angular/core/primitives/di': angularPackage('core', 'primitives-di'),
+    '@angular/core/primitives/event-dispatch': angularPackage('core', 'primitives-event-dispatch'),
+    '@angular/core/primitives/signals': angularPackage('core', 'primitives-signals'),
     '@angular/forms': angularPackage('forms'),
     '@angular/platform-browser': angularPackage('platform-browser'),
     '@angular/platform-browser/animations': angularPackage('platform-browser', 'animations'),

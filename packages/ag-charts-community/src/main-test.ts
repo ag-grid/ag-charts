@@ -26,3 +26,4 @@ export * from './chart/test/shadowFixtures';
 export { expectSamePixels } from './chart/test/expectSamePixels';
 export * from './chart/test/prepareOptions';
 export * from './chart/test/syncFixtures';
+export * from './chart/test/glowGapFixtures';

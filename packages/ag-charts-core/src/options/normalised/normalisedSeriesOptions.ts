@@ -1,10 +1,11 @@
 import type {
     AgGlowHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesGlowHighlightOptions,
     AgSelectionOptions,
     AgSeriesListeners,
     AgSeriesTooltip,
     AgSeriesTooltipRendererParams,
+    AgShadowHighlightStyleOptions,
     AgTooltipPositionOptions,
     AgTooltipRendererResult,
     CssColor,
@@ -29,7 +30,7 @@ export interface NormalisedSeriesStateStyle {
 }
 
 type NormalisedSeriesHighlightBuckets<TStyle extends object> = Normalised<
-    AgMultiSeriesHighlightOptions<Partial<TStyle & NormalisedSeriesStateStyle> & AgGlowHighlightStyleOptions>,
+    AgMultiSeriesGlowHighlightOptions<Partial<TStyle & NormalisedSeriesStateStyle>>,
     'enabled'
 >;
 
@@ -65,7 +66,7 @@ type NormaliseSeriesTooltip<T> = T extends { tooltip?: AgSeriesTooltip<infer P> 
 export interface NormalisedSeriesHighlightBase<TStyle extends object = NormalisedSeriesStateStyle> {
     enabled: boolean;
     bringToFront?: boolean;
-    highlightedItem?: TStyle & AgGlowHighlightStyleOptions;
+    highlightedItem?: TStyle & AgGlowHighlightStyleOptions & AgShadowHighlightStyleOptions;
     unhighlightedItem?: TStyle & AgGlowHighlightStyleOptions;
     highlightedSeries?: TStyle & AgGlowHighlightStyleOptions;
     unhighlightedSeries?: TStyle & AgGlowHighlightStyleOptions;

@@ -230,3 +230,29 @@ describe('TimeScale', () => {
         });
     });
 });
+
+describe('TimeScale intervalIgnored', () => {
+    const params = (interval: AgTimeInterval | AgTimeIntervalUnit) => ({
+        nice: [true, true] as [boolean, boolean],
+        interval,
+        tickCount: 5,
+        minTickCount: 0,
+        maxTickCount: Infinity,
+    });
+
+    function scaleOver(pixels: number) {
+        const scale = new TimeScale();
+        scale.domain = [new Date(2024, 0, 1), new Date(2024, 11, 31)];
+        scale.range = [0, pixels];
+        return scale;
+    }
+
+    it('is set when the interval is rejected as too dense', () => {
+        // A day interval over a year is more than one tick per pixel of a 50px range.
+        expect(scaleOver(50).ticks(params('day'))?.intervalIgnored).toBe(true);
+    });
+
+    it('is unset when the interval is honoured', () => {
+        expect(scaleOver(1000).ticks(params('month'))?.intervalIgnored).toBeUndefined();
+    });
+});

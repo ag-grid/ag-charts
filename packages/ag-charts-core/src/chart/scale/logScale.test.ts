@@ -1,3 +1,4 @@
+import type { ScaleTickParams } from '../../types/scales';
 import { LogScale } from './logScale';
 
 describe('LogScale', () => {
@@ -254,5 +255,41 @@ describe('LogScale', () => {
             expect(() => scale.niceDomain(ticks, [1n, 1000n] as unknown as number[])).not.toThrow();
             expect(() => scale.ticks(ticks, [1n, 1000n] as unknown as number[])).not.toThrow();
         });
+    });
+});
+
+describe('LogScale intervalIgnored', () => {
+    const params = (interval: number): ScaleTickParams<number> => ({
+        nice: [true, true],
+        interval,
+        tickCount: 5,
+        minTickCount: 0,
+        maxTickCount: Infinity,
+    });
+
+    function scaleOver(domain: number[], base = 10) {
+        const scale = new LogScale();
+        scale.domain = domain;
+        scale.range = [0, 100];
+        scale.base = base;
+        return scale;
+    }
+
+    // A span of at least `tickCount` decades takes the power-of-ten tick path; fewer decades take the multiples path.
+    const tickPaths = [
+        { path: 'power-of-ten', domain: [1, 1e6] },
+        { path: 'multiples', domain: [1, 100] },
+    ];
+
+    test.each(tickPaths)('is set when the interval is too dense on the $path tick path', ({ domain }) => {
+        expect(scaleOver(domain).ticks(params(0.001))?.intervalIgnored).toBe(true);
+    });
+
+    test.each(tickPaths)('is unset when the interval is honoured on the $path tick path', ({ domain }) => {
+        expect(scaleOver(domain).ticks(params(1))?.intervalIgnored).toBeUndefined();
+    });
+
+    test('is unset without an interval', () => {
+        expect(scaleOver([1, 100]).ticks({ ...params(1), interval: undefined })?.intervalIgnored).toBeUndefined();
     });
 });

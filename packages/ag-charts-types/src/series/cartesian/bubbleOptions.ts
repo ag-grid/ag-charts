@@ -8,7 +8,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -123,6 +123,8 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     maxRenderedItems?: number;
     /** Configuration for the shadow used behind the markers. Not applied to custom marker shapes. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the bubbles. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
@@ -132,7 +134,7 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgBubbleSeriesStylerParams<TDatum, TContext>, AgBubbleSeriesStylerResult>;
     /** Function used to return formatting for individual markers, based on the supplied information.*/
-    itemStyler?: Styler<AgBubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
+    itemStyler?: Styler<AgBubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle & AgItemShadowStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesGlowHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
     /** Configuration for colour scale with fills, domain, and mode. */

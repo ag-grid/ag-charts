@@ -57,12 +57,13 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = options.item;
-        const { shadow } = options;
+        const { shadow, glow } = options;
 
         const series = this;
         datumSelection.each(function updateOhlcNode(node, datum) {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
+            const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
 
             node.setStaticProperties(
                 centerX,
@@ -72,13 +73,28 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
                 yOpen,
                 yClose,
                 crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex)
+                series.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    !isHighlight && series.isHoveredInPlace(datum.datumIndex, highlightState)
+                        ? series.getItemStyle(datum.datumIndex, true, undefined, datum.itemType).shadow
+                        : datum.style?.shadow
+                ),
+                series.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    datum.style?.glow
+                )
             );
 
             const style = (datum.style ??
-                contextNodeData.styles[datum.itemType][
-                    series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ]) as NormalisedOhlcStyle;
+                contextNodeData.styles[datum.itemType][highlightState]) as NormalisedOhlcStyle;
 
             node.setStyleProperties(style);
 

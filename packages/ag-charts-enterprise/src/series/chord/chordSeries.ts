@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgItemShadowStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     BBox,
     type CallbackParamRules,
@@ -543,7 +543,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         style.opacity = 1;
 
-        return style;
+        return style as typeof style & AgItemShadowStyle;
     }
 
     private makeItemStylerParams(
@@ -576,6 +576,15 @@ export class ChordSeries extends FlowProportionSeries<
         } satisfies CallbackParamRules<AgChordSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
+    protected override getSeriesGlows() {
+        const { node, link } = this.options;
+        return [node.glow, link.glow];
+    }
+
     protected updateNodeNodes(opts: {
         datumSelection: Selection<ChordNodeDatum, Sector<ChordNodeDatum>>;
         isHighlight: boolean;
@@ -584,15 +593,27 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
-        const { shadow } = this.options.node;
+        const { shadow, glow } = this.options.node;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         datumSelection.each((sector, datum) => {
             const { datumIndex } = datum;
             const style = this.getNodeStyle(datum, datumIndex, isHighlight);
 
             sector.setStyleProperties(style, fillBBox);
+            const castState = this.getItemCastState(highlightedDatum, isHighlight, datumIndex);
+            const itemShadow =
+                !isHighlight && this.isHoveredInPlace(datumIndex, castState)
+                    ? this.getNodeStyle(datum, datumIndex, true).shadow
+                    : style.shadow;
             sector.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex);
+                datum === focusedDatum
+                    ? undefined
+                    : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState, undefined, itemShadow);
+            sector.fillGlow =
+                focusedDatum == null
+                    ? this.resolveItemGlow(glow, isHighlight, datumIndex, castState, undefined, style.glow)
+                    : undefined;
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -665,7 +686,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         style.opacity = 1;
 
-        return style;
+        return style as typeof style & AgItemShadowStyle;
     }
 
     /**
@@ -711,7 +732,8 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
-        const { shadow } = this.options.link;
+        const { shadow, glow } = this.options.link;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         // An itemStyler can vary cornerRadius per node, and the link must follow how the node is drawn.
         const nodeEdges = new Map<ChordNodeDatum, ChordLinkNodeEdge | undefined>();
@@ -739,8 +761,19 @@ export class ChordSeries extends FlowProportionSeries<
 
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);
+            const castState = this.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
+            const itemShadow =
+                !isHighlight && this.isHoveredInPlace(datum.datumIndex, castState)
+                    ? this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, true).shadow
+                    : style.shadow;
             link.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
+                datum === focusedDatum
+                    ? undefined
+                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState, undefined, itemShadow);
+            link.fillGlow =
+                focusedDatum == null
+                    ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState, undefined, style.glow)
+                    : undefined;
         });
     }
 
