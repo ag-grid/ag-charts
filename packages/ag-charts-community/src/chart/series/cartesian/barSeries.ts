@@ -321,8 +321,13 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly bottomLeftCornerRadius: boolean;
     readonly featherRatio: number;
     readonly clipBBox: BBox | undefined;
-    /** The segment before the gap inset; set only when `gap > 0`. Hover and click treat the gap as part of the segment. */
-    readonly pickBBox: BarPickBBox | undefined;
+    /**
+     * The segment's span along the value axis before the gap inset, set only when `gap > 0` (else `pickLength` is 0).
+     * Hover and click treat the gap as part of the segment; `initQuadTree` rebuilds the box when picking, so a data
+     * update only writes two numbers.
+     */
+    readonly pickStart: number;
+    readonly pickLength: number;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
     style?: Required<NormalisedBarSeriesStyle> & AgItemShadowStyle;
@@ -423,17 +428,27 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             return;
         }
         // The nodes' own bboxes are the drawn segments, so the gap would pick nothing: index the segment before the inset.
+        const barAlongX = this.nodeDatumContext!.barAlongX;
         for (const datum of this.contextNodeData?.nodeData ?? []) {
-            const { pickBBox } = datum;
-            if (pickBBox != null && !datum.missing) quadtree.addValue(pickBBox, datum);
+            const { clipBBox, pickStart, pickLength } = datum;
+            if (clipBBox == null || pickLength <= 0 || datum.missing) continue;
+            quadtree.addValue(
+                barAlongX
+                    ? new BarPickBBox(pickStart, clipBBox.y, pickLength, clipBBox.height)
+                    : new BarPickBBox(clipBBox.x, pickStart, clipBBox.width, pickLength),
+                datum
+            );
         }
     }
 
     protected override pickNodesExactShape(point: Point): SeriesNodePickMatch[] {
         const picks = super.pickNodesExactShape(point);
         if (picks.length !== 0 || !this.usesGap()) return picks;
+        // The shape test decides inside the drawn segment, rounded corners included; the gap strips are all this adds.
         const match = findQuadtreeMatch(this, point);
-        return match?.distance === 0 ? [match] : [];
+        if (match?.distance !== 0) return [];
+        const { clipBBox } = match.datum as BarNodeDatum;
+        return clipBBox?.containsPoint(point.x, point.y) === true ? [] : [match];
     }
 
     override async processData(dataController: DataController) {
@@ -1011,7 +1026,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             bottomRightCornerRadius: false,
             bottomLeftCornerRadius: false,
             clipBBox: undefined,
-            pickBBox: undefined,
+            pickStart: 0,
+            pickLength: 0,
             crisp: ctx.crisp,
             label: undefined,
             missing: false,
@@ -1121,12 +1137,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         let rectHeight = ctx.barAlongX ? params.width * (crossScale ?? 1) : Math.abs(bottomY - y);
 
         if (ctx.halfGap > 0) {
-            let pickBBox = node.pickBBox;
-            if (pickBBox == null) {
-                pickBBox = new BarPickBBox(0, 0, 0, 0);
-                mutableNode.pickBBox = pickBBox;
-            }
-            pickBBox.setBounds(rectX, rectY, rectWidth, rectHeight);
+            gapSpan.start = ctx.barAlongX ? rectX : rectY;
+            gapSpan.length = ctx.barAlongX ? rectWidth : rectHeight;
+            mutableNode.pickStart = gapSpan.start;
+            mutableNode.pickLength = gapSpan.length;
 
             const edges = gapEdges(
                 params.yStart,
@@ -1136,8 +1150,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 phantom || yFilterGeometryValue == null
             );
             if (edges !== 0) {
-                gapSpan.start = ctx.barAlongX ? rectX : rectY;
-                gapSpan.length = ctx.barAlongX ? rectWidth : rectHeight;
                 insetGapSpan(gapSpan, ctx.halfGap, edges, bottomY <= y);
                 if (ctx.barAlongX) {
                     rectX = gapSpan.start;
@@ -2354,7 +2366,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     /**
      * Looks up the stack total, on the given side of the axis, of the group a datum belongs to. `undefined` when the
-     * datum has no group, so the caller leaves the end edge alone.
+     * datum has no group, or when no series lies beyond this one, so the caller leaves the end edge alone.
      *
      * A datum sits in the group `skew` places before its own index, where `skew` counts the groups that merged datums
      * with the same key or skipped an invalid one before it. It changes rarely along the data, so the lookup tries the
@@ -2365,6 +2377,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private createStackTotalLookup(
         ctx: BarSeriesNodeDatumContext
     ): ((datumIndex: number, positive: boolean) => AgNumericValue | undefined) | undefined {
+        // With no visible series further along the stack, no end edge has a neighbour, so there is nothing to look up.
+        if (!ctx.stackedTowardEnd) return undefined;
         const processedData = this.processedData as GroupedData<any> | undefined;
         const { dataModel } = this;
         if (processedData?.type !== 'grouped' || dataModel == null) return undefined;
@@ -2381,7 +2395,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         let skew = 0;
         return (datumIndex, positive) => {
             let groupIndex = datumIndex - skew;
-            if (!hasDatum(groupIndex, datumIndex)) {
+            // The same check as `hasDatum`, written out: this runs once per bucket and nearly always hits.
+            if (groups[groupIndex]?.datumIndices[columnIndex]?.includes(datumIndex - groupIndex) !== true) {
                 const first = groupIndex;
                 groupIndex = -1;
                 for (let step = 1; step <= GROUP_SKEW_PROBES && groupIndex < 0; step++) {

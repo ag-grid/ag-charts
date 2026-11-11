@@ -6,15 +6,11 @@ import type { Point } from 'ag-charts-core';
  * separates, so each segment owns half of it. It carries its own `midPoint` so the quadtree can index it as it is.
  */
 export class BarPickBBox extends BBox {
-    readonly midPoint: Point = { x: 0, y: 0 };
+    readonly midPoint: Point;
 
-    setBounds(x: number, y: number, width: number, height: number) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.midPoint.x = x + width / 2;
-        this.midPoint.y = y + height / 2;
+    constructor(x: number, y: number, width: number, height: number) {
+        super(x, y, width, height);
+        this.midPoint = { x: x + width / 2, y: y + height / 2 };
     }
 }
 

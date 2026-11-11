@@ -545,7 +545,7 @@ describe('bar series gap', () => {
             // hovering the empty space where it was picks it.
             const { nodeData } = getBarSeriesContextNodeData(chart!, 0);
             expect(nodeData[0].clipBBox?.height).toBe(0);
-            expect(nodeData[0].pickBBox?.height).toBeGreaterThan(0);
+            expect(nodeData[0].pickLength).toBeGreaterThan(0);
             expect(deproxy(chart!).ctx.highlightManager.getActiveHighlight()).toMatchObject({ yKey: 'a' });
         });
     });
@@ -605,6 +605,44 @@ describe('bar series gap', () => {
             expect(clicked).toEqual(['a', 'b']);
         });
 
+        it.each([
+            { name: 'a stack of three segments', visible: [true, true, true] },
+            { name: 'a lone visible segment', visible: [false, false, true] },
+        ])(
+            'with a corner radius, clicking the empty corner past the outer end of $name picks nothing',
+            async ({ visible }) => {
+                const clicked: string[] = [];
+                const options = stackOptions({ gaps: [4, 4, 4], cornerRadius: 24, visible });
+                for (const s of options.series!) {
+                    (s as AgBarSeriesOptions).listeners = { seriesNodeClick: (e: any) => clicked.push(e.yKey) };
+                }
+                await open(options);
+                const img = ctx.snapshot();
+                const centre = categoryCentre(img, 'vertical', 0);
+
+                // The top of the stack, and the left edge of the column below the rounded part of its corner.
+                const top = fromBaseline(runsThrough('vertical', 0), 'vertical', true).at(-1)!.start;
+                const rowAt = (y: number) => (x: number) => {
+                    const i = (y * img.width + x) * 4;
+                    return (
+                        img.data[i + 3] !== 0 && !(img.data[i] > 250 && img.data[i + 1] > 250 && img.data[i + 2] > 250)
+                    );
+                };
+                const filled = rowAt(top + 40);
+                let left = Math.round(centre);
+                while (left > 0 && filled(left - 1)) left--;
+                expect(rowAt(top)(left)).toBe(false); // The corner pixel is outside the rounded shape.
+
+                // Inside the segment's rect but outside its rounded corner: the shape test decides, not the gap.
+                await clickAction(left + 1, top + 1)(chart!);
+                expect(clicked).toEqual([]);
+
+                // Control: the same column is picked from inside the drawn shape.
+                await clickAction(centre, top + 10)(chart!);
+                expect(clicked).toEqual(['c']);
+            }
+        );
+
         it('hovering between two columns picks nothing', async () => {
             await open(stackOptions({ gaps: [4, 4, 4] }));
             const img = ctx.snapshot();
@@ -616,7 +654,7 @@ describe('bar series gap', () => {
             await open(stackOptions({ gaps: [0, 0, 0] }));
             for (let i = 0; i < 3; i++) {
                 for (const datum of getBarSeriesContextNodeData(chart!, i).nodeData) {
-                    expect(datum.pickBBox).toBeUndefined();
+                    expect(datum.pickLength).toBe(0);
                 }
             }
         });
@@ -722,10 +760,10 @@ describe('bar series gap', () => {
         // [top edge, bottom edge] insets of every aggregated node, from the clip against the segment before the inset.
         const nodeInsets = (series: number) =>
             getBarSeriesContextNodeData(chart!, series)
-                .nodeData.filter((d) => d.clipBBox != null && d.pickBBox != null)
-                .map(({ clipBBox, pickBBox }) => [
-                    Math.round((clipBBox!.y - pickBBox!.y) * 1000) / 1000,
-                    Math.round((pickBBox!.y + pickBBox!.height - clipBBox!.y - clipBBox!.height) * 1000) / 1000,
+                .nodeData.filter((d) => d.clipBBox != null && d.pickLength > 0)
+                .map(({ clipBBox, pickStart, pickLength }) => [
+                    Math.round((clipBBox!.y - pickStart) * 1000) / 1000,
+                    Math.round((pickStart + pickLength - clipBBox!.y - clipBBox!.height) * 1000) / 1000,
                 ]);
 
         it.each(['full', 'nullTop', 'zeroTop', 'negTop', 'nullMiddle'] as const)(

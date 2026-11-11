@@ -12,10 +12,11 @@ import {
 
 import { createEnterpriseChart } from '../../test/utils';
 
-// The nodes of a bar series carry the drawn clip and, when the gap is on, the segment before the inset.
+// The nodes of a bar series carry the drawn clip and, when the gap is on, the segment's span before the inset.
 interface GapNode {
     clipBBox?: { y: number; height: number };
-    pickBBox?: { y: number; height: number };
+    pickStart: number;
+    pickLength: number;
 }
 
 describe('bar gap when zooming', () => {
@@ -44,17 +45,17 @@ describe('bar gap when zooming', () => {
 
     /** How far, in pixels, each segment is pulled in from the segment it had before the gap, at each edge. */
     function insets(seriesIndex: number) {
-        return (getSeriesContextNodeData(chart!, seriesIndex).nodeData as GapNode[])
-            .filter((d) => d.clipBBox != null && d.pickBBox != null && d.clipBBox.height > 0)
+        return (getSeriesContextNodeData(chart!, seriesIndex).nodeData as unknown as GapNode[])
+            .filter((d) => d.clipBBox != null && d.pickLength > 0 && d.clipBBox.height > 0)
             .map((d) => [
-                Math.round((d.clipBBox!.y - d.pickBBox!.y) * 1000) / 1000,
-                Math.round((d.pickBBox!.y + d.pickBBox!.height - d.clipBBox!.y - d.clipBBox!.height) * 1000) / 1000,
+                Math.round((d.clipBBox!.y - d.pickStart) * 1000) / 1000,
+                Math.round((d.pickStart + d.pickLength - d.clipBBox!.y - d.clipBBox!.height) * 1000) / 1000,
             ]);
     }
 
     function height(seriesIndex: number) {
-        const nodes = getSeriesContextNodeData(chart!, seriesIndex).nodeData as GapNode[];
-        return nodes.find((d) => d.pickBBox != null)!.pickBBox!.height;
+        const nodes = getSeriesContextNodeData(chart!, seriesIndex).nodeData as unknown as GapNode[];
+        return nodes.find((d) => d.pickLength > 0)!.pickLength;
     }
 
     async function zoomIn(times: number) {
