@@ -3,6 +3,7 @@ import {
     type AgAnnotationFollow,
     type AgAnnotationFollowName,
     type AgAnnotationLineStyleType,
+    type AgAnnotationsEventSource,
     type Direction,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -741,10 +742,10 @@ export class Annotations extends AbstractModuleInstance {
         return annotationConfigs[datum.type].copy(node, datum, newDatum, context);
     }
 
-    private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
+    private onRestoreAnnotations(event: { annotations: Array<AgAnnotation>; source: AgAnnotationsEventSource }) {
         if (!(this.opts.enabled ?? true)) return;
 
-        const { annotations } = event;
+        const { annotations, source } = event;
         const canPatchInPlace =
             this.annotationData.length === annotations.length &&
             annotations.every((annotation, index) => {
@@ -768,7 +769,7 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         this.postUpdateFns.push(() => {
-            this.ctx.annotationManager?.fireChangedEvent();
+            this.ctx.annotationManager?.fireChangedEvent(source);
         });
         this.update();
     }
@@ -895,7 +896,7 @@ export class Annotations extends AbstractModuleInstance {
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
             historyManager.record(label, ...originators);
-            annotationManager.fireChangedEvent();
+            annotationManager.fireChangedEvent('user-interaction');
         });
     }
 

@@ -121,7 +121,7 @@ export class HistoryManager {
     }
 
     private restoreMemento(mementoOriginatorKey: string, memento: any) {
-        this.originators.get(mementoOriginatorKey)?.restoreMemento(VERSION, VERSION, memento);
+        this.originators.get(mementoOriginatorKey)?.restoreMemento(VERSION, VERSION, memento, 'user-interaction');
     }
 
     private debugEvent(...logContent: Array<any>) {

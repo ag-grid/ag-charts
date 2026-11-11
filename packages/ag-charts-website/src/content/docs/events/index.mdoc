@@ -399,6 +399,7 @@ This is fired when the [annotations](./annotations/) are changed, added or remov
 This event contains:
 
 - The array of all the `annotations` with their current state.
+- The `source` of the event: `'user-interaction'` for edits, undo and redo, or `'api-call'` when annotations are set through the API, such as with `setState` or `initialState`.
 - The [`context`](./context/) object, if set.
 
 {% chartExampleRunner title="Annotations" name="annotations-event" type="generated" /%}
