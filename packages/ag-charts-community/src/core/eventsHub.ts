@@ -24,6 +24,7 @@ import { EventEmitter } from 'ag-charts-core';
 import type {
     AgActiveItemState,
     AgAnnotation,
+    AgAnnotationsEventSource,
     AgAutoScaledAxes,
     AgCartesianAxisPosition,
     AgContextMenuItemShowOn,
@@ -244,6 +245,7 @@ export interface ActiveLoadMementoEvent {
 
 interface AnnotationsRestoreEvent {
     annotations: AgAnnotation[];
+    source: AgAnnotationsEventSource;
 }
 
 /** A cross-line annotation whose own axis label sits on `axisId` has started to be dragged. */

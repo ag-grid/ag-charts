@@ -1,7 +1,11 @@
 import {
     type BBox,
+    ContainerWidget,
+    type ImageBox,
+    ImageWidget,
     type NormalisedChartOverlayOptions,
     type NormalisedTextOrSegments,
+    TextSpanWidget,
     callWithContext,
     coerceTextValue,
     createElement,
@@ -18,33 +22,16 @@ import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';
 
-function imageVerticalAlignToCss(verticalAlign: ImageSegment['verticalAlign']): string {
-    switch (verticalAlign) {
-        case 'top':
-            return 'top';
-        case 'bottom':
-            return 'bottom';
-        case 'baseline':
-            return 'baseline';
-        case 'middle':
-        default:
-            return 'middle';
-    }
-}
-
-// Mirrors the canvas ImageSegmentNode decoration. Exported for unit testing — jsdom cannot host a
-// real <img>.
-export function imageSegmentStyle(segment: ImageSegment): Partial<CSSStyleDeclaration> {
-    const { top, right, bottom, left } = resolvePadding(segment.padding);
+// Mirrors the canvas ImageSegmentNode decoration. Exported for unit testing — the mocked canvas environment cannot
+// host a real <img>.
+export function toImageBox(segment: ImageSegment): ImageBox {
     return {
-        boxSizing: 'border-box',
-        objectFit: 'contain',
-        width: `${segment.width}px`,
-        height: `${segment.height}px`,
-        padding: `${top}px ${right}px ${bottom}px ${left}px`,
-        verticalAlign: imageVerticalAlignToCss(segment.verticalAlign),
-        backgroundColor: segment.backgroundFill ?? '',
-        borderRadius: segment.cornerRadius == null ? '' : `${segment.cornerRadius}px`,
+        width: segment.width,
+        height: segment.height,
+        padding: resolvePadding(segment.padding),
+        verticalAlign: segment.verticalAlign ?? 'middle',
+        backgroundColor: segment.backgroundFill,
+        cornerRadius: segment.cornerRadius,
     };
 }
 
@@ -54,6 +41,7 @@ export class Overlay {
     renderer?: Renderer<AgChartOverlayRendererParams<DatumDefault>, HTMLElement>;
 
     private content?: HTMLElement;
+    private defaultContent?: ContainerWidget;
     private rendererAsText?: string;
     public focusBox?: BBox;
 
@@ -88,7 +76,8 @@ export class Overlay {
         localeManager: LocaleManager,
         rect: BBox
     ) {
-        this.content?.remove();
+        this.detachContent();
+        this.defaultContent = undefined;
         this.rendererAsText = undefined;
         this.focusBox = rect;
 
@@ -113,42 +102,11 @@ export class Overlay {
             }
             this.rendererAsText = this.content?.textContent?.trim();
         } else {
-            const content = createElement('div', {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxSizing: 'border-box',
-                height: '100%',
-                margin: '8px',
-                fontFamily: 'var(--ag-charts-font-family)',
-                fontSize: 'var(--ag-charts-font-size)',
-                fontWeight: 'var(--ag-charts-font-weight)',
-                color: 'var(--ag-charts-text-color)',
-            });
-            if (isArray(this.text)) {
-                const container = createElement('div');
-                for (const segment of this.text) {
-                    if (segment.type === 'image') {
-                        this.appendImageSegment(container, segment);
-                        continue;
-                    }
-                    const el = createElement('span', {
-                        color: segment.color,
-                        fontSize: `${segment.fontSize}px`,
-                        fontFamily: segment.fontFamily ?? 'inherit',
-                        fontWeight: String(segment.fontWeight),
-                        fontStyle: segment.fontStyle,
-                        lineHeight: segment.lineHeight == null ? undefined : `${segment.lineHeight}px`,
-                    });
-                    el.innerText = toTextString(segment.text);
-                    container.appendChild(el);
-                }
-                content.appendChild(container);
-            } else {
-                content.innerText = this.getText(localeManager);
-            }
-            this.content = content;
-            this.content.classList.add(this.className);
+            const content = this.createDefaultContent(localeManager);
+            this.defaultContent = content;
+            // TODO: Phase 3 "Common Widget Ancestor" - the overlay is mounted through DOMElementProxy, which takes a
+            // raw element, and shares its removal path with user-rendered elements.
+            this.content = content.getElement();
 
             animationManager?.animate({
                 from: 0,
@@ -157,10 +115,10 @@ export class Overlay {
                 phase: 'add',
                 groupId: 'opacity',
                 onUpdate(value) {
-                    content.style.opacity = String(value);
+                    content.setOpacity(value);
                 },
                 onStop() {
-                    content.style.opacity = '1';
+                    content.setOpacity(1);
                 },
             });
         }
@@ -168,13 +126,37 @@ export class Overlay {
         return this.content;
     }
 
-    // Overlays are plain DOM, so the browser loads the image natively — ImageLoader exists only for
-    // the canvas pipeline.
-    private appendImageSegment(container: HTMLElement, segment: ImageSegment) {
-        const img = createElement('img', imageSegmentStyle(segment));
-        img.src = segment.url;
-        img.alt = segment.alt ?? '';
-        container.appendChild(img);
+    private createDefaultContent(localeManager: LocaleManager): ContainerWidget {
+        const content = new ContainerWidget();
+        content.setCentredThemeText(8);
+        content.addClass(this.className);
+        if (!isArray(this.text)) {
+            content.setInnerText(this.getText(localeManager));
+            return content;
+        }
+
+        const container = new ContainerWidget();
+        for (const segment of this.text) {
+            if (segment.type === 'image') {
+                // Overlays are plain DOM, so the browser loads the image natively — ImageLoader exists only for the
+                // canvas pipeline.
+                container.addChild(new ImageWidget(segment.url, segment.alt ?? '', toImageBox(segment)));
+                continue;
+            }
+            const span = new TextSpanWidget();
+            span.setTextStyle({
+                color: segment.color,
+                fontSize: segment.fontSize,
+                fontFamily: segment.fontFamily ?? 'inherit',
+                fontWeight: segment.fontWeight,
+                fontStyle: segment.fontStyle,
+                lineHeight: segment.lineHeight,
+            });
+            span.setInnerText(toTextString(segment.text));
+            container.addChild(span);
+        }
+        content.addChild(container);
+        return content;
     }
 
     // Keeps the keyboard-focus rect aligned with the series/container rect while the element stays
@@ -185,11 +167,19 @@ export class Overlay {
         }
     }
 
-    removeElement(cleanup = () => this.content?.remove(), animationManager?: AnimationManager) {
+    private detachContent() {
+        if (this.defaultContent) {
+            this.defaultContent.remove();
+        } else {
+            this.content?.remove();
+        }
+    }
+
+    removeElement(cleanup = () => this.detachContent(), animationManager?: AnimationManager) {
         if (!this.content) return;
 
         if (animationManager) {
-            const { content } = this;
+            const { content, defaultContent } = this;
             animationManager.animate({
                 from: 1,
                 to: 0,
@@ -197,7 +187,11 @@ export class Overlay {
                 id: 'overlay',
                 groupId: 'opacity',
                 onUpdate(value) {
-                    content.style.opacity = String(value);
+                    if (defaultContent) {
+                        defaultContent.setOpacity(value);
+                    } else {
+                        content.style.opacity = String(value);
+                    }
                 },
                 onStop() {
                     cleanup?.();
@@ -208,6 +202,7 @@ export class Overlay {
         }
 
         this.content = undefined;
+        this.defaultContent = undefined;
         this.focusBox = undefined;
     }
 }

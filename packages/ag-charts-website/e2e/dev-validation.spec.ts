@@ -46,4 +46,48 @@ test.describe('validation overlay', () => {
 
         await expect(overlay).toBeHidden();
     });
+
+    test('Dismiss is a named button that the keyboard can activate', async ({ page }) => {
+        const { url } = toExamplePageUrl('dev-validation', 'validation-overlay-multi', 'vanilla');
+        await gotoExample(page, url);
+        await waitForAllChartUpdates(page);
+
+        const overlay = page.locator('.ag-charts-validation-overlay');
+        const dismissButton = overlay.getByRole('button', { name: 'Dismiss' });
+        await expect(dismissButton).toHaveAttribute('title', 'Dismiss');
+
+        await dismissButton.focus();
+        await page.keyboard.press('Enter');
+
+        await expect(overlay).toBeHidden();
+    });
+
+    test('Copy reports success once the diagnostics are written', async ({ page }) => {
+        const { url } = toExamplePageUrl('dev-validation', 'validation-overlay-multi', 'vanilla');
+        await gotoExample(page, url);
+        await waitForAllChartUpdates(page);
+
+        const copyButton = page.locator('.ag-charts-validation-overlay__copy');
+        await expect(copyButton).toHaveAccessibleName('Copy');
+        await copyButton.click();
+
+        await expect(copyButton).toHaveText('Copied');
+    });
+
+    // The chart's context menu skips a right-click whose default was already prevented, so this is what keeps it
+    // from opening over the dialog.
+    test('a right-click on the panel is marked as handled', async ({ page }) => {
+        const { url } = toExamplePageUrl('dev-validation', 'validation-overlay-multi', 'vanilla');
+        await gotoExample(page, url);
+        await waitForAllChartUpdates(page);
+
+        await page.evaluate(() => {
+            document.addEventListener('contextmenu', (event) => {
+                document.body.dataset.contextmenuDefaultPrevented = String(event.defaultPrevented);
+            });
+        });
+        await page.locator(PANEL).click({ button: 'right' });
+
+        await expect(page.locator('body')).toHaveAttribute('data-contextmenu-default-prevented', 'true');
+    });
 });

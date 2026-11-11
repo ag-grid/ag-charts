@@ -1441,6 +1441,13 @@ export async function pressKey(chart: ChartOrProxy, key: string, modifiers: Keyb
     await waitForChartStability(chart);
 }
 
+export async function releaseKey(chart: ChartOrProxy, key: string, modifiers: KeyboardEventInit = {}) {
+    const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+    expect(seriesArea).not.toBeNull();
+    seriesArea!.dispatchEvent(new KeyboardEvent('keyup', { key, code: key, bubbles: true, ...modifiers }));
+    await waitForChartStability(chart);
+}
+
 // Auto-sizing reads the container size, so a chart created without an explicit width and height follows this resize.
 export async function resizeChartContainer(
     chart: ChartOrProxy,

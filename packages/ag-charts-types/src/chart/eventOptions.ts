@@ -201,8 +201,12 @@ export interface AgCollapsedChangeEvent<TDatum, TContext> extends AgPreventableE
     expanded: AgCollapsedChangeItem<TDatum>[];
 }
 
+export type AgAnnotationsEventSource = 'user-interaction' | 'api-call';
+
 export interface AgAnnotationsEvent<TContext = ContextDefault> {
     type: 'annotations';
+    /** An indication of what triggered this event. */
+    source: AgAnnotationsEventSource;
     annotations?: AgAnnotation[];
     context?: TContext;
 }

@@ -9,8 +9,7 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "esModuleInterop": true,
-    "target": "es2022",
-    "useDefineForClassFields": false,
+    "target": "es2020",
     "module": "esnext",
     "lib": [
       "es2023",

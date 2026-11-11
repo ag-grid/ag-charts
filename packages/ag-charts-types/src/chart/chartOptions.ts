@@ -177,13 +177,11 @@ export interface AgChartHighlightOptions {
     /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
     range?: AgChartHighlightRange;
     /**
-     * Determines which items are highlighted when hovering an item.
-     * - `'single'` highlights the hovered item only.
-     * - `'shared'` also highlights the item of every other series that shares the hovered item's category, using the same grouping as `tooltip.mode: 'shared'`. Series with no item at that category - including series with no category concept, such as scatter and bubble - are unhighlighted as a whole series.
+     * Determines which items are highlighted.
+     * - `'single'` highlights the active item only.
+     * - `'shared'` also highlights the item of every other series that shares the active item's category.
      *
-     * When only `tooltip.mode` is set, this follows it, with `'compact'` giving `'single'`. When neither is set, this matches the `tooltip.mode` default: `'shared'` for 2 or 3 series, except on scatter and bubble charts, and `'single'` otherwise.
-     *
-     * To keep single highlighting on a chart whose tooltip defaults to `'shared'`, set both `highlight.mode: 'single'` and `tooltip.mode: 'shared'`.
+     * Defaults to `'shared'` for most charts with 2 or 3 series otherwise `'single'`. Follows `tooltip.mode` if specified.
      */
     mode?: AgChartHighlightMode;
     /**

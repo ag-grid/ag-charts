@@ -421,6 +421,19 @@ describe('ValidationOverlay', () => {
             // Only deprecations are present, so no louder-severity sections are rendered.
             expect(overlay.querySelector('.ag-charts-validation-overlay__section--error')).toBeNull();
             expect(overlay.querySelector('.ag-charts-validation-overlay__section--warning')).toBeNull();
+
+            const message = section!.querySelector('.ag-charts-validation-overlay__message');
+            expect(message?.textContent).toEqual(
+                'Option series[0].verticalSpacing is deprecated. Use depthSpacing instead.'
+            );
+            expect(
+                Array.from(message!.querySelectorAll('code.ag-charts-validation-overlay__term')).map(
+                    (term) => term.textContent
+                )
+            ).toEqual(['series[0].verticalSpacing', 'depthSpacing']);
+            expect(section!.querySelector('pre.ag-charts-validation-overlay__code')?.textContent).toEqual(
+                'series[0].verticalSpacing'
+            );
         });
     });
 
@@ -473,6 +486,55 @@ describe('ValidationOverlay', () => {
 
             expect(overlay.querySelector('.ag-charts-validation-overlay__copy')).toBeNull();
             expect(overlay.querySelector('.ag-charts-validation-overlay__dismiss')).not.toBeNull();
+        });
+
+        it("is created in the chart's own document, as a chart in a popup window needs", async () => {
+            chart = deproxy(
+                await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] })
+            );
+
+            const popupDocument = document.implementation.createHTMLDocument('popup');
+            const agDocument = agDocumentWith({ writeText: vi.fn().mockResolvedValue(undefined) });
+            Object.defineProperty(agDocument, 'document', { value: popupDocument });
+            const overlay = getValidationOverlay({
+                agDocument,
+                localeManager: chart.ctx.localeManager,
+                grouped: groupedWithIssue,
+                onDismiss: () => undefined,
+            });
+
+            const elements = [overlay, ...Array.from(overlay.querySelectorAll('*'))];
+            expect(elements.length).toBeGreaterThan(10);
+            expect(elements.filter((element) => element.ownerDocument !== popupDocument)).toEqual([]);
+        });
+
+        it('clicking its buttons does not submit a form that contains the chart', async () => {
+            chart = deproxy(
+                await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] })
+            );
+
+            const onDismiss = vi.fn();
+            const overlay = getValidationOverlay({
+                agDocument: agDocumentWith({ writeText: vi.fn().mockResolvedValue(undefined) }),
+                localeManager: chart.ctx.localeManager,
+                grouped: groupedWithIssue,
+                onDismiss,
+            });
+            const form = document.createElement('form');
+            const onSubmit = vi.fn((event: Event) => event.preventDefault());
+            form.addEventListener('submit', onSubmit);
+            form.appendChild(overlay);
+            document.body.appendChild(form);
+
+            try {
+                overlay.querySelector<HTMLButtonElement>('.ag-charts-validation-overlay__copy')!.click();
+                overlay.querySelector<HTMLButtonElement>('.ag-charts-validation-overlay__dismiss')!.click();
+
+                expect(onDismiss).toHaveBeenCalledTimes(1);
+                expect(onSubmit).not.toHaveBeenCalled();
+            } finally {
+                form.remove();
+            }
         });
     });
 });

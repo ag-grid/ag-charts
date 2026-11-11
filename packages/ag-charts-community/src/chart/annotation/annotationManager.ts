@@ -1,6 +1,6 @@
-import type { DynamicContext, MementoOriginator, Node, OptionsDefs } from 'ag-charts-core';
+import type { DynamicContext, MementoOriginator, MementoRestoreSource, Node, OptionsDefs } from 'ag-charts-core';
 import { deepClone, isArray, isObject, isPlainObject, mergeDefaults, validate } from 'ag-charts-core';
-import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
+import type { AgAnnotation, AgAnnotationsEventSource, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 
@@ -11,11 +11,25 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
 
     private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
+    private editingProbe?: () => boolean;
 
     constructor(
         private readonly ctx: DynamicContext<ChartRegistry>,
         private readonly stateDefs: OptionsDefs<AgAnnotation>
     ) {}
+
+    public setEditingProbe(probe: () => boolean) {
+        this.editingProbe = probe;
+        return () => {
+            if (this.editingProbe === probe) {
+                this.editingProbe = undefined;
+            }
+        };
+    }
+
+    public isEditing() {
+        return this.editingProbe?.() ?? false;
+    }
 
     public createMemento() {
         return this.annotations;
@@ -25,7 +39,12 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
         return blob == null || isArray(blob);
     }
 
-    public restoreMemento(_version: string, _mementoVersion: string, memento: AnnotationsMemento | undefined) {
+    public restoreMemento(
+        _version: string,
+        _mementoVersion: string,
+        memento: AnnotationsMemento | undefined,
+        source: MementoRestoreSource = 'api-call'
+    ) {
         // Migration from older versions can be implemented here.
 
         this.annotations = this.validateAnnotations(this.cleanData(memento ?? [])).map((annotation) => {
@@ -33,15 +52,19 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
             return mergeDefaults(annotation, annotationTheme);
         });
 
-        this.ctx.eventsHub.emit('annotations:restore', { annotations: this.annotations });
+        this.ctx.eventsHub.emit('annotations:restore', { annotations: this.annotations, source });
     }
 
     public updateData(annotations?: AnnotationsMemento) {
         this.annotations = this.cleanData(annotations ?? []);
     }
 
-    public fireChangedEvent() {
-        this.ctx.chartService.callListener({ type: 'annotations', annotations: deepClone([...this.annotations]) });
+    public fireChangedEvent(source: AgAnnotationsEventSource) {
+        this.ctx.chartService.callListener({
+            type: 'annotations',
+            source,
+            annotations: deepClone([...this.annotations]),
+        });
     }
 
     public attachNode(node: Node) {

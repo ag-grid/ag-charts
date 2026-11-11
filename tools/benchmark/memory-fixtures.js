@@ -44,17 +44,16 @@ function report(examples, { memory = false } = {}) {
     };
 }
 
-/** A shard report with the given `{ name: status }` examples; a non-success example carries an error. */
+/** A shard report with the given `{ name: status | { status, error } }` examples; a non-success example carries an error. */
 function shardReport(statuses, { memory = false } = {}) {
     return {
         ...report({}, { memory }),
         examples: Object.fromEntries(
-            Object.entries(statuses).map(([name, status]) => [
-                name,
-                status === 'success'
-                    ? exampleEntry([result('t')])
-                    : { status, error: `${status} in ${name}\nstack line`, durationMs: 1 },
-            ])
+            Object.entries(statuses).map(([name, value]) => {
+                const { status, error = `${status} in ${name}\nstack line` } =
+                    typeof value === 'string' ? { status: value } : value;
+                return [name, status === 'success' ? exampleEntry([result('t')]) : { status, error, durationMs: 1 }];
+            })
         ),
         summary: { total: Object.keys(statuses).length },
     };
@@ -67,6 +66,22 @@ const EXCLUDED_ENTRY = {
     failed: [{ side: 'head', pass: 'r1', status: 'timeout' }],
     skipped: [{ side: 'base', pass: 'r1' }],
 };
+
+/** Base-side page results for `shardReport`: the example is not on the base site, or fails there some other way. */
+const NOT_FOUND = { status: 'error', error: 'HTTP 404 for https://example.test/benchmarks/examples/new-one' };
+const BROKEN_BASE = { status: 'error', error: 'page.goto: net::ERR_FAILED' };
+
+/** An excluded-list entry for an example that failed only on the base, as the shard-failures step writes it. */
+function baseOnlyEntry(example, reason = 'not on base') {
+    return {
+        example,
+        shard: '0',
+        failed: [{ side: 'base', pass: 'r1', status: 'error' }],
+        skipped: [],
+        baseOnly: true,
+        reason,
+    };
+}
 
 /** Writes each report to `<tmp>/<name>.json`, runs `fn(paths)` (with `paths.dir`) and cleans up. */
 function withFiles(files, fn) {
@@ -84,12 +99,13 @@ function withFiles(files, fn) {
 }
 
 /** The compare CLI's argv for the given report paths; only the sides supplied are included. */
-function compareArgs({ base, compare, baseMemory, compareMemory, format }) {
+function compareArgs({ base, compare, baseMemory, compareMemory, excluded, format }) {
     return [
         '--base',
-        base,
+        ...[base].flat(),
         '--compare',
-        compare,
+        ...[compare].flat(),
+        ...(excluded ? ['--excluded', excluded] : []),
         ...(baseMemory ? ['--base-memory', baseMemory] : []),
         ...(compareMemory ? ['--compare-memory', compareMemory] : []),
         ...(format ? ['--format', format] : []),
@@ -126,9 +142,12 @@ function lastCells(line, n) {
 
 module.exports = {
     COMPARE,
+    BROKEN_BASE,
     EXCLUDED_ENTRY,
     MB,
     MERGE,
+    NOT_FOUND,
+    baseOnlyEntry,
     compareArgs,
     exampleEntry,
     lastCells,
