@@ -77,8 +77,25 @@ function collectExcluded(shardsDir) {
                 entry.skipped.push({ side, pass });
             }
         }
+        const reason = baseOnlyReason(entry, reports);
+        if (reason) {
+            entry.baseOnly = true;
+            entry.reason = reason;
+        }
     }
     return [...excluded.values()].sort((a, b) => (a.example < b.example ? -1 : 1));
+}
+
+/** `not on base` or `base failed` when only the base errored and the head succeeded in every pass, else undefined. */
+function baseOnlyReason({ example, shard, failed }, reports) {
+    if (!failed.every(({ side, status }) => side === 'base' && status === 'error')) {
+        return undefined;
+    }
+    const headPasses = reports.filter((report) => report.side === 'head' && report.shard === shard);
+    if (headPasses.length === 0 || !headPasses.every(({ examples }) => examples[example]?.status === 'success')) {
+        return undefined;
+    }
+    return failed.every(({ error }) => /\bHTTP 404\b/.test(error ?? '')) ? 'not on base' : 'base failed';
 }
 
 function firstLine(text) {
@@ -87,14 +104,19 @@ function firstLine(text) {
 
 /** One line per excluded example, e.g. `data-selection-zoom-bar: head r1 timeout; skipped: base r1, head r2`. */
 function formatExcluded(excluded) {
-    return excluded.map(({ example, failed, skipped }) => {
+    return excluded.map(({ example, failed, skipped, baseOnly, reason }) => {
         const failures = failed.map(({ side, pass, status }) => `${side} ${pass} ${status}`).join(', ');
         const skips = skipped.map(({ side, pass }) => `${side} ${pass}`).join(', ');
-        return `${example}: ${failures}${skips ? `; skipped: ${skips}` : ''}`;
+        const mark = baseOnly === true ? ` [base-only: ${reason ?? 'base failed'}]` : '';
+        return `${example}: ${failures}${skips ? `; skipped: ${skips}` : ''}${mark}`;
     });
 }
 
-module.exports = { timedOutExamples, remainingExamples, collectExcluded, formatExcluded };
+function isBaseOnly(entry) {
+    return entry?.baseOnly === true;
+}
+
+module.exports = { timedOutExamples, remainingExamples, collectExcluded, formatExcluded, isBaseOnly };
 
 if (require.main === module) {
     const { argv } = process;
