@@ -2227,20 +2227,32 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { animationManager } = this.ctx;
         const fillBBox = this.getShapeFillBBox();
 
-        const restyle = (subId: string, selections: Selection<BarNodeDatum, BarShape>[], highlight: boolean) => {
-            if (animate) {
-                const fns = prepareStyleAnimationFunctions<BarNodeDatum, BarShape>(fillBBox, highlight);
-                groupedFromToMotion(this.id, subId, animationManager, selections, fns, { cleanupRemoved: highlight });
-            } else {
-                resetStyles(selections, fillBBox, highlight);
+        const restyle = (
+            subId: string,
+            selection: Selection<BarNodeDatum, BarShape>,
+            highlight: boolean,
+            beneath?: Selection<BarNodeDatum, BarShape>
+        ) => {
+            if (!animate) {
+                resetStyles([selection], fillBBox, highlight);
+                return;
             }
+            const underlay = (node: BarShape) => {
+                const datumIndex = node.datum?.datumIndex;
+                for (const inPlace of beneath?.nodes() ?? []) {
+                    if (inPlace.datum?.datumIndex === datumIndex) return inPlace;
+                }
+            };
+            const fns = prepareStyleAnimationFunctions<BarNodeDatum, BarShape>(fillBBox, highlight, underlay);
+            groupedFromToMotion(this.id, subId, animationManager, [selection], fns, { cleanupRemoved: highlight });
         };
 
         if (datumSelectionRestyled) {
-            restyle('style', [datumSelection], false);
+            restyle('style', datumSelection, false);
         }
-        restyle('phantom-style', [this.phantomSelection], false);
-        restyle('highlight-style', [highlightSelection, this.phantomHighlightSelection], true);
+        restyle('phantom-style', this.phantomSelection, false);
+        restyle('highlight-style', highlightSelection, true, datumSelection);
+        restyle('phantom-highlight-style', this.phantomHighlightSelection, true, this.phantomSelection);
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {

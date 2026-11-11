@@ -211,12 +211,11 @@ export class AnimationBatch {
         }
     }
 
-    abandonTransitions(idPrefix: string) {
-        for (const controller of [...this.phases.get('transition')!]) {
-            if (!controller.id.startsWith(idPrefix)) continue;
-            controller.abandon();
-            this.removeAnimation(controller);
-        }
+    abandonAnimation(id: string) {
+        const controller = this.controllers.get(id);
+        if (controller == null) return;
+        controller.abandon();
+        this.removeAnimation(controller);
     }
 
     stopByAnimationGroupId(id: string) {

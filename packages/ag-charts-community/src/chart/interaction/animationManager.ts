@@ -189,9 +189,9 @@ export class AnimationManager {
         return !this.rafAvailable;
     }
 
-    /** End `transition` animations without jumping to their end, for successors that start from what they display. */
-    public abandonTransitions(idPrefix: string) {
-        this.batch.abandonTransitions(idPrefix);
+    /** End an animation without jumping to its end, for a successor that starts from what it displays. */
+    public abandonAnimation(id: string) {
+        this.batch.abandonAnimation(id);
     }
 
     public getRemainingTime(phase?: AnimationPhase) {

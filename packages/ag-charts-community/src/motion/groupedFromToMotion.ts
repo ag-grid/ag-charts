@@ -20,10 +20,16 @@ export interface GroupedFromToFns<D, N extends Node<D>, T extends GroupedProps> 
 }
 
 interface MotionGroup<N> {
-    readonly from: GroupedProps;
+    readonly id: string;
     readonly to: GroupedProps;
-    readonly nodes: N[];
+    readonly nodes: Set<N>;
+    /** Selections whose removed nodes are in the group, to clean up once none of their removed nodes animate. */
+    readonly removedFrom: SelectionInterface<unknown, Node>[];
 }
+
+/** The running group of each animating node. */
+const nodeGroups = new WeakMap<Node, MotionGroup<Node>>();
+let nextGroupId = 0;
 
 /**
  * A "from/to" animation like {@link fromToMotion}, for animations of many nodes between few distinct sets of
@@ -33,8 +39,8 @@ interface MotionGroup<N> {
  * Numbers and colours interpolate; other properties take their final value from the start. Removed nodes play out,
  * then their selections are cleaned up, unless `cleanupRemoved` is false because another motion owns their removal.
  *
- * In the `transition` phase, the motion supersedes the previous one with the same ids without jumping it to its end,
- * so `fromFn` should report what nodes currently display.
+ * A node whose `toFn` result is unchanged keeps its running animation, so it arrives when it would have anyway. Other
+ * nodes leave theirs without jumping to its end, so `fromFn` should report what nodes currently display.
  */
 export function groupedFromToMotion<D, N extends Node<D>, T extends GroupedProps>(
     groupId: string,
@@ -45,78 +51,88 @@ export function groupedFromToMotion<D, N extends Node<D>, T extends GroupedProps
     { phase = 'transition', cleanupRemoved = true }: { phase?: AnimationPhase; cleanupRemoved?: boolean } = {}
 ) {
     const { fromFn, toFn, applyFn, defaults } = fns;
-    const idPrefix = `${groupId}_${subId}_`;
 
-    if (phase === 'transition') {
-        animationManager.abandonTransitions(idPrefix);
-    }
-
-    const groups = new Map<T, Map<T, MotionGroup<N>>>();
-    const cleanupSelections: SelectionInterface<D, N>[] = [];
+    const pending = new Map<T, Map<T, N[]>>();
+    const removedFrom: SelectionInterface<D, N>[] = [];
     for (const selection of selections) {
         for (const node of selection.nodes()) {
             const removed = selection.isGarbage(node);
             const status: NodeUpdateState = removed ? 'removed' : 'updated';
             const datum = node.unsafeDatum as D;
-            const from = fromFn(node, datum, status);
-            const to = toFn(node, datum, status);
+            if (removed && cleanupRemoved && !removedFrom.includes(selection)) {
+                removedFrom.push(selection);
+            }
 
-            let byTo = groups.get(from);
+            const to = toFn(node, datum, status);
+            const current = nodeGroups.get(node);
+            if (current?.to === to) continue;
+            if (current != null) leaveGroup(current, node);
+
+            const from = fromFn(node, datum, status);
+            let byTo = pending.get(from);
             if (byTo == null) {
                 byTo = new Map();
-                groups.set(from, byTo);
+                pending.set(from, byTo);
             }
-            let group = byTo.get(to);
-            if (group == null) {
-                group = { from, to, nodes: [] };
-                byTo.set(to, group);
+            let nodes = byTo.get(to);
+            if (nodes == null) {
+                nodes = [];
+                byTo.set(to, nodes);
             }
-            group.nodes.push(node);
-
-            if (removed && cleanupRemoved && !cleanupSelections.includes(selection)) {
-                cleanupSelections.push(selection);
-            }
+            nodes.push(node);
         }
     }
 
-    let remaining = 0;
-    const groupStopped = () => {
-        remaining--;
-        if (remaining > 0) return;
-        for (const selection of cleanupSelections) {
-            selection.cleanup();
-        }
-    };
-
-    let groupIndex = 0;
-    for (const byTo of groups.values()) {
-        for (const group of byTo.values()) {
-            remaining++;
-            animateGroup(group, `${idPrefix}${groupIndex++}`);
+    for (const [from, byTo] of pending) {
+        for (const [to, nodes] of byTo) {
+            animateGroup(from, to, nodes);
         }
     }
-    if (remaining === 0) {
-        remaining = 1;
-        groupStopped();
+    for (const selection of removedFrom) {
+        cleanupIfSettled(selection);
     }
 
-    function animateGroup({ from, to, nodes }: MotionGroup<N>, id: string) {
-        const applyAll = (props: GroupedProps, status: 'start' | 'update' | 'end') => {
+    function leaveGroup(group: MotionGroup<Node>, node: Node) {
+        group.nodes.delete(node);
+        nodeGroups.delete(node);
+        if (group.nodes.size === 0) {
+            animationManager.abandonAnimation(group.id);
+        }
+    }
+
+    function animateGroup(from: T, to: T, nodes: N[]) {
+        const { fromProps, toProps, frame } = splitInterpolable(from, to, defaults);
+        if (Object.keys(toProps).length === 0) {
             for (const node of nodes) {
+                applyFn(node, to, 'end');
+            }
+            return;
+        }
+
+        const group: MotionGroup<N> = {
+            id: `${groupId}_${subId}_${nextGroupId++}`,
+            to,
+            nodes: new Set(nodes),
+            removedFrom: [],
+        };
+        for (const selection of removedFrom) {
+            if (nodes.some((node) => selection.isGarbage(node))) {
+                group.removedFrom.push(selection as SelectionInterface<unknown, Node>);
+            }
+        }
+        const applyAll = (props: GroupedProps, status: 'start' | 'update' | 'end') => {
+            for (const node of group.nodes) {
                 applyFn(node, props as T, status);
             }
         };
 
-        const { fromProps, toProps, frame } = splitInterpolable(from, to, defaults);
-        if (Object.keys(toProps).length === 0) {
-            applyAll(to, 'end');
-            groupStopped();
-            return;
+        for (const node of nodes) {
+            nodeGroups.set(node, group as MotionGroup<Node>);
         }
         applyAll(frame, 'start');
 
         animationManager.animate({
-            id,
+            id: group.id,
             groupId,
             phase,
             from: fromProps,
@@ -128,11 +144,24 @@ export function groupedFromToMotion<D, N extends Node<D>, T extends GroupedProps
                 applyAll(frame, 'update');
             },
             onStop() {
+                for (const node of group.nodes) {
+                    nodeGroups.delete(node);
+                }
                 applyAll(to, 'end');
-                groupStopped();
+                for (const selection of group.removedFrom) {
+                    cleanupIfSettled(selection);
+                }
             },
         });
     }
+}
+
+/** Remove a selection's removed nodes once none of them is still animating. */
+function cleanupIfSettled<D, N extends Node<D>>(selection: SelectionInterface<D, N>) {
+    for (const node of selection.nodes()) {
+        if (selection.isGarbage(node) && nodeGroups.has(node)) return;
+    }
+    selection.cleanup();
 }
 
 /**

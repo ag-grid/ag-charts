@@ -128,7 +128,15 @@ describe('BarSeries highlight fade', () => {
         expectFade(trajectory, displayed, 1);
     });
 
-    it('hands the highlight between items of a series without a jump', async () => {
+    // A cutout erases its in-place copy, so the copies start from and end at that copy's style rather than fading.
+    it.each([
+        { drawingMode: 'cutout' as const, edge: UNHIGHLIGHTED_ITEM },
+        { drawingMode: 'overlay' as const, edge: 0 },
+    ])('hands the highlight between items of a series without a jump ($drawingMode)', async ({ drawingMode, edge }) => {
+        chart.destroy();
+        chart = deproxy(await createChart({ ...options, highlight: { drawingMode } }));
+        await frames.runToEnd(chart);
+
         highlight(datum(0, 0));
         await frames.runToEnd(chart);
         expect(overlay(0)).toEqual({ 0: 1 });
@@ -136,20 +144,39 @@ describe('BarSeries highlight fade', () => {
         highlight(datum(0, 1));
         const trajectory = await capture(() => ({ inPlace: inPlace(0), overlay: overlay(0) }));
 
-        // The overlay copies cross-fade over their in-place copies, which already display the unhighlighted item
-        // opacity; the copy fading out is removed once it has.
         const leaving = trajectory.map((sample) => sample.overlay[0]).filter((opacity) => opacity != null);
         expectFade(leaving, 1, leaving.at(-1)!);
-        expect(leaving.at(-1)).toBeLessThan(0.1);
+        expect(leaving.at(-1)).toBeCloseTo(edge, 1);
         expectFade(
             trajectory.map((sample) => sample.overlay[1]),
-            0,
+            edge,
             1
         );
         for (const sample of trajectory) {
             expect(sample.inPlace).toEqual([UNHIGHLIGHTED_ITEM, UNHIGHLIGHTED_ITEM, UNHIGHLIGHTED_ITEM]);
         }
         expect(overlay(0)).toEqual({ 1: 1 });
+    });
+
+    it('ends the fade of an unhighlighted item on time while the highlight keeps moving', async () => {
+        highlight(datum(0, 0));
+        await frames.runToEnd(chart);
+
+        const step = 20;
+        const trajectory = await frames.captureAnimationFrames(chart, () => overlay(0)[0], {
+            frames: 25,
+            duration: 25 * step,
+            onFrame: async (i) => {
+                if (i !== 0 && i !== 5) return;
+                highlight(datum(0, i === 0 ? 1 : 2));
+                await chart.waitForUpdate();
+            },
+        });
+
+        // The second move restyles every item, but the first item's fade keeps its course rather than restarting.
+        const settled = Math.ceil(HIGHLIGHT_FADE_DURATION_MS / step) + 2;
+        expect(trajectory[settled]).toBe(UNHIGHLIGHTED_ITEM);
+        expect(trajectory[settled - 4]).toBeGreaterThan(UNHIGHLIGHTED_ITEM);
     });
 
     it('scales with the animation duration', async () => {
