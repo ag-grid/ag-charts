@@ -47,6 +47,24 @@ const container = document.getElementById('myChart')!;
 const seriesCount = options.series!.length;
 const data = getData();
 
+const GAP = 4;
+const gapOptions: AgCartesianChartOptions = {
+    ...options,
+    series: options.series!.map((series) => ({ ...series, gap: GAP }) as typeof series),
+};
+let zoomChartHasGap = false;
+
+/** inScope */
+async function performGapZoom(): Promise<number> {
+    if (!zoomChartHasGap) {
+        // Not timed: the zoom variants before this one leave the chart built without a gap.
+        chartRef.current?.destroy();
+        chartRef.current = AgCharts.create(gapOptions);
+        zoomChartHasGap = true;
+    }
+    return performZoom(gapOptions, chartRef, (opts) => AgCharts.create(opts), container, 20);
+}
+
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
     return {
@@ -59,6 +77,10 @@ function getBenchmarkConfig(): BenchmarkConfig {
                         params: { Operation: 'Chart Create' },
                         run: () => performInitialLoad(options, chartRef, (opts) => AgCharts.create(opts)),
                     },
+                    {
+                        params: { Operation: 'Chart Create', Gap: '4px' },
+                        run: () => performInitialLoad(gapOptions, chartRef, (opts) => AgCharts.create(opts)),
+                    },
                 ],
             },
             {
@@ -68,6 +90,10 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     {
                         params: { Repetitions: '20x' },
                         run: () => performZoom(options, chartRef, (opts) => AgCharts.create(opts), container, 20),
+                    },
+                    {
+                        params: { Repetitions: '20x', Gap: '4px' },
+                        run: () => performGapZoom(),
                     },
                 ],
             },
