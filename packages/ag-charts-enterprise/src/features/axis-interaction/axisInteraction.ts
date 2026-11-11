@@ -30,6 +30,8 @@ type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
 type SeriesAreaContextMenuEvent = _ModuleSupport.SeriesAreaContextMenuEvent;
 type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
 
+type PartialAxisClickEvent = CallbackParamRules<Omit<AgAxisClickEvent<string>, 'type'>> & { type?: never };
+
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
 type ProxyAxis = {
@@ -333,8 +335,7 @@ export class AxisInteraction extends AbstractModuleInstance {
             return;
         }
 
-        const params: CallbackParamRules<AgAxisClickEvent<'click'>> = {
-            type: 'click',
+        const params: PartialAxisClickEvent = {
             axisId,
             boundSeries: axisCtx.getBoundedSeries(),
             depth: undefined,
@@ -397,11 +398,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         this.dispatchAxisClickEvent(axisCtx, params, isDoubleClick);
     }
 
-    private dispatchAxisClickEvent(
-        axisCtx: AxisContext,
-        params: CallbackParamRules<Omit<AgAxisClickEvent<string>, 'type'>>,
-        isDoubleClick: boolean)
-    {
+    private dispatchAxisClickEvent(axisCtx: AxisContext, params: PartialAxisClickEvent, isDoubleClick: boolean) {
         const listener = isDoubleClick ? axisCtx.listeners?.doubleClick : axisCtx.listeners?.click;
         if (listener) {
             // `axes[].context` takes precedence over `chart.context`.
