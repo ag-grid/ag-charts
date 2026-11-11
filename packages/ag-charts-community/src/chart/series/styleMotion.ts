@@ -25,13 +25,17 @@ function hidden(style: ShapeStyle): ShapeStyle {
  * that have never displayed a style fade in. Removed shapes fade out with `fadeRemoved`, and otherwise keep their
  * style for the motion that owns their removal.
  *
- * A cutout erases the shape beneath it whatever its opacity, so instead of fading it starts from what `underlay`
- * displays and, once removed, ends at its target.
+ * A cutout erases the shape beneath it whatever its opacity, so the two hand over instead of fading: the cutout starts
+ * from what its `underlay` displays, and once removed leaves at once, with the shape beneath taking over from what
+ * it displayed through `leavingCutout`.
  */
 export function prepareStyleAnimationFunctions<D, N extends Shape<D>>(
     fillBBox: ShapeFillBBox,
     fadeRemoved: boolean,
-    underlay?: (node: N) => Shape | undefined
+    {
+        underlay,
+        leavingCutout,
+    }: { underlay?: (node: N) => Shape | undefined; leavingCutout?: (node: N) => Shape | undefined } = {}
 ): GroupedFromToFns<D, N, ShapeStyle> {
     const cutoutUnderlay = (node: N) => (node.drawingMode === 'cutout' ? underlay?.(node) : undefined);
     return {
@@ -42,9 +46,11 @@ export function prepareStyleAnimationFunctions<D, N extends Shape<D>>(
         },
         toFn: (node, _datum, status) => {
             if (status !== 'removed') return node.targetStyle ?? NO_STYLE;
-            if (!fadeRemoved) return node.displayedStyle ?? node.targetStyle ?? NO_STYLE;
-            return cutoutUnderlay(node)?.targetStyle ?? hidden(node.targetStyle ?? node.displayedStyle ?? NO_STYLE);
+            const displayed = node.displayedStyle ?? node.targetStyle ?? NO_STYLE;
+            if (!fadeRemoved || cutoutUnderlay(node) != null) return displayed;
+            return hidden(node.targetStyle ?? displayed);
         },
+        takeoverFn: leavingCutout == null ? undefined : (node) => leavingCutout(node)?.displayedStyle,
         applyFn: (node, style) => node.setStyleProperties(style, fillBBox),
         defaults: STYLE_DEFAULTS,
     };

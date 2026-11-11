@@ -17,6 +17,11 @@ export interface GroupedFromToFns<D, N extends Node<D>, T extends GroupedProps> 
     applyFn: (node: N, props: T, status: 'start' | 'update' | 'end') => void;
     /** Values that properties absent from one side take, so that they can still interpolate. */
     defaults?: Partial<Record<keyof T, number>>;
+    /**
+     * Properties a node takes over from another node that displayed them in its place, which it restarts from even if
+     * its destination is unchanged.
+     */
+    takeoverFn?: (node: N, datum: D, status: NodeUpdateState) => T | undefined;
 }
 
 interface MotionGroup<N> {
@@ -50,7 +55,7 @@ export function groupedFromToMotion<D, N extends Node<D>, T extends GroupedProps
     fns: GroupedFromToFns<D, N, T>,
     { phase = 'transition', cleanupRemoved = true }: { phase?: AnimationPhase; cleanupRemoved?: boolean } = {}
 ) {
-    const { fromFn, toFn, applyFn, defaults } = fns;
+    const { fromFn, toFn, applyFn, defaults, takeoverFn } = fns;
 
     const pending = new Map<T, Map<T, N[]>>();
     const removedFrom: SelectionInterface<D, N>[] = [];
@@ -64,11 +69,12 @@ export function groupedFromToMotion<D, N extends Node<D>, T extends GroupedProps
             }
 
             const to = toFn(node, datum, status);
+            const takeover = takeoverFn?.(node, datum, status);
             const current = nodeGroups.get(node);
-            if (current?.to === to) continue;
+            if (takeover == null && current?.to === to) continue;
             if (current != null) leaveGroup(current, node);
 
-            const from = fromFn(node, datum, status);
+            const from = takeover ?? fromFn(node, datum, status);
             let byTo = pending.get(from);
             if (byTo == null) {
                 byTo = new Map();

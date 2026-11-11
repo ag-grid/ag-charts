@@ -128,7 +128,8 @@ describe('BarSeries highlight fade', () => {
         expectFade(trajectory, displayed, 1);
     });
 
-    // A cutout erases its in-place copy, so the copies start from and end at that copy's style rather than fading.
+    // A cutout erases its in-place copy, so the two hand over: the arriving copy starts from the in-place copy's style,
+    // and the leaving copy goes at once, with the in-place copy taking over from it.
     it.each([
         { drawingMode: 'cutout' as const, edge: UNHIGHLIGHTED_ITEM },
         { drawingMode: 'overlay' as const, edge: 0 },
@@ -144,18 +145,43 @@ describe('BarSeries highlight fade', () => {
         highlight(datum(0, 1));
         const trajectory = await capture(() => ({ inPlace: inPlace(0), overlay: overlay(0) }));
 
-        const leaving = trajectory.map((sample) => sample.overlay[0]).filter((opacity) => opacity != null);
-        expectFade(leaving, 1, leaving.at(-1)!);
-        expect(leaving.at(-1)).toBeCloseTo(edge, 1);
+        if (drawingMode === 'cutout') {
+            expect(trajectory.slice(1).every((sample) => sample.overlay[0] == null)).toBe(true);
+            expectFade(
+                trajectory.map((sample) => sample.overlay[0] ?? sample.inPlace[0]),
+                1,
+                UNHIGHLIGHTED_ITEM
+            );
+        } else {
+            const leaving = trajectory.map((sample) => sample.overlay[0]).filter((opacity) => opacity != null);
+            expectFade(leaving, 1, leaving.at(-1)!);
+            expect(leaving.at(-1)).toBeCloseTo(0, 1);
+            for (const sample of trajectory) {
+                expect(sample.inPlace[0]).toBe(UNHIGHLIGHTED_ITEM);
+            }
+        }
         expectFade(
             trajectory.map((sample) => sample.overlay[1]),
             edge,
             1
         );
-        for (const sample of trajectory) {
-            expect(sample.inPlace).toEqual([UNHIGHLIGHTED_ITEM, UNHIGHLIGHTED_ITEM, UNHIGHLIGHTED_ITEM]);
-        }
         expect(overlay(0)).toEqual({ 1: 1 });
+    });
+
+    it('hands a cutout over to the bar beneath it without a flash when the highlight moves within a group', async () => {
+        highlight(datum(0, 0));
+        await frames.runToEnd(chart);
+
+        // What shows where the first series' item is: its cutout copy while there is one, else the bar beneath.
+        const shown = () => overlay(0)[0] ?? inPlace(0)[0];
+        const before = shown();
+        highlight(datum(1, 0));
+        const visible = await capture(shown);
+
+        const floor = Math.min(before, visible.at(-1)!);
+        for (const opacity of visible) {
+            expect(opacity).toBeGreaterThanOrEqual(floor);
+        }
     });
 
     it('ends the fade of an unhighlighted item on time while the highlight keeps moving', async () => {
@@ -163,7 +189,7 @@ describe('BarSeries highlight fade', () => {
         await frames.runToEnd(chart);
 
         const step = 20;
-        const trajectory = await frames.captureAnimationFrames(chart, () => overlay(0)[0], {
+        const trajectory = await frames.captureAnimationFrames(chart, () => overlay(0)[0] ?? inPlace(0)[0], {
             frames: 25,
             duration: 25 * step,
             onFrame: async (i) => {
