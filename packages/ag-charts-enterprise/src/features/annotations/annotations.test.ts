@@ -1347,6 +1347,22 @@ describe('Annotations', () => {
             await compare();
         });
 
+        it('removes the axis labels and shading when a toolbar menu is opened over the selected annotation', async () => {
+            // Opening a menu resets the annotation state, which deselects without naming the previous annotation.
+            const options = { ...withAxes(), annotations: { enabled: true, toolbar: { enabled: true } } };
+            await prepareChart({ annotations: [LINE] }, options);
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
+            expect(visibleAxisLabels()).toHaveLength(4);
+
+            const trendLines = document.querySelector<HTMLElement>(
+                '.ag-charts-shared-toolbar .ag-charts-toolbar__button[title="Trend Lines"]'
+            );
+            trendLines?.click();
+            await waitForChartStability(chart);
+
+            expect(visibleAxisLabels()).toHaveLength(0);
+        });
+
         it('removes the axis labels and shading when the annotation is deselected', async () => {
             await prepareChart({ annotations: [LINE] }, withAxes());
             // The pointer highlights the series datum nearest it, so rest it where it will be after deselecting.

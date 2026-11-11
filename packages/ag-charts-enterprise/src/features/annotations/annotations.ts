@@ -252,7 +252,10 @@ export class Annotations extends AbstractModuleInstance {
                 if (previousNode === selectedNode && selectedNode != null) return;
 
                 previousNode?.toggleActive(false);
-                previousNode?.toggleSelected(false);
+                // A reset deselects without naming the previous annotation, so clear every other one.
+                for (const node of annotations.nodes()) {
+                    if (node !== selectedNode) node.toggleSelected(false);
+                }
 
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
