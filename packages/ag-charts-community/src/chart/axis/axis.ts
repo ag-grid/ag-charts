@@ -447,6 +447,8 @@ export abstract class Axis<
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
+    private readonly a11yTempText = new TransformableText({ debugDirty: false });
+
     protected tickLabelGroupSelection = Selection.select<TransformableText<LabelNodeDatum>>(
         this.tickLabelGroup,
         TransformableText,
@@ -1475,13 +1477,20 @@ export abstract class Axis<
 
         const labels = new Map<string, { text: string; bbox: BBox }>();
         if (this.tickLabelGroup.visible) {
+            const { a11yTempText } = this;
             for (const node of this.tickLabelGroupSelection.nodes()) {
                 const { datum } = node;
                 if (datum == null || !node.visible || !datum.visible) continue;
                 if (this.tickLabelGroupSelection.isGarbage(node)) continue;
+                // Measured from the datum, not the node, which may still be animating towards it.
+                a11yTempText.setProperties(datum);
+                a11yTempText.textAlign = datum.textAlign ?? 'center';
+                a11yTempText.setBoxing(datum);
+                const bbox = a11yTempText.getBBox();
+                if (bbox == null) continue;
                 labels.set(datum.tickId, {
                     text: datum.textUntruncated ?? toPlainText(datum.text),
-                    bbox: Transformable.toCanvas(node),
+                    bbox: Transformable.toCanvas(this.tickLabelGroup, bbox),
                 });
             }
         }
