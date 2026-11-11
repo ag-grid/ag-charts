@@ -1,4 +1,5 @@
 import { getIsDev } from '@utils/env';
+import { moveViteClientToEndOfBody } from '@utils/example-modules/moveViteClientToEndOfBody';
 import { defineMiddleware } from 'astro/middleware';
 import { parse } from 'node-html-parser';
 import { basename, extname } from 'path';
@@ -22,12 +23,16 @@ const rewriteAstroGeneratedContent = (body: string) => {
         }
     });
 
-    // Firefox ignores an import map added after a module starts loading, so load Vite's client after the example's
-    const viteClient = html.querySelector('script[src*="/@vite/client"]');
-    const bodyElement = html.querySelector('body');
-    if (viteClient && bodyElement) {
-        bodyElement.appendChild(viteClient.remove());
-    }
+    moveViteClientToEndOfBody(html);
+
+    return html.toString();
+};
+
+const fixViteClientOrder = (body: string) => {
+    if (!env.DEV) return body;
+
+    const html = parse(body, { comment: true });
+    moveViteClientToEndOfBody(html);
 
     return html.toString();
 };
@@ -89,11 +94,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     // Astro 7 dropped `typesVersions`, so under this package's `node` module resolution `context` is untyped.
     const host: string = context.url.host;
+    const isExample = /\/examples\/[^/]/.test(context.url.pathname);
     const useRelativePaths = host.startsWith('host.docker.internal') || host !== siteUrl.host;
     if (useRelativePaths) {
         // We should use relative paths for the gallery examples in dev.
         if (isHtml(context.url.pathname)) {
-            const body = removeAbsolutePaths(await response.text());
+            let body = removeAbsolutePaths(await response.text());
+            if (isExample) {
+                body = fixViteClientOrder(body);
+            }
             return new Response(body, {
                 status: 200,
                 headers: response.headers,
@@ -112,7 +121,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
         });
     }
 
-    const isExample = /\/examples\/[^/]/.test(context.url.pathname);
     if (!isExample || isBinary(context.url.pathname)) {
         return response;
     }
