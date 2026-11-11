@@ -85,7 +85,7 @@ export type AgChartOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgTopologyChartOptions<TDatum, TContext>
     | AgStandaloneChartOptions<TDatum, TContext>;
 
-/** Chart options supported by every preset. */
+/** Chart options shared by the gauge, quadrant and financial presets. */
 export type AgBasePresetOptions<TDatum = DatumDefault, TContext = ContextDefault> = Pick<
     AgBaseChartOptions<TDatum, TContext>,
     'border' | 'keyboard' | 'loadGoogleFonts' | 'styleNonce' | 'validations'
