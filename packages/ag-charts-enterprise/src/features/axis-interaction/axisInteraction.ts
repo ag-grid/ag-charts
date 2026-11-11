@@ -552,7 +552,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         axis.div.setCursor(needsCursor ? 'pointer' : undefined);
 
         // Update keyboard navigation ticks
-        axis.a11yTickData = Array.from(axisCtx.iterateA11YTickData());
+        axis.a11yTickData = axisCtx.getA11YTickData();
         const tickButtonList = axis.div.acquireInteractions().tickButtons;
         tickButtonList.setTabIndex(needsTabStop(chartService, axisCtx) ? 0 : -1);
         tickButtonList.resize(axis.a11yTickData.length, (): ButtonWidget => {

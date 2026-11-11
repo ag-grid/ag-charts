@@ -72,7 +72,6 @@ import type {
 import type { AxisLayout } from '../../core/eventsHub';
 import type {
     AxisA11YTickData,
-    AxisA11YTickDataIterator,
     AxisBandDatum,
     AxisBandMeasurement,
     AxisContext,
@@ -95,6 +94,7 @@ export interface AxisPickDatum {
     readonly index: number;
     readonly value: AgAxisValue;
     readonly along: readonly [number, number];
+    readonly tickId?: string;
 
     // 2D Optionals (e.g. `grouped-category`):
     readonly formattedValue?: NormalisedTextOrSegments;
@@ -1456,35 +1456,99 @@ export abstract class Axis<
             pickValue: (point) => this.pickValue(point),
             pickBand: (point) => this.pickBand(point),
             measureBand: (value) => this.measureBand(value),
-            iterateA11YTickData: () => this.iterateA11YTickData(),
+            getA11YTickData: () => this.getA11YTickData(),
         };
     }
 
-    protected iterateA11YTickData(): AxisA11YTickDataIterator {
-        const labels: { node: TransformableText<LabelNodeDatum>; datum: LabelNodeDatum }[] = [];
-        const groupVisible = this.tickLabelGroup.visible;
-        for (const node of groupVisible ? this.tickLabelGroupSelection.nodes() : []) {
-            const { datum } = node;
-            if (node.visible && datum?.visible && !this.tickLabelGroupSelection.isGarbage(node)) {
-                labels.push({ node, datum });
+    protected getA11YTickData(): AxisA11YTickData[] {
+        const axisBounds = this.getCanvasBounds();
+        const origin = this.getLayoutTranslation();
+        const vertical = this.isVertical();
+        const outwardSign = getAxisLabelSideFlag(this.mirrored) * (vertical ? 1 : -1);
+        const axisLine = vertical ? origin.x : origin.y;
+        const alongOrigin = vertical ? origin.y : origin.x;
+        const [crossMin, crossMax] = vertical
+            ? [axisBounds.x, axisBounds.x + axisBounds.width]
+            : [axisBounds.y, axisBounds.y + axisBounds.height];
+        const [rangeMin, rangeMax] = findMinMax(this.range);
+
+        const labels = new Map<string, { text: string; bbox: BBox }>();
+        if (this.tickLabelGroup.visible) {
+            for (const node of this.tickLabelGroupSelection.nodes()) {
+                const { datum } = node;
+                if (datum == null || !node.visible || !datum.visible) continue;
+                if (this.tickLabelGroupSelection.isGarbage(node)) continue;
+                labels.set(datum.tickId, {
+                    text: datum.textUntruncated ?? toPlainText(datum.text),
+                    bbox: Transformable.toCanvas(node),
+                });
             }
         }
-        const origin = this.getCanvasBounds();
-        const toTickData = ({ node, datum }: (typeof labels)[number]): AxisA11YTickData => ({
-            ariaLabel: datum.textUntruncated ?? toPlainText(datum.text),
-            focusBounds: Transformable.toCanvas(node).clone().translate(-origin.x, -origin.y),
-        });
-        let index = 0;
-        return {
-            length: labels.length,
-            next(): IteratorResult<AxisA11YTickData> {
-                if (index >= labels.length) return { done: true, value: undefined };
-                return { done: false, value: toTickData(labels[index++]) };
-            },
-            [Symbol.iterator]() {
-                return this;
-            },
-        };
+
+        // Rows (depths) are laid out in visual order, so keyboard navigation follows the axis.
+        const ticks = this.pickTickData.toSorted(
+            (a, b) => (a.depth ?? 0) - (b.depth ?? 0) || a.along[0] - b.along[0]
+        );
+
+        const result: AxisA11YTickData[] = [];
+        for (let i = 0; i < ticks.length; i++) {
+            const tick = ticks[i];
+            if (tick.along[1] < rangeMin || tick.along[0] > rangeMax) continue;
+            const label = tick.tickId == null ? undefined : labels.get(tick.tickId);
+
+            // A point tick covers the span `resolvePickDatum` resolves to it: halfway to its neighbours in the row.
+            let [alongStart, alongEnd] = tick.along;
+            if (alongStart === alongEnd) {
+                const prev = ticks[i - 1];
+                const next = ticks[i + 1];
+                const sameRow = (other: AxisPickDatum | undefined) => other != null && other.depth === tick.depth;
+                alongStart = sameRow(prev) ? (prev!.along[1] + alongStart) / 2 : rangeMin;
+                alongEnd = sameRow(next) ? (next!.along[0] + alongEnd) / 2 : rangeMax;
+            }
+            alongStart = alongOrigin + Math.max(alongStart, rangeMin);
+            alongEnd = alongOrigin + Math.min(alongEnd, rangeMax);
+
+            let crossStart = crossMin;
+            let crossEnd = crossMax;
+            if (tick.cross != null) {
+                const [c0, c1] = [axisLine + outwardSign * tick.cross[0], axisLine + outwardSign * tick.cross[1]];
+                crossStart = Math.max(crossMin, Math.min(c0, c1));
+                crossEnd = Math.min(crossMax, Math.max(c0, c1));
+            }
+
+            const alongSize = Math.max(0, alongEnd - alongStart);
+            const crossSize = Math.max(0, crossEnd - crossStart);
+            let focusBounds = vertical
+                ? new BBox(crossStart, alongStart, crossSize, alongSize)
+                : new BBox(alongStart, crossStart, alongSize, crossSize);
+            if (label != null) {
+                focusBounds = BBox.merge([focusBounds, label.bbox]);
+            }
+            focusBounds.translate(-axisBounds.x, -axisBounds.y);
+
+            const ariaLabel =
+                label?.text ??
+                (tick.formattedValue == null ? this.formatA11YTickValue(tick.value) : toPlainText(tick.formattedValue));
+            result.push({ index: tick.index, value: tick.value, ariaLabel, focusBounds });
+        }
+        return result;
+    }
+
+    private formatA11YTickValue(value: unknown): string {
+        const { allowNull } = this;
+        return this.formatDatum(
+            undefined,
+            value,
+            'crosshair',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            allowNull
+        );
     }
 
     pickValue(point: CanvasPoint): AxisValuePick | undefined {
@@ -1550,9 +1614,10 @@ export abstract class Axis<
 
     protected setPickTickData(ticks: readonly Readonly<TickDatum>[], firstTickIndex = 0): void {
         // TickDatum.index is absolute, but the label formatter numbers ticks from 0, so rebase onto firstTickIndex.
-        this.pickTickData = ticks.map(({ index, translation, tick }) => ({
+        this.pickTickData = ticks.map(({ index, translation, tick, tickId }) => ({
             index: index - firstTickIndex,
             value: tick,
+            tickId,
             along: [translation, translation] as const,
         }));
     }
