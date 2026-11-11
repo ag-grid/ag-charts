@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            html,
+            body {
+                margin: 0;
+                background: #fff;
+            }
+            #chart {
+                width: 400px;
+                height: 400px;
+            }
+        </style>
+        <script src="../../packages/ag-charts-community/dist/umd/ag-charts-community.js"></script>
+    </head>
+    <body>
+        <div id="chart"></div>
+        <script>
+            const q = new URLSearchParams(location.search);
+            const gap = Number(q.get('gap') ?? 0);
+            const hidden = { enabled: false };
+            const colours = ['#ff0000', '#00ff00', '#0000ff'];
+            window.chartReady = false;
+            const chart = agCharts.AgCharts.create({
+                container: document.getElementById('chart'),
+                width: 400,
+                height: 400,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                padding: { top: 0, right: 0, bottom: 0, left: 0 },
+                background: { fill: '#ffffff' },
+                data: [
+                    { c: 'A', a: 10, b: 20, d: 30 },
+                    { c: 'B', a: 15, b: 15, d: 15 },
+                    { c: 'C', a: 5, b: 25, d: 20 },
+                    { c: 'D', a: 20, b: 10, d: 10 },
+                ],
+                series: ['a', 'b', 'd'].map((yKey, i) => ({
+                    type: 'bar',
+                    xKey: 'c',
+                    yKey,
+                    stacked: true,
+                    gap,
+                    fill: colours[i],
+                    fillOpacity: 1,
+                    strokeWidth: 0,
+                })),
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        line: hidden,
+                        tick: hidden,
+                        label: hidden,
+                        gridLine: hidden,
+                    },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        line: hidden,
+                        tick: hidden,
+                        label: hidden,
+                        gridLine: hidden,
+                        nice: false,
+                        min: 0,
+                        max: 60,
+                    },
+                },
+            });
+            requestAnimationFrame(() =>
+                requestAnimationFrame(() =>
+                    setTimeout(() => {
+                        window.chartReady = true;
+                    }, 500)
+                )
+            );
+        </script>
+    </body>
+</html>
