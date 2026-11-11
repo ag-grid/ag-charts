@@ -1468,9 +1468,10 @@ export abstract class Axis<
                 labels.push({ node, datum });
             }
         }
+        const origin = this.getCanvasBounds();
         const toTickData = ({ node, datum }: (typeof labels)[number]): AxisA11YTickData => ({
             ariaLabel: datum.textUntruncated ?? toPlainText(datum.text),
-            focusBounds: Transformable.toCanvas(node),
+            focusBounds: Transformable.toCanvas(node).clone().translate(-origin.x, -origin.y),
         });
         let index = 0;
         return {
