@@ -47,13 +47,10 @@ function stubBoundingClientRect(element: HTMLElement, bounds: () => BoxBounds) {
 }
 
 function axisRegionWidgets(widgetSet: WidgetSet): AxisWidget[] {
-    const entries = new Caster(widgetSet.axisWidgets).accessProperty('entries').cast(Map).value;
+    const axes = new Caster(widgetSet).accessProperty('axes').cast(Map).value;
     const result: AxisWidget[] = [];
-    for (const entry of entries.values()) {
-        const widget = new Caster(entry)
-            .accessNullableProperty('region')
-            .accessNullableProperty('widget')
-            .castNullable(AxisWidget).value;
+    for (const ref of axes.values()) {
+        const widget = new Caster(new Caster(ref).cast(WeakRef).value.deref()).castNullable(AxisWidget).value;
         if (widget != null) {
             result.push(widget);
         }
