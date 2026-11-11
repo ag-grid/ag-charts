@@ -724,6 +724,8 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
     private performTeardown(keepTransferableResources: boolean): void {
         this.performUpdateType = ChartUpdateType.NONE;
+        // Animation stop callbacks read the scene and series, so they must run before either is destroyed.
+        this.ctx.animationManager.stop();
 
         this.cleanup.flush();
         for (const p of this.processors) {

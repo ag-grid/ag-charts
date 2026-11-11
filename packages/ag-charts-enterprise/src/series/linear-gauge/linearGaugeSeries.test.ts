@@ -60,6 +60,16 @@ describe('LinearGaugeSeries', () => {
 
     // The value bar sweeps open by growing its clip window along the gauge's main axis; every other
     // node holds constant.
+    it('can be destroyed while its value label is still counting up', async () => {
+        const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS };
+        prepareEnterpriseTestOptions(options);
+        options.animation = { enabled: true };
+
+        chart = deproxy(AgCharts.createGauge(options));
+        await waitForChartStability(chart);
+        chart.destroy();
+    });
+
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
 
