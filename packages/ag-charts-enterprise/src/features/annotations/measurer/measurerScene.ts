@@ -425,8 +425,7 @@ export class QuickMeasurerScene extends MeasurerScene {
     }
 
     protected override getSelectionColours(datum: QuickDatePriceRangeDatum) {
-        const { stroke, strokeOpacity, fill, fillOpacity } = this.getDirectionStyles(datum);
-        return { stroke, strokeOpacity, fill, fillOpacity };
+        return this.getDirectionStyles(datum);
     }
 
     private getDirectionStyles(datum: QuickDatePriceRangeDatum) {
