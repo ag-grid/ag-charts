@@ -63,10 +63,6 @@ export interface AxisA11YTickData {
     readonly focusBounds: BBox; // Relative to `getCanvasBounds()`
 }
 
-export interface AxisA11YTickDataIterator extends IterableIterator<AxisA11YTickData> {
-    readonly length: number;
-}
-
 export interface AxisContext {
     /**
      * Context provider for user callbacks scoped to this axis. Carries `axes[].context` only when
@@ -119,7 +115,7 @@ export interface AxisContext {
     pickValue(point: CanvasPoint): AxisValuePick | undefined;
     pickBand(point: Point): AxisBandDatum | undefined;
     measureBand(value: string): AxisBandMeasurement | undefined;
-    iterateA11YTickData(): AxisA11YTickDataIterator;
+    getA11YTickData(): AxisA11YTickData[];
     /** Defined only on polar axes; cartesian axes leave it undefined. */
     getPolarLayout?(): PolarAxisLayout;
 }
