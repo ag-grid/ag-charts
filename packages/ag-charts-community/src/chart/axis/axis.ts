@@ -1486,9 +1486,7 @@ export abstract class Axis<
         }
 
         // Rows (depths) are laid out in visual order, so keyboard navigation follows the axis.
-        const ticks = this.pickTickData.toSorted(
-            (a, b) => (a.depth ?? 0) - (b.depth ?? 0) || a.along[0] - b.along[0]
-        );
+        const ticks = this.pickTickData.toSorted((a, b) => (a.depth ?? 0) - (b.depth ?? 0) || a.along[0] - b.along[0]);
 
         const result: AxisA11YTickData[] = [];
         for (let i = 0; i < ticks.length; i++) {

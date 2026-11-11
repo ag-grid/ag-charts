@@ -92,7 +92,7 @@ export interface AxisContext {
     hasDefinedDomain(): boolean;
     hasVisibleSeries(): boolean;
     getCanvasBounds(): BoxBounds | undefined;
-    getBoundedSeries():    AgAxisBoundSeries[];
+    getBoundedSeries(): AgAxisBoundSeries[];
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];
     scaleInvert(position: number): any;
