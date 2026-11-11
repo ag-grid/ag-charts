@@ -20,8 +20,8 @@ import {
     callWithContext,
 } from 'ag-charts-core';
 
-type AxisA11YTickData = _ModuleSupport.AxisA11YTickData;
 type AxisContext = _ModuleSupport.AxisContext;
+type AxisA11YTickData = ReturnType<_ModuleSupport.AxisContext['getA11YTickData']>[number];
 type AxisInteractionUpdateEvent = _ModuleSupport.AxisInteractionUpdateEvent;
 type ChartRegistry = _ModuleSupport.ChartRegistry;
 type ChartService = _ModuleSupport.ChartService;
@@ -336,13 +336,13 @@ export class AxisInteraction extends AbstractModuleInstance {
         }
 
         const params: PartialAxisClickEvent = {
-            axisId,
+            axisId: axisCtx.userAxisId,
             boundSeries: axisCtx.getBoundedSeries(),
             depth: undefined,
             direction,
             domain: axisCtx.scale.domain,
             event: event.sourceEvent,
-            groupPercentage: 0,
+            groupPercentage: 0.5,
             index: tickData.index,
             value: tickData.value,
         };
