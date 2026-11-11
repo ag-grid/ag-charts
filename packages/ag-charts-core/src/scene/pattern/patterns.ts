@@ -179,12 +179,12 @@ export const PATTERNS: Record<AgPatternName, (path: ExtendedPath2D, params: Patt
     'vertical-dashed-lines'(path, { width, height, pixelRatio, strokeWidth }) {
         const x = align(pixelRatio, width / 2) - (strokeWidth % 2) / 2;
         path.moveTo(x, 0);
-        path.lineTo(x, height / 2);
+        path.lineTo(x, (height * 2) / 3);
     },
     'horizontal-dashed-lines'(path, { width, height, pixelRatio, strokeWidth }) {
         const y = align(pixelRatio, height / 2) - (strokeWidth % 2) / 2;
         path.moveTo(0, y);
-        path.lineTo(width / 2, y);
+        path.lineTo((width * 2) / 3, y);
     },
     waves(path, { width, height }) {
         const amplitude = height / 4;
