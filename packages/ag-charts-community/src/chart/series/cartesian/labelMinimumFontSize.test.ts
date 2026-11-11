@@ -499,7 +499,10 @@ describe('label minimumFontSize', () => {
                 label: {
                     enabled: true,
                     fontSize: FONT_SIZE,
+                    // Pinned above the point and truncating, so crowding is resolved by shrink or ellipsis.
+                    placement: 'top',
                     wrapping: 'never',
+                    truncate: true,
                     formatter: (p: any) => p.datum.label,
                     ...extra,
                 },

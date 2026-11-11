@@ -3131,7 +3131,8 @@ function singleOrientationOf(d: PointLabelDatum): AgChartLabelOrientation | unde
 /** Slides a `size`-long span starting at `pos` flush inside `[min, min+extent]`; unchanged when it is too big to fit. */
 function clampAxis(pos: number, size: number, min: number, extent: number): number {
     if (size > extent) return pos;
-    return Math.min(Math.max(pos, min), min + extent - size);
+    // `min + extent - size` can round below `min` when the box exactly fills the extent.
+    return Math.min(Math.max(pos, min), Math.max(min, min + extent - size));
 }
 
 /** Total px a `w`×`h` box at `(x, y)` extends beyond `region` across all four sides; `0` when contained. */

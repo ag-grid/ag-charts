@@ -2077,6 +2077,17 @@ describe('placeLabels sole positioned candidate', () => {
         expect(place()).toEqual([]);
         expect(place(true)).toMatchObject([{ x: 190, y: -5 }]);
     });
+
+    it('keeps a droppable box that exactly fills its region at an offset that rounds badly', () => {
+        const region = { x: 10, y: 243.79875896039962, width: 100, height: 13.798828125 };
+        const label: PointLabelDatum = {
+            ...movableLabel(),
+            positionedCandidates: [{ box: { x: 10, y: region.y, width: 50, height: region.height }, region }],
+        };
+        const placed = placeLabels(new Map([['s', seriesLabels([label], { alwaysShow: false })]]), bounds, 5);
+
+        expect(placed.get('s')).toMatchObject([{ y: region.y }]);
+    });
 });
 
 describe('placeLabels rotated labels', () => {
