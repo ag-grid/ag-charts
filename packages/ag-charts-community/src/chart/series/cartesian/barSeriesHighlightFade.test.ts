@@ -106,7 +106,7 @@ describe('BarSeries highlight fade', () => {
         highlight(datum(0, 1));
         await frames.runToEnd(chart);
 
-        highlight(undefined);
+        highlight();
         const trajectory = await capture(() => inPlace(1)[0]);
 
         expectFade(trajectory, UNHIGHLIGHTED_SERIES, 1);
@@ -122,7 +122,7 @@ describe('BarSeries highlight fade', () => {
         expect(displayed).toBeGreaterThan(UNHIGHLIGHTED_SERIES);
         expect(displayed).toBeLessThan(1);
 
-        highlight(undefined);
+        highlight();
         const trajectory = await capture(() => inPlace(1)[0]);
 
         expectFade(trajectory, displayed, 1);
@@ -268,5 +268,17 @@ describe('BarSeries highlight fade', () => {
 
         expect(chart.ctx.animationManager.isActive()).toBe(false);
         expect(chart.ctx.interactionManager.isState(InteractionState.Hoverable)).toBe(true);
+    });
+
+    it('reports the fade as an animation without clearing the highlight', async () => {
+        const onStart = vi.fn();
+        chart.ctx.animationManager.addListener('animation-start', onStart);
+        const highlighted = datum(0, 1);
+
+        highlight(highlighted);
+        await frames.captureAnimationFrames(chart, () => undefined, { frames: 2, duration: 60 });
+
+        expect(onStart).toHaveBeenCalledTimes(1);
+        expect(chart.ctx.highlightManager.getActiveHighlight()).toBe(highlighted);
     });
 });

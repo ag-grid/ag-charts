@@ -282,12 +282,10 @@ export class AnimationManager {
             });
         };
 
-        if (this.batch.hasBlockingAnimations()) {
-            this.events.emit('animation-start', {
-                type: 'animation-start',
-                deltaMs: 0,
-            });
-        }
+        this.events.emit('animation-start', {
+            type: 'animation-start',
+            deltaMs: 0,
+        });
         this.scheduleAnimationFrame(onAnimationFrame);
     }
 

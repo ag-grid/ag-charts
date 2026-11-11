@@ -443,6 +443,8 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onAnimationStart(): void {
+        // A batch of only `transition` animations is the fade of the current highlight.
+        if (!this.chart.ctx.animationManager.isActive()) return;
         if (this.getHoverDevice() !== 'setState' && this.activeState.lastActive !== 'legend') {
             this.clearAll();
         }
