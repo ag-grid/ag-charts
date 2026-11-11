@@ -1209,18 +1209,25 @@ describe('Annotations', () => {
             expect(sources(listener)).toEqual(['user-interaction']);
         });
 
-        it.each([
-            ['undo', false, { ctrlKey: true }],
-            ['redo', true, { ctrlKey: true, shiftKey: true }],
-        ])('reports %s as a user-interaction', async (_name, undoFirst, modifiers) => {
+        const undo = () => pressKey(chart, 'z', { ctrlKey: true });
+
+        it('reports an undo as a user-interaction', async () => {
             const listener = await prepareChartWithListener();
             await editSelectedValue('60');
-            if (undoFirst) {
-                await pressKey(chart, 'z', { ctrlKey: true });
-            }
             listener.mockClear();
 
-            await pressKey(chart, 'z', modifiers);
+            await undo();
+
+            expect(sources(listener)).toEqual(['user-interaction']);
+        });
+
+        it('reports a redo as a user-interaction', async () => {
+            const listener = await prepareChartWithListener();
+            await editSelectedValue('60');
+            await undo();
+            listener.mockClear();
+
+            await pressKey(chart, 'z', { ctrlKey: true, shiftKey: true });
 
             expect(sources(listener)).toEqual(['user-interaction']);
         });
