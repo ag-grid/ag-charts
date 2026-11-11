@@ -44,14 +44,29 @@ There are no breaking changes in AG Charts version {% migrationVersion() %}.
 
 The full list of breaking changes across all features for version {% migrationVersion() %}.
 
+{% if isFramework("angular") %}
+
 {% expandingSection headerText="Breaking Changes" %}
 This release includes the following breaking changes:
 
-### Breaking changes section Name
+### Compatibility
+
+- The minimum supported version of Angular is now Angular 21.
+
+{% /expandingSection %}
+{% /if %}
+
+{% if not(isFramework("angular")) %}
+
+{% expandingSection headerText="Breaking Changes" %}
+
+This release includes the following breaking changes:
 
 - TODO: describe change
 
 {% /expandingSection %}
+{% /if %}
+
 
 ## Behaviour Changes
 
