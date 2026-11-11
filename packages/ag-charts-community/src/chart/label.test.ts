@@ -210,7 +210,7 @@ describe('Labels', () => {
             expect(downward.textBaseline).toBe('bottom');
         });
 
-        test('ignores box padding for inside-center', () => {
+        test('centres the padded box, not the glyph, for inside-center', () => {
             const withPadding = adjustLabelPlacement({
                 isUpward: true,
                 isVertical: true,
@@ -219,7 +219,9 @@ describe('Labels', () => {
                 boxPadding,
                 rect,
             });
-            expect(withPadding.y).toBe(rect.y + rect.height / 2);
+            // Pulled back by half the padding difference on each axis: (6 − 2)/2 and (4 − 20)/2.
+            expect(withPadding.x).toBe(rect.x + rect.width / 2 - 2);
+            expect(withPadding.y).toBe(rect.y + rect.height / 2 + 8);
         });
     });
 });

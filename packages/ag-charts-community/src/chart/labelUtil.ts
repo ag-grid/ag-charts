@@ -44,15 +44,16 @@ import {
     insideBarRegion,
     insideBarValueInsets,
     isRotatable,
+    labelBoxCentreOffset,
     lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
     orientationAngles,
     resolveLabelAvoidance,
     resolveLabelFitDescriptors,
-    rotatedGlyphDrift,
     rotatedLabelInset,
     stylerLineHeightOverrides,
+    toRadians,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type {
@@ -779,9 +780,8 @@ export function adjustLabelPlacement({
     let textAlign: CanvasTextAlign = 'center';
     let textBaseline: CanvasTextBaseline = 'middle';
 
-    // The node rotates the padded box about its own centre; asymmetric padding drifts the glyph off the
-    // anchor. Pre-subtracting the drift keeps the glyph centred on the bar's cross-axis. Zero unrotated.
-    const drift = boxPadding == null ? { x: 0, y: 0 } : rotatedGlyphDrift(rotation, boxPadding);
+    // The drawn box, not the glyph, is what reads as the label, so centring axes centre the box.
+    const boxOffset = boxPadding == null ? { x: 0, y: 0 } : labelBoxCentreOffset(boxPadding);
 
     // Distance from the anchor to the (rotated) box edge facing the bar; added beyond `spacing` so the box
     // edge — not the text — sits `spacing` from the bar.
@@ -805,9 +805,9 @@ export function adjustLabelPlacement({
     const valueSpacing = beside == null ? spacing : 0;
 
     if (valuePlacement === 'inside-center') {
-        // No bar-facing axis: keep the glyph centred on both axes of the bar rect.
-        x -= drift.x;
-        y -= drift.y;
+        // No bar-facing axis: keep the box centred on both axes of the bar rect.
+        x -= boxOffset.x;
+        y -= boxOffset.y;
     } else {
         const barDirection = (isUpward ? 1 : -1) * (isVertical ? -1 : 1);
         const { direction, textAlignment } = placements[valuePlacement];
@@ -819,7 +819,7 @@ export function adjustLabelPlacement({
             const facing = textAlignment === barDirection ? 'top' : 'bottom';
             const inset = insetFor(facing);
             y = y0 + height * displacementRatio + (valueSpacing + inset) * textAlignment * barDirection;
-            x -= drift.x;
+            x -= boxOffset.x;
             textBaseline = facing;
         } else {
             const x0 = isUpward ? rect.x : rect.x + rect.width;
@@ -827,7 +827,7 @@ export function adjustLabelPlacement({
             const facing = textAlignment === barDirection ? 'left' : 'right';
             const inset = insetFor(facing);
             x = x0 + width * displacementRatio + (valueSpacing + inset) * textAlignment * barDirection;
-            y -= drift.y;
+            y -= boxOffset.y;
             textAlign = facing;
         }
     }
@@ -1105,8 +1105,11 @@ function positionBarLabelCandidate<TPlacement extends string>(
     const isInside = placement.startsWith('inside');
     const boxPadding = style?.boxPadding ?? placementBox;
     const glyph = style == null || text == null ? undefined : measureLabelText(text, style.font);
-    const width = (glyph?.width ?? spec.textWidth) + boxPadding.left + boxPadding.right;
-    const height = (glyph?.height ?? spec.textHeight) + boxPadding.top + boxPadding.bottom;
+    const labelWidth = glyph?.width ?? spec.textWidth;
+    const labelHeight = glyph?.height ?? spec.textHeight;
+    const width = labelWidth + boxPadding.left + boxPadding.right;
+    const height = labelHeight + boxPadding.top + boxPadding.bottom;
+    const rotationDeg = orientationAngles[orientation];
     const anchor = adjustLabelPlacement({
         isUpward: spec.isUpward,
         isVertical: spec.isVertical,
@@ -1114,10 +1117,12 @@ function positionBarLabelCandidate<TPlacement extends string>(
         spacing: barPlacementSpacing(spec.spacing, placement, spec.endOverhang),
         boxPadding,
         rect: spec.rect,
+        rotation: toRadians(rotationDeg),
+        labelWidth,
+        labelHeight,
         crossReversed: spec.crossReversed ?? false,
     });
     const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
-    const rotationDeg = orientationAngles[orientation];
     const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
     return {
         box: { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh },
