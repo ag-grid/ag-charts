@@ -5,7 +5,6 @@ import {
     boolean,
     defined,
     positiveNumber,
-    string,
     typeUnion,
     undocumentedDefs,
     without,
@@ -15,6 +14,7 @@ import type { AgBaseGaugePresetOptions, AgGaugeOptions, AgSeriesTooltip } from '
 import { gaugeTooltipOptionsDef } from '../../series/gauge-util/gaugeOptionsDefs';
 import { linearGaugeSeriesOptionsDef } from '../../series/linear-gauge/linearGaugeSeriesOptionsDef';
 import { radialGaugeSeriesOptionsDef } from '../../series/radial-gauge/radialGaugeSeriesOptionsDef';
+import { basePresetOptionsDefs } from '../presetCommonOptions';
 import { GAUGE_FAST_UPDATE_KEYS, createGauge, gaugeFastUpdate } from './gaugePreset';
 
 const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {
@@ -35,7 +35,7 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
     subtitle: defined,
     footnote: defined,
     padding: defined,
-    styleNonce: string,
+    ...basePresetOptionsDefs,
     tooltip: gaugeTooltipOptionsDef,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
