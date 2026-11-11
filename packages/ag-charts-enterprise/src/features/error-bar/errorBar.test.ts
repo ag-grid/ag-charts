@@ -1307,7 +1307,7 @@ describe('ErrorBars', () => {
                 type: 'bar' as const,
                 xKey: 'q',
                 yKey: 'v',
-                label: { placement: 'inside-end' as const, fontSize: 20 },
+                label: { placement: 'inside-end' as const, fontSize: 20, collision: { alwaysShow: true } },
                 errorBar,
             });
             const thickErrorBar = { yLowerKey: 'lo', yUpperKey: 'hi', offsetLabels: false, strokeWidth: 8 };
@@ -1443,6 +1443,12 @@ describe('ErrorBars', () => {
                             yName: 'off, with fallback',
                             label: { placement: ['outside-end', 'inside-start'], spacing: SPACING },
                             errorBar: off('b'),
+                        },
+                        {
+                            ...barSeries('a', 'outside-end'),
+                            yName: 'off, always shown',
+                            label: { placement: 'outside-end', spacing: SPACING, collision: { alwaysShow: true } },
+                            errorBar: off('a'),
                         },
                         { ...barSeries('b', 'outside-end'), yName: 'on' },
                     ],
