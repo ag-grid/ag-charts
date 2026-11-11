@@ -362,4 +362,72 @@ describe('bar gap spike', () => {
         report('q1.focus.gap4', read());
         expect(true).toBe(true);
     });
+
+    describe('Q3 aggregation', () => {
+        const N = 5000;
+        const T0 = Date.UTC(2024, 0, 1);
+        function aggData(shape: 'full' | 'nullTop' | 'zeroTop' | 'negTop') {
+            return Array.from({ length: N }, (_, i) => {
+                const row: any = { t: new Date(T0 + i * 60000), a: 10 + (i % 7), b: 20 + (i % 5), d: 30 + (i % 3) };
+                if (shape === 'nullTop' && i % 2 === 0) row.d = null;
+                if (shape === 'zeroTop' && i % 2 === 0) row.d = 0;
+                if (shape === 'negTop' && i % 2 === 0) row.d = -(30 + (i % 3));
+                return row;
+            });
+        }
+        function aggOptions(shape: 'full' | 'nullTop' | 'zeroTop' | 'negTop', gap: number): AgCartesianChartOptions {
+            const base = stackOptions({ gaps: [gap, gap, gap], data: aggData(shape) }) as any;
+            base.series.forEach((se: any) => (se.xKey = 't'));
+            base.axes[0] = { ...base.axes[0], type: 'unit-time' };
+            return base;
+        }
+        const summarise = (chart: any, i: number) => {
+            const nodes = getBarSeriesContextNodeData(chart, i).nodeData as any[];
+            const withClip = nodes.filter((n) => n.clipBBox != null);
+            const first = withClip[Math.floor(withClip.length / 2)];
+            return {
+                nodes: nodes.length,
+                hasPick: nodes.filter((n) => n.pickBBox != null).length,
+                sample: first && {
+                    yStart: first.yStart,
+                    yEnd: first.yEnd,
+                    yRange: first.yRange,
+                    clip: [first.clipBBox.y, first.clipBBox.height],
+                    pick: first.pickBBox && [first.pickBBox.y, first.pickBBox.height],
+                },
+            };
+        };
+
+        for (const shape of ['full', 'nullTop', 'zeroTop', 'negTop'] as const) {
+            it(`Q3 ${shape}: aggregated bucket stack ends`, async () => {
+                const pub = await open(aggOptions(shape, 4));
+                const chart = deproxy(pub);
+                const s0 = chart.series[0] as any;
+                report(`q3.${shape}.aggregated`, {
+                    filter: s0.nodeDatumContext?.dataAggregationFilter != null,
+                    halfGap: s0.nodeDatumContext?.halfGap,
+                    groupsUnique: s0.processedData?.groupsUnique,
+                    series: [0, 1, 2].map((i) => summarise(pub, i)),
+                });
+                report(
+                    `q3.${shape}.insets`,
+                    [0, 1, 2].map((i) => {
+                        const hist: Record<string, number> = {};
+                        for (const n of getBarSeriesContextNodeData(pub, i).nodeData as any[]) {
+                            if (n.clipBBox == null || n.pickBBox == null) continue;
+                            const low = Math.round(n.clipBBox.y - n.pickBBox.y);
+                            const high = Math.round(
+                                n.pickBBox.y + n.pickBBox.height - (n.clipBBox.y + n.clipBBox.height)
+                            );
+                            const key = `low${low}/high${high}`;
+                            hist[key] = (hist[key] ?? 0) + 1;
+                        }
+                        return hist;
+                    })
+                );
+                report(`q3.${shape}.pixels`, firstBar(ctx.snapshot(), true).along.slice(0, 8));
+                expect(true).toBe(true);
+            });
+        }
+    });
 });
