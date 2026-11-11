@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AxisID,
     AxisWidget,
+    CallbackParamRules,
     CanvasPoint,
     ClickWidgetEvent,
     DblClickWidgetEvent,
@@ -19,14 +20,15 @@ import {
     callWithContext,
 } from 'ag-charts-core';
 
+type AxisA11YTickData = _ModuleSupport.AxisA11YTickData;
 type AxisContext = _ModuleSupport.AxisContext;
-type ChartService = _ModuleSupport.ChartService;
-type ChartRegistry = _ModuleSupport.ChartRegistry;
-type LayoutCompleteEvent = _ModuleSupport.LayoutCompleteEvent;
 type AxisInteractionUpdateEvent = _ModuleSupport.AxisInteractionUpdateEvent;
-type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
+type ChartRegistry = _ModuleSupport.ChartRegistry;
+type ChartService = _ModuleSupport.ChartService;
+type LayoutCompleteEvent = _ModuleSupport.LayoutCompleteEvent;
 type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
 type SeriesAreaContextMenuEvent = _ModuleSupport.SeriesAreaContextMenuEvent;
+type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
@@ -34,6 +36,7 @@ type ProxyAxis = {
     axisId: AxisID;
     direction: ChartAxisDirection;
     div: AxisWidget;
+    a11yTickData: AxisA11YTickData[];
     bounds?: BBox;
 };
 
@@ -54,12 +57,6 @@ function hasDraggableAxes(ctx: DynamicContext<ChartRegistry>): boolean {
 
 function needsTabStop(chartService: ChartService, axisCtx: AxisContext): boolean {
     return hasAxisListener(chartService, axisCtx, false);
-}
-
-function buttonAllocator(): ButtonWidget {
-    const b = new ButtonWidget();
-    b.addClass('ag-charts-proxy-elem');
-    return b;
 }
 
 /**
@@ -327,6 +324,31 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
     }
 
+    private onKeyboardClick(event: ClickWidgetEvent, axis: ProxyAxis, tickDataIndex: number) {
+        const { axisId, a11yTickData, direction } = axis;
+
+        const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
+        const tickData: AxisA11YTickData | undefined = a11yTickData[tickDataIndex];
+        if (tickData == null || axisCtx == null) {
+            return;
+        }
+
+        const params: CallbackParamRules<AgAxisClickEvent<'click'>> = {
+            type: 'click',
+            axisId,
+            boundSeries: axisCtx.getBoundedSeries(),
+            depth: undefined,
+            direction,
+            domain: axisCtx.scale.domain,
+            event: event.sourceEvent,
+            groupPercentage: 0,
+            index: tickData.index,
+            value: tickData.value,
+        };
+
+        this.dispatchAxisClickEvent(axisCtx, params, false);
+    }
+
     private pickAxisValue(axisId: AxisID, point: Readonly<CanvasPoint>) {
         return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(point);
     }
@@ -372,14 +394,22 @@ export class AxisInteraction extends AbstractModuleInstance {
             groupPercentage,
         };
 
+        this.dispatchAxisClickEvent(axisCtx, params, isDoubleClick);
+    }
+
+    private dispatchAxisClickEvent(
+        axisCtx: AxisContext,
+        params: CallbackParamRules<Omit<AgAxisClickEvent<string>, 'type'>>,
+        isDoubleClick: boolean)
+    {
         const listener = isDoubleClick ? axisCtx.listeners?.doubleClick : axisCtx.listeners?.click;
         if (listener) {
-            // `pick.caller` is the axis, so `axes[].context` takes precedence over `chart.context`.
+            // `axes[].context` takes precedence over `chart.context`.
             const apiEvent: Omit<AgAxisClickEvent<'click' | 'doubleClick', never>, 'context'> = {
                 type: isDoubleClick ? 'doubleClick' : 'click',
                 ...params,
             };
-            callWithContext([pick.caller, this.ctx.chartService], listener, apiEvent);
+            callWithContext([axisCtx.caller, this.ctx.chartService], listener, apiEvent);
         }
 
         // The chart-level listener fires alongside the axis-level one, as `seriesNodeClick` does.
@@ -522,13 +552,18 @@ export class AxisInteraction extends AbstractModuleInstance {
         axis.div.setCursor(needsCursor ? 'pointer' : undefined);
 
         // Update keyboard navigation ticks
-        const tabIndex = needsTabStop(chartService, axisCtx) ? 0 : -1;
-        const tickDataIt = axisCtx.iterateA11YTickData();
+        axis.a11yTickData = Array.from(axisCtx.iterateA11YTickData());
         const tickButtonList = axis.div.acquireInteractions().tickButtons;
-        tickButtonList.setTabIndex(tabIndex);
-        tickButtonList.resize(tickDataIt.length, buttonAllocator);
+        tickButtonList.setTabIndex(needsTabStop(chartService, axisCtx) ? 0 : -1);
+        tickButtonList.resize(axis.a11yTickData.length, (): ButtonWidget => {
+            const b = new ButtonWidget();
+            b.addClass('ag-charts-proxy-elem');
+            b.setPointerEvents('none');
+            b.addListener('click', (ev) => this.onKeyboardClick(ev, axis, b.index));
+            return b;
+        });
         for (const button of tickButtonList.iterateChildren()) {
-            const tickData = tickDataIt.next().value;
+            const tickData = axis.a11yTickData[button.index];
             button.setTextContent(tickData.ariaLabel);
             button.setBounds(tickData.focusBounds);
         }
