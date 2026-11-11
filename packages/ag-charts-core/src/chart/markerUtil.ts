@@ -12,6 +12,8 @@ const MARKER_SUPPORTED_SHAPES = new Set([
     'square',
     'star',
     'triangle',
+    'triangle-down',
+    'hourglass',
 ]);
 
 export function isSupportedMarkerShape(shape: unknown): shape is MarkerSupportedShapes {

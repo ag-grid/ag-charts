@@ -156,7 +156,19 @@ export const legendPositionValidator: Validator = attachDescription(
     `a legend position object or placement string`
 );
 export const shapeValidator = or(
-    union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
+    union(
+        'circle',
+        'cross',
+        'diamond',
+        'heart',
+        'plus',
+        'pin',
+        'square',
+        'star',
+        'triangle',
+        'triangle-down',
+        'hourglass'
+    ),
     callback
 );
 
