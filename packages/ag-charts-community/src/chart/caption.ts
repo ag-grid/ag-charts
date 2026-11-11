@@ -114,13 +114,22 @@ export class Caption implements CaptionLike {
         this.node.text = wrappedText;
     }
 
+    private computeA11yBounds(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
+        const canvasBBox = Transformable.toCanvas(this.node);
+        if (canvasBBox != null) {
+            // The proxy is a child of the axis widget, which is positioned at the axis bounds.
+            const axisBounds = moduleCtx.axisManager.getAxisIdContext(axisId)?.getCanvasBounds();
+            return canvasBBox.clone().translate(-(axisBounds?.x ?? 0), -(axisBounds?.y ?? 0));
+        }
+    }
+
     private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
         if (!this.enabled || this.text == null || this.text === '') {
             this.destroyProxyText();
             return;
         }
 
-        const bbox = Transformable.toCanvas(this.node);
+        const bbox = this.computeA11yBounds(moduleCtx, axisId);
         if (bbox == null) return;
 
         if (this.proxyText == null) {

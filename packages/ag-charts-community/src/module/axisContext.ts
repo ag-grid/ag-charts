@@ -58,7 +58,7 @@ export interface AxisBandDatum extends AxisBandMeasurement {
 
 export interface AxisA11YTickData {
     readonly ariaLabel: string;
-    readonly focusBounds: BBox;
+    readonly focusBounds: BBox; // Relative to `getCanvasBounds()`
 }
 
 export interface AxisA11YTickDataIterator extends IterableIterator<AxisA11YTickData> {
