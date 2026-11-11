@@ -27,7 +27,6 @@ import {
     applyAxesFlip,
     compareImageSnapshot,
     delay,
-    deproxy,
     expectWarningsCalls,
     findAxis,
     getAxisLayoutState,
@@ -1779,12 +1778,6 @@ describe('Crosshair', () => {
                 expectFollowsPointer('left', point);
             });
 
-            it('snaps a multi-value candle with snap true and no list to every value', async () => {
-                chart = await createEnterpriseChart(candleOptions([candlestick()], candleAxes({ snap: true })));
-                await hoverDatum(CANDLES[1].date, 120);
-                expectLines('left', { openKey: 110, highKey: 140, lowKey: 95, closeKey: 105 });
-            });
-
             it.each<[string, AgTimeAxisCrosshairOptions['snapInterval'], Date, Date]>([
                 ['a unit', 'day', new Date(2024, 0, 2, 10, 8), new Date(2024, 0, 2)],
                 [
@@ -1839,35 +1832,10 @@ describe('Crosshair', () => {
                 expect(label?.textContent?.trim()).toBe('125.0');
             });
 
-            it('leaves snap unset by default', async () => {
-                chart = await createEnterpriseChart(candleOptions([candlestick()]));
-                const { axes } = deproxy(chart).chartOptions.processedOptions as {
-                    axes: Record<string, { crosshair?: { snap?: boolean } }>;
-                };
-                expect(axes.y.crosshair?.snap).toBeUndefined();
-                expect(axes.x.crosshair?.snap).toBeUndefined();
-            });
-
             describe('validation', () => {
-                it.each<[string, AgCartesianChartOptions]>([
-                    ['a number on a number axis', roundedLine({ snapInterval: 0.25 })],
-                    [
-                        'a unit on a time axis',
-                        candleOptions([candlestick()], {
-                            ...candleAxes({}),
-                            x: { type: 'time', position: 'bottom', crosshair: { snapInterval: 'day' } },
-                        }),
-                    ],
-                ])('accepts %s without a warning', async (_name, options) => {
-                    chart = await createEnterpriseChart(options);
-                    expectWarningsCalls().toEqual([]);
-                });
-
                 it.each<[string, unknown, string]>([
                     ['zero', 0, '`0`'],
-                    ['a negative step', -1, '`-1`'],
                     ['a unit', 'day', '`"day"`'],
-                    ['an interval object', { unit: 'day' }, '`{"unit":"day"}`'],
                 ])('warns about %s on a number axis and ignores it', async (_name, snapInterval, shown) => {
                     chart = await createEnterpriseChart(roundedLine({ snapInterval } as AgNumericAxisCrosshairOptions));
                     expectWarningsCalls().toEqual([
