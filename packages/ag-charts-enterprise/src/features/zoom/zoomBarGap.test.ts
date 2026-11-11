@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
-    getSeriesContextNodeData,
+    getBarSeriesContextNodeData,
     isBarSeriesAggregating,
     scrollAction,
     setupMockCanvas,
@@ -11,13 +11,6 @@ import {
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../../test/utils';
-
-// The nodes of a bar series carry the drawn clip and, when the gap is on, the segment's span before the inset.
-interface GapNode {
-    clipBBox?: { y: number; height: number };
-    pickStart: number;
-    pickLength: number;
-}
 
 describe('bar gap when zooming', () => {
     setupMockConsole();
@@ -45,8 +38,8 @@ describe('bar gap when zooming', () => {
 
     /** How far, in pixels, each segment is pulled in from the segment it had before the gap, at each edge. */
     function insets(seriesIndex: number) {
-        return (getSeriesContextNodeData(chart!, seriesIndex).nodeData as unknown as GapNode[])
-            .filter((d) => d.clipBBox != null && d.pickLength > 0 && d.clipBBox.height > 0)
+        return getBarSeriesContextNodeData(chart!, seriesIndex)
+            .nodeData.filter((d) => d.clipBBox != null && d.pickLength > 0 && d.clipBBox.height > 0)
             .map((d) => [
                 Math.round((d.clipBBox!.y - d.pickStart) * 1000) / 1000,
                 Math.round((d.pickStart + d.pickLength - d.clipBBox!.y - d.clipBBox!.height) * 1000) / 1000,
@@ -54,7 +47,7 @@ describe('bar gap when zooming', () => {
     }
 
     function height(seriesIndex: number) {
-        const nodes = getSeriesContextNodeData(chart!, seriesIndex).nodeData as unknown as GapNode[];
+        const { nodeData: nodes } = getBarSeriesContextNodeData(chart!, seriesIndex);
         return nodes.find((d) => d.pickLength > 0)!.pickLength;
     }
 

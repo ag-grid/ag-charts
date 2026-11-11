@@ -12,6 +12,7 @@ export { getCrossLinesPlugin } from './chart/crossline/test/crossLineAccessors';
 export {
     type UndocumentedChartOptions,
     type UndocumentedSeriesOptions,
+    getBarSeriesContextNodeData,
     isBarSeriesAggregating,
     withUndocumentedChartOptions,
     withUndocumentedOptions,
