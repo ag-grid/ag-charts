@@ -13,7 +13,6 @@ const rewriteAstroGeneratedContent = (body: string) => {
     const html = parse(body, { comment: true });
 
     // In dev, add public site url base for all scripts, so it works in external sites
-    const firstBodyScript = html.querySelector('body script');
     html.querySelectorAll('script').forEach((script) => {
         const src = script.getAttribute('src');
         if (src == null) return;
@@ -21,13 +20,14 @@ const rewriteAstroGeneratedContent = (body: string) => {
         if (src.startsWith('/')) {
             script.setAttribute('src', new URL(src, env.PUBLIC_SITE_URL).toString());
         }
-
-        // Move @vite/client script so it's easier to update examples to localhost
-        if (src.endsWith('@vite/client') === true && firstBodyScript != null) {
-            firstBodyScript.insertAdjacentHTML('beforebegin', script.outerHTML);
-            script.remove();
-        }
     });
+
+    // Firefox ignores an import map added after a module starts loading, so load Vite's client after the example's
+    const viteClient = html.querySelector('script[src*="/@vite/client"]');
+    const bodyElement = html.querySelector('body');
+    if (viteClient && bodyElement) {
+        bodyElement.appendChild(viteClient.remove());
+    }
 
     return html.toString();
 };
