@@ -4,7 +4,7 @@ import { snapPositionToInterval } from './axisSnap';
 
 // A linear axis with domain [lo, hi] mapped to pixel range [0, 100].
 const axis = (lo: number, hi: number) => ({
-    scale: { convert: (value: number) => ((value - lo) / (hi - lo)) * 100 },
+    scale: { convert: (value: number) => ((value - lo) / (hi - lo)) * 100, domain: [lo, hi] },
     scaleInvert: (position: number) => lo + (position / 100) * (hi - lo),
     inRange: (position: number) => position >= 0 && position <= 100,
 });

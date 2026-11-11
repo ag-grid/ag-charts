@@ -1778,7 +1778,7 @@ describe('Crosshair', () => {
                 expectFollowsPointer('left', point);
             });
 
-            it.each<[string, AgTimeAxisCrosshairOptions['snapInterval'], Date, Date]>([
+            it.each<[string, AgTimeAxisCrosshairOptions['snapInterval'], Date, Date, boolean?]>([
                 ['a unit', 'day', new Date(2024, 0, 2, 10, 8), new Date(2024, 0, 2)],
                 [
                     'an interval object',
@@ -1793,7 +1793,14 @@ describe('Crosshair', () => {
                     new Date(2024, 0, 2, 10, 7),
                     new Date(2024, 0, 2, 9),
                 ],
-            ])('rounds a time axis to %s', async (_name, snapInterval, date, expected) => {
+                [
+                    'an interval aligned to the domain start',
+                    { unit: 'minute', step: 15 },
+                    new Date(2024, 0, 2, 10, 8),
+                    new Date(2024, 0, 2, 10, 1),
+                    false,
+                ],
+            ])('rounds a time axis to %s', async (_name, snapInterval, date, expected, nice) => {
                 chart = await createEnterpriseChart({
                     data: [
                         { date: new Date(2024, 0, 1, 9, 31), value: 5 },
@@ -1802,7 +1809,7 @@ describe('Crosshair', () => {
                     ],
                     series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
                     axes: {
-                        x: { type: 'time', position: 'bottom', crosshair: { snapInterval } },
+                        x: { type: 'time', position: 'bottom', nice, crosshair: { snapInterval } },
                         y: { type: 'number', position: 'left' },
                     },
                 });
