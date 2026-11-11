@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
-    deproxy,
     getSeriesContextNodeData,
+    isBarSeriesAggregating,
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
@@ -89,7 +89,7 @@ describe('bar gap when zooming', () => {
             c: 30 + (i % 3),
         }));
         chart = await createEnterpriseChart(options(data, 't', { type: 'unit-time' }, 4));
-        expect((deproxy(chart).series[0] as any).nodeDatumContext?.dataAggregationFilter).toBeDefined();
+        expect(isBarSeriesAggregating(chart, 0)).toBe(true);
 
         for (let level = 0; level < 3; level++) {
             for (const series of [0, 1, 2]) {

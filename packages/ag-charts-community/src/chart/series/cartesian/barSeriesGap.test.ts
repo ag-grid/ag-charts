@@ -2,7 +2,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { getBarSeriesContextNodeData, withUndocumentedOptions } from '../../test/communitySeriesAccessors';
+import {
+    getBarSeriesContextNodeData,
+    isBarSeriesAggregating,
+    withUndocumentedOptions,
+} from '../../test/communitySeriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -11,7 +15,9 @@ import {
     deproxy,
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
+    getVisibleLabelNodes,
     hoverAction,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
     tabIntoChart,
@@ -132,9 +138,47 @@ describe('bar series gap', () => {
         await waitForChartStability(chart!);
     }
 
-    /** Canvas position of the centre of the `index`th of the four categories. */
-    function categoryCentre(img: ImageData, direction: Direction, index: number) {
-        return ((direction === 'vertical' ? img.width : img.height) / 4) * (index + 0.5);
+    // Series a is the bottom segment and b the top one. In column A the filtered `a` ends inside its segment; in
+    // column B the filtered `b` ends inside its segment.
+    const CROSS_FILTER_DATA = [
+        { k: 'A', a: 10, aF: 4, b: 20, bF: 20 },
+        { k: 'B', a: 15, aF: 15, b: 15, bF: 5 },
+    ];
+
+    function crossFilterOptions(gap: number) {
+        return {
+            ...stackOptions({ gaps: [gap, gap], min: 0 }),
+            data: CROSS_FILTER_DATA,
+            series: [
+                ['a', 'aF', '#ff0000'],
+                ['b', 'bF', '#00ff00'],
+            ].map(([yKey, filter, fill]) =>
+                withUndocumentedOptions<AgBarSeriesOptions>(
+                    { type: 'bar', xKey: 'k', yKey, stacked: true, fill, fillOpacity: 1, gap, strokeWidth: 0 },
+                    { yFilterKey: filter }
+                )
+            ),
+        } as AgCartesianChartOptions;
+    }
+
+    /**
+     * How many half gaps each filtered bar is pulled in at its [top, bottom] edge, by series then column. A bar is
+     * pulled in at an edge with a neighbour; it only reaches the end of its segment when it fills it.
+     */
+    const CROSS_FILTER_HALF_GAPS = [
+        [
+            [0, 0], // a, A: the bottom segment, ending short of its end: no neighbour at either edge.
+            [1, 0], // a, B: fills its segment, so its end meets b.
+        ],
+        [
+            [0, 1], // b, A: the top of the stack stays; its start meets a.
+            [0, 1], // b, B: ends inside its segment, but still starts at a.
+        ],
+    ];
+
+    /** Canvas position of the centre of the `index`th category (of four, unless `categories` says otherwise). */
+    function categoryCentre(img: ImageData, direction: Direction, index: number, categories = 4) {
+        return ((direction === 'vertical' ? img.width : img.height) / categories) * (index + 0.5);
     }
 
     /** The runs of colour through the centre of one column (or row), ordered by pixel. */
@@ -454,26 +498,6 @@ describe('bar series gap', () => {
         });
 
         it('cross-filter phantom bars take the inset of the segment drawn on top of them', async () => {
-            // Series a is the bottom segment and b the top one. In column A the filtered `a` ends inside its segment;
-            // in column B the filtered `b` ends inside its segment.
-            const data = [
-                { k: 'A', a: 10, aF: 4, b: 20, bF: 20 },
-                { k: 'B', a: 15, aF: 15, b: 15, bF: 5 },
-            ];
-            const options = (gap: number) =>
-                ({
-                    ...stackOptions({ gaps: [gap, gap] }),
-                    data,
-                    series: [
-                        ['a', 'aF', '#ff0000'],
-                        ['b', 'bF', '#00ff00'],
-                    ].map(([yKey, filter, fill]) =>
-                        withUndocumentedOptions<AgBarSeriesOptions>(
-                            { type: 'bar', xKey: 'k', yKey, stacked: true, fill, fillOpacity: 1, gap, strokeWidth: 0 },
-                            { yFilterKey: filter }
-                        )
-                    ),
-                }) as AgCartesianChartOptions;
             // [top, bottom] canvas edges of each drawn clip.
             const edges = (box: { y: number; height: number } | undefined) => [box!.y, box!.y + box!.height];
             const read = () =>
@@ -485,23 +509,33 @@ describe('bar series gap', () => {
                     }));
                 });
 
-            await open(options(0));
+            await open(crossFilterOptions(0));
             const base = read();
-            await update(options(4));
+            await update(crossFilterOptions(4));
             const gapped = read();
 
-            // Series a, column A: the filtered bar is short of its end, so only its phantom is pulled in at the top.
-            expect(gapped[0][0].node).toEqual(base[0][0].node);
+            // Each filtered bar is pulled in only at the edges with a neighbour (see CROSS_FILTER_HALF_GAPS).
+            for (const [series, column] of [
+                [0, 0],
+                [0, 1],
+                [1, 0],
+                [1, 1],
+            ]) {
+                const [top, bottom] = CROSS_FILTER_HALF_GAPS[series][column];
+                const [baseTop, baseBottom] = base[series][column].node;
+                expect(gapped[series][column].node, `series ${series} column ${column}`).toEqual([
+                    baseTop + 2 * top,
+                    baseBottom - 2 * bottom,
+                ]);
+            }
+            // The phantom takes the inset of the segment drawn on top of it: an edge with a neighbour in the stack.
+            // Series a, column A: only the top of the segment has a neighbour (b).
             expect(gapped[0][0].phantom).toEqual([base[0][0].phantom[0] + 2, base[0][0].phantom[1]]);
             // Series a, column B: the filtered bar fills its segment, so it and its phantom share the inset.
-            expect(gapped[0][1].node).toEqual([base[0][1].node[0] + 2, base[0][1].node[1]]);
             expect(gapped[0][1].phantom).toEqual(gapped[0][1].node);
             // Series b, column A: full height; both are pulled in at the bottom only (the top of the stack stays).
-            expect(gapped[1][0].node).toEqual([base[1][0].node[0], base[1][0].node[1] - 2]);
             expect(gapped[1][0].phantom).toEqual(gapped[1][0].node);
-            // Series b, column B: the filtered bar ends inside its segment, but still starts pulled in; its phantom
-            // is pulled in at the bottom only.
-            expect(gapped[1][1].node).toEqual([base[1][1].node[0], base[1][1].node[1] - 2]);
+            // Series b, column B: the phantom is pulled in at the bottom only.
             expect(gapped[1][1].phantom).toEqual([base[1][1].phantom[0], base[1][1].phantom[1] - 2]);
         });
     });
@@ -661,71 +695,127 @@ describe('bar series gap', () => {
     });
 
     describe('keyboard focus', () => {
-        it('the focus box follows the drawn segment and excludes the gap', async () => {
-            await open(stackOptions({ gaps: [0, 0, 0] }));
-            const [bottom] = fromBaseline(runsThrough('vertical', 0), 'vertical', true);
-            const x = categoryCentre(ctx.snapshot(), 'vertical', 0);
-
-            await update(stackOptions({ gaps: [8, 8, 8] }));
-            await tabIntoChart(chart!);
-            // The first focused datum is the bottom segment of the first column. Its top edge has a neighbour, so it is
-            // 4px (half the gap) short of the no-gap edge; its baseline edge has none.
-            const inFocus = (y: number) => focusIndicatorContainsCanvasPoint(chart!, { canvasX: x, canvasY: y });
-            expect(inFocus(bottom.start + 3)).toBe(false);
-            expect(inFocus(bottom.start + 5)).toBe(true);
-            expect(inFocus(bottom.end - 1)).toBe(true);
-        });
+        /**
+         * Asserts that the focus box covers `[start, end]` along the value axis at `cross`, to within the pixel: points
+         * 2px inside each end are in the box and points 2px outside each end are not. Bounds are not snapped to whole
+         * pixels as the drawn bars are, so the check is not exact to the pixel.
+         */
+        function expectFocusSpan(direction: Direction, cross: number, [start, end]: [number, number], context: string) {
+            const at = (along: number) =>
+                direction === 'vertical' ? { canvasX: cross, canvasY: along } : { canvasX: along, canvasY: cross };
+            const inFocus = (along: number) => focusIndicatorContainsCanvasPoint(chart!, at(along));
+            expect(inFocus(start + 2), `${context}: inside the start`).toBe(true);
+            expect(inFocus(end - 2), `${context}: inside the end`).toBe(true);
+            expect(inFocus(start - 2), `${context}: outside the start`).toBe(false);
+            expect(inFocus(end + 2), `${context}: outside the end`).toBe(false);
+        }
 
         it.each(['vertical', 'horizontal'] as const)(
-            '%s: the focus bounds of every segment are its drawn span',
+            '%s: the focus box of every segment is its drawn span, without the gap',
             async (direction) => {
-                await open(stackOptions({ gaps: [4, 4, 4], direction }));
+                await open(stackOptions({ gaps: [8, 8, 8], direction }));
+                // The drawn runs, from the baseline outwards: the first segment is the first series.
                 const drawn = fromBaseline(runsThrough(direction, 0), direction, true);
-                const bounds = deproxy(chart!).series.map((s: any) => {
-                    const b = s.pickFocus({
-                        datumIndex: 0,
-                        datumIndexDelta: 0,
-                        otherIndex: 0,
-                        otherIndexDelta: 0,
-                    })?.bounds;
-                    return direction === 'vertical' ? [b.y, b.y + b.height] : [b.x, b.x + b.width];
-                });
-                // Focus bounds are not snapped to whole pixels as the drawn bars are.
-                for (const [i, [start, end]] of bounds.entries()) {
-                    expect(start).toBeCloseTo(drawn[i].start, 0);
-                    expect(end).toBeCloseTo(drawn[i].end, 0);
+                expect(drawn).toHaveLength(3);
+                const cross = categoryCentre(ctx.snapshot(), direction, 0);
+
+                // Tabbing in focuses the first datum of the first series; ArrowDown steps to the next series.
+                await tabIntoChart(chart!);
+                for (const [i, run] of drawn.entries()) {
+                    if (i > 0) await pressKey(chart!, 'ArrowDown');
+                    expectFocusSpan(direction, cross, [run.start, run.end], `segment ${i}`);
                 }
             }
         );
+
+        it('the focus box of a cross-filtered datum is the drawn span of the filtered bar', async () => {
+            await open(crossFilterOptions(0));
+            const spans = () =>
+                [0, 1].map((series) =>
+                    getBarSeriesContextNodeData(chart!, series).nodeData.map(
+                        (node) => [node.clipBBox!.y, node.clipBBox!.y + node.clipBBox!.height] as [number, number]
+                    )
+                );
+            const base = spans();
+
+            // A gap of 8 pulls each edge with a neighbour in by 4, so the box is that much short of the no-gap bar.
+            await update(crossFilterOptions(8));
+            const expected = (series: number, column: number): [number, number] => {
+                const [top, bottom] = CROSS_FILTER_HALF_GAPS[series][column];
+                const [start, end] = base[series][column];
+                return [start + 4 * top, end - 4 * bottom];
+            };
+            const cross = (column: number) => categoryCentre(ctx.snapshot(), 'vertical', column, 2);
+
+            await tabIntoChart(chart!);
+            expectFocusSpan('vertical', cross(0), expected(0, 0), 'a in column A, ends short of its segment');
+            await pressKey(chart!, 'ArrowDown');
+            expectFocusSpan('vertical', cross(0), expected(1, 0), 'b in column A, the top of the stack');
+            await pressKey(chart!, 'ArrowRight');
+            expectFocusSpan('vertical', cross(1), expected(1, 1), 'b in column B, ends inside its segment');
+            await pressKey(chart!, 'ArrowUp');
+            expectFocusSpan('vertical', cross(1), expected(0, 1), 'a in column B, fills its segment');
+        });
     });
 
     describe('labels', () => {
-        it('the inside-centre label rect and midPoint follow the drawn edge', async () => {
-            const withLabels = (gap: number) => {
-                const options = stackOptions({ gaps: [gap, gap, gap] });
-                for (const s of options.series!) {
-                    (s as AgBarSeriesOptions).label = { enabled: true, placement: 'inside-center' };
-                }
-                return options;
-            };
-            await open(withLabels(0));
-            const read = () =>
-                [0, 1, 2].map((i) => {
-                    const datum = getBarSeriesContextNodeData(chart!, i).nodeData[0];
-                    return { mid: datum.midPoint, clip: datum.clipBBox, label: datum.label };
-                });
-            const base = read();
+        const withLabels = (gap: number, direction: Direction, data?: object[], hideable = false) => {
+            const options = stackOptions({ gaps: [gap, gap, gap], direction, data, min: 0 });
+            for (const s of options.series!) {
+                (s as AgBarSeriesOptions).label = {
+                    enabled: true,
+                    placement: 'inside-center',
+                    fontSize: 14,
+                    ...(hideable ? { collision: { alwaysShow: false } } : {}),
+                };
+            }
+            return options;
+        };
 
-            await update(withLabels(8));
-            const gapped = read();
-            // The bottom segment (a): its top edge is inset by 4, so its centre moves down by 2 and its drawn height
-            // shrinks by 4. The middle segment is inset at both ends, so its centre does not move.
-            expect(gapped[0].mid!.y - base[0].mid!.y).toBe(2);
-            expect(gapped[1].mid!.y - base[1].mid!.y).toBe(0);
-            expect(gapped[2].mid!.y - base[2].mid!.y).toBe(-2);
-            expect(base[0].clip!.height - gapped[0].clip!.height).toBe(4);
-            expect(base[1].clip!.height - gapped[1].clip!.height).toBe(8);
-            expect(base[2].clip!.height - gapped[2].clip!.height).toBe(4);
+        it.each(['vertical', 'horizontal'] as const)(
+            '%s: the inside-centre label rect, midPoint and drawn label follow the drawn edge',
+            async (direction) => {
+                await open(withLabels(0, direction));
+                const read = () =>
+                    [0, 1, 2].map((i) => {
+                        const datum = getBarSeriesContextNodeData(chart!, i).nodeData[0];
+                        const [label] = getVisibleLabelNodes(chart!, i);
+                        const mid = direction === 'vertical' ? datum.midPoint!.y : datum.midPoint!.x;
+                        const clip = direction === 'vertical' ? datum.clipBBox!.height : datum.clipBBox!.width;
+                        return { mid, clip, label: direction === 'vertical' ? label.y : label.x };
+                    });
+                const base = read();
+
+                await update(withLabels(8, direction));
+                const gapped = read();
+                // A gap of 8 insets each neighbouring edge by 4: the first centre moves 2 towards the baseline, the middle
+                // one stays put and the last moves outwards. Value 0 is at the bottom (vertical) or left (horizontal).
+                const towardsBaseline = direction === 'vertical' ? 2 : -2;
+                expect(gapped.map((g, i) => g.mid - base[i].mid)).toEqual([towardsBaseline, 0, -towardsBaseline]);
+                expect(gapped.map((g, i) => g.label - base[i].label)).toEqual([towardsBaseline, 0, -towardsBaseline]);
+                expect(gapped.map((g, i) => base[i].clip - g.clip)).toEqual([4, 8, 4]);
+            }
+        );
+
+        it('a label that fits the segment without the gap is hidden once the gap leaves too little room', async () => {
+            // The middle segment is 2 units of a 45 unit chart: tall enough for a 14px label, until the gap takes
+            // half of 16 from each end.
+            const data = [
+                { k: 'A', a: 10, b: 2, c: 30 },
+                { k: 'B', a: 15, b: 15, c: 15 },
+            ];
+            const drawnTexts = () => getVisibleLabelNodes(chart!, 1).map((node) => node.text);
+
+            await open(withLabels(0, 'vertical', data, true));
+            expect(drawnTexts()).toEqual(['2', '15']);
+            const height = getBarSeriesContextNodeData(chart!, 1).nodeData[0].clipBBox!.height;
+            expect(height).toBeGreaterThan(20);
+
+            await update(withLabels(16, 'vertical', data, true));
+            // The drawn segment is `height - 16` tall, far less than the label; the rect it had before the inset
+            // would still have fitted it.
+            expect(getBarSeriesContextNodeData(chart!, 1).nodeData[0].clipBBox!.height).toBeCloseTo(height - 16, 5);
+            expect(drawnTexts()).toEqual(['15']);
         });
     });
 
@@ -755,7 +845,7 @@ describe('bar series gap', () => {
             return options;
         }
 
-        const aggregating = () => (deproxy(chart!).series[0] as any).nodeDatumContext?.dataAggregationFilter != null;
+        const aggregating = () => isBarSeriesAggregating(chart!, 0);
 
         // [top edge, bottom edge] insets of every aggregated node, from the clip against the segment before the inset.
         const nodeInsets = (series: number) =>
