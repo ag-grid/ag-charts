@@ -91,7 +91,7 @@ describe('preset chart options', () => {
         chart = undefined;
     });
 
-    it.each(CASES)('the %s preset applies %s as a standard chart does', async (preset, option) => {
+    it.each(CASES)('the %s preset forwards %s to the chart', async (preset, option) => {
         const value = OPTION_VALUES[option];
         chart = PRESET_FACTORIES[preset]({
             container: document.createElement('div'),
@@ -101,11 +101,9 @@ describe('preset chart options', () => {
         });
         await waitForChartStability(chart);
 
-        const { processedOptions } = deproxy(chart).chartOptions as unknown as {
-            processedOptions: Record<string, any> & { series: Record<string, unknown>[] };
-        };
+        const { processedOptions } = deproxy(chart).chartOptions;
         expect(processedOptions).toMatchObject({ [option]: value });
-        expect(processedOptions.series.every((series) => !(option in series))).toBe(true);
+        expect(processedOptions.series?.every((series) => !(option in series))).toBe(true);
     });
 
     it('every preset supports or explicitly excludes each chart option', () => {
