@@ -22,6 +22,8 @@ import { AxisTicks } from './axisTicks';
 const { LayoutElement, Marker } = _ModuleSupport;
 
 const ITEM_SPACING = 16;
+const DEFAULT_PREFERRED_LENGTH_HORIZONTAL = 400;
+const DEFAULT_PREFERRED_LENGTH_VERTICAL = 240;
 
 export class GradientLegend extends AbstractModuleInstance {
     readonly id = createId(this);
@@ -139,11 +141,15 @@ export class GradientLegend extends AbstractModuleInstance {
         shrinkRect: BBox,
         colorStops: GradientColorStop[]
     ) {
-        const { thickness, preferredLength } = this.opts.gradient;
+        const vertical = this.isVertical();
+        const {
+            thickness,
+            preferredLength = vertical ? DEFAULT_PREFERRED_LENGTH_VERTICAL : DEFAULT_PREFERRED_LENGTH_HORIZONTAL,
+        } = this.opts.gradient;
         const gradientRectBBox = new BBox(0, 0, 0, 0);
 
         let angle: number;
-        if (this.isVertical()) {
+        if (vertical) {
             angle = 0;
             gradientRectBBox.width = thickness;
             gradientRectBBox.height = Math.min(shrinkRect.height, preferredLength);

@@ -242,6 +242,35 @@ describe('GradientLegend', () => {
         expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(true);
     });
 
+    describe('gradient.preferredLength default', () => {
+        async function getBarSize(gradientLegend: AgChartOptions['gradientLegend']) {
+            chart = await createEnterpriseChart({
+                width: 1000,
+                height: 800,
+                data: EXAMPLE_OPTIONS.data,
+                series: [{ type: 'heatmap', xKey: 'year', yKey: 'person', colorKey: 'spending' }],
+                gradientLegend,
+            });
+            const module: any = deproxy(chart).modulesManager.getModule('gradientLegend');
+            const { width, height } = module.gradientRectSelection.at(0);
+            return { width, height };
+        }
+
+        it.each(['top', 'bottom'] as const)('should be 400 for a horizontal legend (%s)', async (position) => {
+            expect((await getBarSize({ position })).width).toBe(400);
+        });
+
+        it.each(['left', 'right'] as const)('should be 240 for a vertical legend (%s)', async (position) => {
+            expect((await getBarSize({ position })).height).toBe(240);
+        });
+
+        it('should use an explicit preferredLength in either orientation', async () => {
+            expect((await getBarSize({ gradient: { preferredLength: 150 } })).width).toBe(150);
+            chart.destroy();
+            expect((await getBarSize({ position: 'right', gradient: { preferredLength: 150 } })).height).toBe(150);
+        });
+    });
+
     describe('AG-16045 named stop labels', () => {
         const HEATMAP_SERIES = {
             type: 'heatmap' as const,
