@@ -14,6 +14,7 @@ import {
     DEFAULT_FIBONACCI_STROKES,
     MEASURER_STATISTICS_THEME,
     QUICK_MEASURER_DIVIDER_THEME,
+    selectionAxes,
 } from '../../features/annotations/annotationsTheme';
 
 const stroke: WithThemeParams<StrokeOptions> = {
@@ -42,16 +43,9 @@ const font: WithThemeParams<TextOptions> = {
 
 const background = { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 } as const;
 
-// The labels and shading take the annotation's colours. A line has no fill to shade with, so it passes the opacity.
-const selectionAxes = (shadingOpacity?: number) =>
-    ({
-        axisLabel: { ...axisLabel, fill: undefined },
-        axisShading: { enabled: true, fillOpacity: shadingOpacity },
-    }) as const;
-
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(background.fillOpacity),
+    ...selectionAxes(axisLabel, background.fillOpacity),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'annotationColor' },
     handle: { ...handle },
@@ -66,7 +60,7 @@ const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
 
 const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(),
+    ...selectionAxes(axisLabel),
     background: { ...background },
     handle: { ...handle },
     text: { ...lineText },
@@ -77,7 +71,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Lines
     line: {
         ...stroke,
-        ...selectionAxes(background.fillOpacity),
+        ...selectionAxes(axisLabel, background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -97,14 +91,14 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Channels
     'disjoint-channel': {
         ...stroke,
-        ...selectionAxes(),
+        ...selectionAxes(axisLabel),
         background: { ...background },
         handle: { ...handle },
         text: { ...lineText },
     },
     'parallel-channel': {
         ...stroke,
-        ...selectionAxes(),
+        ...selectionAxes(axisLabel),
         background: { ...background },
         handle: { ...handle },
         text: { ...lineText },
@@ -153,7 +147,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Shapes
     arrow: {
         ...stroke,
-        ...selectionAxes(background.fillOpacity),
+        ...selectionAxes(axisLabel, background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -177,7 +171,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...measurer,
     },
     'quick-date-price-range': {
-        ...selectionAxes(),
+        ...selectionAxes(axisLabel),
         up: {
             ...stroke,
             fill: { $ref: 'annotationColor' },
