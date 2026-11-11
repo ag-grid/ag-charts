@@ -1,6 +1,10 @@
 export function getData() {
     return [
         {
+            financials: 'Opening\nBalance',
+            amount: 120,
+        },
+        {
             financials: 'Income\nTax',
             amount: 185,
         },
@@ -22,7 +26,7 @@ export function getData() {
         },
         {
             financials: 'Social\nProtection',
-            amount: -252,
+            amount: -152,
         },
         {
             financials: 'Health',

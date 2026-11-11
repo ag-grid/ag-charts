@@ -6,7 +6,7 @@ import { ChartTheme, type ThemeParamDefaults } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
 
 const ACCESSIBLE_LIGHT_COLORS = {
-    BLUE: '#4d87cc',
+    BLUE: '#4884cb',
     ORANGE: '#be6503',
     GREEN: '#257a38',
     CYAN: '#0f99b6',
@@ -19,7 +19,7 @@ const ACCESSIBLE_LIGHT_COLORS = {
 };
 
 const ACCESSIBLE_LIGHT_STROKES: typeof ACCESSIBLE_LIGHT_COLORS = {
-    BLUE: '#356fb2',
+    BLUE: '#346cae',
     ORANGE: '#9c5204',
     GREEN: '#016222',
     CYAN: '#0a7f97',

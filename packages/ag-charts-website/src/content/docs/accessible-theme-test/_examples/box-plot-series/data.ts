@@ -7,6 +7,11 @@ export function getData() {
             median: 5765,
             q3: 8834,
             max: 14852,
+            min2025: 1210,
+            q12025: 4820,
+            median2025: 6190,
+            q32025: 9310,
+            max2025: 15640,
         },
         {
             department: 'R&D',
@@ -15,6 +20,11 @@ export function getData() {
             median: 4377,
             q3: 7725,
             max: 14814,
+            min2025: 1150,
+            q12025: 3020,
+            median2025: 4710,
+            q32025: 8160,
+            max2025: 15470,
         },
         {
             department: 'HR',
@@ -23,6 +33,11 @@ export function getData() {
             median: 4071,
             q3: 9756,
             max: 19717,
+            min2025: 1640,
+            q12025: 2850,
+            median2025: 4290,
+            q32025: 10120,
+            max2025: 20380,
         },
     ];
 }
