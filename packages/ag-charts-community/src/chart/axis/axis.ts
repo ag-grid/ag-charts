@@ -95,6 +95,7 @@ export interface AxisPickDatum {
     readonly value: AgAxisValue;
     readonly along: readonly [number, number];
     readonly tickId?: string;
+    readonly text?: string;
 
     // 2D Optionals (e.g. `grouped-category`):
     readonly formattedValue?: NormalisedTextOrSegments;
@@ -1524,29 +1525,32 @@ export abstract class Axis<
             }
             focusBounds.translate(-axisBounds.x, -axisBounds.y);
 
+            const formattedValue = tick.formattedValue == null ? undefined : toPlainText(tick.formattedValue);
             const ariaLabel =
-                label?.text ??
-                (tick.formattedValue == null ? this.formatA11YTickValue(tick.value) : toPlainText(tick.formattedValue));
+                label?.text || tick.text || formattedValue || this.formatA11YTickValue(tick.value);
             result.push({ index: tick.index, value: tick.value, ariaLabel, focusBounds });
         }
         return result;
     }
 
     private formatA11YTickValue(value: unknown): string {
-        const { allowNull } = this;
-        return this.formatDatum(
-            undefined,
+        const params = this.datumFormatParams(
             value,
-            'crosshair',
+            {
+                source: 'crosshair',
+                datum: undefined,
+                seriesId: undefined,
+                legendItemName: undefined,
+                key: undefined,
+                property: this.getFormatterProperty(),
+                domain: this.dataDomain.domain,
+                boundSeries: this.formatterBoundSeries.get(),
+            },
+            this.layout.label.fractionDigits,
             undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            allowNull
+            'long'
         );
+        return this.moduleCtx.formatManager.defaultFormat(params);
     }
 
     pickValue(point: CanvasPoint): AxisValuePick | undefined {
@@ -1612,10 +1616,11 @@ export abstract class Axis<
 
     protected setPickTickData(ticks: readonly Readonly<TickDatum>[], firstTickIndex = 0): void {
         // TickDatum.index is absolute, but the label formatter numbers ticks from 0, so rebase onto firstTickIndex.
-        this.pickTickData = ticks.map(({ index, translation, tick, tickId }) => ({
+        this.pickTickData = ticks.map(({ index, translation, tick, tickId, tickLabel, textUntruncated }) => ({
             index: index - firstTickIndex,
             value: tick,
             tickId,
+            text: textUntruncated ?? (tickLabel == null ? undefined : toPlainText(tickLabel)),
             along: [translation, translation] as const,
         }));
     }
