@@ -1,7 +1,7 @@
 import { setAttribute } from '../dom/attributeUtil';
-import { isButtonClickEvent } from '../dom/keynavUtil';
 import type { ExpandOpts, ExpandableWidget, ExpansionControllerWidget } from './expandableWidget';
 import { ExpansionControllerImpl } from './expansionControllerImpl';
+import { isButtonClickEvent } from './keyboardUtil';
 import { Widget } from './widget';
 import type { WidgetEventMap as EventMap, KeyboardWidgetEvent } from './widgetEvents';
 

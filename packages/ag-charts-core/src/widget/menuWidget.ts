@@ -1,18 +1,18 @@
 import { setAttribute } from '../dom/attributeUtil';
 import { isDirectionRtl } from '../dom/domUtil';
+import { getLastFocus } from '../dom/keynavUtil';
+import { createElementId } from '../identity/id';
+import { CleanupRegistry } from '../state/cleanupRegistry';
+import { CollapseMode } from './collapseMode';
+import type { CollapseOpts, ExpandOpts, ExpandableWidget } from './expandableWidget';
+import { hasNoModifiers } from './keyboardUtil';
+import { MenuItemWidget } from './menuItemWidget';
 import {
     addEscapeEventListener,
     addMouseCloseListener,
     addOverrideFocusVisibleEventListener,
     addTouchCloseListener,
-    getLastFocus,
-    hasNoModifiers,
-} from '../dom/keynavUtil';
-import { createElementId } from '../identity/id';
-import { CleanupRegistry } from '../state/cleanupRegistry';
-import { CollapseMode } from './collapseMode';
-import type { CollapseOpts, ExpandOpts, ExpandableWidget } from './expandableWidget';
-import { MenuItemWidget } from './menuItemWidget';
+} from './menuListeners';
 import type { RovingDirection } from './rovingDirection';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import { SeparatorWidget } from './separatorWidget';

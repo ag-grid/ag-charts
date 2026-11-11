@@ -1,5 +1,5 @@
 import { createElement } from '../dom/domElements';
-import { isButtonClickEvent } from '../dom/keynavUtil';
+import { isButtonClickEvent } from './keyboardUtil';
 import { Widget } from './widget';
 
 /** A form-styled `<input type="checkbox">` that Enter toggles as well as Space. */

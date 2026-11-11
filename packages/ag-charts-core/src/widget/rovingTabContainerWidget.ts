@@ -1,8 +1,8 @@
 import { getAttribute, setAttribute } from '../dom/attributeUtil';
 import { createElement } from '../dom/domElements';
 import { isDirectionRtl } from '../dom/domUtil';
-import { getPrevNextKeys, hasNoModifiers } from '../dom/keynavUtil';
 import type { ButtonWidget } from './buttonWidget';
+import { getPrevNextKeys, hasNoModifiers } from './keyboardUtil';
 import type { MenuItemWidget } from './menuItemWidget';
 import type { NativeWidget } from './nativeWidget';
 import type { RovingDirection } from './rovingDirection';
