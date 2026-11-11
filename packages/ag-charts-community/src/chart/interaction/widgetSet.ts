@@ -79,7 +79,7 @@ export class WidgetSet {
 
     acquireAxisWidget(axisId: AxisID): AxisWidget {
         const existingWidget: AxisWidget | undefined = this.axes.get(axisId)?.deref();
-        if (existingWidget !== undefined) {
+        if (existingWidget !== undefined && existingWidget.parent !== undefined) {
             return existingWidget;
         }
 
