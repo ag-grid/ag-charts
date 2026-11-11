@@ -41,6 +41,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
+        gap: 0,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,

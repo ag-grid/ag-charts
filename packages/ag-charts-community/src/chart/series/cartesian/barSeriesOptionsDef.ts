@@ -58,6 +58,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     styler: barStyler,
     itemStyler: barItemStyler,
     crisp: boolean,
+    gap: positiveNumber,
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
