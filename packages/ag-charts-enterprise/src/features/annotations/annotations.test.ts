@@ -1179,11 +1179,15 @@ describe('Annotations', () => {
             return listener;
         }
 
-        async function editSelectedValue(value: string) {
+        async function selectAnnotation() {
             const { x, y, width, height } = getSeriesRect(chart);
             await hoverAction(x + width / 2, y + height / 2)(chart);
             await clickAction(x + width / 2, y + height / 2)(chart);
             await waitForChartStability(chart);
+        }
+
+        async function editSelectedValue(value: string) {
+            await selectAnnotation();
 
             const { body } = deproxy(chart).ctx.agDocument;
             body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
@@ -1206,6 +1210,17 @@ describe('Annotations', () => {
 
             await editSelectedValue('60');
 
+            expect(sources(listener)).toEqual(['user-interaction']);
+        });
+
+        it('reports a delete as a user-interaction', async () => {
+            const listener = await prepareChartWithListener();
+            await selectAnnotation();
+            listener.mockClear();
+
+            await pressKey(chart, 'Delete');
+
+            expect(chart.getState().annotations).toEqual([]);
             expect(sources(listener)).toEqual(['user-interaction']);
         });
 
