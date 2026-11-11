@@ -370,6 +370,37 @@ describe('placeLabels', () => {
         expect(withNeighbour.some((l) => l.datum === own)).toBe(false);
     });
 
+    it.each([
+        { neighbourSeries: 'earlier', placed: true },
+        { neighbourSeries: 'later', placed: false },
+    ])(
+        'ignores an $neighbourSeries series marker under an inside label wholly on its own: $placed',
+        ({ neighbourSeries, placed }) => {
+            const own: PointLabelDatum = {
+                point: { x: 100, y: 100, size: 20 },
+                label: { text: 'I', width: 16, height: 10 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: ['inside'],
+                gap: 0,
+                alwaysShow: false,
+            };
+            const neighbour: PointLabelDatum = {
+                point: { x: 108, y: 100, size: 20 },
+                label: { text: 'N', width: 1, height: 1 },
+                anchor: undefined,
+                placement: 'bottom',
+            };
+            const ownEntry: [string, SeriesLabels] = ['own', seriesLabels([own])];
+            const neighbourEntry: [string, SeriesLabels] = ['neighbour', seriesLabels([neighbour])];
+            const data = new Map(
+                neighbourSeries === 'earlier' ? [neighbourEntry, ownEntry] : [ownEntry, neighbourEntry]
+            );
+            const labels = placeLabels(data, bounds, 5).get('own')!;
+            expect(labels.some((l) => l.datum === own)).toBe(placed);
+        }
+    );
+
     it('drops an avoiding label when no candidate placement fits', () => {
         // A large marker covers every candidate position; the avoiding label has nowhere to go.
         const blocker: PointLabelDatum = {

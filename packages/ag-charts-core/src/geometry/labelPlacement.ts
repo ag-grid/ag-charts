@@ -511,6 +511,8 @@ export type LabelObstacle =
           readonly sourceId?: string;
           readonly entityIndex?: number;
           readonly overlay?: boolean;
+          /** Draw order of the series owning a marker obstacle; unset for external obstacles. */
+          readonly seriesOrder?: number;
       }
     | {
           readonly kind: 'rect';
@@ -547,6 +549,14 @@ export type LabelObstacle =
 
 /** External obstacles, or a function producing them so a solve that never queries the index skips gathering. */
 export type LabelObstacles = readonly LabelObstacle[] | (() => readonly LabelObstacle[]);
+
+/** True when every corner of `box` lies within the circle; a non-positive radius contains nothing. */
+function boxWithinCircle(box: BoxBounds, cx: number, cy: number, r: number): boolean {
+    if (r <= 0) return false;
+    const dx = Math.max(Math.abs(box.x - cx), Math.abs(box.x + box.width - cx));
+    const dy = Math.max(Math.abs(box.y - cy), Math.abs(box.y + box.height - cy));
+    return dx * dx + dy * dy <= r * r;
+}
 
 function circleOverlapsBox(cx: number, cy: number, r: number, x: number, y: number, w: number, h: number): boolean {
     if (r <= 0) {
@@ -689,6 +699,7 @@ interface PooledCircleObstacle {
     cy: number;
     r: number;
     category: ObstacleCategory;
+    seriesOrder: number;
 }
 
 // Mutable placed-label obstacle pooled across passes, mirroring markerPool.
@@ -732,6 +743,8 @@ let candidatePlacement: LabelPlacement | undefined;
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
+// Draw order of the candidate's series, matching the `seriesOrder` stamped on its marker obstacles.
+let candidateSeriesOrder = 0;
 // The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so an
 // inside label never collides with the shape it sits on. `undefined` disables the gate.
 let candidateOwnBox: BoxBounds | undefined;
@@ -922,13 +935,14 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     const category = o.category ?? 'shape';
     // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
     // directional labels fall through to the circle test, which measures their real clearance.
+    // Nor with an earlier series' marker while it lies wholly on its own, which is drawn over that overlap.
     if (
         candidatePlacement === 'inside' &&
         category === 'marker' &&
         o.kind === 'circle' &&
-        o.cx === candidateOwnMarkerCx &&
-        o.cy === candidateOwnMarkerCy &&
-        o.r === candidateOwnMarkerR
+        ((o.cx === candidateOwnMarkerCx && o.cy === candidateOwnMarkerCy && o.r === candidateOwnMarkerR) ||
+            ((o.seriesOrder ?? Infinity) < candidateSeriesOrder &&
+                boxWithinCircle(candidateBox, candidateOwnMarkerCx, candidateOwnMarkerCy, candidateOwnMarkerR)))
     ) {
         return true;
     }
@@ -1274,7 +1288,9 @@ function markerCentreOf(d: PointLabelDatum) {
 /** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
 function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     let markerCount = 0;
+    let seriesOrder = 0;
     for (const { datums } of data.values()) {
+        seriesOrder++;
         for (const d of datums) {
             const size = markerSizeOf(d);
             if (size <= 0) continue;
@@ -1290,10 +1306,12 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
                     cy: 0,
                     r: 0,
                     category: 'marker',
+                    seriesOrder: 0,
                 };
                 markerPool.push(obstacle);
             }
             markerCount++;
+            obstacle.seriesOrder = seriesOrder;
             obstacle.cx = cx;
             obstacle.cy = cy;
             obstacle.r = r;
@@ -1326,9 +1344,9 @@ function seriesHides(entry: SeriesLabels): boolean {
  * precedence does not depend on declaration order. Single pass — `seriesHides` (an O(datums) scan) is
  * evaluated once per series rather than once per partition.
  */
-function orderKeepFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels][] {
-    const keep: [string, SeriesLabels][] = [];
-    const drop: [string, SeriesLabels][] = [];
+function orderKeepFirst<T extends SeriesLabels>(data: Map<string, T>): [string, T][] {
+    const keep: [string, T][] = [];
+    const drop: [string, T][] = [];
     for (const entry of data.entries()) {
         (seriesHides(entry[1]) ? drop : keep).push(entry);
     }
@@ -1411,9 +1429,10 @@ export function placeLabels(
 
     // Larger markers claim their placement first, so smaller ones steer clear of them.
     const placementData = new Map(
-        Array.from(data.entries(), ([k, entry]) => [
+        Array.from(data.entries(), ([k, entry], index) => [
             k,
             {
+                order: index + 1,
                 datums: entry.datums.toSorted((a, b) => markerSizeOf(b) - markerSizeOf(a)),
                 defaults: entry.defaults,
                 resolveCandidateStyle: entry.resolveCandidateStyle,
@@ -1430,11 +1449,12 @@ export function placeLabels(
     }
 
     let labelObstacleCount = 0;
-    for (const [seriesId, { datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
+    for (const [seriesId, { order, datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
         placementData
     )) {
         const labels: PlacedLabel[] = [];
         if (datums[0]?.label == null) continue;
+        candidateSeriesOrder = order;
         for (let index = 0, ln = datums.length; index < ln; index++) {
             const d = datums[index];
             // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
@@ -2947,12 +2967,13 @@ function fitPositionedCandidateAt(
     const fontSearch = candidateTrialFontSize == null;
     const container = fitTo.ownShape === false ? fitTo.container : deflateContainer(fitTo.container, threshold);
     // The clearance a label keeps from its own surface must not erase it: refit to the surface
-    // itself rather than draw the bare ellipsis the deflated container left.
-    const fitted =
-        fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign) &&
-        (container === fitTo.container ||
-            hasRealChars(fittedLabel.text) ||
-            fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign));
+    // itself rather than draw the bare ellipsis the deflated container left, or drop the label.
+    const fitsDeflated = fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign);
+    const fitted = fitsDeflated
+        ? container === fitTo.container ||
+          hasRealChars(fittedLabel.text) ||
+          fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign)
+        : container !== fitTo.container && fitOwnShapeAtFloor(fit, fitTo, font, source, fontSearch);
     if (fitted && (d.neverDrop !== true || hasRealChars(fittedLabel.text))) return true;
     if (d.neverDrop !== true || !fontSearch || fitTo.container == null) return false;
     const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
@@ -2974,6 +2995,32 @@ function fitPositionedCandidateAt(
     if (floor < font.fontSize) {
         fittedLabel.fontSize = floor;
     }
+    return true;
+}
+
+/**
+ * Fits a label the clearance rejected to its own surface, at no larger a font than the clearance search
+ * reached, so the label never grows back as its container shrinks.
+ */
+function fitOwnShapeAtFloor(
+    fit: LabelFitDescriptor,
+    fitTo: CandidateFitTarget,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined,
+    fontSearch: boolean
+): boolean {
+    if (!fontSearch)
+        return fitLabelToCandidate(fit, font, source, fitTo.container, false, fitTo.shape, fitTo.shapeAlign);
+    const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
+    if (floor >= font.fontSize) {
+        return fitLabelToCandidate(fit, font, source, fitTo.container, false, fitTo.shape, fitTo.shapeAlign);
+    }
+    const floorFit = { ...fit, text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text };
+    const floorFont = fontWithSize(font, floor);
+    if (!fitLabelToCandidate(floorFit, floorFont, undefined, fitTo.container, false, fitTo.shape, fitTo.shapeAlign)) {
+        return false;
+    }
+    fittedLabel.fontSize = floor;
     return true;
 }
 
