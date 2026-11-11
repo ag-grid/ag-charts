@@ -143,6 +143,43 @@ export function describeGlowSeries(
             expectSamePixels(await render(testCase, placement, { highlight, hover: true, themed: true }), series);
         });
 
+        it.skipIf(!hoverable)(
+            'renders the glow of each state of the items, as it renders none without it',
+            async () => {
+                const hoveredPlain = await render(testCase, {}, { hover: true });
+                for (const state of ['highlightedItem', 'unhighlightedItem']) {
+                    const highlight = { [state]: { glow: HIGHLIGHT_GLOW } };
+                    const glowing = await render(testCase, {}, { highlight, hover: true });
+                    expect(differingBytes(glowing, hoveredPlain), state).toBeGreaterThan(0);
+                }
+            }
+        );
+
+        it.skipIf(!hoverable || noItemStyler)(
+            'renders the glow that an itemStyler returns for a highlight state only while that state holds',
+            async () => {
+                const byState = (wanted: string) => ({
+                    itemStyler: ({ highlightState }: { highlightState?: string }) =>
+                        highlightState === wanted ? { glow: HIGHLIGHT_GLOW } : {},
+                });
+                const rest = await render(testCase, {});
+                const hoveredPlain = await render(testCase, {}, { hover: true });
+                for (const [state, bucket] of [
+                    ['highlighted-item', 'highlightedItem'],
+                    ['unhighlighted-item', 'unhighlightedItem'],
+                ]) {
+                    expectSamePixels(await render(testCase, byState(state)), rest);
+                    const styled = await render(testCase, byState(state), { hover: true });
+                    expect(differingBytes(styled, hoveredPlain), state).toBeGreaterThan(0);
+
+                    // The same glow, set on the highlight state of the series instead.
+                    if (testCase.reachesOtherParts && bucket === 'unhighlightedItem') continue;
+                    const highlight = { [bucket]: { glow: HIGHLIGHT_GLOW } };
+                    expectSamePixels(await render(testCase, {}, { highlight, hover: true }), styled);
+                }
+            }
+        );
+
         it.skipIf(noItemStyler)('renders the shadow that an itemStyler returns as the series shadow', async () => {
             const series = await render(testCase, { shadow: SERIES_SHADOW });
             expect(differingBytes(series, await render(testCase, {}))).toBeGreaterThan(0);

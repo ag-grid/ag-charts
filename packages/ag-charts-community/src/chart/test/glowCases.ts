@@ -25,6 +25,11 @@ export interface GlowSeriesCase {
     hoverable?: boolean;
     /** The series has a `shadow` and no `glow` where this case places it. */
     seriesShadowOnly?: boolean;
+    /**
+     * A highlight state of the series reaches parts that the `itemStyler` of this placement does not: a sankey or chord
+     * `unhighlightedItem` glow is cast by the links as well as the nodes, a node's styler by the nodes alone.
+     */
+    reachesOtherParts?: boolean;
     /** The series takes no `itemStyler` where this case places it. */
     noItemStyler?: boolean;
     /** The datum to hover where it is not the first of the series' node data. */

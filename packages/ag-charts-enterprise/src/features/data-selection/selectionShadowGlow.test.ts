@@ -6,12 +6,15 @@ import {
     SERIES_GLOW,
     SERIES_SHADOW,
     canvasImage,
+    clickAction,
     deproxy,
     differingBytes,
     expectSamePixels,
+    getSeriesSelectionNodes,
     useGlowCharts,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { type Rect, Transformable } from 'ag-charts-core';
 
 import { createEnterpriseChart } from '../../test/utils';
 
@@ -38,9 +41,23 @@ const selectFirst = async (chart: AgChartInstance) => {
     await waitForChartStability(chart);
 };
 
+/** The centre of a bar, on the canvas, where a click selects it. */
+const centreOf = (chart: AgChartInstance, seriesIndex: number, datumIndex: number) => {
+    const node = getSeriesSelectionNodes<Rect>(chart, 'datumSelection', seriesIndex)[datumIndex];
+    const { x, y, width, height } = Transformable.toCanvas(node, node.getBBox());
+    return { x: x + width / 2, y: y + height / 2 };
+};
+
+/** Selects a bar by clicking it, as the user would: unlike `setSelection`, it runs the itemStyler of each item again. */
+const clickBar = async (chart: AgChartInstance, seriesIndex = 0, datumIndex = 0) => {
+    const { x, y } = centreOf(chart, seriesIndex, datumIndex);
+    await clickAction(x, y)(chart);
+    await waitForChartStability(chart);
+};
+
 describe('shadow and glow from an itemStyler that branches on the state of an item', () => {
     const charts = useGlowCharts(createEnterpriseChart);
-    const { create, chart } = charts;
+    const { create, chart, snapshot } = charts;
 
     const selectedWith = async (style: object) => {
         await create(
@@ -73,7 +90,8 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
         expect(differingBytes(await selectedWith(STYLE), control)).toBeGreaterThan(0);
     });
 
-    // Pins a known defect: the itemStyler is not called again after setSelection, so it never sees a selection state.
+    // Pins a known defect: after `setSelection` the itemStyler is not called again, so it never sees a selection state
+    // (a click on an item does call it again: see the tests below that click).
     it.each(['selected-item', 'unselected-item'])(
         'renders no shadow or glow that an itemStyler returns for %s, as it renders none',
         async (state) => {
@@ -99,5 +117,79 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
 
         const styled = bars(({ highlightState }) => (highlightState === 'none' ? { glow: SERIES_GLOW } : {}));
         expectSamePixels(await atRest(styled), series);
+    });
+
+    describe('once an item is selected by a click', () => {
+        const STATES = ['selected-item', 'unselected-item'];
+        const CASTS: [string, object][] = [
+            ['shadow', { shadow: SERIES_SHADOW }],
+            ['glow', { glow: SERIES_GLOW }],
+        ];
+
+        const styledFor = (state: string, cast: object) =>
+            bars(({ selectionState }) => (selectionState === state ? cast : {}));
+
+        it.each(STATES.flatMap((state) => CASTS.map(([name, cast]) => [state, name, cast] as const)))(
+            'renders the %s of an itemStyler for %s, and not before the click',
+            async (state, _name, cast) => {
+                const rest = await atRest(bars());
+                expectSamePixels(await atRest(styledFor(state, cast)), rest);
+
+                await clickBar(chart());
+                const styled = canvasImage(chart());
+
+                await create(bars(), DATA, OPTIONS);
+                await clickBar(chart());
+                expect(differingBytes(styled, canvasImage(chart()))).toBeGreaterThan(0);
+            }
+        );
+
+        it('renders the shadow and glow of an itemStyler for the selected item', async () => {
+            await create(styledFor('selected-item', STYLE), DATA, OPTIONS);
+            await clickBar(chart());
+            await snapshot();
+        });
+
+        // The items of a series that has nothing selected are `unselected-item`: `unselected-series` is only handed to
+        // the styling of a series as a whole, so an itemStyler can't branch on it.
+        it('hands the itemStyler of another series unselected-item, and never unselected-series', async () => {
+            const seen = new Set<string | undefined>();
+            const series = (yKey: string, itemStyler?: (params: StylerParams) => object) => ({
+                type: 'bar',
+                xKey: 'category',
+                yKey,
+                selection: { enabled: true },
+                itemStyler,
+            });
+            const data = DATA.map((datum) => ({ ...datum, other: datum.value + 1 }));
+            await create(
+                [
+                    series('value'),
+                    series('other', ({ selectionState }) => {
+                        seen.add(selectionState);
+                        return {};
+                    }),
+                ],
+                data,
+                OPTIONS
+            );
+            await clickBar(chart(), 0, 0);
+            expect([...seen].sort((a, b) => String(a).localeCompare(String(b)))).toEqual(['none', 'unselected-item']);
+        });
+
+        it('renders as at rest once the selection has been cleared, with a series shadow and glow', async () => {
+            const withCast = [{ ...bars()[0], ...STYLE }];
+            const rest = await atRest(withCast);
+            await clickBar(chart());
+            expect(differingBytes(canvasImage(chart()), rest)).toBeGreaterThan(0);
+
+            // A click on empty space in the series area clears the selection.
+            const { x } = centreOf(chart(), 0, 0);
+            const node = getSeriesSelectionNodes<Rect>(chart(), 'datumSelection')[0];
+            await clickAction(x, Transformable.toCanvas(node, node.getBBox()).y - 20)(chart());
+            await waitForChartStability(chart());
+            expect([...chart().getSelection()]).toHaveLength(0);
+            expectSamePixels(canvasImage(chart()), rest);
+        });
     });
 });

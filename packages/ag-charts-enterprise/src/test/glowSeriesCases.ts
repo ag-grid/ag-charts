@@ -211,6 +211,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'sankey nodes',
+        reachesOtherParts: true,
         type: 'sankey',
         data: FLOW_DATA,
         hoverable: true,
@@ -220,6 +221,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'sankey links',
+        reachesOtherParts: true,
         type: 'sankey',
         data: FLOW_DATA,
         hoverable: true,
@@ -229,6 +231,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'chord nodes',
+        reachesOtherParts: true,
         type: 'chord',
         data: FLOW_DATA,
         hoverable: true,
@@ -238,6 +241,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'chord links',
+        reachesOtherParts: true,
         type: 'chord',
         data: FLOW_DATA,
         hoverable: true,
