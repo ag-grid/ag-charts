@@ -73,9 +73,7 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
         expect(differingBytes(await selectedWith(STYLE), control)).toBeGreaterThan(0);
     });
 
-    // Current behaviour, which looks wrong: after `setSelection` the itemStyler of a bar is not called again, and still
-    // sees `selectionState: 'none'`, so a shadow or glow that it returns for a selected or unselected item never renders.
-    // The cause is probably the per-datum cache of itemStyler results, which a change of selection does not clear.
+    // Pins a known defect: the itemStyler is not called again after setSelection, so it never sees a selection state.
     it.each(['selected-item', 'unselected-item'])(
         'renders no shadow or glow that an itemStyler returns for %s, as it renders none',
         async (state) => {
