@@ -7,6 +7,7 @@ import type {
     AgFinancialChartOptions,
     AgGaugeOptions,
     AgQuadrantChartOptions,
+    AgSparklineOptions,
     AgVolumeProfileChartOptions,
 } from 'ag-charts-types';
 
@@ -80,6 +81,27 @@ type ExcludedFromFinancial =
 
 type ExcludedFromVolumeProfile = Exclude<ExcludedFromFinancial, 'selection'> | 'navigator' | 'sync' | 'zoom';
 
+type ExcludedFromSparkline =
+    | ExcludedFromAllPresets
+    | 'animation'
+    | 'border'
+    | 'contextMenu'
+    | 'dataIdKey'
+    | 'dataSource'
+    | 'enableRtl'
+    | 'footnote'
+    | 'formatter'
+    | 'initialState'
+    | 'keyboard'
+    | 'loadGoogleFonts'
+    | 'navigator'
+    | 'subtitle'
+    | 'sync'
+    | 'title'
+    | 'touch'
+    | 'validations'
+    | 'zoom';
+
 describe('preset chart options', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -113,5 +135,6 @@ describe('preset chart options', () => {
         expectTypeOf<
             UncoveredChartOptions<AgVolumeProfileChartOptions, ExcludedFromVolumeProfile>
         >().toEqualTypeOf<never>();
+        expectTypeOf<UncoveredChartOptions<AgSparklineOptions, ExcludedFromSparkline>>().toEqualTypeOf<never>();
     });
 });
