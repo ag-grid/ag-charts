@@ -1422,6 +1422,7 @@ export abstract class Axis<
             hasDefinedDomain: () => this.hasDefinedDomain(),
             hasVisibleSeries: () => this.hasVisibleSeries(),
             getCanvasBounds: () => this.getCanvasBounds(),
+            getBoundedSeries: () => this.formatterBoundSeries.get(),
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
                     const seriesKeys = series.getKeyProperties(this.direction);

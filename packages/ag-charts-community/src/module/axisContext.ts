@@ -57,6 +57,8 @@ export interface AxisBandDatum extends AxisBandMeasurement {
 }
 
 export interface AxisA11YTickData {
+    readonly value: AgAxisValue;
+    readonly index: number;
     readonly ariaLabel: string;
     readonly focusBounds: BBox; // Relative to `getCanvasBounds()`
 }
@@ -94,6 +96,7 @@ export interface AxisContext {
     hasDefinedDomain(): boolean;
     hasVisibleSeries(): boolean;
     getCanvasBounds(): BoxBounds | undefined;
+    getBoundedSeries():    AgAxisBoundSeries[];
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];
     scaleInvert(position: number): any;
