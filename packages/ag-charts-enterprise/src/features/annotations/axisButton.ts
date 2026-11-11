@@ -122,8 +122,9 @@ export class AxisButton extends AbstractModuleInstance {
     }
 
     private onCrosshairPositionChange({ axisId, position }: { axisId: string; position: number | undefined }) {
-        if (axisId !== this.axisCtx.axisId || this.snapInterval == null) return;
+        if (axisId !== this.axisCtx.axisId) return;
         this.crosshairPosition = position;
+        if (this.snapInterval == null) return;
         const showable = InteractionState.Hoverable | InteractionState.AnnotationsMoveable;
         if (this.shownFor != null && this.ctx.interactionManager.isState(showable)) this.show(this.shownFor);
     }
