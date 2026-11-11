@@ -2711,6 +2711,9 @@ jobs:
         if: vars.SONARCLOUD_ENABLED != 'false' &&
             (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
         runs-on: ubuntu-24.04
+        # Normally 2-6 minutes (p95 ~5). A hung scan otherwise holds the `report` job, and so the
+        # staging deploy, for the 6 hour default. On timeout the job fails and the run is "partial".
+        timeout-minutes: 10
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
