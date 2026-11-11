@@ -63,9 +63,18 @@ export function getShapeFill(
             pattern === 'backward-slanted-lines' ||
             pattern === 'forward-slanted-lines' ||
             pattern === 'horizontal-lines' ||
-            pattern === 'vertical-lines'
+            pattern === 'vertical-lines' ||
+            pattern === 'horizontal-dashed-lines' ||
+            pattern === 'vertical-dashed-lines'
         ) {
             strokeWidth ??= defaultPattern.strokeWidth;
+        } else if (
+            pattern === 'waves' ||
+            pattern === 'hollow-circles' ||
+            pattern === 'criss-cross' ||
+            pattern === 'zig-zag'
+        ) {
+            strokeWidth ??= 2;
         } else {
             strokeWidth ??= 0;
         }

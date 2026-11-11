@@ -11,6 +11,7 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
+    AgPatternColor,
     Padding,
 } from 'ag-charts-types';
 
@@ -3014,6 +3015,70 @@ describe('BarSeries', () => {
 
             chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render the new stock fill patterns', async () => {
+            const patterns = [
+                'vertical-dashed-lines',
+                'horizontal-dashed-lines',
+                'waves',
+                'criss-cross',
+                'zig-zag',
+                'hollow-circles',
+                'polka-dots',
+            ] as const;
+            const options: AgCartesianChartOptions = {
+                data: [{ x: 'A', p0: 40, p1: 40, p2: 40, p3: 40, p4: 40, p5: 40, p6: 40 }],
+                series: patterns.map((pattern, index) => ({
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: `p${index}`,
+                    fill: { type: 'pattern', pattern, fill: 'black', stroke: 'black' },
+                    stroke: 'black',
+                    strokeWidth: 1,
+                })),
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            chart = await createChart(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should default the polka-dots tile to 8x8 and the waves tile to 14x10', async () => {
+            const patternBars = (
+                polka: Partial<AgPatternColor>,
+                waves: Partial<AgPatternColor>
+            ): AgCartesianChartOptions => ({
+                data: [{ x: 'A', polka: 40, waves: 40 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'polka',
+                        fill: { type: 'pattern', pattern: 'polka-dots', fill: 'black', stroke: 'black', ...polka },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'waves',
+                        fill: { type: 'pattern', pattern: 'waves', fill: 'black', stroke: 'black', ...waves },
+                    },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                patternBars({}, {}),
+                patternBars({ width: 8, height: 8 }, { width: 14, height: 10 })
+            );
         });
 
         it('should render Apple revenue by product with gradient fill segmentation', async () => {
