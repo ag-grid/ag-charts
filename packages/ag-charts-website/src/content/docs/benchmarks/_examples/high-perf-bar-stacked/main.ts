@@ -73,13 +73,14 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'initial-load',
                 label: 'Initial Load',
                 variants: [
-                    {
-                        params: { Operation: 'Chart Create' },
-                        run: () => performInitialLoad(options, chartRef, (opts) => AgCharts.create(opts)),
-                    },
+                    // The last variant leaves the chart the zoom case starts from, so the no-gap one runs last.
                     {
                         params: { Operation: 'Chart Create', Gap: '4px' },
                         run: () => performInitialLoad(gapOptions, chartRef, (opts) => AgCharts.create(opts)),
+                    },
+                    {
+                        params: { Operation: 'Chart Create' },
+                        run: () => performInitialLoad(options, chartRef, (opts) => AgCharts.create(opts)),
                     },
                 ],
             },
