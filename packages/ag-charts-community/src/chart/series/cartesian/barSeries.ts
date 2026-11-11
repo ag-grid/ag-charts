@@ -359,6 +359,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     override connectsToYAxis = true;
 
     private readonly aggregationManager = new AggregationManager<BarSeriesDataAggregationFilter>();
+    private datumGroupIndexCache: { source: GroupedData<any>; index: Int32Array } | undefined;
 
     private nodeDatumContext: BarSeriesNodeDatumContext | undefined = undefined;
 
@@ -1361,17 +1362,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         nodeDatumParamsScratch: NodeDatumParams
     ): void {
         const sign = ctx.yReversed ? -1 : 1;
-        // Only a gap needs the stack total, so it is looked up only then. It indexes groups, which are datums when keys are unique.
-        const stackGroups =
-            ctx.halfGap > 0 && ctx.isStacked && (this.processedData as GroupedData<any>).groupsUnique
-                ? (this.processedData as GroupedData<any>).groups
-                : undefined;
-        const stackRangeIndex =
-            stackGroups == null ? -1 : this.dataModel!.resolveProcessedDataIndexById(this, 'yValue-range');
+        // Only a gap needs the stack total, so it is looked up only then.
+        const withStackTotal = ctx.halfGap > 0 && ctx.isStacked;
 
         for (let p = 0; p < 2; p += 1) {
             const positive = p === 0;
-            const rangeSide = positive ? 1 : 0;
             const indices = positive
                 ? ctx.dataAggregationFilter!.positiveIndices
                 : ctx.dataAggregationFilter!.negativeIndices;
@@ -1437,11 +1432,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     nodeDatumParamsScratch.featherRatio =
                         (positive ? 1 : -1) * sign * (1 - toNumber(yEndMin) / toNumber(yEndMax));
                 }
-                if (stackGroups == null) {
-                    nodeDatumParamsScratch.yRange = nodeDatumParamsScratch.yEnd;
-                } else {
-                    nodeDatumParamsScratch.yRange = stackGroups[yMaxIndex].aggregation[stackRangeIndex][rangeSide];
-                }
+                nodeDatumParamsScratch.yRange = withStackTotal
+                    ? (this.stackTotalOfDatum(yMaxIndex, positive) ?? nodeDatumParamsScratch.yEnd)
+                    : nodeDatumParamsScratch.yEnd;
 
                 this.upsertNodeDatum(ctx, nodeDatumParamsScratch);
             }
@@ -2367,13 +2360,32 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return this.options.label.enabled;
     }
 
-    /** The stack total on the datum's side of the axis; undefined when keys repeat and groups are not datums. */
-    private stackTotalAt(datumIndex: number, yRawValue: AgNumericValue): AgNumericValue | undefined {
-        const processedData = this.processedData as GroupedData<any>;
-        if (!processedData.groupsUnique) return undefined;
+    /** The group of each datum, built once per data pass and only when a gap needs a stack total. -1 for a datum with no group. */
+    private datumGroupIndex(): Int32Array | undefined {
+        const processedData = this.processedData as GroupedData<any> | undefined;
+        if (processedData == null) return undefined;
+        if (this.datumGroupIndexCache?.source === processedData) return this.datumGroupIndexCache.index;
+        const { groups } = processedData;
+        const index = new Int32Array(processedData.input.count).fill(-1);
+        for (let g = 0; g < groups.length; g++) {
+            for (const relatives of groups[g].datumIndices) {
+                for (const relative of relatives) index[g + relative] = g;
+            }
+        }
+        this.datumGroupIndexCache = { source: processedData, index };
+        return index;
+    }
+
+    /** The stack total of the group a datum belongs to, on the given side of the axis. */
+    private stackTotalOfDatum(datumIndex: number, positive: boolean): AgNumericValue | undefined {
+        const index = this.datumGroupIndex();
+        const group =
+            index != null && index[datumIndex] >= 0
+                ? (this.processedData as GroupedData<any>).groups[index[datumIndex]]
+                : undefined;
+        if (group == null) return undefined;
         const rangeIndex = this.dataModel!.resolveProcessedDataIndexById(this, 'yValue-range');
-        const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-        return processedData.groups[datumIndex]?.aggregation[rangeIndex][isPositive ? 1 : 0];
+        return group.aggregation[rangeIndex][positive ? 1 : 0];
     }
 
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
@@ -2413,7 +2425,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         let alongLength = Math.abs(bottomY - y);
 
         if (ctx.halfGap > 0 && yFilterValue == null) {
-            const total = this.stackTotalAt(datumIndex, yRawValue);
+            const total = this.stackTotalOfDatum(datumIndex, yRawValue >= 0 && !Object.is(yRawValue, -0));
             const startInset = yStart === baseline ? 0 : ctx.halfGap;
             const endInset = total != null && yEnd !== total ? ctx.halfGap : 0;
             const startIsLow = bottomY <= y;
