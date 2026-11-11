@@ -17,12 +17,14 @@ const options: AgChartOptions = {
             xKey: 'quarter',
             yKey: 'petrol',
             yName: 'Petrol',
+            marker: { enabled: true },
         },
         {
             type: 'line',
             xKey: 'quarter',
             yKey: 'diesel',
             yName: 'Diesel',
+            marker: { enabled: true },
         },
     ],
 };

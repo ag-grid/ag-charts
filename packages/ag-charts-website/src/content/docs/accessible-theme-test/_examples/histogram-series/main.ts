@@ -10,7 +10,7 @@ import {
     NumberAxisModule,
 } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { getData, getVeteranData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
@@ -26,12 +26,20 @@ const options: AgChartOptions = {
     title: {
         text: 'Race demographics',
     },
-    data: getData(),
     series: [
         {
             type: 'histogram',
+            data: getData(),
             xKey: 'age',
             xName: 'Participant Age',
+            yName: 'Open',
+        },
+        {
+            type: 'histogram',
+            data: getVeteranData(),
+            xKey: 'age',
+            xName: 'Participant Age',
+            yName: 'Veteran',
         },
     ],
     axes: {

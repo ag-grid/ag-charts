@@ -1283,19 +1283,18 @@ describe('ChartTheme', () => {
         };
 
         test.each(['ag-accessible', 'ag-accessible-dark'] as const)(
-            'fills %s bar series solid, then tinted, then patterned',
+            'fills %s bar series solid, then patterned from the second series',
             async (theme) => {
                 const series = await createSeriesChart(theme, 'bar');
-                const [solid, tint, patterned] = series.map((s) => s.fill);
+                const [solid, first, second] = series.map((s) => s.fill);
 
                 expect(solid).toEqual(expect.any(String));
-                expect(tint).toMatchObject({
+                expect(first).toMatchObject({
                     type: 'pattern',
-                    strokeWidth: 0,
-                    fillOpacity: 0,
+                    pattern: 'forward-slanted-lines',
                     backgroundFillOpacity: 0.2,
                 });
-                expect(patterned).toMatchObject({ type: 'pattern', pattern: 'forward-slanted-lines' });
+                expect(second).toMatchObject({ type: 'pattern', pattern: 'polka-dots' });
             }
         );
 

@@ -39,6 +39,7 @@ const options: AgChartOptions = {
             xName: 'Financials',
             yKey: 'amount',
             yName: 'Amount',
+            totals: [{ totalType: 'total', index: 11, axisLabel: 'Closing\nBalance' }],
         },
     ],
 };
