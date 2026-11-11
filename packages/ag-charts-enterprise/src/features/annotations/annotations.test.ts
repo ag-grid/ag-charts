@@ -1567,6 +1567,30 @@ describe('Annotations', () => {
             });
         });
 
+        describe('updates the selection to match the restored annotation', () => {
+            async function restoreWhileSelected(annotation: AgAnnotation) {
+                await prepareZoomableChart();
+                await selectAtCentre();
+                await chart.setState({ ...chart.getState(), annotations: [annotation] });
+                await waitForChartStability(chart);
+            }
+
+            it('deselects it when the restored annotation is read-only', async () => {
+                await restoreWhileSelected({ type: 'horizontal-line', value: 50, readOnly: true });
+
+                await pressKey(chart, 'Delete');
+
+                expect(chart.getState().annotations).toHaveLength(1);
+            });
+
+            it('shows it as locked when the restored annotation is locked', async () => {
+                await restoreWhileSelected({ type: 'horizontal-line', value: 50, locked: true });
+
+                const lockSwitch = body().querySelector<HTMLElement>('button[aria-checked]');
+                expect(lockSwitch?.getAttribute('aria-checked')).toBe('true');
+            });
+        });
+
         // Each begins an edit and ends it again, returning the chart to idle.
         const edits = [
             [
@@ -1602,6 +1626,26 @@ describe('Annotations', () => {
                     body().querySelector<HTMLElement>('.ag-charts-dialog__close-button')!.click();
                     await waitForChartStability(chart);
                 },
+            ],
+            [
+                'having the colour picker open',
+                async () => {
+                    await selectAtCentre();
+                    body().querySelector<HTMLElement>('button[title="Line Color"]')!.click();
+                    await waitForChartStability(chart);
+                    expect(body().querySelector('.ag-charts-color-picker')).not.toBeNull();
+                },
+                () => pressKey(chart, 'Escape'),
+            ],
+            [
+                'having the line style menu open',
+                async () => {
+                    await selectAtCentre();
+                    body().querySelector<HTMLElement>('button[title="Line Style"]')!.click();
+                    await waitForChartStability(chart);
+                    expect(body().querySelector('.ag-charts-annotations__line-style-type-menu')).not.toBeNull();
+                },
+                () => pressKey(chart, 'Escape'),
             ],
             [
                 'creating an annotation',

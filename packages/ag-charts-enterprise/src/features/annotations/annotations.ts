@@ -760,6 +760,7 @@ export class Annotations extends AbstractModuleInstance {
                     const current = this.annotationData[i];
                     resetAnnotationDatum(current, annotationDatums[current.type].create(), annotations[i]);
                 }
+                this.syncSelection();
             } else {
                 this.reset();
                 this.annotationData = annotations.map((annotation) => this.createAnnotationDatum(annotation));
@@ -772,6 +773,16 @@ export class Annotations extends AbstractModuleInstance {
             this.ctx.annotationManager?.fireChangedEvent();
         });
         this.update();
+    }
+
+    private syncSelection() {
+        const active = this.state.getActive();
+        const datum = active == null ? undefined : this.annotationData.at(active);
+        if (datum?.readOnly) {
+            this.reset();
+        } else if (datum) {
+            this.optionsToolbar.refreshButtons(datum);
+        }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -1312,7 +1323,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private isEditing() {
-        return !this.state.isIdle() || this.settingsDialog.isVisible();
+        return !this.state.isIdle() || this.settingsDialog.isVisible() || this.optionsToolbar.isMenuVisible();
     }
 
     private isAnnotationState() {
