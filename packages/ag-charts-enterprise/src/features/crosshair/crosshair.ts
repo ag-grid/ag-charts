@@ -113,6 +113,7 @@ export class Crosshair
                 this.onAnnotationAxisLabelDragStart(event)
             ),
             () => {
+                this.emitPosition(undefined);
                 for (const label of Object.values(this.labels)) {
                     label.destroy();
                 }
@@ -129,6 +130,7 @@ export class Crosshair
 
     applyOptions(options: NormalisedCrosshairOptions) {
         this.options = options;
+        if (!options.enabled) this.emitPosition(undefined);
     }
 
     formatValue(

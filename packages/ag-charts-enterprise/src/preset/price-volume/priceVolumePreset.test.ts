@@ -762,6 +762,7 @@ describe('priceVolumePreset', () => {
 
         it.each<[string, AgFinancialChartOptions, boolean]>([
             ['snapped with tickSize', { tickSize: TICK_SIZE }, true],
+            ['snapped on a line chart', { tickSize: TICK_SIZE, chartType: 'line', volume: false }, true],
             [
                 'continuous when theme overrides turn snap off',
                 {
