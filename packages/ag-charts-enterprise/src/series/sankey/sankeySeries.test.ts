@@ -307,7 +307,7 @@ describe('SankeySeries', () => {
 
         const fitCases = Object.entries(placementOptions).flatMap(
             ([placement, { label }]): [string, AgSankeySeriesLabelOptions<unknown>][] => [
-                [placement, label],
+                [placement, { ...label, wrapping: 'never' }],
                 [`${placement} wrapped`, { ...label, wrapping: 'on-space', maxHeight: 40 }],
             ]
         );
@@ -344,7 +344,7 @@ describe('SankeySeries', () => {
 
         it.each(fitCases)('keeps %s labels, ellipsis included, clear of other nodes', async (_, label) => {
             const { truncatedBesideNode, wrappedBesideNode } = await renderAndCheckClearance(longLabels, label);
-            expect(label.wrapping == null ? truncatedBesideNode : wrappedBesideNode).toBe(true);
+            expect(label.wrapping === 'never' ? truncatedBesideNode : wrappedBesideNode).toBe(true);
         });
 
         it('keeps wrapped centred labels clear of the nodes above and below them', async () => {

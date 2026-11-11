@@ -338,7 +338,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -361,7 +361,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -465,7 +472,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -488,7 +495,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -592,7 +606,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -615,7 +629,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -1110,7 +1131,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -1134,8 +1155,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -1235,7 +1261,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -1259,8 +1285,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -1357,7 +1388,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -1380,7 +1411,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -1812,7 +1850,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -1835,7 +1873,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -1940,7 +1985,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -1963,7 +2008,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -2068,7 +2120,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -2091,7 +2143,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -2196,7 +2255,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -2219,7 +2278,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -2324,7 +2390,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -2347,7 +2413,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -2452,7 +2525,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -2475,7 +2548,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -2580,7 +2660,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -2603,7 +2683,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -3036,7 +3123,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -3060,8 +3147,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -3162,7 +3254,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -3186,8 +3278,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -3288,7 +3385,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -3312,8 +3409,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -3414,7 +3516,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -3438,8 +3540,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -3540,7 +3647,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -3564,8 +3671,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -3666,7 +3778,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -3690,8 +3802,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -3792,7 +3909,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -3816,8 +3933,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -3918,7 +4040,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -3942,8 +4064,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -4385,7 +4512,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -4824,7 +4958,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -4847,7 +4981,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -4951,7 +5092,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -4974,7 +5115,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -5078,7 +5226,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -5101,7 +5249,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -5205,7 +5360,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -5228,7 +5383,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -5660,7 +5822,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -5683,7 +5845,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -5798,7 +5967,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -5821,7 +5990,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -5936,7 +6112,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -5959,7 +6135,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -6074,7 +6257,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -6097,7 +6280,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -6212,7 +6402,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -6235,7 +6425,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -6675,7 +6872,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -6699,8 +6896,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -7128,7 +7330,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -7154,8 +7356,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
           "color": "white",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -7608,7 +7815,14 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -8052,7 +8266,14 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "labelKey": "city",
       "labelName": "City",
@@ -8477,7 +8698,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -8501,8 +8722,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -8600,7 +8826,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -8624,8 +8850,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -9049,7 +9280,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -9073,8 +9304,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -9175,7 +9411,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -9199,8 +9435,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -9630,7 +9871,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -9654,8 +9895,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -9758,7 +10004,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -9782,8 +10028,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -9886,7 +10137,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -9910,8 +10161,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -10014,7 +10270,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -10038,8 +10294,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -10142,7 +10403,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -10166,8 +10427,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -10270,7 +10536,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -10294,8 +10560,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -10398,7 +10669,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -10422,8 +10693,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -10849,7 +11125,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -10872,7 +11148,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -10977,7 +11260,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -11000,7 +11283,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -11105,7 +11395,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -11128,7 +11418,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -11233,7 +11530,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -11256,7 +11553,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -11361,7 +11665,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -11384,7 +11688,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -11489,7 +11800,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -11512,7 +11823,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -11617,7 +11935,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -11640,7 +11958,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -11745,7 +12070,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -11768,7 +12093,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -11873,7 +12205,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -11896,7 +12228,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -12001,7 +12340,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -12024,7 +12363,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -12129,7 +12475,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -12152,7 +12498,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -12257,7 +12610,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -12280,7 +12633,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -12385,7 +12745,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -12408,7 +12768,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -12513,7 +12880,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -12536,7 +12903,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -12641,7 +13015,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -12664,7 +13038,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -12769,7 +13150,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -12792,7 +13173,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -13217,7 +13605,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -13240,7 +13628,14 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -13672,7 +14067,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -13695,7 +14090,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -13818,7 +14220,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -13841,7 +14243,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -13964,7 +14373,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -13987,7 +14396,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -14110,7 +14526,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -14133,7 +14549,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -14256,7 +14679,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -14279,7 +14702,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -14402,7 +14832,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -14425,7 +14855,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -14548,7 +14985,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -14571,7 +15008,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -15022,7 +15466,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -15046,8 +15490,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -15149,7 +15598,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -15173,8 +15622,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -15276,7 +15730,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -15300,8 +15754,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -15728,7 +16187,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -15752,8 +16211,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -15854,7 +16318,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -15878,8 +16342,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -15980,7 +16449,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -16004,8 +16473,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -16106,7 +16580,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -16130,8 +16604,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -16232,7 +16711,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -16256,8 +16735,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -16358,7 +16842,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -16382,8 +16866,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -16837,7 +17326,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -16860,7 +17349,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -16974,7 +17470,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -16997,7 +17493,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -17111,7 +17614,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -17134,7 +17637,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -17248,7 +17758,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -17271,7 +17781,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -17712,7 +18229,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -17738,8 +18255,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
           "color": "#eeeeee",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -18019,6 +18541,8 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "minAngle": 0.001,
         "offset": 3,
         "padding": 8,
+        "truncate": true,
+        "wrapping": "on-space",
       },
       "calloutLabelKey": "type",
       "calloutLine": {
@@ -18199,6 +18723,8 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "padding": 8,
         "positionOffset": 0,
         "positionRatio": 0.5,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "sectorLabelKey": "count",
       "sectorSpacing": 1,
@@ -18652,7 +19178,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -18675,7 +19201,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -18779,7 +19312,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -18802,7 +19335,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -19088,6 +19628,8 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "minAngle": 0,
         "offset": 3,
         "padding": 8,
+        "truncate": true,
+        "wrapping": "on-space",
       },
       "calloutLabelKey": "religion",
       "calloutLine": {
@@ -19235,6 +19777,8 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "padding": 8,
         "positionOffset": 0,
         "positionRatio": 0.5,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "sectorLabelKey": "population",
       "sectorSpacing": 1,
@@ -19675,7 +20219,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -20117,7 +20668,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -20140,7 +20691,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -20261,7 +20819,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -20284,7 +20842,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -20405,7 +20970,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -20428,7 +20993,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -20549,7 +21121,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -20572,7 +21144,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -20693,7 +21272,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -20716,7 +21295,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -20837,7 +21423,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -20860,7 +21446,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -21309,7 +21902,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -21333,8 +21926,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -21435,7 +22033,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -21459,8 +22057,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -21561,7 +22164,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -21585,8 +22188,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -21687,7 +22295,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -21711,8 +22319,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -22142,7 +22755,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -22166,8 +22779,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -22270,7 +22888,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -22294,8 +22912,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -22398,7 +23021,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -22422,8 +23045,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -22526,7 +23154,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -22550,8 +23178,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -22654,7 +23287,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -22678,8 +23311,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "inside-center",
+        "placement": [
+          "inside-center",
+          "outside-end",
+        ],
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -23132,7 +23770,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -23160,6 +23798,8 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "padding": 1,
         "placement": "inside-end",
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -23626,7 +24266,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -23652,6 +24292,8 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "padding": 4,
         "placement": "inside-end",
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -24120,7 +24762,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "shapes": false,
           },
@@ -24146,6 +24788,8 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "padding": 4,
         "placement": "inside-end",
         "spacing": 8,
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -24608,7 +25252,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -24631,7 +25275,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -25101,7 +25752,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -25124,7 +25775,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -25593,7 +26251,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -25616,7 +26274,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,
@@ -26087,7 +26752,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
           "strokeWidth": 1,
         },
         "collision": {
-          "alwaysShow": true,
+          "alwaysShow": false,
           "collideWith": {
             "seriesArea": true,
           },
@@ -26110,7 +26775,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": "top",
+        "placement": [
+          "top",
+          "bottom",
+          "right",
+          "left",
+        ],
+        "truncate": false,
+        "wrapping": "on-space",
       },
       "lineDash": [
         0,

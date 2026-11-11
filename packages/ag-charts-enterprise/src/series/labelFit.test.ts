@@ -27,7 +27,6 @@ import {
     type ChartOrProxy,
     compareImageSnapshot,
     getSeriesContextNodeData,
-    getSeriesOptions,
     getSeriesSelectionNodes,
     setupMockCanvas,
     setupMockConsole,
@@ -423,7 +422,9 @@ describe('series label fit', () => {
                     ],
                 });
                 chart = await createEnterpriseChart(crowdedChart());
-                expect(drawnLabels().map((node) => node.fontSize)).toEqual(Array(16).fill(FONT_SIZE));
+                const unshrunk = drawnLabels().map((node) => node.fontSize);
+                expect(unshrunk.length).toBeLessThan(16);
+                expect(unshrunk.every((size) => size === FONT_SIZE)).toBe(true);
 
                 chart.destroy();
                 chart = await createEnterpriseChart(
@@ -952,8 +953,8 @@ describe('series label fit', () => {
         const isWrapped = (node: PlainText) => node.text.includes('\n');
         const isTruncated = (node: PlainText) => node.text.includes(ELLIPSIS);
 
-        it('truncates labels on one line at their configured size when no fit option is set', async () => {
-            await renderNarrow(sankeyChart({}));
+        it('truncates labels on one line at their configured size when wrapping is off', async () => {
+            await renderNarrow(sankeyChart({ wrapping: 'never' }));
             const rendered = drawnLabels();
             expect(rendered.length).toBe(6);
             expect(rendered.every((node) => node.fontSize === FONT_SIZE && !isWrapped(node))).toBe(true);
@@ -1000,25 +1001,12 @@ describe('series label fit', () => {
             expect(rendered.some((node) => node.fontSize === 12 && isTruncated(node))).toBe(true);
         });
 
-        it('resolves the other fit options once one is set', async () => {
-            await renderNarrow(sankeyChart({}));
-            const { label } = getSeriesOptions<AgSankeySeriesOptions>(chart);
-            expect(label).toBeDefined();
-            expect([label?.wrapping, label?.truncate]).toEqual([undefined, undefined]);
-
-            chart.destroy();
-            await renderNarrow(sankeyChart({ minimumFontSize: 6 }));
-            expect(getSeriesOptions<AgSankeySeriesOptions>(chart).label).toMatchObject({
-                wrapping: 'on-space',
-                truncate: true,
-            });
-        });
-
         it('takes the fit options from the theme', async () => {
             await renderNarrow(
-                sankeyChart({}, { overrides: { sankey: { series: { label: { wrapping: 'on-space' } } } } })
+                sankeyChart({}, { overrides: { sankey: { series: { label: { wrapping: 'never' } } } } })
             );
-            expect(drawnLabels().some(isWrapped)).toBe(true);
+            expect(drawnLabels().some(isWrapped)).toBe(false);
+            expect(drawnLabels().some(isTruncated)).toBe(true);
         });
 
         it('measures wrapped labels by their lineHeight', async () => {
@@ -1400,9 +1388,9 @@ describe('series label fit', () => {
             ['sunburst', sunburstChart, hierarchyLabelTexts],
             ['heatmap', heatmapChart, heatmapLabelTexts],
         ] as const)(
-            '%s truncates by default, hides with truncate off and keeps with alwaysShow',
+            '%s truncates with truncate on, hides with truncate off and keeps with alwaysShow',
             async (_, build, texts) => {
-                chart = await createEnterpriseChart(build({}));
+                chart = await createEnterpriseChart(build({ truncate: true }));
                 expect(someTruncated(texts())).toBe(true);
                 const truncatedCount = texts().length;
 
@@ -1644,16 +1632,19 @@ describe('series label fit', () => {
         it.each([
             ['radial-gauge', radialGauge],
             ['linear-gauge', linearGauge],
-        ] as const)('%s truncates by default, hides with truncate off and keeps with alwaysShow', async (_, build) => {
-            await renderGauge(build({}));
-            expect(someTruncated(gaugeLabelTexts())).toBe(true);
+        ] as const)(
+            '%s truncates with truncate on, hides with truncate off and keeps with alwaysShow',
+            async (_, build) => {
+                await renderGauge(build({ truncate: true }));
+                expect(someTruncated(gaugeLabelTexts())).toBe(true);
 
-            await renderGauge(build({ truncate: false }));
-            expect(gaugeLabelTexts()).toEqual([]);
+                await renderGauge(build({ truncate: false }));
+                expect(gaugeLabelTexts()).toEqual([]);
 
-            await renderGauge(build({ truncate: false, collision: { alwaysShow: true } }));
-            expect(gaugeLabelTexts()).toEqual([longText]);
-        });
+                await renderGauge(build({ truncate: false, collision: { alwaysShow: true } }));
+                expect(gaugeLabelTexts()).toEqual([longText]);
+            }
+        );
 
         it('keeps radial-gauge labels that alwaysShow marks when the stack does not fit', async () => {
             const secondaryLabel = { text: longText, truncate: false };
@@ -1891,11 +1882,11 @@ describe('series label fit', () => {
             ['linear-gauge', linearGauge],
         ] as const)('%s keeps its label within maxWidth and maxHeight', async (_, build) => {
             const text = 'A long label text';
-            await renderGauge(build({ text, minimumFontSize: undefined, maxWidth: 60 }));
+            await renderGauge(build({ text, minimumFontSize: undefined, truncate: true, maxWidth: 60 }));
             expect(gaugeLabelTexts()).toHaveLength(1);
             expect(firstLabelNode().getBBox().width).toBeLessThanOrEqual(60);
 
-            await renderGauge(build({ text, minimumFontSize: undefined, maxHeight: 20 }));
+            await renderGauge(build({ text, minimumFontSize: undefined, truncate: true, maxHeight: 20 }));
             expect(gaugeLabelTexts()).toHaveLength(1);
             expect(firstLabelNode().getBBox().height).toBeLessThanOrEqual(20);
         });
@@ -2042,7 +2033,7 @@ describe('series label fit', () => {
             height: 400,
             value: 60,
             scale: { min: 0, max: 100 },
-            label: { text: 'A long radial gauge label', fontSize: 30, maxWidth: 120 },
+            label: { text: 'A long radial gauge label', fontSize: 30, minimumFontSize: 8, maxWidth: 120 },
             targets: [
                 { value: 20, text: 'Wrapped target text', label: { maxWidth: 50, color: 'red', ...targetLabel } },
                 { value: 70, text: 'Target', label: { fontSize: 16, fontWeight: 'bold', ...targetLabel } },

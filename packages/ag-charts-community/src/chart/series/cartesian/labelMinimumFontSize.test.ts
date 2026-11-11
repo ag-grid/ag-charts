@@ -321,7 +321,9 @@ describe('label minimumFontSize', () => {
                     label: {
                         enabled: true,
                         fontSize: FONT_SIZE,
+                        placement: 'top',
                         wrapping: 'never',
+                        truncate: true,
                         formatter: (p: any) => p.datum.label,
                         ...label,
                     },
@@ -330,8 +332,7 @@ describe('label minimumFontSize', () => {
         });
         const sized = () => Object.fromEntries(labels().map((node) => [node.text, node.fontSize]));
 
-        // `wrapping: 'never'` opts the label into overflow control, so the crowded one gives up text to
-        // fit beside its neighbour. Without a floor it keeps its size while doing so: no floor, no ladder.
+        // Without a floor the crowded label keeps its size and gives up text instead: no floor, no ladder.
         it('truncates a colliding label at its configured size when minimumFontSize is unset', async () => {
             await render(pairChart(1.2, {}));
             const rendered = sized();

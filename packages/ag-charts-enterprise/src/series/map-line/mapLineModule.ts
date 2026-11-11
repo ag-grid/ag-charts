@@ -2,7 +2,6 @@ import { type AgMapLineSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
-    LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_SELECTION_THEME,
@@ -41,7 +40,8 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
             maxStrokeWidth: 3,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
-                ...LABEL_OVERFLOW_DEFAULTS,
+                wrapping: 'on-space',
+                truncate: true,
                 enabled: true,
                 fontSize: { $ref: 'seriesLabelFontSize' },
                 lineHeight: themeLineHeight('seriesLabelLineHeight'),

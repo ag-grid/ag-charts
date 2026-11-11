@@ -582,29 +582,10 @@ export const LABEL_OVERFLOW_DEFAULTS: WithThemeParams<AgChartLabelFitOptions> = 
     },
 };
 
-/** Counterpart to {@link LABEL_OVERFLOW_DEFAULTS}, assigned to `label.collision.alwaysShow` one level deeper. */
-export const LABEL_OVERFLOW_ALWAYS_SHOW: Operation = {
-    $if: [
-        {
-            $or: [
-                {
-                    $isUserOption: [
-                        ['../maxWidth', '../maxHeight', '../wrapping', '../truncate', '../minimumFontSize'],
-                    ],
-                },
-                { $isType: [{ $path: '../placement' }, 'array'] },
-                { $isType: [{ $path: '../orientation' }, 'array'] },
-            ],
-        },
-        false,
-        true,
-    ],
-};
-
 /** `label.collision` for bar-like series, whose labels must also avoid other series' bars. */
 export const BAR_LABEL_COLLISION_THEME = {
     threshold: 4,
-    alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+    alwaysShow: false,
     collideWith: { shapes: false },
 };
 

@@ -139,11 +139,13 @@ describe('gauge preset fast path', () => {
 
                 await chart.update(prepareEnterpriseTestOptions({ ...staticBase, value: 12 }));
                 await waitForChartStability(chart);
-                const fast = fastSampler();
+                const moved = fastSampler();
+                // Sampler keys pin to the text a node first showed, so key the comparison afresh.
+                const fast = createSceneGeometrySampler(chart)();
                 chart.destroy();
 
                 // The value update must actually move the scene, so the equality below cannot pass flat.
-                expect(fast).not.toEqual(before);
+                expect(moved).not.toEqual(before);
 
                 chart = AgCharts.createGauge(prepareEnterpriseTestOptions({ ...staticBase, value: 12 }));
                 const coldSampler = createSceneGeometrySampler(chart);

@@ -96,13 +96,13 @@ describe('Labels', () => {
     });
 
     describe('collision.alwaysShow', () => {
-        test('defaults to true (keep the label rather than hide it)', async () => {
+        test('defaults to false (hide the label rather than overlap)', async () => {
             chart = await createChart({
                 data: [{ x: 'A', y: 1 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             });
             const barSeries = classCast(deproxy(chart).series[0], BarSeries);
-            expect(barSeries.options.label.collision.alwaysShow).toBe(true);
+            expect(barSeries.options.label.collision.alwaysShow).toBe(false);
         });
     });
 

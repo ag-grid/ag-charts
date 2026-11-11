@@ -30,34 +30,32 @@ const setPath = (target: Record<string, any>, path: string, value: unknown) => {
 const getPath = (source: Record<string, any>, path: string) =>
     path.split('.').reduce<any>((node, key) => node?.[key], source);
 
-/**
- * Captured on the base commit, before `series.label` existed: the resolved `item.<type>.label`
- * subtree for a waterfall configured with no label options at all. Identical for all three bar
- * types. Pinning it literally is the gate for "an item-level-only waterfall renders as it does today".
- */
-const BASELINE_ITEM_LABEL = {
+/** The resolved `item.<type>.label` subtree for a waterfall with no label options, identical for all three bar types. */
+const DEFAULT_ITEM_LABEL = {
     enabled: false,
     border: { enabled: false, stroke: 'rgba(24, 29, 31, 0.08)', strokeWidth: 1 },
     cornerRadius: 4,
-    padding: 6,
+    padding: 8,
     fontFamily:
         '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
     fontSize: 12,
     fontWeight: 400,
-    collision: { threshold: 4, alwaysShow: true, collideWith: { shapes: false } },
+    wrapping: 'on-space',
+    truncate: false,
+    collision: { threshold: 4, alwaysShow: false, collideWith: { shapes: false } },
     insideStyle: { color: '#ffffff', border: { enabled: false } },
     outsideStyle: { color: '#181d1f', border: { enabled: false } },
-    placement: 'outside-end',
-    spacing: 6,
+    placement: ['inside-center', 'outside-end'],
+    spacing: 8,
 };
 
 describe('waterfall series-level label', () => {
-    describe('resolves identically to the pre-change theme', () => {
+    describe('resolves the default item label', () => {
         it('with no label configuration', () => {
             const labels = resolveLabels({});
 
             for (const itemType of ITEM_TYPES) {
-                expect(labels[itemType]).toStrictEqual(BASELINE_ITEM_LABEL);
+                expect(labels[itemType]).toStrictEqual(DEFAULT_ITEM_LABEL);
             }
         });
 
@@ -69,16 +67,14 @@ describe('waterfall series-level label', () => {
             });
 
             expect(labels.positive).toStrictEqual({
-                ...BASELINE_ITEM_LABEL,
+                ...DEFAULT_ITEM_LABEL,
                 enabled: true,
                 maxWidth: 80,
                 maxHeight: 40,
-                wrapping: 'on-space',
-                truncate: false,
                 collision: { threshold: 12, alwaysShow: false, collideWith: { shapes: false } },
             });
-            expect(labels.negative).toStrictEqual(BASELINE_ITEM_LABEL);
-            expect(labels.total).toStrictEqual(BASELINE_ITEM_LABEL);
+            expect(labels.negative).toStrictEqual(DEFAULT_ITEM_LABEL);
+            expect(labels.total).toStrictEqual(DEFAULT_ITEM_LABEL);
         });
     });
 
@@ -184,12 +180,8 @@ describe('waterfall series-level label', () => {
         });
     });
 
-    // The fit options (`wrapping`, `truncate`, `collision.alwaysShow`) carry an inferred default that
-    // fires off the item's own fit siblings and off an array-valued `placement`/`orientation` — which
-    // an item now inherits from the series. An explicit series-level value is a user value for every
-    // bar type, so it has to beat that inference; only an unset one may be inferred.
-    describe('fit options against the overflow inference', () => {
-        it('keep explicit series-level values when an inherited `placement` array fires the inference', () => {
+    describe('fit options', () => {
+        it('keep explicit series-level values alongside an inherited `placement` array', () => {
             const labels = resolveLabels({
                 label: {
                     enabled: true,
@@ -207,7 +199,7 @@ describe('waterfall series-level label', () => {
             }
         });
 
-        it('keep explicit series-level values when an item-level `maxWidth` fires the inference', () => {
+        it('keep explicit series-level values alongside an item-level `maxWidth`', () => {
             const labels = resolveLabels({
                 label: { enabled: true, wrapping: 'never', truncate: false, collision: { alwaysShow: true } },
                 item: { positive: { label: { maxWidth: 80 } } },
@@ -218,16 +210,6 @@ describe('waterfall series-level label', () => {
                 expect(labels[itemType].wrapping).toBe('never');
                 expect(labels[itemType].truncate).toBe(false);
                 expect(labels[itemType].collision.alwaysShow).toBe(true);
-            }
-        });
-
-        it('still infer the managed set where the series sets no fit options', () => {
-            const labels = resolveLabels({ label: { enabled: true, placement: ['outside-end', 'inside-center'] } });
-
-            for (const itemType of ITEM_TYPES) {
-                expect(labels[itemType].wrapping).toBe('on-space');
-                expect(labels[itemType].truncate).toBe(true);
-                expect(labels[itemType].collision.alwaysShow).toBe(false);
             }
         });
 

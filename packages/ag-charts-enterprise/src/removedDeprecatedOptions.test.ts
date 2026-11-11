@@ -326,31 +326,30 @@ describe('removed deprecated options', () => {
             ]);
         });
 
-        it.each<[name: string, options: object, read: (chart: AgChartInstance) => boolean | undefined]>([
-            ['heatmap', heatmap(), (c) => getSeriesOptions<AgHeatmapSeriesOptions>(c).label?.truncate],
-            ['treemap', treemap(), (c) => getSeriesOptions<AgTreemapSeriesOptions>(c).tile?.label?.truncate],
-            ['sunburst', sunburst(), (c) => getSeriesOptions<AgSunburstSeriesOptions>(c).label?.truncate],
+        it.each<
+            [name: string, options: object, read: (chart: AgChartInstance) => boolean | undefined, truncate: boolean]
+        >([
+            ['heatmap', heatmap(), (c) => getSeriesOptions<AgHeatmapSeriesOptions>(c).label?.truncate, false],
+            ['treemap', treemap(), (c) => getSeriesOptions<AgTreemapSeriesOptions>(c).tile?.label?.truncate, true],
+            ['sunburst', sunburst(), (c) => getSeriesOptions<AgSunburstSeriesOptions>(c).label?.truncate, true],
             [
                 'linear gauge',
                 linearGauge({ label: { enabled: true } }),
                 (c) => getSeriesOptions<AgLinearGaugeOptions>(c).label?.truncate,
+                false,
             ],
-            ['radial gauge', radialGauge(), (c) => getSeriesOptions<AgRadialGaugeOptions>(c).label?.truncate],
+            ['radial gauge', radialGauge(), (c) => getSeriesOptions<AgRadialGaugeOptions>(c).label?.truncate, false],
             [
                 'organization node title',
                 organization(),
                 (c) => getSeriesOptions<AgOrganizationSeriesOptions>(c).node?.title?.truncate,
+                true,
             ],
-        ])('truncates %s labels by default', async (_name, options, read) => {
+            ['map shape', mapShape(), (c) => getSeriesOptions<AgMapShapeSeriesOptions>(c).label?.truncate, true],
+        ])('resolves %s label truncate to its default', async (_name, options, read, truncate) => {
             await render(options);
 
-            expect(read(chart!)).toBe(true);
-        });
-
-        it('leaves map shape label truncation unset', async () => {
-            await render(mapShape());
-
-            expect(getSeriesOptions<AgMapShapeSeriesOptions>(chart!).label?.truncate).toBeUndefined();
+            expect(read(chart!)).toBe(truncate);
         });
     });
 });

@@ -2,7 +2,6 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
-    LABEL_OVERFLOW_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
     PLACED_LABEL_BOXING_DEFAULTS,
     SERIES_GLOW_BUCKETS,
@@ -36,7 +35,8 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         },
         calloutLabel: {
             ...PLACED_LABEL_BOXING_DEFAULTS('outside'),
-            ...LABEL_OVERFLOW_DEFAULTS,
+            wrapping: 'on-space',
+            truncate: true,
             enabled: true,
             fontSize: { $ref: 'seriesLabelFontSize' },
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
@@ -49,7 +49,8 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         },
         sectorLabel: {
             ...PLACED_LABEL_BOXING_DEFAULTS('inside'),
-            ...LABEL_OVERFLOW_DEFAULTS,
+            wrapping: 'on-space',
+            truncate: false,
             enabled: true,
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             fontSize: { $ref: 'seriesLabelFontSize' },

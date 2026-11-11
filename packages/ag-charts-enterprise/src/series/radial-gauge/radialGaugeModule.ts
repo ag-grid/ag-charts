@@ -96,11 +96,12 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: 56,
                 lineHeight: themeLineHeight('seriesLabelLineHeight'),
-                minimumFontSize: 18 / 56,
+                // Clamped so a user fontSize below 18 doesn't fail minimumFontSize validation.
+                minimumFontSize: { $if: [{ $lessThan: [{ $path: './fontSize' }, 18] }, { $path: './fontSize' }, 18] },
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'textColor' },
                 wrapping: 'on-space',
-                truncate: true,
+                truncate: false,
                 spacing: 0,
             },
             secondaryLabel: {

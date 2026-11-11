@@ -115,7 +115,7 @@ export interface AgLinearGaugeLabelOptions
     /**
      * Placement of the label. Either a single placement or an ordered fallback list tried in turn until one fits.
      *
-     * Default: `'inside-start'`
+     * Default: `['bar-inside', 'bar-outside-end']`
      */
     placement?: AgLinearGaugeLabelPlacement | AgLinearGaugeLabelPlacement[];
 }

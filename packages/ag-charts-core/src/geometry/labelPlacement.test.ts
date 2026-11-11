@@ -1484,10 +1484,12 @@ describe('bar label placement helpers', () => {
             expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);
         });
 
-        it('skips zero-area rects', () => {
+        it('skips zero-area and non-finite rects', () => {
             const result = rectLabelObstacles([
                 { x: 0, y: 0, width: 0, height: 10 },
                 { x: 0, y: 0, width: 10, height: 0 },
+                { x: 0, y: Number.NaN, width: 10, height: Number.NaN },
+                { x: Number.NaN, y: 0, width: 10, height: 10 },
                 { x: 0, y: 0, width: 10, height: 10 },
             ]);
             expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);

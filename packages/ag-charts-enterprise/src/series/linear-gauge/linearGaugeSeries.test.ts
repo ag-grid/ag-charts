@@ -64,6 +64,7 @@ describe('LinearGaugeSeries', () => {
         const frames = spyOnAnimationFrames();
 
         const VALUE_BAR = 'series[0]/rect[value-0]';
+        const VALUE_LABEL = 'series[0]/text[0]';
 
         it.each(['horizontal', 'vertical'] as const)(
             'value bar reveals by growing its clip window along the %s main axis',
@@ -99,7 +100,11 @@ describe('LinearGaugeSeries', () => {
                         ? { clipX1: grows, width: grows, visible: 'any' as const }
                         : { clipY0: shrinks, y: shrinks, height: grows, visible: 'any' as const };
 
-                expectSceneTrajectory(trajectory, { [VALUE_BAR]: valueBarSpec });
+                // The value label rides the bar's leading edge and fades in.
+                const valueLabelSpec =
+                    direction === 'horizontal' ? { x: grows, opacity: grows } : { y: shrinks, opacity: grows };
+
+                expectSceneTrajectory(trajectory, { [VALUE_BAR]: valueBarSpec, [VALUE_LABEL]: valueLabelSpec });
             }
         );
 
