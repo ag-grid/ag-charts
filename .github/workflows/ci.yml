@@ -26,6 +26,11 @@ on:
                 options:
                     - 'affected'
                     - 'run-many'
+            pr_number:
+                description: 'PR to run the PR-only jobs for (PR Preview, Snapshot Review, L10n Review, PR comments). The PR must be open, from this repository and on the branch this run is dispatched on. Leave empty to skip them.'
+                type: 'string'
+                required: false
+                default: ''
 
 env:
     IBM_TELEMETRY_DISABLED: 'true'
@@ -67,12 +72,25 @@ jobs:
         if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         outputs:
             run_full_ci: ${{ steps.decide.outputs.run_full_ci }}
-            locale: ${{ steps.filter.outputs.locale }}
+            locale: ${{ steps.filter.outputs.locale || steps.locale_dispatch.outputs.locale }}
+            pr_present: ${{ steps.pr.outputs.present }}
+            pr_same_repo: ${{ steps.pr.outputs.same_repo }}
+            pr_number: ${{ steps.pr.outputs.number }}
+            pr_base_ref: ${{ steps.pr.outputs.base_ref }}
+            pr_base_sha: ${{ steps.pr.outputs.base_sha }}
+            pr_head_sha: ${{ steps.pr.outputs.head_sha }}
         steps:
             - name: Checkout
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
+
+            - name: Resolve PR context
+              id: pr
+              uses: ./external/ag-shared/github/actions/pr-context
+              with:
+                  pr-number: ${{ github.event.inputs.pr_number }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Detect file changes (PR only)
               id: filter
@@ -108,6 +126,25 @@ jobs:
                       locale:
                         - 'packages/ag-charts-locale/src/**'
 
+            # paths-filter reads the PR's file list from the event, so a dispatch reads the same list itself.
+            - name: Detect locale changes (dispatch with a PR)
+              id: locale_dispatch
+              if: github.event_name != 'pull_request' && steps.pr.outputs.present == 'true'
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_NUMBER: ${{ steps.pr.outputs.number }}
+              run: |
+                  if ! files=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename'); then
+                    echo "::warning::Could not list the files of PR #${PR_NUMBER}; L10n Review will be skipped."
+                    echo "locale=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+                  if grep -q '^packages/ag-charts-locale/src/' <<< "${files}" ; then
+                    echo "locale=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "locale=false" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Decide what to run
               id: decide
               run: |
@@ -137,6 +174,7 @@ jobs:
         if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         permissions:
             contents: write
+            pull-requests: read
         env:
             AG_FORCE_ALL_TESTS: 1
             # Docs-example sweeps cover only the vanilla variant of the examples this branch did not
@@ -164,6 +202,16 @@ jobs:
               with:
                   fetch-depth: 1
 
+            # init doesn't wait for detect-changes, so a dispatch resolves its own PR base.
+            - name: Resolve PR context (dispatch)
+              id: pr
+              if: github.event_name == 'workflow_dispatch'
+              uses: ./external/ag-shared/github/actions/pr-context
+              with:
+                  pr-number: ${{ github.event.inputs.pr_number }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  quiet: 'true'
+
             - name: Setup
               id: setup
               uses: ./.github/actions/setup-nx
@@ -180,7 +228,7 @@ jobs:
                   # Measured net win (~30s): the graph computation moves into the build step,
                   # but the plugin-build invocation's own fixed overhead is avoided.
                   skip_plugin_build: true
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
+                  base_ref: ${{ github.event.pull_request.base.ref || steps.pr.outputs.base_ref || github.event.base_ref || 'latest' }}
 
             - name: nx build and generate cacheable examples
               id: build
@@ -398,7 +446,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
                   free_disk_space: false
 
             - name: nx format:check
@@ -482,7 +530,7 @@ jobs:
                   yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             - name: nx generate
               id: generate
@@ -519,7 +567,7 @@ jobs:
                   yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             - name: nx build
               id: build
@@ -535,7 +583,7 @@ jobs:
             # ag-dev-prompts docs/pr-plnkr-v2-plan.md.
             - name: Build ESM entry points for PR preview
               id: build_esm
-              if: github.event_name == 'pull_request' && steps.build.outcome == 'success'
+              if: needs.detect-changes.outputs.pr_present == 'true' && steps.build.outcome == 'success'
               run: |
                   yarn nx run-many -t build -p ag-charts-types ag-charts-core ag-charts-community \
                       ag-charts-enterprise ag-charts-locale ag-charts-react ag-charts-angular ag-charts-vue3
@@ -543,7 +591,7 @@ jobs:
             # The enterprise UMD loads ag-charts-community at runtime, so publish both even when `nx affected` rebuilt only one.
             - name: Build UMD bundles for PR preview
               id: build_umd
-              if: github.event_name == 'pull_request' && steps.build_esm.outcome == 'success'
+              if: needs.detect-changes.outputs.pr_present == 'true' && steps.build_esm.outcome == 'success'
               run: |
                   yarn nx run-many -t build:umd -p ag-charts-community ag-charts-enterprise
 
@@ -551,16 +599,16 @@ jobs:
             # imports the site's own import-map builder through the `@utils`/`@constants` aliases.
             - name: Stage PR preview payload
               id: build_preview
-              if: github.event_name == 'pull_request' && steps.build_umd.outcome == 'success'
+              if: needs.detect-changes.outputs.pr_present == 'true' && steps.build_umd.outcome == 'success'
               working-directory: packages/ag-charts-website
               env:
-                  PR_NUMBER: ${{ github.event.pull_request.number }}
-                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                  PR_NUMBER: ${{ needs.detect-changes.outputs.pr_number }}
+                  HEAD_SHA: ${{ needs.detect-changes.outputs.pr_head_sha }}
               run: |
                   npx tsx scripts/pr-preview-manifest.ts --pr "$PR_NUMBER" --sha "$HEAD_SHA" --out ../../dist/pr-preview
 
             - name: Upload PR preview payload
-              if: github.event_name == 'pull_request' && steps.build_preview.outcome == 'success'
+              if: needs.detect-changes.outputs.pr_present == 'true' && steps.build_preview.outcome == 'success'
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: pr-preview
@@ -594,7 +642,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
                   free_disk_space: false
 
             - name: nx run-many -t validate-examples
@@ -605,13 +653,13 @@ jobs:
     pr_preview:
         runs-on: ubuntu-24.04
         name: PR Preview
-        needs: [build]
+        needs: [detect-changes, build]
         # Same-repo PRs only — fork PRs get a read-only token from GitHub, so
         # the deploy-to-gh-pages and sticky-comment steps would fail. Mirrors
         # the fork-PR gate used in pr-review.yml.
         if: |
-            github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository &&
+            needs.detect-changes.outputs.pr_present == 'true' &&
+            needs.detect-changes.outputs.pr_same_repo == 'true' &&
             needs.build.outputs.build == 'success'
         permissions:
             contents: write
@@ -628,10 +676,10 @@ jobs:
         # longer contend. Keep this group string byte-identical to the ones in
         # `snapshot_review` (below) and `gh_pages_cleanup` (pr-cleanup.yml).
         concurrency:
-            group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
+            group: pr-preview-gh-pages-${{ needs.detect-changes.outputs.pr_number }}
             cancel-in-progress: false
         env:
-            PR_NUMBER: ${{ github.event.pull_request.number }}
+            PR_NUMBER: ${{ needs.detect-changes.outputs.pr_number }}
         steps:
             # Needed for the local shared action below; same-repo gate (job if) is the guard.
             - name: Checkout
@@ -666,8 +714,15 @@ jobs:
                   node tools/ci/check-pr-preview.mjs "$PREVIEW_DIR"
                   echo "publish=true" >> "$GITHUB_OUTPUT"
 
+            - name: Check the PR head is current
+              id: head
+              uses: ./external/ag-shared/github/actions/pr-head-guard
+              with:
+                  pr-number: ${{ env.PR_NUMBER }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Publish PR preview to gh-pages
-              if: steps.stage.outputs.publish == 'true'
+              if: steps.stage.outputs.publish == 'true' && steps.head.outputs.current == 'true'
               uses: ./external/ag-shared/github/actions/pr-preview-publish
               with:
                   pr_number: ${{ env.PR_NUMBER }}
@@ -676,7 +731,7 @@ jobs:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Write live-test section
-              if: steps.stage.outputs.publish == 'true'
+              if: steps.stage.outputs.publish == 'true' && steps.head.outputs.current == 'true'
               shell: bash
               env:
                   IMPORTS: ${{ steps.stage.outputs.imports }}
@@ -702,7 +757,7 @@ jobs:
                   EOF
 
             - name: Upsert live-test section
-              if: steps.stage.outputs.publish == 'true'
+              if: steps.stage.outputs.publish == 'true' && steps.head.outputs.current == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
                   pr_number: ${{ env.PR_NUMBER }}
@@ -720,9 +775,9 @@ jobs:
         # API key in scope for a fork PR (mirrors the ci.yml/pr-review.yml fork gate). Deterministic
         # structural checks live in the package tests; this never gates the build.
         if: |
-            github.event_name == 'pull_request' &&
-            needs.detect-changes.outputs.locale == 'true' &&
-            github.event.pull_request.head.repo.full_name == github.repository
+            needs.detect-changes.outputs.pr_present == 'true' &&
+            needs.detect-changes.outputs.pr_same_repo == 'true' &&
+            needs.detect-changes.outputs.locale == 'true'
         permissions:
             contents: read
             pull-requests: write
@@ -741,8 +796,8 @@ jobs:
               env:
                   LOCALE_SRC_DIR: packages/ag-charts-locale/src
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-                  BASE_SHA: ${{ github.event.pull_request.base.sha }}
-                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                  BASE_SHA: ${{ needs.detect-changes.outputs.pr_base_sha }}
+                  HEAD_SHA: ${{ needs.detect-changes.outputs.pr_head_sha }}
                   REPORT_PATH: l10n-review.md
               run: |
                   # Defense-in-depth: execute the review script as it exists at the base ref,
@@ -771,10 +826,18 @@ jobs:
                       printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
                   fi
 
+            - name: Check the PR head is current
+              id: head
+              uses: ./external/ag-shared/github/actions/pr-head-guard
+              with:
+                  pr-number: ${{ needs.detect-changes.outputs.pr_number }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Upsert L10n section
+              if: steps.head.outputs.current == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
-                  pr_number: ${{ github.event.pull_request.number }}
+                  pr_number: ${{ needs.detect-changes.outputs.pr_number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
     website_build:
@@ -806,7 +869,7 @@ jobs:
                   yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             - name: nx build ag-charts-website
               id: build
@@ -867,7 +930,7 @@ jobs:
                   yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             - name: nx test
               if: matrix.shard != 0
@@ -1052,7 +1115,7 @@ jobs:
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             # Backgrounded here — the earliest point at which node_modules and the built
             # packages both exist — so the dev server's boot and its cold compile of the
@@ -1231,7 +1294,7 @@ jobs:
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             - name: Start Astro Dev Server
               run: packages/ag-charts-website/playwright.sh --start-dev-server
@@ -1390,7 +1453,7 @@ jobs:
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             - name: Start Astro Dev Server
               run: packages/ag-charts-website/playwright.sh --start-dev-server
@@ -1520,7 +1583,7 @@ jobs:
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             - name: Await Playwright Image
               id: await_image
@@ -1713,7 +1776,7 @@ jobs:
                   yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             - name: nx package:test
               id: package-test
@@ -1792,7 +1855,7 @@ jobs:
                   yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
             - name: nx test:bundle-${{ matrix.name }}
               run: yarn nx run ${{ matrix.target }}
@@ -1863,15 +1926,29 @@ jobs:
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+                  # A dispatch has no pull_request payload to read these from.
+                  base_sha: ${{ needs.detect-changes.outputs.pr_base_sha }}
+                  head_sha: ${{ needs.detect-changes.outputs.pr_head_sha }}
+                  head_ref: ${{ github.event_name == 'workflow_dispatch' && needs.detect-changes.outputs.pr_present == 'true' && github.ref_name || '' }}
 
             # Upsert or clear the snapshot-status section. When Snapshot Notify wrote a fragment
             # (snapshots regenerated) it is upserted; otherwise the section is removed so a stale
             # "snapshots regenerated" note from an earlier push can't linger after a fix.
+            - name: Check the PR head is current
+              id: head
+              uses: ./external/ag-shared/github/actions/pr-head-guard
+              with:
+                  pr-number: ${{ github.event.pull_request.number || needs.detect-changes.outputs.pr_number }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Upsert snapshot-status section
-              if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+              if: |
+                  steps.head.outputs.current == 'true' &&
+                  ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+                  (github.event_name == 'workflow_dispatch' && needs.detect-changes.outputs.pr_present == 'true'))
               uses: ./.github/actions/pr-report-comment
               with:
-                  pr_number: ${{ github.event.pull_request.number }}
+                  pr_number: ${{ github.event.pull_request.number || needs.detect-changes.outputs.pr_number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   # Clear snapshot-status when snapshots weren't regenerated, and clear snapshot-review
                   # when full CI (hence the snapshot_review job) didn't run — the report job is the
@@ -2417,8 +2494,8 @@ jobs:
         needs: [detect-changes, init, test, e2e, e2e_cross_browser, fw_pkg_test]
         if: |
             !cancelled() &&
-            github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository &&
+            needs.detect-changes.outputs.pr_present == 'true' &&
+            needs.detect-changes.outputs.pr_same_repo == 'true' &&
             needs.detect-changes.outputs.run_full_ci == 'true'
         permissions:
             # write: the HTML reports are pushed to the `snapshot-review` branch (pr-preview-publish
@@ -2434,7 +2511,7 @@ jobs:
         # `snapshot-review` branch as that branch's close-time cleanup, so those two share a lock —
         # keep this group string byte-identical to the one in pr-cleanup.yml.
         concurrency:
-            group: snapshot-review-branch-${{ github.event.pull_request.number }}
+            group: snapshot-review-branch-${{ needs.detect-changes.outputs.pr_number }}
             cancel-in-progress: false
         steps:
             - name: Checkout
@@ -2452,7 +2529,7 @@ jobs:
               id: detect
               env:
                   SNAPSHOT_BRANCH: ${{ needs.init.outputs.snapshot_branch }}
-                  BASE_BRANCH: ${{ github.base_ref }}
+                  BASE_BRANCH: ${{ needs.detect-changes.outputs.pr_base_ref }}
               run: |
                   set -uo pipefail
                   changed=false
@@ -2495,8 +2572,8 @@ jobs:
               uses: ./.github/actions/snapshot-review-run
               with:
                   snapshot_branch: ${{ needs.init.outputs.snapshot_branch }}
-                  base_branch: ${{ github.base_ref }}
-                  head_sha: ${{ github.event.pull_request.head.sha }}
+                  base_branch: ${{ needs.detect-changes.outputs.pr_base_ref }}
+                  head_sha: ${{ needs.detect-changes.outputs.pr_head_sha }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   # Reports are pushed to the `snapshot-review` branch below and read from
                   # raw.githubusercontent.com by the static viewer on gh-pages, so the link is a
@@ -2509,14 +2586,22 @@ jobs:
                   # under a link that has already been shared). `Finalize` substitutes the real SHA.
                   #
                   # The action appends `/snapshot-<slug>.html`, which lands on the end of `path=`.
-                  report_base_url: https://ag-grid.github.io/ag-charts/snapshot-viewer/viewer.html?repo=${{ github.repository }}&sha=__SHA__&path=pr-${{ github.event.pull_request.number }}
+                  report_base_url: https://ag-grid.github.io/ag-charts/snapshot-viewer/viewer.html?repo=${{ github.repository }}&sha=__SHA__&path=pr-${{ needs.detect-changes.outputs.pr_number }}
 
             # Post the summary immediately (the report link is a "publishing…" placeholder at this
             # point). Also the GC point: clears a stale section when this build produced no report.
+            - name: Check the PR head is current
+              id: head
+              uses: ./external/ag-shared/github/actions/pr-head-guard
+              with:
+                  pr-number: ${{ needs.detect-changes.outputs.pr_number }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Upsert snapshot-review section (summary)
+              if: steps.head.outputs.current == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
-                  pr_number: ${{ github.event.pull_request.number }}
+                  pr_number: ${{ needs.detect-changes.outputs.pr_number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   remove_sections: ${{ steps.review.outputs.produced != 'true' && 'snapshot-review' || '' }}
 
@@ -2551,10 +2636,10 @@ jobs:
             # pr-cleanup.yml, and swept by the daily janitor.
             - name: Publish reports to the snapshot-review branch
               id: publish
-              if: steps.review.outputs.produced == 'true'
+              if: steps.review.outputs.produced == 'true' && steps.head.outputs.current == 'true'
               uses: ./external/ag-shared/github/actions/pr-preview-publish
               with:
-                  pr_number: ${{ github.event.pull_request.number }}
+                  pr_number: ${{ needs.detect-changes.outputs.pr_number }}
                   files: ${{ steps.reports.outputs.files }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   publish_branch: snapshot-review
@@ -2613,10 +2698,10 @@ jobs:
 
             # Re-upsert with the resolved report link (live or fallback) in place.
             - name: Upsert snapshot-review section (with report link)
-              if: always() && steps.review.outputs.produced == 'true'
+              if: always() && steps.review.outputs.produced == 'true' && steps.head.outputs.current == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
-                  pr_number: ${{ github.event.pull_request.number }}
+                  pr_number: ${{ needs.detect-changes.outputs.pr_number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
     sonarqube:
