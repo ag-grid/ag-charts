@@ -1464,7 +1464,9 @@ export abstract class Axis<
         const groupVisible = this.tickLabelGroup.visible;
         for (const node of groupVisible ? this.tickLabelGroupSelection.nodes() : []) {
             const { datum } = node;
-            if (node.visible && datum?.visible) labels.push({ node, datum });
+            if (node.visible && datum?.visible && !this.tickLabelGroupSelection.isGarbage(node)) {
+                labels.push({ node, datum });
+            }
         }
         const toTickData = ({ node, datum }: (typeof labels)[number]): AxisA11YTickData => ({
             ariaLabel: datum.textUntruncated ?? toPlainText(datum.text),

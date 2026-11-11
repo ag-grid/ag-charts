@@ -79,7 +79,7 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
 
     protected override onChildAdded(child: RovingChildWidgets): void {
         this.addChildListeners(child);
-        child.setTabIndex(this.children.length === 1 ? 0 : -1);
+        child.setTabIndex(this.children.length === 1 ? this.rovingTabIndex : -1);
     }
 
     protected override onChildRemoved(removedChild: RovingChildWidgets): void {

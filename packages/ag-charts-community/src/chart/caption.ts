@@ -125,6 +125,7 @@ export class Caption implements CaptionLike {
 
         if (this.proxyText == null) {
             this.proxyText = moduleCtx.widgets.acquireAxisWidget(axisId).acquireTitle();
+            this.proxyText.addClass('ag-charts-proxy-elem');
             this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev));
             this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx));
             this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx));

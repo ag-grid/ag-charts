@@ -56,6 +56,12 @@ function needsTabStop(chartService: ChartService, axisCtx: AxisContext): boolean
     return hasAxisListener(chartService, axisCtx, false);
 }
 
+function buttonAllocator(): ButtonWidget {
+    const b = new ButtonWidget();
+    b.addClass('ag-charts-proxy-elem');
+    return b;
+}
+
 /**
  * The AxisInteraction module handles interactions with the axes. In most cases it does this via the dom events on proxy
  * axis elements. However, in circumstances where the axes overlap the series area, such as when using the `crossAt`
@@ -520,7 +526,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         const tickDataIt = axisCtx.iterateA11YTickData();
         const tickButtonList = axis.div.acquireInteractions().tickButtons;
         tickButtonList.setTabIndex(tabIndex);
-        tickButtonList.resize(tickDataIt.length, () => new ButtonWidget());
+        tickButtonList.resize(tickDataIt.length, buttonAllocator);
         for (const button of tickButtonList.iterateChildren()) {
             const tickData = tickDataIt.next().value;
             button.setTextContent(tickData.ariaLabel);
