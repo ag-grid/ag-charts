@@ -828,12 +828,21 @@ describe('bar series gap', () => {
         const SKEW_START = 2500;
         const SKEW_END = 2600;
 
-        /** What the rows RUN_START..RUN_END and SKEW_START..SKEW_END hold for the series above the bottom one. */
-        type Shape = 'full' | 'nullTop' | 'zeroTop' | 'negTop' | 'nullMiddle' | 'nullTwo';
+        /** What the rows RUN_START..RUN_END and SKEW_START..SKEW_END hold for the series above or below the others. */
+        type Shape =
+            | 'full'
+            | 'nullTop'
+            | 'zeroTop'
+            | 'negTop'
+            | 'nullMiddle'
+            | 'nullTwo'
+            | 'nullBottom'
+            | 'zeroBottom'
+            | 'negBottom';
         /** How the keys of the rows SKEW_START..SKEW_END break the one-datum-per-group pattern. */
         type Skew = 'none' | 'duplicateKeys' | 'invalidKeys';
 
-        type Row = Record<string, unknown> & { a: number; b: number | null; c: number | null };
+        type Row = Record<string, unknown> & { a: number | null; b: number | null; c: number | null };
 
         function aggregatedRows(shape: Shape, skew: Skew): Row[] {
             return Array.from({ length: N }, (_, i) => {
@@ -843,6 +852,9 @@ describe('bar series gap', () => {
                     if (shape === 'zeroTop') row.c = 0;
                     if (shape === 'negTop') row.c = -(30 + (i % 3));
                     if (shape === 'nullMiddle' || shape === 'nullTwo') row.b = null;
+                    if (shape === 'nullBottom') row.a = null;
+                    if (shape === 'zeroBottom') row.a = 0;
+                    if (shape === 'negBottom') row.a = -(10 + (i % 7));
                 }
                 if (i >= SKEW_START && i < SKEW_END) {
                     // Pairs of rows share a key, or a run of rows has none, so later rows sit in earlier groups.
@@ -870,11 +882,15 @@ describe('bar series gap', () => {
         const nodeInsets = (series: number) =>
             getBarSeriesContextNodeData(chart!, series)
                 .nodeData.filter((d) => d.clipBBox != null && d.pickLength > 0)
-                .map(({ datumIndex, clipBBox, pickStart, pickLength }) => ({
+                .map(({ datumIndex, x, width, clipBBox, pickStart, pickLength }) => ({
                     datumIndex,
+                    x,
+                    width,
                     top: Math.round((clipBBox!.y - pickStart) * 1000) / 1000,
                     bottom: Math.round((pickStart + pickLength - clipBBox!.y - clipBBox!.height) * 1000) / 1000,
                 }));
+
+        const value = (row: Row, series: number) => Number(row[KEYS[series]]);
 
         /**
          * The inset the end of a bucket's segment must have, from the row of its top datum alone: half the gap when a
@@ -882,10 +898,38 @@ describe('bar series gap', () => {
          * edge of a positive segment and the bottom edge of a negative one.
          */
         function expectedEnd(rows: Row[], series: number, datumIndex: number, halfGap: number) {
-            const value = (key: string) => Number(rows[datumIndex][key]);
-            const own = value(KEYS[series]);
-            const neighbour = KEYS.slice(series + 1).some((k) => Number.isFinite(value(k)) && value(k) * own > 0);
+            const own = value(rows[datumIndex], series);
+            const neighbour = KEYS.slice(series + 1).some((_, i) => {
+                const v = value(rows[datumIndex], series + 1 + i);
+                return Number.isFinite(v) && v * own > 0;
+            });
             return { negative: own < 0, inset: neighbour ? halfGap : 0 };
+        }
+
+        /**
+         * The inset the start of a bucket's segment must have, from the rows the bucket covers (those that sit within its
+         * span on the x axis, with a value of the segment's sign): half the gap when every one of them has an earlier
+         * series with a value of that sign, 0 when none does. A bucket whose rows disagree takes the start of whichever
+         * row is closest to the baseline, so it has no single expected inset: `undefined`. The start is the bottom edge
+         * of a positive segment and the top edge of a negative one.
+         */
+        function expectedStart(rows: Row[], xs: number[], series: number, node: ReturnType<typeof nodeInsets>[number]) {
+            const sign = Math.sign(value(rows[node.datumIndex], series));
+            const covered: Row[] = [];
+            for (let r = Math.max(0, node.datumIndex - 40); r < Math.min(rows.length, node.datumIndex + 40); r++) {
+                const inSpan = xs[r] >= node.x - 1e-6 && xs[r] <= node.x + node.width + 1e-6;
+                if (inSpan && value(rows[r], series) * sign > 0) covered.push(rows[r]);
+            }
+            const hasNeighbour = (row: Row) =>
+                KEYS.slice(0, series).some((_, i) => {
+                    const v = value(row, i);
+                    return Number.isFinite(v) && v * sign > 0;
+                });
+            const withNeighbour = covered.filter(hasNeighbour).length;
+            let inset: number | undefined;
+            if (withNeighbour === covered.length) inset = 2;
+            else if (withNeighbour === 0) inset = 0;
+            return { negative: sign < 0, inset };
         }
 
         const CASES: [Shape, Skew][] = [
@@ -895,14 +939,48 @@ describe('bar series gap', () => {
             ['negTop', 'none'],
             ['nullMiddle', 'none'],
             ['nullTwo', 'none'],
+            ['nullBottom', 'none'],
+            ['zeroBottom', 'none'],
+            ['negBottom', 'none'],
             ['full', 'duplicateKeys'],
             ['nullTop', 'duplicateKeys'],
+            ['nullBottom', 'duplicateKeys'],
             ['full', 'invalidKeys'],
             ['nullMiddle', 'invalidKeys'],
         ];
 
+        /**
+         * Anti-vacuity: `seen` holds `series:run|rest:start|end:inset` for every bucket checked, and the shapes that take
+         * a neighbour away in the run must have checked that edge at 0 inside it and 2 outside it.
+         */
+        function expectEdgesSeen(shape: Shape, seen: Set<string>) {
+            // Where the neighbour above goes missing in the run, the end edge of the series below is checked at 0 inside
+            // the run and 2 outside it.
+            const lowered = { nullTop: 1, zeroTop: 1, negTop: 1, nullTwo: 0 } as Partial<Record<Shape, number>>;
+            const series = lowered[shape];
+            if (series != null) {
+                expect(seen.has(`${series}:run:end:0`)).toBe(true);
+                expect(seen.has(`${series}:rest:end:2`)).toBe(true);
+            }
+            // The same for the start edge: where the neighbour below goes missing in the run, the series above has
+            // its start at the baseline there (0) and next to a neighbour outside it (2).
+            const raised = { nullBottom: 1, zeroBottom: 1, negBottom: 1 } as Partial<Record<Shape, number>>;
+            const above = raised[shape];
+            if (above != null) {
+                expect(seen.has(`${above}:run:start:0`)).toBe(true);
+                expect(seen.has(`${above}:rest:start:2`)).toBe(true);
+                // The series above that one still has the series in between below it.
+                expect(seen.has('2:run:start:2')).toBe(true);
+            }
+            // A neighbour that is not directly above or below the series is still a neighbour.
+            if (shape === 'nullMiddle') {
+                expect(seen.has('0:run:end:2')).toBe(true);
+                expect(seen.has('2:run:start:2')).toBe(true);
+            }
+        }
+
         it.each(CASES)(
-            '%s rows, %s keys: an end edge is inset only where a neighbour is above it, at every bucket',
+            '%s rows, %s keys: an edge is inset only where a neighbour is beside it, at every bucket',
             async (shape, skew) => {
                 const rows = aggregatedRows(shape, skew);
                 await open(aggregatedOptions(shape, 4, skew));
@@ -912,29 +990,31 @@ describe('bar series gap', () => {
                         [expect.stringContaining('invalid value of type [object]'), '[null]'],
                     ]);
                 }
+                const { scale } = deproxy(chart!).axes[0];
+                const xs = rows.map((row) => (row.t instanceof Date ? scale.convert(row.t) : Number.NaN));
 
                 const seen = new Set<string>();
                 for (const series of [0, 1, 2]) {
                     const insets = nodeInsets(series);
                     expect(insets.length).toBeGreaterThan(0);
-                    for (const { datumIndex, top, bottom } of insets) {
-                        const { negative, inset } = expectedEnd(rows, series, datumIndex, 2);
-                        // Only the end edge is checked here: the bucket's start edge comes from another datum.
-                        expect(negative ? bottom : top, `series ${series}, datum ${datumIndex}`).toBe(inset);
+                    for (const node of insets) {
+                        const { datumIndex, top, bottom } = node;
+                        const where = `series ${series}, datum ${datumIndex}`;
+                        const end = expectedEnd(rows, series, datumIndex, 2);
+                        expect(end.negative ? bottom : top, `${where}, end`).toBe(end.inset);
                         const inRun = datumIndex >= RUN_START && datumIndex < RUN_END;
-                        seen.add(`${series}:${inRun ? 'run' : 'rest'}:${inset}`);
+                        seen.add(`${series}:${inRun ? 'run' : 'rest'}:end:${end.inset}`);
+
+                        // The rows of a skewed key range do not sit where their keys put them.
+                        if (skew !== 'none' && Math.abs(datumIndex - (SKEW_START + SKEW_END) / 2) < 100) continue;
+                        const start = expectedStart(rows, xs, series, node);
+                        const startInset = start.negative ? top : bottom;
+                        if (start.inset == null) expect([0, 2], `${where}, start`).toContain(startInset);
+                        else expect(startInset, `${where}, start`).toBe(start.inset);
+                        if (start.inset != null) seen.add(`${series}:${inRun ? 'run' : 'rest'}:start:${start.inset}`);
                     }
                 }
-                // Anti-vacuity: where the neighbour above goes missing in the run, the end edge of the series below is
-                // checked at 0 inside the run and 2 outside it.
-                const lowered = { nullTop: 1, zeroTop: 1, negTop: 1, nullTwo: 0 } as Partial<Record<Shape, number>>;
-                const series = lowered[shape];
-                if (series != null) {
-                    expect(seen.has(`${series}:run:0`)).toBe(true);
-                    expect(seen.has(`${series}:rest:2`)).toBe(true);
-                }
-                // A neighbour that is not directly above the series is still a neighbour.
-                if (shape === 'nullMiddle') expect(seen.has('0:run:2')).toBe(true);
+                expectEdgesSeen(shape, seen);
             }
         );
 

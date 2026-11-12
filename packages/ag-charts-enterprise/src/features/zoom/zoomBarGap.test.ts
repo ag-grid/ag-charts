@@ -73,22 +73,29 @@ describe('bar gap when zooming', () => {
         for (const edges of after) expect(edges).toEqual([2, 2]);
     });
 
-    it('insets aggregated buckets by 0 or half the gap only, at every zoom level', async () => {
+    it('keeps every aggregated bucket pulled in by half the gap where a neighbour is, at every zoom level', async () => {
         const t0 = Date.UTC(2024, 0, 1);
-        const data = Array.from({ length: 5000 }, (_, i) => ({
+        const data = Array.from({ length: 20000 }, (_, i) => ({
             t: new Date(t0 + i * 60000),
             a: 10 + (i % 7),
             b: 20 + (i % 5),
             c: 30 + (i % 3),
         }));
         chart = await createEnterpriseChart(options(data, 't', { type: 'unit-time' }, 4));
-        expect(isBarSeriesAggregating(chart, 0)).toBe(true);
 
+        // Every row has all three values, so each bucket has a neighbour above the bottom series' segment and below the
+        // top one's: [top, bottom] is [2, 0], [2, 2] and [0, 2] for the series from the bottom up.
+        const EDGES = [
+            [2, 0],
+            [2, 2],
+            [0, 2],
+        ];
         for (let level = 0; level < 3; level++) {
-            for (const series of [0, 1, 2]) {
-                const all = insets(series).flat();
-                expect(all.length).toBeGreaterThan(0);
-                for (const inset of all) expect([0, 2]).toContain(inset);
+            expect(isBarSeriesAggregating(chart, 0), `level ${level} is aggregated`).toBe(true);
+            for (const [series, expected] of EDGES.entries()) {
+                const all = insets(series);
+                expect(all.length, `level ${level}, series ${series}`).toBeGreaterThan(0);
+                for (const edges of all) expect(edges, `level ${level}, series ${series}`).toEqual(expected);
             }
             await zoomIn(2);
         }
