@@ -1496,7 +1496,10 @@ export abstract class Axis<
         }
 
         // Rows (depths) are laid out in visual order, so keyboard navigation follows the axis.
-        const ticks = this.pickTickData.toSorted((a, b) => (a.depth ?? 0) - (b.depth ?? 0) || a.along[0] - b.along[0]);
+        const ticks: AxisPickDatum[] = this.pickTickData.toSorted((a, b) => {
+            const depthDiff = (a.depth ?? 0) - (b.depth ?? 0);
+            return depthDiff === 0 ? a.along[0] - b.along[0] : depthDiff;
+        });
 
         const result: AxisA11YTickData[] = [];
         for (let i = 0; i < ticks.length; i++) {
@@ -1510,8 +1513,8 @@ export abstract class Axis<
                 const prev = ticks[i - 1];
                 const next = ticks[i + 1];
                 const sameRow = (other: AxisPickDatum | undefined) => other != null && other.depth === tick.depth;
-                alongStart = sameRow(prev) ? (prev!.along[1] + alongStart) / 2 : rangeMin;
-                alongEnd = sameRow(next) ? (next!.along[0] + alongEnd) / 2 : rangeMax;
+                alongStart = sameRow(prev) ? (prev.along[1] + alongStart) / 2 : rangeMin;
+                alongEnd = sameRow(next) ? (next.along[0] + alongEnd) / 2 : rangeMax;
             }
             alongStart = alongOrigin + Math.max(alongStart, rangeMin);
             alongEnd = alongOrigin + Math.min(alongEnd, rangeMax);
@@ -1535,7 +1538,7 @@ export abstract class Axis<
             focusBounds.translate(-axisBounds.x, -axisBounds.y);
 
             const formattedValue = tick.formattedValue == null ? undefined : toPlainText(tick.formattedValue);
-            const ariaLabel = label?.text || tick.text || formattedValue || this.formatA11YTickValue(tick.value);
+            const ariaLabel = label?.text ?? tick.text ?? formattedValue ?? this.formatA11YTickValue(tick.value);
             result.push({ index: tick.index, value: tick.value, ariaLabel, focusBounds });
         }
         return result;
