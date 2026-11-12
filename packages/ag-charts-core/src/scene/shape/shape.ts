@@ -944,8 +944,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     /**
      * Sets how the stroke that dilates the shape by a `spread` is drawn: solid, and capped so that open ends spread too.
-     * A `footprint` is joined round, which dilates every vertex by exactly the `spread`. The join of the item would spike
-     * at its sharp vertices, and cut the glow away well past the `gap`.
+     * A `footprint` is joined as the outer edge of a glow is, mitred up to {@link DILATION_MITER_LIMIT}, so the inner edge of
+     * a `gap` follows the corners of the item as the outer edge does. The join of the item itself would spike at its sharp
+     * vertices, and cut the glow away well past the `gap`.
      */
     private setDilationStyle(
         slot: ShadowSlot,
@@ -960,7 +961,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.lineCap = dilationCap;
         const ownJoin = drawsStroke && !footprint;
         ctx.lineJoin = ownJoin ? (this.__lineJoin ?? 'miter') : 'miter';
-        if (footprint) ctx.lineJoin = 'round';
         ctx.miterLimit = ownJoin ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
         ctx.lineWidth = (drawsStroke ? this.__strokeWidth : 0) + spread * 2;
     }
@@ -993,7 +993,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             } finally {
                 this.shadowStrokeGrowth = 0;
             }
-            // The round join leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
+            // The capped mitre leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
             if (footprint) this.executeOwnStroke(ctx, path);
         } else if (drawsFill && spread > 0 && path != null) {
             this.dilateFill(ctx, path);
