@@ -584,7 +584,7 @@ export const LABEL_OVERFLOW_DEFAULTS: WithThemeParams<AgChartLabelFitOptions> = 
 
 /** `label.collision` for bar-like series, whose labels must also avoid other series' bars. */
 export const BAR_LABEL_COLLISION_THEME = {
-    threshold: 4,
+    threshold: 2,
     alwaysShow: false,
     collideWith: { shapes: false },
 };

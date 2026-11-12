@@ -558,7 +558,7 @@ describe('series label fit', () => {
         describe.each<[StageSeriesType, string, number[]]>([
             ['funnel', 'inside-center', [100, 30, 10, 4, 2]],
             ['cone-funnel', 'middle-center', [100, 30, 10, 4, 2]],
-            ['pyramid', 'inside-center', [100, 60, 30, 19, 4]],
+            ['pyramid', 'inside-center', [100, 60, 30, 15, 8]],
         ])('%s', (type, placement, values) => {
             const stages = values.map((value, i) => ({ stage: `Stage ${i}`, value }));
             const stageChart = (label: FitLabel<string>, theme?: AgChartTheme) =>

@@ -1173,7 +1173,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -1311,7 +1311,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -3261,7 +3261,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -3400,7 +3400,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -3539,7 +3539,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -3678,7 +3678,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -3817,7 +3817,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -3956,7 +3956,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -4095,7 +4095,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -4234,7 +4234,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -7172,7 +7172,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -7636,7 +7636,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "color": "white",
         "cornerRadius": 4,
@@ -9028,7 +9028,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -9164,7 +9164,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -9626,7 +9626,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -9765,7 +9765,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -10231,7 +10231,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -10370,7 +10370,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -10509,7 +10509,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -10648,7 +10648,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -10787,7 +10787,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -10926,7 +10926,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11065,7 +11065,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -16110,7 +16110,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -16250,7 +16250,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -16390,7 +16390,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -16855,7 +16855,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -16994,7 +16994,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -17133,7 +17133,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -17272,7 +17272,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -17411,7 +17411,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -17550,7 +17550,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -18985,7 +18985,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "color": "#eeeeee",
         "cornerRadius": 4,
@@ -22766,7 +22766,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -22905,7 +22905,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -23044,7 +23044,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -23183,7 +23183,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -23649,7 +23649,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -23788,7 +23788,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -23927,7 +23927,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -24066,7 +24066,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -24205,7 +24205,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -24696,7 +24696,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "color": "#999999",
         "cornerRadius": 4,
@@ -25200,7 +25200,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -25704,7 +25704,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
           "collideWith": {
             "shapes": false,
           },
-          "threshold": 4,
+          "threshold": 2,
         },
         "cornerRadius": 4,
         "enabled": false,

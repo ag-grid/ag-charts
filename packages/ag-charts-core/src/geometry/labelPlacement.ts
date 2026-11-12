@@ -3120,13 +3120,12 @@ function fitPositionedCandidateAt(
     const fontSearch = candidateTrialFontSize == null;
     const container = fitTo.ownShape === false ? fitTo.container : deflateContainer(fitTo.container, threshold);
     // The clearance a label keeps from its own surface must not erase it: refit to the surface
-    // itself rather than draw the bare ellipsis the deflated container left, or drop the label.
-    const fitsDeflated = fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign);
-    const fitted = fitsDeflated
-        ? container === fitTo.container ||
-          hasRealChars(fittedLabel.text) ||
-          fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign)
-        : container !== fitTo.container && fitOwnShapeAtFloor(fit, fitTo, font, source, fontSearch);
+    // itself rather than draw the bare ellipsis the deflated container left.
+    const fitted =
+        fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign) &&
+        (container === fitTo.container ||
+            hasRealChars(fittedLabel.text) ||
+            fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign));
     if (fitted && (d.neverDrop !== true || hasRealChars(fittedLabel.text))) return true;
     if (d.neverDrop !== true || !fontSearch || fitTo.container == null) return false;
     const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
@@ -3148,32 +3147,6 @@ function fitPositionedCandidateAt(
     if (floor < font.fontSize) {
         fittedLabel.fontSize = floor;
     }
-    return true;
-}
-
-/**
- * Fits a label the clearance rejected to its own surface, at no larger a font than the clearance search
- * reached, so the label never grows back as its container shrinks.
- */
-function fitOwnShapeAtFloor(
-    fit: LabelFitDescriptor,
-    fitTo: CandidateFitTarget,
-    font: FontOptions,
-    source: { width: number; height: number } | undefined,
-    fontSearch: boolean
-): boolean {
-    if (!fontSearch)
-        return fitLabelToCandidate(fit, font, source, fitTo.container, false, fitTo.shape, fitTo.shapeAlign);
-    const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
-    if (floor >= font.fontSize) {
-        return fitLabelToCandidate(fit, font, source, fitTo.container, false, fitTo.shape, fitTo.shapeAlign);
-    }
-    const floorFit = { ...fit, text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text };
-    const floorFont = fontWithSize(font, floor);
-    if (!fitLabelToCandidate(floorFit, floorFont, undefined, fitTo.container, false, fitTo.shape, fitTo.shapeAlign)) {
-        return false;
-    }
-    fittedLabel.fontSize = floor;
     return true;
 }
 

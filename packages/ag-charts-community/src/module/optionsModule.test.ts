@@ -1079,7 +1079,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1215,7 +1215,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1351,7 +1351,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1487,7 +1487,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1918,7 +1918,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2054,7 +2054,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2190,7 +2190,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2326,7 +2326,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2757,7 +2757,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2893,7 +2893,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -3029,7 +3029,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -3165,7 +3165,7 @@ describe('ChartOptions', () => {
                       "collideWith": {
                         "shapes": false,
                       },
-                      "threshold": 4,
+                      "threshold": 2,
                     },
                     "cornerRadius": 4,
                     "enabled": false,

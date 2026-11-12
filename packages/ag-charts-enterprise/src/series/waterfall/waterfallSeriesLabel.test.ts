@@ -42,7 +42,7 @@ const DEFAULT_ITEM_LABEL = {
     fontWeight: 400,
     wrapping: 'on-space',
     truncate: false,
-    collision: { threshold: 4, alwaysShow: false, collideWith: { shapes: false } },
+    collision: { threshold: 2, alwaysShow: false, collideWith: { shapes: false } },
     insideStyle: { color: '#ffffff', border: { enabled: false } },
     outsideStyle: { color: '#181d1f', border: { enabled: false } },
     placement: ['inside-center', 'outside-end'],
