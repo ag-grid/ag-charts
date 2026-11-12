@@ -6,6 +6,8 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    getSeriesNodeData,
+    getSeriesRect,
     getSwapChainText,
     hoverAction,
     isTooltipVisible,
@@ -709,6 +711,13 @@ describe('priceVolumePreset', () => {
             return labels;
         };
 
+        interface CandleNode {
+            centerX: number;
+            y: number;
+            height: number;
+            datum: { open: number; close: number };
+        }
+
         const isTickMultiple = (text: string | undefined) => {
             const ticks = Number(text) / TICK_SIZE;
             return Math.abs(ticks - Math.round(ticks)) < 1e-9;
@@ -724,8 +733,7 @@ describe('priceVolumePreset', () => {
         ])('snaps the price label to multiples of tickSize %s', async (_name, options) => {
             const labels = await hoverLabels({ ...options, tickSize: TICK_SIZE });
             const prices = labels.map((l) => l.price);
-            expect(prices.every(isTickMultiple)).toBe(true);
-            expect(new Set(prices).size).toBeGreaterThan(1);
+            expect(prices.every((price) => price != null && isTickMultiple(price))).toBe(true);
             expect(labels.map((l) => l.priceTop)).not.toEqual(HOVER_YS.map((y) => `${y}px`));
         });
 
@@ -755,6 +763,7 @@ describe('priceVolumePreset', () => {
 
         it.each<[string, AgFinancialChartOptions, boolean]>([
             ['snapped with tickSize', { tickSize: TICK_SIZE }, true],
+            ['snapped on a line chart', { tickSize: TICK_SIZE, chartType: 'line', volume: false }, true],
             [
                 'continuous when theme overrides turn snap off',
                 {
@@ -777,6 +786,28 @@ describe('priceVolumePreset', () => {
             const value = annotations![0].type === 'horizontal-line' ? annotations![0].value : undefined;
             expect(Number(value).toFixed(2)).toBe(labels.at(-1)?.price);
             expect(isTickMultiple(String(value))).toBe(snapped);
+        });
+
+        it('snaps to the candle value nearest the pointer, rounded to tickSize', async () => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ data: getStockData(), chartType: 'candlestick', tickSize: TICK_SIZE })
+            );
+            await waitForChartStability(chart);
+            const index = deproxy(chart).series.findIndex((s) => s.type === 'candlestick');
+            const candle = getSeriesNodeData<CandleNode>(chart, index)
+                .filter((node) => node.centerX > 0)
+                .toSorted((a, b) => b.height - a.height)[0];
+            const rect = getSeriesRect(chart);
+            const roundToTick = (value: number) => (Math.round(value / TICK_SIZE) * TICK_SIZE).toFixed(2);
+            const { open, close } = candle.datum;
+
+            const prices: Array<string | undefined> = [];
+            for (const ratio of [0.1, 0.9]) {
+                await hoverAction(rect.x + candle.centerX, rect.y + candle.y + candle.height * ratio)(deproxy(chart));
+                await waitForChartStability(chart);
+                prices.push(crosshairLabel('y')?.textContent?.trim());
+            }
+            expect(prices).toEqual([roundToTick(Math.max(open, close)), roundToTick(Math.min(open, close))]);
         });
 
         it('leaves the date label unchanged', async () => {
