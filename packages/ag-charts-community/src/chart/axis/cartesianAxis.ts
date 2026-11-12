@@ -280,9 +280,12 @@ export abstract class CartesianAxis<
                     this.animationState.transition('resize');
                 }
                 previousSize = size;
+                this.caption.updateA11yText(this.moduleCtx, this.id);
             }),
-            this.caption.registerInteraction(this.moduleCtx, this.id),
-            () => moduleCtx.labelManager.unregisterSource(this.labelSource.id, this.labelSource)
+            () => {
+                this.caption.destroy();
+                moduleCtx.labelManager.unregisterSource(this.labelSource.id, this.labelSource);
+            }
         );
     }
 

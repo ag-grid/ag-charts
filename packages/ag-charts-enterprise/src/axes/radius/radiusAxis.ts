@@ -72,7 +72,10 @@ export abstract class RadiusAxis<
 
         this.headingLabelGroup.appendChild(this.caption.node);
 
-        this.cleanup.register(this.caption.registerInteraction(this.moduleCtx, this.id));
+        this.cleanup.register(
+            moduleCtx.eventsHub.on('layout:complete', () => this.caption.updateA11yText(moduleCtx, id)),
+            () => this.caption.destroy()
+        );
     }
 
     private getAxisTransform() {

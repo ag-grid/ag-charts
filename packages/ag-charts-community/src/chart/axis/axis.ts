@@ -1501,6 +1501,7 @@ export abstract class Axis<
             return depthDiff === 0 ? a.along[0] - b.along[0] : depthDiff;
         });
 
+        const groupPercentage: number | undefined = this.isCategoryLike() ? 0.5 : undefined;
         const result: AxisA11YTickData[] = [];
         for (let i = 0; i < ticks.length; i++) {
             const tick = ticks[i];
@@ -1538,8 +1539,17 @@ export abstract class Axis<
             focusBounds.translate(-axisBounds.x, -axisBounds.y);
 
             const formattedValue = tick.formattedValue == null ? undefined : toPlainText(tick.formattedValue);
-            const ariaLabel = label?.text ?? tick.text ?? formattedValue ?? this.formatA11YTickValue(tick.value);
-            result.push({ index: tick.index, value: tick.value, ariaLabel, focusBounds });
+            // Use `||` instead of `??` : We want to ignore boty undefined and empty strings
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions,@typescript-eslint/prefer-nullish-coalescing
+            const ariaLabel = label?.text || tick.text || formattedValue || this.formatA11YTickValue(tick.value);
+            result.push({
+                index: tick.index,
+                value: tick.value,
+                depth: tick.depth,
+                groupPercentage,
+                ariaLabel,
+                focusBounds,
+            });
         }
         return result;
     }

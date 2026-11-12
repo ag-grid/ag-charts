@@ -338,11 +338,11 @@ export class AxisInteraction extends AbstractModuleInstance {
         const params: PartialAxisClickEvent = {
             axisId: axisCtx.userAxisId,
             boundSeries: axisCtx.getBoundedSeries(),
-            depth: undefined,
+            depth: tickData.depth,
             direction,
             domain: axisCtx.scale.domain,
             event: event.sourceEvent,
-            groupPercentage: 0.5,
+            groupPercentage: tickData.groupPercentage,
             index: tickData.index,
             value: tickData.value,
         };

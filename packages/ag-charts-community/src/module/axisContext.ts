@@ -59,6 +59,8 @@ export interface AxisBandDatum extends AxisBandMeasurement {
 export interface AxisA11YTickData {
     readonly value: AgAxisValue;
     readonly index: number;
+    readonly depth: number | undefined;
+    readonly groupPercentage: number | undefined;
     readonly ariaLabel: string;
     readonly focusBounds: BBox; // Relative to `getCanvasBounds()`
 }

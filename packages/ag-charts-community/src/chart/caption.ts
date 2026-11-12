@@ -86,10 +86,6 @@ export class Caption implements CaptionLike {
     private lastProxyTextContent?: string;
     private lastProxyBBox?: { x: number; y: number; width: number; height: number };
 
-    registerInteraction(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
-        return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, axisId));
-    }
-
     computeTextWrap(containerWidth: number, containerHeight: number) {
         const { text, padding, wrapping, truncate } = this;
         const effectiveContainerWidth = truncate ? containerWidth : Infinity;
@@ -123,7 +119,7 @@ export class Caption implements CaptionLike {
         }
     }
 
-    private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
+    updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
         if (!this.enabled || this.text == null || this.text === '') {
             this.destroyProxyText();
             return;
