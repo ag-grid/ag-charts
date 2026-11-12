@@ -41,7 +41,9 @@ export function renderChildrenWithShadowBatches(
     scene: object | undefined,
     user: object,
     renderCtx: RenderContext,
-    scope: ShadowScope = 'run'
+    scope: ShadowScope = 'run',
+    /** Whether the glows are cast elsewhere, so that the children are drawn without one. */
+    glowsCast = false
 ): void {
     const { stats } = renderCtx;
     let run: Run | undefined;
@@ -73,7 +75,8 @@ export function renderChildrenWithShadowBatches(
         }
 
         const shadow = getBatchedShadow(child);
-        const glow = getBatchedShadow(child, 'glow');
+        // The glows are cast by the overlay of the root, so the child is drawn without one, even if it has no shadow.
+        const glow = glowsCast ? undefined : getBatchedShadow(child, 'glow');
         const castsAny = shadow != null || glow != null;
         const clip = castsAny ? getShadowClip(child) : undefined;
         // A child that casts nothing, or one that does not continue the run in each slot, ends it.
@@ -86,7 +89,8 @@ export function renderChildrenWithShadowBatches(
             flush();
         }
         if (!castsAny) {
-            child.isolatedRender(renderCtx);
+            if (glowsCast && getBatchedShadow(child, 'glow') != null) renderShadowless([child], renderCtx);
+            else child.isolatedRender(renderCtx);
             continue;
         }
 

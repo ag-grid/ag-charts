@@ -672,9 +672,9 @@ export abstract class HierarchySeries<
     }
 
     /**
-     * The shadow to draw on one copy of a node. The highlight layer's copy casts only its `glow`. An in-place copy casts
-     * the glow of its highlight state, in the base pass that keeps it behind every series, except for the hovered
-     * node's own in-place copy, which keeps its `shadow` beneath the highlight layer's copy.
+     * The shadow to draw on one copy of a node, in `fillShadow`. The highlight layer's copy casts no shadow. The
+     * hovered node's own in-place copy keeps its `shadow`, beneath the highlight layer's copy. Any other copy casts its
+     * `shadow` unless it has a glow, which it casts instead, see {@link resolveNodeGlow}.
      */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,
@@ -685,9 +685,23 @@ export abstract class HierarchySeries<
         itemShadow?: AgItemShadowStyle['shadow']
     ): NormalisedDropShadowOptions | undefined {
         if (itemShadow != null) shadow = this.mergeItemShadow(shadow, itemShadow);
-        if (isHighlight) return glow;
+        if (isHighlight) return;
         if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
-        return glow ?? shadow;
+        return glow == null ? shadow : undefined;
+    }
+
+    /**
+     * The glow to draw on one copy of a node, in `fillGlow`, which the series root casts in its overlay, above the
+     * series, with the footprint of every glowing copy cut out. The hovered node's in-place copy casts none: the highlight
+     * layer's copy casts the glow of the hovered node.
+     */
+    protected resolveNodeGlow(
+        glow: NormalisedDropShadowOptions | undefined,
+        isHighlight: boolean,
+        highlightedNode: TNodeClass | undefined,
+        nodeDatum: Pick<TNodeClass, 'datumIndex'>
+    ): NormalisedDropShadowOptions | undefined {
+        return isHighlight || highlightedNode?.datumIndex !== nodeDatum.datumIndex ? glow : undefined;
     }
 
     public override getHighlightStateString(

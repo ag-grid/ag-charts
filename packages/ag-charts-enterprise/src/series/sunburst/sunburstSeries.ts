@@ -211,7 +211,9 @@ export class SunburstSeries extends HierarchySeries<
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>({ batchShadows: 'by-layer' }));
-    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
+    private readonly highlightSectorGroup = this.scalingGroup.appendChild(
+        new Group<SunburstNode>({ batchShadows: 'shared' })
+    );
     // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
     // is painted over. Inside `scalingGroup`, so it takes the series' entry animation.
     private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
@@ -569,6 +571,7 @@ export class SunburstSeries extends HierarchySeries<
                     ? this.getItemStyle(nodeDatum, true).shadow
                     : style.shadow
             );
+            sector.fillGlow = this.resolveNodeGlow(glow, highlighted, highlightedNode, nodeDatum);
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
