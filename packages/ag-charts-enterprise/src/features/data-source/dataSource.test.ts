@@ -912,13 +912,16 @@ describe('DataSource', () => {
             );
             await clickAction(cx, cy)(chart);
 
-            const zoomIn = async (description: string) => {
+            const request = async (gesture: () => Promise<void> | void, description: string) => {
                 const callsBefore = callCount;
-                await scrollAction(cx, cy, -1)(chart);
+                await gesture();
                 await waitForChartStabilityUntil(chart, () => callCount > callsBefore, description);
                 await delay(1);
                 await waitForChartStability(chart);
             };
+            const zoomIn = (description: string) => request(() => scrollAction(cx, cy, -1)(chart), description);
+            const dragNavigatorMin = (ratio: number, description: string) =>
+                request(() => dragNavigatorHandle(chart, 'min', ratio), description);
 
             await zoomIn('the first zoom request');
             const zoomBefore = chart.getState().zoom!.ratioX!;
@@ -936,6 +939,14 @@ describe('DataSource', () => {
             scenario = 'valid';
             await zoomIn('the recovery request from the third zoom');
             // The retained 120-day domain, not the rejected rows' early-January one, places the next window.
+            expect(Number(lastWindowStart)).toBeGreaterThan(new Date(2024, 0, 20).getTime());
+
+            // The navigator stays usable the same way after an invalid response to its own drag.
+            scenario = 'invalid';
+            await dragNavigatorMin(0.3, 'the invalid-response request from a navigator drag');
+            expectWarningsCalls();
+            scenario = 'valid';
+            await dragNavigatorMin(0.4, 'the recovery request from a second navigator drag');
             expect(Number(lastWindowStart)).toBeGreaterThan(new Date(2024, 0, 20).getTime());
         });
     });
