@@ -97,6 +97,25 @@ describe('BarSeries highlight fade', () => {
         await create(options);
     });
 
+    it('fades a highlight without the animation module, while a data update snaps', async () => {
+        await proxy.updateDelta({
+            data: [
+                { category: 'Q1', apples: 2, oranges: 3 },
+                { category: 'Q2', apples: 7, oranges: 4 },
+                { category: 'Q3', apples: 6, oranges: 5 },
+            ],
+        });
+        await chart.waitForUpdate();
+        const { height } = getDatumCanvasBounds(chart, 0, 0);
+        await frames.runToEnd(chart);
+        expect(getDatumCanvasBounds(chart, 0, 0).height).toBe(height);
+
+        highlight(datum(0, 1));
+        const trajectory = await capture(() => shown(1, 0));
+
+        expectFade(trajectory, 1, UNHIGHLIGHTED_SERIES);
+    });
+
     it('fades the other items and the other series when an item is highlighted', async () => {
         highlight(datum(0, 1));
         const trajectory = await capture(() => ({ hovered: shown(0, 0), other: shown(1, 0) }));
@@ -160,6 +179,25 @@ describe('BarSeries highlight fade', () => {
         await frames.captureAnimationFrames(chart, () => undefined, { frames: 2, duration: 60 });
         await proxy.updateDelta({ width: 700 });
         await chart.waitForUpdate();
+
+        expect(barCount()).toBe(before);
+    });
+
+    it('leaves no extra bars in the scene when a highlight clears in the same update as a data change', async () => {
+        await create({ ...options, highlight: { drawingMode: 'overlay' } });
+        const before = barCount();
+        highlight(datum(0, 1));
+        await frames.runToEnd(chart);
+
+        highlight();
+        await proxy.updateDelta({
+            data: [
+                { category: 'Q1', apples: 2, oranges: 3 },
+                { category: 'Q2', apples: 7, oranges: 4 },
+                { category: 'Q3', apples: 6, oranges: 5 },
+            ],
+        });
+        await frames.runToEnd(chart);
 
         expect(barCount()).toBe(before);
     });
