@@ -40,6 +40,17 @@ export function getSeriesNodeData<TDatum = SeriesNodeDatum>(chartOrProxy: ChartO
     return series.getNodeData!() ?? [];
 }
 
+/** A bar-like datum's bounds on the canvas, from the `x`, `y`, `width` and `height` its series laid it out at. */
+export function getDatumCanvasBounds(chartOrProxy: ChartOrProxy<any>, seriesIndex: number, datumIndex: number) {
+    const { x, y, width, height } = getSeriesNodeData<{ x: number; y: number; width: number; height: number }>(
+        chartOrProxy,
+        seriesIndex
+    )[datumIndex];
+    const { seriesRect } = deproxy(chartOrProxy);
+    expect(seriesRect).toBeDefined();
+    return { x: seriesRect!.x + x, y: seriesRect!.y + y, width, height };
+}
+
 /** A series' node-data context; `visible` is kept by the cartesian series, which flag a hidden series on it. */
 export interface SeriesContextNodeData<TDatum = SeriesNodeDatum, TLabel = TDatum> extends SeriesNodeDataContext<
     TDatum,

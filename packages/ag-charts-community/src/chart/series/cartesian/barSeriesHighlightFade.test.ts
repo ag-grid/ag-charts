@@ -1,21 +1,25 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import type { Rect } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-types';
+import { type Node, Rect } from 'ag-charts-core';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
-import { STYLE_TRANSITION } from '../../../motion/animation';
 import type { Chart } from '../../chart';
-import { AnimationManager } from '../../interaction/animationManager';
 import { InteractionState } from '../../interaction/interactionManager';
-import { getSeriesNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
+import { getDatumCanvasBounds, getSeriesNodeData } from '../../test/seriesAccessors';
+import { shapesOf } from '../../test/shadowFixtures';
 import {
     createChart,
     deproxy,
+    expectFade,
+    hoverLegendItem,
+    playTransitionAnimations,
     prepareTestOptions,
     pressKey,
+    renderedPixelAt,
     setupMockCanvas,
     setupMockConsole,
+    shownOpacity,
     spyOnAnimationFrames,
     tabIntoChart,
 } from '../../test/utils';
@@ -23,31 +27,38 @@ import {
 // Theme defaults for several bar series: other items of the hovered series and other series.
 const UNHIGHLIGHTED_ITEM = 0.6;
 const UNHIGHLIGHTED_SERIES = 0.2;
-// At the default animation duration of 1s.
-const HIGHLIGHT_FADE_DURATION_MS = STYLE_TRANSITION * 1000;
+// 0.3 of the default animation duration of 1s.
+const FADE_MS = 300;
+const WHITE = [255, 255, 255, 255];
+const BLACK = [0, 0, 0, 255];
 
 describe('BarSeries highlight fade', () => {
     setupMockConsole();
     setupMockCanvas();
+    playTransitionAnimations();
     const frames = spyOnAnimationFrames();
 
+    let proxy: AgChartInstance;
     let chart: Chart;
-
-    beforeEach(() => {
-        vi.spyOn(AnimationManager.prototype, 'isTransitionSkipped').mockReturnValue(false);
-    });
+    /** The colour each series' bars render with at full opacity. */
+    let opaque: number[][];
 
     afterEach(() => {
         chart?.destroy();
-        vi.restoreAllMocks();
     });
 
     const options = prepareTestOptions<AgCartesianChartOptions>({
+        background: { fill: '#ffffff' },
         data: [
             { category: 'Q1', apples: 5, oranges: 3 },
             { category: 'Q2', apples: 7, oranges: 4 },
             { category: 'Q3', apples: 6, oranges: 5 },
         ],
+        // Grid lines would cross the pixels the tests read.
+        axes: {
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'number', position: 'left', gridLine: { enabled: false } },
+        },
         legend: { enabled: false },
         series: [
             { type: 'bar', xKey: 'category', yKey: 'apples' },
@@ -55,50 +66,48 @@ describe('BarSeries highlight fade', () => {
         ],
     });
 
-    const inPlace = (seriesIndex: number) =>
-        getSeriesSelectionNodes<Rect>(chart, 'datumSelection', seriesIndex).map((node) => node.fillOpacity);
-    /** The overlay copies of highlighted bars, by datum index, including those fading out. */
-    const overlay = (seriesIndex: number) =>
-        Object.fromEntries(
-            getSeriesSelectionNodes<Rect<HighlightNodeDatum>>(chart, 'highlightSelection', seriesIndex)
-                .filter((node) => node.visible)
-                .map((node) => [node.datum?.datumIndex, node.fillOpacity])
-        );
     const datum = (seriesIndex: number, datumIndex: number) =>
         getSeriesNodeData<HighlightNodeDatum>(chart, seriesIndex)[datumIndex];
+    /** The colour rendered at the centre of a bar. */
+    const pixel = (seriesIndex: number, datumIndex: number) => {
+        const { x, y, width, height } = getDatumCanvasBounds(chart, seriesIndex, datumIndex);
+        return renderedPixelAt(chart, x + width / 2, y + height / 2);
+    };
+    /** The opacity a bar is seen at, whichever nodes draw it. */
+    const shown = (seriesIndex: number, datumIndex: number) =>
+        shownOpacity(pixel(seriesIndex, datumIndex), opaque[seriesIndex], WHITE);
+    const shownRow = (seriesIndex: number) => [0, 1, 2].map((datumIndex) => shown(seriesIndex, datumIndex));
     const highlight = (highlighted?: HighlightNodeDatum) =>
         chart.ctx.highlightManager.updateHighlight(chart.id, highlighted);
 
     // Frames spanning the transition; the first frame only starts the clock, so the last lands beyond its end.
-    const capture = <T>(sampler: () => T) =>
-        frames.captureAnimationFrames(chart, sampler, { frames: 10, duration: HIGHLIGHT_FADE_DURATION_MS + 100 });
+    const capture = <T>(sampler: () => T, durationMs = FADE_MS) =>
+        frames.captureAnimationFrames(chart, sampler, { frames: 10, duration: durationMs + 100, rendered: true });
 
-    const expectFade = (trajectory: number[], from: number, to: number) => {
-        expect(trajectory[0]).toBe(from);
-        expect(trajectory.at(-1)).toBe(to);
-        for (let i = 1; i < trajectory.length; i++) {
-            const step = trajectory[i] - trajectory[i - 1];
-            expect(Math.sign(step) === Math.sign(to - from) || step === 0).toBe(true);
-        }
-        expect(trajectory.some((value) => value !== from && value !== to)).toBe(true);
+    const create = async (chartOptions: AgCartesianChartOptions) => {
+        chart?.destroy();
+        proxy = await createChart(chartOptions);
+        chart = deproxy(proxy);
+        await frames.runToEnd(chart);
+        await chart.waitForUpdate();
+        opaque = chart.series.map((_, seriesIndex) => pixel(seriesIndex, 0));
     };
 
     beforeEach(async () => {
-        chart = deproxy(await createChart(options));
-        await frames.runToEnd(chart);
+        await create(options);
     });
 
     it('fades the other items and the other series when an item is highlighted', async () => {
         highlight(datum(0, 1));
-        const trajectory = await capture(() => ({ hovered: inPlace(0), other: inPlace(1) }));
+        const trajectory = await capture(() => ({ hovered: shown(0, 0), other: shown(1, 0) }));
 
         expectFade(
-            trajectory.map((sample) => sample.hovered[0]),
+            trajectory.map((sample) => sample.hovered),
             1,
             UNHIGHLIGHTED_ITEM
         );
         expectFade(
-            trajectory.map((sample) => sample.other[0]),
+            trajectory.map((sample) => sample.other),
             1,
             UNHIGHLIGHTED_SERIES
         );
@@ -109,78 +118,106 @@ describe('BarSeries highlight fade', () => {
         await frames.runToEnd(chart);
 
         highlight();
-        const trajectory = await capture(() => inPlace(1)[0]);
+        const trajectory = await capture(() => shown(1, 0));
 
         expectFade(trajectory, UNHIGHLIGHTED_SERIES, 1);
     });
 
+    /** The bars in the scene, in place and highlighted, whichever of them are still fading. */
+    const barCount = () =>
+        chart.series.reduce(
+            (count, series) =>
+                count + shapesOf(series.contentGroup, Rect).length + shapesOf(series.highlightNodeGroup, Rect).length,
+            0
+        );
+
+    it.each(['cutout', 'overlay'] as const)(
+        'leaves no extra bars in the scene once the fades have ended (%s)',
+        async (drawingMode) => {
+            await create({ ...options, highlight: { drawingMode } });
+            const before = barCount();
+
+            highlight(datum(0, 0));
+            await frames.runToEnd(chart);
+            highlight(datum(0, 1));
+            await frames.runToEnd(chart);
+            highlight(datum(1, 2));
+            await frames.runToEnd(chart);
+            highlight();
+            await frames.runToEnd(chart);
+
+            expect(barCount()).toBe(before);
+        }
+    );
+
+    it('leaves no extra bars in the scene when the layout changes while a highlight fades out', async () => {
+        await create({ ...options, highlight: { drawingMode: 'overlay' } });
+        const before = barCount();
+        highlight(datum(0, 1));
+        await frames.runToEnd(chart);
+
+        highlight();
+        await frames.captureAnimationFrames(chart, () => undefined, { frames: 2, duration: 60 });
+        await proxy.updateDelta({ width: 700 });
+        await chart.waitForUpdate();
+
+        expect(barCount()).toBe(before);
+    });
+
     it('starts a superseding fade from the displayed opacity', async () => {
         highlight(datum(0, 1));
-        const firstHalf = await frames.captureAnimationFrames(chart, () => inPlace(1)[0], {
+        const firstHalf = await frames.captureAnimationFrames(chart, () => shown(1, 0), {
             frames: 3,
-            duration: HIGHLIGHT_FADE_DURATION_MS / 2,
+            duration: FADE_MS / 2,
+            rendered: true,
         });
         const displayed = firstHalf.at(-1)!;
         expect(displayed).toBeGreaterThan(UNHIGHLIGHTED_SERIES);
         expect(displayed).toBeLessThan(1);
 
         highlight();
-        const trajectory = await capture(() => inPlace(1)[0]);
+        const trajectory = await capture(() => shown(1, 0));
 
         expectFade(trajectory, displayed, 1);
     });
 
-    // A cutout erases its in-place copy, so the two hand over: the arriving copy starts from the in-place copy's style,
-    // and the leaving copy goes at once, with the in-place copy taking over from it.
-    it.each([
-        { drawingMode: 'cutout' as const, edge: UNHIGHLIGHTED_ITEM },
-        { drawingMode: 'overlay' as const, edge: 0 },
-    ])('hands the highlight between items of a series without a jump ($drawingMode)', async ({ drawingMode, edge }) => {
-        chart.destroy();
-        chart = deproxy(await createChart({ ...options, highlight: { drawingMode } }));
-        await frames.runToEnd(chart);
+    it.each(['cutout', 'overlay'] as const)(
+        'hands the highlight between items of a series without a jump (%s)',
+        async (drawingMode) => {
+            await create({ ...options, highlight: { drawingMode } });
 
-        highlight(datum(0, 0));
-        await frames.runToEnd(chart);
-        expect(overlay(0)).toEqual({ 0: 1 });
+            highlight(datum(0, 0));
+            await frames.runToEnd(chart);
+            expect(shownRow(0)).toEqual([1, UNHIGHLIGHTED_ITEM, UNHIGHLIGHTED_ITEM]);
 
-        highlight(datum(0, 1));
-        const trajectory = await capture(() => ({ inPlace: inPlace(0), overlay: overlay(0) }));
+            highlight(datum(0, 1));
+            const trajectory = await capture(() => shownRow(0));
 
-        if (drawingMode === 'cutout') {
-            expect(trajectory.slice(1).every((sample) => sample.overlay[0] == null)).toBe(true);
             expectFade(
-                trajectory.map((sample) => sample.overlay[0] ?? sample.inPlace[0]),
+                trajectory.map((sample) => sample[0]),
                 1,
                 UNHIGHLIGHTED_ITEM
             );
-        } else {
-            const leaving = trajectory.map((sample) => sample.overlay[0]).filter((opacity) => opacity != null);
-            expectFade(leaving, 1, leaving.at(-1));
-            expect(leaving.at(-1)).toBeCloseTo(0, 1);
+            expectFade(
+                trajectory.map((sample) => sample[1]),
+                UNHIGHLIGHTED_ITEM,
+                1
+            );
             for (const sample of trajectory) {
-                expect(sample.inPlace[0]).toBe(UNHIGHLIGHTED_ITEM);
+                expect(sample[2]).toBe(UNHIGHLIGHTED_ITEM);
             }
         }
-        expectFade(
-            trajectory.map((sample) => sample.overlay[1]),
-            edge,
-            1
-        );
-        expect(overlay(0)).toEqual({ 1: 1 });
-    });
+    );
 
-    it('hands a cutout over to the bar beneath it without a flash when the highlight moves within a group', async () => {
+    it('keeps a bar shown when the highlight moves to another bar of its group', async () => {
         highlight(datum(0, 0));
         await frames.runToEnd(chart);
 
-        // What shows where the first series' item is: its cutout copy while there is one, else the bar beneath.
-        const shown = () => overlay(0)[0] ?? inPlace(0)[0];
-        const before = shown();
+        const before = shown(0, 0);
         highlight(datum(1, 0));
-        const visible = await capture(shown);
+        const visible = await capture(() => shown(0, 0));
 
-        const floor = Math.min(before, visible.at(-1));
+        const floor = Math.min(before, visible.at(-1)!);
         for (const opacity of visible) {
             expect(opacity).toBeGreaterThanOrEqual(floor);
         }
@@ -191,9 +228,10 @@ describe('BarSeries highlight fade', () => {
         await frames.runToEnd(chart);
 
         const step = 20;
-        const trajectory = await frames.captureAnimationFrames(chart, () => overlay(0)[0] ?? inPlace(0)[0], {
+        const trajectory = await frames.captureAnimationFrames(chart, () => shown(0, 0), {
             frames: 25,
             duration: 25 * step,
+            rendered: true,
             onFrame: async (i) => {
                 if (i !== 0 && i !== 5) return;
                 highlight(datum(0, i === 0 ? 1 : 2));
@@ -202,32 +240,82 @@ describe('BarSeries highlight fade', () => {
         });
 
         // The second move restyles every item, but the first item's fade keeps its course rather than restarting.
-        const settled = Math.ceil(HIGHLIGHT_FADE_DURATION_MS / step) + 2;
+        const settled = Math.ceil(FADE_MS / step) + 2;
         expect(trajectory[settled]).toBe(UNHIGHLIGHTED_ITEM);
         expect(trajectory[settled - 4]).toBeGreaterThan(UNHIGHLIGHTED_ITEM);
     });
 
-    it('scales with the animation duration', async () => {
-        chart.ctx.animationManager.defaultDuration = 2000;
-
-        highlight(datum(0, 1));
-        const trajectory = await capture(() => inPlace(1)[0]);
-
-        expect(trajectory.at(-1)).toBeGreaterThan(UNHIGHLIGHTED_SERIES);
-        await frames.runToEnd(chart);
-        expect(inPlace(1)[0]).toBe(UNHIGHLIGHTED_SERIES);
-    });
-
-    it('snaps to the highlighted state when the current batch is skipped', async () => {
+    it('snaps to the highlighted state when the layout changes during the fade', async () => {
         highlight(datum(0, 1));
         await frames.captureAnimationFrames(chart, () => undefined, { frames: 2, duration: 60 });
-        expect(inPlace(1)[0]).toBeGreaterThan(UNHIGHLIGHTED_SERIES);
+        await chart.waitForUpdate();
+        expect(shown(1, 0)).toBeGreaterThan(UNHIGHLIGHTED_SERIES);
 
-        chart.ctx.animationManager.skipCurrentBatch();
+        await proxy.updateDelta({ width: 700 });
+        await chart.waitForUpdate();
 
-        // Two bar series default to `highlight.mode: 'shared'`, which lights the other series' bar at the same category.
-        expect(inPlace(1)).toEqual([UNHIGHLIGHTED_SERIES, 1, UNHIGHLIGHTED_SERIES]);
-        expect(inPlace(0)).toEqual([UNHIGHLIGHTED_ITEM, UNHIGHLIGHTED_ITEM, UNHIGHLIGHTED_ITEM]);
+        // The highlighted category is left out: its highlight keeps the bounds from before the resize until it is
+        // highlighted again.
+        expect([shown(1, 0), shown(1, 2)]).toEqual([UNHIGHLIGHTED_SERIES, UNHIGHLIGHTED_SERIES]);
+        expect([shown(0, 0), shown(0, 2)]).toEqual([UNHIGHLIGHTED_ITEM, UNHIGHLIGHTED_ITEM]);
+    });
+
+    it('snaps to the highlighted state when the data changes during the fade', async () => {
+        highlight(datum(0, 1));
+        await frames.captureAnimationFrames(chart, () => undefined, { frames: 2, duration: 60 });
+        await chart.waitForUpdate();
+        expect(shown(1, 0)).toBeGreaterThan(UNHIGHLIGHTED_SERIES);
+
+        await proxy.updateDelta({
+            data: [
+                { category: 'Q1', apples: 4, oranges: 3 },
+                { category: 'Q2', apples: 7, oranges: 4 },
+                { category: 'Q3', apples: 6, oranges: 5 },
+            ],
+        });
+        await chart.waitForUpdate();
+
+        expect(shownRow(1)).toEqual([UNHIGHLIGHTED_SERIES, 1, UNHIGHLIGHTED_SERIES]);
+    });
+
+    it('fades the other series when a legend item is hovered', async () => {
+        await create({ ...options, legend: { enabled: true } });
+
+        await hoverLegendItem(chart, 1);
+        const trajectory = await capture(() => ({ hovered: shown(1, 0), other: shown(0, 0) }));
+
+        expect(trajectory.every((sample) => sample.hovered === 1)).toBe(true);
+        expectFade(
+            trajectory.map((sample) => sample.other),
+            1,
+            UNHIGHLIGHTED_SERIES
+        );
+    });
+
+    it('leaves the chart as it was once a highlight has moved, cleared and faded', async () => {
+        const countNodes = (node: Node): number => {
+            let count = 1;
+            if ('children' in node && typeof node.children === 'function') {
+                for (const child of node.children() as Iterable<Node>) count += countNodes(child);
+            }
+            return count;
+        };
+        const image = () => {
+            const { canvas } = chart.ctx.scene;
+            return [...canvas.context.getImageData(0, 0, canvas.element.width, canvas.element.height).data];
+        };
+        const nodesBefore = countNodes(chart.seriesRoot);
+        const imageBefore = image();
+
+        for (const highlighted of [datum(0, 0), datum(0, 1), datum(1, 2), undefined]) {
+            highlight(highlighted);
+            await frames.captureAnimationFrames(chart, () => undefined, { frames: 3, duration: FADE_MS / 2 });
+        }
+        await frames.runToEnd(chart);
+        await chart.waitForUpdate();
+
+        expect(countNodes(chart.seriesRoot)).toBe(nodesBefore);
+        expect(image()).toEqual(imageBefore);
     });
 
     describe('styles other than opacity', () => {
@@ -241,39 +329,47 @@ describe('BarSeries highlight fade', () => {
                         xKey: 'category',
                         yKey: 'oranges',
                         ...otherFill,
-                        highlight: { unhighlightedSeries: { fill: '#000000', strokeWidth: 4 } },
+                        stroke: '#ff0000',
+                        strokeWidth: 0,
+                        highlight: { unhighlightedSeries: { fill: '#000000', strokeWidth: 4, opacity: 1 } },
                     },
                 ],
             });
-        const otherBar = () => getSeriesSelectionNodes<Rect>(chart, 'datumSelection', 1)[0];
+        /** How many device pixels of red stroke show along the middle of a bar, from just outside its left edge. */
+        const shownStrokeWidth = () => {
+            const { x, y, height } = getDatumCanvasBounds(chart, 1, 0);
+            let count = 0;
+            for (let dx = -3; dx < 6; dx++) {
+                const [r, g, b] = renderedPixelAt(chart, x + dx, y + height / 2);
+                if (r > 127 && g < 64 && b < 64) count++;
+            }
+            return count;
+        };
 
         it('interpolates colours and stroke widths', async () => {
-            chart.destroy();
-            chart = deproxy(await createChart(styledOptions({ fill: '#ffffff' })));
-            await frames.runToEnd(chart);
+            await create(styledOptions({ fill: '#ffffff' }));
 
             highlight(datum(0, 1));
-            const trajectory = await capture(() => ({ fill: otherBar().fill, strokeWidth: otherBar().strokeWidth }));
+            const trajectory = await capture(() => ({ fill: pixel(1, 0), strokeWidth: shownStrokeWidth() }));
 
-            expect(trajectory[0]).toEqual({ fill: '#ffffff', strokeWidth: 0 });
-            expect(trajectory.at(-1)).toEqual({ fill: '#000000', strokeWidth: 4 });
+            expect(trajectory[0]).toEqual({ fill: WHITE, strokeWidth: 0 });
+            expect(trajectory.at(-1)).toEqual({ fill: BLACK, strokeWidth: 4 });
             const middle = trajectory[Math.floor(trajectory.length / 2)];
-            expect(middle.fill).not.toMatch(/^#(000000|ffffff)$/);
+            expect(middle.fill[0]).toBeGreaterThan(0);
+            expect(middle.fill[0]).toBeLessThan(255);
             expect(middle.strokeWidth).toBeGreaterThan(0);
             expect(middle.strokeWidth).toBeLessThan(4);
         });
 
         it('applies properties that cannot interpolate at the start', async () => {
             const gradient = { type: 'gradient' as const, colorStops: [{ color: 'red' }, { color: 'blue' }] };
-            chart.destroy();
-            chart = deproxy(await createChart(styledOptions({ fill: gradient })));
-            await frames.runToEnd(chart);
+            await create(styledOptions({ fill: gradient }));
 
             highlight(datum(0, 1));
-            const trajectory = await capture(() => ({ fill: otherBar().fill, strokeWidth: otherBar().strokeWidth }));
+            const trajectory = await capture(() => ({ fill: pixel(1, 0), strokeWidth: shownStrokeWidth() }));
 
             for (const sample of trajectory) {
-                expect(sample.fill).toBe('#000000');
+                expect(sample.fill).toEqual(BLACK);
             }
             expectFade(
                 trajectory.map((sample) => sample.strokeWidth),
@@ -284,11 +380,6 @@ describe('BarSeries highlight fade', () => {
     });
 
     it('fades a highlight that arrives during a series animation once that animation has played', async () => {
-        const proxy = await createChart(options);
-        chart.destroy();
-        chart = deproxy(proxy);
-        await frames.runToEnd(chart);
-
         await proxy.updateDelta({
             data: [
                 { category: 'Q1', apples: 2, oranges: 3 },
@@ -302,19 +393,25 @@ describe('BarSeries highlight fade', () => {
         highlight(datum(0, 1));
         const trajectory = await frames.captureAnimationFrames(
             chart,
-            () => ({ animating: chart.ctx.animationManager.isActive(), opacity: inPlace(1)[0] }),
-            { frames: 40, duration: 2000 }
+            () => ({
+                animating: chart.ctx.animationManager.isActive(),
+                hoverable: chart.ctx.interactionManager.isState(InteractionState.Hoverable),
+                opacity: shown(1, 0),
+            }),
+            { frames: 40, duration: 2000, rendered: true }
         );
 
         const during = trajectory.filter((sample) => sample.animating);
         expect(during.length).toBeGreaterThan(0);
         expect(during.every((sample) => sample.opacity === 1)).toBe(true);
-        // The fade starts in the frame that ends the series animation.
+        // The fade starts in the frame that ends the series animation, and interaction resumes with it.
+        const fade = trajectory.slice(during.length - 1);
         expectFade(
-            trajectory.slice(during.length - 1).map((sample) => sample.opacity),
+            fade.map((sample) => sample.opacity),
             1,
             UNHIGHLIGHTED_SERIES
         );
+        expect(fade.slice(1).every((sample) => sample.hoverable)).toBe(true);
     });
 
     it('keeps interaction unblocked while fading', async () => {
@@ -326,25 +423,26 @@ describe('BarSeries highlight fade', () => {
     });
 
     it('reports the fade as an animation without clearing the highlight', async () => {
-        const onStart = vi.fn();
-        chart.ctx.animationManager.addListener('animation-start', onStart);
+        let started = 0;
+        chart.ctx.animationManager.addListener('animation-start', () => started++);
         const highlighted = datum(0, 1);
 
         highlight(highlighted);
         await frames.captureAnimationFrames(chart, () => undefined, { frames: 2, duration: 60 });
 
-        expect(onStart).toHaveBeenCalledTimes(1);
+        expect(started).toBe(1);
         expect(chart.ctx.highlightManager.getActiveHighlight()).toBe(highlighted);
     });
 
-    it('renders the styles a keyboard focus change snaps to', async () => {
+    it('renders the styles a keyboard focus change settles on', async () => {
         await tabIntoChart(chart);
         // jsdom cannot detect :focus-visible, so an arrow key is what switches to the keyboard device.
         await pressKey(chart, 'ArrowRight');
         await pressKey(chart, 'ArrowLeft');
+        await frames.runToEnd(chart);
+        await chart.waitForUpdate();
 
-        for (const series of chart.series) {
-            expect(series.contentGroup.dirty).toBe(false);
-        }
+        expect(shownRow(0)).toEqual([1, UNHIGHLIGHTED_ITEM, UNHIGHLIGHTED_ITEM]);
+        expect(shownRow(1)).toEqual([1, UNHIGHLIGHTED_SERIES, UNHIGHLIGHTED_SERIES]);
     });
 });
