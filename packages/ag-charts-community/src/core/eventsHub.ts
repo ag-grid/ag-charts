@@ -45,6 +45,12 @@ import type { ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
 
+/** The x window a zoom or pan requested; a load with no valid data inside it is not rendered. */
+export interface DataLoadWindow {
+    start: number;
+    end: number;
+}
+
 export interface UpdateCompleteEvent {
     readonly apiUpdate: boolean;
     readonly wasShortcut: boolean;
@@ -157,7 +163,7 @@ export interface EventsHubMap {
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
     'crosshair:position-change': CrosshairPositionChangeEvent;
-    'data:load': { data: unknown[]; requestId?: number };
+    'data:load': { data: unknown[]; requestId?: number; window?: DataLoadWindow };
     'data:error': { requestId?: number } | null;
     'data:render-verdict': { requestId?: number; rendered: boolean };
     'data:update': DataSet | undefined;

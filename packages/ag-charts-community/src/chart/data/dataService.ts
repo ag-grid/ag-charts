@@ -1,13 +1,22 @@
-import { ChartUpdateType, Debug, Logger, stringifyValue, throttle } from 'ag-charts-core';
+import { ChartUpdateType, Debug, Logger, isFiniteNumber, stringifyValue, throttle } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams, AgDataSourceRequestSource } from 'ag-charts-types';
 
-import type { EventsHub } from '../../core/eventsHub';
+import type { DataLoadWindow, EventsHub } from '../../core/eventsHub';
 import type { AnimationManager } from '../interaction/animationManager';
 
 type DataSourceCallback = (params: AgDataSourceCallbackParams<unknown>) => Promise<unknown>;
 
 function isNonEmptyArray(response: unknown): response is unknown[] {
     return Array.isArray(response) && response.length > 0;
+}
+
+/** The window a zoom or pan asked for; chart updates and data-source changes may move to any range. */
+function requestedWindow({ windowStart, windowEnd, source }: AgDataSourceCallbackParams): DataLoadWindow | undefined {
+    if (source == null || source === 'chart-update' || source === 'mini-chart') return;
+    const start = windowStart?.valueOf();
+    const end = windowEnd?.valueOf();
+    if (!isFiniteNumber(start) || !isFiniteNumber(end)) return;
+    return { start, end };
 }
 
 /**
@@ -206,7 +215,8 @@ export class DataService<D extends object> {
 
     private createThrottledDispatch(dispatchThrottle: number) {
         return throttle(
-            (id: number, data: D[], requestId?: number) => this.dispatch(id, data, requestId),
+            (id: number, data: D[], requestId?: number, window?: DataLoadWindow) =>
+                this.dispatch(id, data, requestId, window),
             dispatchThrottle,
             {
                 leading: true,
@@ -215,9 +225,9 @@ export class DataService<D extends object> {
         );
     }
 
-    private dispatch(id: number, data: D[], requestId?: number) {
+    private dispatch(id: number, data: D[], requestId?: number, window?: DataLoadWindow) {
         this.debug(`DataService - dispatching 'data-load' | ${id}`);
-        this.eventsHub.emit('data:load', { data, requestId });
+        this.eventsHub.emit('data:load', { data, requestId, window });
     }
 
     private async fetch(params: AgDataSourceCallbackParams, requestId?: number) {
@@ -289,7 +299,7 @@ export class DataService<D extends object> {
 
         if (isNonEmptyArray(response)) {
             this.lastDispatchedData = { params, data: response };
-            this.throttledDispatch(id, response as D[], requestId);
+            this.throttledDispatch(id, response as D[], requestId, requestedWindow(params));
         } else {
             if (!threw && !Array.isArray(response)) {
                 this.logger.warnOnce(

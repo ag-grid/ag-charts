@@ -846,9 +846,130 @@ describe('DataSource', () => {
         );
     });
 
+    describe('invalid response recovery inside a zoomed-in window', () => {
+        // The reporter's line repro: a time axis fitted to the data, zoomed in away from the rows the response
+        // keeps valid, so every valid row of the response lies outside the requested window.
+        const LINE_REPRO_OPTIONS: AgCartesianChartOptions = {
+            ...BASE_OPTIONS,
+            axes: {
+                y: { type: 'number', position: 'left', crosshair: { enabled: false } },
+                x: { type: 'time', position: 'bottom', crosshair: { enabled: false } },
+            },
+            series: [{ type: 'line', xKey: 'date', yKey: 'price' }],
+        };
+
+        it.each([
+            [
+                'malformed objects',
+                [
+                    { date: 'not-a-date', price: 'abc' },
+                    { date: new Date(2024, 0, 3), price: Number.NaN },
+                    { wrongKey: 'value' },
+                    {},
+                    null,
+                    42,
+                    'string-item',
+                    { date: new Date(2024, 0, 5), price: 120 },
+                ],
+            ],
+            [
+                'null field values',
+                [
+                    { date: new Date(2024, 0, 2), price: null },
+                    { date: new Date(2024, 0, 3), price: 105 },
+                    { date: null, price: 110 },
+                    { date: new Date(2024, 0, 5), price: undefined },
+                    { date: new Date(2024, 0, 8), price: 115 },
+                ],
+            ],
+        ])('keeps the data and zoom on %s and recovers on the next zoom', async (_label, invalidResponse) => {
+            const validData = Array.from({ length: 120 }, (_, i) => ({
+                date: new Date(2024, 0, 1 + i),
+                price: 100 + Math.sin(i / 10) * 30 + i * 0.5,
+            }));
+
+            let scenario: 'valid' | 'invalid' = 'valid';
+            let callCount = 0;
+            let lastWindowStart: unknown;
+            cx = CANVAS_WIDTH / 2;
+            cy = CANVAS_HEIGHT / 2;
+            chart = await createEnterpriseChart({
+                ...LINE_REPRO_OPTIONS,
+                dataSource: {
+                    ...LINE_REPRO_OPTIONS.dataSource,
+                    getData: ({ windowStart }) => {
+                        callCount++;
+                        lastWindowStart = windowStart;
+                        return delay(1).then(() => (scenario === 'invalid' ? invalidResponse : validData));
+                    },
+                },
+            });
+            // Activate the chart for scroll-zoom once the axis is fitted to the first load.
+            await waitForChartStabilityUntil(
+                chart,
+                () => deproxy(chart).series.every((series) => series.hasData),
+                'the initial load'
+            );
+            await clickAction(cx, cy)(chart);
+
+            const zoomIn = async (description: string) => {
+                const callsBefore = callCount;
+                await scrollAction(cx, cy, -1)(chart);
+                await waitForChartStabilityUntil(chart, () => callCount > callsBefore, description);
+                await delay(1);
+                await waitForChartStability(chart);
+            };
+
+            await zoomIn('the first zoom request');
+            const zoomBefore = chart.getState().zoom!.ratioX!;
+            expect(zoomBefore.start).toBeGreaterThan(0); // anti-vacuous: zoomed in, away from the early rows
+
+            scenario = 'invalid';
+            await zoomIn('the invalid-response request from the second zoom');
+
+            const zoomAfter = chart.getState().zoom!.ratioX!;
+            expect(zoomAfter.start).toBeGreaterThanOrEqual(zoomBefore.start!);
+            expect(zoomAfter.end).toBeLessThanOrEqual(zoomBefore.end!);
+            expect(zoomAfter.end! - zoomAfter.start!).toBeGreaterThan(0);
+            expectWarningsCalls(); // drain value-validation warnings
+
+            scenario = 'valid';
+            await zoomIn('the recovery request from the third zoom');
+            // The retained 120-day domain, not the rejected rows' early-January one, places the next window.
+            expect(Number(lastWindowStart)).toBeGreaterThan(new Date(2024, 0, 20).getTime());
+        });
+    });
+
     describe('financial chart zoom preservation', () => {
-        // A response that collapses the domain to a single band (zero span) must not corrupt the zoom.
-        it('retains data and zoom when an unrenderable response collapses the domain', async () => {
+        const malformedRows = [
+            { date: 'not-a-date', open: 'abc', high: null, low: undefined, close: 103, volume: 1500000 },
+            {
+                date: new Date(2024, 0, 3),
+                open: Number.NaN,
+                high: Number.POSITIVE_INFINITY,
+                low: Number.NEGATIVE_INFINITY,
+                close: 106,
+                volume: 1800000,
+            },
+            { wrongKey: 'value' },
+            {},
+        ];
+
+        it.each([
+            // A response that collapses the domain to a single band (zero span) must not corrupt the zoom.
+            ['collapses the domain to one band', malformedRows],
+            // The reporter's financial repro: one fully valid row, outside the zoomed-in window.
+            [
+                'has its only valid row outside the window',
+                [
+                    ...malformedRows,
+                    null,
+                    42,
+                    'string-item',
+                    { date: new Date(2024, 0, 5), open: 109, high: 112, low: 107, close: 111, volume: 1600000 },
+                ],
+            ],
+        ])('retains data and zoom when an unrenderable response %s', async (_label, malformed) => {
             const validData = Array.from({ length: 40 }, (_, i) => ({
                 date: new Date(2024, 0, 1 + i),
                 open: 100 + i,
@@ -857,21 +978,6 @@ describe('DataSource', () => {
                 close: 102 + i,
                 volume: 1000 + i * 10,
             }));
-            // The valid `date` keeps `hasData` non-trivial; the OHLC values are all non-finite.
-            const malformed = [
-                { date: 'not-a-date', open: 'abc', high: null, low: undefined, close: 103, volume: 1500000 },
-                {
-                    date: new Date(2024, 0, 3),
-                    open: Number.NaN,
-                    high: Number.POSITIVE_INFINITY,
-                    low: Number.NEGATIVE_INFINITY,
-                    close: 106,
-                    volume: 1800000,
-                },
-                { wrongKey: 'value' },
-                {},
-            ];
-
             let scenario: 'valid' | 'malformed' = 'valid';
             let callCount = 0;
             const finOptions: any = {
@@ -925,6 +1031,16 @@ describe('DataSource', () => {
             expect(deproxy(chart).series.every((series) => series.hasData)).toBe(true);
 
             expectWarningsCalls(); // drain value-validation warnings
+
+            // The rejected request did not advance the zoom gate, so the next zoom requests again.
+            scenario = 'valid';
+            const callsBeforeRecovery = callCount;
+            await scrollAction(cx, cy, -1)(chart);
+            await waitForChartStabilityUntil(
+                chart,
+                () => callCount > callsBeforeRecovery,
+                'the recovery request from the third zoom'
+            );
         });
     });
 
