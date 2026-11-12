@@ -274,6 +274,26 @@ describe('ChartSync', () => {
         });
     });
 
+    describe('active item', () => {
+        it('should clear the active item of every sibling when a chart restores no active item', async () => {
+            charts = [10, 20].map((peak) =>
+                AgCharts.create(prepareEnterpriseTestOptions(syncedPeakChartOptions(peak, 'active-item')))
+            );
+            await waitForAllChartStability();
+
+            const [restored, sibling] = charts;
+            const activeItem = { type: 'series-node' as const, seriesId: deproxy(sibling).series[0].id, itemId: 1 };
+            await sibling.setState({ ...sibling.getState(), active: { activeItem } });
+            await waitForAllChartStability();
+            expect(sibling.getState().active?.activeItem).toEqual(activeItem);
+
+            await restored.setState({ ...restored.getState(), active: {} });
+            await waitForAllChartStability();
+
+            expect(sibling.getState().active?.activeItem).toBeUndefined();
+        });
+    });
+
     describe('axis compatibility validation', () => {
         const SINGLE_SERIES_WARNING =
             'AG Charts - To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.';

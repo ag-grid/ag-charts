@@ -28,9 +28,15 @@ export type SyncDerivedDomain = {
     dirty: boolean;
 };
 
+/** The parts of a chart's context its sync-group siblings may reach. */
+export type SyncMemberContext = Pick<
+    ChartRegistry,
+    'chartService' | 'chartState' | 'eventsHub' | 'highlightManager' | 'tooltipManager'
+>;
+
 /** A chart's handle in a sync group, through which siblings reach it. */
 export interface SyncGroupMember {
-    readonly moduleContext: DynamicContext<ChartRegistry>;
+    readonly moduleContext: SyncMemberContext;
     readonly syncStatus: SyncStatus;
     readonly axes: 'x' | 'y' | 'xy';
     readonly nodeInteraction: boolean;

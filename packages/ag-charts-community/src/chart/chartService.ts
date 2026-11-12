@@ -38,7 +38,7 @@ export interface ChartService {
     getTooltipContent(
         series: BaseSeries,
         datumIndex: DatumIndex,
-        removeMeDatum: SeriesNodeDatum,
+        datum: SeriesNodeDatum,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[];
 }
