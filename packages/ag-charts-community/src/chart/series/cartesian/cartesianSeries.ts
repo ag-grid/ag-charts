@@ -72,8 +72,6 @@ type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     propertyKeys: SeriesDirectionKeysMapping<OptionsOf<TTypes>>;
     propertyNames: SeriesDirectionKeysMapping<OptionsOf<TTypes>>;
     datumSelectionGarbageCollection: boolean;
-    /** False keeps the highlighted items' nodes that are removed until their style animations finish. */
-    highlightSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
     animationAlwaysPopulateNodeData: boolean;
     segmentedDataNodes: boolean;
@@ -185,7 +183,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         pathsPerSeries = ['path'],
         pathsZIndexSubOrderOffset = [],
         datumSelectionGarbageCollection = true,
-        highlightSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
         animationAlwaysPopulateNodeData = false,
         segmentedDataNodes = true,
@@ -215,7 +212,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             animationAlwaysUpdateSelections,
             animationAlwaysPopulateNodeData,
             datumSelectionGarbageCollection,
-            highlightSelectionGarbageCollection,
             segmentedDataNodes,
         };
 
@@ -231,7 +227,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(
             this.highlightNodeGroup,
             () => this.nodeFactory(),
-            highlightSelectionGarbageCollection
+            !this.animatesStyles
         );
 
         this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent<TTypes>>(
@@ -799,7 +795,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         if (item == null) {
             // Unhighlighted overlay nodes stay as garbage until their restyle removes them.
-            if (!this.opts.highlightSelectionGarbageCollection && highlightSelection.length > 0) {
+            if (this.animatesStyles && highlightSelection.length > 0) {
                 this.highlightSelection = this.updateHighlightSelectionItem({ items: [], highlightSelection });
                 this.highlightLabelSelection =
                     this.updateLabelSelection({ labelData: [], labelSelection: highlightLabelSelection }) ??
@@ -1621,9 +1617,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-    /** Whether `updateDatumNodes` resolves datum styles into `Shape.targetStyle`, for `restyleLayers` to apply. */
-    protected readonly restylesDatums: boolean = false;
-
     /** The layers `restyleLayers` applies; series with further layers override this. */
     protected getStyleLayers({
         datumSelection,
@@ -1631,7 +1624,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         datumSelectionRestyled,
     }: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>):
         StyleLayer<DatumOf<TTypes>, NodeOf<TTypes> & Shape<DatumOf<TTypes>>>[] | undefined {
-        if (!this.restylesDatums) return undefined;
+        if (!this.animatesStyles) return undefined;
         type ShapeSelection = Selection<DatumOf<TTypes>, NodeOf<TTypes> & Shape<DatumOf<TTypes>>>;
         return [
             {
@@ -1647,7 +1640,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const { datum } = this.opts?.animationResetFns ?? {};
         if (datum) {
             // Without garbage collection, removed highlight nodes animate out before their restyle removes them.
-            resetMotion([data], datum, { cleanup: this.opts.highlightSelectionGarbageCollection });
+            resetMotion([data], datum, { cleanup: !this.animatesStyles });
         }
     }
 

@@ -390,7 +390,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             ],
             pathsPerSeries: [],
             datumSelectionGarbageCollection: false,
-            highlightSelectionGarbageCollection: false,
+            animatesStyles: true,
             animationAlwaysUpdateSelections: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,

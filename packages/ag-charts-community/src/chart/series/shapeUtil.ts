@@ -11,8 +11,6 @@ import {
     isPatternFill,
 } from 'ag-charts-core';
 
-export type { ShapeStyle } from 'ag-charts-core';
-
 export interface ShapeFillBBox {
     series: BBox;
     axis: BBox;

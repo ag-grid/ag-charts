@@ -828,7 +828,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             this._performUpdateSkipAnimations = true;
         }
 
-        if (newAnimationBatch && this.ctx.animationManager.isActive()) {
+        if (newAnimationBatch && this.ctx.animationManager.isBlocking()) {
             this._performUpdateSkipAnimations = true;
         }
 
@@ -924,6 +924,8 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
             ctx.animationManager.startBatch(this._performUpdateSkipAnimations, restyleOnlyOnUpdate);
             ctx.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
+        } else if (!restyleOnlyOnUpdate) {
+            ctx.animationManager.endRestyle();
         }
 
         this.ctx.scene.updateDebugFlags();

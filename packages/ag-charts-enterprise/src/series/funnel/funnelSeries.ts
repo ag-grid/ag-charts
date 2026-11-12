@@ -43,12 +43,10 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
     static override readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
 
-    protected override readonly restylesDatums = true;
-
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
-            highlightSelectionGarbageCollection: false,
+            animatesStyles: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
             },

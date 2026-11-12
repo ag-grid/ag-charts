@@ -225,6 +225,11 @@ export type SeriesConstructorOpts<TOpts extends object> = {
     usesPlacedLabels?: boolean;
     alwaysClip?: boolean;
     supportsStandaloneZoom?: boolean;
+    /**
+     * Whether the series resolves its shapes' styles into `Shape.targetStyle` for `restyleLayers` to apply, so highlight
+     * changes animate them. Its removed highlight copies then stay while fading out, and it must not restyle them.
+     */
+    animatesStyles?: boolean;
 };
 
 function propertyAxisDirection(property: 'x' | 'y' | 'angle' | 'radius'): ChartAxisDirection;
@@ -552,6 +557,7 @@ export abstract class Series<
             usesPlacedLabels = false,
             alwaysClip = false,
             supportsStandaloneZoom = false,
+            animatesStyles = false,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
@@ -562,6 +568,7 @@ export abstract class Series<
         this.pickModes = pickModes;
         this.alwaysClip = alwaysClip;
         this.supportsStandaloneZoom = supportsStandaloneZoom;
+        this.animatesStyles = animatesStyles;
         this.highlightLabelGroup.pointerEvents = PointerEvents.None;
 
         this.cleanup.register(
@@ -1148,6 +1155,7 @@ export abstract class Series<
         return this.anyGlow;
     }
 
+    protected readonly animatesStyles: boolean;
     private styleMotion?: ShapeStyleMotion;
 
     /**
@@ -2238,8 +2246,6 @@ export abstract class Series<
         return markerStyle;
     }
 
-    /** Whether `applyMarkerStyle` resolves marker styles into `Shape.targetStyle`, for `restyleLayers` to apply. */
-    protected readonly restylesMarkers: boolean = false;
     private crossFilterDimmedStyles?: WeakMap<NormalisedSeriesMarkerStyle, NormalisedSeriesMarkerStyle>;
 
     /** `style` dimmed for markers outside a cross-filter selection; shared by every marker with `style`. */
@@ -2303,7 +2309,7 @@ export abstract class Series<
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
-        if (this.restylesMarkers) {
+        if (this.animatesStyles) {
             markerNode.targetStyle = crossFilterSelected ? style : this.crossFilterDimmedStyle(style);
         } else {
             markerNode.setStyleProperties(style, fillBBox);

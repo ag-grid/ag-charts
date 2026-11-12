@@ -303,8 +303,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     static override readonly className = 'RangeBarSeries';
     static readonly type = 'range-bar' as const;
 
-    protected override readonly restylesDatums = true;
-
     private readonly aggregationManager = new AggregationManager<RangeBarSeriesDataAggregationFilter>();
     private nodeDatumContext?: RangeBarSeriesNodeDatumContext;
 
@@ -354,7 +352,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             },
             categoryKey: 'xValue',
             datumSelectionGarbageCollection: false,
-            highlightSelectionGarbageCollection: false,
+            animatesStyles: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,

@@ -11,7 +11,10 @@ export interface StyleLayer<D extends StyledDatum, N extends Shape<D>> {
     /** Prefixes the layer's animation ids, to tell layers apart. */
     readonly subId: string;
     readonly selection: Selection<D, N>;
-    /** Copies of the highlighted items' shapes, matched to the shapes of `selection` by `datumIndex`. */
+    /**
+     * Copies of the highlighted items' shapes, matched to the shapes of `selection` by `datumIndex`. Leaving copies
+     * share their datum with a live shape, so a series must skip `isGarbage` nodes when it resolves styles.
+     */
     readonly highlightSelection: Selection<D, N>;
     /** Whether this update resolved the styles of `selection`; `highlightSelection` is resolved every update. */
     readonly restyled: boolean;
@@ -33,15 +36,8 @@ const COMPARED_PROPERTIES = [
 ];
 
 /**
- * Applies, or animates to, the `targetStyle` a series resolved for each of its shapes. Highlight changes animate each
- * shape from the style it displays; other updates apply the styles directly.
- *
- * Shapes with equal styles share one animation, even where a series resolves a new style object per shape, as with an
- * item styler. Past `AnimationManager.maxAnimatableItems` shapes, styles apply without animating.
- *
- * Highlight copies fade in and out over the shapes beneath them, except that a cutout erases the shape beneath it
- * whatever its opacity, so the two hand over instead: the cutout starts from what the shape beneath displays, and once
- * removed leaves at once, with the shape beneath taking over from what the cutout displayed.
+ * Applies, or animates to, the `targetStyle` a series resolved for each of its shapes; shapes with equal styles share
+ * one animation. A cutout erases the shape beneath it at any opacity, so the two hand over instead of cross-fading.
  */
 export class ShapeStyleMotion {
     private readonly motion: GroupedFromToMotion;
@@ -73,8 +69,12 @@ export class ShapeStyleMotion {
                 this.motion.animate(`${prefix}style`, [selection], fns, { cleanupRemoved: false });
             }
 
+            let underlays: Map<unknown, N | undefined> | undefined;
             const fns = this.prepareStyleFns<D, N>(fillBBox, share, {
-                underlay: (node) => findByDatumIndex(selection, node),
+                underlay: (node) => {
+                    underlays ??= collectUnderlays(selection, highlightSelection);
+                    return underlays.get(node.datum?.datumIndex);
+                },
             });
             this.motion.animate(`${prefix}highlight-style`, [highlightSelection], fns);
         }
@@ -82,27 +82,21 @@ export class ShapeStyleMotion {
 
     /** Apply each shape's `targetStyle` without animating, and remove the removed highlight copies. */
     reset<D extends StyledDatum, N extends Shape<D>>(layers: StyleLayer<D, N>[], fillBBox: ShapeFillBBox) {
-        // Shared styles only group animations, so keying every shape's style is wasted where none can animate.
-        const share = this.isAnimatable(layers) ? this.startRestyle() : unshared;
         for (const { selection, highlightSelection, restyled } of layers) {
-            if (restyled) this.resetSelection(selection, fillBBox, share);
-            this.resetSelection(highlightSelection, fillBBox, share);
+            if (restyled) this.resetSelection(selection, fillBBox);
+            this.resetSelection(highlightSelection, fillBBox);
             highlightSelection.cleanup();
         }
     }
 
-    private resetSelection<D, N extends Shape<D>>(
-        selection: Selection<D, N>,
-        fillBBox: ShapeFillBBox,
-        share: (style: ShapeStyle) => ShapeStyle
-    ) {
-        const { motion } = this;
+    private resetSelection<D, N extends Shape<D>>(selection: Selection<D, N>, fillBBox: ShapeFillBBox) {
+        const motion = this.motion.isAnimating() ? this.motion : undefined;
         const nodes = selection.nodes();
         selection.batchedUpdate(function resetNodeStyles() {
             for (const node of nodes) {
-                motion.release(node);
+                motion?.release(node);
                 if (node.targetStyle != null) {
-                    node.setStyleProperties(share(node.targetStyle), fillBBox, node.fillParams);
+                    node.setStyleProperties(node.targetStyle, fillBBox, node.fillParams);
                 }
             }
         });
@@ -122,22 +116,32 @@ export class ShapeStyleMotion {
         }: { underlay?: (node: N) => Shape | undefined; leavingCutout?: (node: N) => Shape | undefined }
     ): GroupedFromToFns<D, N, ShapeStyle> {
         const target = (node: Shape) => share(node.targetStyle ?? NO_STYLE);
+        // Shapes that snapped display their unshared `targetStyle`, so what they display shares too.
+        const displayed = (node: Shape) => (node.displayedStyle == null ? undefined : share(node.displayedStyle));
         const cutoutUnderlay = (node: N) => (node.drawingMode === 'cutout' ? underlay?.(node) : undefined);
         return {
             fromFn: (node) => {
-                if (node.displayedStyle != null) return node.displayedStyle;
+                const own = displayed(node);
+                if (own != null) return own;
                 const beneath = cutoutUnderlay(node);
-                if (beneath?.displayedStyle != null) return beneath.displayedStyle;
+                const beneathDisplayed = beneath == null ? undefined : displayed(beneath);
+                if (beneathDisplayed != null) return beneathDisplayed;
                 if (beneath?.targetStyle != null) return target(beneath);
                 return this.hidden(target(node));
             },
             toFn: (node, _datum, status) => {
                 if (status !== 'removed') return target(node);
-                const displayed = node.displayedStyle ?? target(node);
-                if (underlay == null || cutoutUnderlay(node) != null) return displayed;
-                return this.hidden(node.targetStyle == null ? displayed : target(node));
+                const shown = displayed(node) ?? target(node);
+                if (underlay == null || cutoutUnderlay(node) != null) return shown;
+                return this.hidden(node.targetStyle == null ? shown : target(node));
             },
-            takeoverFn: leavingCutout == null ? undefined : (node) => leavingCutout(node)?.displayedStyle,
+            takeoverFn:
+                leavingCutout == null
+                    ? undefined
+                    : (node) => {
+                          const leaving = leavingCutout(node);
+                          return leaving == null ? undefined : displayed(leaving);
+                      },
             applyFn: (node, style) => node.setStyleProperties(style, fillBBox, node.fillParams),
             defaults: STYLE_DEFAULTS,
         };
@@ -171,10 +175,11 @@ export class ShapeStyleMotion {
         this.sharedStyles = current;
 
         return (style: ShapeStyle) => {
+            if (!isShareable(style)) return style;
             for (const shared of current) {
                 if (shared === style || equalStyles(shared, style)) return shared;
             }
-            if (!isShareable(style) || current.length >= MAX_SHARED_STYLES) return style;
+            if (current.length >= MAX_SHARED_STYLES) return style;
             let shared = style;
             for (const candidate of previous) {
                 if (equalStyles(candidate, style)) {
@@ -187,8 +192,6 @@ export class ShapeStyleMotion {
         };
     }
 }
-
-const unshared = (style: ShapeStyle) => style;
 
 /** Bounds the per-shape cost of sharing styles, for series whose shapes mostly have distinct styles. */
 const MAX_SHARED_STYLES = 32;
@@ -205,7 +208,6 @@ function isShareable(style: ShapeStyle) {
 
 /** Whether two shareable styles display the same. */
 function equalStyles(a: ShapeStyle, b: ShapeStyle) {
-    if (!isShareable(a) || !isShareable(b)) return false;
     const recordA = a as Record<string, unknown>;
     const recordB = b as Record<string, unknown>;
     for (const property of COMPARED_PROPERTIES) {
@@ -232,9 +234,23 @@ function collectLeavingCutouts<D extends StyledDatum, N extends Shape<D>>(copies
     return leaving;
 }
 
-function findByDatumIndex<D extends StyledDatum, N extends Shape<D>>(selection: Selection<D, N>, node: N) {
-    const datumIndex = node.datum?.datumIndex;
-    for (const candidate of selection.nodes()) {
-        if (candidate.datum?.datumIndex === datumIndex) return candidate;
+/** The first shape of `selection` beneath each copy in `copies`, by `datumIndex`; sized by the copies, not the shapes. */
+function collectUnderlays<D extends StyledDatum, N extends Shape<D>>(
+    selection: Selection<D, N>,
+    copies: Selection<D, N>
+) {
+    const underlays = new Map<unknown, N | undefined>();
+    for (const copy of copies.nodes()) {
+        underlays.set(copy.datum?.datumIndex, undefined);
     }
+    let unmatched = underlays.size;
+    for (const node of selection.nodes()) {
+        if (unmatched === 0) break;
+        const datumIndex = node.datum?.datumIndex;
+        if (underlays.has(datumIndex) && underlays.get(datumIndex) == null) {
+            underlays.set(datumIndex, node);
+            unmatched--;
+        }
+    }
+    return underlays;
 }

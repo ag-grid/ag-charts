@@ -33,20 +33,13 @@ interface MotionGroup<N> {
 }
 
 /**
- * A "from/to" animation like {@link fromToMotion}, for animations of many nodes between few distinct sets of
- * properties, such as restyling nodes between highlight states. Nodes are grouped by the objects `fromFn` and `toFn`
- * return, and each group plays one animation, so the cost of starting it grows with the number of groups, not nodes.
- *
- * Numbers and colours interpolate; other properties take their final value from the start. Removed nodes play out,
- * then their selections are cleaned up, unless `cleanupRemoved` is false because another motion owns their removal.
- *
- * A node whose `toFn` result is unchanged keeps its running animation, so it arrives when it would have anyway. Other
- * nodes leave theirs without jumping to its end, so `fromFn` should report what nodes currently display. Each instance
- * tracks the animations of its own nodes, so an owner animates its nodes through one instance.
+ * A {@link fromToMotion} for many nodes between few distinct sets of properties: nodes group by the objects `fromFn` and
+ * `toFn` return, one animation per group. A node whose `toFn` result is unchanged keeps its running animation.
  */
 export class GroupedFromToMotion {
     /** The running group of each animating node. */
     private readonly nodeGroups = new WeakMap<Node, MotionGroup<Node>>();
+    private readonly runningGroups = new Set<MotionGroup<Node>>();
     private nextGroupId = 0;
 
     /** @param owner whose `id` groups the animations, so they stop with its other animations */
@@ -54,6 +47,10 @@ export class GroupedFromToMotion {
         private readonly owner: { readonly id: string },
         private readonly animationManager: AnimationManager
     ) {}
+
+    isAnimating() {
+        return this.runningGroups.size > 0;
+    }
 
     /** End `node`'s running animation without jumping it to its end, so its owner can apply its properties. */
     release(node: Node) {
@@ -116,6 +113,7 @@ export class GroupedFromToMotion {
         group.nodes.delete(node);
         this.nodeGroups.delete(node);
         if (group.nodes.size === 0) {
+            this.runningGroups.delete(group);
             this.animationManager.abandonAnimation(group.id);
         }
     }
@@ -171,6 +169,7 @@ export class GroupedFromToMotion {
         for (const node of nodes) {
             nodeGroups.set(node, group);
         }
+        this.runningGroups.add(group);
         applyAll(frame, 'start');
 
         const motion = this;
@@ -187,6 +186,7 @@ export class GroupedFromToMotion {
                 applyAll(frame, 'update');
             },
             onStop() {
+                motion.runningGroups.delete(group);
                 for (const node of group.nodes) {
                     nodeGroups.delete(node);
                 }

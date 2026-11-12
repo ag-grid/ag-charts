@@ -229,8 +229,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 
-    protected override readonly restylesDatums = true;
-
     /** The series-level style before any styler, highlight or selection overrides. */
     private baseStyle(): RequireOptional<NormalisedHistogramSeriesStyle> & { opacity: number } {
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
@@ -268,7 +266,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: true,
-            highlightSelectionGarbageCollection: false,
+            animatesStyles: true,
             animationAlwaysPopulateNodeData: true,
             alwaysClip: true,
             animationResetFns: {

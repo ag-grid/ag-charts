@@ -447,7 +447,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onAnimationStart(): void {
         // A batch of only `transition` animations is the fade of the current highlight.
-        if (!this.chart.ctx.animationManager.isActive()) return;
+        if (!this.chart.ctx.animationManager.isBlocking()) return;
         if (this.getHoverDevice() !== 'setState' && this.activeState.lastActive !== 'legend') {
             this.clearAll();
         }
@@ -634,7 +634,7 @@ export class SeriesAreaManager extends BaseManager {
             return; // already handled natively by 'keydown' listener
         }
         // Skip any playing animations
-        if (current === this.chart.ctx.widgets.seriesWidget && this.chart.ctx.animationManager.isActive()) {
+        if (current === this.chart.ctx.widgets.seriesWidget && this.chart.ctx.animationManager.isBlocking()) {
             this.chart.ctx.animationManager.skipCurrentBatch();
         }
 
@@ -1468,7 +1468,9 @@ export class SeriesAreaManager extends BaseManager {
         if (!event || !this.isState(InteractionState.Hoverable)) return;
 
         const { canvasX, canvasY } = event;
-        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
+        if (
+            redisplay ? this.chart.ctx.animationManager.isBlocking() : !this.hoverRect?.containsPoint(canvasX, canvasY)
+        ) {
             this.clearHighlight();
             return;
         }
@@ -1501,7 +1503,9 @@ export class SeriesAreaManager extends BaseManager {
 
         const { canvasX, canvasY } = event;
         const targetElement = event.sourceEvent.target as HTMLElement;
-        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
+        if (
+            redisplay ? this.chart.ctx.animationManager.isBlocking() : !this.hoverRect?.containsPoint(canvasX, canvasY)
+        ) {
             if (this.getHoverDevice() == 'pointer') this.clearTooltip();
             return;
         }

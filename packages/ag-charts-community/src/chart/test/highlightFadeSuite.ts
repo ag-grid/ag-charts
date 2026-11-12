@@ -3,7 +3,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
-import { getPolarSeriesCenter, getSeriesNodeData } from './seriesAccessors';
+import { STYLE_TRANSITION } from '../../motion/animation';
+import { getDatumCanvasBounds, getPolarSeriesCenter, getSeriesNodeData } from './seriesAccessors';
 import {
     type ChartOrProxy,
     deproxy,
@@ -16,31 +17,39 @@ import {
     spyOnAnimationFrames,
 } from './utils';
 
-// 0.3 of the default animation duration of 1s.
-const FADE_MS = 300;
 const WHITE = [255, 255, 255, 255];
 const UNHIGHLIGHTED_ITEM = { fillOpacity: 0.4, strokeOpacity: 0.4 };
 
 type Point = { x: number; y: number };
 
+/** How long a highlight fade lasts at the chart's animation duration. */
+export function fadeDuration(chart: ChartOrProxy<any>) {
+    return STYLE_TRANSITION * deproxy(chart).ctx.animationManager.defaultDuration;
+}
+
+function seriesOrigin(chart: ChartOrProxy<any>): Point {
+    const { seriesRect } = deproxy(chart);
+    expect(seriesRect).toBeDefined();
+    return seriesRect!;
+}
+
 export interface HighlightFadeCase {
     name: string;
     /** A chart on a white background whose items render opaque at their centres. */
     options: AgChartOptions;
-    /** Where an item renders, relative to the series area. */
+    /** Where an item renders on the canvas. */
     itemCentre: (chart: ChartOrProxy<any>, seriesIndex: number, datumIndex: number) => Point;
 }
 
 export function rectCentre(chart: ChartOrProxy<any>, seriesIndex: number, datumIndex: number): Point {
-    const { x, y, width, height } = getSeriesNodeData<{ x: number; y: number; width: number; height: number }>(
-        chart,
-        seriesIndex
-    )[datumIndex];
+    const { x, y, width, height } = getDatumCanvasBounds(chart, seriesIndex, datumIndex);
     return { x: x + width / 2, y: y + height / 2 };
 }
 
 export function markerCentre(chart: ChartOrProxy<any>, seriesIndex: number, datumIndex: number): Point {
-    return getSeriesNodeData<{ point: Point }>(chart, seriesIndex)[datumIndex].point;
+    const { point } = getSeriesNodeData<{ point: Point }>(chart, seriesIndex)[datumIndex];
+    const origin = seriesOrigin(chart);
+    return { x: origin.x + point.x, y: origin.y + point.y };
 }
 
 export function sectorCentre(chart: ChartOrProxy<any>, seriesIndex: number, datumIndex: number): Point {
@@ -51,9 +60,10 @@ export function sectorCentre(chart: ChartOrProxy<any>, seriesIndex: number, datu
         endAngle: number;
     }>(chart, seriesIndex)[datumIndex];
     const center = getPolarSeriesCenter(chart, seriesIndex);
+    const origin = seriesOrigin(chart);
     const radius = (innerRadius + outerRadius) / 2;
     const angle = (startAngle + endAngle) / 2;
-    return { x: center.x + radius * Math.cos(angle), y: center.y + radius * Math.sin(angle) };
+    return { x: origin.x + center.x + radius * Math.cos(angle), y: origin.y + center.y + radius * Math.sin(angle) };
 }
 
 /**
@@ -82,9 +92,8 @@ export function describeHighlightFade(
         const datum = (seriesIndex: number, datumIndex: number) =>
             getSeriesNodeData<HighlightNodeDatum>(proxy, seriesIndex)[datumIndex];
         const pixel = (seriesIndex: number, datumIndex: number) => {
-            const centre = itemCentre(proxy, seriesIndex, datumIndex);
-            const { x, y } = chart().seriesRect!;
-            return renderedPixelAt(proxy, x + centre.x, y + centre.y);
+            const { x, y } = itemCentre(proxy, seriesIndex, datumIndex);
+            return renderedPixelAt(proxy, x, y);
         };
         /** The opacity an item is seen at, whichever nodes draw it. */
         const shown = (seriesIndex: number, datumIndex: number) =>
@@ -94,7 +103,11 @@ export function describeHighlightFade(
         const otherSeries = () => chart().series.length - 1;
 
         const capture = <T>(sampler: () => T) =>
-            frames.captureAnimationFrames(proxy, sampler, { frames: 10, duration: FADE_MS + 100, rendered: true });
+            frames.captureAnimationFrames(proxy, sampler, {
+                frames: 10,
+                duration: fadeDuration(proxy) + 100,
+                rendered: true,
+            });
 
         const create = async () => {
             proxy = await createChart({

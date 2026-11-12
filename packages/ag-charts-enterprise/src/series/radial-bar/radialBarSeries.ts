@@ -116,7 +116,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 item: resetRadialBarSelectionsFn,
                 label: resetLabelFn,
             },
-            highlightSelectionGarbageCollection: false,
+            animatesStyles: true,
         });
     }
 
@@ -397,10 +397,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             this.animationState.transition('resize');
         }
         this.animationState.transition('update');
-
-        // After `update`, whose resets snap running restyles to their end, so the new styles apply last.
-        const { itemSelection: selection, highlightSelection } = this;
-        this.restyleLayers([{ subId: '', selection, highlightSelection, restyled: true }], this.getShapeFillBBox());
+        this.restyle();
     }
 
     protected updateSectorSelection(

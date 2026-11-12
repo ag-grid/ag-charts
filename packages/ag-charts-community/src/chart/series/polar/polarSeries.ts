@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, DynamicContext, Node } from 'ag-charts-core';
+import type { ChartAnimationPhase, DynamicContext, Node, Shape } from 'ag-charts-core';
 import {
     BBox,
     ChartAxisDirection,
@@ -128,7 +128,6 @@ export abstract class PolarSeries<
         pickModes = [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         canHaveAxes = false,
         animationResetFns,
-        highlightSelectionGarbageCollection = true,
         ...opts
     }: {
         moduleCtx: DynamicContext<ChartRegistry>;
@@ -139,8 +138,6 @@ export abstract class PolarSeries<
             item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
             label?: (node: Text<TDatum>, datum: TDatum) => AnimationValue & Partial<Text<TDatum>>;
         };
-        /** False keeps removed highlight nodes until their restyle removes them. */
-        highlightSelectionGarbageCollection?: boolean;
     } & Partial<DataModelSeriesConstructorOpts<TOpts>>) {
         super({
             ...opts,
@@ -152,7 +149,7 @@ export abstract class PolarSeries<
         this.highlightSelection = Selection.selectNoInference<TDatum, TNode>(
             this.highlightNodeGroup,
             () => this.nodeFactory(),
-            highlightSelectionGarbageCollection
+            !this.animatesStyles
         );
         this.animationResetFns = animationResetFns;
         this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>(
@@ -233,6 +230,15 @@ export abstract class PolarSeries<
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null | Promise<BBox | null> {
         return null;
+    }
+
+    /** Apply, or animate, the styles this update resolved; call after `update`, whose resets snap running restyles. */
+    protected restyle() {
+        if (!this.animatesStyles) return;
+        type ShapeSelection = Selection<TDatum, TNode & Shape<TDatum>>;
+        const selection = this.itemSelection as ShapeSelection;
+        const highlightSelection = this.highlightSelection as ShapeSelection;
+        this.restyleLayers([{ subId: '', selection, highlightSelection, restyled: true }], this.getShapeFillBBox());
     }
 
     protected getShapeFillBBox(): ShapeFillBBox {

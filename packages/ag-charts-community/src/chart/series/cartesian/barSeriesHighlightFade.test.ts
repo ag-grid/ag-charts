@@ -7,6 +7,7 @@ import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { Chart } from '../../chart';
 import { InteractionState } from '../../interaction/interactionManager';
 import { getBarSeriesContextNodeData, withUndocumentedOptions } from '../../test/communitySeriesAccessors';
+import { describeHighlightFade, fadeDuration, rectCentre } from '../../test/highlightFadeSuite';
 import { getDatumCanvasBounds, getSeriesNodeData } from '../../test/seriesAccessors';
 import { shapesOf } from '../../test/shadowFixtures';
 import {
@@ -28,10 +29,33 @@ import {
 // Theme defaults for several bar series: other items of the hovered series and other series.
 const UNHIGHLIGHTED_ITEM = 0.6;
 const UNHIGHLIGHTED_SERIES = 0.2;
-// 0.3 of the default animation duration of 1s.
-const FADE_MS = 300;
 const WHITE = [255, 255, 255, 255];
 const BLACK = [0, 0, 0, 255];
+
+describeHighlightFade(
+    [
+        {
+            name: 'bar series',
+            options: {
+                data: [
+                    { category: 'Q1', apples: 5, oranges: 3 },
+                    { category: 'Q2', apples: 7, oranges: 4 },
+                    { category: 'Q3', apples: 6, oranges: 5 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', gridLine: { enabled: false } },
+                },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    { type: 'bar', xKey: 'category', yKey: 'oranges' },
+                ],
+            },
+            itemCentre: rectCentre,
+        },
+    ],
+    createChart
+);
 
 describe('BarSeries highlight fade', () => {
     setupMockConsole();
@@ -82,7 +106,7 @@ describe('BarSeries highlight fade', () => {
         chart.ctx.highlightManager.updateHighlight(chart.id, highlighted);
 
     // Frames spanning the transition; the first frame only starts the clock, so the last lands beyond its end.
-    const capture = <T>(sampler: () => T, durationMs = FADE_MS) =>
+    const capture = <T>(sampler: () => T, durationMs = fadeDuration(chart)) =>
         frames.captureAnimationFrames(chart, sampler, { frames: 10, duration: durationMs + 100, rendered: true });
 
     const create = async (chartOptions: AgCartesianChartOptions) => {
@@ -115,32 +139,6 @@ describe('BarSeries highlight fade', () => {
         const trajectory = await capture(() => shown(1, 0));
 
         expectFade(trajectory, 1, UNHIGHLIGHTED_SERIES);
-    });
-
-    it('fades the other items and the other series when an item is highlighted', async () => {
-        highlight(datum(0, 1));
-        const trajectory = await capture(() => ({ hovered: shown(0, 0), other: shown(1, 0) }));
-
-        expectFade(
-            trajectory.map((sample) => sample.hovered),
-            1,
-            UNHIGHLIGHTED_ITEM
-        );
-        expectFade(
-            trajectory.map((sample) => sample.other),
-            1,
-            UNHIGHLIGHTED_SERIES
-        );
-    });
-
-    it('fades back when the highlight is removed', async () => {
-        highlight(datum(0, 1));
-        await frames.runToEnd(chart);
-
-        highlight();
-        const trajectory = await capture(() => shown(1, 0));
-
-        expectFade(trajectory, UNHIGHLIGHTED_SERIES, 1);
     });
 
     /** The bars in the scene, in place and highlighted, whichever of them are still fading. */
@@ -242,7 +240,7 @@ describe('BarSeries highlight fade', () => {
         highlight(datum(0, 1));
         const firstHalf = await frames.captureAnimationFrames(chart, () => shown(1, 0), {
             frames: 3,
-            duration: FADE_MS / 2,
+            duration: fadeDuration(chart) / 2,
             rendered: true,
         });
         const displayed = firstHalf.at(-1)!;
@@ -320,7 +318,7 @@ describe('BarSeries highlight fade', () => {
         });
 
         // The second move restyles every item, but the first item's fade keeps its course rather than restarting.
-        const settled = Math.ceil(FADE_MS / step) + 2;
+        const settled = Math.ceil(fadeDuration(chart) / step) + 2;
         expect(trajectory[settled]).toBe(UNHIGHLIGHTED_ITEM);
         expect(trajectory[settled - 4]).toBeGreaterThan(UNHIGHLIGHTED_ITEM);
     });
@@ -403,7 +401,10 @@ describe('BarSeries highlight fade', () => {
 
         for (const highlighted of [datum(0, 0), datum(0, 1), datum(1, 2), undefined]) {
             highlight(highlighted);
-            await frames.captureAnimationFrames(chart, () => undefined, { frames: 3, duration: FADE_MS / 2 });
+            await frames.captureAnimationFrames(chart, () => undefined, {
+                frames: 3,
+                duration: fadeDuration(chart) / 2,
+            });
         }
         await frames.runToEnd(chart);
         await chart.waitForUpdate();
@@ -482,13 +483,13 @@ describe('BarSeries highlight fade', () => {
             ],
         });
         await frames.captureAnimationFrames(chart, () => undefined, { frames: 2, duration: 60 });
-        expect(chart.ctx.animationManager.isActive()).toBe(true);
+        expect(chart.ctx.animationManager.isBlocking()).toBe(true);
 
         highlight(datum(0, 1));
         const trajectory = await frames.captureAnimationFrames(
             chart,
             () => ({
-                animating: chart.ctx.animationManager.isActive(),
+                animating: chart.ctx.animationManager.isBlocking(),
                 hoverable: chart.ctx.interactionManager.isState(InteractionState.Hoverable),
                 opacity: shown(1, 0),
             }),
@@ -512,7 +513,7 @@ describe('BarSeries highlight fade', () => {
         highlight(datum(0, 1));
         await frames.captureAnimationFrames(chart, () => undefined, { frames: 2, duration: 60 });
 
-        expect(chart.ctx.animationManager.isActive()).toBe(false);
+        expect(chart.ctx.animationManager.isBlocking()).toBe(false);
         expect(chart.ctx.interactionManager.isState(InteractionState.Hoverable)).toBe(true);
     });
 

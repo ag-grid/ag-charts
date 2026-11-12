@@ -222,7 +222,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
             datumSelectionGarbageCollection: false,
-            highlightSelectionGarbageCollection: false,
+            animatesStyles: true,
             segmentedDataNodes: false,
             usesPlacedLabels: true,
             animationResetFns: {
@@ -1018,9 +1018,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             { compute: LineSeries.computeStylerStyle, apply: LineSeries.applyStylerDatum }
         );
     }
-
-    protected override readonly restylesMarkers = true;
-    protected override readonly restylesDatums = true;
 
     protected override castsHighlightGlowInGroup() {
         return false;

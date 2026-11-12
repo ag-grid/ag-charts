@@ -178,13 +178,18 @@ export class AnimationManager {
     }
 
     /** Whether animations that block interaction are playing; `transition` animations alone do not. */
-    public isActive() {
+    public isBlocking() {
         return this.isPlaying && this.batch.hasBlockingAnimations();
     }
 
-    /** Whether the current batch's update only restyles existing nodes, so series animate their new styles. */
+    /** Whether the running update only restyles existing nodes, so series animate their new styles. */
     public isRestyleOnly() {
         return this.restyleOnly;
+    }
+
+    /** Mark an update that runs again without a new batch as more than a restyle, so its styles snap. */
+    public endRestyle() {
+        this.restyleOnly = false;
     }
 
     /** Mocking point for tests; `transition` animations play without `animation.enabled`, but need frames. */

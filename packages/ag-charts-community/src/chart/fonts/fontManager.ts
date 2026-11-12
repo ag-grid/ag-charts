@@ -24,7 +24,7 @@ export class FontManager {
     // A re-measure re-lays out the chart, and a layout mid-batch costs the chart its animation, so the
     // notification waits for the animation to finish.
     private readonly flushFontLoad = () => {
-        if (this.destroyed || !this.pendingFontLoad || this.ctx.animationManager.isActive()) return;
+        if (this.destroyed || !this.pendingFontLoad || this.ctx.animationManager.isBlocking()) return;
         this.pendingFontLoad = false;
         cachedTextMeasurer.clear();
         this.ctx.eventsHub.emit('font:load', null);

@@ -207,8 +207,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
 
-    protected override readonly restylesDatums = true;
-
     override createNodeParams(datum: WaterfallNodeDatum) {
         return {
             ...super.createNodeParams(datum),
@@ -227,7 +225,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: ['connector'],
             pathsZIndexSubOrderOffset: [-1, -1],
-            highlightSelectionGarbageCollection: false,
+            animatesStyles: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,

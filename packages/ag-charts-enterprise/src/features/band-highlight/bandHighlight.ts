@@ -90,7 +90,7 @@ export class BandHighlight extends AbstractModuleInstance {
             seriesBoundsWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
             seriesBoundsWidget.addListener('mouseleave', () => this.clearAllHighlight()),
             animationManager.addListener('animation-start', () => {
-                if (animationManager.isActive()) this.clearAllHighlight();
+                if (animationManager.isBlocking()) this.clearAllHighlight();
             }),
             eventsHub.on('layout:complete', (event) => this.layout(event)),
             eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
