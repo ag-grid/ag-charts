@@ -9,6 +9,13 @@ import {
     withUndocumentedOptions,
 } from '../../test/communitySeriesAccessors';
 import {
+    type PixelDirection as Direction,
+    type PixelRun as Run,
+    categoryCentre,
+    isBackgroundPixel,
+    pixelRunsThrough,
+} from '../../test/pixelRuns';
+import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     compareImageSnapshot,
@@ -24,15 +31,6 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from '../../test/utils';
-
-type Direction = 'vertical' | 'horizontal';
-
-/** A run of one colour along a line through a bar, in canvas pixels: `[start, end)`. */
-interface Run {
-    start: number;
-    end: number;
-    rgb: string;
-}
 
 const COLOURS = ['#ff0000', '#00ff00', '#0000ff'];
 const KEYS = ['a', 'b', 'c'];
@@ -177,31 +175,15 @@ describe('bar series gap', () => {
         ],
     ];
 
-    /** Canvas position of the centre of the `index`th category (of four, unless `categories` says otherwise). */
-    function categoryCentre(img: ImageData, direction: Direction, index: number, categories = 4) {
-        return ((direction === 'vertical' ? img.width : img.height) / categories) * (index + 0.5);
-    }
+    const runsThrough = (direction: Direction, category: number, img = ctx.snapshot()) =>
+        pixelRunsThrough(img, direction, category);
 
-    /** The runs of colour through the centre of one column (or row), ordered by pixel. */
-    function runsThrough(direction: Direction, category: number, img = ctx.snapshot()): Run[] {
-        const { data, width, height } = img;
-        const vertical = direction === 'vertical';
-        const fixed = Math.round(categoryCentre(img, direction, category));
-        const length = vertical ? height : width;
-        const out: Run[] = [];
-        for (let p = 0; p < length; p++) {
-            const i = ((vertical ? p : fixed) * width + (vertical ? fixed : p)) * 4;
-            const background = data[i + 3] === 0 || (data[i] > 250 && data[i + 1] > 250 && data[i + 2] > 250);
-            if (background) continue;
-            const rgb = `${data[i]},${data[i + 1]},${data[i + 2]}`;
-            const last = out.at(-1);
-            if (last?.rgb === rgb && last.end === p) {
-                last.end = p + 1;
-            } else {
-                out.push({ start: p, end: p + 1, rgb });
-            }
+    /** Records the `yKey` of every segment clicked in a chart made from `options`. */
+    function collectClicks(options: AgCartesianChartOptions, clicked: string[] = []) {
+        for (const s of options.series!) {
+            (s as AgBarSeriesOptions).listeners = { seriesNodeClick: (e: any) => clicked.push(e.yKey) };
         }
-        return out;
+        return clicked;
     }
 
     /** The runs ordered from the baseline outwards, for the stack on one side of the axis. */
@@ -443,8 +425,7 @@ describe('bar series gap', () => {
                     let n = 0;
                     for (let x = left; x < left + img.width / 4; x++) {
                         const i = (y * img.width + x) * 4;
-                        const background = img.data[i + 3] === 0 || (img.data[i] > 250 && img.data[i + 1] > 250);
-                        if (!background) n++;
+                        if (!isBackgroundPixel(img.data, i)) n++;
                     }
                     return n;
                 });
@@ -616,22 +597,15 @@ describe('bar series gap', () => {
         );
 
         it('clicking inside a gap selects the segment that owns that half', async () => {
-            const clicked: string[] = [];
             const options = stackOptions({ gaps: [0, 0, 0] });
-            for (const s of options.series!) {
-                (s as AgBarSeriesOptions).listeners = {
-                    seriesNodeClick: (e: any) => clicked.push(e.yKey),
-                };
-            }
+            const clicked = collectClicks(options);
             await open(options);
             const img = ctx.snapshot();
             const base = fromBaseline(runsThrough('vertical', 0), 'vertical', true);
             const between = base[0].start;
 
             const withGap = stackOptions({ gaps: [8, 8, 8] });
-            for (const s of withGap.series!) {
-                (s as AgBarSeriesOptions).listeners = { seriesNodeClick: (e: any) => clicked.push(e.yKey) };
-            }
+            collectClicks(withGap, clicked);
             await update(withGap);
 
             const centre = categoryCentre(img, 'vertical', 0);
@@ -646,23 +620,15 @@ describe('bar series gap', () => {
         ])(
             'with a corner radius, clicking the empty corner past the outer end of $name picks nothing',
             async ({ visible }) => {
-                const clicked: string[] = [];
                 const options = stackOptions({ gaps: [4, 4, 4], cornerRadius: 24, visible });
-                for (const s of options.series!) {
-                    (s as AgBarSeriesOptions).listeners = { seriesNodeClick: (e: any) => clicked.push(e.yKey) };
-                }
+                const clicked = collectClicks(options);
                 await open(options);
                 const img = ctx.snapshot();
                 const centre = categoryCentre(img, 'vertical', 0);
 
                 // The top of the stack, and the left edge of the column below the rounded part of its corner.
                 const top = fromBaseline(runsThrough('vertical', 0), 'vertical', true).at(-1)!.start;
-                const rowAt = (y: number) => (x: number) => {
-                    const i = (y * img.width + x) * 4;
-                    return (
-                        img.data[i + 3] !== 0 && !(img.data[i] > 250 && img.data[i + 1] > 250 && img.data[i + 2] > 250)
-                    );
-                };
+                const rowAt = (y: number) => (x: number) => !isBackgroundPixel(img.data, (y * img.width + x) * 4);
                 const filled = rowAt(top + 40);
                 let left = Math.round(centre);
                 while (left > 0 && filled(left - 1)) left--;
@@ -696,11 +662,7 @@ describe('bar series gap', () => {
     });
 
     describe('keyboard focus', () => {
-        /**
-         * Asserts that the focus box covers `[start, end]` along the value axis at `cross`, to within the pixel: points
-         * 2px inside each end are in the box and points 2px outside each end are not. Bounds are not snapped to whole
-         * pixels as the drawn bars are, so the check is not exact to the pixel.
-         */
+        /** Asserts the focus box spans `[start, end]` at `cross`: 2px inside each end is in it, 2px outside is not. */
         function expectFocusSpan(direction: Direction, cross: number, [start, end]: [number, number], context: string) {
             const at = (along: number) =>
                 direction === 'vertical' ? { canvasX: cross, canvasY: along } : { canvasX: along, canvasY: cross };
@@ -711,19 +673,25 @@ describe('bar series gap', () => {
             expect(inFocus(end + 2), `${context}: outside the end`).toBe(false);
         }
 
-        it.each(['vertical', 'horizontal'] as const)(
-            '%s: the focus box of every segment is its drawn span, without the gap',
-            async (direction) => {
-                await open(stackOptions({ gaps: [8, 8, 8], direction }));
-                // The drawn runs, from the baseline outwards: the first segment is the first series.
-                const drawn = fromBaseline(runsThrough(direction, 0), direction, true);
+        it.each([
+            { direction: 'vertical', stack: 'positive', data: DATA },
+            { direction: 'horizontal', stack: 'positive', data: DATA },
+            { direction: 'vertical', stack: 'positive and negative', data: SIGNED_DATA },
+            { direction: 'horizontal', stack: 'positive and negative', data: SIGNED_DATA },
+        ] as const)(
+            '$direction, $stack stack: the focus box of every segment is its drawn span, without the gap',
+            async ({ direction, data }) => {
+                await open(stackOptions({ gaps: [8, 8, 8], direction, data: [...data] }));
+                const img = ctx.snapshot();
+                const drawn = runsThrough(direction, 0, img);
                 expect(drawn).toHaveLength(3);
-                const cross = categoryCentre(ctx.snapshot(), direction, 0);
+                const cross = categoryCentre(img, direction, 0);
 
                 // Tabbing in focuses the first datum of the first series; ArrowDown steps to the next series.
                 await tabIntoChart(chart!);
-                for (const [i, run] of drawn.entries()) {
+                for (const [i, rgb] of RGB.entries()) {
                     if (i > 0) await pressKey(chart!, 'ArrowDown');
+                    const run = drawn.find((r) => r.rgb === rgb)!;
                     expectFocusSpan(direction, cross, [run.start, run.end], `segment ${i}`);
                 }
             }
@@ -892,11 +860,7 @@ describe('bar series gap', () => {
 
         const value = (row: Row, series: number) => Number(row[KEYS[series]]);
 
-        /**
-         * The inset the end of a bucket's segment must have, from the row of its top datum alone: half the gap when a
-         * later series has a value of the same sign in that row (a neighbour is there), otherwise 0. The end is the top
-         * edge of a positive segment and the bottom edge of a negative one.
-         */
+        /** The end inset from the top datum's row: half the gap if a later series has a same-sign value there, else 0. */
         function expectedEnd(rows: Row[], series: number, datumIndex: number, halfGap: number) {
             const own = value(rows[datumIndex], series);
             const neighbour = KEYS.slice(series + 1).some((_, i) => {

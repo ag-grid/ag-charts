@@ -602,8 +602,8 @@ describe('Navigator', () => {
     });
 
     describe('mini chart stacked bar gap', () => {
-        const stackedBars = (gap: number): AgCartesianChartOptions => ({
-            data: Array.from({ length: 4 }, (_, i) => ({ x: `c${i}`, a: 40, b: 1 + i, c: 30 })),
+        const stackedBars = (gap: number, miniGap?: number): AgCartesianChartOptions => ({
+            data: Array.from({ length: 4 }, (_, i) => ({ x: `c${i}`, a: 40, b: 10 + i, c: 30 })),
             series: (['a', 'b', 'c'] as const).map((yKey): AgBarSeriesOptions => ({
                 type: 'bar',
                 xKey: 'x',
@@ -611,7 +611,13 @@ describe('Navigator', () => {
                 stacked: true,
                 gap,
             })),
-            navigator: { enabled: true, miniChart: { enabled: true } },
+            navigator: {
+                enabled: true,
+                miniChart: {
+                    enabled: true,
+                    series: miniGap == null ? undefined : [0, 1, 2].map(() => ({ type: 'bar', gap: miniGap })),
+                },
+            },
         });
 
         const segmentLengths = (index: number, series: 'main' | 'mini') => {
@@ -631,6 +637,19 @@ describe('Navigator', () => {
             expect(segmentLengths(1, 'main')).not.toEqual(withoutGap.main);
             expect(segmentLengths(1, 'mini')).toEqual(withoutGap.mini);
             expect(getMiniChartSeriesOptions<AgBarSeriesOptions>(chart, 1).gap).toBe(0);
+        });
+
+        it('insets the mini chart segments by `gap` set on `navigator.miniChart.series`, with no warning', async () => {
+            chart = await createEnterpriseChart(stackedBars(0));
+            const withoutGap = { main: segmentLengths(1, 'main'), mini: segmentLengths(1, 'mini') };
+            chart.destroy();
+
+            // The middle segment has a neighbour at both ends, so a gap of 2 takes 1 from each.
+            chart = await createEnterpriseChart(stackedBars(0, 2));
+            expectWarningsCalls().toEqual([]);
+            expect(getMiniChartSeriesOptions<AgBarSeriesOptions>(chart, 1).gap).toBe(2);
+            expect(segmentLengths(1, 'mini')).toEqual(withoutGap.mini.map((length) => length! - 2));
+            expect(segmentLengths(1, 'main')).toEqual(withoutGap.main);
         });
     });
 
