@@ -100,7 +100,7 @@ export class SyncManager extends BaseManager {
         if (!groupState || !this.member) return this;
 
         groupState.members.delete(this.member);
-        const chartId = this.getChartId();
+        const chartId = this.ctx.chartService.id;
         const derivedDomains = [
             ...Object.values(groupState.domains ?? {}),
             ...Object.values(groupState.domainsById ?? {}),
@@ -112,10 +112,6 @@ export class SyncManager extends BaseManager {
             derivedDomain.dirty = true;
         }
         return this;
-    }
-
-    getChartId() {
-        return this.ctx.chartService.id;
     }
 
     getGroupState(groupId: GroupId = SyncManager.DEFAULT_GROUP) {

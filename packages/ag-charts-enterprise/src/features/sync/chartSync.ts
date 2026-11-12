@@ -444,7 +444,7 @@ export class ChartSync extends AbstractModuleInstance implements _ModuleSupport.
     private updateDomainState(axis: _ModuleSupport.CartesianAxis<any, any>) {
         const { syncManager } = this.moduleContext;
         const groupId = this.opts.groupId;
-        const chartId = syncManager.getChartId();
+        const chartId = this.moduleContext.chartService.id;
         const axisId = axis.id;
         const groupState = syncManager.getGroupState(groupId);
         if (!groupState) throw new Error('AG Charts - no GroupState for groupId: ' + groupId);
@@ -595,7 +595,7 @@ export class ChartSync extends AbstractModuleInstance implements _ModuleSupport.
         const { syncManager } = this.moduleContext;
         const syncGroup = syncManager.getGroupState(opts.groupId);
 
-        const chartId = syncManager.getChartId();
+        const chartId = this.moduleContext.chartService.id;
         const axisId = axis.id;
         delete syncGroup?.domains?.[axis.direction]?.sources?.[chartId]?.[axisId];
         delete syncGroup?.domainsByPosition?.[axis.position]?.sources?.[chartId]?.[axisId];
