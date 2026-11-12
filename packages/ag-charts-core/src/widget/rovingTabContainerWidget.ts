@@ -41,11 +41,9 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
     public clear() {
         this.focusedChildIndex = 0;
         for (const child of this.children) {
-            this.removeChildListeners(child);
-            child.parent = undefined;
+            this.removeChildWidget(child);
         }
         this.elem.textContent = '';
-        this.children.length = 0;
     }
 
     public resize(newLength: number, allocator: () => TChildWidget): void {
