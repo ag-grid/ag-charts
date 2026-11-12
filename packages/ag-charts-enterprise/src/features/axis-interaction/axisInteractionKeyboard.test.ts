@@ -25,7 +25,9 @@ function getTickButtons(chart: AgChartInstance, axisId: string) {
 }
 
 function getA11YTickData(chart: AgChartInstance, axisId: string) {
-    return deproxy(chart).ctx.axisManager.getAxisIdContext(axisId as any)!.getA11YTickData();
+    return deproxy(chart)
+        .ctx.axisManager.getAxisIdContext(axisId as any)!
+        .getA11YTickData();
 }
 
 function countText(text: string) {
@@ -101,13 +103,19 @@ describe('AxisInteraction keyboard navigation', () => {
             },
         });
 
-        const xTitle = getWidgets(chart).acquireAxisWidget('x' as any).acquireTitle().getBounds();
+        const xTitle = getWidgets(chart)
+            .acquireAxisWidget('x' as any)
+            .acquireTitle()
+            .getBounds();
         for (const button of getTickButtons(chart, 'x')) {
             const { y, height } = button.getBounds();
             expect(y + height).toBeLessThanOrEqual(xTitle.y + EPSILON);
         }
 
-        const yTitle = getWidgets(chart).acquireAxisWidget('y' as any).acquireTitle().getBounds();
+        const yTitle = getWidgets(chart)
+            .acquireAxisWidget('y' as any)
+            .acquireTitle()
+            .getBounds();
         for (const button of getTickButtons(chart, 'y')) {
             expect(button.getBounds().x).toBeGreaterThanOrEqual(yTitle.x + yTitle.width - EPSILON);
         }
