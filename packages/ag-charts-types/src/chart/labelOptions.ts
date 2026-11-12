@@ -20,6 +20,7 @@ import type {
     AgChartLabelOrientation,
     AgChartLabelRegionPlacement,
     AgConeFunnelSeriesLabelPlacement,
+    AgErrorBarSeriesLabelCollisionOptions,
     AgFunnelSeriesLabelPlacement,
     AgSeriesLabelCollisionOptions,
 } from './collisionAvoidanceOptions';
@@ -113,6 +114,15 @@ export interface AgChartLabelCollisionFitOptions extends AgChartLabelFitOptions 
      * placed clear of every obstacle is kept at its least-overflowing placement or hidden.
      */
     collision?: AgSeriesLabelCollisionOptions;
+}
+
+/** Label-fit options extended with collision handling, on a series that supports error bars. */
+export interface AgErrorBarSeriesLabelCollisionFitOptions extends AgChartLabelFitOptions {
+    /**
+     * Configuration controlling the spacing kept from obstacles and whether a label that cannot be
+     * placed clear of every obstacle is kept at its least-overflowing placement or hidden.
+     */
+    collision?: AgErrorBarSeriesLabelCollisionOptions;
 }
 
 export interface AgChartLabelFormatterParams<TDatum, TContext = ContextDefault> extends AgChartCallbackParams<

@@ -7,6 +7,7 @@ import {
     AgCharts,
     type AgErrorBarItemStylerParams,
     type AgErrorBarThemeableOptions,
+    type AgLineSeriesOptions,
     type AgScatterSeriesOptions,
     type AgScatterSeriesTooltipRendererParams,
     type Styler,
@@ -18,6 +19,8 @@ import {
     compareImageSnapshot,
     computeLegendBBox,
     deproxy,
+    expectWarningMessages,
+    expectWarningsCalls,
     getCursor,
     getSeriesAt,
     getSeriesContextNodeData,
@@ -1238,32 +1241,37 @@ describe('ErrorBars', () => {
             }
         });
 
-        it.each([false, true])(
-            'moves inside labels off the whiskers drawn through them (reverse: %s)',
-            async (reverse) => {
-                chart = await createEnterpriseChart({
-                    axes: { x: { type: 'category' }, y: { type: 'number', reverse } },
-                    data: [
-                        { q: 'Q1', v: 10, lo: 2, hi: 18 },
-                        { q: 'Q2', v: 14, lo: 4, hi: 24 },
-                    ],
-                    series: [
-                        {
-                            type: 'bar',
-                            xKey: 'q',
-                            yKey: 'v',
-                            label: { placement: ['inside-center', 'outside-end'], spacing: SPACING },
-                            errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
+        it.each([
+            ['moves inside labels off the whiskers drawn through them', false, {}, 'outside-end'],
+            ['moves inside labels off the whiskers on a reversed axis', true, {}, 'outside-end'],
+            ['keeps inside labels over whiskers they may overlap', false, { errorBars: true }, 'inside-center'],
+        ])('%s', async (_, reverse, collideWith, expected) => {
+            chart = await createEnterpriseChart({
+                axes: { x: { type: 'category' }, y: { type: 'number', reverse } },
+                data: [
+                    { q: 'Q1', v: 10, lo: 2, hi: 18 },
+                    { q: 'Q2', v: 14, lo: 4, hi: 24 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'q',
+                        yKey: 'v',
+                        label: {
+                            placement: ['inside-center', 'outside-end'],
+                            spacing: SPACING,
+                            collision: { collideWith },
                         },
-                    ],
-                });
-                const nodes = nodeDataOf(0);
-                expect(nodes.length).toBe(2);
-                for (const node of nodes) {
-                    expect(node.label.placement).toBe('outside-end');
-                }
+                        errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
+                    },
+                ],
+            });
+            const nodes = nodeDataOf(0);
+            expect(nodes.length).toBe(2);
+            for (const node of nodes) {
+                expect(node.label.placement).toBe(expected);
             }
-        );
+        });
 
         it.each([
             ['without error bars', undefined, {}, 'inside'],
@@ -1344,6 +1352,62 @@ describe('ErrorBars', () => {
             });
         });
 
+        it('avoids the error bars of other series unless allowed to overlap them', async () => {
+            const lineSeries = (yKey: 'a' | 'b', errorBars: boolean): AgLineSeriesOptions => ({
+                type: 'line',
+                xKey: 'x',
+                yKey,
+                label: { placement: ['top', 'right'], spacing: SPACING, collision: { collideWith: { errorBars } } },
+            });
+            chart = await createEnterpriseChart({
+                data: [
+                    { x: 1, y: 5, lo: 0, hi: 10, a: 3, b: 7 },
+                    { x: 2, y: 5, lo: 0, hi: 10, a: 3, b: 7 },
+                    { x: 3, y: 5, lo: 0, hi: 10, a: 3, b: 7 },
+                ],
+                series: [
+                    { type: 'scatter', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' } },
+                    lineSeries('a', false),
+                    lineSeries('b', true),
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 4 },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+            });
+            expect(placedLabelsOf(1).map((placed) => placed.placement)).toEqual(['right', 'right', 'right']);
+            expect(placedLabelsOf(2).map((placed) => placed.placement)).toEqual(['top', 'top', 'top']);
+            await compare();
+        });
+
+        describe('collideWith.errorBars validation', () => {
+            const withErrorBarsOption = (series: object): AgCartesianChartOptions =>
+                ({
+                    data: [{ x: 1, y: 2 }],
+                    series: [{ ...series, label: { collision: { collideWith: { errorBars: true } } } }],
+                }) as AgCartesianChartOptions;
+
+            it.each([
+                ['bar', { type: 'bar', xKey: 'x', yKey: 'y' }],
+                ['line', { type: 'line', xKey: 'x', yKey: 'y' }],
+                ['scatter', { type: 'scatter', xKey: 'x', yKey: 'y' }],
+            ])('is accepted on %s series', async (_, series) => {
+                chart = await createEnterpriseChart(withErrorBarsOption(series));
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it.each([
+                ['area', { type: 'area', xKey: 'x', yKey: 'y' }],
+                ['bubble', { type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y' }],
+                ['histogram', { type: 'histogram', xKey: 'x' }],
+            ])('is rejected on %s series', async (_, series) => {
+                chart = await createEnterpriseChart(withErrorBarsOption(series));
+                expectWarningMessages([
+                    'AG Charts - Unknown option `series[0].label.collision.collideWith.errorBars`, ignoring.',
+                ]);
+            });
+        });
+
         describe('when offsetLabels is off', () => {
             const POSITIVE_DATA = [
                 { q: 'Q1', v: 10, lo: 8, hi: 14 },
@@ -1402,6 +1466,12 @@ describe('ErrorBars', () => {
 
             it.each([
                 ['moves', { placement: ['top', 'right'] }, 'right'],
+                [
+                    'moves, even when allowed to overlap shapes,',
+                    { placement: ['top', 'right'], collision: { collideWith: { shapes: true } } },
+                    'right',
+                ],
+                ['keeps', { placement: ['top', 'right'], collision: { collideWith: { errorBars: true } } }, 'top'],
                 ['drops', { placement: 'top', collision: { alwaysShow: false } }, undefined],
             ])('%s a label whose shape anchor collides with the whiskers', async (_, label, expected) => {
                 chart = await createEnterpriseChart({
