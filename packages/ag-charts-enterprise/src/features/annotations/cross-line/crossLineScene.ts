@@ -160,12 +160,12 @@ export class CrossLineScene extends AnnotationScene<never> {
         }
     }
 
-    public setAxisLabelOpacity(opacity: number) {
+    public override setAxisLabelOpacity(opacity: number) {
         if (!this.axisLabel) return;
         this.axisLabel.opacity = opacity;
     }
 
-    public setAxisLabelVisible(visible: boolean) {
+    public override setAxisLabelVisible(visible: boolean) {
         if (!this.axisLabel) return;
         this.axisLabel.visible = visible;
     }
