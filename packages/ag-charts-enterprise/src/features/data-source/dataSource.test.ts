@@ -959,6 +959,59 @@ describe('DataSource', () => {
             await dragNavigatorMin(0.4, 'the recovery request from a second navigator drag');
             expect(Number(lastWindowStart)).toBeGreaterThan(new Date(2024, 0, 20).getTime());
         });
+
+        it.each([
+            ['line', { type: 'line', xKey: 'date', yKey: 'price' }],
+            ['bar', { type: 'bar', xKey: 'date', yKey: 'price' }],
+            ['area', { type: 'area', xKey: 'date', yKey: 'price' }],
+            [
+                'candlestick',
+                {
+                    type: 'candlestick',
+                    xKey: 'date',
+                    openKey: 'open',
+                    highKey: 'high',
+                    lowKey: 'low',
+                    closeKey: 'price',
+                },
+            ],
+        ] as const)('commits a valid response to a zoom for a %s series', async (_label, series) => {
+            const validData = Array.from({ length: 120 }, (_, i) => {
+                const price = 100 + Math.sin(i / 10) * 30 + i * 0.5;
+                return { date: new Date(2024, 0, 1 + i), open: price - 1, high: price + 2, low: price - 2, price };
+            });
+            let callCount = 0;
+            cx = CANVAS_WIDTH / 2;
+            cy = CANVAS_HEIGHT / 2;
+            chart = await createEnterpriseChart({
+                ...LINE_REPRO_OPTIONS,
+                series: [series],
+                dataSource: {
+                    ...LINE_REPRO_OPTIONS.dataSource,
+                    getData: () => {
+                        callCount++;
+                        return delay(1).then(() => validData);
+                    },
+                },
+            } as AgCartesianChartOptions);
+            await waitForChartStabilityUntil(
+                chart,
+                () => deproxy(chart).series.every((s) => s.hasData),
+                'the initial load'
+            );
+            await clickAction(cx, cy)(chart);
+
+            for (const description of ['the first zoom request', 'the second zoom request']) {
+                const callsBefore = callCount;
+                const dataBefore = deproxy(chart).data;
+                await scrollAction(cx, cy, -1)(chart);
+                await waitForChartStabilityUntil(chart, () => callCount > callsBefore, description);
+                await delay(1);
+                await waitForChartStability(chart);
+                expect(deproxy(chart).data).not.toBe(dataBefore);
+            }
+            expect(chart.getState().zoom!.ratioX!.start).toBeGreaterThan(0);
+        });
     });
 
     describe('financial chart zoom preservation', () => {
