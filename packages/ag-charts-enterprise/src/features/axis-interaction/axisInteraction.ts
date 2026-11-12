@@ -551,7 +551,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         // Update keyboard navigation ticks
         axis.a11yTickData = axisCtx.getA11YTickData();
         const tickButtonList = axis.div.acquireInteractions().tickButtons;
-        tickButtonList.setTabIndex(needsTabStop(chartService, axisCtx) ? 0 : -1);
+        tickButtonList.setRovingTabIndex(needsTabStop(chartService, axisCtx) ? 0 : -1);
         tickButtonList.resize(axis.a11yTickData.length, (): ButtonWidget => {
             const b = new ButtonWidget();
             b.addClass('ag-charts-proxy-elem');

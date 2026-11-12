@@ -60,7 +60,7 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
         }
     }
 
-    public override setTabIndex(tabIndex: BaseAttributeTypeMap['tabindex'] | undefined) {
+    public setRovingTabIndex(tabIndex: BaseAttributeTypeMap['tabindex'] | undefined) {
         if (tabIndex !== undefined) {
             this.rovingTabIndex = tabIndex;
             this.children[this.focusedChildIndex]?.setTabIndex(tabIndex);
