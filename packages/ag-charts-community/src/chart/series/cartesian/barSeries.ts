@@ -3,6 +3,7 @@ import type {
     CallbackParamRules,
     DomainWithMetadata,
     DynamicContext,
+    GapSpan,
     LabelFit,
     Mutable,
     NormalisedBarSeriesOptions,
@@ -47,6 +48,7 @@ import {
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     fontWithSize,
+    insetGapSpan,
     isContinuous,
     isFiniteNumber,
     maxValue,
@@ -129,7 +131,7 @@ import {
     aggregateBarDataFromDataModel,
     aggregateBarDataFromDataModelPartial,
 } from './barAggregation';
-import { BarPickBBox, type GapSpan, gapEdges, insetGapSpan } from './barGap';
+import { gapEdges } from './barGap';
 import {
     checkCrisp,
     collapsedStartingBarPosition,
@@ -145,7 +147,7 @@ import {
 } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { calculateDataDiff } from './diffUtil';
-import { findQuadtreeMatch } from './quadtreeUtil';
+import { QuadtreePickBBox, findQuadtreeMatch } from './quadtreeUtil';
 import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum {
@@ -325,7 +327,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly pickStart: number;
     readonly pickLength: number;
     /** Created on first pick and updated in place, so a data update writes only the two numbers above. */
-    pickBBox: BarPickBBox | undefined;
+    pickBBox: QuadtreePickBBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
     style?: Required<NormalisedBarSeriesStyle> & AgItemShadowStyle;
@@ -370,7 +372,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private readonly aggregationManager = new AggregationManager<BarSeriesDataAggregationFilter>();
 
     private nodeDatumContext: BarSeriesNodeDatumContext | undefined = undefined;
-    private datumGroupIndexCache: { source: GroupedData<any>; columnIndex: number; index: Int32Array } | undefined;
+    private datumGroupIndexCache: { source: GroupedData<any>; index: Int32Array } | undefined;
 
     override get pickModeAxis() {
         return this.options.sparklineMode ? 'main' : undefined;
@@ -430,7 +432,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         for (const datum of this.contextNodeData?.nodeData ?? []) {
             const { clipBBox, pickStart, pickLength } = datum;
             if (clipBBox == null || pickLength <= 0 || datum.missing) continue;
-            const pickBBox = (datum.pickBBox ??= new BarPickBBox());
+            const pickBBox = (datum.pickBBox ??= new QuadtreePickBBox());
             if (barAlongX) {
                 pickBBox.setBounds(pickStart, clipBBox.y, pickLength, clipBBox.height);
             } else {
@@ -1368,12 +1370,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         nodeDatumParamsScratch: NodeDatumParams
     ): void {
         const sign = ctx.yReversed ? -1 : 1;
-        const withStackTotal = ctx.halfGap > 0 && ctx.isStacked;
 
         for (let p = 0; p < 2; p += 1) {
             const positive = p === 0;
             // One lookup per pass: each walks the data once.
-            const stackTotal = withStackTotal ? this.createStackTotalLookup(ctx) : undefined;
+            const stackTotal = ctx.halfGap > 0 ? this.createStackTotalLookup(ctx) : undefined;
             const indices = positive
                 ? ctx.dataAggregationFilter!.positiveIndices
                 : ctx.dataAggregationFilter!.negativeIndices;
@@ -2376,7 +2377,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const processedData = this.processedData as GroupedData<any> | undefined;
         const { dataModel } = this;
         if (processedData?.type !== 'grouped' || dataModel == null) return undefined;
-        if (this.datumGroupIndexCache?.source !== processedData) this.datumGroupIndexCache = undefined;
 
         const { groups } = processedData;
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
@@ -2401,14 +2401,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     private datumGroupIndex(processedData: GroupedData<any>, columnIndex: number): Int32Array {
         const cache = this.datumGroupIndexCache;
-        if (cache?.source === processedData && cache.columnIndex === columnIndex) return cache.index;
+        if (cache?.source === processedData) return cache.index;
 
         const index = new Int32Array(processedData.input.count).fill(-1);
         const { groups } = processedData;
         for (let g = 0; g < groups.length; g++) {
             for (const relative of groups[g].datumIndices[columnIndex] ?? []) index[g + relative] = g;
         }
-        this.datumGroupIndexCache = { source: processedData, columnIndex, index };
+        this.datumGroupIndexCache = { source: processedData, index };
         return index;
     }
 
@@ -2425,7 +2425,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         // Stacking implies grouped data, so isStacked alone separates the grouped and simple paths.
         const baseline = zeroLike(yRawValue);
         const yStart = ctx.isStacked ? (ctx.yStartValues?.[datumIndex] ?? baseline) : baseline;
-        const yEnd = ctx.isStacked ? ctx.yEndValues?.[datumIndex] : yRawValue;
+        const yEnd: AgNumericValue | undefined = ctx.isStacked ? ctx.yEndValues?.[datumIndex] : yRawValue;
         if (yEnd == null || !isContinuous(yEnd)) return undefined;
 
         const yFilterValue = ctx.yFilterValues == null ? undefined : Number(ctx.yFilterValues[datumIndex]);

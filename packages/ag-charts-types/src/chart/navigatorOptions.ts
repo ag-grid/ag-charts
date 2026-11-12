@@ -89,8 +89,7 @@ export type CommonIgnoredProperties =
     | 'xName'
     | 'yName';
 
-export type BarIgnoredProperties =
-    CommonIgnoredProperties | 'errorBar' | 'gap' | 'label' | 'legendItemName' | 'direction';
+export type BarIgnoredProperties = CommonIgnoredProperties | 'errorBar' | 'label' | 'legendItemName' | 'direction';
 export type BoxPlotIgnoredProperties =
     | CommonIgnoredProperties
     | 'direction'
