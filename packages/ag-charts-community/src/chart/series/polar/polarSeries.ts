@@ -88,10 +88,7 @@ export abstract class PolarSeries<
         () => this.labelFactory(),
         false
     );
-    protected highlightSelection: Selection<TDatum, TNode> = Selection.selectNoInference<TDatum, TNode>(
-        this.highlightNodeGroup,
-        () => this.nodeFactory()
-    );
+    protected highlightSelection: Selection<TDatum, TNode>;
     protected highlightLabelSelection: Selection<TDatum, Text<TDatum>> = Selection.select(
         this.highlightLabelGroup,
         () => this.labelFactory()
@@ -131,6 +128,7 @@ export abstract class PolarSeries<
         pickModes = [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         canHaveAxes = false,
         animationResetFns,
+        highlightSelectionGarbageCollection = true,
         ...opts
     }: {
         moduleCtx: DynamicContext<ChartRegistry>;
@@ -141,6 +139,8 @@ export abstract class PolarSeries<
             item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
             label?: (node: Text<TDatum>, datum: TDatum) => AnimationValue & Partial<Text<TDatum>>;
         };
+        /** False keeps removed highlight nodes until their restyle removes them. */
+        highlightSelectionGarbageCollection?: boolean;
     } & Partial<DataModelSeriesConstructorOpts<TOpts>>) {
         super({
             ...opts,
@@ -149,6 +149,11 @@ export abstract class PolarSeries<
             canHaveAxes,
         });
 
+        this.highlightSelection = Selection.selectNoInference<TDatum, TNode>(
+            this.highlightNodeGroup,
+            () => this.nodeFactory(),
+            highlightSelectionGarbageCollection
+        );
         this.animationResetFns = animationResetFns;
         this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>(
             'empty',

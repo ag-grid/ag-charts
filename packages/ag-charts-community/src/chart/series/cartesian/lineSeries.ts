@@ -72,7 +72,11 @@ import { markerDiameter } from '../seriesMarker';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
-import { DEFAULT_CARTESIAN_DIRECTION_KEYS, DEFAULT_CARTESIAN_DIRECTION_NAMES } from './cartesianSeries';
+import {
+    type CartesianRestyleData,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} from './cartesianSeries';
 import type { CartesianAnimationDataOf } from './cartesianSeriesTypes';
 import {
     type LineSeriesDataAggregationFilter,
@@ -221,6 +225,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
             datumSelectionGarbageCollection: false,
+            highlightSelectionGarbageCollection: false,
             segmentedDataNodes: false,
             usesPlacedLabels: true,
             animationResetFns: {
@@ -1015,6 +1020,16 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             ctx,
             { compute: LineSeries.computeStylerStyle, apply: LineSeries.applyStylerDatum }
         );
+    }
+
+    protected override readonly restylesMarkers = true;
+
+    protected override getStyleLayers({
+        datumSelection,
+        highlightSelection,
+        datumSelectionRestyled,
+    }: CartesianRestyleData<LineNodeDatum, Marker<LineNodeDatum>>) {
+        return [{ subId: '', selection: datumSelection, highlightSelection, restyled: datumSelectionRestyled }];
     }
 
     protected override updateDatumNodes(opts: {

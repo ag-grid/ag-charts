@@ -110,6 +110,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 item: resetRadialBarSelectionsFn,
                 label: resetLabelFn,
             },
+            highlightSelectionGarbageCollection: false,
         });
     }
 
@@ -390,6 +391,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             this.animationState.transition('resize');
         }
         this.animationState.transition('update');
+
+        // After `update`, whose resets snap running restyles to their end, so the new styles apply last.
+        const { itemSelection: selection, highlightSelection } = this;
+        this.restyleLayers([{ subId: '', selection, highlightSelection, restyled: true }], this.getShapeFillBBox());
     }
 
     protected updateSectorSelection(
@@ -412,7 +417,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const fillBBox = this.getShapeFillBBox();
         const { shadow } = this.options;
         const hasItemStylers = this.hasItemStylers();
         // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
@@ -423,7 +427,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const datum = readDatum(nodeDatum);
-                if (datum == null) return;
+                if (datum == null || selection.isGarbage(node)) return;
 
                 if (hasItemStylers) {
                     const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
@@ -468,11 +472,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const fillParams: GradientParams | undefined =
                     isGradientFill(fill) && fill.bounds !== 'item' ? { centerX: 0, centerY: 0 } : undefined;
 
-                node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
+                node.targetStyle = style as NormalisedRadialSeriesStyle;
+                node.fillParams = fillParams;
 
                 node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
                 node.lineJoin = 'round';
-                node.inset = node.stroke == null ? 0 : node.strokeWidth / 2;
+                node.inset = style.stroke == null ? 0 : (style.strokeWidth ?? 0) / 2;
 
                 node.startInnerCornerRadius = datum.reversed ? cornerRadius : 0;
                 node.startOuterCornerRadius = datum.reversed ? cornerRadius : 0;

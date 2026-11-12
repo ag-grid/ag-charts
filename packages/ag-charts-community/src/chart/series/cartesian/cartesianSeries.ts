@@ -5,6 +5,7 @@ import type {
     NormalisedCartesianSeriesOptionsCommon,
     NormalisedSeriesOptions,
     Scaling,
+    Shape,
 } from 'ag-charts-core';
 import {
     BBox,
@@ -49,6 +50,7 @@ import type { PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickMatch } f
 import type { SeriesDirectionKeysMapping } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
+import type { StyleLayer } from '../styleMotion';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
     CartesianSeriesNodeDataContext,
@@ -1596,26 +1598,20 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.resetAllAnimation(data);
     }
 
-    /**
-     * Apply the styles this update resolved. A restyle-only update, such as a highlight change, animates them from
-     * what is displayed; any other update snaps them.
-     */
     private restyle(data: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>) {
-        if (this.ctx.animationManager.isRestyleOnly()) {
-            this.animateRestyle(data);
+        const layers = this.getStyleLayers(data);
+        if (layers == null) {
+            data.highlightSelection.cleanup();
         } else {
-            this.resetDatumStyles(data);
+            this.restyleLayers(layers, this.getShapeFillBBox());
         }
     }
 
-    /** Override point for series that resolve styles into `Shape.targetStyle`; by default they apply directly. */
-    protected animateRestyle(data: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>) {
-        this.resetDatumStyles(data);
-    }
-
-    /** Override point for series that resolve styles into `Shape.targetStyle`. */
-    protected resetDatumStyles(data: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>) {
-        data.highlightSelection.cleanup();
+    /** Override point for series that resolve styles into `Shape.targetStyle`; others apply styles directly. */
+    protected getStyleLayers(
+        _data: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>
+    ): StyleLayer<DatumOf<TTypes>, NodeOf<TTypes> & Shape<DatumOf<TTypes>>>[] | undefined {
+        return undefined;
     }
 
     protected animateReadyHighlight(data: Selection<DatumOf<TTypes>, NodeOf<TTypes>>) {

@@ -26,6 +26,7 @@ import type {
     Selection,
     SeriesLabelDefaults,
     SeriesPluginModuleInstance,
+    Shape,
     SizedPoint,
 } from 'ag-charts-core';
 import {
@@ -127,6 +128,7 @@ import {
     type SeriesNodeDatum,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
+import { ShapeStyleMotion, type StyleLayer } from './styleMotion';
 import { hasDimmedOpacity, isDatumHighlight, resolveMarkerDrawingMode } from './util';
 
 type NodeEventType = 'seriesNodeClick' | 'seriesNodeDoubleClick' | 'nodeContextMenuAction';
@@ -1065,6 +1067,25 @@ export abstract class Series<
         return this.anyGlow;
     }
 
+    private styleMotion?: ShapeStyleMotion;
+
+    /**
+     * Apply the `targetStyle` this update resolved for each layer's shapes. A restyle-only update, such as a highlight
+     * change, animates them from what is displayed; any other update snaps them.
+     */
+    protected restyleLayers<D extends SeriesNodeDatum, N extends Shape<D>>(
+        layers: StyleLayer<D, N>[],
+        fillBBox: ShapeFillBBox
+    ) {
+        const { animationManager } = this.ctx;
+        this.styleMotion ??= new ShapeStyleMotion(this, animationManager);
+        if (animationManager.isRestyleOnly()) {
+            this.styleMotion.animate(layers, fillBBox);
+        } else {
+            this.styleMotion.reset(layers, fillBBox);
+        }
+    }
+
     /**
      * The shadow to draw on one copy of an item. A hovered item is drawn twice: in place, and again by the highlight
      * layer on top of it. The highlight layer's copy casts only the `glow` of the hovered item, centred on it and above
@@ -1842,6 +1863,25 @@ export abstract class Series<
         return markerStyle;
     }
 
+    /** Whether `applyMarkerStyle` resolves marker styles into `Shape.targetStyle`, for `restyleLayers` to apply. */
+    protected readonly restylesMarkers: boolean = false;
+    private crossFilterDimmedStyles?: WeakMap<NormalisedSeriesMarkerStyle, NormalisedSeriesMarkerStyle>;
+
+    /** `style` dimmed for markers outside a cross-filter selection; shared by every marker with `style`. */
+    private crossFilterDimmedStyle(style: NormalisedSeriesMarkerStyle) {
+        this.crossFilterDimmedStyles ??= new WeakMap();
+        let dimmed = this.crossFilterDimmedStyles.get(style);
+        if (dimmed == null) {
+            dimmed = {
+                ...style,
+                fillOpacity: (style.fillOpacity ?? 1) * CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR,
+                strokeOpacity: (style.strokeOpacity ?? 1) * CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR,
+            };
+            this.crossFilterDimmedStyles.set(style, dimmed);
+        }
+        return dimmed;
+    }
+
     protected applyMarkerStyle(
         style: NormalisedSeriesMarkerStyle,
         markerNode: Marker,
@@ -1870,18 +1910,21 @@ export abstract class Series<
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
-        markerNode.setStyleProperties(style, fillBBox);
+        if (this.restylesMarkers) {
+            markerNode.targetStyle = crossFilterSelected ? style : this.crossFilterDimmedStyle(style);
+        } else {
+            markerNode.setStyleProperties(style, fillBBox);
+            if (!crossFilterSelected) {
+                markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;
+                markerNode.strokeOpacity *= CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR;
+            }
+        }
         markerNode.fillShadow = shadow?.enabled && isSupportedMarkerShape(shape) ? shadow : undefined;
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
         // The floor covers the highlight states; `style` covers this datum's own stroke, including an
         // `itemStyler`'s. The guard is exact, as `markerStrokePickInflation` never exceeds `sw / 2`.
         markerNode.pickInflation =
             strokeWidth > pickInflation * 2 ? Math.max(pickInflation, markerStrokePickInflation(style)) : pickInflation;
-
-        if (!crossFilterSelected) {
-            markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;
-            markerNode.strokeOpacity *= CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR;
-        }
 
         // Only for custom marker shapes
         if (typeof shape === 'function' && !markerNode.dirtyPath) {

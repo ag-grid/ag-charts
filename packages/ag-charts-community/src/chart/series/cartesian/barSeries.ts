@@ -115,7 +115,7 @@ import type { SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { type ErrorBoundSeriesNodeDatum, HighlightState, SelectionState } from '../seriesTypes';
-import { ShapeStyleMotion, type StyleLayer } from '../styleMotion';
+import type { StyleLayer } from '../styleMotion';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,
@@ -374,8 +374,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         () => this.nodeFactory(),
         false
     );
-
-    private readonly styleMotion = new ShapeStyleMotion(this, this.ctx.animationManager);
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
@@ -2209,15 +2207,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         resetBarSelectionsDirect([data, this.phantomHighlightSelection], { cleanup: false });
     }
 
-    protected override animateRestyle(data: CartesianRestyleData<BarNodeDatum, BarShape<BarNodeDatum>>) {
-        this.styleMotion.animate(this.getStyleLayers(data), this.getShapeFillBBox());
-    }
-
-    protected override resetDatumStyles(data: CartesianRestyleData<BarNodeDatum, BarShape<BarNodeDatum>>) {
-        this.styleMotion.reset(this.getStyleLayers(data), this.getShapeFillBBox());
-    }
-
-    private getStyleLayers({
+    protected override getStyleLayers({
         datumSelection,
         highlightSelection,
         datumSelectionRestyled,
