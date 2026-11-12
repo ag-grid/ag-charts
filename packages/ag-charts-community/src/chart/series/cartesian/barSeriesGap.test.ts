@@ -906,13 +906,7 @@ describe('bar series gap', () => {
             return { negative: own < 0, inset: neighbour ? halfGap : 0 };
         }
 
-        /**
-         * The inset the start of a bucket's segment must have, from the rows the bucket covers (those that sit within its
-         * span on the x axis, with a value of the segment's sign): half the gap when every one of them has an earlier
-         * series with a value of that sign, 0 when none does. A bucket whose rows disagree takes the start of whichever
-         * row is closest to the baseline, so it has no single expected inset: `undefined`. The start is the bottom edge
-         * of a positive segment and the top edge of a negative one.
-         */
+        /** Expected start inset of a bucket's segment from the rows it covers; `undefined` where those rows disagree. */
         function expectedStart(rows: Row[], xs: number[], series: number, node: ReturnType<typeof nodeInsets>[number]) {
             const sign = Math.sign(value(rows[node.datumIndex], series));
             const covered: Row[] = [];
