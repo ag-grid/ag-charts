@@ -116,6 +116,10 @@ function hasDataInWindow(series: UnknownSeries, window: DataLoadWindow | undefin
     if (!series.hasData) return false;
     if (window == null) return true;
 
+    const inRange = series.hasDataInXRange(window.start, window.end);
+    if (inRange != null) return inRange;
+
+    // Series that cannot check each datum fall back to their x-domain overlapping the window.
     let min = Infinity;
     let max = -Infinity;
     for (const value of series.getDomain(ChartAxisDirection.X).domain) {

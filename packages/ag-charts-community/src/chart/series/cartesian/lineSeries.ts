@@ -348,6 +348,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         return [y - r, y + r];
     }
 
+    protected override gapValueColumn() {
+        const { dataModel, processedData } = this;
+        if (dataModel == null || processedData == null) return;
+        return dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric');
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData, axes } = this;
         if (!dataModel || !processedData) return { domain: [] };

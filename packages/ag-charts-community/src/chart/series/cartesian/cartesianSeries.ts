@@ -140,6 +140,31 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return this.contextNodeData?.nodeData;
     }
 
+    // Runs once per windowed dataSource load, stopping at the first datum inside the window.
+    public override hasDataInXRange(start: number, end: number): boolean | undefined {
+        const { dataModel, processedData } = this;
+        if (dataModel == null || processedData?.type !== 'ungrouped' || !dataModel.hasColumnById(this, 'xValue')) {
+            return undefined;
+        }
+
+        const xValues = dataModel.resolveColumnById(this, 'xValue', processedData, 'object');
+        const yValues = this.gapValueColumn();
+        const invalid = processedData.invalidData?.get(this.id);
+        for (let datumIndex = 0; datumIndex < xValues.length; datumIndex++) {
+            if (invalid?.[datumIndex] || (yValues != null && !isFiniteNumericValue(yValues[datumIndex]))) continue;
+            const x = (xValues[datumIndex] as { valueOf(): unknown } | null | undefined)?.valueOf();
+            // Category values have no order to compare against the window.
+            if (!isFiniteNumber(x)) return undefined;
+            if (x >= start && x <= end) return true;
+        }
+        return false;
+    }
+
+    /** A value column the data model keeps a row for when non-finite, which then renders as a gap. */
+    protected gapValueColumn(): unknown[] | undefined {
+        return undefined;
+    }
+
     private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
         new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1, batchShadows: 'shared' })

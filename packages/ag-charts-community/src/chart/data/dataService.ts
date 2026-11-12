@@ -16,7 +16,8 @@ function requestedWindow({ windowStart, windowEnd, source }: AgDataSourceCallbac
     const start = windowStart?.valueOf();
     const end = windowEnd?.valueOf();
     if (!isFiniteNumber(start) || !isFiniteNumber(end)) return;
-    return { start, end };
+    // A reversed axis requests its window from the far edge down.
+    return { start: Math.min(start, end), end: Math.max(start, end) };
 }
 
 /**
@@ -106,8 +107,9 @@ export class DataService<D extends object> {
 
     private pendingData: DataServiceRestoredData | undefined = undefined;
     private lastDispatchedData: DataServiceRestoredData | undefined = undefined;
-    // Restores `lastDispatchedData` if the chart rejects the dispatched load (see `data:render-verdict`).
-    private dispatchRollback: { requestId?: number; data: DataServiceRestoredData | undefined } | undefined;
+    // `lastDispatchedData` falls back to the last load the chart rendered when it rejects one (see `data:render-verdict`).
+    private renderedData: DataServiceRestoredData | undefined = undefined;
+    private readonly unjudgedLoads: { requestId?: number; data: DataServiceRestoredData }[] = [];
 
     private readonly debug = Debug.create(true, 'data-model', 'data-source');
 
@@ -123,10 +125,16 @@ export class DataService<D extends object> {
         private readonly logger: Logger
     ) {
         eventsHub.on('data:render-verdict', ({ requestId, rendered }) => {
-            const rollback = this.dispatchRollback;
-            if (rollback == null || rollback.requestId !== requestId) return;
-            if (!rendered) this.lastDispatchedData = rollback.data;
-            this.dispatchRollback = undefined;
+            const index = this.unjudgedLoads.findIndex((load) => load.requestId === requestId);
+            if (index === -1) return;
+
+            // The chart judges a load together with the earlier ones it had not judged yet.
+            const judged = this.unjudgedLoads.splice(0, index + 1);
+            if (rendered) {
+                this.renderedData = judged[index].data;
+            } else if (judged.some((load) => load.data === this.lastDispatchedData)) {
+                this.lastDispatchedData = this.renderedData;
+            }
         });
     }
 
@@ -160,7 +168,7 @@ export class DataService<D extends object> {
 
             this.isLoadingInitialData = false;
 
-            this.dispatch(id, pendingData.data as D[], requestId);
+            this.dispatch(id, pendingData, requestId);
             return;
         }
 
@@ -224,7 +232,7 @@ export class DataService<D extends object> {
 
     private createThrottledDispatch(dispatchThrottle: number) {
         return throttle(
-            (id: number, data: D[], requestId?: number, window?: DataLoadWindow) =>
+            (id: number, data: DataServiceRestoredData, requestId?: number, window?: DataLoadWindow) =>
                 this.dispatch(id, data, requestId, window),
             dispatchThrottle,
             {
@@ -234,9 +242,10 @@ export class DataService<D extends object> {
         );
     }
 
-    private dispatch(id: number, data: D[], requestId?: number, window?: DataLoadWindow) {
+    private dispatch(id: number, data: DataServiceRestoredData, requestId?: number, window?: DataLoadWindow) {
         this.debug(`DataService - dispatching 'data-load' | ${id}`);
-        this.eventsHub.emit('data:load', { data, requestId, window });
+        this.unjudgedLoads.push({ requestId, data });
+        this.eventsHub.emit('data:load', { data: data.data as D[], requestId, window });
     }
 
     private async fetch(params: AgDataSourceCallbackParams, requestId?: number) {
@@ -307,9 +316,8 @@ export class DataService<D extends object> {
         }
 
         if (isNonEmptyArray(response)) {
-            this.dispatchRollback = { requestId, data: this.dispatchRollback?.data ?? this.lastDispatchedData };
             this.lastDispatchedData = { params, data: response };
-            this.throttledDispatch(id, response as D[], requestId, requestedWindow(params));
+            this.throttledDispatch(id, this.lastDispatchedData, requestId, requestedWindow(params));
         } else {
             if (!threw && !Array.isArray(response)) {
                 this.logger.warnOnce(

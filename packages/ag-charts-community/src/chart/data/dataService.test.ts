@@ -273,21 +273,56 @@ describe('DataService', () => {
             await expect(dataService.getData()).resolves.toEqual(expect.objectContaining({ data: validData }));
         });
 
-        it('should resolve `getData()` to the last rendered data when the chart rejects a later load', async () => {
-            const validData = [{ datum: 'value' }];
-            const rejectedData = [{ datum: 'outside the window' }];
-            const dataSourceCallback = vi.fn().mockResolvedValueOnce(validData).mockResolvedValueOnce(rejectedData);
-            dataService.updateCallback(dataSourceCallback);
+        it.each([
+            ['the load before it rendered', [[2, false]], 'first'],
+            [
+                'an earlier load rendered while it was dispatched',
+                [
+                    [2, true],
+                    [3, false],
+                ],
+                'second',
+            ],
+            ['it superseded an unjudged load', [[3, false]], 'first'],
+        ] as const)(
+            'should resolve `getData()` to the last rendered data when the chart rejects a load and %s',
+            async (_label, verdicts, expected) => {
+                const responses = { first: [{ datum: 1 }], second: [{ datum: 2 }], third: [{ datum: 3 }] };
+                const dataSourceCallback = vi
+                    .fn()
+                    .mockResolvedValueOnce(responses.first)
+                    .mockResolvedValueOnce(responses.second)
+                    .mockResolvedValueOnce(responses.third);
+                dataService.updateCallback(dataSourceCallback);
 
-            dataService.load(undefinedWindow, 1);
-            await sleep();
-            eventsHub.emit('data:render-verdict', { requestId: 1, rendered: true });
-            dataService.load(definedWindow, 2);
-            await sleep();
-            await expect(dataService.getData()).resolves.toEqual(expect.objectContaining({ data: rejectedData }));
+                dataService.load(undefinedWindow, 1);
+                await sleep();
+                eventsHub.emit('data:render-verdict', { requestId: 1, rendered: true });
+                const lastRequestId = verdicts.at(-1)![0];
+                for (let requestId = 2; requestId <= lastRequestId; requestId++) {
+                    dataService.load(requestId === 2 ? definedWindow : undefinedWindow, requestId);
+                    await sleep();
+                }
 
-            eventsHub.emit('data:render-verdict', { requestId: 2, rendered: false });
-            await expect(dataService.getData()).resolves.toEqual(expect.objectContaining({ data: validData }));
+                for (const [requestId, rendered] of verdicts) {
+                    eventsHub.emit('data:render-verdict', { requestId, rendered });
+                }
+                await expect(dataService.getData()).resolves.toEqual(
+                    expect.objectContaining({ data: responses[expected] })
+                );
+            }
+        );
+
+        it('should order the requested window on `data:load` when a reversed axis requests it', async () => {
+            const loads: unknown[] = [];
+            eventsHub.on('data:load', ({ window }) => loads.push(window));
+            dataService.updateCallback(vi.fn().mockResolvedValue([{ datum: 'value' }]));
+
+            const { windowStart, windowEnd } = definedWindow;
+            dataService.load({ windowStart: windowEnd, windowEnd: windowStart, source: 'user-interaction' }, 1);
+            await sleep();
+
+            expect(loads).toEqual([{ start: windowStart.getTime(), end: windowEnd.getTime() }]);
         });
 
         it('should echo the requestId on `data:error` so a stale error can be correlated', async () => {

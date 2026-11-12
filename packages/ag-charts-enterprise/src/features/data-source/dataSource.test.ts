@@ -882,6 +882,14 @@ describe('DataSource', () => {
                     { date: new Date(2024, 0, 8), price: 115 },
                 ],
             ],
+            [
+                'null values throughout the window between valid rows outside it',
+                [
+                    { date: new Date(2023, 11, 1), price: 100 },
+                    ...Array.from({ length: 120 }, (_, i) => ({ date: new Date(2024, 0, 1 + i), price: null })),
+                    { date: new Date(2024, 6, 1), price: 100 },
+                ],
+            ],
         ])('keeps the data and zoom on %s and recovers on the next zoom', async (_label, invalidResponse) => {
             const validData = Array.from({ length: 120 }, (_, i) => ({
                 date: new Date(2024, 0, 1 + i),
@@ -926,10 +934,12 @@ describe('DataSource', () => {
             await zoomIn('the first zoom request');
             const zoomBefore = chart.getState().zoom!.ratioX!;
             expect(zoomBefore.start).toBeGreaterThan(0); // anti-vacuous: zoomed in, away from the early rows
+            const dataBefore = deproxy(chart).data;
 
             scenario = 'invalid';
             await zoomIn('the invalid-response request from the second zoom');
 
+            expect(deproxy(chart).data).toBe(dataBefore);
             const zoomAfter = chart.getState().zoom!.ratioX!;
             expect(zoomAfter.start).toBeGreaterThanOrEqual(zoomBefore.start!);
             expect(zoomAfter.end).toBeLessThanOrEqual(zoomBefore.end!);
