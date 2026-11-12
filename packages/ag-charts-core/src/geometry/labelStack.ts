@@ -197,17 +197,26 @@ function fitStackAtSizes(
     // A wrapped block can make the stack taller than the estimate, and a shape narrower where it ends.
     const width = shapeWidthAt(shape, shapeAlign, fitted.height);
     if (fitted.width <= width) return fitted;
-    const refitted = fitBlocksToWidth(stack, included, sizes, atFloor, width, maxHeight);
-    if (
-        refitted != null &&
-        (refitted.overflows || refitted.width <= shapeWidthAt(shape, shapeAlign, refitted.height))
-    ) {
-        return refitted;
-    }
-    // Narrowing only wraps the text taller, so hold it to the estimated height and let it truncate instead.
-    const held = fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, Math.min(maxHeight, estimate));
-    if (held == null || held.overflows) return held;
-    return held.width > shapeWidthAt(shape, shapeAlign, held.height) ? undefined : held;
+    const narrowed = withinShape(
+        fitBlocksToWidth(stack, included, sizes, atFloor, width, maxHeight),
+        shape,
+        shapeAlign
+    );
+    // Narrowing can truncate more than holding the stack to its estimated height on the wider line.
+    const held = withinShape(
+        fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, Math.min(maxHeight, estimate)),
+        shape,
+        shapeAlign
+    );
+    if (narrowed == null || held == null) return narrowed ?? held;
+    if (narrowed.overflows !== held.overflows) return narrowed.overflows ? held : narrowed;
+    return held.dropped < narrowed.dropped ? held : narrowed;
+}
+
+/** `undefined` when the fit is wider than the shape where it ends; an overflowing fit is not bounded by it. */
+function withinShape(fit: StackFit | undefined, shape: FitRegion, align: RegionAlign): StackFit | undefined {
+    if (fit == null || fit.overflows) return fit;
+    return fit.width > shapeWidthAt(shape, align, fit.height) ? undefined : fit;
 }
 
 function fitBlocksToWidth(

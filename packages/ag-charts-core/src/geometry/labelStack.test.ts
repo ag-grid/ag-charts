@@ -78,6 +78,26 @@ describe('fitLabelStack', () => {
             extentBelow: 100,
         };
         const fitted = fitLabelStack(stack(wrapped), undefined, oneLineOnly);
-        expect(fitted?.blocks[0]?.text).toBe('Information…');
+        expect(fitted?.blocks[0]?.text).toBe('Information Tec…');
+    });
+
+    it('keeps the wider single line when narrowing to fit wrapped lines would truncate more', () => {
+        const wrapped: LabelStackBlock = {
+            fit: {
+                text: 'Information Technology Services',
+                policy: { overflowStrategy: 'ellipsis', wrapping: 'on-space' },
+                font: FONT,
+            },
+        };
+        const narrowsWithHeight: FitRegion = {
+            spanAt: (top, bottom) => {
+                if (bottom - top <= 20) return [-80, 80];
+                return bottom - top <= 60 ? [-30, 30] : [0, 0];
+            },
+            extentAbove: 100,
+            extentBelow: 100,
+        };
+        const fitted = fitLabelStack(stack(wrapped), undefined, narrowsWithHeight);
+        expect(fitted?.blocks[0]?.text).toBe('Information Tec…');
     });
 });

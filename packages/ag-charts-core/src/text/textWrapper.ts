@@ -1117,8 +1117,9 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
         }
     }
 
-    avoidOrphans(result, breaksBefore, measurer, options);
-    const clippedResult = clipLines(result, measurer, options);
+    const clippedResult = clipLines(result, measurer, options, breaksBefore);
+    // A clipped block ends in an ellipsis rather than an orphan, and its last wrapped line is not drawn.
+    if (clippedResult === result) avoidOrphans(result, breaksBefore, measurer, options);
     return shouldHideOverflow(clippedResult, options, text) ? [] : clippedResult;
 }
 
@@ -1127,7 +1128,13 @@ function getWordAt(text: string, position: number) {
     return nextSpaceIndex === -1 ? text.slice(position) : text.slice(position, nextSpaceIndex);
 }
 
-export function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
+/** `breaksBefore[i]` is the space wrapping consumed ahead of line `i`; unset where an explicit line break was. */
+export function clipLines(
+    lines: string[],
+    measurer: ITextMeasurer,
+    options: WrapOptions,
+    breaksBefore: readonly (string | undefined)[] = []
+) {
     if (!isFiniteNumber(options.maxHeight)) {
         return lines;
     }
@@ -1149,13 +1156,23 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
             const clippedResults = lines.slice(0, i);
             const lastLine = clippedResults.pop()!;
             const maxWidth = lineMaxWidth(options, lineTop - lineHeightAt(i - 1), lineTop);
+            if (isTextTruncated(lastLine)) return clippedResults.concat(lastLine);
             return clippedResults.concat(
-                isTextTruncated(lastLine) ? lastLine : truncateLine(lastLine, measurer, maxWidth, true)
+                truncateLine(joinWrappedFrom(lines, i - 1, breaksBefore), measurer, maxWidth, true)
             );
         }
     }
 
     return lines;
+}
+
+/** Line `start` rejoined with the lines wrapping split from it, up to the next explicit line break. */
+function joinWrappedFrom(lines: readonly string[], start: number, breaksBefore: readonly (string | undefined)[]) {
+    let joined = lines[start];
+    for (let i = start + 1; i < lines.length && breaksBefore[i] != null; i++) {
+        joined += breaksBefore[i] + lines[i];
+    }
+    return joined;
 }
 
 function lastLineMaxWidth(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
