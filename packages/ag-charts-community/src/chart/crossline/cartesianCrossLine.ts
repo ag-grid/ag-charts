@@ -7,6 +7,7 @@ import {
     type TextMeasurer,
     Transformable,
     TransformableText,
+    type TurnedBounds,
     bandRangeExpansion,
     cachedTextMeasurer,
     clampArray,
@@ -80,10 +81,6 @@ function bandRoom(
     if (labelDir !== rangeDir) return Infinity;
     const anchorAt = start + (size * (rangeDir + 1)) / 2 - paddingDiff / 2;
     return availableExtent(anchorAt, labelDir, pad, start, start + size);
-}
-
-function finiteBound(bound: number): number | undefined {
-    return Number.isFinite(bound) ? Math.max(bound, 0) : undefined;
 }
 
 export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions & {
@@ -563,7 +560,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const measurer = cachedTextMeasurer(label);
         const policy = resolveLabelFit(label, !this.keepsLabel);
         const fit = policy == null ? undefined : this.boundByBand(policy, anchor);
-        const key = fit == null ? '' : `${fit.maxWidth}:${fit.maxHeight}:${fit.wrapping}`;
+        const key = fit?.rotated == null ? '' : `${fit.rotated.width}:${fit.rotated.height}`;
         if (this.fitted?.measurer !== measurer || this.fitted.key !== key) {
             const text = label.text ?? '';
             const fitted = fitLabelTextAutoSize(text, fit, label);
@@ -581,48 +578,38 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return this.type === 'range' && resolveLabelFit(this.label, !this.keepsLabel) != null;
     }
 
-    /**
-     * Takes the bounds `fit` leaves unset from the visible band: both ways inside it, and along the side a
-     * label outside it sits on. Solved in the text's own frame, so the rotated footprint fits the room.
-     */
     private boundByBand(fit: LabelFit, anchor: Anchor): LabelFit {
+        const rotated = this.bandTurnedBounds(fit, anchor);
+        return rotated == null ? fit : { ...fit, rotated };
+    }
+
+    /**
+     * The room the visible band leaves the turned label: both ways inside it, and along the side a label
+     * outside it sits on. An explicit `maxWidth`/`maxHeight` replaces it on the axis that bound lies along.
+     */
+    private bandTurnedBounds(fit: Pick<LabelFit, 'maxWidth' | 'maxHeight'>, anchor: Anchor): TurnedBounds | undefined {
         const { labelBounds: band, label } = this;
-        if (this.type !== 'range' || band == null) return fit;
-        if (fit.maxWidth != null && fit.maxHeight != null) return fit;
+        if (this.type !== 'range' || band == null) return;
 
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
         const roomX = bandRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
         const roomY = bandRoom(anchor.rangeV, anchor.labelV, pad, band.y, band.height, yPaddingDiff);
 
+        const rotation = label.rotation ?? 0;
+        const cos = Math.abs(Math.cos(toRadians(rotation)));
+        const sin = Math.abs(Math.sin(toRadians(rotation)));
+        let explicitX: number | undefined;
+        let explicitY: number | undefined;
+        if (sin <= ROTATION_EPSILON) [explicitX, explicitY] = [fit.maxWidth, fit.maxHeight];
+        else if (cos <= ROTATION_EPSILON) [explicitX, explicitY] = [fit.maxHeight, fit.maxWidth];
+
         const insets = this.boxed ? resolvePadding(label.padding) : undefined;
         const insetsH = insets == null ? 0 : insets.left + insets.right;
         const insetsV = insets == null ? 0 : insets.top + insets.bottom;
-        const rotation = toRadians(label.rotation ?? 0);
-        const cos = Math.abs(Math.cos(rotation));
-        const sin = Math.abs(Math.sin(rotation));
-
-        let maxWidth: number;
-        let maxHeight = Infinity;
-        let wrapping = fit.wrapping;
-        if (sin <= ROTATION_EPSILON) {
-            maxWidth = roomX - insetsH;
-            maxHeight = roomY - insetsV;
-        } else if (cos <= ROTATION_EPSILON) {
-            maxWidth = roomY - insetsH;
-            maxHeight = roomX - insetsV;
-        } else {
-            // Wrapped lines change both sides of a tilted footprint at once, so it is solved for one line.
-            const height = cachedTextMeasurer(label).lineHeight() + insetsV;
-            maxWidth = Math.min((roomX - height * sin) / cos, (roomY - height * cos) / sin) - insetsH;
-            if (fit.maxWidth == null) wrapping = 'never';
-        }
-
-        return {
-            ...fit,
-            maxWidth: fit.maxWidth ?? finiteBound(maxWidth),
-            maxHeight: fit.maxHeight ?? finiteBound(maxHeight),
-            wrapping,
-        };
+        const width = explicitX == null ? Math.max(roomX - insetsH * cos - insetsV * sin, 0) : Infinity;
+        const height = explicitY == null ? Math.max(roomY - insetsH * sin - insetsV * cos, 0) : Infinity;
+        if (!Number.isFinite(width) && !Number.isFinite(height)) return;
+        return { rotation, width, height };
     }
 
     /** False once the fit has erased the text, as a `maxHeight` below one line does. */
@@ -707,8 +694,13 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         // It cannot bound the lines wrapping adds, so an overflowing wrapped label collapses to one line first.
         const { text: fittedText, fontSize } = this.fittedLabel();
         const font = fontWithSize(label, fontSize);
+        const rotated = this.fitsToBand ? this.bandTurnedBounds(label, anchor) : undefined;
         const oneLine = (maxWidth: number | undefined) => {
-            const fitted = fitLabelText(text, { maxWidth, wrapping: 'never', overflowStrategy: 'ellipsis' }, font);
+            const fitted = fitLabelText(
+                text,
+                { maxWidth, wrapping: 'never', overflowStrategy: 'ellipsis', rotated },
+                font
+            );
             return typeof fitted === 'string' ? fitted : text;
         };
         let lineText = fittedText;

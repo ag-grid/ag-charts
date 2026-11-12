@@ -3414,6 +3414,28 @@ describe('CrossLine label fitting', () => {
             expect(label.height).toBeLessThanOrEqual(band.height + 0.5);
         });
 
+        it('keeps explicit lines of a tilted label inside the band', async () => {
+            const text = 'First line of text\nSecond line of text\nThird line of text';
+            const crossLine = rangeWith({ text, placement: 'inside', rotation: 45, truncate: true });
+            chart = deproxy(await createChart(fitChart(crossLine, 'x')));
+
+            const { band, label } = bandAndLabel('x');
+            expect(label.width).toBeLessThanOrEqual(band.width + 0.5);
+        });
+
+        it('keeps a label clipped to its container inside the band', async () => {
+            const label = undocumentedLabel({
+                text: `${LONG_TEXT} ${LONG_TEXT} ${LONG_TEXT}`,
+                placement: 'top',
+                wrapping: 'on-space',
+                overflow: 'clip-text',
+            });
+            chart = deproxy(await createChart(fitChart(rangeWith(label, [4, 4.6]), 'x')));
+
+            const { band, label: footprint } = bandAndLabel('x');
+            expect(footprint.width).toBeLessThanOrEqual(band.width + 0.5);
+        });
+
         it('fits each placement to its own bound', async () => {
             const label: AgCartesianCrossLineLabelOptions = {
                 placement: ['inside', 'top'],
