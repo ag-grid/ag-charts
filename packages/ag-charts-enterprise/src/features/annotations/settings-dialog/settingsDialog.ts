@@ -332,16 +332,17 @@ export class AnnotationSettingsDialog extends Dialog {
             return;
         }
 
-        const rows = new Map<CoordinateRow, Widget[]>();
+        const rows = new Map<CoordinateRow, { widgets: Widget[]; fields: number }>();
         const refreshes: Array<(next: CoordinateField) => void> = [];
         for (const field of fields) {
             const { widgets, refresh } = this.createCoordinateInput(field, options);
             refreshes.push(refresh);
             const row = rows.get(field.row);
             if (row) {
-                row.push(...widgets);
+                row.widgets.push(...widgets);
+                row.fields++;
             } else {
-                rows.set(field.row, widgets);
+                rows.set(field.row, { widgets, fields: 1 });
             }
         }
 
@@ -357,8 +358,8 @@ export class AnnotationSettingsDialog extends Dialog {
         };
 
         const panel = this.createTabPanel();
-        for (const [row, inputs] of rows) {
-            panel.addChild(this.createInputRow(COORDINATE_ROW_LABELS[row], inputs));
+        for (const [row, { widgets, fields }] of rows) {
+            panel.addChild(this.createInputRow(COORDINATE_ROW_LABELS[row], widgets, fields === 1));
         }
         return panel;
     }

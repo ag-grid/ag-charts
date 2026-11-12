@@ -126,7 +126,8 @@
     row-gap: 4px;
 }
 
-.ag-charts-dialog__input-group--inputs > .ag-charts-dialog__input-group-label {
+.ag-charts-dialog__input-group--inputs:not(.ag-charts-dialog__input-group--inline)
+    > .ag-charts-dialog__input-group-label {
     flex: 0 0 100%;
 }
 
@@ -136,14 +137,16 @@
     border-radius: var(--ag-charts-input-border-radius);
     border-style: solid;
     border-width: var(--ag-charts-input-border-width);
-    flex: 1 1 90px;
+    flex: 1 1 170px;
     font-size: inherit;
-    min-width: 90px;
+    min-width: 0;
     padding: 3px 4px 4px;
 }
 
-.ag-charts-dialog__input[type='datetime-local'] {
-    flex-basis: 170px;
+/* Room for six digits and the spin buttons. */
+.ag-charts-dialog__input[type='number'] {
+    flex: 0 0 auto;
+    width: calc(6ch + 28px);
 }
 
 /* Button */

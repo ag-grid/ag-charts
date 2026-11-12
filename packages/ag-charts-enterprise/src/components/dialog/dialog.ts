@@ -249,10 +249,16 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    /** A labelled row of inputs, for values that belong together such as the x and y of one point. */
-    protected createInputRow(label: string, inputs: Widget[]) {
+    /**
+     * A labelled row of inputs, for values that belong together such as the x and y of one point. The label of a
+     * single value is `inline`, alongside its input; otherwise it is above.
+     */
+    protected createInputRow(label: string, inputs: Widget[], inline = false) {
         const group = this.createInputGroup(label);
         group.addClass('ag-charts-dialog__input-group--inputs');
+        if (inline) {
+            group.addClass('ag-charts-dialog__input-group--inline');
+        }
         for (const input of inputs) {
             group.addChild(input);
         }

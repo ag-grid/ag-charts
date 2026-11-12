@@ -6,6 +6,8 @@ import { CategoryScale, LinearScale, TimeScale } from 'ag-charts-core';
 
 import { getAnnotationsModuleContext } from '../../../test/featureAccessors';
 import type { AnnotationContext } from '../annotationTypes';
+import type { LinearDialogDatumType } from '../annotationsSuperTypes';
+import { horizontalLineDatum } from '../cross-line/crossLineDatum';
 import { lineDatum } from '../line/lineDatum';
 import { ANNOTATIONS_EXAMPLE_OPTIONS, createAnnotationsChart, createAxesContext } from '../test/fixture';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settingsDialog';
@@ -19,7 +21,15 @@ describe('AnnotationSettingsDialog coordinates', () => {
     const onChangeCoordinates = vi.fn();
 
     const noop = () => {};
-    const show = (context: AnnotationContext) => {
+    const defaultDatum = () => ({
+        ...lineDatum.create(),
+        start: { x: 'Pears', y: 2 },
+        end: { x: 'Apples', y: 4 },
+    });
+    const show = <Datum extends LinearDialogDatumType = ReturnType<typeof defaultDatum>>(
+        context: AnnotationContext,
+        datum: Datum = defaultDatum() as Datum
+    ) => {
         const options: LinearSettingsDialogOptions = {
             initialSelectedTab: 'line',
             getContext: () => context,
@@ -36,7 +46,6 @@ describe('AnnotationSettingsDialog coordinates', () => {
             onChangeHideTextColor: noop,
             onChangeTextFontSize: noop,
         };
-        const datum = { ...lineDatum.create(), start: { x: 'Pears', y: 2 }, end: { x: 'Apples', y: 4 } };
         dialog.show(datum, options);
         return datum;
     };
@@ -132,5 +141,20 @@ describe('AnnotationSettingsDialog coordinates', () => {
         commit(startX, 'Bananas');
         expect(startX.value).toBe('Apples');
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
+    });
+
+    it('puts the label of a single value alongside it and that of a point above', () => {
+        const yScale = new LinearScale();
+        yScale.domain = [0, 50];
+        const context = createAxesContext(new CategoryScale(), yScale);
+        const rows = () => Array.from(document.querySelectorAll('.ag-charts-dialog__input-group--inputs'));
+        const isInline = (row: Element) => row.classList.contains('ag-charts-dialog__input-group--inline');
+
+        show(context);
+        expect(rows().map(isInline)).toEqual([false, false]);
+        dialog.hide();
+
+        show(context, { ...horizontalLineDatum.create(), value: 10 });
+        expect(rows().map(isInline)).toEqual([true]);
     });
 });
