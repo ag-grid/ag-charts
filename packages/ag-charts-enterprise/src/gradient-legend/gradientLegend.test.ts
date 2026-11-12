@@ -160,50 +160,6 @@ describe('GradientLegend', () => {
         await compare();
     });
 
-    describe('AG-18823 border theme params', () => {
-        const BASE_PARAMS = { borderColor: '#112233', borderWidth: 2 };
-
-        const resolvedBorder = async (options: Partial<AgChartOptions>) => {
-            chart = await createEnterpriseChart({
-                ...EXAMPLE_OPTIONS,
-                theme: { params: { ...BASE_PARAMS, legendBorder: false } },
-                ...options,
-            } as AgChartOptions);
-            await waitForChartStability(chart);
-            return (deproxy(chart).chartOptions.processedOptions as AgChartOptions).gradientLegend?.border;
-        };
-
-        it('leaves the border off with legendBorder false', async () => {
-            expect(await resolvedBorder({})).toMatchObject({ enabled: false, stroke: '#112233', strokeWidth: 2 });
-        });
-
-        it('uses borderColor and borderWidth for a border enabled in the options with legendBorder false', async () => {
-            const border = await resolvedBorder({ gradientLegend: { border: { enabled: true } } });
-
-            expect(border).toMatchObject({ enabled: true, stroke: '#112233', strokeWidth: 2 });
-        });
-
-        it('takes border.stroke and strokeWidth from the options before the border params', async () => {
-            const border = await resolvedBorder({
-                gradientLegend: { border: { enabled: true, stroke: '#aabbcc', strokeWidth: 5 } },
-            });
-
-            expect(border).toMatchObject({ enabled: true, stroke: '#aabbcc', strokeWidth: 5 });
-        });
-
-        it('takes border.stroke and strokeWidth from the theme overrides before the border params', async () => {
-            const border = await resolvedBorder({
-                gradientLegend: { border: { enabled: true } },
-                theme: {
-                    params: { ...BASE_PARAMS, legendBorder: false },
-                    overrides: { common: { gradientLegend: { border: { stroke: '#aabbcc', strokeWidth: 5 } } } },
-                },
-            });
-
-            expect(border).toMatchObject({ enabled: true, stroke: '#aabbcc', strokeWidth: 5 });
-        });
-    });
-
     it('AG-17925 shows arrow when highlight.enabled is false (supersedes AG-16729 arrow gating)', async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,

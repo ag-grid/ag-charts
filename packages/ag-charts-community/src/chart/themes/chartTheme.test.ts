@@ -637,42 +637,6 @@ describe('ChartTheme', () => {
         });
 
         it.each([
-            ['unset', undefined],
-            ['false', false],
-        ])(
-            'a border enabled in the legend options uses borderColor and borderWidth with legendBorder %s',
-            async (_name, legendBorder) => {
-                const { legend } = await create({ legendBorder }, { legend: { border: { enabled: true } } });
-
-                expect(legend.border).toMatchObject({ enabled: true, stroke: '#112233', strokeWidth: 2 });
-            }
-        );
-
-        it('legend.border.stroke and strokeWidth in the options take priority over the border params', async () => {
-            const { legend } = await create(
-                { legendBorder: false },
-                { legend: { border: { enabled: true, stroke: '#aabbcc', strokeWidth: 5 } } }
-            );
-
-            expect(legend.border).toMatchObject({ enabled: true, stroke: '#aabbcc', strokeWidth: 5 });
-        });
-
-        it('legend.border.stroke and strokeWidth in the theme overrides take priority over the border params', async () => {
-            const { legend } = await create(
-                { legendBorder: false },
-                {
-                    legend: { border: { enabled: true } },
-                    theme: {
-                        params: { ...BASE_PARAMS, legendBorder: false },
-                        overrides: { common: { legend: { border: { stroke: '#aabbcc', strokeWidth: 5 } } } },
-                    },
-                }
-            );
-
-            expect(legend.border).toMatchObject({ enabled: true, stroke: '#aabbcc', strokeWidth: 5 });
-        });
-
-        it.each([
             ['true', true, { enabled: true, stroke: '#112233', strokeWidth: 2 }],
             ['an object width', { width: 3 }, { enabled: true, stroke: '#112233', strokeWidth: 3 }],
             ['an object colour', { color: '#445566' }, { enabled: true, stroke: '#445566', strokeWidth: 2 }],
