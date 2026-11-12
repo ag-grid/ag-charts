@@ -146,8 +146,6 @@ export interface AgChartCaptionOptions<TContext = ContextDefault> extends LabelB
     /** A map of event names to event listeners. */
     listeners?: AgCaptionListeners<TContext>;
 }
-export interface AgChartSubtitleOptions<TContext = ContextDefault> extends AgChartCaptionOptions<TContext> {}
-export interface AgChartFooterOptions<TContext = ContextDefault> extends AgChartCaptionOptions<TContext> {}
 
 export interface AgChartBackground {
     /** Whether the background should be visible. */
@@ -285,9 +283,9 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the title shown at the top of the chart. */
     title?: AgChartCaptionOptions<TContext>;
     /** Configuration for the subtitle shown beneath the chart title. */
-    subtitle?: AgChartSubtitleOptions<TContext>;
+    subtitle?: AgChartCaptionOptions<TContext>;
     /** Configuration for the footnote shown at the bottom of the chart. */
-    footnote?: AgChartFooterOptions<TContext>;
+    footnote?: AgChartCaptionOptions<TContext>;
     /** Configuration for the chart highlighting. */
     highlight?: AgChartHighlightOptions;
     /** HTML overlays. */
