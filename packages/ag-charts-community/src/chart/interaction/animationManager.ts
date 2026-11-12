@@ -157,13 +157,16 @@ export class AnimationManager {
         }
     }
 
+    /** Stops the running animations at their end; returns whether any were running, so need rendering. */
     public reset() {
+        const stopped = this.batch.isActive();
         if (this.isPlaying) {
             this.stop();
             this.play();
         } else {
             this.stop();
         }
+        return stopped;
     }
 
     public skip(skip = true) {

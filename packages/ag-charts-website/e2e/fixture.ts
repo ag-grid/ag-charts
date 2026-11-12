@@ -47,9 +47,12 @@ export async function waitForCharts(page: Page) {
     await expect(page.locator(UNSETTLED_CHART)).toHaveCount(0, { timeout: 10_000 });
 }
 
+const UNWRAPPED = Symbol('unwrapped');
+
 function stabilityProxy(page: Page, instance: any) {
     return new Proxy(instance, {
         get(target, prop, receiver) {
+            if (prop === UNWRAPPED) return target;
             const value = target[prop];
             if (value instanceof Function) {
                 return async function (...args: unknown[]) {
@@ -118,5 +121,14 @@ export const test = base.extend({
         use(page);
     },
 });
+
+/** Taps twice with no wait between, as a wait for an animation the first tap starts can part them by more than a double tap allows. */
+export async function doubleTap(page: Page, x: number, y: number) {
+    const touchscreen = (page.touchscreen as any)[UNWRAPPED] ?? page.touchscreen;
+    await waitForCharts(page);
+    await touchscreen.tap(x, y);
+    await touchscreen.tap(x, y);
+    await waitForCharts(page);
+}
 
 export { expect };

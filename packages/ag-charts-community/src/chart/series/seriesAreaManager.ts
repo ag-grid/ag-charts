@@ -1172,7 +1172,9 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (this.getFocusIndicator()?.isFocusVisible()) {
-            this.chart.ctx.animationManager.reset();
+            if (this.chart.ctx.animationManager.reset()) {
+                this.update(ChartUpdateType.SCENE_RENDER);
+            }
 
             const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();

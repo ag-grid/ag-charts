@@ -13,9 +13,11 @@ import {
     createChart,
     deproxy,
     prepareTestOptions,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
+    tabIntoChart,
 } from '../../test/utils';
 
 // Theme defaults for several bar series: other items of the hovered series and other series.
@@ -154,7 +156,7 @@ describe('BarSeries highlight fade', () => {
             );
         } else {
             const leaving = trajectory.map((sample) => sample.overlay[0]).filter((opacity) => opacity != null);
-            expectFade(leaving, 1, leaving.at(-1)!);
+            expectFade(leaving, 1, leaving.at(-1));
             expect(leaving.at(-1)).toBeCloseTo(0, 1);
             for (const sample of trajectory) {
                 expect(sample.inPlace[0]).toBe(UNHIGHLIGHTED_ITEM);
@@ -178,7 +180,7 @@ describe('BarSeries highlight fade', () => {
         highlight(datum(1, 0));
         const visible = await capture(shown);
 
-        const floor = Math.min(before, visible.at(-1)!);
+        const floor = Math.min(before, visible.at(-1));
         for (const opacity of visible) {
             expect(opacity).toBeGreaterThanOrEqual(floor);
         }
@@ -333,5 +335,16 @@ describe('BarSeries highlight fade', () => {
 
         expect(onStart).toHaveBeenCalledTimes(1);
         expect(chart.ctx.highlightManager.getActiveHighlight()).toBe(highlighted);
+    });
+
+    it('renders the styles a keyboard focus change snaps to', async () => {
+        await tabIntoChart(chart);
+        // jsdom cannot detect :focus-visible, so an arrow key is what switches to the keyboard device.
+        await pressKey(chart, 'ArrowRight');
+        await pressKey(chart, 'ArrowLeft');
+
+        for (const series of chart.series) {
+            expect(series.contentGroup.dirty).toBe(false);
+        }
     });
 });

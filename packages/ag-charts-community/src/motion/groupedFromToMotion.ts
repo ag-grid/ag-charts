@@ -123,7 +123,7 @@ export function groupedFromToMotion<D, N extends Node<D>, T extends GroupedProps
         };
         for (const selection of removedFrom) {
             if (nodes.some((node) => selection.isGarbage(node))) {
-                group.removedFrom.push(selection as SelectionInterface<unknown, Node>);
+                group.removedFrom.push(selection);
             }
         }
         const applyAll = (props: GroupedProps, status: 'start' | 'update' | 'end') => {
@@ -133,7 +133,7 @@ export function groupedFromToMotion<D, N extends Node<D>, T extends GroupedProps
         };
 
         for (const node of nodes) {
-            nodeGroups.set(node, group as MotionGroup<Node>);
+            nodeGroups.set(node, group);
         }
         applyAll(frame, 'start');
 

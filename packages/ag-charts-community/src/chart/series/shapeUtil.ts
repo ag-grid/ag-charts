@@ -6,13 +6,12 @@ import {
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
-    type ShapeStyle,
     isGradientFill,
     isImageFill,
     isPatternFill,
 } from 'ag-charts-core';
 
-export type { ShapeStyle };
+export type { ShapeStyle } from 'ag-charts-core';
 
 export interface ShapeFillBBox {
     series: BBox;
