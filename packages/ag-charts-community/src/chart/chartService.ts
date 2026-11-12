@@ -3,8 +3,10 @@ import { Group } from 'ag-charts-core';
 import type { AgAxesChartListeners, AgChartInstance, AgCoordinates } from 'ag-charts-types';
 
 import type { CaptionLike } from './captionLike';
+import type { ChartAxis } from './chartAxis';
 import type { DatumIndex, ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTypes';
 import type { CategoryGroupSeries } from './sharedCategoryGroup';
+import type { TooltipContent } from './tooltip/tooltip';
 
 export type ChartListeners = AgAxesChartListeners<unknown, unknown>;
 export type ChartEventType = keyof ChartListeners;
@@ -17,6 +19,7 @@ export interface ChartService {
     readonly id: string;
     readonly title: CaptionLike;
     readonly series: BaseSeries[];
+    readonly axes: readonly ChartAxis[];
     readonly seriesRoot: Group;
     readonly seriesRect?: Readonly<BoxBounds>;
     readonly selectionRoot: Group;
@@ -32,4 +35,10 @@ export interface ChartService {
     readonly listeners: ChartListeners;
     callListener<K extends ChartEventType>(event: ChartEventMap[K] & { type: K }): void;
     toAgCoordinates(point: CanvasPoint): AgCoordinates | undefined;
+    getTooltipContent(
+        series: BaseSeries,
+        datumIndex: DatumIndex,
+        datum: SeriesNodeDatum,
+        purpose: 'aria-label' | 'tooltip'
+    ): TooltipContent[];
 }

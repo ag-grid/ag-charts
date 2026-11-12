@@ -34,7 +34,6 @@ import { AnimationManager } from './interaction/animationManager';
 import { CollapsedManager } from './interaction/collapsedManager';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
-import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { WidgetSet } from './interaction/widgetSet';
 import { ZoomManager } from './interaction/zoomManager';
@@ -50,7 +49,6 @@ export interface ChartContextVars {
     chartType: string;
     scene?: Scene;
     root: Group;
-    syncManager: SyncManager;
     container?: HTMLElement;
     agDocument: AgDocument;
     styleContainer?: HTMLElement;
@@ -109,7 +107,6 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         // looping back into `chart.destroy()`.
         .ref('chartService', chart)
         .ref('annotationRoot', chart.annotationRoot)
-        .constant('syncManager', vars.syncManager)
         .constant('chartState', chartState)
         .constant('domManager', domManager)
         // Scene lifecycle is managed by `Chart.destroy()` — it may strip-without-destroy
