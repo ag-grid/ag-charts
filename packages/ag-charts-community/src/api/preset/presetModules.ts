@@ -124,6 +124,7 @@ export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> =
                 ...commonSparklineOptionsDef,
                 ...without(areaSeriesOptionsDef, commonSparklineOmit),
             },
+            // The reused bar/line label defs accept `collideWith.errorBars`, though sparklines cannot render error bars.
             bar: {
                 ...commonSparklineOptionsDef,
                 ...without(barSeriesOptionsDef, commonSparklineOmit),
