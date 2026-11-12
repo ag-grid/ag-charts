@@ -630,12 +630,46 @@ describe('ChartTheme', () => {
             expect(legend.border).toMatchObject(expected);
         });
 
-        it('legendBorder false disables the border but keeps the legend stroke and a width of 1', async () => {
+        it('legendBorder false disables the border', async () => {
             const { legend } = await create({ legendBorder: false });
 
-            expect(legend.border?.enabled).toBe(false);
-            expect(legend.border?.stroke).not.toBe('#112233');
-            expect(legend.border?.strokeWidth).toBe(1);
+            expect(legend.border).toMatchObject({ enabled: false, stroke: '#112233', strokeWidth: 2 });
+        });
+
+        it.each([
+            ['unset', undefined],
+            ['false', false],
+        ])(
+            'a border enabled in the legend options uses borderColor and borderWidth with legendBorder %s',
+            async (_name, legendBorder) => {
+                const { legend } = await create({ legendBorder }, { legend: { border: { enabled: true } } });
+
+                expect(legend.border).toMatchObject({ enabled: true, stroke: '#112233', strokeWidth: 2 });
+            }
+        );
+
+        it('legend.border.stroke and strokeWidth in the options take priority over the border params', async () => {
+            const { legend } = await create(
+                { legendBorder: false },
+                { legend: { border: { enabled: true, stroke: '#aabbcc', strokeWidth: 5 } } }
+            );
+
+            expect(legend.border).toMatchObject({ enabled: true, stroke: '#aabbcc', strokeWidth: 5 });
+        });
+
+        it('legend.border.stroke and strokeWidth in the theme overrides take priority over the border params', async () => {
+            const { legend } = await create(
+                { legendBorder: false },
+                {
+                    legend: { border: { enabled: true } },
+                    theme: {
+                        params: { ...BASE_PARAMS, legendBorder: false },
+                        overrides: { common: { legend: { border: { stroke: '#aabbcc', strokeWidth: 5 } } } },
+                    },
+                }
+            );
+
+            expect(legend.border).toMatchObject({ enabled: true, stroke: '#aabbcc', strokeWidth: 5 });
         });
 
         it.each([
