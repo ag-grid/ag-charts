@@ -170,7 +170,7 @@ describe('GradientLegend', () => {
                 ...options,
             } as AgChartOptions);
             await waitForChartStability(chart);
-            return (deproxy(chart).chartOptions.processedOptions as any).gradientLegend.border;
+            return (deproxy(chart).chartOptions.processedOptions as AgChartOptions).gradientLegend?.border;
         };
 
         it('leaves the border off with legendBorder false', async () => {

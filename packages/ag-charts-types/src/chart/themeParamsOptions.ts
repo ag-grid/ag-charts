@@ -758,6 +758,8 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Border around the legend and the gradient legend. `true` for the default border, `false` to disable, or an object to customise it.
      *
+     * A border enabled in the legend options (`legend.border.enabled` or `gradientLegend.border.enabled`) takes its colour and width from this param, or from `borderColor` and `borderWidth` when this param is `false`. `border.stroke` and `border.strokeWidth` in the options or theme overrides take priority.
+     *
      * @group Legend
      */
     legendBorder?: boolean | AgBorderThemeParam;
