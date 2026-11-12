@@ -3462,7 +3462,11 @@ describe('CrossLine label fitting', () => {
                 },
             ];
             const yCrossLines: AgCartesianCrossLineOptions[] = [
-                { type: 'range', range: [7, 8], label: { text: LONG_TEXT, placement: 'left', truncate: true } },
+                {
+                    type: 'range',
+                    range: [5, 8],
+                    label: { text: LONG_TEXT, placement: 'right', rotation: 90, wrapping: 'on-space', truncate: true },
+                },
             ];
             chart = deproxy(
                 await createChart(
