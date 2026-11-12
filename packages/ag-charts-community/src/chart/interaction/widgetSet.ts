@@ -46,8 +46,8 @@ export class WidgetSet {
     readonly containerWidget: Widget;
     readonly seriesDragInterpreter?: DragInterpreter;
     readonly longTapInterpreter?: LongTapInterpreter;
-    private ctx: DynamicContext<ChartRegistry>;
-    private axes: WeakMap<AxisID, WeakRef<AxisWidget>> = new Map();
+    private readonly ctx: DynamicContext<ChartRegistry>;
+    private readonly axes: WeakMap<AxisID, WeakRef<AxisWidget>> = new Map();
 
     constructor(ctx: DynamicContext<ChartRegistry>, opts: { withDragInterpretation: boolean }) {
         this.ctx = ctx;
@@ -79,7 +79,8 @@ export class WidgetSet {
 
     acquireAxisWidget(axisId: AxisID): AxisWidget {
         const existingWidget: AxisWidget | undefined = this.axes.get(axisId)?.deref();
-        if (existingWidget !== undefined && existingWidget.destroyListener !== undefined) {
+        // Ignore destroyed AxisWidget instances:
+        if (existingWidget?.destroyListener !== undefined) {
             return existingWidget;
         }
 
