@@ -47,18 +47,19 @@ const centreOf = (chart: AgChartInstance, seriesIndex: number, datumIndex: numbe
 };
 
 /**
- * Selects a bar as the user would: the pointer moves onto it and clicks it, then moves off the series area, into the
- * padding of the chart, so that the render carries the selection alone: no highlight and no crosshair. (The move onto the
- * bar is what lets the move off it be a `mouseleave` of the series area.) Unlike `setSelection`, a click redraws the chart
- * in full (`ChartUpdateType.FULL`, which clears the callback cache), so it runs the itemStyler of each item again.
+ * Selects a bar as the user would: the pointer moves onto it and clicks it, then off the series area. A click redraws
+ * the chart in full (`ChartUpdateType.FULL`, which clears the callback cache), so it runs the itemStyler of each item
+ * again, unlike `setSelection`. Waits out the delay of the unhighlight, and fails if a highlight is still active.
  */
 const clickBar = async (chart: AgChartInstance, seriesIndex = 0, datumIndex = 0) => {
     const { x, y } = centreOf(chart, seriesIndex, datumIndex);
     await hoverAction(x, y)(chart);
     await clickAction(x, y)(chart);
     await waitForChartStability(chart);
+    const { highlightManager } = deproxy(chart).ctx;
     await hoverAction(2, 2)(chart);
-    await waitForChartStability(chart);
+    await waitForChartStability(chart, highlightManager.unhighlightDelay + 50);
+    expect(highlightManager.getActiveHighlight()).toBeUndefined();
 };
 
 describe('shadow and glow from an itemStyler that branches on the state of an item', () => {

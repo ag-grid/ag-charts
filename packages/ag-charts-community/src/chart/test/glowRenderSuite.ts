@@ -237,9 +237,11 @@ export function describeGlowSeries(
         );
 
         it.skipIf(noItemStyler)('renders the shadow that an itemStyler returns as the series shadow', async () => {
+            const unset = await render(testCase, {});
             const series = await render(testCase, { shadow: SERIES_SHADOW });
-            expect(differingBytes(series, await render(testCase, {}))).toBeGreaterThan(0);
+            expect(differingBytes(series, unset)).toBeGreaterThan(0);
             const styled = await render(testCase, { itemStyler: () => ({ shadow: SERIES_SHADOW }) });
+            expect(differingBytes(styled, unset)).toBeGreaterThan(0);
             if (testCase.stylerCastsOtherParts) expect(differingBytes(styled, series)).toBeGreaterThan(0);
             else expectSamePixels(styled, series);
         });
