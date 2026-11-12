@@ -147,7 +147,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             return undefined;
         }
 
-        const xValues = dataModel.resolveColumnById(this, 'xValue', processedData, 'object');
+        // Keys and value columns are indexed separately, so read the x-values from whichever holds them.
+        const xValues =
+            dataModel.resolveProcessedDataDefById(this, 'xValue').def.type === 'key'
+                ? dataModel.resolveKeysById<unknown>(this, 'xValue', processedData)
+                : dataModel.resolveColumnById(this, 'xValue', processedData, 'object');
         const yValues = this.gapValueColumn();
         const invalid = processedData.invalidData?.get(this.id);
         for (let datumIndex = 0; datumIndex < xValues.length; datumIndex++) {
