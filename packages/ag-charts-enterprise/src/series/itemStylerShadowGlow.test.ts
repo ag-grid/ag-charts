@@ -123,7 +123,7 @@ const CASES: Case[] = [
     {
         name: 'treemap tile',
         data: HIERARCHY_SHADOW_DATA,
-        glowSlot: 'fillShadow',
+        glowSlot: 'fillGlow',
         oneSlot: true,
         seriesGlow: false,
         isFirst: (params) => params.datum.name === 'A1',
@@ -140,7 +140,7 @@ const CASES: Case[] = [
     {
         name: 'sunburst',
         data: HIERARCHY_SHADOW_DATA,
-        glowSlot: 'fillShadow',
+        glowSlot: 'fillGlow',
         oneSlot: true,
         seriesGlow: false,
         isFirst: (params) => params.datum.name === 'A1',
@@ -521,11 +521,11 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
         const groups = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).filter(
             (shape) => (shape as Shape<HierarchyNode>).datum?.hasChildren
         );
-        const glowing = groups.filter((shape) => isOn(shape.fillShadow));
+        const glowing = groups.filter((shape) => isOn(shape.fillGlow));
 
         expect(glowing).toHaveLength(1);
         expect((glowing[0] as Shape<HierarchyNode>).datum?.datum?.name).toBe('A');
-        expect(glowing[0].fillShadow).toMatchObject(glowShadow(ITEM_GLOW));
+        expect(glowing[0].fillGlow).toMatchObject(glowShadow(ITEM_GLOW));
     });
 
     it('merges the glow of the styler for a treemap tile over the theme alone while a group is hovered', async () => {
@@ -556,8 +556,8 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
             (shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name === 'A1'
         );
 
-        expect(tile?.fillShadow).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
-        expect(tile?.fillShadow?.fill).not.toBe(HIGHLIGHT_GLOW.fill);
+        expect(tile?.fillGlow).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+        expect(tile?.fillGlow?.fill).not.toBe(HIGHLIGHT_GLOW.fill);
     });
 
     describe('heatmap', () => {

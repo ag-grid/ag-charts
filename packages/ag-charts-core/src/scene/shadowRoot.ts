@@ -21,11 +21,17 @@ interface ShadowSource extends Node {
     children(): Iterable<Node>;
 }
 
+/**
+ * What the root casts for a group: whether its cutouts are covered too, if it casts its shadows and glows, or `'glow'` if it
+ * casts only its glows, in the overlay, because the group batches its shadows itself.
+ */
+export type ShadowCover = boolean | 'glow';
+
 /** The keys of the root's last cast, and the frames they were built from, to tell whether they are still the keys. */
 interface RootMemo {
     readonly frames: readonly CollectedFrame[];
     readonly keys: readonly ShadowKey[];
-    readonly cover: ReadonlyMap<object, boolean>;
+    readonly cover: ReadonlyMap<object, ShadowCover>;
 }
 
 const memos = new WeakMap<object, RootMemo>();
@@ -95,6 +101,9 @@ function withFootprintCut(glow: NormalisedDropShadowOptions): NormalisedDropShad
 function buildKeys(frames: readonly CollectedFrame[], glows: boolean) {
     const keys = new SlotKeys(glows ? 'glow' : 'shadow');
     for (const frame of frames) {
+        // The root casts only the glows of a group that batches its shadows itself.
+        if (!glows && frame.glowsOnly) continue;
+
         for (const child of (frame.source as ShadowSource).children()) {
             if (!child.visible) continue;
 
@@ -131,7 +140,7 @@ export function castRootShadows(
     user: object,
     renderCtx: RenderContext,
     glows: boolean = false
-): ReadonlyMap<object, boolean> | undefined {
+): ReadonlyMap<object, ShadowCover> | undefined {
     const memo = memos.get(user);
     const unchanged = memo != null && matchesMemo(memo, frames);
     const keys = unchanged ? memo.keys : buildKeys(frames, false);
@@ -152,7 +161,9 @@ export function castRootShadows(
     }
     if (unchanged) return memo.cover;
 
-    const cover = new Map(frames.map((frame) => [frame.source, frame.layered]));
+    const cover = new Map<object, ShadowCover>(
+        frames.map((frame) => [frame.source, frame.glowsOnly ? 'glow' : frame.layered])
+    );
     memos.set(user, { frames, keys, cover });
     return cover;
 }

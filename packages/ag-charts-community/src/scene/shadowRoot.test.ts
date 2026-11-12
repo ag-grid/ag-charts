@@ -555,6 +555,44 @@ describe('Shadow root', () => {
             expect(isGlowOverBlack(at(draw(true, build), 150, 130))).toBe(true);
         });
 
+        describe('for a group that batches its shadows by layer', () => {
+            it('should cast its glows over an item of its own that casts none', () => {
+                const scene = draw(true, () => [group('by-layer', [caster(), square(120, 110)])]);
+
+                expect(isGlowOverBlack(at(scene, 150, 130))).toBe(true);
+            });
+
+            it('should cast a glow once', () => {
+                const scene = draw(true, () => [group('by-layer', [caster()])]);
+
+                expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
+            });
+
+            it('should draw a group that casts only shadows as it does without a root', () => {
+                expectSameAsLocal(() => [
+                    group('by-layer', [
+                        square(120, 40, { fillShadow: RED_HALF }),
+                        square(40, 40, { fillShadow: RED_HALF }),
+                    ]),
+                ]);
+            });
+
+            it('should cast its shadow beside its glow, each once', () => {
+                const both = square(120, 40, { fillGlow: GLOW, fillShadow: RED_HALF });
+                const scene = draw(true, () => [group('by-layer', [both])]);
+
+                expect(isHalfRed(at(scene, 190, 70))).toBe(true);
+                expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
+            });
+
+            it('should cast its glows for itself when the root cannot cast them', () => {
+                const build = () => [group('by-layer', [caster({ ...GLOW, blur: Number.NaN }), square(40, 40)])];
+                const scene = draw(true, build);
+
+                expectNearPixels(pixelsOf(scene), pixelsOf(draw(false, build)));
+            });
+        });
+
         it('should draw beneath the items that glow, whichever draws first and whichever glow they cast', () => {
             const red = { ...GLOW, fill: 'rgba(255, 0, 0, 0.5)' };
             const drawn = [
