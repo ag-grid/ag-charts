@@ -68,6 +68,20 @@ function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: numbe
     return 2 * Math.min(anchorAt - low, high - anchorAt);
 }
 
+/** Room the band leaves along one axis for a label anchored inside it on that axis; unbounded outside it. */
+function bandRoom(
+    rangeDir: AnchorDirection,
+    labelDir: AnchorDirection,
+    pad: number,
+    start: number,
+    size: number,
+    paddingDiff: number
+): number {
+    if (labelDir !== rangeDir) return Infinity;
+    const anchorAt = start + (size * (rangeDir + 1)) / 2 - paddingDiff / 2;
+    return availableExtent(anchorAt, labelDir, pad, start, start + size);
+}
+
 function finiteBound(bound: number): number | undefined {
     return Number.isFinite(bound) ? Math.max(bound, 0) : undefined;
 }
@@ -576,26 +590,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         if (this.type !== 'range' || band == null) return fit;
 
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
-        const roomX =
-            anchor.labelH === anchor.rangeH
-                ? availableExtent(
-                      band.x + (band.width * (anchor.rangeH + 1)) / 2 - xPaddingDiff / 2,
-                      anchor.labelH,
-                      pad,
-                      band.x,
-                      band.x + band.width
-                  )
-                : Infinity;
-        const roomY =
-            anchor.labelV === anchor.rangeV
-                ? availableExtent(
-                      band.y + (band.height * (anchor.rangeV + 1)) / 2 - yPaddingDiff / 2,
-                      anchor.labelV,
-                      pad,
-                      band.y,
-                      band.y + band.height
-                  )
-                : Infinity;
+        const roomX = bandRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
+        const roomY = bandRoom(anchor.rangeV, anchor.labelV, pad, band.y, band.height, yPaddingDiff);
 
         const insets = this.boxed ? resolvePadding(label.padding) : undefined;
         const insetsH = insets == null ? 0 : insets.left + insets.right;
