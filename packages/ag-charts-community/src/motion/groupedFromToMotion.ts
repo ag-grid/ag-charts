@@ -104,7 +104,7 @@ export class GroupedFromToMotion {
 
         for (const [from, byTo] of pending) {
             for (const [to, nodes] of byTo) {
-                this.animateGroup(subId, from, to, nodes, removedFrom, fns, phase);
+                this.animateGroup(subId, from, to, nodes, selections, removedFrom, fns, phase);
             }
         }
         for (const selection of removedFrom) {
@@ -125,6 +125,7 @@ export class GroupedFromToMotion {
         from: T,
         to: T,
         nodes: N[],
+        selections: SelectionInterface<D, N>[],
         removedFrom: SelectionInterface<D, N>[],
         { applyFn, defaults }: GroupedFromToFns<D, N, T>,
         phase: AnimationPhase
@@ -149,10 +150,22 @@ export class GroupedFromToMotion {
                 group.removedFrom.push(selection);
             }
         }
-        const applyAll = (props: GroupedProps, status: 'start' | 'update' | 'end') => {
+        let applyProps: GroupedProps = frame;
+        let applyStatus: 'start' | 'update' | 'end' = 'start';
+        const applyNodes = () => {
             for (const node of group.nodes) {
-                applyFn(node, props as T, status);
+                applyFn(node, applyProps as T, applyStatus);
             }
+        };
+        // Built once per group, so frames batch each parent's dirty marking without allocating.
+        const applyBatched = selections.reduceRight<() => void>(
+            (inner, selection) => () => selection.batchedUpdate(inner),
+            applyNodes
+        );
+        const applyAll = (props: GroupedProps, status: 'start' | 'update' | 'end') => {
+            applyProps = props;
+            applyStatus = status;
+            applyBatched();
         };
 
         for (const node of nodes) {

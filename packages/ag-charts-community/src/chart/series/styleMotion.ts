@@ -22,7 +22,15 @@ const NO_STYLE: ShapeStyle = {};
 /** Style values that `Shape.setStyleProperties` applies for absent properties. */
 const STYLE_DEFAULTS = { opacity: 1, fillOpacity: 1, strokeOpacity: 1, strokeWidth: 0 };
 
-const KEYED_PROPERTIES = ['fill', 'fillOpacity', 'stroke', 'strokeOpacity', 'strokeWidth', 'lineDashOffset', 'opacity'];
+const COMPARED_PROPERTIES = [
+    'fill',
+    'fillOpacity',
+    'stroke',
+    'strokeOpacity',
+    'strokeWidth',
+    'lineDashOffset',
+    'opacity',
+];
 
 /**
  * Applies, or animates to, the `targetStyle` a series resolved for each of its shapes. Highlight changes animate each
@@ -37,8 +45,8 @@ const KEYED_PROPERTIES = ['fill', 'fillOpacity', 'stroke', 'strokeOpacity', 'str
  */
 export class ShapeStyleMotion {
     private readonly motion: GroupedFromToMotion;
-    /** Equal styles by value, from this restyle and the one before, so that equal styles stay shared across them. */
-    private sharedStyles = new Map<string, ShapeStyle>();
+    /** Distinct styles from this restyle and the one before, so that equal styles stay shared across them. */
+    private sharedStyles: ShapeStyle[] = [];
     private readonly hiddenStyles = new WeakMap<ShapeStyle, ShapeStyle>();
 
     constructor(
@@ -153,21 +161,28 @@ export class ShapeStyleMotion {
         return result;
     }
 
-    /** Begin a restyle; returns a function giving the style shared by all shapes with styles equal to `style`. */
+    /**
+     * Begin a restyle; returns a function giving the style shared by all shapes with styles equal to `style`. Styles
+     * compare by value without allocating; past `MAX_SHARED_STYLES` distinct styles, further ones go unshared.
+     */
     private startRestyle() {
         const previous = this.sharedStyles;
-        const current = new Map<string, ShapeStyle>();
+        const current: ShapeStyle[] = [];
         this.sharedStyles = current;
 
-        const byIdentity = new Map<ShapeStyle, ShapeStyle>();
         return (style: ShapeStyle) => {
-            let shared = byIdentity.get(style);
-            if (shared != null) return shared;
-
-            const key = styleKey(style);
-            shared = key == null ? style : (current.get(key) ?? previous.get(key) ?? style);
-            if (key != null) current.set(key, shared);
-            byIdentity.set(style, shared);
+            for (const shared of current) {
+                if (shared === style || equalStyles(shared, style)) return shared;
+            }
+            if (!isShareable(style) || current.length >= MAX_SHARED_STYLES) return style;
+            let shared = style;
+            for (const candidate of previous) {
+                if (equalStyles(candidate, style)) {
+                    shared = candidate;
+                    break;
+                }
+            }
+            current.push(shared);
             return shared;
         };
     }
@@ -175,16 +190,35 @@ export class ShapeStyleMotion {
 
 const unshared = (style: ShapeStyle) => style;
 
-/** A key equal for styles that display the same; undefined for styles with gradient, pattern or image fills. */
-function styleKey(style: ShapeStyle): string | undefined {
+/** Bounds the per-shape cost of sharing styles, for series whose shapes mostly have distinct styles. */
+const MAX_SHARED_STYLES = 32;
+
+/** Whether `style` can compare by value; gradient, pattern and image fills cannot. */
+function isShareable(style: ShapeStyle) {
     const record = style as Record<string, unknown>;
-    let key = '';
-    for (const property of KEYED_PROPERTIES) {
+    for (const property of COMPARED_PROPERTIES) {
         const value = record[property];
-        if (value != null && typeof value === 'object') return undefined;
-        key += `${String(value ?? '')}|`;
+        if (value != null && typeof value === 'object') return false;
     }
-    return key + (style.lineDash?.join(',') ?? '');
+    return true;
+}
+
+/** Whether two shareable styles display the same. */
+function equalStyles(a: ShapeStyle, b: ShapeStyle) {
+    if (!isShareable(a) || !isShareable(b)) return false;
+    const recordA = a as Record<string, unknown>;
+    const recordB = b as Record<string, unknown>;
+    for (const property of COMPARED_PROPERTIES) {
+        if (recordA[property] !== recordB[property]) return false;
+    }
+    const dashA = a.lineDash;
+    const dashB = b.lineDash;
+    if (dashA === dashB) return true;
+    if (dashA == null || dashB == null || dashA.length !== dashB.length) return false;
+    for (let i = 0; i < dashA.length; i++) {
+        if (dashA[i] !== dashB[i]) return false;
+    }
+    return true;
 }
 
 /** The cutout highlight copies being removed, by the `datumIndex` of the shape beneath them. */
