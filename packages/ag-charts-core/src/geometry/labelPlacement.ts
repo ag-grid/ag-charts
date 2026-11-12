@@ -936,8 +936,8 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         return true;
     }
 
-    // An inside label never collides with the shape it sits on, so anything overlapping its own box is
-    // excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
+    // An inside label never collides with the shape it sits on, so anything but an overlay overlapping its own
+    // box is excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
     if (
         candidateOwnBox != null &&
         !isOverlayCategory(category) &&
