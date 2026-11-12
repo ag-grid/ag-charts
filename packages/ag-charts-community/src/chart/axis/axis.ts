@@ -1535,8 +1535,7 @@ export abstract class Axis<
             focusBounds.translate(-axisBounds.x, -axisBounds.y);
 
             const formattedValue = tick.formattedValue == null ? undefined : toPlainText(tick.formattedValue);
-            const ariaLabel =
-                label?.text || tick.text || formattedValue || this.formatA11YTickValue(tick.value);
+            const ariaLabel = label?.text || tick.text || formattedValue || this.formatA11YTickValue(tick.value);
             result.push({ index: tick.index, value: tick.value, ariaLabel, focusBounds });
         }
         return result;
