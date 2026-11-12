@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-enterprise",
-  "version": "14.3.0-beta.20261108",
+  "version": "14.3.0-beta.20261112",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -64,7 +64,7 @@
     "@babel/types": "7.29.11",
     "@types/pixelmatch": "^5.2.6",
     "@types/pngjs": "6.0.5",
-    "ag-charts-test": "14.3.0-beta.20261108",
+    "ag-charts-test": "14.3.0-beta.20261112",
     "del": "^6.1.1",
     "glob": "8.1.0",
     "jest-image-snapshot": "^6.5.2",
@@ -76,8 +76,8 @@
     "vitest": "2.1.9"
   },
   "dependencies": {
-    "ag-charts-community": "14.3.0-beta.20261108",
-    "ag-charts-core": "14.3.0-beta.20261108"
+    "ag-charts-community": "14.3.0-beta.20261112",
+    "ag-charts-core": "14.3.0-beta.20261112"
   },
   "publishConfig": {
     "access": "public"
