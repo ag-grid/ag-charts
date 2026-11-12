@@ -904,8 +904,7 @@ export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelect
 export const LEGEND_CONTAINER_THEME: any = {
     border: {
         enabled: { $isType: [{ $ref: 'legendBorder' }, 'boolean', { $ref: 'legendBorder' }, true] },
-        // `legendBorder: false` leaves the border off, but one enabled through the legend options still follows the
-        // theme's `borderColor` and `borderWidth`.
+        // A border enabled through the legend options still resolves its stroke and width when `legendBorder` is false.
         stroke: themeBorderColor('legendBorder', { unset: { $ref: 'borderColor' } }),
         strokeOpacity: 1,
         strokeWidth: themeBorderWidth('legendBorder', { off: { $ref: 'borderWidth' }, unset: { $ref: 'borderWidth' } }),

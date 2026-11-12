@@ -756,9 +756,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     gridLineColor?: AgCssColorOrRef;
     /**
-     * Border around the legend and the gradient legend. `true` for the default border, `false` to disable, or an object to customise it.
-     *
-     * A border enabled in the legend options takes its colour and width from this param, falling back to `borderColor` and `borderWidth`.
+     * Border around the legend and the gradient legend. `true` for the default border, `false` to disable it unless the legend options enable it, or an object to customise it. An options-enabled border takes its colour and width from this param, falling back to `borderColor` and `borderWidth`.
      *
      * @group Legend
      */
