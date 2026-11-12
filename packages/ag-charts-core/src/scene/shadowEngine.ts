@@ -71,25 +71,15 @@ export interface ShadowKey {
     readonly clips?: readonly ShadowRegion[];
 }
 
-/** Whether the glow of a node is `inGroup`: a group above the root casts it, so it lies above the series drawn before. */
-function castsGlowInGroup(node: Shape, slot: ShadowSlot): boolean {
-    return slot === 'glow' && node.__fillGlow?.inGroup === true;
-}
-
 /** The options that a node casts in a slot through a shadow root, which a cutout may, or undefined if it casts none. */
 export function getRootShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
-    return node instanceof Shape && !castsGlowInGroup(node, slot) ? node.getBatchShadow(slot) : undefined;
+    return node instanceof Shape ? node.getBatchShadow(slot) : undefined;
 }
 
 /** The options that a node casts in a slot through the engine, or undefined if it casts none. */
 export function getBatchedShadow(node: Node, slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
     // A cutout erases the layer beneath it, and so also what the engine's shadow or glow put there. It casts both for itself.
     return node instanceof Shape && node.__drawingMode === 'cutout' ? undefined : getRootShadow(node, slot);
-}
-
-/** The `inGroup` glow of a node, which a cutout casts too. Neither a shadow root nor a batch casts it: a hub group does. */
-export function getGroupGlow(node: Node): NormalisedDropShadowOptions | undefined {
-    return node instanceof Shape && castsGlowInGroup(node, 'glow') ? node.getBatchShadow('glow') : undefined;
 }
 
 export function getShadowClip(node: Node): ShadowClip | undefined {
@@ -141,7 +131,8 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
             a.blur === b.blur &&
             (a.spread ?? 0) === (b.spread ?? 0) &&
             // An unset gap casts like a shadow, and a gap of 0 cuts the footprint out, so the two are not the same.
-            a.gap === b.gap)
+            a.gap === b.gap &&
+            a.overlay === b.overlay)
     );
 }
 
@@ -554,10 +545,12 @@ function renderPass(
     tinted: boolean = false,
     resolution: { x: number; y: number } = FULL_RESOLUTION,
     before?: (index: number) => void,
-    erase?: number
+    erase?: number,
+    erasePainted: boolean = false
 ): boolean {
     let rendered = true;
     const previousErase = shadowPass.erase;
+    const previousErasePainted = shadowPass.erasePainted;
     const previousState = shadowPass.state;
     const previousSlot = shadowPass.slot;
     const previousOpaque = shadowPass.opaque;
@@ -569,6 +562,7 @@ function renderPass(
     shadowPass.tinted = tinted;
     shadowPass.resolution = resolution;
     shadowPass.erase = erase;
+    shadowPass.erasePainted = erasePainted;
     try {
         for (let i = 0; i < casters.length; i++) {
             before?.(i);
@@ -581,6 +575,7 @@ function renderPass(
         shadowPass.tinted = previousTinted;
         shadowPass.resolution = previousResolution;
         shadowPass.erase = previousErase;
+        shadowPass.erasePainted = previousErasePainted;
     }
     return rendered;
 }
@@ -733,7 +728,8 @@ function castPlan(
     originX: number,
     originY: number,
     scene: object | undefined,
-    keyExtent: Extent | undefined
+    keyExtent: Extent | undefined,
+    peers: readonly ShadowKey[] | undefined
 ): boolean {
     const { ctx } = renderCtx;
     let rendered: boolean;
@@ -818,7 +814,16 @@ function castPlan(
                 erase.restore();
             }
             const resolutionOfHole = { x: holeScaleX, y: holeScaleY };
-            rendered = eraseFootprints(key, erase, transform, renderCtx, region, resolutionOfHole, gap) && rendered;
+            // The glow of an overlay with no `gap` is cut only where an item is painted, whereas a `gap` clears the whole footprint.
+            const painted = key.shadow.overlay === true;
+            rendered =
+                eraseFootprints(key, erase, transform, renderCtx, region, resolutionOfHole, gap, painted) && rendered;
+            // The glows of an overlay land above every item that glows, whichever glow it casts, so none covers another's.
+            for (const peer of peers ?? []) {
+                if (peer === key) continue;
+                rendered =
+                    eraseFootprints(peer, erase, transform, renderCtx, region, resolutionOfHole, 0, true) && rendered;
+            }
 
             // The target holds what the layer has drawn and the glows of other keys, so only the cut glow is drawn onto it.
             target.save();
@@ -961,7 +966,8 @@ function eraseFootprints(
     renderCtx: RenderContext,
     region: Extent,
     resolution: { x: number; y: number },
-    gap: number
+    gap: number,
+    painted: boolean
 ): boolean {
     const { frames } = key;
     const place = ([a, b, c, d, e, f]: readonly number[]) =>
@@ -1009,7 +1015,8 @@ function eraseFootprints(
                       // A group that is fully transparent casts nothing, so it has no footprint to cut out of the glow.
                       erase.globalAlpha = frame.alpha > 0 ? 1 : 0;
                   },
-            gap
+            gap,
+            painted
         );
     } finally {
         erase.restore();
@@ -1030,6 +1037,11 @@ function blitCache(ctx: Ctx, { kept, x, y }: ShadowCache) {
 }
 
 export interface ShadowCast {
+    /**
+     * Whether the keys are the glows of an overlay, drawn above the items that cast them: each key then has a `gap`, and the
+     * footprints of the casters of every key are cut out of each glow, so that no glow covers an item that glows.
+     */
+    readonly overlay?: boolean;
     readonly scene: object | undefined;
     /** The group that casts, which holds the scratch canvas and its kept shadows until it releases them. */
     readonly user: object;
@@ -1042,7 +1054,10 @@ export interface ShadowCast {
 }
 
 /** Casts the shadows of the keys now. Returns false, having drawn nothing, if they can't be cast, so casters cast their own. */
-export function castShadows({ scene, user, keys, index, unchanged }: ShadowCast, renderCtx: RenderContext): boolean {
+export function castShadows(
+    { scene, user, keys, index, unchanged, overlay }: ShadowCast,
+    renderCtx: RenderContext
+): boolean {
     const { ctx } = renderCtx;
     const width = Math.ceil(ctx.canvas.width);
     const height = Math.ceil(ctx.canvas.height);
@@ -1113,14 +1128,25 @@ export function castShadows({ scene, user, keys, index, unchanged }: ShadowCast,
         for (const plan of plans) {
             const keyExtent = keyExtents?.get(plan.key);
             rendered =
-                castPlan(plan, scratch, kept.context, transform, renderCtx, cache.x, cache.y, scene, keyExtent) &&
-                rendered;
+                castPlan(
+                    plan,
+                    scratch,
+                    kept.context,
+                    transform,
+                    renderCtx,
+                    cache.x,
+                    cache.y,
+                    scene,
+                    keyExtent,
+                    overlay === true ? keys : undefined
+                ) && rendered;
         }
         // A caster that failed to draw is drawn again by the next cast, rather than left out of the shadows for good.
         cache.valid = rendered;
         blitCache(ctx, cache);
     } else {
-        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined);
+        const peers = overlay === true ? keys : undefined;
+        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined, peers);
     }
     return true;
 }
