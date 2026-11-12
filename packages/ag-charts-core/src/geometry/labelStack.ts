@@ -180,8 +180,9 @@ function fitStackAtSizes(
     const { blocks, spacing } = stack;
     const maxHeight = container?.height ?? Infinity;
     let maxWidth = container?.width ?? Infinity;
+    let estimate = Infinity;
     if (shape != null) {
-        let estimate = spacing * (included.length - 1);
+        estimate = spacing * (included.length - 1);
         for (let i = 0; i < included.length; i++) {
             const { fit } = blocks[included[i]];
             const font = fontWithSize(fit.font, sizes[i]);
@@ -197,8 +198,16 @@ function fitStackAtSizes(
     const width = shapeWidthAt(shape, shapeAlign, fitted.height);
     if (fitted.width <= width) return fitted;
     const refitted = fitBlocksToWidth(stack, included, sizes, atFloor, width, maxHeight);
-    if (refitted == null || refitted.overflows) return refitted;
-    return refitted.width > shapeWidthAt(shape, shapeAlign, refitted.height) ? undefined : refitted;
+    if (
+        refitted != null &&
+        (refitted.overflows || refitted.width <= shapeWidthAt(shape, shapeAlign, refitted.height))
+    ) {
+        return refitted;
+    }
+    // Narrowing only wraps the text taller, so hold it to the estimated height and let it truncate instead.
+    const held = fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, Math.min(maxHeight, estimate));
+    if (held == null || held.overflows) return held;
+    return held.width > shapeWidthAt(shape, shapeAlign, held.height) ? undefined : held;
 }
 
 function fitBlocksToWidth(
