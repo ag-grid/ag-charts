@@ -39,35 +39,43 @@ The legend item marker can be modified within the [Legend Options](./legend/#mar
 You can easily define custom marker shapes by providing a callback function to create the desired shape. This function takes `x` and `y` parameters, representing the marker's position on the canvas, the `size` of the marker and the `path` instance. The path includes various drawing methods that allow you to apply specific drawing commands to construct the marker.
 If you are familiar with the standard Canvas API, you'll feel right at home here. The `path` API is very similar to that of [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D).
 
-For example, to draw a heart:
+For example, to draw a smiley face:
 
 ```js
-const rad = (degree) => {
-    return (degree / 180) * Math.PI;
-};
-
-const heart = ({ x, y, path, size }) => {
-    const r = size / 4;
-    const yCoord = y + r / 2;
+const smiley = ({ x, y, path, size }) => {
+    const r = size / 2;
+    const eyeR = r * 0.15;
+    const eyeY = y - r * 0.25;
+    const mouthR = r * 0.5;
+    const mouthY = y + r * 0.1;
 
     path.clear();
-    path.arc(x - r, yCoord - r, r, rad(130), rad(330));
-    path.arc(x + r, yCoord - r, r, rad(220), rad(50));
-    path.lineTo(x, yCoord + r);
+    // Face, drawn clockwise
+    path.moveTo(x + r, y);
+    path.arc(x, y, r, 0, 2 * Math.PI);
+    path.closePath();
+    // Eyes and mouth, drawn anticlockwise so they are cut out of the face
+    for (const eyeX of [x - r * 0.35, x + r * 0.35]) {
+        path.moveTo(eyeX + eyeR, eyeY);
+        path.arc(eyeX, eyeY, eyeR, 0, 2 * Math.PI, true);
+        path.closePath();
+    }
+    path.moveTo(x - mouthR, mouthY);
+    path.arc(x, mouthY, mouthR, Math.PI, 0, true);
     path.closePath();
 };
 ```
 
-All we do is render two partial circles with the `cubicArc` command and then two straight lines using the `lineTo` and `closePath` commands to get the shape of a heart.
+The face is a full circle drawn clockwise. The eyes and mouth are drawn anticlockwise, so they are cut out of the face when the marker is filled. Each part starts with `moveTo` so it is drawn as a separate shape, and `closePath` closes it, which draws the straight top edge of the mouth.
 
-Inside the marker config of a series we then use this callback function rather than using one of the predefined shape names:
+We then use this callback function as the `shape` rather than one of the predefined shape names:
 
 ```js format="snippet"
 {
-    marker: {
-        shape: heart,
-        size: 16,
-    },
+    type: 'bubble',
+    shape: smiley,
+    minSize: 20,
+    maxSize: 40,
 }
 ```
 
