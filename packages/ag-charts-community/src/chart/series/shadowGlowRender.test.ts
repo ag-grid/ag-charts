@@ -2,7 +2,7 @@ import { describe, it } from 'vitest';
 
 import { COMMUNITY_GLOW_SERIES } from '../test/glowCases';
 import { ALI_GLOW, RENDER_OPTIONS, hoverDatum } from '../test/glowRender';
-import { describeGlowSeries, useGlowCharts } from '../test/glowRenderSuite';
+import { HIGHLIGHT_STATES, describeGlowSeries, useGlowCharts } from '../test/glowRenderSuite';
 import { CATEGORY_DATA, ITEM_GLOW, ITEM_SHADOW } from '../test/shadowFixtures';
 import { createChart, hoverLegendItem, waitForChartStability } from '../test/utils';
 
@@ -27,11 +27,9 @@ describe('shadow and glow render', () => {
             { category: 'B', value: 5 },
             { category: 'C', value: 3 },
         ];
-        // Headroom above the bars, for the glow to be drawn in.
-        const HEADROOM = {
-            ...RENDER_OPTIONS,
-            axes: { y: { type: 'number', min: 0, max: 8 } },
-        };
+        // The glow reaches 40px beyond an item, so the chart sits 50px inside the crop, and the bars have headroom.
+        const ROOM = { ...RENDER_OPTIONS, padding: { top: 50, left: 50, right: 430, bottom: 330 } };
+        const HEADROOM = { ...ROOM, axes: { y: { type: 'number', min: 0, max: 8 } } };
         const SHAPES: [string, object, object[], object?][] = [
             ['a square-cornered bar', { type: 'bar', xKey: 'category', yKey: 'value' }, GAP_DATA, HEADROOM],
             [
@@ -48,9 +46,13 @@ describe('shadow and glow render', () => {
                     { x: 2, y: 4 },
                     { x: 3, y: 6 },
                 ],
+                {
+                    ...ROOM,
+                    axes: { x: { type: 'number', min: 0, max: 4 }, y: { type: 'number', min: 0, max: 8 } },
+                },
             ],
-            ['a pie sector', { type: 'pie', angleKey: 'value' }, GAP_DATA],
-            ['a donut sector', { type: 'donut', angleKey: 'value' }, GAP_DATA],
+            ['a pie sector', { type: 'pie', angleKey: 'value' }, GAP_DATA, ROOM],
+            ['a donut sector', { type: 'donut', angleKey: 'value' }, GAP_DATA, ROOM],
         ];
 
         it.each(SHAPES)('renders the glow of the hovered item around %s', async (_name, series, data, options) => {
@@ -68,28 +70,15 @@ describe('shadow and glow render', () => {
     describe('a glow beside items that do not glow', () => {
         const GLOWING = { glow: HARD_GLOW };
 
-        it('renders a donut with one glowing sector', async () => {
+        it.each([
+            ['a donut with one glowing sector', 'donut'],
+            ['bars with one glowing item', 'bar'],
+        ])('renders %s', async (_name, type) => {
             await create(
                 [
                     {
-                        type: 'donut',
-                        angleKey: 'value',
-                        itemStyler: ({ datum }: { datum: { category: string } }) =>
-                            datum.category === 'B' ? GLOWING : {},
-                    },
-                ],
-                BARS
-            );
-            await snapshot();
-        });
-
-        it('renders bars with one glowing item', async () => {
-            await create(
-                [
-                    {
-                        type: 'bar',
-                        xKey: 'category',
-                        yKey: 'value',
+                        type,
+                        ...(type === 'bar' ? { xKey: 'category', yKey: 'value' } : { angleKey: 'value' }),
                         itemStyler: ({ datum }: { datum: { category: string } }) =>
                             datum.category === 'B' ? GLOWING : {},
                     },
@@ -131,14 +120,15 @@ describe('shadow and glow render', () => {
     });
 
     describe('each highlight state', () => {
-        const GLOWS = {
-            highlightedItem: { enabled: true, fill: '#d0021b', fillOpacity: 1, blur: 0, spread: 8 },
-            unhighlightedItem: { enabled: true, fill: '#7ed321', fillOpacity: 1, blur: 0, spread: 8 },
-            highlightedSeries: { enabled: true, fill: '#f5a623', fillOpacity: 1, blur: 0, spread: 8 },
-            unhighlightedSeries: { enabled: true, fill: '#4a90e2', fillOpacity: 1, blur: 0, spread: 8 },
-        };
+        const FILLS = ['#d0021b', '#7ed321', '#f5a623', '#4a90e2'];
+        const GLOWS = Object.fromEntries(
+            HIGHLIGHT_STATES.map(({ bucket }, i) => [
+                bucket,
+                { enabled: true, fill: FILLS[i], fillOpacity: 1, blur: 0, spread: 8 },
+            ])
+        );
 
-        it.each(Object.keys(GLOWS) as (keyof typeof GLOWS)[])('renders the glow of %s', async (state) => {
+        it.each(Object.keys(GLOWS))('renders the glow of %s', async (state) => {
             await create(
                 ['value', 'other'].map((yKey) => ({
                     type: 'bar',

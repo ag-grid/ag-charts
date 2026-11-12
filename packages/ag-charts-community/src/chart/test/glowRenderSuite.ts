@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { expectSamePixels } from './expectSamePixels';
-import { type GlowPlacement, type GlowSeriesCase, glowSeries, glowThemeOptions } from './glowCases';
+import { type GlowPlacement, type GlowSeriesCase, type HighlightStep, glowSeries, glowThemeOptions } from './glowCases';
 import {
     RENDER_CROP,
     RENDER_OPTIONS,
@@ -37,8 +37,8 @@ const hoverCase = (chart: AgChartInstance, { hoverDatum: datumOf }: GlowSeriesCa
     return datumOf ? hoverNode(chart, datumOf(chart)) : hoverDatum(chart);
 };
 
-/** Each highlight state of a series: as an `itemStyler` is given it, the `highlight` option that sets it, and how it is raised. */
-const HIGHLIGHT_STATES: { state: string; bucket: string; hover: Hover; onOtherSeries?: true }[] = [
+/** Each highlight state of a series of items. */
+export const HIGHLIGHT_STATES: HighlightStep[] = [
     { state: 'highlighted-item', bucket: 'highlightedItem', hover: true },
     { state: 'unhighlighted-item', bucket: 'unhighlightedItem', hover: true },
     { state: 'highlighted-series', bucket: 'highlightedSeries', hover: 'series' },
@@ -119,15 +119,17 @@ export function describeGlowSeries(
         const hoverable = testCase.hoverable === true;
         const seriesShadowOnly = testCase.seriesShadowOnly === true;
         const noItemStyler = testCase.noItemStyler === true;
-        const stylerStates = HIGHLIGHT_STATES.filter(({ onOtherSeries }) => !onOtherSeries || !testCase.singleSeries);
-        const bucketStates = stylerStates.filter(
-            ({ bucket }) => !testCase.itemHighlightOnly || !bucket.endsWith('Series')
+        const steps = (testCase.highlightSteps ?? HIGHLIGHT_STATES).filter(
+            ({ onOtherSeries }) => !onOtherSeries || !testCase.singleSeries
         );
+        const stylerStates = steps.filter(({ state }) => state !== undefined);
+        const bucketStates = steps.filter(({ bucket }) => !testCase.itemHighlightOnly || !bucket.endsWith('Series'));
         const glows = !seriesShadowOnly;
         const placement: GlowPlacement = glows ? CAST : { shadow: SERIES_SHADOW };
-        const hoveredItem = glows ? HOVERED_ITEM : { shadow: HIGHLIGHT_SHADOW };
+        const hoveredItem = testCase.hoveredItem ?? HOVERED_ITEM;
 
-        it('renders the series shadow', async () => {
+        // A series whose shadow an existing test snapshots is not snapshotted again: the matrix names that test.
+        it.skipIf(testCase.shadowSnapshot !== undefined)('renders the series shadow', async () => {
             await create([glowSeries(testCase, { shadow: SERIES_SHADOW })], testCase.data, options);
             await snapshot();
         });
@@ -142,24 +144,6 @@ export function describeGlowSeries(
             await hoverCase(chart(), testCase);
             await snapshot();
         });
-
-        it.skipIf(!hoverable)(
-            'renders as at rest once the hover has ended, and as hovered when it is repeated',
-            async () => {
-                const highlight = { highlightedItem: hoveredItem };
-                await create([glowSeries(testCase, placement, highlight)], testCase.data, options);
-                const rest = canvasImage(chart());
-                await hoverCase(chart(), testCase);
-                const hovered = canvasImage(chart());
-                expect(differingBytes(hovered, rest)).toBeGreaterThan(0);
-
-                await endHover(chart());
-                expectSamePixels(canvasImage(chart()), rest);
-
-                await hoverCase(chart(), testCase);
-                expectSamePixels(canvasImage(chart()), hovered);
-            }
-        );
 
         it('renders a disabled shadow and glow as it renders none', async () => {
             const disabled = {
@@ -186,7 +170,7 @@ export function describeGlowSeries(
 
         // A state of the other series is reached by hovering the first series beside it.
         const renderState = (
-            { onOtherSeries, hover }: (typeof HIGHLIGHT_STATES)[number],
+            { onOtherSeries, hover }: HighlightStep,
             styled: GlowPlacement,
             highlight: object | undefined,
             hovered: boolean
@@ -195,12 +179,34 @@ export function describeGlowSeries(
                 ? render(testCase, {}, { hover: hovered ? hover : undefined, other: { placement: styled, highlight } })
                 : render(testCase, styled, { highlight, hover: hovered ? hover : undefined });
 
-        it.skipIf(!hoverable)('renders the glow of each highlight state, as it renders none without it', async () => {
-            for (const step of bucketStates) {
-                const plain = await renderState(step, {}, undefined, true);
-                const glowing = await renderState(step, {}, { [step.bucket]: { glow: HIGHLIGHT_GLOW } }, true);
-                expect(differingBytes(glowing, plain), step.state).toBeGreaterThan(0);
+        const hoverSteps = hoverable ? bucketStates : [];
+
+        // The hovered item casts the shadow too, where it has a highlight shadow: the other states take a glow only.
+        const castOf = ({ bucket }: HighlightStep) =>
+            bucket === 'highlightedItem' ? hoveredItem : { glow: HIGHLIGHT_GLOW };
+
+        it.each(hoverSteps)(
+            'renders as at rest once the hover has ended, and as hovered when it is repeated, with the cast of $bucket',
+            async (step) => {
+                const rest = await renderState(step, {}, { [step.bucket]: castOf(step) }, false);
+                await hoverCase(chart(), testCase, step.hover);
+                const hovered = canvasImage(chart());
+                expect(differingBytes(hovered, rest)).toBeGreaterThan(0);
+
+                await endHover(chart());
+                expectSamePixels(canvasImage(chart()), rest);
+
+                await hoverCase(chart(), testCase, step.hover);
+                expectSamePixels(canvasImage(chart()), hovered);
             }
+        );
+
+        it.each(hoverSteps)('renders the glow of $bucket, and renders it disabled as it renders none', async (step) => {
+            const glowOf = (glow: object) => ({ [step.bucket]: { glow } });
+            const plain = await renderState(step, {}, undefined, true);
+            const glowing = await renderState(step, {}, glowOf(HIGHLIGHT_GLOW), true);
+            expect(differingBytes(glowing, plain)).toBeGreaterThan(0);
+            expectSamePixels(await renderState(step, {}, glowOf({ ...HIGHLIGHT_GLOW, enabled: false }), true), plain);
         });
 
         it.skipIf(!hoverable || noItemStyler)(
@@ -211,7 +217,7 @@ export function describeGlowSeries(
                         highlightState === wanted ? { glow: HIGHLIGHT_GLOW } : {},
                 });
                 for (const step of stylerStates) {
-                    const { state, bucket } = step;
+                    const { state, bucket } = step as Required<HighlightStep>;
                     const rest = await renderState(step, {}, undefined, false);
                     const hoveredPlain = await renderState(step, {}, undefined, true);
                     expectSamePixels(await renderState(step, byState(state), undefined, false), rest);
@@ -222,7 +228,10 @@ export function describeGlowSeries(
                     if (!bucketStates.includes(step)) continue;
                     if (testCase.reachesOtherParts && bucket.startsWith('unhighlighted')) continue;
                     const highlight = { [bucket]: { glow: HIGHLIGHT_GLOW } };
-                    expectSamePixels(await renderState(step, {}, highlight, true), styled);
+                    const bucketed = await renderState(step, {}, highlight, true);
+                    if (step.bucketReachesOtherStates)
+                        expect(differingBytes(bucketed, styled), state).toBeGreaterThan(0);
+                    else expectSamePixels(bucketed, styled);
                 }
             }
         );
@@ -230,7 +239,9 @@ export function describeGlowSeries(
         it.skipIf(noItemStyler)('renders the shadow that an itemStyler returns as the series shadow', async () => {
             const series = await render(testCase, { shadow: SERIES_SHADOW });
             expect(differingBytes(series, await render(testCase, {}))).toBeGreaterThan(0);
-            expectSamePixels(await render(testCase, { itemStyler: () => ({ shadow: SERIES_SHADOW }) }), series);
+            const styled = await render(testCase, { itemStyler: () => ({ shadow: SERIES_SHADOW }) });
+            if (testCase.stylerCastsOtherParts) expect(differingBytes(styled, series)).toBeGreaterThan(0);
+            else expectSamePixels(styled, series);
         });
 
         it.skipIf(seriesShadowOnly || noItemStyler)(

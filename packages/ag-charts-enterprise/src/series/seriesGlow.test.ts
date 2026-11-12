@@ -21,6 +21,7 @@ import {
 import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
+import { BOX_PLOT, GRID, OHLC_KEYS, POLAR, RANGE, STAGES } from '../test/glowSeriesCases';
 import {
     FLOW_DATA,
     HIERARCHY_SHADOW_DATA,
@@ -36,33 +37,6 @@ import ukTopology from './map-test/ukTopology.json';
 
 type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
 type AnySeriesOptions = NonNullable<AgChartOptions['series']>[number];
-
-const STAGES = [
-    { stage: 'Visits', value: 100 },
-    { stage: 'Sign-ups', value: 60 },
-    { stage: 'Paid', value: 20 },
-];
-const GRID = [
-    { x: 'a', y: 'p', value: 1 },
-    { x: 'b', y: 'p', value: 3 },
-    { x: 'a', y: 'q', value: 2 },
-    { x: 'b', y: 'q', value: 5 },
-];
-const POLAR = [
-    { quarter: 'Q1', value: 5, low: 2 },
-    { quarter: 'Q2', value: 8, low: 3 },
-    { quarter: 'Q3', value: 3, low: 1 },
-];
-const RANGE = [
-    { x: 'Q1', low: 2, high: 5 },
-    { x: 'Q2', low: 3, high: 8 },
-    { x: 'Q3', low: 1, high: 3 },
-];
-const OHLC_KEYS = { xKey: 'x', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' };
-const BOX_PLOT = [
-    { x: 'Q1', min: 3, q1: 4, median: 5, q3: 6, max: 7 },
-    { x: 'Q2', min: 4, q1: 5, median: 6, q3: 7, max: 8 },
-];
 
 interface SeriesCase {
     name: string;

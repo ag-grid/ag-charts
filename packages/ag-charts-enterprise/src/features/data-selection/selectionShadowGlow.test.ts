@@ -10,8 +10,10 @@ import {
     clickAction,
     deproxy,
     differingBytes,
+    endHover,
     expectSamePixels,
     getSeriesSelectionNodes,
+    hoverDatum,
     useGlowCharts,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -43,50 +45,44 @@ const centreOf = (chart: AgChartInstance, seriesIndex: number, datumIndex: numbe
     return { x: x + width / 2, y: y + height / 2 };
 };
 
-/** Selects a bar by clicking it, as the user would: unlike `setSelection`, it runs the itemStyler of each item again. */
+/**
+ * Selects a bar by clicking it, as the user would, and ends the hover that the click leaves. Unlike `setSelection`, a click
+ * redraws the chart in full (`ChartUpdateType.FULL`, which clears the callback cache), so it runs the itemStyler of each item again.
+ */
 const clickBar = async (chart: AgChartInstance, seriesIndex = 0, datumIndex = 0) => {
     const { x, y } = centreOf(chart, seriesIndex, datumIndex);
     await clickAction(x, y)(chart);
     await waitForChartStability(chart);
+    await endHover(chart);
 };
 
 describe('shadow and glow from an itemStyler that branches on the state of an item', () => {
     const charts = useGlowCharts(createEnterpriseChart);
     const { create, chart, snapshot } = charts;
 
-    const selectedWith = async (style: object) => {
-        await create(
-            bars(() => style),
-            CATEGORY_DATA,
-            OPTIONS
-        );
+    /** The render of the bars once the first is selected with `setSelection`, with the given itemStyler. */
+    const selectedWith = async (itemStyler: (params: StylerParams) => object) => {
+        await create(bars(itemStyler), CATEGORY_DATA, OPTIONS);
         await selectFirst(chart());
         return canvasImage(chart());
     };
+
+    /** The same, with an itemStyler that returns the shadow and glow for a state of selection only. */
+    const selected = (state?: string) =>
+        selectedWith(({ selectionState }) => (state !== undefined && selectionState === state ? STYLE : {}));
 
     const atRest = async (series: object[]) => {
         await create(series, CATEGORY_DATA, OPTIONS);
         return canvasImage(chart());
     };
 
-    /** The render of the bars once the first is selected, whose itemStyler returns the shadow and glow for a state of selection. */
-    const selected = async (state?: string) => {
-        await create(
-            bars(({ selectionState }) => (state !== undefined && selectionState === state ? STYLE : {})),
-            CATEGORY_DATA,
-            OPTIONS
-        );
-        await selectFirst(chart());
-        return canvasImage(chart());
-    };
-
     it('renders the shadow and glow that an itemStyler returns for every item once one is selected', async () => {
         const control = await selected();
-        expect(differingBytes(await selectedWith(STYLE), control)).toBeGreaterThan(0);
+        expect(differingBytes(await selectedWith(() => STYLE), control)).toBeGreaterThan(0);
     });
 
-    // Pins a known defect: after `setSelection` the itemStyler is not called again, so it never sees a selection state
-    // (a click on an item does call it again: see the tests below that click).
+    // Pins a known defect: `setSelection` redraws with `ChartUpdateType.PERFORM_LAYOUT`, which keeps the callback cache, so
+    // the itemStyler is not called again and never sees a selection state (a click redraws in full: see the tests below).
     it.each(['selected-item', 'unselected-item'])(
         'renders no shadow or glow that an itemStyler returns for %s, as it renders none',
         async (state) => {
@@ -124,9 +120,9 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
         const styledFor = (state: string, cast: object) =>
             bars(({ selectionState }) => (selectionState === state ? cast : {}));
 
-        it.each(STATES.flatMap((state) => CASTS.map(([name, cast]) => [state, name, cast] as const)))(
+        it.each(CASTS.flatMap(([name, cast]) => STATES.map((state) => [name, state, cast] as const)))(
             'renders the %s of an itemStyler for %s, and not before the click',
-            async (state, _name, cast) => {
+            async (_name, state, cast) => {
                 const rest = await atRest(bars());
                 expectSamePixels(await atRest(styledFor(state, cast)), rest);
 
@@ -138,6 +134,45 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
                 expect(differingBytes(styled, canvasImage(chart()))).toBeGreaterThan(0);
             }
         );
+
+        // The cause of the defect above: only a redraw that clears the callback cache runs the itemStyler again.
+        describe('the itemStyler is run again', () => {
+            /** The selection states an itemStyler is given while `act` runs, with the pointer on the first bar beforehand. */
+            const statesSeenDuring = async (act: () => Promise<void>) => {
+                const seen = new Set<string | undefined>();
+                await create(
+                    bars(({ selectionState }) => {
+                        seen.add(selectionState);
+                        return {};
+                    }),
+                    CATEGORY_DATA,
+                    OPTIONS
+                );
+                await hoverDatum(chart(), 0, 0);
+                seen.clear();
+                await act();
+                return [...seen];
+            };
+
+            it('by a click that selects an item, with no change to the highlight', async () => {
+                const seen = await statesSeenDuring(async () => {
+                    const { x, y } = centreOf(chart(), 0, 0);
+                    await clickAction(x, y)(chart());
+                    await waitForChartStability(chart());
+                });
+                expect(seen).toContain('selected-item');
+            });
+
+            it('not by setSelection, but by the next change to the highlight', async () => {
+                expect(await statesSeenDuring(() => selectFirst(chart()))).toEqual([]);
+                expect(
+                    await statesSeenDuring(async () => {
+                        await selectFirst(chart());
+                        await endHover(chart());
+                    })
+                ).toContain('selected-item');
+            });
+        });
 
         it('renders the shadow and glow of an itemStyler for the selected item', async () => {
             await create(styledFor('selected-item', STYLE), CATEGORY_DATA, OPTIONS);

@@ -1,9 +1,17 @@
-import { type GlowPlacement, type GlowSeriesCase, onMarker, onSeries } from 'ag-charts-community-test';
+import {
+    type GlowPlacement,
+    type GlowSeriesCase,
+    HIGHLIGHT_GLOW,
+    type HighlightStep,
+    onMarker,
+    onSeries,
+} from 'ag-charts-community-test';
 
 import { ukData } from '../series/map-test/ukData';
 import ukTopology from '../series/map-test/ukTopology.json';
 import { getFlowLinkData, getFlowNodeData } from './enterpriseSeriesAccessors';
-import { FLOW_DATA, OHLC_DATA, WATERFALL_DATA } from './utils';
+import { getHierarchyRootNode } from './seriesAccessors';
+import { FLOW_DATA, HIERARCHY_SHADOW_DATA, OHLC_DATA, WATERFALL_DATA } from './utils';
 
 export const STAGES = [
     { stage: 'Visits', value: 100 },
@@ -49,6 +57,7 @@ const WATERFALL_ITEMS = ({ shadow, glow, itemStyler }: GlowPlacement) => ({
 export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     {
         name: 'range-bar',
+        shadowSnapshot: 'series/range-bar/rangeBar.test.ts',
         type: 'range-bar',
         data: RANGE,
         hoverable: true,
@@ -57,6 +66,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'box-plot',
+        shadowSnapshot: 'series/box-plot/boxPlotSeries.test.ts',
         type: 'box-plot',
         data: BOX_PLOT,
         hoverable: true,
@@ -73,6 +83,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'candlestick',
+        shadowSnapshot: 'series/candlestick/candlestickSeries.test.ts',
         type: 'candlestick',
         data: OHLC_DATA,
         hoverable: true,
@@ -81,6 +92,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'ohlc',
+        shadowSnapshot: 'series/ohlc/ohlcSeries.test.ts',
         type: 'ohlc',
         data: OHLC_DATA,
         hoverable: true,
@@ -89,6 +101,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'hlc markers',
+        shadowSnapshot: 'series/hlc/hlcSeries.test.ts',
         type: 'hlc',
         data: OHLC_DATA,
         hoverable: true,
@@ -107,6 +120,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'cone funnel',
+        shadowSnapshot: 'series/cone-funnel/coneFunnel.test.ts',
         type: 'cone-funnel',
         data: STAGES,
         noItemStyler: true,
@@ -125,6 +139,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'heatmap',
+        shadowSnapshot: 'series/heatmap/heatmap.test.ts',
         itemHighlightOnly: true,
         type: 'heatmap',
         data: GRID,
@@ -134,6 +149,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'radial-column',
+        shadowSnapshot: 'series/radial-column/radialColumn.test.ts',
         type: 'radial-column',
         data: POLAR,
         hoverable: true,
@@ -142,6 +158,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'radial-bar',
+        shadowSnapshot: 'series/radial-bar/radialBar.test.ts',
         type: 'radial-bar',
         data: POLAR,
         hoverable: true,
@@ -150,6 +167,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'nightingale',
+        shadowSnapshot: 'series/radial-column/radialColumn.test.ts',
         type: 'nightingale',
         data: POLAR,
         hoverable: true,
@@ -174,6 +192,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'radar-area fill',
+        shadowSnapshot: 'series/radar-area/radarArea.test.ts',
         type: 'radar-area',
         data: POLAR,
         seriesShadowOnly: true,
@@ -200,6 +219,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'waterfall',
+        shadowSnapshot: 'series/waterfall/waterfall.test.ts',
         itemHighlightOnly: true,
         singleSeries: true,
         type: 'waterfall',
@@ -215,6 +235,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'sankey nodes',
+        shadowSnapshot: 'series/sankey/sankeySeries.test.ts',
         itemHighlightOnly: true,
         singleSeries: true,
         reachesOtherParts: true,
@@ -227,6 +248,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'sankey links',
+        shadowSnapshot: 'series/sankey/sankeySeries.test.ts',
         itemHighlightOnly: true,
         singleSeries: true,
         reachesOtherParts: true,
@@ -239,6 +261,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'chord nodes',
+        shadowSnapshot: 'series/chord/chordSeries.test.ts',
         itemHighlightOnly: true,
         singleSeries: true,
         reachesOtherParts: true,
@@ -251,6 +274,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'chord links',
+        shadowSnapshot: 'series/chord/chordSeries.test.ts',
         itemHighlightOnly: true,
         singleSeries: true,
         reachesOtherParts: true,
@@ -263,6 +287,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
     },
     {
         name: 'map-shape',
+        shadowSnapshot: 'series/map-shape/mapShapeSeries.test.ts',
         type: 'map-shape',
         data: ukData,
         hoverable: true,
@@ -278,5 +303,79 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
         chartOptions: { topology: ukTopology },
         base: { type: 'map-marker', idKey: 'name' },
         place: onSeries,
+    },
+];
+
+/** The node of a hierarchy series that the pointer is on: a leaf, or a group of the treemap. */
+const nodeNamed = (name: string) => (chart: Parameters<NonNullable<GlowSeriesCase['hoverDatum']>>[0]) => {
+    for (const node of getHierarchyRootNode(chart)!) if (node.datum?.name === name) return node;
+    throw new Error(`No node named ${name}`);
+};
+
+/**
+ * Hovering a leaf gives the nodes of its branch `highlighted-branch` and those of the other branch `unhighlighted-branch`,
+ * and never `unhighlighted-item`: the `unhighlightedItem` glow is cast on the nodes that are given `highlighted-branch`.
+ */
+const HIERARCHY_STEPS: HighlightStep[] = [
+    { state: 'highlighted-item', bucket: 'highlightedItem', hover: true },
+    { bucket: 'unhighlightedItem', hover: true },
+    // The `highlightedBranch` glow is cast on the hovered item too, which an itemStyler is given `highlighted-item` for.
+    { state: 'highlighted-branch', bucket: 'highlightedBranch', hover: true, bucketReachesOtherStates: true },
+    { state: 'unhighlighted-branch', bucket: 'unhighlightedBranch', hover: true },
+];
+
+/** Hovering a group of the treemap gives the other group `unhighlighted-item`. */
+const GROUP_STEPS: HighlightStep[] = [
+    { state: 'highlighted-item', bucket: 'highlightedItem', hover: true },
+    { state: 'unhighlighted-item', bucket: 'unhighlightedItem', hover: true },
+];
+
+const HIERARCHY = {
+    // Two top-level branches, so that hovering a leaf of A leaves B as the other branch.
+    data: HIERARCHY_SHADOW_DATA[0].children,
+    hoverable: true,
+    // A hierarchy takes a series shadow, and a glow in its highlight states only.
+    seriesShadowOnly: true,
+    hoveredItem: { glow: HIGHLIGHT_GLOW },
+};
+const HIERARCHY_KEYS = { labelKey: 'name', sizeKey: 'size' };
+const withHighlight = (part?: 'tile' | 'group') => (placed: any, highlight: object) =>
+    part ? { ...placed, [part]: { ...placed[part], highlight } } : { ...placed, highlight };
+
+export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
+    {
+        ...HIERARCHY,
+        name: 'sunburst',
+        type: 'sunburst',
+        shadowSnapshot: 'series/sunburst/sunburstSeries.test.ts',
+        highlightSteps: HIERARCHY_STEPS,
+        hoverDatum: nodeNamed('A1'),
+        base: { type: 'sunburst', ...HIERARCHY_KEYS },
+        place: ({ shadow, itemStyler }) => ({ shadow, itemStyler }),
+        placeHighlight: withHighlight(),
+    },
+    {
+        ...HIERARCHY,
+        name: 'treemap tile',
+        stylerCastsOtherParts: true,
+        type: 'treemap',
+        shadowSnapshot: 'series/treemap/treemapSeries.test.ts',
+        highlightSteps: HIERARCHY_STEPS,
+        hoverDatum: nodeNamed('A1'),
+        base: { type: 'treemap', ...HIERARCHY_KEYS },
+        place: ({ shadow, itemStyler }) => ({ tile: { shadow }, itemStyler }),
+        placeHighlight: withHighlight('tile'),
+    },
+    {
+        ...HIERARCHY,
+        name: 'treemap group',
+        type: 'treemap',
+        shadowSnapshot: 'series/treemap/treemapSeries.test.ts',
+        highlightSteps: GROUP_STEPS,
+        stylerCastsOtherParts: true,
+        hoverDatum: nodeNamed('A'),
+        base: { type: 'treemap', ...HIERARCHY_KEYS },
+        place: ({ shadow, itemStyler }) => ({ group: { shadow }, itemStyler }),
+        placeHighlight: withHighlight('group'),
     },
 ];
