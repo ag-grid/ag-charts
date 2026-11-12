@@ -3390,6 +3390,22 @@ describe('CrossLine label fitting', () => {
             expect(narrow.label.width).toBeLessThanOrEqual(narrow.band.width);
         });
 
+        it('reserves the space a wrapped outer label takes after a resize', async () => {
+            const options = (width: number) => ({
+                ...fitChart(rangeWith({ placement: 'top', wrapping: 'on-space' }, [3, 4]), 'x'),
+                width,
+            });
+            chart = deproxy(await createChart(options(800)));
+            const expected = chart.seriesRect?.clone();
+            chart.destroy();
+
+            chart = deproxy(await createChart(options(800)));
+            await chart.publicApi!.update(options(300));
+            await chart.publicApi!.update(options(800));
+
+            expect(chart.seriesRect).toEqual(expected);
+        });
+
         it.each([90, 45])('bounds a label rotated %i° by its rotated footprint', async (rotation) => {
             chart = deproxy(await createChart(fitChart(rangeWith({ placement: 'inside', truncate: true, rotation }))));
 

@@ -240,6 +240,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculateLayout(visible: boolean) {
         this.data = undefined;
+        this.labelBounds = undefined;
 
         if (!visible) return;
 
@@ -310,7 +311,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - rangePadding && yEnd <= clampedYEnd;
 
         this.data = [clampedYStart, clampedYEnd];
-        // Chart padding is collected before the nodes update, and a band-bounded label is sized from these.
+        // Read by the chart padding, which is collected before the nodes update.
         this.labelBounds = this.bandBounds();
     }
 
@@ -343,7 +344,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const indices = this.relayingOut ? [this.chosen] : Array.from(this.resolvedAnchors.keys());
         const sole = indices.length === 1;
         const positionedCandidates: PositionedLabelCandidate[] = [];
-        let firstIndex: number | undefined;
+        let firstAnchor: Anchor | undefined;
         this.candidateIndices.clear();
         for (const index of indices) {
             const anchor = this.anchorAt(index);
@@ -363,15 +364,14 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             };
             this.candidateIndices.set(candidate, index);
             positionedCandidates.push(candidate);
-            firstIndex ??= index;
+            firstAnchor ??= anchor;
         }
 
-        if (firstIndex == null) return;
+        if (firstAnchor == null) return;
         // The drawn placement may have no text to fit, while a fallback does.
         const drawn = this.labelFootprint();
         const { width, height } = drawn ?? positionedCandidates[0].box;
-        const text =
-            drawn == null ? this.fittedLabel(this.anchorAt(firstIndex)).text : (this.crossLineLabel.text ?? '');
+        const text = drawn == null ? this.fittedLabel(firstAnchor).text : (this.crossLineLabel.text ?? '');
         return {
             point: { x: 0, y: 0, size: 0 },
             label: { text, width, height },
@@ -588,6 +588,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private boundByBand(fit: LabelFit, anchor: Anchor): LabelFit {
         const { labelBounds: band, label } = this;
         if (this.type !== 'range' || band == null) return fit;
+        if (fit.maxWidth != null && fit.maxHeight != null) return fit;
 
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
         const roomX = bandRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
