@@ -797,7 +797,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculatePadding(into: Partial<Record<CrossLineLabelPosition, number>>) {
         this.paddedSide = undefined;
-        if (!this.padsForLabel) return;
+        // Without a band in view there is nothing to size a band-fitted label from.
+        if (!this.padsForLabel || (this.fitsToBand && this.labelBounds == null)) return;
 
         const side = this.labelPaddingSide;
         if (side == null) return;
