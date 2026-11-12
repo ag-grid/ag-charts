@@ -273,6 +273,23 @@ describe('DataService', () => {
             await expect(dataService.getData()).resolves.toEqual(expect.objectContaining({ data: validData }));
         });
 
+        it('should resolve `getData()` to the last rendered data when the chart rejects a later load', async () => {
+            const validData = [{ datum: 'value' }];
+            const rejectedData = [{ datum: 'outside the window' }];
+            const dataSourceCallback = vi.fn().mockResolvedValueOnce(validData).mockResolvedValueOnce(rejectedData);
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load(undefinedWindow, 1);
+            await sleep();
+            eventsHub.emit('data:render-verdict', { requestId: 1, rendered: true });
+            dataService.load(definedWindow, 2);
+            await sleep();
+            await expect(dataService.getData()).resolves.toEqual(expect.objectContaining({ data: rejectedData }));
+
+            eventsHub.emit('data:render-verdict', { requestId: 2, rendered: false });
+            await expect(dataService.getData()).resolves.toEqual(expect.objectContaining({ data: validData }));
+        });
+
         it('should echo the requestId on `data:error` so a stale error can be correlated', async () => {
             const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
             dataService.updateCallback(dataSourceCallback);

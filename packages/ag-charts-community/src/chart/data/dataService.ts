@@ -106,6 +106,8 @@ export class DataService<D extends object> {
 
     private pendingData: DataServiceRestoredData | undefined = undefined;
     private lastDispatchedData: DataServiceRestoredData | undefined = undefined;
+    // Restores `lastDispatchedData` if the chart rejects the dispatched load (see `data:render-verdict`).
+    private dispatchRollback: { requestId?: number; data: DataServiceRestoredData | undefined } | undefined;
 
     private readonly debug = Debug.create(true, 'data-model', 'data-source');
 
@@ -119,7 +121,14 @@ export class DataService<D extends object> {
         private readonly caller: { readonly context?: unknown },
         private readonly animationManager: AnimationManager,
         private readonly logger: Logger
-    ) {}
+    ) {
+        eventsHub.on('data:render-verdict', ({ requestId, rendered }) => {
+            const rollback = this.dispatchRollback;
+            if (rollback == null || rollback.requestId !== requestId) return;
+            if (!rendered) this.lastDispatchedData = rollback.data;
+            this.dispatchRollback = undefined;
+        });
+    }
 
     public updateCallback(dataSourceCallback: DataSourceCallback) {
         if (typeof dataSourceCallback !== 'function') return;
@@ -298,6 +307,7 @@ export class DataService<D extends object> {
         }
 
         if (isNonEmptyArray(response)) {
+            this.dispatchRollback = { requestId, data: this.dispatchRollback?.data ?? this.lastDispatchedData };
             this.lastDispatchedData = { params, data: response };
             this.throttledDispatch(id, response as D[], requestId, requestedWindow(params));
         } else {
