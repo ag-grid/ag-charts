@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { CollapseMode } from './collapseMode';
 import { MenuItemWidget } from './menuItemWidget';
 import { MenuWidget } from './menuWidget';
+import { clickEventFrom, createOpener } from './test/openerFixtures';
 
 describe('MenuWidget.addSeparator', () => {
     it('appends a separator widget in the menu document', () => {
@@ -27,22 +28,6 @@ describe('MenuWidget.addSeparator', () => {
 });
 
 describe('MenuWidget opener', () => {
-    // Core tests cannot use the community input helpers, so take a real click event from the opener.
-    function clickEventFrom(opener: HTMLElement): Event {
-        let event: Event | undefined;
-        opener.addEventListener('click', (e) => (event = e), { once: true });
-        opener.click();
-        expect(event).toBeDefined();
-        return event!;
-    }
-
-    function createOpener(focusable: boolean) {
-        const opener = document.createElement('button');
-        if (focusable) opener.tabIndex = 0;
-        document.body.append(opener);
-        return opener;
-    }
-
     function createMenu() {
         const menu = new MenuWidget();
         menu.addChild(new MenuItemWidget());

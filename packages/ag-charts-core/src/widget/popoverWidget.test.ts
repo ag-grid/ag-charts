@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ContainerWidget } from './containerWidget';
 import { PopoverWidget } from './popoverWidget';
+import { clickEventFrom, createOpener } from './test/openerFixtures';
 import { TextSpanWidget } from './textSpanWidget';
 
 function createHostedPopover() {
@@ -197,22 +198,6 @@ describe('PopoverWidget', () => {
     });
 
     describe('focus', () => {
-        // Core tests cannot use the community input helpers, so take a real click event from the opener.
-        function clickEventFrom(opener: HTMLElement): Event {
-            let event: Event | undefined;
-            opener.addEventListener('click', (e) => (event = e), { once: true });
-            opener.click();
-            expect(event).toBeDefined();
-            return event!;
-        }
-
-        function createOpener(focusable: boolean) {
-            const opener = document.createElement('button');
-            if (focusable) opener.tabIndex = 0;
-            document.body.append(opener);
-            return opener;
-        }
-
         function createFocusable() {
             const widget = new ContainerWidget();
             widget.setTabIndex(0);
