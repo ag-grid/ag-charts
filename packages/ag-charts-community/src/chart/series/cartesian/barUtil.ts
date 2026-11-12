@@ -261,7 +261,7 @@ export function resetBarSelectionsFn(
  */
 export function resetBarSelectionsDirect<D extends AnimatableBarDatum & { crisp?: boolean }>(
     selections: { nodes(): Iterable<Rect<D>>; cleanup(): void; batchedUpdate(fn: () => void): void }[],
-    cleanup = true
+    { cleanup = true }: { cleanup?: boolean } = {}
 ): void {
     for (const selection of selections) {
         const nodes = selection.nodes();

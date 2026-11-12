@@ -261,7 +261,13 @@ describe('BarSeries highlight fade', () => {
         }
     });
 
-    it('ends the fade of an unhighlighted item on time while the highlight keeps moving', async () => {
+    it.each([
+        ['', undefined],
+        [' with an item styler', () => ({})],
+    ])('ends the fade of an unhighlighted item on time while the highlight keeps moving%s', async (_, itemStyler) => {
+        if (itemStyler != null) {
+            await create({ ...options, series: options.series?.map((series) => ({ ...series, itemStyler })) });
+        }
         highlight(datum(0, 0));
         await frames.runToEnd(chart);
 
@@ -281,6 +287,20 @@ describe('BarSeries highlight fade', () => {
         const settled = Math.ceil(FADE_MS / step) + 2;
         expect(trajectory[settled]).toBe(UNHIGHLIGHTED_ITEM);
         expect(trajectory[settled - 4]).toBeGreaterThan(UNHIGHLIGHTED_ITEM);
+    });
+
+    it('applies the styles of a series with more bars than animate', async () => {
+        chart.ctx.animationManager.maxAnimatableItems = 3;
+        highlight(datum(0, 1));
+        const trajectory = await capture(() => ({ hovered: shown(0, 0), other: shown(1, 0) }));
+
+        // The highlighted series has three bars and a highlighted copy; the other series only its three bars.
+        expect(trajectory.map((sample) => sample.hovered)).toEqual(trajectory.map(() => UNHIGHLIGHTED_ITEM));
+        expectFade(
+            trajectory.map((sample) => sample.other),
+            1,
+            UNHIGHLIGHTED_SERIES
+        );
     });
 
     it('snaps to the highlighted state when the layout changes during the fade', async () => {

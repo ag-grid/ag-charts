@@ -48,12 +48,8 @@ export class AnimationBatch {
     }
 
     checkOverlappingId(id: string) {
-        const existing = id == null ? undefined : this.controllers.get(id);
-        if (existing?.phase === 'transition') {
-            existing.abandon();
-            this.removeAnimation(existing);
-        } else if (existing != null) {
-            existing.stop();
+        if (id != null && this.controllers.has(id)) {
+            this.controllers.get(id)!.stop();
 
             this.debug(`Skipping animation batch due to update of existing animation: ${id}`);
             this.skip();

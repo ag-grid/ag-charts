@@ -69,7 +69,6 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import { groupedFromToMotion } from '../../../motion/groupedFromToMotion';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, extendDomainToZero, fixNumericExtent } from '../../data/dataModel';
@@ -116,7 +115,7 @@ import type { SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { type ErrorBoundSeriesNodeDatum, HighlightState, SelectionState } from '../seriesTypes';
-import { prepareStyleAnimationFunctions, resetStyles } from '../styleMotion';
+import { ShapeStyleMotion, type StyleLayer } from '../styleMotion';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,
@@ -375,6 +374,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         () => this.nodeFactory(),
         false
     );
+
+    private readonly styleMotion = new ShapeStyleMotion(this, this.ctx.animationManager);
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
@@ -2205,64 +2206,31 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     override animateReadyHighlight(data: Selection<BarNodeDatum, BarShape<BarNodeDatum>>) {
         // Direct reset bypasses resetMotion overhead; cleanup waits for unhighlighted overlay nodes to fade out.
-        resetBarSelectionsDirect([data, this.phantomHighlightSelection], false);
+        resetBarSelectionsDirect([data, this.phantomHighlightSelection], { cleanup: false });
     }
 
     protected override animateRestyle(data: CartesianRestyleData<BarNodeDatum, BarShape<BarNodeDatum>>) {
-        this.restyleDatumNodes(data, true);
+        this.styleMotion.animate(this.getStyleLayers(data), this.getShapeFillBBox());
     }
 
     protected override resetDatumStyles(data: CartesianRestyleData<BarNodeDatum, BarShape<BarNodeDatum>>) {
-        this.restyleDatumNodes(data, false);
+        this.styleMotion.reset(this.getStyleLayers(data), this.getShapeFillBBox());
     }
 
-    /**
-     * Apply, or animate to, the styles `updateDatumNodes` resolved. The highlighted items' nodes fade in and out over
-     * the bars beneath them; the in-place bars' removal belongs to their geometry animations.
-     */
-    private restyleDatumNodes(
-        { datumSelection, highlightSelection, datumSelectionRestyled }: CartesianRestyleData<BarNodeDatum, BarShape>,
-        animate: boolean
-    ) {
-        const { animationManager } = this.ctx;
-        const fillBBox = this.getShapeFillBBox();
-
-        const restyle = (subId: string, selection: Selection<BarNodeDatum, BarShape>, highlight: boolean) => {
-            const fns = prepareStyleAnimationFunctions<BarNodeDatum, BarShape>(fillBBox, highlight, {
-                underlay: highlight ? (node) => findByDatumIndex(beneath(selection), node) : undefined,
-                leavingCutout: highlight ? undefined : (node) => leavingCutouts.get(node.datum?.datumIndex),
-            });
-            groupedFromToMotion(this.id, subId, animationManager, [selection], fns, { cleanupRemoved: highlight });
-        };
-        const beneath = (copies: Selection<BarNodeDatum, BarShape>) =>
-            copies === highlightSelection ? datumSelection : this.phantomSelection;
-
-        if (!animate) {
-            if (datumSelectionRestyled) resetStyles([datumSelection], fillBBox, false);
-            resetStyles([this.phantomSelection], fillBBox, false);
-            resetStyles([highlightSelection, this.phantomHighlightSelection], fillBBox, true);
-            return;
-        }
-
-        // Bars uncovered by a cutout copy take over from it, so they restyle even if their own style is unchanged.
-        const leavingCutouts = new Map<BarNodeDatum['datumIndex'] | undefined, BarShape>();
-        const collectLeavingCutouts = (copies: Selection<BarNodeDatum, BarShape>) => {
-            leavingCutouts.clear();
-            for (const copy of copies.nodes()) {
-                if (copies.isGarbage(copy) && copy.drawingMode === 'cutout') {
-                    leavingCutouts.set(copy.datum?.datumIndex, copy);
-                }
-            }
-            return leavingCutouts.size > 0;
-        };
-
-        if (collectLeavingCutouts(highlightSelection) || datumSelectionRestyled) {
-            restyle('style', datumSelection, false);
-        }
-        collectLeavingCutouts(this.phantomHighlightSelection);
-        restyle('phantom-style', this.phantomSelection, false);
-        restyle('highlight-style', highlightSelection, true);
-        restyle('phantom-highlight-style', this.phantomHighlightSelection, true);
+    private getStyleLayers({
+        datumSelection,
+        highlightSelection,
+        datumSelectionRestyled,
+    }: CartesianRestyleData<BarNodeDatum, BarShape>): StyleLayer<BarNodeDatum, BarShape>[] {
+        return [
+            { subId: '', selection: datumSelection, highlightSelection, restyled: datumSelectionRestyled },
+            {
+                subId: 'phantom',
+                selection: this.phantomSelection,
+                highlightSelection: this.phantomHighlightSelection,
+                restyled: true,
+            },
+        ];
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
@@ -2385,12 +2353,5 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             this.options.simpleItemStyler != null ||
             this.options.label.itemStyler != null
         );
-    }
-}
-
-function findByDatumIndex(selection: Selection<BarNodeDatum, BarShape>, node: BarShape) {
-    const datumIndex = node.datum?.datumIndex;
-    for (const candidate of selection.nodes()) {
-        if (candidate.datum?.datumIndex === datumIndex) return candidate;
     }
 }

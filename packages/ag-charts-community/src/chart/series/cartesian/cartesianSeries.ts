@@ -100,7 +100,6 @@ type CartesianAnimationEvent<TTypes extends CartesianSeriesTypes> = {
     update: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
     updateData: undefined;
     highlight: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
-    restyle: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>;
     resize: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
     clear: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
     reset: undefined;
@@ -165,8 +164,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     protected highlightSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
     /** Whether this update resolved the styles of `datumSelection`. */
     private datumSelectionRestyled = false;
-    /** Whether the highlight selection holds removed nodes still animating out, and no highlighted item. */
-    private highlightNodesLeaving = false;
     protected highlightLabelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
         Text<LabelOf<TTypes>>
     >(this.highlightLabelGroup, RotatableText);
@@ -243,7 +240,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                         target: 'ready',
                         action: (data) => this.animateEmptyUpdateReady(data),
                     },
-                    restyle: (data) => this.restyle(data),
                     reset: 'empty',
                     skip: 'ready',
                     disable: 'disabled',
@@ -252,7 +248,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                     updateData: 'waiting',
                     clear: 'clearing',
                     highlight: (data) => this.animateReadyHighlight(data),
-                    restyle: (data) => this.restyle(data),
                     resize: (data) => this.animateReadyResize(data),
                     reset: 'empty',
                     skip: 'ready',
@@ -269,14 +264,12 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                             }
                         },
                     },
-                    restyle: (data) => this.restyle(data),
                     reset: 'empty',
                     skip: 'ready',
                     disable: 'disabled',
                 },
                 disabled: {
                     update: (data) => this.resetAllAnimation(data),
-                    restyle: (data) => this.restyle(data),
                     reset: 'empty',
                 },
                 clearing: {
@@ -284,7 +277,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                         target: 'empty',
                         action: (data) => this.animateClearingUpdateEmpty(data),
                     },
-                    restyle: (data) => this.restyle(data),
                     reset: 'empty',
                     skip: 'ready',
                 },
@@ -417,14 +409,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
 
         // After `update`, whose resets snap running restyles to their end, so the new styles apply last.
-        this.animationState.transition('restyle', {
+        this.restyle({
             datumSelection: this.datumSelection,
             highlightSelection: this.highlightSelection,
             datumSelectionRestyled: this.datumSelectionRestyled,
         });
         this.datumSelectionRestyled = false;
-        if (this.highlightNodesLeaving && this.highlightSelection.length === 0) {
-            this.highlightNodesLeaving = false;
+        if (!itemHighlighted && !this.hasLeavingHighlightNodes()) {
             this.highlightGroup.visible = false;
         }
     }
@@ -730,7 +721,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.contentGroup.visible = animationEnabled || visible;
         this.annotationGroup.visible = animationEnabled || visible;
 
-        this.highlightGroup.visible = (animationEnabled || visible) && (itemHighlighted || this.highlightNodesLeaving);
+        this.highlightGroup.visible =
+            (animationEnabled || visible) && (itemHighlighted || this.hasLeavingHighlightNodes());
 
         this.updateDatumStyles({ datumSelection: highlightSelection, isHighlight: true });
         const drawingMode = this.getChartHighlightDrawingMode();
@@ -803,15 +795,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         // the overlay — whether the highlight is datum-level is what decides it.
         const item = seriesHighlighted && this.isDatumHighlight(highlightedDatum) ? highlightedDatum : undefined;
 
-        this.highlightNodesLeaving = false;
         if (item == null) {
-            // Unhighlighted overlay nodes stay as garbage until their `restyle` animation removes them.
+            // Unhighlighted overlay nodes stay as garbage until their restyle removes them.
             if (!this.opts.highlightSelectionGarbageCollection && highlightSelection.length > 0) {
                 this.highlightSelection = this.updateHighlightSelectionItem({ items: [], highlightSelection });
                 this.highlightLabelSelection =
                     this.updateLabelSelection({ labelData: [], labelSelection: highlightLabelSelection }) ??
                     highlightLabelSelection;
-                this.highlightNodesLeaving = true;
             }
             return false;
         }
@@ -830,6 +820,15 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             }) ?? highlightLabelSelection;
 
         return true;
+    }
+
+    /** Whether the highlight selection holds removed nodes still animating out. */
+    private hasLeavingHighlightNodes() {
+        const { highlightSelection } = this;
+        for (const node of highlightSelection.nodes()) {
+            if (highlightSelection.isGarbage(node)) return true;
+        }
+        return false;
     }
 
     protected markQuadtreeDirty() {
@@ -1622,7 +1621,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     protected animateReadyHighlight(data: Selection<DatumOf<TTypes>, NodeOf<TTypes>>) {
         const { datum } = this.opts?.animationResetFns ?? {};
         if (datum) {
-            resetMotion([data], datum);
+            // Without garbage collection, removed highlight nodes animate out before their restyle removes them.
+            resetMotion([data], datum, { cleanup: this.opts.highlightSelectionGarbageCollection });
         }
     }
 

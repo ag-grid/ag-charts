@@ -181,7 +181,8 @@ export class ChartSync extends AbstractModuleInstance {
                 opts: { forceNodeDataRefresh: true },
             });
         } else {
-            chart.ctx.eventsHub.emit('chart:request-update', { type: updateType });
+            // Only the series stage follows a synced highlight, which restyles the series' nodes.
+            chart.ctx.eventsHub.emit('chart:request-update', { type: updateType, opts: { restyleOnly: true } });
         }
     }
 

@@ -780,6 +780,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     private readonly seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
+    private restyleOnlyOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
@@ -796,6 +797,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             newAnimationBatch,
             apiUpdate = false,
             clearCallbackCache = false,
+            restyleOnly = false,
         } = opts ?? {};
 
         this.apiUpdate = apiUpdate;
@@ -824,6 +826,11 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
         if (type === ChartUpdateType.FULL || clearCallbackCache) {
             this.clearCallbackCacheOnUpdate = true;
+        }
+
+        if (type <= ChartUpdateType.SERIES_UPDATE) {
+            const firstSeriesRequest = this.performUpdateType > ChartUpdateType.SERIES_UPDATE;
+            this.restyleOnlyOnUpdate = restyleOnly && (firstSeriesRequest || this.restyleOnlyOnUpdate);
         }
 
         if (this.debug.check()) {
@@ -883,7 +890,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     }
 
     private async performUpdate(count: number) {
-        const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
+        const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx, restyleOnlyOnUpdate } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
         if (this.clearCallbackCacheOnUpdate) {
@@ -899,6 +906,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this.performUpdateType = ChartUpdateType.NONE;
+        this.restyleOnlyOnUpdate = false;
         this.seriesToUpdate.clear();
         this.runningUpdateType = performUpdateType;
         this.currentProcessingUpdateType = performUpdateType;
@@ -906,9 +914,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         ctx.chartState.flushChanges();
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
-            // Updates from the series stage onwards only restyle existing nodes.
-            const restyleOnly = performUpdateType === ChartUpdateType.SERIES_UPDATE;
-            ctx.animationManager.startBatch(this._performUpdateSkipAnimations, restyleOnly);
+            ctx.animationManager.startBatch(this._performUpdateSkipAnimations, restyleOnlyOnUpdate);
             ctx.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
         }
 

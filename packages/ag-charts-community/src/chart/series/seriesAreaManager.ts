@@ -1595,11 +1595,12 @@ export class SeriesAreaManager extends BaseManager {
             suppressionChanged ||
             sharedHighlight
         ) {
-            this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
+            this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true, restyleOnly: true });
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, {
                 seriesToUpdate: new Set([lastSeries, newSeries].filter(Boolean)),
                 clearCallbackCache: true,
+                restyleOnly: true,
             });
         }
     }
