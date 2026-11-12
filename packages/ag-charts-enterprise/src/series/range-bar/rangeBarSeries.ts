@@ -299,6 +299,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     static override readonly className = 'RangeBarSeries';
     static readonly type = 'range-bar' as const;
 
+    protected override readonly restylesDatums = true;
+
     private readonly aggregationManager = new AggregationManager<RangeBarSeriesDataAggregationFilter>();
     private nodeDatumContext?: RangeBarSeriesNodeDatumContext;
 
@@ -348,6 +350,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             },
             categoryKey: 'xValue',
             datumSelectionGarbageCollection: false,
+            highlightSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -1393,7 +1396,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const crispCentreDirection = this.getCategoryCrispDirection();
 
-        const fillBBox = this.getShapeFillBBox();
         const { shadow } = this.options;
 
         const series = this;
@@ -1401,7 +1403,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             const style =
                 datum.style ??
                 contextNodeData.styles[series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-            rect.setStyleProperties(style, fillBBox);
+            rect.targetStyle = style;
 
             // Batched static property updates - write directly to backing fields to reduce markDirty() calls
             rect.setStaticProperties(

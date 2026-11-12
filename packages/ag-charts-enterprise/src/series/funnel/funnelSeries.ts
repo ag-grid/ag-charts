@@ -38,9 +38,12 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
     static override readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
 
+    protected override readonly restylesDatums = true;
+
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
+            highlightSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
             },
@@ -154,11 +157,10 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const crispCentreDirection = this.getCategoryCrispDirection();
 
-        const fillBBox = this.getShapeFillBBox();
-
         datumSelection.each((rect, datum) => {
-            const style = this.getItemStyle(datum, isHighlight);
-            rect.setStyleProperties(style, fillBBox);
+            if (!datumSelection.isGarbage(rect)) {
+                rect.targetStyle = this.getItemStyle(datum, isHighlight);
+            }
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;

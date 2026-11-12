@@ -206,6 +206,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
 
+    protected override readonly restylesDatums = true;
+
     override createNodeParams(datum: WaterfallNodeDatum) {
         return {
             ...super.createNodeParams(datum),
@@ -224,6 +226,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: ['connector'],
             pathsZIndexSubOrderOffset: [-1, -1],
+            highlightSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -1113,7 +1116,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const styleByState = new Map<string, Required<AgWaterfallSeriesStyle>>();
             const thisSeries = this;
 
-            datumSelection.each(function updateDatumSelectionStyles(_, datum) {
+            datumSelection.each(function updateDatumSelectionStyles(node, datum) {
+                if (datumSelection.isGarbage(node)) return;
                 const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
                 const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
                 const stateKey = `${datum.itemType}:${highlightState}:${selectionState ?? '-'}`;
@@ -1133,7 +1137,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             return;
         }
 
-        datumSelection.each((_, datum) => {
+        datumSelection.each((node, datum) => {
+            if (datumSelection.isGarbage(node)) return;
             datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemType);
         });
     }
@@ -1153,7 +1158,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const crispCentreDirection = this.getCategoryCrispDirection();
-        const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
             const style =
@@ -1162,7 +1166,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
             // `style` is fully resolved by render time; narrow it to the shape-compatible normalised style.
-            rect.setStyleProperties(style as Required<NormalisedWaterfallSeriesStyle>, fillBBox);
+            rect.targetStyle = style as Required<NormalisedWaterfallSeriesStyle>;
 
             rect.cornerRadius = style.cornerRadius ?? 0;
             rect.fillShadow = this.resolveItemShadow(

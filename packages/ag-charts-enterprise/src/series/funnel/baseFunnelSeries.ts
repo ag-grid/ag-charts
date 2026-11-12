@@ -239,8 +239,10 @@ export abstract class BaseFunnelSeries<
     constructor({
         moduleCtx,
         animationResetFns,
+        highlightSelectionGarbageCollection,
     }: {
         moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>;
+        highlightSelectionGarbageCollection?: boolean;
         animationResetFns: {
             datum: (
                 node: _ModuleSupport.NodeOf<TTypes>,
@@ -261,6 +263,7 @@ export abstract class BaseFunnelSeries<
             },
             categoryKey: 'xValue',
             datumSelectionGarbageCollection: false,
+            highlightSelectionGarbageCollection,
             animationResetFns: {
                 datum: animationResetFns.datum,
                 label: resetLabelFn,

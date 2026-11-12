@@ -1930,7 +1930,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     : undefined;
             const style = datum.style ?? contextStyles[highlightState ?? HighlightState.None];
 
-            // Applied, or animated to, by the `restyle` animation event.
+            // Applied, or animated to, by `restyleLayers`.
             rect.targetStyle = style;
 
             const cornerRadius = style.cornerRadius ?? 0;

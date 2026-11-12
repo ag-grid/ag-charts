@@ -1607,11 +1607,26 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-    /** Override point for series that resolve styles into `Shape.targetStyle`; others apply styles directly. */
-    protected getStyleLayers(
-        _data: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>
-    ): StyleLayer<DatumOf<TTypes>, NodeOf<TTypes> & Shape<DatumOf<TTypes>>>[] | undefined {
-        return undefined;
+    /** Whether `updateDatumNodes` resolves datum styles into `Shape.targetStyle`, for `restyleLayers` to apply. */
+    protected readonly restylesDatums: boolean = false;
+
+    /** The layers `restyleLayers` applies; series with further layers override this. */
+    protected getStyleLayers({
+        datumSelection,
+        highlightSelection,
+        datumSelectionRestyled,
+    }: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>):
+        StyleLayer<DatumOf<TTypes>, NodeOf<TTypes> & Shape<DatumOf<TTypes>>>[] | undefined {
+        if (!this.restylesDatums) return undefined;
+        type ShapeSelection = Selection<DatumOf<TTypes>, NodeOf<TTypes> & Shape<DatumOf<TTypes>>>;
+        return [
+            {
+                subId: '',
+                selection: datumSelection as ShapeSelection,
+                highlightSelection: highlightSelection as ShapeSelection,
+                restyled: datumSelectionRestyled,
+            },
+        ];
     }
 
     protected animateReadyHighlight(data: Selection<DatumOf<TTypes>, NodeOf<TTypes>>) {

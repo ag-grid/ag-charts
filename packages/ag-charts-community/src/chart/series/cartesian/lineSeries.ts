@@ -72,11 +72,7 @@ import { markerDiameter } from '../seriesMarker';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
-import {
-    type CartesianRestyleData,
-    DEFAULT_CARTESIAN_DIRECTION_KEYS,
-    DEFAULT_CARTESIAN_DIRECTION_NAMES,
-} from './cartesianSeries';
+import { DEFAULT_CARTESIAN_DIRECTION_KEYS, DEFAULT_CARTESIAN_DIRECTION_NAMES } from './cartesianSeries';
 import type { CartesianAnimationDataOf } from './cartesianSeriesTypes';
 import {
     type LineSeriesDataAggregationFilter,
@@ -1023,14 +1019,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     protected override readonly restylesMarkers = true;
-
-    protected override getStyleLayers({
-        datumSelection,
-        highlightSelection,
-        datumSelectionRestyled,
-    }: CartesianRestyleData<LineNodeDatum, Marker<LineNodeDatum>>) {
-        return [{ subId: '', selection: datumSelection, highlightSelection, restyled: datumSelectionRestyled }];
-    }
+    protected override readonly restylesDatums = true;
 
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;

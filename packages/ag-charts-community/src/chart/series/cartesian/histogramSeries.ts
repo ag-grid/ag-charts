@@ -234,6 +234,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 
+    protected override readonly restylesDatums = true;
+
     /** The series-level style before any styler, highlight or selection overrides. */
     private baseStyle(): RequireOptional<NormalisedHistogramSeriesStyle> & { opacity: number } {
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
@@ -271,6 +273,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: true,
+            highlightSelectionGarbageCollection: false,
             animationAlwaysPopulateNodeData: true,
             alwaysClip: true,
             animationResetFns: {
@@ -1016,7 +1019,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const { shadow } = this.options;
-        const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
             const style =
@@ -1026,7 +1028,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            rect.setStyleProperties(style, fillBBox);
+            rect.targetStyle = style;
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
