@@ -447,7 +447,7 @@ export abstract class Axis<
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
-    private readonly a11yTempText = new TransformableText({ debugDirty: false });
+    protected readonly a11yTempText = new TransformableText({ debugDirty: false });
 
     protected tickLabelGroupSelection = Selection.select<TransformableText<LabelNodeDatum>>(
         this.tickLabelGroup,
@@ -1470,10 +1470,22 @@ export abstract class Axis<
         const outwardSign = getAxisLabelSideFlag(this.mirrored) * (vertical ? 1 : -1);
         const axisLine = vertical ? origin.x : origin.y;
         const alongOrigin = vertical ? origin.y : origin.x;
-        const [crossMin, crossMax] = vertical
+        let [crossMin, crossMax] = vertical
             ? [axisBounds.x, axisBounds.x + axisBounds.width]
             : [axisBounds.y, axisBounds.y + axisBounds.height];
         const [rangeMin, rangeMax] = findMinMax(this.range);
+
+        // The title has its own proxy, so the tick buttons stop short of it.
+        const titleBounds = this.getA11YTitleBounds();
+        if (titleBounds != null) {
+            const titleStart = vertical ? titleBounds.x : titleBounds.y;
+            const titleEnd = titleStart + (vertical ? titleBounds.width : titleBounds.height);
+            if (titleStart >= axisLine) {
+                crossMax = Math.min(crossMax, titleStart);
+            } else if (titleEnd <= axisLine) {
+                crossMin = Math.max(crossMin, titleEnd);
+            }
+        }
 
         const labels = new Map<string, { text: string; bbox: BBox }>();
         if (this.tickLabelGroup.visible) {
@@ -1552,6 +1564,11 @@ export abstract class Axis<
             });
         }
         return result;
+    }
+
+    /** Canvas bounds of the axis title at its laid-out position, if the axis shows one. */
+    protected getA11YTitleBounds(): BBox | undefined {
+        return undefined;
     }
 
     private formatA11YTickValue(value: unknown): string {

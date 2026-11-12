@@ -1368,6 +1368,24 @@ export abstract class CartesianAxis<
         });
     }
 
+    protected override getA11YTitleBounds(): BBox | undefined {
+        const { node } = this.caption;
+        const { datum } = node;
+        if (!node.visible || datum == null) return undefined;
+
+        // Measured from the datum, not the node, which may still be animating towards it.
+        const { a11yTempText } = this;
+        const { x, y, rotation, rotationCenterX, rotationCenterY } = datum;
+        a11yTempText.setProperties({ x, y, rotation, rotationCenterX, rotationCenterY });
+        a11yTempText.text = node.text;
+        a11yTempText.textAlign = node.textAlign;
+        a11yTempText.textBaseline = node.textBaseline;
+        a11yTempText.setFont(node);
+        a11yTempText.setBoxing({});
+        const bbox = a11yTempText.getBBox();
+        return bbox == null ? undefined : Transformable.toCanvas(this.headingLabelGroup, bbox);
+    }
+
     protected updateTitle(domain: D[], spacing: number): void {
         const { caption } = this;
         const titleProps = this.titleProps(caption, domain, spacing);
