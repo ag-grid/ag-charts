@@ -39,7 +39,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
             },
         },
         gradient: {
-            preferredLength: 100,
+            preferredLength: 240,
             thickness: 16,
         },
         reverseOrder: false,

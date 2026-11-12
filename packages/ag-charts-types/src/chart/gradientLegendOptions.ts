@@ -64,7 +64,10 @@ export interface AgGradientLegendOptions<TContext = ContextDefault> extends Fill
 }
 
 export interface AgGradientLegendBarOptions {
-    /** Preferred length of the gradient bar (may expand to fit labels or shrink to fit inside a chart). */
+    /** Preferred length of the gradient bar (may expand to fit labels or shrink to fit inside a chart).
+     *
+     * Default: `240`
+     */
     preferredLength?: PixelSize;
     /** The thickness of the gradient bar (width for vertical or height for horizontal layout). */
     thickness?: PixelSize;
