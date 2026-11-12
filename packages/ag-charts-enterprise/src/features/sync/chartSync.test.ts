@@ -294,6 +294,67 @@ describe('ChartSync', () => {
         });
     });
 
+    describe('zoom', () => {
+        const zoomedChartOptions = (peak: number, zoom: boolean) => {
+            const options = syncedPeakChartOptions(peak, `zoom-${zoom}`);
+            const data = Array.from({ length: 10 }, (_, i) => ({ year: String(2020 + i), value: peak - i }));
+            return prepareEnterpriseTestOptions({
+                ...options,
+                data,
+                zoom: { enabled: true },
+                sync: { ...options.sync, zoom },
+            });
+        };
+
+        it.each([
+            { zoom: true, expected: { start: 0.5, end: 1 } },
+            { zoom: false, expected: { start: 0, end: 1 } },
+        ])('should apply a zoom to every sibling only when sync.zoom is $zoom', async ({ zoom, expected }) => {
+            charts = [10, 20].map((peak) => AgCharts.create(zoomedChartOptions(peak, zoom)));
+            await waitForAllChartStability();
+
+            const [zoomed, sibling] = charts;
+            await zoomed.setState({ ...zoomed.getState(), zoom: { ratioX: { start: 0.5, end: 1 } } });
+            await waitForAllChartStability();
+
+            expect(zoomed.getState().zoom?.ratioX).toEqual({ start: 0.5, end: 1 });
+            expect(sibling.getState().zoom?.ratioX).toEqual(expected);
+        });
+    });
+
+    describe('enabled toggle', () => {
+        const peakChartOptions = (peak: number, enabled: boolean) => {
+            const options = syncedPeakChartOptions(peak, 'enabled-toggle');
+            return prepareEnterpriseTestOptions({ ...options, sync: { ...options.sync, enabled } });
+        };
+
+        const setEnabled = (enabled: boolean) =>
+            Promise.all([10, 50].map((peak, i) => charts[i].update(peakChartOptions(peak, enabled))));
+
+        it('should start and stop synchronising domains when sync is enabled and disabled after creation', async () => {
+            charts = [10, 50].map((peak) => AgCharts.create(peakChartOptions(peak, false)));
+            await waitForAllChartStability();
+            expect(charts.map(syncedYDomain)).toEqual([
+                [0, 10],
+                [0, 50],
+            ]);
+
+            await setEnabled(true);
+            await waitForAllChartStability();
+            expect(charts.map(syncedYDomain)).toEqual([
+                [0, 50],
+                [0, 50],
+            ]);
+
+            await setEnabled(false);
+            await waitForAllChartStability();
+            expect(charts.map(syncedYDomain)).toEqual([
+                [0, 10],
+                [0, 50],
+            ]);
+        });
+    });
+
     describe('axis compatibility validation', () => {
         const SINGLE_SERIES_WARNING =
             'AG Charts - To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.';
