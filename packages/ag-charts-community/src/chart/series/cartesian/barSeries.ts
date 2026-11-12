@@ -1662,6 +1662,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return out;
     }
 
+    protected override highlightSelections() {
+        return [this.highlightSelection, this.phantomHighlightSelection];
+    }
+
     protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
         super.updateNodes(itemHighlighted, nodeRefresh);
 
@@ -1689,8 +1693,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         nodeData: BarNodeDatum[];
         datumSelection: Selection<BarNodeDatum, BarShape>;
     }) {
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to ensure we match up nodes by id.
+        if (this.matchNodesByPosition(opts.datumSelection)) {
+            // Optimised update path for data too large to animate.
             return opts.datumSelection.update(opts.nodeData);
         }
         return opts.datumSelection.update(opts.nodeData, undefined, this.getDatumId.bind(this));

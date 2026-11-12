@@ -903,8 +903,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             datumSelection.cleanup();
         }
 
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to match nodes by id
+        if (this.matchNodesByPosition(datumSelection)) {
+            // Optimised update path for data too large to animate.
             return datumSelection.update(nodeData);
         }
         return datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));

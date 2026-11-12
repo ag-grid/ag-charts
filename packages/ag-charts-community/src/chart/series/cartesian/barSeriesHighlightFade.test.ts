@@ -6,6 +6,7 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } fro
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { Chart } from '../../chart';
 import { InteractionState } from '../../interaction/interactionManager';
+import { getBarSeriesContextNodeData, withUndocumentedOptions } from '../../test/communitySeriesAccessors';
 import { getDatumCanvasBounds, getSeriesNodeData } from '../../test/seriesAccessors';
 import { shapesOf } from '../../test/shadowFixtures';
 import {
@@ -168,6 +169,41 @@ describe('BarSeries highlight fade', () => {
             expect(barCount()).toBe(before);
         }
     );
+
+    it('fades out the highlighted copy of a phantom bar when the highlight clears', async () => {
+        await create({
+            ...options,
+            data: [
+                { category: 'Q1', apples: 5, filtered: 2 },
+                { category: 'Q2', apples: 7, filtered: 3 },
+                { category: 'Q3', apples: 6, filtered: 2 },
+            ],
+            series: [
+                withUndocumentedOptions({ type: 'bar', xKey: 'category', yKey: 'apples' } as const, {
+                    yFilterKey: 'filtered',
+                }),
+            ],
+        });
+        /** The colour rendered in the part of a phantom bar above its filtered bar. */
+        const phantomPixel = () => {
+            const phantom = getBarSeriesContextNodeData(chart).phantomNodeData[1];
+            const { x, y } = chart.seriesRect!;
+            return renderedPixelAt(chart, x + phantom.x + phantom.width / 2, y + phantom.y + 2);
+        };
+        const before = phantomPixel();
+        highlight(datum(0, 1));
+        await frames.runToEnd(chart);
+        const highlighted = phantomPixel();
+        expect(highlighted).not.toEqual(before);
+
+        highlight();
+        const trajectory = await capture(() => shownOpacity(phantomPixel(), highlighted, before));
+
+        // The two colours are close, so rounding can step slightly the wrong way; check it passes between them.
+        expect(trajectory[0]).toBe(1);
+        expect(trajectory.at(-1)).toBe(0);
+        expect(trajectory.filter((value) => value > 0.2 && value < 0.8).length).toBeGreaterThanOrEqual(2);
+    });
 
     it('leaves no extra bars in the scene when the layout changes while a highlight fades out', async () => {
         await create({ ...options, highlight: { drawingMode: 'overlay' } });

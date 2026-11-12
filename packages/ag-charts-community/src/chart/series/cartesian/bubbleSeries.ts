@@ -78,7 +78,7 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
-import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
+import { createDatumId, valueProperty } from '../../data/processors';
 import {
     expandPlacementLabelBoxExtent,
     placedLabelTextOffset,
@@ -1175,8 +1175,8 @@ export abstract class BubbleScatterSeries<
         }
 
         // Skip datum ID computation when animation is not supported (large datasets)
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to match nodes by id.
+        if (this.matchNodesByPosition(datumSelection)) {
+            // Optimised update path for data too large to animate.
             return datumSelection.update(nodeData);
         }
 

@@ -1284,8 +1284,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to ensure we match up nodes by id.
+        if (this.matchNodesByPosition(datumSelection)) {
+            // Optimised update path for data too large to animate.
             return datumSelection.update(data);
         }
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));

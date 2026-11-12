@@ -1489,8 +1489,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         }
 
         const data = filterMarkerNodeData(nodeData, markerDrawMode);
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to match nodes by id
+        if (this.matchNodesByPosition(datumSelection)) {
+            // Optimised update path for data too large to animate.
             return datumSelection.update(data);
         }
         return datumSelection.update(data, undefined, (datum) => createDatumId(datum.xValue));

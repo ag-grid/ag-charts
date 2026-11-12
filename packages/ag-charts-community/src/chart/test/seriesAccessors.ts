@@ -3,6 +3,7 @@ import { expect } from 'vitest';
 import type { Node } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
+import type { UnknownPolarSeries } from '../series/polar/polarSeries';
 import type { SeriesNodeDataContext, UnknownSeries } from '../series/series';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { type ChartOrProxy, type LegendTestInternals, type LegendTestItemNode, deproxy } from './utils';
@@ -38,6 +39,15 @@ export function getSeriesNodeData<TDatum = SeriesNodeDatum>(chartOrProxy: ChartO
     const series = getSeriesAt(chartOrProxy, index) as unknown as NodeDataHost<TDatum>;
     expect(series.getNodeData, `series ${index} node data`).toBeTypeOf('function');
     return series.getNodeData!() ?? [];
+}
+
+/** The centre a polar series lays its nodes out around, relative to the series area. */
+export function getPolarSeriesCenter(chartOrProxy: ChartOrProxy<any>, index = 0): { x: number; y: number } {
+    const { centerX, centerY } = getSeriesAt(chartOrProxy, index) as unknown as Pick<
+        UnknownPolarSeries,
+        'centerX' | 'centerY'
+    >;
+    return { x: centerX, y: centerY };
 }
 
 /** A bar-like datum's bounds on the canvas, from the `x`, `y`, `width` and `height` its series laid it out at. */

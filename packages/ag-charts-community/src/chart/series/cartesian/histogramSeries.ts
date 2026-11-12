@@ -77,14 +77,7 @@ import type {
 } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
-import {
-    SORT_DOMAIN_GROUPS,
-    createDatumId,
-    keyProperty,
-    processedDataIsAnimatable,
-    rowCountProperty,
-    valueProperty,
-} from '../../data/processors';
+import { SORT_DOMAIN_GROUPS, createDatumId, keyProperty, rowCountProperty, valueProperty } from '../../data/processors';
 import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '../../label';
 import {
     adjustLabelPlacement,
@@ -880,8 +873,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }) {
         const { nodeData, datumSelection } = opts;
 
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to match nodes by id.
+        if (this.matchNodesByPosition(datumSelection)) {
+            // Optimised update path for data too large to animate.
             return datumSelection.update(nodeData);
         }
 

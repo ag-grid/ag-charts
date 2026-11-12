@@ -826,11 +826,25 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     /** Whether the highlight selection holds removed nodes still animating out. */
     private hasLeavingHighlightNodes() {
-        const { highlightSelection } = this;
-        for (const node of highlightSelection.nodes()) {
-            if (highlightSelection.isGarbage(node)) return true;
+        for (const selection of this.highlightSelections()) {
+            for (const node of selection.nodes()) {
+                if (selection.isGarbage(node)) return true;
+            }
         }
         return false;
+    }
+
+    /** The selections of highlight copies; series with further highlight layers override this. */
+    protected highlightSelections(): Selection<DatumOf<TTypes>, NodeOf<TTypes>>[] {
+        return [this.highlightSelection];
+    }
+
+    /**
+     * Whether `selection` may match nodes to data by position, skipping datum ids where data is too large to animate.
+     * Highlight copies match by id whatever the data size, so they fade in and out as the highlight moves.
+     */
+    protected matchNodesByPosition(selection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>) {
+        return !processedDataIsAnimatable(this.processedData!) && !this.highlightSelections().includes(selection);
     }
 
     protected markQuadtreeDirty() {

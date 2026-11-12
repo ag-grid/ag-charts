@@ -55,7 +55,6 @@ const {
     calculateSegments,
     toHighlightString,
     toSelectionString,
-    processedDataIsAnimatable,
 } = _ModuleSupport;
 
 /** Whisker style after theme-merge: colour refs are resolved before reaching this point. */
@@ -693,8 +692,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     }) {
         const data = opts.nodeData ?? [];
 
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to match nodes by id.
+        if (this.matchNodesByPosition(opts.datumSelection)) {
+            // Optimised update path for data too large to animate.
             return opts.datumSelection.update(data);
         }
 

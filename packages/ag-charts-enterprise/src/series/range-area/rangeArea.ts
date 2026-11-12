@@ -1229,8 +1229,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             resolvedNodeData = [];
         }
 
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to match nodes by id
+        if (this.matchNodesByPosition(datumSelection)) {
+            // Optimised update path for data too large to animate.
             return datumSelection.update(resolvedNodeData);
         }
         // Use xValue + itemType as unique ID since there are two markers per data point
