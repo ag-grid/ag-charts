@@ -1,11 +1,11 @@
 import {
     AbstractModuleInstance,
-    ContainerWidget,
+    type ContainerWidget,
     type DynamicContext,
-    NativeWidget,
     type Point,
+    type PopoverPanelOptions,
+    PopoverWidget,
     type Widget,
-    getLastFocus,
 } from 'ag-charts-core';
 import type { ExpandableWidget, ExpansionControllerWidget } from 'ag-charts-core';
 
@@ -21,11 +21,8 @@ export interface PopoverConstructorOptions {
     detached?: boolean;
 }
 
-export interface PopoverOptions {
-    ariaLabel?: string;
-    class?: string;
+export interface PopoverOptions extends PopoverPanelOptions {
     initialFocus?: Widget;
-    minWidth?: number;
     sourceEvent?: Event;
     onHide?: () => void;
 }
@@ -37,14 +34,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
     protected readonly hideFns: Array<() => void> = [];
 
     private readonly moduleId: string;
-    private readonly root: Widget;
-    private attached: boolean;
-    private popover?: Widget;
-    // Only set while `popover` is a container made by `showWithChildren()`; the popover widget is then ours to destroy.
-    private container?: ContainerWidget;
-    private readonly containerChildren: Widget[] = [];
-    private lastFocus?: HTMLElement;
-    private initialFocus?: Widget;
+    private readonly widget: PopoverWidget;
 
     constructor(
         protected readonly ctx: DynamicContext<ChartRegistry>,
@@ -56,19 +46,16 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         this.moduleId = `popover-${id}`;
 
         if (options?.detached) {
-            this.root = new ContainerWidget();
-            this.attached = false;
+            this.widget = new PopoverWidget();
         } else {
             // TODO: Phase 3 "Common Widget Ancestor" - DOMManager hands out the popover root as a raw element
-            this.root = new NativeWidget(ctx.domManager.addChild(canvasOverlay, this.moduleId));
-            this.attached = true;
+            this.widget = new PopoverWidget(ctx.domManager.addChild(canvasOverlay, this.moduleId));
         }
-        this.root.setAriaRole('presentation');
 
         this.hideFns.push(() => this.setOwnedWidget(undefined));
         this.cleanup.register(() => {
-            this.removeChildren();
-            this.root.remove();
+            this.widget.removePanel();
+            this.widget.remove();
             ctx.domManager.removeChild(canvasOverlay, this.moduleId);
         });
     }
@@ -77,76 +64,40 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         let ownedWidget: OwnedWidget | undefined; // private member for this.setOwnedWidget()
         return (owns: OwnedWidget | undefined): void => {
             // Destroying a menu collapses it, which calls `hide()` again; it must find the popover already hidden.
-            if (ownedWidget != null && ownedWidget === this.popover) this.popover = undefined;
+            if (ownedWidget != null && ownedWidget === this.widget.getPanel()) this.widget.removePanel();
             ownedWidget?.destroy();
             ownedWidget = owns;
         };
     })();
 
     public attachTo(popover: Popover) {
-        if (this.attached) return;
-        // Stack after the parent's popover widget (`domIndex` 0), so this popover is painted above it.
-        this.root.domIndex = 1;
-        popover.root.addChild(this.root);
-        this.attached = true;
+        this.widget.attachTo(popover.widget);
     }
 
     public isVisible() {
-        return this.popover != null;
+        return this.widget.getPanel() != null;
     }
 
+    /** Hides the popover. Focus returns to the element that opened it, if one was remembered, unless `lastFocus` is `null`. */
     public hide(opts?: { lastFocus?: null }) {
-        const { lastFocus = this.lastFocus } = opts ?? {};
         // Ensure no side-effects in `onHide()` listeners are caused by modules eagerly hiding the popover when it is
         // already hidden.
         if (!this.isVisible()) return;
         for (const fn of this.hideFns) {
             fn();
         }
-        this.popover = undefined;
+        this.widget.removePanel();
 
-        lastFocus?.focus();
-        this.lastFocus = undefined;
-    }
-
-    /** Takes the current popover widget out of the DOM, handing back any children given to `showWithChildren()`. */
-    protected removeChildren() {
-        this.popover = undefined;
-        for (const child of this.containerChildren) {
-            child.remove();
+        if (opts?.lastFocus === null) {
+            this.widget.forgetOpener();
+        } else {
+            this.widget.restoreFocus();
         }
-        this.containerChildren.length = 0;
-        this.container?.destroy();
-        this.container = undefined;
-    }
-
-    private initPopoverWidget(popover: Widget, options: Options) {
-        if (!this.attached) {
-            throw new Error('Can not show popover that has not been attached to a parent.');
-        }
-        popover.addClass('ag-charts-popover');
-
-        if (options.ariaLabel != null) {
-            popover.setAriaLabel(options.ariaLabel);
-        }
-
-        if (options.class != null) {
-            popover.addClass(options.class);
-        }
-
-        if (options.minWidth != null) {
-            popover.setMinWidth(options.minWidth);
-        }
-
-        this.removeChildren();
-        popover.domIndex = 0;
-        this.root.addChild(popover);
-        this.popover = popover;
     }
 
     protected showWidget(controller: ExpansionControllerWidget, owns: OwnedWidget, options: Options) {
         this.setOwnedWidget(owns);
-        this.initPopoverWidget(owns, options);
+        this.widget.showPanel(owns, options);
         owns.addListener('collapse-widget', () => {
             this.hide();
             controller.setControlled(undefined);
@@ -165,42 +116,31 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
      * but does not destroy them, so they can be shown again.
      */
     protected showWithChildren(children: Widget[], options: Options): ContainerWidget {
-        const container = new ContainerWidget();
-        this.initPopoverWidget(container, options);
-        this.container = container;
-        for (const child of children) {
-            container.addChild(child);
-            this.containerChildren.push(child);
-        }
+        const container = this.widget.showChildren(children, options);
 
-        this.hideFns.push(() => this.removeChildren());
+        this.hideFns.push(() => this.widget.removePanel());
         if (options.onHide) {
             this.hideFns.push(options.onHide);
         }
 
         if (options.initialFocus && options.sourceEvent) {
-            const lastFocus = getLastFocus(options.sourceEvent);
-            if (lastFocus !== undefined) {
-                this.lastFocus = lastFocus;
-                this.initialFocus = options.initialFocus;
-            }
+            this.widget.setFocusOnOpen(options.sourceEvent, options.initialFocus);
         }
 
         return container;
     }
 
     protected getPopoverWidget(): Widget | undefined {
-        return this.popover;
+        return this.widget.getPanel();
     }
 
     protected updatePosition(position: Partial<Point>) {
-        const { popover } = this;
+        const popover = this.widget.getPanel();
         if (!popover) return;
 
         popover.setCssOffset(position);
 
         // AG-13167 Deferred focus() call after position have been initialised
-        this.initialFocus?.focus();
-        this.initialFocus = undefined;
+        this.widget.focusInitial();
     }
 }
