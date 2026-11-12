@@ -256,8 +256,8 @@ describe('GradientLegend', () => {
             return { width, height };
         }
 
-        it.each(['top', 'bottom'] as const)('should be 400 for a horizontal legend (%s)', async (position) => {
-            expect((await getBarSize({ position })).width).toBe(400);
+        it.each(['top', 'bottom'] as const)('should be 240 for a horizontal legend (%s)', async (position) => {
+            expect((await getBarSize({ position })).width).toBe(240);
         });
 
         it.each(['left', 'right'] as const)('should be 240 for a vertical legend (%s)', async (position) => {

@@ -56,10 +56,12 @@ export type NormalisedGradientLegendBorderOptions = Normalised<
 
 /**
  * Post-theme-merge shape for `gradientLegend.gradient`. Required keys reflect values
- * populated by `gradientLegendModule.themeTemplate` (`thickness`). `preferredLength` has no
- * theme value because its default depends on the legend orientation.
+ * populated by `gradientLegendModule.themeTemplate` (`preferredLength`, `thickness`).
  */
-export type NormalisedGradientLegendBarOptions = Normalised<AgGradientLegendBarOptions, 'thickness'>;
+export type NormalisedGradientLegendBarOptions = Normalised<
+    AgGradientLegendBarOptions,
+    'preferredLength' | 'thickness'
+>;
 
 /**
  * Post-theme-merge shape for `gradientLegend`. Required keys reflect values
