@@ -308,10 +308,6 @@ export class CartesianChartType implements ChartTypeInstance {
     }
 
     afterProcessData() {
-        if (this.host.syncStatus === 'init') {
-            this.host.syncStatus = 'domains-calculated';
-        }
-
         this.ctx.eventsHub.emit('update:process-data', { series: { shouldFlipXY: this.shouldFlipXY() } });
     }
 
@@ -321,7 +317,7 @@ export class CartesianChartType implements ChartTypeInstance {
 
     async afterSeriesDomains() {
         for (const axis of this.axes) {
-            const syncedDomain = await this.ctx.syncManager.getSyncedDomain(axis);
+            const syncedDomain = await this.ctx.syncManager?.getSyncedDomain(axis);
 
             if (syncedDomain == null) {
                 this.warnIfUnused(axis);
@@ -748,7 +744,7 @@ export class CartesianChartType implements ChartTypeInstance {
         for (const axis of newValue) {
             removed.delete(axis);
         }
-        this.ctx.syncManager.removeAxes(removed);
+        this.ctx.syncManager?.removeAxes(removed);
     }
 
     private sizeAxis(axis: CartesianAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {

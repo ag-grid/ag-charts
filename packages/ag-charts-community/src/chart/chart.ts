@@ -9,7 +9,6 @@ import type {
     RegistryRevision,
     Scene,
     SeriesChangeType,
-    SyncStatus,
 } from 'ag-charts-core';
 import {
     AgDocument,
@@ -71,7 +70,6 @@ import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
 import { inheritDataSet, replaceDataSet } from './data/dataSetUtil';
-import { SyncManager } from './interaction/syncManager';
 import { LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
@@ -264,8 +262,6 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
      */
     publicApi?: AgChartInstance;
 
-    syncStatus: SyncStatus = 'init';
-
     getOptions() {
         return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
     }
@@ -354,7 +350,6 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             agDocument,
             domMode: options.optionMetadata.domMode,
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
-            syncManager: new SyncManager(this),
             logger: options.logger,
             moduleRegistry: options.moduleRegistry,
             updateMutex: this.updateMutex,
@@ -1049,7 +1044,6 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             this.apiUpdate = false;
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
-            this.syncStatus = 'ready';
         }
         this._performUpdateNotify.notify();
 
@@ -1965,10 +1959,6 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             });
         });
         await this.waitForUpdate();
-    }
-
-    public onSyncActiveClear(): void {
-        this.seriesAreaManager.onActiveClear();
     }
 
     private needsViewportSupport(options: {
