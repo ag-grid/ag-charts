@@ -41,7 +41,6 @@ const options: AgChartOptions = {
         enabled: true,
         position: 'right',
         gradient: {
-            preferredLength: 200,
             thickness: 2,
         },
         scale: {

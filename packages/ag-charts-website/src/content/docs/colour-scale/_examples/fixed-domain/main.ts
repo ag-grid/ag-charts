@@ -35,7 +35,7 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    gradientLegend: { gradient: { preferredLength: 200 }, scale: { interval: { step: 1 } } },
+    gradientLegend: { scale: { interval: { step: 1 } } },
 };
 
 const chart = AgCharts.create(options);
