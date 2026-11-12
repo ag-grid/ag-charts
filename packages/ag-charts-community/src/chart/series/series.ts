@@ -323,7 +323,6 @@ export abstract class Series<
         name: `${this.internalId}-content`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
         batchShadows: true,
-        castsGroupGlows: true,
     });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -1117,25 +1116,9 @@ export abstract class Series<
         if (glow === undefined) {
             glow =
                 glowToShadow(mergeGlow({ glow: this.getHighlightGlow(highlightState) }, { glow: seriesGlow })) ?? null;
-            // The glow of the highlighted series is cast beneath its own items, which sit above the other series.
-            if (
-                glow != null &&
-                (highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem) &&
-                this.castsHighlightGlowInGroup()
-            ) {
-                glow = { ...glow, inGroup: true };
-            }
             cascade.byState[highlightState] = glow;
         }
         return glow ?? undefined;
-    }
-
-    /**
-     * Whether the glow of the highlighted series is cast in the content group, beneath its items. A series whose items are not
-     * the only content, or are in other groups, leaves it to the root, which casts it beneath every series.
-     */
-    protected castsHighlightGlowInGroup(): boolean {
-        return true;
     }
 
     /** Whether any highlight state casts a glow, over any series-level `glow`; when none does, no glow is resolved per datum. */
@@ -1381,16 +1364,14 @@ export abstract class Series<
         index: number,
         keyPrefix: string,
         itemGlow: AgGlowOptions,
-        under: () => Array<DeepPartial<AgGlowOptions> | undefined>,
-        inGroup?: boolean
+        under: () => Array<DeepPartial<AgGlowOptions> | undefined>
     ): NormalisedDropShadowOptions | undefined {
         return this.mergeItemCast(base, itemGlow, index, `${keyPrefix}${JSON.stringify(itemGlow)}`, () => {
-            const merged = glowToShadow(
+            return glowToShadow(
                 mergeGlow({ glow: { enabled: true, ...itemGlow } }, ...under().map((glow) => ({ glow })), {
                     glow: GLOW_THEME_DEFAULTS,
                 })
             );
-            return merged != null && inGroup ? { ...merged, inGroup: true } : merged;
         });
     }
 
@@ -1427,19 +1408,10 @@ export abstract class Series<
         const recalled = this.recallItemCast(seriesGlow, itemGlow, index);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        // As in getCascadedGlow, the glow of the highlighted series is cast in its own group, on top of the other series,
-        // unless the series leaves it to the root. Set on the interned result, so that a recalled cast allocates nothing per datum.
-        const inGroup =
-            (highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem) &&
-            this.castsHighlightGlowInGroup();
-        return this.mergeItemGlow(
+        return this.mergeItemGlow(seriesGlow, index, `g${highlightState}`, itemGlow, () => [
+            this.getHighlightGlow(highlightState),
             seriesGlow,
-            index,
-            `g${highlightState}`,
-            itemGlow,
-            () => [this.getHighlightGlow(highlightState), seriesGlow],
-            inGroup
-        );
+        ]);
     }
 
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */

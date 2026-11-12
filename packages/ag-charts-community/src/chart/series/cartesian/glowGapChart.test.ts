@@ -113,13 +113,16 @@ describe('glow gap in a chart', () => {
             });
         }
 
-        it('should show a glow with no gap through the translucent item, like a shadow', async () => {
+        // The glow of the highlight copy is beneath the item, which shows it through, but the glow of the series is cast in an
+        // overlay above the series, which cuts the footprint of the item that glows out of it.
+        it('should cast a glow with no gap like a shadow, and show it through the translucent item only if hovered', async () => {
             const at = await createAndHover();
 
             expect(isGlowing(at(3))).toBe(true);
             expect(at(3)).toEqual(GLOW_PINK);
             expect(at(8)).toEqual(GLOW_PINK);
-            expect(showsGlow(at(-10))).toBe(true);
+            if (hovered) expect(showsGlow(at(-10))).toBe(true);
+            else expect(isClear(at(-10))).toBe(true);
         });
 
         it('should keep the glow out of the item with a gap of 0, and cast it as far out as with no gap', async () => {
@@ -158,13 +161,13 @@ describe('glow gap in a chart', () => {
         // The blur of the glow reaches 12px past the item, so a probe 40px out is clear of it.
         const blurred = (gap?: number) => bars({ glow: { blur: 8, spread: 0, fill: 'red', fillOpacity: 1, gap } });
 
-        it('should show a glow with no gap through the item', async () => {
+        it('should cast a glow with no gap that the item that glows is cut out of, and which reaches only as far as its blur', async () => {
             await create(blurred());
             const at = rightOfFirstItem();
 
             expect(isGlowing(at(2))).toBe(true);
             expect(at(40)).toEqual(WHITE);
-            expect(showsGlow(at(-10))).toBe(true);
+            expect(isClear(at(-10))).toBe(true);
         });
 
         it('should keep a glow with a gap of 0 out of the item, though it dilates nothing', async () => {
@@ -178,12 +181,13 @@ describe('glow gap in a chart', () => {
     });
 
     describe('validation', () => {
-        it('should warn about a negative gap, drop it and cast the glow like a shadow', async () => {
+        it('should warn about a negative gap, drop it and cast the glow with no gap', async () => {
             await create(bars({ glow: glow(-4) }));
             const at = rightOfFirstItem();
 
             expectWarningMessages([expect.stringContaining('glow.gap')]);
-            expect(showsGlow(at(-10))).toBe(true);
+            expect(isGlowing(at(3))).toBe(true);
+            expect(isClear(at(-10))).toBe(true);
         });
 
         it('should warn about a negative gap in a highlight bucket and keep the series gap', async () => {

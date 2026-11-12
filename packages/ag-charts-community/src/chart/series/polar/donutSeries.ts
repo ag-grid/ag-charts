@@ -366,11 +366,6 @@ export class DonutSeries extends PolarSeries<
         this.innerLabelsGroup.pointerEvents = PointerEvents.None;
     }
 
-    // The inner circle sits in a group drawn before the sectors, so the root casts the highlight glows, beneath every series.
-    protected override castsHighlightGlowInGroup() {
-        return false;
-    }
-
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
         super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 

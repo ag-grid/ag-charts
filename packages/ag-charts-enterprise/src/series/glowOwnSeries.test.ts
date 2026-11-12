@@ -56,14 +56,14 @@ describe('a highlight glow of a series with links and nodes', () => {
     };
 
     it.each(['sankey', 'chord'] as const)(
-        'does not cover the links of its own series with the glow of the nodes (%s)',
+        'covers the links of its own series with the glow of the nodes, which cast it above the series (%s)',
         async (type) => {
             const without = await hovered(type, undefined);
             chart.destroy();
             const withGlow = await hovered(type, NODE_GLOW);
 
             expect(withGlow.glow).toBeGreaterThan(0);
-            expect(withGlow.links).toBe(without.links);
+            expect(withGlow.links).toBeLessThan(without.links);
         }
     );
 });

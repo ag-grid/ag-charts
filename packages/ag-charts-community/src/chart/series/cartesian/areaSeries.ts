@@ -1596,10 +1596,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         });
     }
 
-    protected override castsHighlightGlowInGroup() {
-        return false;
-    }
-
     protected override getSeriesGlows() {
         return [this.options.marker.glow];
     }

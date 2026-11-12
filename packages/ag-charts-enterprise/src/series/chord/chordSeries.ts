@@ -576,10 +576,6 @@ export class ChordSeries extends FlowProportionSeries<
         } satisfies CallbackParamRules<AgChordSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
-    protected override castsHighlightGlowInGroup() {
-        return false;
-    }
-
     protected override getSeriesGlows() {
         const { node, link } = this.options;
         return [node.glow, link.glow];

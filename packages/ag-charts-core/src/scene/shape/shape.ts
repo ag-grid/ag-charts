@@ -697,8 +697,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      */
     private castsOwnShadow(slot: ShadowSlot): boolean {
         if (slot === 'glow' && (this.__fillGlow == null || this.__drawingMode !== 'cutout')) return false;
-        // A group above the shadow root casts the glow of a cutout that is `inGroup`, as it would for any other shape.
-        if (slot === 'glow' && this.__fillGlow?.inGroup === true) return false;
 
         return shadowPass.state === 'none' && this.getCastShadow(slot) != null;
     }
@@ -727,7 +725,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (shadow?.enabled !== true) return;
 
         if (shadowPass.erase != null) {
-            this.eraseFootprint(slot, ctx, path, shadowPass.erase);
+            this.eraseFootprint(slot, ctx, path, shadowPass.erase, shadowPass.erasePainted);
             return;
         }
 
@@ -1013,13 +1011,22 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.executeStroke(ctx, path);
     }
 
-    /** Erases the geometry of the item, dilated by a glow's `gap`, from `ctx`, whatever its paint. A `Line` has no fill to erase. */
-    private eraseFootprint(slot: ShadowSlot, ctx: CanvasContext, path: Path2D | undefined, gap: number) {
+    /**
+     * Erases the geometry of the item, dilated by a glow's `gap`, from `ctx`, whatever its paint, or, if `painted`, only what
+     * it paints, so that an item with no fill leaves its inside open to the glow. A `Line` has no fill to erase.
+     */
+    private eraseFootprint(
+        slot: ShadowSlot,
+        ctx: CanvasContext,
+        path: Path2D | undefined,
+        gap: number,
+        painted: boolean = false
+    ) {
         if (ctx.globalAlpha <= 0 || (this.__opacity ?? 1) <= 0) return;
 
         const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
         const drawsStroke = stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
-        const drawsFill = path != null && this.__shadowMode !== 'stroke';
+        const drawsFill = path != null && this.__shadowMode !== 'stroke' && (!painted || this.hasCastableFill());
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'destination-out';
         this.drawSpreadSilhouette(slot, ctx, path, gap, drawsFill, drawsStroke, true);

@@ -77,10 +77,14 @@ describe('glow gap of items that are not a simple path', () => {
 
     describe.each(GLOW_ROUTES)('cast by the %s', (route) => {
         describe.each(Object.entries(ITEMS))('around a %s', (_name, { build, probes }) => {
-            it('should show the glow through the item with no gap', () => {
+            // The root casts the glows in an overlay, which cuts the footprint of every item that glows out of them.
+            it('should show the glow through the item with no gap, unless the root casts it in an overlay', () => {
                 const { pixelAt } = draw(route, build());
 
-                for (const point of probes.inside) expect(pixelAt(...point)[0]).toBeGreaterThan(0);
+                for (const point of probes.inside) {
+                    if (route === 'root') expect(pixelAt(...point)[0]).toBe(0);
+                    else expect(pixelAt(...point)[0]).toBeGreaterThan(0);
+                }
                 expect(pixelAt(...probes.near)[3]).toBeGreaterThan(0);
             });
 

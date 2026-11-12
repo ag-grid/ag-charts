@@ -9,7 +9,6 @@ import {
     castShadows,
     endShadowCasts,
     getBatchedShadow,
-    getGroupGlow,
     getRootShadow,
     getShadowClip,
     joinsShadowKey,
@@ -75,30 +74,40 @@ class SlotKeys {
     }
 }
 
+/** The glows with their `gap` set, so that a glow of an overlay is cut by the footprint of its casters, as one with a gap is. */
+const footprintCuts = new WeakMap<NormalisedDropShadowOptions, NormalisedDropShadowOptions>();
+
+function withFootprintCut(glow: NormalisedDropShadowOptions): NormalisedDropShadowOptions {
+    if (glow.gap != null) return glow;
+
+    let cut = footprintCuts.get(glow);
+    if (cut == null) {
+        cut = { ...glow, gap: 0, overlay: true };
+        footprintCuts.set(glow, cut);
+    }
+    return cut;
+}
+
 /**
- * The keys of the frames' casters: every shadow key, then every glow key, so that a shadow never darkens a glow, whichever
- * item casts it. A caster that casts both is in a key of each.
+ * The keys of the frames' casters: those of every shadow, or, for the overlay, those of every glow. A glow of the overlay is
+ * cut by the footprint of its casters, see {@link withFootprintCut}.
  */
-function buildKeys(frames: readonly CollectedFrame[], glowsOnly: boolean) {
-    const shadows = new SlotKeys('shadow');
-    const glows = new SlotKeys('glow');
+function buildKeys(frames: readonly CollectedFrame[], glows: boolean) {
+    const keys = new SlotKeys(glows ? 'glow' : 'shadow');
     for (const frame of frames) {
         for (const child of (frame.source as ShadowSource).children()) {
             if (!child.visible) continue;
 
             // A cutout erases only its own layer, so in one it leaves the shadow of the root whole.
             const shadowOf = frame.layered ? getRootShadow : getBatchedShadow;
-            const shadow = glowsOnly ? undefined : shadowOf(child);
-            const glow = glowsOnly ? getGroupGlow(child) : shadowOf(child, 'glow');
-            if (shadow == null && glow == null) continue;
+            const cast = glows ? shadowOf(child, 'glow') : shadowOf(child);
+            if (cast == null) continue;
 
             // Asked once, as it allocates for a clipped caster.
-            const clip = getShadowClip(child);
-            if (shadow != null) shadows.add(child as ShadowCaster, shadow, frame, clip);
-            if (glow != null) glows.add(child as ShadowCaster, glow, frame, clip);
+            keys.add(child as ShadowCaster, glows ? withFootprintCut(cast) : cast, frame, getShadowClip(child));
         }
     }
-    return glows.keys.length === 0 ? shadows.keys : [...shadows.keys, ...glows.keys];
+    return keys.keys;
 }
 
 /** The cover of a cast of nothing, which is shared, as no frame has a group to put in one. */
@@ -112,32 +121,35 @@ export function releaseShadowRoot(scene: object | undefined, user: object) {
 
 /**
  * Casts the shadows of the frames onto `renderCtx.ctx`, beneath what the root draws next. Returns the groups whose casters
- * now draw without a shadow, each with whether that includes its cutouts, or undefined if the cast failed, having drawn
- * nothing, which leaves every group to cast its own. A failure is one of planning, as the cast of a root is not undone
- * if a caster fails to draw.
+ * now draw without a shadow or glow, each with whether that includes its cutouts, or undefined if the cast failed, having
+ * drawn nothing, which leaves every group to cast its own. A failure is one of planning, as the cast of a root is not undone
+ * if a caster fails to draw. With `glows`, the groups are covered even if no shadow is cast, as the overlay casts their glows.
  */
 export function castRootShadows(
     frames: readonly CollectedFrame[],
     scene: object | undefined,
     user: object,
     renderCtx: RenderContext,
-    glowsOnly: boolean = false
+    glows: boolean = false
 ): ReadonlyMap<object, boolean> | undefined {
     const memo = memos.get(user);
     const unchanged = memo != null && matchesMemo(memo, frames);
-    const keys = unchanged ? memo.keys : buildKeys(frames, glowsOnly);
-    if (keys.length === 0) {
+    const keys = unchanged ? memo.keys : buildKeys(frames, false);
+    if (keys.length === 0 && !glows) {
         // Nothing casts, so the root gives up the scratch canvas and the shadows that its casts kept.
         releaseShadowRoot(scene, user);
         return NO_COVER;
     }
 
-    if (!castShadows({ scene, user, keys, index: 0, unchanged }, renderCtx)) {
-        memos.delete(user);
-        return;
+    if (keys.length > 0) {
+        if (!castShadows({ scene, user, keys, index: 0, unchanged }, renderCtx)) {
+            memos.delete(user);
+            return;
+        }
+        endShadowCasts(user, 1);
+    } else {
+        releaseShadowScratch(scene, user);
     }
-
-    endShadowCasts(user, 1);
     if (unchanged) return memo.cover;
 
     const cover = new Map(frames.map((frame) => [frame.source, frame.layered]));
@@ -145,12 +157,31 @@ export function castRootShadows(
     return cover;
 }
 
-/** Casts the group glows of the frames' casters, which a shadow root leaves out, beneath what `renderCtx` draws next. */
-export function castGroupGlows(
+/**
+ * Casts the glows of the frames' casters onto `renderCtx.ctx`, above what it holds: one overlay for every glow, in which the
+ * glows of the casters merge with one another, and the footprint of every caster that glows is cut out. Returns false if the
+ * cast could not be made, having drawn nothing.
+ */
+export function castGlowOverlay(
     frames: readonly CollectedFrame[],
     scene: object | undefined,
     user: object,
     renderCtx: RenderContext
-) {
-    castRootShadows(frames, scene, user, renderCtx, true);
+): boolean {
+    const memo = memos.get(user);
+    const unchanged = memo != null && matchesMemo(memo, frames);
+    const keys = unchanged ? memo.keys : buildKeys(frames, true);
+    if (keys.length === 0) {
+        releaseShadowRoot(scene, user);
+        return true;
+    }
+
+    if (!castShadows({ scene, user, keys, index: 0, unchanged, overlay: true }, renderCtx)) {
+        memos.delete(user);
+        return false;
+    }
+
+    endShadowCasts(user, 1);
+    if (!unchanged) memos.set(user, { frames, keys, cover: NO_COVER });
+    return true;
 }

@@ -83,8 +83,8 @@ export type NormalisedDropShadowOptions = Normalised<
     'enabled' | 'xOffset' | 'yOffset' | 'blur'
 > & {
     glow?: true;
-    /** A glow cast beneath the items of its series, not by the shadow root beneath every series. */
-    inGroup?: true;
+    /** A glow with no `gap` that is cast in an overlay, which cuts it only where its item, and every item that glows, is painted. */
+    overlay?: true;
     /** The `gap` of a glow: how far the shadow's silhouette is cut out of it, or undefined to cast it like a shadow. */
     gap?: PixelSize;
 };

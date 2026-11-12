@@ -529,10 +529,6 @@ export abstract class RadarSeries<
         );
     }
 
-    protected override castsHighlightGlowInGroup() {
-        return false;
-    }
-
     protected override getSeriesGlows() {
         return [this.options.marker.glow];
     }
