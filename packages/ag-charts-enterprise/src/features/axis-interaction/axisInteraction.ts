@@ -530,7 +530,7 @@ export class AxisInteraction extends AbstractModuleInstance {
             this.dispatchAxisContextMenu(axisId, event, event.canvasX, event.canvasY);
         });
 
-        return { axisId, div, direction };
+        return { axisId, div, direction, a11yTickData: [] };
     }
 
     private updateAxisInteraction(axis: ProxyAxis, axisCtx: AxisContext) {
