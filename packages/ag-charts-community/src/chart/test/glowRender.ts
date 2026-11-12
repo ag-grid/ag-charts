@@ -11,15 +11,32 @@ import { type ChartOrProxy, deproxy, waitForChartStability } from './utils';
  */
 export const ALI_GLOW: AgGlowOptions = { enabled: true, fillOpacity: 1, blur: 0, gap: 24, spread: 16 };
 
-/** The chart a render test draws: the series area is 400 x 300, so that a snapshot of {@link RENDER_CROP} is small. */
+/** The width and height of the part of the canvas that a render test snapshots. */
+const CROP_SIZE = { width: 420, height: 310 };
+
+/**
+ * The room kept between the series area and each edge of {@link RENDER_CROP}, the same on all four sides, for the shadow
+ * or glow that an item casts beyond the series area. A shadow offset or a glow spread of up to this many pixels is not cut.
+ */
+const CROP_MARGIN = 30;
+
+/**
+ * The chart a render test draws, in the top-left of the 800 x 600 canvas, with {@link CROP_MARGIN} of padding inside the
+ * edges of {@link RENDER_CROP} so that a snapshot of the crop is small and shows the whole of a cast.
+ */
 export const RENDER_OPTIONS = {
     animation: { enabled: false },
     legend: { enabled: false },
-    padding: { top: 10, left: 10, right: 380, bottom: 290 },
+    padding: {
+        top: CROP_MARGIN,
+        left: CROP_MARGIN,
+        right: 800 - CROP_SIZE.width + CROP_MARGIN,
+        bottom: 600 - CROP_SIZE.height + CROP_MARGIN,
+    },
 } satisfies Partial<AgChartOptions>;
 
 /** The part of the 800 x 600 canvas that {@link RENDER_OPTIONS} draws the chart in. */
-export const RENDER_CROP = { x: 0, y: 0, width: 420, height: 310 };
+export const RENDER_CROP = { x: 0, y: 0, ...CROP_SIZE };
 
 /** The RGBA bytes of the canvas of a chart, as it is drawn now. */
 export function canvasImage(chartOrProxy: ChartOrProxy<any>): { data: Uint8ClampedArray } {

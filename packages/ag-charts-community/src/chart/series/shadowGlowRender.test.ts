@@ -9,6 +9,9 @@ import { createChart, hoverLegendItem, waitForChartStability } from '../test/uti
 // Opaque and unblurred, so that the shape of a glow can be read off the render.
 const HARD_GLOW = { enabled: true, fill: '#d0021b', fillOpacity: 1, blur: 0, spread: 12 };
 
+// The y axis runs above the tallest bar, so that a glow on the top of a bar is not cut at the top of the series area.
+const HEADROOM_AXES = { ...RENDER_OPTIONS, axes: { y: { type: 'number', min: 0, max: 10 } } };
+
 const BARS = [
     { category: 'A', value: 5, other: 3, third: 4 },
     { category: 'B', value: 8, other: 6, third: 7 },
@@ -27,8 +30,9 @@ describe('shadow and glow render', () => {
             { category: 'B', value: 5 },
             { category: 'C', value: 3 },
         ];
-        // The glow reaches 40px beyond an item, so the chart sits 50px inside the crop, and the bars have headroom.
-        const ROOM = { ...RENDER_OPTIONS, padding: { top: 50, left: 50, right: 430, bottom: 330 } };
+        // The glow reaches 40px beyond an item, and a pie fills the series area, so the chart sits 60px inside the crop, on
+        // every side, and the bars have headroom.
+        const ROOM = { ...RENDER_OPTIONS, padding: { top: 60, left: 60, right: 440, bottom: 350 } };
         const HEADROOM = { ...ROOM, axes: { y: { type: 'number', min: 0, max: 8 } } };
         const SHAPES: [string, object, object[], object?][] = [
             ['a square-cornered bar', { type: 'bar', xKey: 'category', yKey: 'value' }, GAP_DATA, HEADROOM],
@@ -83,7 +87,8 @@ describe('shadow and glow render', () => {
                             datum.category === 'B' ? GLOWING : {},
                     },
                 ],
-                BARS
+                BARS,
+                type === 'bar' ? HEADROOM_AXES : RENDER_OPTIONS
             );
             await snapshot();
         });
@@ -95,7 +100,8 @@ describe('shadow and glow render', () => {
                     { type: 'bar', xKey: 'category', yKey: 'other' },
                     { type: 'bar', xKey: 'category', yKey: 'third' },
                 ],
-                BARS
+                BARS,
+                HEADROOM_AXES
             );
             await snapshot();
         });
@@ -113,7 +119,8 @@ describe('shadow and glow render', () => {
                     yKey,
                     glow: { ...HARD_GLOW, spread: 6, gap },
                 })),
-                BARS
+                BARS,
+                HEADROOM_AXES
             );
             await snapshot();
         });

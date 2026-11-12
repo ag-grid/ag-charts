@@ -340,7 +340,7 @@ const HIERARCHY = {
 };
 const HIERARCHY_KEYS = { labelKey: 'name', sizeKey: 'size' };
 const withHighlight = (part?: 'tile' | 'group') => (placed: any, highlight: object) =>
-    part ? { ...placed, [part]: { ...placed[part], highlight } } : { ...placed, highlight };
+    part === undefined ? { ...placed, highlight } : { ...placed, [part]: { ...placed[part], highlight } };
 
 export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
     {
