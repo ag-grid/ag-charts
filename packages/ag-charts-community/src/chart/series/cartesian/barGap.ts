@@ -1,16 +1,20 @@
 import { BBox, zeroLike } from 'ag-charts-core';
-import type { Point } from 'ag-charts-core';
 
-/**
- * A stacked segment's rect before the gap inset, for hover and click: the gap is shared between the two segments it
- * separates, so each segment owns half of it. It carries its own `midPoint` so the quadtree can index it as it is.
- */
+/** A stacked segment's rect before the gap inset: each segment owns half of each gap for hover and click. */
 export class BarPickBBox extends BBox {
-    readonly midPoint: Point;
+    readonly midPoint = { x: 0, y: 0 };
 
-    constructor(x: number, y: number, width: number, height: number) {
-        super(x, y, width, height);
-        this.midPoint = { x: x + width / 2, y: y + height / 2 };
+    constructor() {
+        super(0, 0, 0, 0);
+    }
+
+    setBounds(x: number, y: number, width: number, height: number) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.midPoint.x = x + width / 2;
+        this.midPoint.y = y + height / 2;
     }
 }
 
@@ -18,13 +22,8 @@ export const GAP_EDGE_START = 1;
 export const GAP_EDGE_END = 2;
 
 /**
- * The edges of a stacked segment that have a neighbour, as `GAP_EDGE_*` flags. An edge is only reported when a
- * neighbour is known to be there, so a missing stack total loses a gap but never moves the end of a stack.
- *
- * - The start edge has a neighbour unless it sits on the stack baseline.
- * - The end edge has a neighbour unless it reaches the stack total (`yRange`). A cross-filtered overlay ends inside its
- *   segment, so only a full-height one (`currY` at `yEnd`) meets the neighbour above; `endIsFull` is true for the
- *   segments drawn at full height (the phantom bar, or any bar when there is no cross-filter).
+ * `GAP_EDGE_*` flags for the edges with a known neighbour, so a missing stack total can lose a gap but never moves a
+ * stack end. A cross-filtered overlay (`endIsFull` false) meets the neighbour above only when `currY` reaches `yEnd`.
  */
 export function gapEdges(yStart: unknown, yEnd: unknown, yRange: unknown, currY: unknown, endIsFull: boolean): number {
     let edges = yStart === zeroLike(yStart as number | bigint) ? 0 : GAP_EDGE_START;
@@ -39,18 +38,13 @@ function sameValue(a: unknown, b: unknown): boolean {
     return Math.abs(x - y) <= 1e-9 * Math.max(1, Math.abs(y));
 }
 
-/** The span of a segment along the value axis, written in place by `insetGapSpan`. */
 export interface GapSpan {
     /** The lowest pixel of the span. */
     start: number;
     length: number;
 }
 
-/**
- * Pulls a segment's span in by `halfGap` on each edge that has a neighbour. A segment too short for its share of the
- * gap collapses to zero length at its middle, so it is not drawn and its neighbours keep their inset. `startIsLow` is
- * true when the segment's start edge sits at the lower pixel.
- */
+/** Pulls in each edge with a neighbour by `halfGap`; a segment too short for it collapses to zero length at its middle. */
 export function insetGapSpan(span: GapSpan, halfGap: number, edges: number, startIsLow: boolean): void {
     const startInset = (edges & GAP_EDGE_START) === 0 ? 0 : halfGap;
     const endInset = (edges & GAP_EDGE_END) === 0 ? 0 : halfGap;

@@ -227,7 +227,7 @@ interface BarSeriesNodeDatumContext {
     /** Per-side extent of the label's drawn box (padding + border stroke) folded into the collision footprint. */
     readonly labelBoxExtent: Required<PaddingOptions>;
     readonly crisp: boolean;
-    /** Half of `gap` when the series is stacked, else 0. Every gap computation sits behind a `> 0` check on this. */
+    /** Half of `gap` when the series is stacked, else 0; every gap computation is behind a `> 0` check on this. */
     readonly halfGap: number;
     readonly isStacked: boolean;
     readonly filteredValueExceedUnfiltered: boolean;
@@ -288,10 +288,10 @@ interface PreparedBarNodeDatumState {
     precomputedIsUpward?: boolean;
 }
 
-/** How many skews past the last one `createStackTotalLookup` tries before building a datum-to-group index. */
+/** How many skews beyond the last one `createStackTotalLookup` tries before it builds a datum-to-group index. */
 const GROUP_SKEW_PROBES = 8;
 
-/** Scratch for `insetGapSpan`, so a gap allocates nothing per datum. Always written before it is read. */
+/** Scratch for `insetGapSpan`; always written before it is read. */
 const gapSpan: GapSpan = { start: 0, length: 0 };
 
 interface NodeDatumParams {
@@ -321,13 +321,11 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly bottomLeftCornerRadius: boolean;
     readonly featherRatio: number;
     readonly clipBBox: BBox | undefined;
-    /**
-     * The segment's span along the value axis before the gap inset, set only when `gap > 0` (else `pickLength` is 0).
-     * Hover and click treat the gap as part of the segment; `initQuadTree` rebuilds the box when picking, so a data
-     * update only writes two numbers.
-     */
+    /** The segment's span along the value axis before the gap inset; only written, and only read, when `gap > 0`. */
     readonly pickStart: number;
     readonly pickLength: number;
+    /** Created on first pick and updated in place, so a data update writes only the two numbers above. */
+    pickBBox: BarPickBBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
     style?: Required<NormalisedBarSeriesStyle> & AgItemShadowStyle;
@@ -427,24 +425,25 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             super.initQuadTree(quadtree);
             return;
         }
-        // The nodes' own bboxes are the drawn segments, so the gap would pick nothing: index the segment before the inset.
+        // The nodes' own bboxes are the drawn segments, which leave the gap unpicked.
         const barAlongX = this.nodeDatumContext!.barAlongX;
         for (const datum of this.contextNodeData?.nodeData ?? []) {
             const { clipBBox, pickStart, pickLength } = datum;
             if (clipBBox == null || pickLength <= 0 || datum.missing) continue;
-            quadtree.addValue(
-                barAlongX
-                    ? new BarPickBBox(pickStart, clipBBox.y, pickLength, clipBBox.height)
-                    : new BarPickBBox(clipBBox.x, pickStart, clipBBox.width, pickLength),
-                datum
-            );
+            const pickBBox = (datum.pickBBox ??= new BarPickBBox());
+            if (barAlongX) {
+                pickBBox.setBounds(pickStart, clipBBox.y, pickLength, clipBBox.height);
+            } else {
+                pickBBox.setBounds(clipBBox.x, pickStart, clipBBox.width, pickLength);
+            }
+            quadtree.addValue(pickBBox, datum);
         }
     }
 
     protected override pickNodesExactShape(point: Point): SeriesNodePickMatch[] {
         const picks = super.pickNodesExactShape(point);
         if (picks.length !== 0 || !this.usesGap()) return picks;
-        // The shape test decides inside the drawn segment, rounded corners included; the gap strips are all this adds.
+        // The shape test decides inside the drawn segment, so only the gap strips are left to add.
         const match = findQuadtreeMatch(this, point);
         if (match?.distance !== 0) return [];
         const { clipBBox } = match.datum as BarNodeDatum;
@@ -452,6 +451,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     override async processData(dataController: DataController) {
+        this.datumGroupIndexCache = undefined;
         if (!this.data) return;
 
         const { xKey, yKey, yFilterKey, normalizedTo } = this.options;
@@ -1028,6 +1028,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             clipBBox: undefined,
             pickStart: 0,
             pickLength: 0,
+            pickBBox: undefined,
             crisp: ctx.crisp,
             label: undefined,
             missing: false,
@@ -1371,7 +1372,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         for (let p = 0; p < 2; p += 1) {
             const positive = p === 0;
-            // Only a gap needs the stack total, so it is only looked up then. One lookup per pass: each walks the data once.
+            // One lookup per pass: each walks the data once.
             const stackTotal = withStackTotal ? this.createStackTotalLookup(ctx) : undefined;
             const indices = positive
                 ? ctx.dataAggregationFilter!.positiveIndices
@@ -2365,23 +2366,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     /**
-     * Looks up the stack total, on the given side of the axis, of the group a datum belongs to. `undefined` when the
-     * datum has no group, or when no series lies beyond this one, so the caller leaves the end edge alone.
-     *
-     * A datum sits in the group `skew` places before its own index, where `skew` counts the groups that merged datums
-     * with the same key or skipped an invalid one before it. It changes rarely along the data, so the lookup tries the
-     * last skew and a few steps beyond it, and only builds a datum-to-group index (once per data pass) when they miss.
-     * Every candidate is checked against the group's own datum indices, so a hit is always the right group.
-     * The lookup remembers its skew: make one per walk along the data.
+     * The stack total, on the given side of the axis, of the group a datum belongs to; `undefined` when the datum has
+     * no group or no series lies beyond this one. Make one per walk along the data: it remembers its group skew.
      */
     private createStackTotalLookup(
         ctx: BarSeriesNodeDatumContext
     ): ((datumIndex: number, positive: boolean) => AgNumericValue | undefined) | undefined {
-        // With no visible series further along the stack, no end edge has a neighbour, so there is nothing to look up.
         if (!ctx.stackedTowardEnd) return undefined;
         const processedData = this.processedData as GroupedData<any> | undefined;
         const { dataModel } = this;
         if (processedData?.type !== 'grouped' || dataModel == null) return undefined;
+        if (this.datumGroupIndexCache?.source !== processedData) this.datumGroupIndexCache = undefined;
 
         const { groups } = processedData;
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
@@ -2394,22 +2389,16 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         let skew = 0;
         return (datumIndex, positive) => {
-            let groupIndex = datumIndex - skew;
-            // The same check as `hasDatum`, written out: this runs once per bucket and nearly always hits.
-            if (groups[groupIndex]?.datumIndices[columnIndex]?.includes(datumIndex - groupIndex) !== true) {
-                const first = groupIndex;
-                groupIndex = -1;
-                for (let step = 1; step <= GROUP_SKEW_PROBES && groupIndex < 0; step++) {
-                    if (hasDatum(first - step, datumIndex)) groupIndex = first - step;
-                }
-                if (groupIndex < 0) groupIndex = this.datumGroupIndex(processedData, columnIndex)[datumIndex] ?? -1;
-                if (groupIndex >= 0) skew = datumIndex - groupIndex;
+            let groupIndex = -1;
+            for (let step = 0; step <= GROUP_SKEW_PROBES && groupIndex < 0; step++) {
+                if (hasDatum(datumIndex - skew - step, datumIndex)) groupIndex = datumIndex - skew - step;
             }
+            if (groupIndex < 0) groupIndex = this.datumGroupIndex(processedData, columnIndex)[datumIndex] ?? -1;
+            if (groupIndex >= 0) skew = datumIndex - groupIndex;
             return groups[groupIndex]?.aggregation[rangeIndex][positive ? 1 : 0];
         };
     }
 
-    /** The group of each datum in this series' column, -1 for a datum with no group. */
     private datumGroupIndex(processedData: GroupedData<any>, columnIndex: number): Int32Array {
         const cache = this.datumGroupIndexCache;
         if (cache?.source === processedData && cache.columnIndex === columnIndex) return cache.index;

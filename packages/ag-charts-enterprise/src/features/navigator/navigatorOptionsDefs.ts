@@ -88,6 +88,7 @@ export const commonIgnoredMiniChartProperties: CommonIgnoredProperties[] = [
 export const barIgnoredMiniChartProperties: BarIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,
     'errorBar',
+    'gap',
     'label',
     'legendItemName',
 ];

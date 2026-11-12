@@ -225,6 +225,16 @@ export function isBarSeriesAggregating(chartOrProxy: ChartOrProxy<any>, index = 
     return nodeDatumContext!.dataAggregationFilter != null;
 }
 
+// The bar series keep a datum-to-group index for the stack total lookup; it is private.
+interface BarGroupIndexHost {
+    datumGroupIndexCache?: unknown;
+}
+
+/** Whether a bar series holds the datum-to-group index it builds when data has duplicate or invalid keys. */
+export function holdsBarDatumGroupIndex(chartOrProxy: ChartOrProxy<any>, index = 0): boolean {
+    return (getSeriesAt(chartOrProxy, index) as unknown as BarGroupIndexHost).datumGroupIndexCache != null;
+}
+
 // The processed data a series keeps from its last data pass is protected; the bar series reduce a flag onto it.
 interface ProcessedDataHost {
     processedData?: { reduced?: { filteredValueExceedUnfiltered?: boolean } };

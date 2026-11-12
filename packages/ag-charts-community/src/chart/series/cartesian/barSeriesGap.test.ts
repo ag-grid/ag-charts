@@ -4,6 +4,7 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } fro
 
 import {
     getBarSeriesContextNodeData,
+    holdsBarDatumGroupIndex,
     isBarSeriesAggregating,
     withUndocumentedOptions,
 } from '../../test/communitySeriesAccessors';
@@ -936,6 +937,35 @@ describe('bar series gap', () => {
                 if (shape === 'nullMiddle') expect(seen.has('0:run:2')).toBe(true);
             }
         );
+
+        it('keeps one pick box per bucket across updates and quadtree rebuilds', async () => {
+            const pickBoxes = () => getBarSeriesContextNodeData(chart!, 1).nodeData.map((d) => d.pickBBox);
+            const hover = async () => {
+                await hoverAction(100, 100)(chart!);
+                await waitForChartStability(chart!);
+            };
+            await open(aggregatedOptions('full', 4));
+            expect(aggregating()).toBe(true);
+            await hover();
+            const before = pickBoxes();
+            expect(before.length).toBeGreaterThan(0);
+            expect(before.every((box) => box != null)).toBe(true);
+
+            await update(aggregatedOptions('full', 6));
+            await hover();
+            const after = pickBoxes();
+            expect(after).toHaveLength(before.length);
+            for (const [i, box] of after.entries()) expect(box).toBe(before[i]);
+        });
+
+        it('releases the datum-to-group index when the data is replaced', async () => {
+            await open(aggregatedOptions('full', 4, 'invalidKeys'));
+            expectWarningsCalls().toEqual([[expect.stringContaining('invalid value of type [object]'), '[null]']]);
+            expect(holdsBarDatumGroupIndex(chart!, 1)).toBe(true);
+
+            await update(aggregatedOptions('full', 4));
+            expect(holdsBarDatumGroupIndex(chart!, 1)).toBe(false);
+        });
 
         it('the bottom segment sits on the baseline and the top of the stack reaches its total', async () => {
             await open(aggregatedOptions('full', 0));
