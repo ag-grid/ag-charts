@@ -214,7 +214,7 @@ function equalStyles(a: ShapeStyle, b: ShapeStyle) {
     const dashA = a.lineDash;
     const dashB = b.lineDash;
     if (dashA === dashB) return true;
-    if (dashA == null || dashB == null || dashA.length !== dashB.length) return false;
+    if (dashA == null || dashA.length !== dashB?.length) return false;
     for (let i = 0; i < dashA.length; i++) {
         if (dashA[i] !== dashB[i]) return false;
     }
