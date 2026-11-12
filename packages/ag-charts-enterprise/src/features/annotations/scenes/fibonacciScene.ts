@@ -2,6 +2,7 @@ import { type TextOptions, _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, Group, type Point, Range, Selection, Vec4 } from 'ag-charts-core';
 import type { BBox } from 'ag-charts-core';
 
+import { getStrokeColours } from '../annotationDatum';
 import type { AnnotationAxisContext, AnnotationContext, LineTextAlignment } from '../annotationTypes';
 import type { FibonacciDatum } from '../datum/fibonacciDatum';
 import { applySceneNodeTopCenterAnchor } from '../utils/coords';
@@ -10,7 +11,7 @@ import type { FibonacciRangeDatum } from '../utils/fibonacci';
 import { FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
-import { convertLine } from '../utils/values';
+import { convertLine, convertPoints } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
@@ -52,6 +53,14 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
     constructor() {
         super();
         this.append([this.trendLine, this.rangeFillsGroup, this.rangeStrokesGroup, this.labelsGroup]);
+    }
+
+    protected override getSelectionPoints(datum: Datum, context: AnnotationContext) {
+        return convertPoints([datum.start, datum.end], context);
+    }
+
+    protected override getSelectionColours(datum: Datum) {
+        return getStrokeColours({ stroke: datum.rangeStroke ?? datum.stroke, strokeOpacity: datum.strokeOpacity });
     }
 
     public update(datum: Datum, context: AnnotationContext) {

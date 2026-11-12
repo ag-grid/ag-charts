@@ -85,24 +85,33 @@ export type AgChartOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgTopologyChartOptions<TDatum, TContext>
     | AgStandaloneChartOptions<TDatum, TContext>;
 
-export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = Pick<
-    AgCartesianChartOptions<TDatum, never>,
-    | 'container'
-    | 'width'
-    | 'height'
-    | 'minWidth'
-    | 'minHeight'
-    | 'theme'
-    | 'title'
-    | 'initialState'
-    | 'data'
-    | 'dataIdKey'
-    | 'dataSource'
-    | 'listeners'
-    | 'formatter'
-    | 'enableRtl'
-    | 'suppressFieldDotNotation'
+/** Chart options shared by the gauge, quadrant and financial presets. */
+export type AgBasePresetOptions<TDatum = DatumDefault, TContext = ContextDefault> = Pick<
+    AgBaseChartOptions<TDatum, TContext>,
+    'border' | 'keyboard' | 'loadGoogleFonts' | 'styleNonce' | 'validations'
 >;
+
+export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = AgBasePresetOptions<TDatum, never> &
+    Pick<
+        AgCartesianChartOptions<TDatum, never>,
+        | 'container'
+        | 'width'
+        | 'height'
+        | 'minWidth'
+        | 'minHeight'
+        | 'theme'
+        | 'title'
+        | 'initialState'
+        | 'data'
+        | 'dataIdKey'
+        | 'dataSource'
+        | 'listeners'
+        | 'locale'
+        | 'formatter'
+        | 'enableRtl'
+        | 'suppressFieldDotNotation'
+        | 'touch'
+    >;
 
 export type AgBaseSparklinePresetThemeOptions<TDatum = DatumDefault> = AgSparklineBaseThemeableOptions<TDatum> &
     Pick<
@@ -126,10 +135,8 @@ export type AgFinancialChartOptions<TDatum = DatumDefault> = AgBaseFinancialPres
 export type AgVolumeProfileChartOptions<TDatum = DatumDefault> = AgBaseFinancialPresetOptions<TDatum> &
     AgVolumeProfileChartPreset;
 
-export interface AgBaseGaugePresetOptions<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> extends AgBaseGaugePresetThemeOptions<TDatum, TContext> {
+export interface AgBaseGaugePresetOptions<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgBaseGaugePresetThemeOptions<TDatum, TContext>, AgBasePresetOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
@@ -164,29 +171,35 @@ export type AgSparklineOptions<TDatum = DatumDefault, TContext = ContextDefault>
 > &
     AgSparklinePresets<TDatum>;
 
-export type AgBaseQuadrantChartOptions<TDatum = DatumDefault, TContext = ContextDefault> = Pick<
-    AgCartesianChartOptions<TDatum, TContext>,
-    | 'animation'
-    | 'container'
-    | 'data'
-    | 'dataIdKey'
-    | 'enableRtl'
-    | 'footnote'
-    | 'formatter'
-    | 'initialState'
-    | 'height'
-    | 'listeners'
-    | 'locale'
-    | 'minWidth'
-    | 'minHeight'
-    | 'padding'
-    | 'subtitle'
-    | 'title'
-    | 'theme'
-    | 'selection'
-    | 'suppressFieldDotNotation'
-    | 'width'
->;
+export type AgBaseQuadrantChartOptions<TDatum = DatumDefault, TContext = ContextDefault> = AgBasePresetOptions<
+    TDatum,
+    TContext
+> &
+    Pick<
+        AgCartesianChartOptions<TDatum, TContext>,
+        | 'animation'
+        | 'background'
+        | 'container'
+        | 'data'
+        | 'dataIdKey'
+        | 'enableRtl'
+        | 'footnote'
+        | 'formatter'
+        | 'initialState'
+        | 'height'
+        | 'listeners'
+        | 'locale'
+        | 'minWidth'
+        | 'minHeight'
+        | 'padding'
+        | 'subtitle'
+        | 'title'
+        | 'touch'
+        | 'theme'
+        | 'selection'
+        | 'suppressFieldDotNotation'
+        | 'width'
+    >;
 
 export type AgQuadrantChartOptions<TDatum = DatumDefault, TContext = ContextDefault> = AgBaseQuadrantChartOptions<
     TDatum,

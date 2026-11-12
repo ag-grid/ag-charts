@@ -1,3 +1,5 @@
+import type { TextAlign } from 'ag-charts-types';
+
 import type { BaseAttributeTypeMap, BaseStyleTypeMap } from '../dom/attributeUtil';
 import { getAttribute, setAttribute, setElementStyle, setElementStyles } from '../dom/attributeUtil';
 import { getElementBBox, isFocused, setElementBBox } from '../dom/domUtil';
@@ -157,6 +159,23 @@ export abstract class Widget<
         return this.elem.textContent ?? '';
     }
 
+    /**
+     * Sets the text through `innerText`, which renders each line break in `text` as a `<br>`. `setTextContent` keeps
+     * line breaks as plain characters, which collapse to spaces under normal white-space rules.
+     */
+    setInnerText(text: string) {
+        this.elem.innerText = text;
+    }
+
+    /** Sets the inline `opacity`, from 0 (transparent) to 1 (opaque), or removes it when `undefined`. */
+    setOpacity(opacity: number | undefined) {
+        if (opacity == null) {
+            this.elem.style.removeProperty('opacity');
+        } else {
+            this.elem.style.setProperty('opacity', String(opacity));
+        }
+    }
+
     setAriaRole(role: BaseAttributeTypeMap['role'] | undefined) {
         setAttribute(this.elem, 'role', role);
     }
@@ -183,6 +202,18 @@ export abstract class Widget<
 
     setAriaHasPopup(ariaHasPopup: BaseAttributeTypeMap['aria-haspopup'] | undefined) {
         setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
+    }
+
+    setAriaChecked(ariaChecked: BaseAttributeTypeMap['aria-checked'] | undefined) {
+        setAttribute(this.elem, 'aria-checked', ariaChecked);
+    }
+
+    setAriaSelected(ariaSelected: BaseAttributeTypeMap['aria-selected'] | undefined) {
+        setAttribute(this.elem, 'aria-selected', ariaSelected);
+    }
+
+    setAriaLabelledBy(ariaLabelledBy: BaseAttributeTypeMap['aria-labelledby'] | undefined) {
+        setAttribute(this.elem, 'aria-labelledby', ariaLabelledBy);
     }
 
     /** Sets the `title` attribute (the native tooltip), or removes it when `undefined` or empty. */
@@ -230,6 +261,33 @@ export abstract class Widget<
             this.elem.style.removeProperty('min-width');
         } else {
             this.elem.style.setProperty('min-width', `${minWidth}px`);
+        }
+    }
+
+    /** Sets the inline `width` in CSS pixels, or removes it when `undefined`. */
+    setWidth(width: number | undefined) {
+        if (width == null) {
+            this.elem.style.removeProperty('width');
+        } else {
+            this.elem.style.setProperty('width', `${width}px`);
+        }
+    }
+
+    /** Sets the inline `max-width` in CSS pixels, or removes it when `undefined`. */
+    setMaxWidth(maxWidth: number | undefined) {
+        if (maxWidth == null) {
+            this.elem.style.removeProperty('max-width');
+        } else {
+            this.elem.style.setProperty('max-width', `${maxWidth}px`);
+        }
+    }
+
+    /** Sets the inline `text-align`, or removes it when `undefined`. */
+    setTextAlign(textAlign: TextAlign | undefined) {
+        if (textAlign == null) {
+            this.elem.style.removeProperty('text-align');
+        } else {
+            this.elem.style.setProperty('text-align', textAlign);
         }
     }
 

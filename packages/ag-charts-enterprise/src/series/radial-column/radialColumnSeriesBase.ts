@@ -1,4 +1,4 @@
-import type { AgRadialSeriesLabelFormatterParams, AgRadialSeriesStyle } from 'ag-charts-community';
+import type { AgItemShadowStyle, AgRadialSeriesLabelFormatterParams, AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type BBox,
@@ -23,6 +23,7 @@ import {
     normalizeAngle360,
     placedPolarLabel,
     polarLabelData,
+    withoutCasts,
     writePlacedPolarLabels,
     zeroLike,
 } from 'ag-charts-core';
@@ -71,7 +72,7 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     readonly axisOuterRadius: number;
     readonly columnWidth: number;
     readonly index: number;
-    style?: AgRadialSeriesStyle;
+    style?: AgRadialSeriesStyle & AgItemShadowStyle;
 }
 
 interface RadialColumnSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -441,7 +442,6 @@ export abstract class RadialColumnSeriesBase<
         if (!contextNodeData) {
             return;
         }
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         let selectionData: RadialColumnNodeDatum[] = [];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -458,7 +458,7 @@ export abstract class RadialColumnSeriesBase<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
 
         const fillBBox = this.getShapeFillBBox();
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
         const hasItemStylers = this.hasItemStylers();
         // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
         const styleCache =
@@ -469,11 +469,10 @@ export abstract class RadialColumnSeriesBase<
             .each((node, nodeDatum) => {
                 const { midPoint } = nodeDatum;
 
+                const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
                 const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
                 const candidateState = this.getDataCandidacyState(nodeDatum.datumIndex);
                 if (hasItemStylers) {
-                    const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-
                     if (styleCache == null) {
                         nodeDatum.style = getItemStyle(
                             this,
@@ -504,9 +503,7 @@ export abstract class RadialColumnSeriesBase<
                 const bringToFront = !_ModuleSupport.isUnselected(selectionState);
                 node.zIndex = bringToFront ? 1 : 0;
 
-                const style =
-                    nodeDatum.style ??
-                    contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)];
+                const style = nodeDatum.style ?? contextNodeData.styles[highlightState];
 
                 const fill = style.fill;
                 const itemBounds = isGradientFill(fill) && fill.bounds === 'item';
@@ -518,7 +515,31 @@ export abstract class RadialColumnSeriesBase<
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
-                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+                node.fillShadow = this.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    nodeDatum.datumIndex,
+                    highlightState,
+                    undefined,
+                    hasItemStylers && !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex, highlightState)
+                        ? getItemStyle(
+                              this,
+                              nodeDatum,
+                              true,
+                              _ModuleSupport.HighlightState.Item,
+                              this.getDataSelectionState(nodeDatum.datumIndex),
+                              this.getDataCandidacyState(nodeDatum.datumIndex)
+                          ).shadow
+                        : nodeDatum.style?.shadow
+                );
+                node.fillGlow = this.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    nodeDatum.datumIndex,
+                    highlightState,
+                    undefined,
+                    nodeDatum.style?.glow
+                );
                 node.cornerRadius = style.cornerRadius ?? 0;
                 node.lineJoin = 'round';
             });
@@ -648,7 +669,7 @@ export abstract class RadialColumnSeriesBase<
                 radiusKey,
                 radiusName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

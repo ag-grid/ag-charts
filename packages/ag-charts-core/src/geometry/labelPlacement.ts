@@ -445,7 +445,7 @@ export function resolveLabelAvoidance(collision: NormalisedChartLabelCollisionOp
         label: labels !== true,
         shape: shapes === false,
         seriesArea: seriesArea !== true,
-        axisLabel: axisLabels === false,
+        axisLabel: axisLabels !== true,
     };
 }
 
@@ -656,11 +656,15 @@ export function writeLabelBoxCentre(
         out.x += padding.right;
     } else if (anchor.textAlign === 'left' || anchor.textAlign === 'start') {
         out.x -= padding.left;
+    } else {
+        out.x += (padding.right - padding.left) / 2;
     }
     if (anchor.textBaseline === 'bottom') {
         out.y += padding.bottom;
     } else if (anchor.textBaseline === 'top') {
         out.y -= padding.top;
+    } else {
+        out.y += (padding.bottom - padding.top) / 2;
     }
     return out;
 }

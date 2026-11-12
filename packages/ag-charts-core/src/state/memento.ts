@@ -1,11 +1,19 @@
 import { isDate, isObject } from '../data/typeGuards';
 import type { Logger } from '../logging/logger';
 
+/** What triggered a memento restore: a user action such as undo/redo, or an API call such as `setState`. */
+export type MementoRestoreSource = 'user-interaction' | 'api-call';
+
 export interface MementoOriginator<Memento = any> {
     mementoOriginatorKey: string;
     createMemento(): Memento;
     guardMemento(blob: unknown, messages: Array<string>): blob is Memento | undefined;
-    restoreMemento(version: string, mementoVersion: string, blob: Memento | undefined): void;
+    restoreMemento(
+        version: string,
+        mementoVersion: string,
+        blob: Memento | undefined,
+        source?: MementoRestoreSource
+    ): void;
 }
 
 type MementoCaretakerPacket = Record<'version', string> & Record<string, any>;

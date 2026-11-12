@@ -55,6 +55,7 @@ import {
     resolveLabelFit,
     toArray,
     toNumber,
+    withoutCasts,
     zeroLike,
 } from 'ag-charts-core';
 import type {
@@ -63,6 +64,7 @@ import type {
     AgBarSeriesLabelPlacement,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
+    AgItemShadowStyle,
     AgNumericValue,
     PaddingOptions,
 } from 'ag-charts-types';
@@ -312,7 +314,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly clipBBox: BBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
-    style?: Required<NormalisedBarSeriesStyle>;
+    style?: Required<NormalisedBarSeriesStyle> & AgItemShadowStyle;
 }
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
@@ -1825,7 +1827,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         highlightState: HighlightState | undefined,
         selectionState: SelectionState | undefined,
         candidateState: SelectionState | undefined
-    ): Required<NormalisedBarSeriesStyle> {
+    ): Required<NormalisedBarSeriesStyle> & AgItemShadowStyle {
         const { options, dataModel, processedData } = this;
         const { itemStyler, simpleItemStyler } = options;
 
@@ -1916,7 +1918,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         const direction = this.getBarDirection();
@@ -1933,6 +1935,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     ? series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                     : undefined;
             const style = datum.style ?? contextStyles[highlightState ?? HighlightState.None];
+            // Shared by the shadow and the glow, so that a styled datum resolves it once too.
+            const castState =
+                highlightState ?? series.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
 
             // Applied, or animated to, by `restyleLayers`.
             rect.targetStyle = style;
@@ -1950,7 +1955,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 datum.bottomLeftCornerRadius ? cornerRadius : 0,
                 visible,
                 datum.crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState),
+                series.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    datum.datumIndex,
+                    castState,
+                    undefined,
+                    !isHighlight && series.isHoveredInPlace(datum.datumIndex, castState)
+                        ? series.getHoveredItemShadow(datum.datumIndex, (...args) => series.getItemStyle(...args))
+                        : datum.style?.shadow
+                ),
+                series.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState, undefined, datum.style?.glow),
                 direction,
                 datum.featherRatio,
                 crispCentreDirection
@@ -2143,7 +2158,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 yName,
                 legendItemName,
                 stackGroup,
-                ...format,
+                ...withoutCasts(format),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

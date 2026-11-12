@@ -52,9 +52,9 @@ The options for `mode` are:
 
 - `single` - shows a title, symbol and data values for a single series.
 - `shared` - shows a merged tooltip, combining the tooltips of all series sharing the same x-value.
-- `compact` - shows fewer data fields and uses less padding.
+- `compact` - shows a single tooltip with fewer data fields and less padding.
 
-See [Highlight Modes](./series-highlighting/#highlight-modes) to apply the same shared grouping to series highlighting.
+The [Highlight Mode](./series-highlighting/#highlight-modes) follows the tooltip mode unless explicitly set to a different value.
 
 ## Tooltip Position
 
@@ -232,7 +232,7 @@ In this configuration:
 - The `renderer` receives values associated with the highlighted data point. The actual type of the `params` object passed into the tooltip renderer will depend on the series type being used.
 - The `renderer` returns an object with optional `heading`, `title`, `symbol`, and `data` fields.
 - The `heading` and `title` must be plain text.
-- The `data` field consists of an array of `label` and `value` fields, which are both plain text.
+- The `data` field consists of an array of rows, each with an optional `label` and an optional `value`, both plain text. A row with neither is skipped.
 - Returning an empty string for any field will cause it to be omitted from the rendered tooltip.
 
 ### Modifying the Symbol

@@ -109,6 +109,8 @@ export interface AnnotationAxisContext extends Pick<
 > {
     bounds: BBox;
     labelPadding: number;
+    /** Distance from the edge of the series area to the outer edge of the axis's tick labels. */
+    thickness: number;
     snapToGroup: boolean;
 }
 

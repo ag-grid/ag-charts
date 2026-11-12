@@ -6,20 +6,28 @@ import {
     type ChannelTextDatum,
     type ExtendableFields,
     type LineStyleFields,
+    type SelectionAxesFields,
     type StrokeFields,
     createBackgroundDatum,
     createChannelTextDatum,
+    createSelectionAxesFields,
 } from '../annotationDatum';
 import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import { type StartEndDatum, createStartEndDatum } from './startEndDatum';
 
-export interface ChannelTypeDatum extends StartEndDatum, StrokeFields, LineStyleFields, ExtendableFields {
+export interface ChannelTypeDatum
+    extends StartEndDatum, StrokeFields, LineStyleFields, ExtendableFields, SelectionAxesFields {
     background: BackgroundDatum;
     text: ChannelTextDatum;
 }
 
 export function createChannelTypeDatum(): Omit<ChannelTypeDatum, 'type'> {
-    return { ...createStartEndDatum(), background: createBackgroundDatum(), text: createChannelTextDatum() };
+    return {
+        ...createStartEndDatum(),
+        ...createSelectionAxesFields(),
+        background: createBackgroundDatum(),
+        text: createChannelTextDatum(),
+    };
 }
 
 export function getChannelDefaultColor(datum: ChannelTypeDatum, colorPickerType: AnnotationOptionsColorPickerType) {

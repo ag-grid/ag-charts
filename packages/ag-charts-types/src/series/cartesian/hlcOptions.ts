@@ -7,6 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
+import type { AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
@@ -14,8 +15,8 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOption
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMarkerHighlightStyleOptions,
+    AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -106,7 +107,7 @@ export interface AgHlcMarker<TDatum, TContext> extends AgSeriesMarkerOptions<
     TContext
 > {
     /** Function used to return formatting for individual markers, based on the supplied information. */
-    itemStyler?: Styler<AgHlcSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<AgHlcSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle & AgItemShadowStyle>;
 }
 
 export interface AgHlcSeriesItemMarker<TDatum, TContext> extends Omit<
@@ -161,7 +162,7 @@ export interface AgHlcSeriesThemeableOptions<
     /** Function used to return formatting for the entire series, based on the given parameters. */
     styler?: Styler<AgHlcSeriesStylerParams<TDatum, TContext>, AgHlcSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgMarkerHighlightStyleOptions, AgMarkerHighlightStyleOptions>;
 }
 
 export interface AgHlcSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

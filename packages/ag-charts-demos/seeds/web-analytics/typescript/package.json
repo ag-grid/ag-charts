@@ -15,7 +15,7 @@
     "ag-grid-enterprise": "~36.2.0"
   },
   "devDependencies": {
-    "typescript": "~5.8.3",
+    "typescript": "~5.9.3",
     "vite": "^8.3.0"
   }
 }

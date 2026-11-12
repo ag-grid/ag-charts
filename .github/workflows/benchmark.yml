@@ -290,9 +290,9 @@ jobs:
 
     benchmark:
         runs-on: ubuntu-24.04
-        # Hosted runners are ~2x slower than the previous bare-metal runner and we now run each
-        # side AG_BENCHMARK_RUNS times. Leaves headroom for a balanced shard plus one hung example.
-        timeout-minutes: 60
+        # Must cover the largest shard planned from benchmark-costs.json, one hung example and job setup,
+        # on hosted runners with every side run AG_BENCHMARK_RUNS times.
+        timeout-minutes: 75
         needs: [resolve, build]
         strategy:
             fail-fast: false
@@ -481,8 +481,11 @@ jobs:
             # Merge each run's shards into one head/base report per run, then hand every run to the
             # comparison so it can median across runs and gate on cross-run CV. A missing shard file
             # means a lost shard, so per-run shard counts are enforced and >=2 complete runs are
-            # required. Failures are contained per example, not per run: an example that errored or
-            # timed out in any pass is left out of all runs and listed by the comparison.
+            # required. Failures are contained per example, not per run, and exclusion is per side: an
+            # example that errored or timed out in any pass is left out of all runs on both sides and
+            # listed by the comparison, except one that failed only on the base (base `error`, head
+            # succeeded in every timing pass), which is dropped from the base reports (timing and memory)
+            # but kept in the head reports, so it is reported as a head-only "New" row.
             - name: Merge shard results
               env:
                   SHARDS: ${{ needs.resolve.outputs.shards }}
@@ -502,8 +505,8 @@ jobs:
                       echo "::warning::Run ${run} incomplete (expected ${expected}, head: ${#head_shards[@]}, base: ${#base_shards[@]}); skipping"
                       continue
                     fi
-                    node ./tools/benchmark/merge-browser-results.js --exclude reports/browser-benchmarks/excluded.json --output "reports/browser-benchmarks/head.r${run}.json" "${head_shards[@]}"
-                    node ./tools/benchmark/merge-browser-results.js --exclude reports/browser-benchmarks/excluded.json --output "reports/browser-benchmarks/base.r${run}.json" "${base_shards[@]}"
+                    node ./tools/benchmark/merge-browser-results.js --exclude reports/browser-benchmarks/excluded.json --side head --output "reports/browser-benchmarks/head.r${run}.json" "${head_shards[@]}"
+                    node ./tools/benchmark/merge-browser-results.js --exclude reports/browser-benchmarks/excluded.json --side base --output "reports/browser-benchmarks/base.r${run}.json" "${base_shards[@]}"
                     good_runs=$((good_runs + 1))
                   done
                   if [[ $good_runs -lt 2 ]]; then
@@ -516,7 +519,7 @@ jobs:
                   for side in head base; do
                     mem_shards=(reports/browser-benchmarks/shards/${side}-*.mem.json)
                     if [[ ${#mem_shards[@]} -gt 0 ]]; then
-                      node ./tools/benchmark/merge-browser-results.js --exclude reports/browser-benchmarks/excluded.json --output "reports/browser-benchmarks/${side}.mem.json" "${mem_shards[@]}" || \
+                      node ./tools/benchmark/merge-browser-results.js --exclude reports/browser-benchmarks/excluded.json --side "${side}" --output "reports/browser-benchmarks/${side}.mem.json" "${mem_shards[@]}" || \
                         echo "::warning::${side} memory reports could not be merged; allocation omitted"
                     fi
                   done

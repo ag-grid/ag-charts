@@ -2,6 +2,7 @@ import {
     CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_GLOW_BUCKETS,
@@ -37,6 +38,7 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         shadow: SHADOW_THEME_DEFAULTS,
+        glow: GLOW_THEME_DEFAULTS,
         cap: { lengthRatio: 0.5 },
         tooltip: SERIES_TOOLTIP_THEME,
         highlight: {

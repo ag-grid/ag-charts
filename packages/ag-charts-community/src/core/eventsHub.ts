@@ -24,6 +24,7 @@ import { EventEmitter } from 'ag-charts-core';
 import type {
     AgActiveItemState,
     AgAnnotation,
+    AgAnnotationsEventSource,
     AgAutoScaledAxes,
     AgCartesianAxisPosition,
     AgContextMenuItemShowOn,
@@ -160,6 +161,7 @@ export interface EventsHubMap {
     'collapsed:change': null;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
+    'crosshair:position-change': CrosshairPositionChangeEvent;
     'data:load': { data: unknown[]; requestId?: number };
     'data:error': { requestId?: number } | null;
     'data:render-verdict': { requestId?: number; rendered: boolean };
@@ -249,11 +251,18 @@ export interface ActiveLoadMementoEvent {
 
 interface AnnotationsRestoreEvent {
     annotations: AgAnnotation[];
+    source: AgAnnotationsEventSource;
 }
 
 /** A cross-line annotation whose own axis label sits on `axisId` has started to be dragged. */
 interface AnnotationsAxisLabelDragStartEvent {
     axisId: string;
+}
+
+interface CrosshairPositionChangeEvent {
+    axisId: string;
+    /** The position of the single crosshair line on the axis scale, or `undefined` when there is not exactly one. */
+    position: number | undefined;
 }
 
 export interface AxisInteractionDragEvent<T extends 'drag-start' | 'drag-move' | 'drag-end'> {

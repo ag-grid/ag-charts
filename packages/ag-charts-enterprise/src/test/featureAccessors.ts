@@ -1,5 +1,6 @@
+import type { _ModuleSupport } from 'ag-charts-community';
 import { type ChartOrProxy, deproxy, findAxis, getAxisLayoutState, getSeriesAt } from 'ag-charts-community-test';
-import type { BBox, Group, Node, Rect } from 'ag-charts-core';
+import type { BBox, DynamicContext, Group, Node, Rect } from 'ag-charts-core';
 
 import type { MiniChart } from '../features/navigator/miniChart';
 import type { Navigator } from '../features/navigator/navigator';
@@ -96,6 +97,7 @@ export function getSeriesPlacedLabels<TDatum = unknown>(
 
 // The annotations module keeps its axis helpers private; the toolbars are public but belong to the module's own type.
 interface AnnotationsHost {
+    ctx: DynamicContext<_ModuleSupport.ChartRegistry>;
     toolbar: { enabled?: boolean };
     optionsToolbar: {
         enabled?: boolean;
@@ -116,6 +118,11 @@ function getAnnotations(chartOrProxy: ChartOrProxy<any>): AnnotationsHost {
     const annotations = deproxy(chartOrProxy).modulesManager.getModule<AnnotationsHost>('annotations');
     assertPresent(annotations, 'annotations module');
     return annotations;
+}
+
+/** The context the annotations module builds its dialogs from, for driving a dialog without a canvas hit-test. */
+export function getAnnotationsModuleContext(chartOrProxy: ChartOrProxy<any>) {
+    return getAnnotations(chartOrProxy).ctx;
 }
 
 /** Whether the annotations module enabled its annotation toolbar and its options toolbar. */

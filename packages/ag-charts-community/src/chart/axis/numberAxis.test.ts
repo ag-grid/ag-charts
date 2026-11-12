@@ -4,7 +4,13 @@ import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { getAxisDomain, getAxisLabelTexts } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
-import { createChart, setupMockCanvas, setupMockConsole } from '../test/utils';
+import {
+    createChart,
+    expectWarningMessages,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 
 // BigInt numeric-axis ticks must render at full precision end-to-end, so these drive a real chart.
 describe('NumberAxis BigInt labels', () => {
@@ -116,8 +122,8 @@ describe('NumberAxis bigint bounds and interval (AG-16608)', () => {
     });
 });
 
-// Explicit `interval.values` leave the domain niced against the tick count, not fitted tightly to the data.
-describe('NumberAxis interval values domain', () => {
+// A fixed `interval` must not let the label-overlap search widen the domain beyond the data.
+describe('NumberAxis fixed interval', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -130,36 +136,140 @@ describe('NumberAxis interval values domain', () => {
         }
     });
 
-    it('shows the 100 tick for values 50, 88, 100 over the axes-intervals values example data', async () => {
-        chart = await createChart({
-            data: [
-                { os: 'Windows', share: 88.07 },
-                { os: 'macOS', share: 9.44 },
-                { os: 'Linux', share: 1.87 },
-            ],
-            series: [{ type: 'bar', xKey: 'os', yKey: 'share' }],
-            axes: {
-                x: { type: 'category', position: 'bottom' },
-                y: { type: 'number', position: 'left', interval: { values: [50, 88, 100] } },
-            },
-        });
+    // Nine bars spanning 0..11000.
+    const data = [
+        { x: 0, value: 2 },
+        { x: 1000, value: 5 },
+        { x: 2000, value: 3 },
+        { x: 3000, value: 1 },
+        { x: 4000, value: 2 },
+        { x: 5000, value: 3 },
+        { x: 9000, value: 1 },
+        { x: 10000, value: 2 },
+        { x: 11000, value: 2 },
+    ];
 
-        expect(getAxisLabelTexts(chart, 'left')).toEqual(['50', '88', '100']);
-        expect(getAxisDomain(chart, 'left').map(Number)).toEqual([0, 100]);
+    const barOptions = (xAxis: object, chartData: object[] = data): AgCartesianChartOptions => ({
+        data: chartData as AgCartesianChartOptions['data'],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'value' }],
+        axes: {
+            x: { type: 'number', position: 'bottom', ...xAxis },
+            y: { type: 'number', position: 'left' },
+        },
     });
 
-    it('keeps the earliest bubble-with-images datum inside the x domain', async () => {
+    const xDomain = (): number[] => getAxisDomain(chart, 'bottom').map(Number);
+
+    it.each([
+        { name: 'at the default width', width: undefined },
+        // Widening the domain far enough makes the scale reject the step, which must not count as a fit.
+        { name: 'on a narrow chart', width: 300 },
+    ])('keeps the x domain fitted to a dense interval.step $name', async ({ width }) => {
+        const options = barOptions({ interval: { step: 100 } });
+        chart = await createChart(options);
+        if (width != null) {
+            await chart.update({ ...options, width });
+            await waitForChartStability(chart);
+        }
+
+        // Bars pad the keys by half the 1000 key interval, then the domain snaps to the 100 step.
+        expect(xDomain()).toEqual([-500, 11500]);
+    });
+
+    it('keeps the automatic x domain when interval.values is dense', async () => {
+        const values = Array.from({ length: 116 }, (_, i) => -500 + i * 100);
+        chart = await createChart(barOptions({ interval: { values } }));
+
+        expect(xDomain()).toEqual([-5000, 15000]);
+    });
+
+    it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {
+        // Far more than one tick per pixel, so the scale rejects the step and uses automatic ticks.
+        chart = await createChart(
+            barOptions(
+                {
+                    interval: { step: 1 },
+                    label: {
+                        formatter: ({ value }: { value: any }) =>
+                            `an extremely long axis label text for value ${value}`,
+                    },
+                },
+                Array.from({ length: 9 }, (_, i) => ({ x: i * 1000, value: i }))
+            )
+        );
+
+        expectWarningMessages([
+            'AG Charts - the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration',
+        ]);
+
+        // Automatic ticks are not pinned, so the overlap search can still thin them.
+        expect(getAxisLabelTexts(chart, 'bottom').length).toBe(2);
+        expect(xDomain()).toEqual([-500, 8500]);
+    });
+});
+
+// Where the labels fit, an `interval` leaves the domain where the automatic fit puts it.
+describe('NumberAxis interval with fitting labels', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        if (chart != null) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const shareOptions = (interval: object): AgCartesianChartOptions => ({
+        data: [
+            { os: 'Windows', share: 88.07 },
+            { os: 'macOS', share: 9.44 },
+            { os: 'Linux', share: 1.87 },
+        ],
+        series: [{ type: 'bar', xKey: 'os', yKey: 'share' }],
+        axes: {
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'number', position: 'left', interval },
+        },
+    });
+
+    it.each([
+        { name: 'a single value at the domain end', values: [100], labels: ['100'] },
+        { name: 'values ending at the domain end', values: [50, 88, 100], labels: ['50', '88', '100'] },
+    ])('shows $name', async ({ values, labels }) => {
+        chart = await createChart(shareOptions({ values }));
+
+        expect(getAxisDomain(chart, 'left').map(Number)).toEqual([0, 100]);
+        expect(getAxisLabelTexts(chart, 'left')).toEqual(labels);
+    });
+
+    it('keeps the earliest bubble inside the x domain', async () => {
+        // Instruments by year of invention; only the years and the 0–10 difficulty scale matter to the x axis.
         const years = [1500, 1000, -5000, 1896, 1892, 1100, -600, 300, 1920, 1761];
         chart = await createChart({
-            data: years.map((year, i) => ({ year, difficulty: i % 10 })),
-            series: [{ type: 'scatter', xKey: 'year', yKey: 'difficulty' }],
+            data: years.map((year, i) => ({ year, difficulty: (i * 3) % 10, popularity: 20 + i * 8 })),
+            series: [
+                { type: 'bubble', xKey: 'year', yKey: 'difficulty', sizeKey: 'popularity', maxSize: 50, minSize: 15 },
+            ],
             axes: {
                 x: { type: 'number', position: 'bottom', interval: { values: [-250, 250] } },
-                y: { type: 'number', position: 'right', min: 0, max: 10, interval: { values: [0, 10] } },
+                y: { type: 'number', position: 'left', min: 0, max: 10, interval: { values: [0, 10] } },
             },
         });
 
-        // The earliest datum (-5000) sits well inside the domain rather than on its left edge, as in 14.2.0.
         expect(getAxisDomain(chart, 'bottom').map(Number)).toEqual([-6000, 2000]);
+    });
+
+    it('narrows the domain of a short step axis until its labels fit', async () => {
+        const options = shareOptions({ step: 25 });
+        chart = await createChart(options);
+        // `createChart` fixes the height, so shrink the chart afterwards to a size where `[0, 100]` cannot fit.
+        await chart.update({ ...options, height: 150 });
+        await waitForChartStability(chart);
+
+        expect(getAxisDomain(chart, 'left').map(Number)).toEqual([0, 90]);
+        expect(getAxisLabelTexts(chart, 'left')).toEqual(['0', '25', '50', '75']);
     });
 });

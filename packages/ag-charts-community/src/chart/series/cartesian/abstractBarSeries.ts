@@ -12,14 +12,14 @@ import {
     isFiniteNumber,
     subtractValues,
 } from 'ag-charts-core';
-import type { AgNumericValue, Direction } from 'ag-charts-types';
+import type { AgItemShadowStyle, AgNumericValue, Direction } from 'ag-charts-types';
 
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../pickTypes';
-import type { SeriesNodeDatum } from '../seriesTypes';
+import { HighlightState, type SelectionState, type SeriesNodeDatum } from '../seriesTypes';
 import { type CartesianAnimationData, CartesianSeries } from './cartesianSeries';
 import type {
     CartesianSeriesNodeDataContext,
@@ -97,6 +97,25 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
     protected isVertical(): boolean {
         return this.options.direction === 'vertical';
+    }
+
+    /**
+     * The `shadow` that an item styler returns for the hovered item, which its in-place copy casts. Each subclass
+     * passes its own `getItemStyle`, as their signatures differ.
+     */
+    protected getHoveredItemShadow(
+        datumIndex: number,
+        getItemStyle: (
+            datumIndex: number,
+            isHighlight: boolean,
+            highlightState: HighlightState,
+            selectionState: SelectionState | undefined,
+            candidateState: SelectionState | undefined
+        ) => AgItemShadowStyle
+    ): AgItemShadowStyle['shadow'] {
+        const selectionState = this.getDataSelectionState(datumIndex);
+        const candidateState = this.getDataCandidacyState(datumIndex);
+        return getItemStyle(datumIndex, true, HighlightState.Item, selectionState, candidateState).shadow;
     }
 
     protected getBarDirection() {

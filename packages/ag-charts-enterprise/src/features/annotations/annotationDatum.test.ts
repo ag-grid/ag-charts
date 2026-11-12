@@ -12,6 +12,8 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
+import { hasSelectionAxes } from './annotationDatum';
+import { annotationDatums } from './annotationDatums';
 import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
     compareAnnotationsSnapshot,
@@ -664,5 +666,28 @@ describe('Annotation datum lifecycle', () => {
             await prepareChart([MINIMAL_ANNOTATIONS['date-range']], options);
             await compare();
         });
+    });
+});
+
+describe('Annotation selection axes', () => {
+    const WITH_SELECTION_AXES = [
+        'line',
+        'arrow',
+        'parallel-channel',
+        'disjoint-channel',
+        'fibonacci-retracement',
+        'fibonacci-retracement-trend-based',
+        'date-range',
+        'price-range',
+        'date-price-range',
+        'quick-date-price-range',
+    ];
+
+    it('is carried by the annotations with two or more points and no others', () => {
+        const carriers = Object.entries(annotationDatums)
+            .filter(([, datumType]) => hasSelectionAxes(datumType.create()))
+            .map(([type]) => type);
+
+        expect(new Set(carriers)).toEqual(new Set(WITH_SELECTION_AXES));
     });
 });

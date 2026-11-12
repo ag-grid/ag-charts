@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createElement } from '../dom/domElements';
+import type { ElementID } from '../identity/idBranding';
 import { NativeWidget } from './nativeWidget';
 import type { WidgetEvent } from './widgetEvents';
 
@@ -29,6 +30,24 @@ describe('Widget', () => {
         });
     });
 
+    describe('setOpacity', () => {
+        it('sets and removes the inline opacity', () => {
+            const widget = makeWidget();
+            widget.setOpacity(0.25);
+            expect(widget.getElement().style.opacity).toBe('0.25');
+            widget.setOpacity(undefined);
+            expect(widget.getElement().style.opacity).toBe('');
+        });
+    });
+
+    describe('setInnerText', () => {
+        it('writes the text through innerText', () => {
+            const widget = makeWidget();
+            widget.setInnerText('No data\nto display');
+            expect(widget.getElement().innerText).toBe('No data\nto display');
+        });
+    });
+
     describe('setData', () => {
         it('sets and removes a data attribute by its dataset key', () => {
             const widget = makeWidget();
@@ -42,6 +61,25 @@ describe('Widget', () => {
             const widget = makeWidget();
             widget.setData('agCharts', '');
             expect(widget.getElement().getAttribute('data-ag-charts')).toBe('');
+        });
+    });
+
+    describe('setAriaChecked, setAriaSelected and setAriaLabelledBy', () => {
+        it('writes false as the string "false" and removes the attribute when undefined', () => {
+            const widget = makeWidget();
+            widget.setAriaChecked(false);
+            widget.setAriaSelected(true);
+            widget.setAriaLabelledBy('ag-charts-label' as ElementID);
+            expect(widget.getElement().getAttribute('aria-checked')).toBe('false');
+            expect(widget.getElement().getAttribute('aria-selected')).toBe('true');
+            expect(widget.getElement().getAttribute('aria-labelledby')).toBe('ag-charts-label');
+
+            widget.setAriaChecked(undefined);
+            widget.setAriaSelected(undefined);
+            widget.setAriaLabelledBy(undefined);
+            expect(widget.getElement().hasAttribute('aria-checked')).toBe(false);
+            expect(widget.getElement().hasAttribute('aria-selected')).toBe(false);
+            expect(widget.getElement().hasAttribute('aria-labelledby')).toBe(false);
         });
     });
 
@@ -242,6 +280,36 @@ describe('Widget', () => {
             expect(widget.getElement().style.minWidth).toBe('200px');
             widget.setMinWidth(undefined);
             expect(widget.getElement().style.minWidth).toBe('');
+        });
+    });
+
+    describe('setWidth', () => {
+        it('sets and removes width in pixels', () => {
+            const widget = makeWidget();
+            widget.setWidth(120);
+            expect(widget.getElement().style.width).toBe('120px');
+            widget.setWidth(undefined);
+            expect(widget.getElement().style.width).toBe('');
+        });
+    });
+
+    describe('setMaxWidth', () => {
+        it('sets and removes max-width in pixels', () => {
+            const widget = makeWidget();
+            widget.setMaxWidth(300.5);
+            expect(widget.getElement().style.maxWidth).toBe('300.5px');
+            widget.setMaxWidth(undefined);
+            expect(widget.getElement().style.maxWidth).toBe('');
+        });
+    });
+
+    describe('setTextAlign', () => {
+        it('sets and removes text-align', () => {
+            const widget = makeWidget();
+            widget.setTextAlign('right');
+            expect(widget.getElement().style.textAlign).toBe('right');
+            widget.setTextAlign(undefined);
+            expect(widget.getElement().style.textAlign).toBe('');
         });
     });
 

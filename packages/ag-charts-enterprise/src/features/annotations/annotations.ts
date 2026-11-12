@@ -3,6 +3,7 @@ import {
     type AgAnnotationFollow,
     type AgAnnotationFollowName,
     type AgAnnotationLineStyleType,
+    type AgAnnotationsEventSource,
     type Direction,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -139,6 +140,7 @@ export class Annotations extends AbstractModuleInstance {
         this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
 
         this.cleanup.register(
+            ctx.annotationManager?.setEditingProbe(() => this.isEditing()),
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'annotations');
                 const enabled = opts?.enabled ?? false;
@@ -252,6 +254,10 @@ export class Annotations extends AbstractModuleInstance {
                 if (previousNode === selectedNode && selectedNode != null) return;
 
                 previousNode?.toggleActive(false);
+                // A reset deselects without naming the previous annotation, so clear every other one.
+                for (const node of annotations.nodes()) {
+                    if (node !== selectedNode) node.toggleSelected(false);
+                }
 
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
@@ -259,6 +265,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
+                    selectedNode.toggleSelected(true);
                     if (!isEphemeralType(selectedDatum)) {
                         optionsToolbar.updateButtons(this.annotationData.at(index!)!);
                         this.postUpdateFns.push(() => {
@@ -281,7 +288,10 @@ export class Annotations extends AbstractModuleInstance {
 
             selectLast: () => {
                 this.pushAnnotationState(InteractionState.AnnotationsSelected);
-                return this.annotationData.length - 1;
+                const index = this.annotationData.length - 1;
+                // A drawn annotation's scene does not exist until the next update, and no `select` reaches it.
+                this.postUpdateFns.push(() => this.annotations.at(index)?.toggleSelected(true));
+                return index;
             },
 
             startInteracting: () => {
@@ -297,7 +307,6 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             create: (type: AnnotationType, datum: AnnotationDatum) => {
-                this.toolbar.releasePendingTool();
                 this.createAnnotation(type, datum);
             },
 
@@ -430,6 +439,8 @@ export class Annotations extends AbstractModuleInstance {
                     initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
+                    getContext: () => this.getAnnotationContext(),
+                    onChangeCoordinates: (props) => this.state.transition('coordinates', props),
                     onChangeLine: (props) => {
                         if (props.follow != null) {
                             this.setFollow(datum, props.follow);
@@ -518,7 +529,9 @@ export class Annotations extends AbstractModuleInstance {
 
             // Toolbar
             toolbar.events.on('cancel-create-annotation', () => {
-                this.cancelCreate();
+                this.cancel();
+                this.reset();
+                this.update();
             }),
             toolbar.events.on('pressed-create-annotation', ({ annotation }) => {
                 this.cancel();
@@ -527,8 +540,8 @@ export class Annotations extends AbstractModuleInstance {
                 this.state.transition(annotation);
                 this.update();
             }),
-            toolbar.events.on('pressed-place-annotation', ({ sourceEvent }) => {
-                this.createPendingAnnotation(sourceEvent);
+            toolbar.events.on('pressed-place-annotation', ({ annotation, sourceEvent }) => {
+                this.createAnnotationAtCentre(annotation, sourceEvent);
             }),
             toolbar.events.on('pressed-clear', () => {
                 this.clear();
@@ -738,10 +751,10 @@ export class Annotations extends AbstractModuleInstance {
         return annotationConfigs[datum.type].copy(node, datum, newDatum, context);
     }
 
-    private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
+    private onRestoreAnnotations(event: { annotations: Array<AgAnnotation>; source: AgAnnotationsEventSource }) {
         if (!(this.opts.enabled ?? true)) return;
 
-        const { annotations } = event;
+        const { annotations, source } = event;
         const canPatchInPlace =
             this.annotationData.length === annotations.length &&
             annotations.every((annotation, index) => {
@@ -756,6 +769,7 @@ export class Annotations extends AbstractModuleInstance {
                     const current = this.annotationData[i];
                     resetAnnotationDatum(current, annotationDatums[current.type].create(), annotations[i]);
                 }
+                this.syncSelection();
             } else {
                 this.reset();
                 this.annotationData = annotations.map((annotation) => this.createAnnotationDatum(annotation));
@@ -765,9 +779,19 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         this.postUpdateFns.push(() => {
-            this.ctx.annotationManager?.fireChangedEvent();
+            this.ctx.annotationManager?.fireChangedEvent(source);
         });
         this.update();
+    }
+
+    private syncSelection() {
+        const active = this.state.getActive();
+        const datum = active == null ? undefined : this.annotationData.at(active);
+        if (datum?.readOnly) {
+            this.reset();
+        } else if (datum) {
+            this.optionsToolbar.refreshButtons(datum);
+        }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -817,18 +841,14 @@ export class Annotations extends AbstractModuleInstance {
                 annotations.each((sceneNode) => {
                     const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = value;
-                    if ('setAxisLabelOpacity' in node) {
-                        node.setAxisLabelOpacity(value);
-                    }
+                    node.setAxisLabelOpacity(value);
                 });
             },
             onStop() {
                 annotations.each((sceneNode) => {
                     const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = to;
-                    if ('setAxisLabelOpacity' in node) {
-                        node.setAxisLabelOpacity(to);
-                    }
+                    node.setAxisLabelOpacity(to);
                 });
             },
         });
@@ -837,6 +857,7 @@ export class Annotations extends AbstractModuleInstance {
     private onPreRender() {
         if (!(this.opts.enabled ?? true)) return;
         this.updateAnnotations();
+        this.settingsDialog.refreshCoordinates();
         this.state.transition('render');
     }
 
@@ -891,7 +912,7 @@ export class Annotations extends AbstractModuleInstance {
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
             historyManager.record(label, ...originators);
-            annotationManager.fireChangedEvent();
+            annotationManager.fireChangedEvent('user-interaction');
         });
     }
 
@@ -947,15 +968,11 @@ export class Annotations extends AbstractModuleInstance {
                 const node = sceneNode as AnnotationSceneUnion;
                 if (!showAnnotations) {
                     node.visible = false;
-                    if ('setAxisLabelVisible' in node) {
-                        node.setAxisLabelVisible(false);
-                    }
+                    node.setAxisLabelVisible(false);
                     return;
                 }
 
-                if ('setAxisLabelVisible' in node) {
-                    node.setAxisLabelVisible(true);
-                }
+                node.setAxisLabelVisible(true);
                 updateAnnotation(node, datum, context);
             });
 
@@ -981,12 +998,14 @@ export class Annotations extends AbstractModuleInstance {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(xAxis.layout),
+                thickness: xAxis.layout.labelThickness ?? 0,
                 snapToGroup: snap,
             },
             yAxis: {
                 ...yAxis.context,
                 bounds: yAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(yAxis.layout),
+                thickness: yAxis.layout.labelThickness ?? 0,
                 snapToGroup: snap,
             },
         };
@@ -1065,15 +1084,6 @@ export class Annotations extends AbstractModuleInstance {
         this.update();
     }
 
-    /** Abandon the chosen tool and put focus back on its button, where the user chose it. */
-    private cancelCreate() {
-        // Must run first: cancelling releases the pending tool.
-        if (this.toolbar.getPendingAnnotation() != null) this.toolbar.focusPendingToolButton();
-        this.cancel();
-        this.reset();
-        this.update();
-    }
-
     private onResize() {
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
@@ -1121,29 +1131,22 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('dragEnd');
     }
 
-    private onCancel({ sourceEvent }: ClickWidgetEvent) {
-        if (sourceEvent.currentTarget !== sourceEvent.target) return;
+    private onCancel(widgetEvent?: ClickWidgetEvent) {
+        const { sourceEvent } = widgetEvent ?? {};
+        if (sourceEvent?.currentTarget !== sourceEvent?.target) return;
         this.cancel();
         this.reset();
     }
 
-    /** Place the annotation of the chosen tool at once, without a pointer. */
-    private createPendingAnnotation(sourceEvent: KeyboardEvent) {
-        const type = this.toolbar.getPendingAnnotation();
+    /** Create the annotation at the centre of the chart at once, without a pointer. */
+    private createAnnotationAtCentre(type: AnnotationType, sourceEvent: KeyboardEvent) {
         const context = this.getAnnotationContext();
-        if (type == null || !context) return;
+        if (!context) return;
 
         sourceEvent.preventDefault();
 
         const { width, height } = context.seriesRect;
         const points = getKeyboardCreateOffsets(type, { width, height }).map((offset) => invertCoords(offset, context));
-
-        this.state.transition('create', { points });
-        // The machine releases the pending tool when it takes the event; if it did not, leave focus on the button.
-        if (this.toolbar.getPendingAnnotation() != null) {
-            this.toolbar.releasePendingTool();
-            return;
-        }
 
         // The tool's button can be a menu item that is gone, so focus must land where the arrow keys work.
         const { seriesWidget } = this.ctx.widgets;
@@ -1151,6 +1154,7 @@ export class Annotations extends AbstractModuleInstance {
         const label = getAnnotationLabel(type);
         if (label != null) seriesWidget.swapChain.update(this.ctx.localeManager.t(label));
 
+        this.state.transition('create', { points });
         this.update();
     }
 
@@ -1207,14 +1211,8 @@ export class Annotations extends AbstractModuleInstance {
                 translation.x = xStep;
                 break;
             case 'Escape':
-                this.cancelCreate();
+                this.onCancel();
                 return;
-            case 'Enter':
-                if (this.toolbar.getPendingAnnotation() != null) {
-                    this.createPendingAnnotation(sourceEvent);
-                    return;
-                }
-                break;
             case 'Backspace':
             case 'Delete':
                 this.onDelete();
@@ -1325,6 +1323,10 @@ export class Annotations extends AbstractModuleInstance {
     ) {
         this.ctx.interactionManager.popState(state);
         this.ctx.tooltipManager.unsuppressTooltip('annotations');
+    }
+
+    private isEditing() {
+        return !this.state.isIdle() || this.settingsDialog.isVisible() || this.optionsToolbar.isMenuVisible();
     }
 
     private isAnnotationState() {

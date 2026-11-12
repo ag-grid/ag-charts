@@ -7,7 +7,13 @@ export interface SpreadCanvas {
 
 const MIN_DIMENSION = 64;
 
-const spreadCanvases = new WeakMap<object, Map<number, SpreadCanvas>>();
+/** Which scratch canvas of a context: the silhouette that a shape dilates, or the canvas that a glow's gap is cut out of. */
+export type SpreadCanvasKind = 'silhouette' | 'gap';
+
+const spreadCanvases: Record<SpreadCanvasKind, WeakMap<object, Map<number, SpreadCanvas>>> = {
+    silhouette: new WeakMap(),
+    gap: new WeakMap(),
+};
 
 function bucket(dimension: number, max: number): number {
     return Math.min(Math.max(MIN_DIMENSION, 2 ** Math.ceil(Math.log2(dimension))), Math.max(max, dimension));
@@ -24,12 +30,38 @@ export function getSpreadCanvas(
     width: number,
     height: number,
     maxWidth: number,
-    maxHeight: number
+    maxHeight: number,
+    kind: SpreadCanvasKind = 'silhouette'
 ): SpreadCanvas {
-    let sizes = spreadCanvases.get(ctx);
+    return getSpreadCanvasOrUndefined(ctx, width, height, maxWidth, maxHeight, kind, true)!;
+}
+
+/** As {@link getSpreadCanvas}, but undefined when the browser refuses the canvas's context. Nothing is cached then. */
+export function tryGetSpreadCanvas(
+    ctx: object,
+    width: number,
+    height: number,
+    maxWidth: number,
+    maxHeight: number,
+    kind: SpreadCanvasKind = 'silhouette'
+): SpreadCanvas | undefined {
+    return getSpreadCanvasOrUndefined(ctx, width, height, maxWidth, maxHeight, kind, false);
+}
+
+function getSpreadCanvasOrUndefined(
+    ctx: object,
+    width: number,
+    height: number,
+    maxWidth: number,
+    maxHeight: number,
+    kind: SpreadCanvasKind,
+    assertContext: boolean
+): SpreadCanvas | undefined {
+    const store = spreadCanvases[kind];
+    let sizes = store.get(ctx);
     if (sizes == null) {
         sizes = new Map();
-        spreadCanvases.set(ctx, sizes);
+        store.set(ctx, sizes);
     }
 
     const canvasWidth = bucket(width, maxWidth);
@@ -37,9 +69,14 @@ export function getSpreadCanvas(
     const key = canvasWidth * 0x10000 + canvasHeight;
     let spreadCanvas = sizes.get(key);
     if (spreadCanvas == null) {
-        const OffscreenCanvasCtor = getOffscreenCanvas();
-        const canvas = new OffscreenCanvasCtor(canvasWidth, canvasHeight);
-        spreadCanvas = { canvas, context: canvas.getContext('2d')! };
+        if (assertContext) {
+            const OffscreenCanvasCtor = getOffscreenCanvas();
+            const canvas = new OffscreenCanvasCtor(canvasWidth, canvasHeight);
+            spreadCanvas = { canvas, context: canvas.getContext('2d')! };
+        } else {
+            spreadCanvas = allocateCanvas(canvasWidth, canvasHeight);
+            if (spreadCanvas == null) return;
+        }
         sizes.set(key, spreadCanvas);
     }
     return spreadCanvas;
@@ -64,9 +101,11 @@ export function disposeCanvas(canvas: OffscreenCanvas) {
 }
 
 export function releaseSpreadCanvas(ctx: object) {
-    const sizes = spreadCanvases.get(ctx);
-    if (sizes == null) return;
+    for (const store of Object.values(spreadCanvases)) {
+        const sizes = store.get(ctx);
+        if (sizes == null) continue;
 
-    for (const { canvas } of sizes.values()) disposeCanvas(canvas);
-    spreadCanvases.delete(ctx);
+        for (const { canvas } of sizes.values()) disposeCanvas(canvas);
+        store.delete(ctx);
+    }
 }

@@ -20,7 +20,7 @@ import {
     releaseShadowScratch,
     shadowPass,
 } from 'ag-charts-core';
-import type { RenderContext, ResolvedDropShadowOptions, ShadowCaster, ShadowKey, Shape } from 'ag-charts-core';
+import type { RenderContext, ResolvedDropShadowOptions, ShadowKey, Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { BLACK, type Pixel, box, isHalfRed } from '../util/test/shadowPixels';
@@ -32,6 +32,7 @@ const HEIGHT = 220;
 const RED_HALF = { enabled: true, fill: 'rgba(255, 0, 0, 0.5)', xOffset: 100, yOffset: 0, blur: 0 };
 const BLUE = { enabled: true, fill: 'rgba(0, 0, 255, 1)', xOffset: 100, yOffset: 0, blur: 0 };
 const IN_PLACE = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+const GAPPED_GLOW = { ...IN_PLACE, spread: 8, gap: 0, glow: true as const };
 
 const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
 
@@ -1149,6 +1150,34 @@ describe('Group shadow compositor', () => {
             // The cutout casts its own shadow, as a single caster.
             expect(at(330, 110)[3]).toBeGreaterThan(0);
         });
+
+        describe.each([
+            ['without a spread, inline', {}],
+            ['with a spread, from the pre-pass', { spread: 4 }],
+        ])('a cutout with a glow %s', (_name, extra) => {
+            const cutoutWith = (options: Partial<Shape>) =>
+                box(200, 90, 60, 40, { fill: 'rgba(0, 0, 255, 0.5)', drawingMode: 'cutout', ...options });
+
+            it('should cast its own glow as it casts its own shadow, once', () => {
+                const CAST = { ...RED_HALF, ...extra };
+                renderNodes([box(100, 90, 40, 40, { fillShadow: CAST }), cutoutWith({ fillShadow: CAST })]);
+                const asShadow = pixels();
+                renderNodes([box(100, 90, 40, 40, { fillShadow: CAST }), cutoutWith({ fillGlow: CAST })]);
+
+                expect(pixels()).toEqual(asShadow);
+                // Cast by the cutout alone, at the strength of its fill: the batch would stack a second glow over it.
+                expect(at(330, 110)).toEqual([255, 0, 0, 64]);
+            });
+
+            it('should cast its glow and its shadow together, each once', () => {
+                const SHADOW = { ...RED_HALF, ...extra };
+                const GLOW = { ...BLUE, xOffset: -100, ...extra };
+                renderNodes([cutoutWith({ fillShadow: SHADOW, fillGlow: GLOW })]);
+
+                expect(at(330, 110)).toEqual([255, 0, 0, 64]);
+                expect(at(130, 110)).toEqual([0, 0, 255, 128]);
+            });
+        });
     });
 
     describe('mixed shadow options', () => {
@@ -1574,6 +1603,116 @@ describe('Group shadow compositor', () => {
                 expect([alpha(7120, 65), alpha(7120, 45), alpha(7120, 85)]).toEqual([255, 255, 255]);
                 expect(alpha(7220, 65)).toBe(0);
             });
+
+            describe('a glow with a gap', () => {
+                const pixelOf = (layer: OffscreenCanvas, x: number, y: number) =>
+                    Array.from(
+                        (layer.getContext('2d')! as unknown as CanvasRenderingContext2D).getImageData(x, y, 1, 1).data
+                    );
+
+                // The footprint of the item is cut out of the glow on a canvas that fits the glow, not the layer. The large item's
+                // glow is itself too large for a canvas, so it is cut at a lower resolution.
+                it.each([
+                    ['a small item', [20, 40, 40, 50], [40, 65], [64, 65], [80, 65]],
+                    ['an item as large as the layer', [20, 20, 4150, 4050], [2000, 2000], [4174, 2000], [4190, 2000]],
+                ])(
+                    'should cast the glow around %s with the footprint cut out of it',
+                    (_name, [x, y, width, height], inside, glow, far) => {
+                        const group = createGroup([
+                            box(x, y, width, height, { fill: 'rgba(0, 0, 255, 0.5)', fillGlow: GAPPED_GLOW }),
+                            box(20, 4000, 40, 50, { fillShadow: RED_HALF }),
+                        ]);
+
+                        const { layer } = renderLayer(4200, 4100, group);
+
+                        expect(pixelOf(layer, inside[0], inside[1]).slice(0, 3)).toEqual([0, 0, 255]);
+                        expect(pixelOf(layer, glow[0], glow[1])[3]).toBeGreaterThan(0);
+                        expect(pixelOf(layer, far[0], far[1])[3]).toBe(0);
+                        // The shadow of the other item is cast in the same run.
+                        expect(pixelOf(layer, 140, 4025)[3]).toBeGreaterThan(0);
+                    }
+                );
+
+                // A glow with no fill takes the colour of its item, and a canvas that can tint casts it from one mask of every colour.
+                // The cut is made on a canvas that fits the glow, or a lower resolution of it, and is the same either way.
+                describe('with no fill', () => {
+                    afterEach(() => overrideTintableShadows());
+
+                    it.each([
+                        ['a small item', [20, 40, 40, 50], [40, 65], [64, 65], [80, 65]],
+                        [
+                            'an item as large as the layer',
+                            [20, 20, 4150, 4050],
+                            [2000, 2000],
+                            [4174, 2000],
+                            [4190, 2000],
+                        ],
+                    ])(
+                        'should cast the glow of the colour of %s with the footprint cut out, whether or not the canvas can tint',
+                        (_name, [x, y, width, height], inside, glow, far) => {
+                            const probes = (canTint: boolean) => {
+                                overrideTintableShadows(canTint);
+                                const group = createGroup([
+                                    box(x, y, width, height, {
+                                        fill: 'rgba(0, 0, 255, 0.5)',
+                                        fillGlow: { ...GAPPED_GLOW, fill: undefined, fillOpacity: 1 },
+                                    }),
+                                ]);
+                                const { layer } = renderLayer(4200, 4100, group);
+                                return [inside, glow, far].map(([px, py]) => pixelOf(layer, px, py));
+                            };
+
+                            const tinted = probes(true);
+                            const perColour = probes(false);
+
+                            for (const [cut, ring, beyond] of [tinted, perColour]) {
+                                // Only the item, at half strength, where the glow is cut out of it.
+                                expect(cut.slice(0, 3)).toEqual([0, 0, 255]);
+                                expect(Math.abs(cut[3] - 128)).toBeLessThanOrEqual(1);
+                                // The alpha of the colour applies to the glow once in its colour and once in its strength.
+                                expect(ring.slice(0, 3)).toEqual([0, 0, 255]);
+                                expect(Math.abs(ring[3] - 64)).toBeLessThanOrEqual(2);
+                                expect(beyond[3]).toBe(0);
+                            }
+                            for (let i = 0; i < tinted.length; i++) {
+                                for (let c = 0; c < 4; c++) {
+                                    expect(Math.abs(tinted[i][c] - perColour[i][c])).toBeLessThanOrEqual(1);
+                                }
+                            }
+                        }
+                    );
+                });
+
+                it('should cast the glow without the cut, and the shadows beside it, when no canvas can cut it', () => {
+                    const group = createGroup([
+                        box(20, 40, 40, 50, { fill: 'rgba(0, 0, 255, 0.5)', fillGlow: GAPPED_GLOW }),
+                        box(20, 130, 40, 50, { fillShadow: RED_HALF }),
+                    ]);
+                    const layer = new OffscreenCanvas(WIDTH, HEIGHT);
+
+                    // The glow's cast makes its scratch canvas, then the canvas that the gap is cut on, which is refused.
+                    const getContext = OffscreenCanvas.prototype.getContext;
+                    const canvases: OffscreenCanvas[] = [];
+                    const refuseGapCanvas = vi
+                        .spyOn(OffscreenCanvas.prototype, 'getContext')
+                        .mockImplementation(function (this: OffscreenCanvas, ...args: Parameters<typeof getContext>) {
+                            if (!canvases.includes(this)) canvases.push(this);
+                            return canvases.indexOf(this) === 1 ? null : getContext.apply(this, args);
+                        } as typeof getContext);
+                    try {
+                        drawOnLayer(group, layer);
+                    } finally {
+                        refuseGapCanvas.mockRestore();
+                    }
+
+                    expect(canvases.length).toBeGreaterThan(1);
+                    const inside = pixelOf(layer, 40, 65);
+                    expect(inside[0]).toBeGreaterThan(0);
+                    expect(inside[2]).toBeGreaterThan(0);
+                    expect(pixelOf(layer, 64, 65)[3]).toBeGreaterThan(0);
+                    expect(pixelOf(layer, 140, 155)[3]).toBeGreaterThan(0);
+                });
+            });
         });
 
         it('should share one scratch canvas between the groups of a scene', () => {
@@ -1828,6 +1967,116 @@ describe('Group shadow compositor', () => {
             expectSamePixels(second.pixels, expected);
             expect(third.masked).toEqual([]);
             expectSamePixels(third.pixels, expected);
+        });
+
+        // The item is clear of the layer's origin, so the kept canvas is offset from it, and the cut is made on that offset.
+        it('should cut a glow with a gap the same from what it kept as it drew at first', () => {
+            const group = createGroup([
+                caster(60, { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined, fillGlow: GAPPED_GLOW }),
+                box(220, 40, 40, 40),
+            ]);
+
+            const first = redraw(group);
+            const second = redraw(group);
+            const third = redraw(group);
+
+            // The first draw casts directly, the second fills the cache, and the third blits it, with no cast.
+            expect(first.masked).toContain(60);
+            expect(second.masked).toContain(60);
+            expect(third.masked).toEqual([]);
+            expectSamePixels(second.pixels, first.pixels);
+            expectSamePixels(third.pixels, first.pixels);
+            expect(at(80, 60)).toEqual(BLUE_PIXEL.map((value, i) => (i === 3 ? 128 : value)));
+            expect(at(106, 60)[3]).toBeGreaterThan(0);
+        });
+
+        // A kept glow is cut with the gap it was cast with, so a change of the gap alone, with the same casters, casts it again.
+        // The probe is where the two gaps differ: inside the item, and in the ring between the item and a gap of 5.
+        it.each([
+            ['unset to 0', undefined, 0, { x: 80, y: 60 }],
+            ['0 to 5', 0, 5, { x: 57, y: 60 }],
+        ])('should cast a kept glow again when its gap changed from %s', (_name, from, to, probe) => {
+            const glow = (gap: number | undefined): Rect['fillGlow'] => ({
+                ...GAPPED_GLOW,
+                gap,
+            });
+            const make = (gap: number | undefined) => () =>
+                createGroup([
+                    caster(60, { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined, fillGlow: glow(gap) }),
+                    box(220, 40, 40, 40),
+                ]);
+            const change = (target: Group) => {
+                ([...target.children()][0] as Rect).fillGlow = glow(to);
+            };
+            const expected = direct(make(to), nothing);
+            const group = kept(make(from));
+            const before = redraw(group).pixels;
+            const probed = (data: number[]) => {
+                const i = (probe.y * WIDTH + probe.x) * 4;
+                return data.slice(i, i + 4);
+            };
+            expect(probed(before)).not.toEqual(probed(expected));
+
+            change(group);
+            const first = redraw(group);
+            const second = redraw(group);
+            const third = redraw(group);
+
+            expect(first.masked).toContain(60);
+            expect(second.masked).toContain(60);
+            expect(third.masked).toEqual([]);
+            for (const draw of [first, second, third]) {
+                expectSamePixels(draw.pixels, expected);
+            }
+        });
+
+        it.each([
+            ['a glow with a gap', GAPPED_GLOW],
+            ['a glow with no gap', { ...GAPPED_GLOW, gap: undefined }],
+        ])('should measure each caster of %s once when it fills the cache', (_name, fillGlow) => {
+            const measured = vi.spyOn(Rect.prototype, 'getShadowSilhouetteBounds');
+            const group = createGroup([
+                caster(60, { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined, fillGlow }),
+                caster(140, { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined, fillGlow }),
+                box(220, 40, 40, 40),
+            ]);
+            redraw(group);
+            measured.mockClear();
+
+            // The second draw of a cast fills the cache, so it measures the casters for the cache and for the cut.
+            redraw(group);
+
+            expect(measured).toHaveBeenCalledTimes(2);
+            measured.mockRestore();
+        });
+
+        it('should keep the shadow of another item showing through an item with a gap of 0, from what it kept', () => {
+            const GREEN = { ...RED_HALF, fill: 'rgba(0, 255, 0, 1)', xOffset: 50 };
+            const translucent = { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: undefined };
+            const make = (fillGlow?: Rect['fillGlow']) => () =>
+                createGroup([
+                    caster(20, { fill: 'black', fillShadow: GREEN }),
+                    caster(60, { ...translucent, fillGlow }),
+                    box(220, 40, 40, 40),
+                ]);
+            redraw(make()());
+            const expected = at(85, 60);
+            expect(expected[1]).toBeGreaterThan(100);
+
+            const group = make(GAPPED_GLOW)();
+            const first = redraw(group);
+            const second = redraw(group);
+            const third = redraw(group);
+
+            expect(first.masked).toContain(60);
+            expect(second.masked).toContain(60);
+            expect(third.masked).toEqual([]);
+            expectSamePixels(third.pixels, first.pixels);
+            for (const draw of [first, second, third]) {
+                const pixel = draw.pixels.slice((60 * WIDTH + 85) * 4, (60 * WIDTH + 85) * 4 + 4);
+                expect(pixel.every((value, i) => Math.abs(value - expected[i]) <= 1)).toBe(true);
+            }
+            expect(at(80, 36)[3]).toBeGreaterThan(0);
         });
 
         it('should free its canvas when the shadows changed, and keep the shadows again once the cast repeats', () => {
@@ -2462,9 +2711,10 @@ describe('Group shadow compositor', () => {
         });
 
         const keyOf = (caster: Shape, shadow: ResolvedDropShadowOptions): ShadowKey => ({
+            slot: 'shadow',
             shadow,
             clip: undefined,
-            casters: [caster as ShadowCaster],
+            casters: [caster],
         });
 
         it('should draw no shadow at all when one of its keys can not be cast', () => {
@@ -2484,6 +2734,39 @@ describe('Group shadow compositor', () => {
 
             expect(castShadows({ scene: undefined, user, keys: keys(0), index: 0 }, renderContext())).toBe(true);
             expect(paintedPixels()).toBeGreaterThan(0);
+        });
+
+        // The casters of the keys are the same node throughout, so only the gap of the shadow tells a kept cast to be made again.
+        it.each([
+            ['unset to 0', undefined, 0, { x: 80, y: 60 }],
+            ['0 to 5', 0, 5, { x: 57, y: 60 }],
+        ])('should cast a kept glow again when only its gap changed from %s', (_name, from, to, probe) => {
+            const glowWith = (gap: number | undefined): ResolvedDropShadowOptions =>
+                gap == null ? { ...IN_PLACE, spread: 8, glow: true } : { ...IN_PLACE, spread: 8, gap, glow: true };
+            // The node keeps the glow it has, as only the key's shadow changes between the casts.
+            const item = box(60, 40, 40, 40, { fill: 'rgba(0, 0, 255, 0.5)', fillGlow: glowWith(from) });
+            createGroup([item]).preRender(renderContext());
+            const cast = (user: object, gap: number | undefined) => {
+                clearCanvas();
+                const key: ShadowKey = { ...keyOf(item, glowWith(gap)), slot: 'glow' };
+                castShadows({ scene: undefined, user, keys: [key], index: 0 }, renderContext());
+                return pixels();
+            };
+            const probed = (data: number[]) => data.slice((probe.y * WIDTH + probe.x) * 4).slice(0, 4);
+            const expected = cast({}, to);
+            const user = {};
+
+            // The second cast fills the cache and the third blits it.
+            const [, , before] = [cast(user, from), cast(user, from), cast(user, from)];
+            expect(probed(before)).not.toEqual(probed(expected));
+            const first = cast(user, to);
+            const second = cast(user, to);
+            const third = cast(user, to);
+
+            for (const actual of [first, second, third]) {
+                expect(actual).toHaveLength(expected.length);
+                expect(actual.every((value, i) => Math.abs(value - expected[i]) <= 1)).toBe(true);
+            }
         });
 
         // A group casts each run of children that share a shadow in a call of its own, so a run that can't be cast falls back
@@ -2644,20 +2927,39 @@ describe('Group shadow compositor', () => {
                     return node;
                 };
 
-                it.each([
+                const PAINTS = [
                     ['a stroke with no fill', (fill: string) => ({ fill: 'none', stroke: fill, strokeWidth: 4 })],
                     ['a gradient fill', (fill: string) => ({ fill: fading(fill) })],
                     ['extras', (fill: string) => ({ fill, stroke: fill })],
-                ] as const)('should make a mask for each colour of items with %s', (name, paint) => {
+                ] as const;
+                const paintedNodes = (
+                    name: (typeof PAINTS)[number][0],
+                    paint: (typeof PAINTS)[number][1],
+                    fillShadow: Shape['fillShadow'],
+                    count: number
+                ) => {
                     const create = name === 'extras' ? withExtras : box;
-                    const nodes = (count: number) =>
-                        COLOURS.slice(0, count).map((colour, i) =>
-                            create(20 + i * 70, 60, 40, 40, { ...paint(colour), fillShadow: NO_SPREAD })
-                        );
+                    return COLOURS.slice(0, count).map((colour, i) =>
+                        create(20 + i * 70, 60, 40, 40, { ...paint(colour), fillShadow })
+                    );
+                };
 
-                    expect(blitsOf(nodes(1))).toBe(1);
-                    expect(blitsOf(nodes(COLOURS.length))).toBe(COLOURS.length);
+                it.each(PAINTS)('should make a mask for each colour of items with %s', (name, paint) => {
+                    expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, 1))).toBe(1);
+                    expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, COLOURS.length))).toBe(COLOURS.length);
                 });
+
+                // A gap dilates the silhouette as a spread does, so the mask is a solid silhouette that any colour can tint.
+                it.each(PAINTS)(
+                    'should share a mask between the colours of items with %s, given a gap',
+                    (name, paint) => {
+                        const gapped = { ...NO_SPREAD, gap: 0 };
+                        const alone = blitsOf(paintedNodes(name, paint, gapped, 1));
+
+                        expect(alone).toBeGreaterThan(0);
+                        expect(blitsOf(paintedNodes(name, paint, gapped, COLOURS.length))).toBe(alone);
+                    }
+                );
             });
 
             it('should draw the glow around each item in the colour of that item', () => {
@@ -2715,6 +3017,72 @@ describe('Group shadow compositor', () => {
                         for (let i = 0; i < 4; i++) expect(Math.abs(tinted[i] - perColour[i])).toBeLessThanOrEqual(1);
                     }
                 );
+            });
+
+            describe('translucent items with a gap', () => {
+                afterEach(() => overrideTintableShadows());
+
+                // The item is red at half strength, and sits clear of the layer's origin, so the cut is made on a canvas offset from it.
+                const GAPPED = { ...GLOW, gap: 0 };
+                const render = (fillShadow: Shape['fillShadow'], canTint: boolean) => {
+                    overrideTintableShadows(canTint);
+                    renderNodes([box(20, 60, 40, 40, { fill: 'rgba(255, 0, 0, 0.5)', fillShadow })]);
+                    return pixels();
+                };
+                const pixelAtOf = (data: number[], x: number, y: number) =>
+                    data.slice((y * WIDTH + x) * 4, (y * WIDTH + x) * 4 + 4);
+
+                it.each([true, false])(
+                    'should cut the item out of its own glow, and cast the rest as with no gap, where tinting is %s',
+                    (canTint) => {
+                        const ungapped = render(GLOW, canTint);
+                        const gapped = render(GAPPED, canTint);
+
+                        // Where the item is, the glow of the ungapped one shows through it, and the gapped one is the item alone.
+                        expect(pixelAtOf(ungapped, 40, 80)[3]).toBeGreaterThan(140);
+                        const [red, green, blue, alpha] = pixelAtOf(gapped, 40, 80);
+                        expect([red, green, blue]).toEqual([255, 0, 0]);
+                        expect(Math.abs(alpha - 128)).toBeLessThanOrEqual(1);
+                        // Around it, beyond the footprint, the glow is as strong as the ungapped glow, and ends where it does.
+                        for (const [x, y] of [
+                            [40, 56],
+                            [16, 80],
+                            [64, 80],
+                            [40, 104],
+                        ]) {
+                            const [, , , outside] = pixelAtOf(gapped, x, y);
+                            expect(Math.abs(outside - 64)).toBeLessThanOrEqual(2);
+                            expect(outside).toBe(pixelAtOf(ungapped, x, y)[3]);
+                        }
+                        expect(pixelAtOf(gapped, 40, 40)[3]).toBe(0);
+                    }
+                );
+
+                // A canvas that blurs a mask with a filter and one that blurs it with a shadow differ a little in the tail of the blur,
+                // with or without a gap, so a gap may not widen that difference.
+                const tintingDifference = (shadow: Shape['fillShadow']) => {
+                    const [tinted, perColour] = [true, false].map((canTint) => render(shadow, canTint));
+                    let worst = 0;
+                    for (let i = 0; i < tinted.length; i += 4) {
+                        worst = Math.max(worst, Math.abs(tinted[i + 3] - perColour[i + 3]));
+                        // The colour of a pixel that is almost clear is not meaningful.
+                        if (tinted[i + 3] > 16 && perColour[i + 3] > 16) {
+                            for (let c = 0; c < 3; c++)
+                                worst = Math.max(worst, Math.abs(tinted[i + c] - perColour[i + c]));
+                        }
+                    }
+                    return { worst, tinted };
+                };
+
+                it('should cast a blurred glow in the same place, as strong, whether or not the canvas can tint', () => {
+                    const ungapped = tintingDifference({ ...GLOW, blur: 6 });
+                    const gapped = tintingDifference({ ...GAPPED, blur: 6 });
+
+                    expect(maxAlphaOf(gapped.tinted)).toBeGreaterThan(0);
+                    expect(gapped.worst).toBeLessThanOrEqual(ungapped.worst + 2);
+                    // The cut is where the item is.
+                    expect(Math.abs(pixelAtOf(gapped.tinted, 40, 80)[3] - 128)).toBeLessThanOrEqual(1);
+                });
             });
 
             describe('where the canvas cannot blur a mask of many colours', () => {
@@ -2776,6 +3144,88 @@ describe('Group shadow compositor', () => {
 
             expect(joinsShadowKey(key, upper, BLUE, undefined, 'run')).toBe(true);
             expect(joinsShadowKey(key, upper, BLUE, undefined, 'layer')).toBe(false);
+        });
+    });
+
+    describe('glow in the batches of a group', () => {
+        const BLUE_LEFT = { ...BLUE, xOffset: -100 };
+
+        // The group batches a run of children that cast alike, or by layer; a glow is a cast in its own slot.
+        describe.each([true, 'by-layer'] as const)('with batchShadows %s', (batchShadows) => {
+            // A glow draws the pixels that the same options draw as a shadow, for any run of boxes.
+            const LAYOUTS: Array<[string, (slot: 'fillShadow' | 'fillGlow') => Shape[]]> = [
+                ['a single box', (slot) => [box(40, 90, 40, 40, { [slot]: RED_HALF })]],
+                [
+                    'overlapping boxes of one glow',
+                    (slot) => [box(40, 90, 40, 40, { [slot]: RED_HALF }), box(60, 90, 40, 40, { [slot]: RED_HALF })],
+                ],
+                [
+                    'boxes that a box with no cast separates',
+                    (slot) => [
+                        box(40, 90, 30, 40, { [slot]: RED_HALF }),
+                        box(100, 90, 30, 40),
+                        box(130, 90, 30, 40, { [slot]: RED_HALF }),
+                    ],
+                ],
+                [
+                    'boxes of different glows',
+                    (slot) => [
+                        box(40, 90, 30, 40, { [slot]: RED_HALF }),
+                        box(100, 90, 30, 40, { [slot]: { ...RED_HALF, xOffset: -30 } }),
+                    ],
+                ],
+            ];
+
+            it.each(LAYOUTS)('should cast %s as it casts the same shadow', (_name, nodes) => {
+                renderNodes(nodes('fillShadow'), batchShadows);
+                const asShadow = pixels();
+                expect(maxAlphaOf(asShadow)).toBeGreaterThan(0);
+
+                renderNodes(nodes('fillGlow'), batchShadows);
+
+                expect(pixels()).toEqual(asShadow);
+            });
+
+            it('should cast the glow of a box, away from the box that it surrounds', () => {
+                renderNodes([box(40, 90, 40, 40, { fillGlow: BLUE })], batchShadows);
+
+                expect(at(160, 110)).toEqual(BLUE_PIXEL);
+                expect(at(260, 110)).toEqual(CLEAR);
+            });
+
+            it('should cast a shadow and a glow of one box, each in its own slot', () => {
+                renderNodes([box(140, 90, 40, 40, { fillShadow: RED_HALF, fillGlow: BLUE_LEFT })], batchShadows);
+
+                expect(at(260, 110)).toEqual([255, 0, 0, 128]);
+                expect(at(60, 110)).toEqual(BLUE_PIXEL);
+            });
+
+            it('should cast the shadow before the glow, so that a shadow never darkens a glow', () => {
+                renderNodes([box(40, 90, 40, 40, { fillShadow: RED_HALF, fillGlow: BLUE })], batchShadows);
+
+                // Both land at the same place: the glow, cast last, covers the shadow.
+                expect(at(160, 110)).toEqual(BLUE_PIXEL);
+            });
+
+            it('should end a run in the glow slot alone where the glow changes and the shadow does not', () => {
+                const DOWN = { ...RED_HALF, xOffset: 0, yOffset: 50 };
+                renderNodes(
+                    [
+                        box(120, 40, 20, 40, { fillShadow: DOWN, fillGlow: BLUE }),
+                        box(160, 40, 20, 40, { fillShadow: DOWN, fillGlow: BLUE_LEFT }),
+                    ],
+                    batchShadows
+                );
+
+                // Each box casts its own glow, and not that of the other.
+                expect(at(230, 60)).toEqual(BLUE_PIXEL);
+                expect(at(70, 60)).toEqual(BLUE_PIXEL);
+                expect(at(30, 60)).toEqual(CLEAR);
+                expect(at(270, 60)).toEqual(CLEAR);
+                // The shadow is cast beneath both.
+                expect(at(130, 110)).toEqual([255, 0, 0, 128]);
+                expect(at(170, 110)).toEqual([255, 0, 0, 128]);
+            });
         });
     });
 });

@@ -9,12 +9,12 @@ import {
     enterprise,
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
+    markerHighlightOptionsDef,
     markerOptionsDefs,
     multiSeriesGlowHighlightOptionsDef,
     number,
     placedSeriesLabelOptionsDefs,
     required,
-    shapeHighlightOptionsDef,
     string,
     tooltipOptionsDefs,
     undocumentedDefs,
@@ -32,11 +32,11 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     label: placedSeriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     errorBar: errorBarThemeableOptionsDefs,
-    styler: callbackDefs<AgScatterSeriesStylerResult>(without(markerOptionsDefs, ['shadow'])),
+    styler: callbackDefs<AgScatterSeriesStylerResult>(without(markerOptionsDefs, ['shadow', 'glow'])),
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
-    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(markerHighlightOptionsDef, markerHighlightOptionsDef),
     colorScale: enterprise(colorScaleOptionsDef),
 };
 
@@ -56,7 +56,7 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     xKeyAxis: string,
     yKeyAxis: string,
     errorBar: errorBarOptionsDefs,
-    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(markerHighlightOptionsDef, markerHighlightOptionsDef),
     ...undocumentedDefs({
         // WARNING: internal cross-filtering option, unrelated to the public data-selection API. Do not use.
         selectedKey: string,

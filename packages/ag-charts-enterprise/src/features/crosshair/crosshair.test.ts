@@ -13,10 +13,12 @@ import type {
     AgCrosshairOptions,
     AgHlcSeriesOptions,
     AgLineSeriesOptions,
+    AgNumericAxisCrosshairOptions,
     AgOhlcSeriesOptions,
     AgRangeAreaSeriesOptions,
     AgRangeBarCrosshairSnapValue,
     AgRangeBarSeriesOptions,
+    AgTimeAxisCrosshairOptions,
 } from 'ag-charts-community';
 import {
     HIGH_VOLUME_COUNT,
@@ -1227,7 +1229,7 @@ describe('Crosshair', () => {
             ...extra,
         });
 
-        const valueAxis = (crosshair: AgCrosshairOptions): AgCartesianAxesOptions => ({
+        const valueAxis = (crosshair: AgNumericAxisCrosshairOptions): AgCartesianAxesOptions => ({
             x: { type: 'category', position: 'bottom' },
             y: { type: 'number', position: 'left', crosshair },
         });
@@ -1705,6 +1707,167 @@ describe('Crosshair', () => {
 
                 await hoverDatum('B', 55);
                 expectLines('left', { yLowKey: 30, yHighKey: 80 });
+            });
+        });
+
+        describe('snapInterval', () => {
+            const ROUNDED = [
+                { x: 'A', y: 112 },
+                { x: 'B', y: 137 },
+                { x: 'C', y: 88 },
+            ];
+            const roundedLine = (
+                crosshair: AgNumericAxisCrosshairOptions,
+                type: 'number' | 'log' = 'number'
+            ): AgCartesianChartOptions => ({
+                data: ROUNDED,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: { x: { type: 'category', position: 'bottom' }, y: { type, position: 'left', crosshair } },
+            });
+            const candleAxes = (crosshair: AgNumericAxisCrosshairOptions): AgCartesianAxesOptions => ({
+                x: { type: 'time', position: 'bottom' },
+                y: { type: 'number', position: 'left', crosshair },
+            });
+            const expectLineAt = (axis: string, value: unknown) => {
+                const lines = getCrosshairLines(chart, axis);
+                expect(lines).toHaveLength(1);
+                expect(lines[0].position).toBeCloseTo(axisPositionOf(axis, value), 0);
+                expect(visibleLabelCount(axis)).toBe(1);
+            };
+
+            it.each(['number', 'log'] as const)(
+                'rounds a highlighted datum on a %s axis with no snap setting',
+                async (type) => {
+                    chart = await createEnterpriseChart(roundedLine({ snapInterval: 25 }, type));
+                    await hoverDatum('B', 137);
+                    expectLineAt('left', 125);
+                }
+            );
+
+            it.each<[string, boolean | undefined]>([
+                ['no snap setting', undefined],
+                ['snap true', true],
+            ])('rounds the crosshairSnapTo close of a candle with %s', async (_name, snap) => {
+                chart = await createEnterpriseChart(
+                    candleOptions([candlestick({ crosshairSnapTo: ['close'] })], candleAxes({ snap, snapInterval: 25 }))
+                );
+                await hoverDatum(CANDLES[1].date, 120);
+                expectLineAt('left', 100);
+            });
+
+            it('rounds the pointer over an empty area', async () => {
+                chart = await createEnterpriseChart(
+                    rangeOptions([{ type: 'bar', xKey: 'x', yKey: 'hi' }], valueAxis({ snapInterval: 0.25 }))
+                );
+                await hoverDatum('A', 75.1);
+                expectLineAt('left', 75);
+            });
+
+            it('applies a snapInterval set for the axis type in a theme', async () => {
+                chart = await createEnterpriseChart({
+                    ...roundedLine({}),
+                    theme: { overrides: { common: { axes: { number: { crosshair: { snapInterval: 25 } } } } } },
+                });
+                await hoverDatum('B', 137);
+                expectLineAt('left', 125);
+            });
+
+            it('follows the pointer without rounding with snap false', async () => {
+                chart = await createEnterpriseChart(roundedLine({ snap: false, snapInterval: 25 }));
+                const point = await hoverDatum('B', 137);
+                expectFollowsPointer('left', point);
+            });
+
+            it.each<[string, AgTimeAxisCrosshairOptions['snapInterval'], Date, Date, boolean?]>([
+                ['a unit', 'day', new Date(2024, 0, 2, 10, 8), new Date(2024, 0, 2)],
+                [
+                    'an interval object',
+                    { unit: 'minute', step: 15 },
+                    new Date(2024, 0, 2, 10, 8),
+                    new Date(2024, 0, 2, 10, 15),
+                ],
+                ['milliseconds', 15 * 60 * 1000, new Date(2024, 0, 2, 10, 7), new Date(2024, 0, 2, 10, 0)],
+                [
+                    'an interval aligned to an epoch',
+                    { unit: 'hour', step: 6, epoch: new Date(2024, 0, 1, 3) },
+                    new Date(2024, 0, 2, 10, 7),
+                    new Date(2024, 0, 2, 9),
+                ],
+                [
+                    'an interval aligned to the domain start',
+                    { unit: 'minute', step: 15 },
+                    new Date(2024, 0, 2, 10, 8),
+                    new Date(2024, 0, 2, 10, 1),
+                    false,
+                ],
+            ])('rounds a time axis to %s', async (_name, snapInterval, date, expected, nice) => {
+                chart = await createEnterpriseChart({
+                    data: [
+                        { date: new Date(2024, 0, 1, 9, 31), value: 5 },
+                        { date, value: 8 },
+                        { date: new Date(2024, 0, 3, 13, 52), value: 3 },
+                    ],
+                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                    axes: {
+                        x: { type: 'time', position: 'bottom', nice, crosshair: { snapInterval } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                });
+                await hoverDatum(date, 8);
+                expectLineAt('bottom', expected);
+            });
+
+            it('draws one line for values that round to the same tick', async () => {
+                chart = await createEnterpriseChart(
+                    candleOptions([candlestick()], candleAxes({ snap: true, snapInterval: 15 }))
+                );
+                await hoverDatum(CANDLES[1].date, 120);
+                const byPosition = (a: number, b: number) => a - b;
+                const positions = getCrosshairLines(chart, 'left').map(({ position }) => position);
+                expect(positions.toSorted(byPosition)).toEqual(
+                    [90, 105, 135].map((value) => axisPositionOf('left', value)).toSorted(byPosition)
+                );
+                expect(visibleLabelCount('left')).toBe(3);
+            });
+
+            it('formats the rounded value with the axis crosshair label format', async () => {
+                chart = await createEnterpriseChart(roundedLine({ snapInterval: 25, label: { format: '#{.1f}' } }));
+                await hoverDatum('B', 137);
+                const label = document.querySelector(
+                    `.ag-charts-crosshair-label[data-axis-id="${findAxis(chart, 'left').id}"]:not(.ag-charts-crosshair-label--hidden)`
+                );
+                expect(label?.textContent?.trim()).toBe('125.0');
+            });
+
+            describe('validation', () => {
+                it.each<[string, unknown, string]>([
+                    ['zero', 0, '`0`'],
+                    ['a unit', 'day', '`"day"`'],
+                ])('warns about %s on a number axis and ignores it', async (_name, snapInterval, shown) => {
+                    chart = await createEnterpriseChart(roundedLine({ snapInterval } as AgNumericAxisCrosshairOptions));
+                    expectWarningsCalls().toEqual([
+                        [
+                            `AG Charts - Option \`axes.y.crosshair.snapInterval\` cannot be set to ${shown}; expecting a number greater than 0, ignoring.`,
+                        ],
+                    ]);
+                    await hoverDatum('B', 137);
+                    expectLineAt('left', 137);
+                });
+
+                it('warns about the option on a category axis', async () => {
+                    chart = await createEnterpriseChart({
+                        ...roundedLine({}),
+                        axes: {
+                            x: {
+                                type: 'category',
+                                position: 'bottom',
+                                crosshair: { snapInterval: 1 } as AgCrosshairOptions,
+                            },
+                            y: { type: 'number', position: 'left' },
+                        },
+                    });
+                    expectWarningsCalls().toEqual([[expect.stringContaining('Unknown option')]]);
+                });
             });
         });
     });

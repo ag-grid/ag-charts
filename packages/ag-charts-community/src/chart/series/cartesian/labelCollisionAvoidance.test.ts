@@ -2565,12 +2565,12 @@ describe('label collision avoidance', () => {
                 .map((label) => label.placement);
         };
 
-        it('ignores axis labels by default', async () => {
-            expect(await placementsOnAxis()).toEqual(['bottom', 'bottom', 'bottom']);
+        it('moves labels off the axis labels by default', async () => {
+            expect(await placementsOnAxis()).toEqual(['top', 'top', 'top']);
         });
 
-        it('moves labels off the axis labels when collideWith.axisLabels is false', async () => {
-            expect(await placementsOnAxis({ axisLabels: false })).toEqual(['top', 'top', 'top']);
+        it('lets labels overlap the axis labels when collideWith.axisLabels is true', async () => {
+            expect(await placementsOnAxis({ axisLabels: true })).toEqual(['bottom', 'bottom', 'bottom']);
         });
 
         type CanvasNode = Parameters<typeof Transformable.toCanvas>[0] & { visible: boolean; text?: unknown };

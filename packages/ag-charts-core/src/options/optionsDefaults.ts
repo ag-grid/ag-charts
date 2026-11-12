@@ -10,6 +10,8 @@ import type {
     AgGradientColorStrict,
     AgHighlightStyleOptions,
     AgLineHighlightStyleOptions,
+    AgLineMarkerHighlightStyleOptions,
+    AgMarkerHighlightStyleOptions,
     AgNumericValue,
     AgSelectionContainment,
     AgSelectionStyleOptions,
@@ -75,6 +77,8 @@ const themeParams = [
     'borderRadius',
     'cardShadow',
     'chartBackgroundColor',
+    'chartBorder',
+    'chartBorderRadius',
     'chartPadding',
     'focusShadow',
     'foregroundColor',
@@ -425,6 +429,16 @@ export const shapeHighlightOptionsDef: OptionsDefs<AgHighlightStyleOptions> = {
 };
 
 export const shapeSelectionOptionsDef: OptionsDefs<AgSelectionStyleOptions> = shapeHighlightOptionsDef;
+
+export const markerHighlightOptionsDef: OptionsDefs<AgMarkerHighlightStyleOptions> = {
+    ...shapeHighlightOptionsDef,
+    size: positiveNumber,
+};
+
+export const lineMarkerHighlightOptionsDef: OptionsDefs<AgLineMarkerHighlightStyleOptions> = {
+    ...lineHighlightOptionsDef,
+    size: positiveNumber,
+};
 
 export const selectionContainmentValidator = strictUnion<AgSelectionContainment>()('any', 'all');
 

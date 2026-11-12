@@ -1,16 +1,16 @@
 import type { AxisID, BBox } from 'ag-charts-core';
 import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
 
-import { Axis } from './axis/axis';
 import type { ChartTypeHost, ChartTypeInstance } from './chartTypeEnv';
 import type { LayoutContext } from './layout/layoutManager';
 
 export class StandaloneChartType implements ChartTypeInstance {
+    static readonly className = 'StandaloneChartType';
     static readonly type = 'standalone' as const;
     readonly type = StandaloneChartType.type;
 
-    private readonly xAxis = { id: createId<AxisID>(Axis), direction: ChartAxisDirection.X } as const;
-    private readonly yAxis = { id: createId<AxisID>(Axis), direction: ChartAxisDirection.Y } as const;
+    private readonly xAxis = { id: createId<AxisID>(this), direction: ChartAxisDirection.X } as const;
+    private readonly yAxis = { id: createId<AxisID>(this), direction: ChartAxisDirection.Y } as const;
     private standaloneZoomRegistered = false;
 
     constructor(private readonly host: ChartTypeHost) {

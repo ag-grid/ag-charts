@@ -2,6 +2,7 @@
 // fonts are loaded per-page so only this page pays for them.
 
 // ─── Brand tokens ────────────────────────────────────────────────────────────
+/* stylelint-disable color-no-hex, function-disallowed-list -- Beyond the Prompt campaign palette, deliberately off the design system */
 $btp-orange: #f43800;
 $btp-orange-dark: #c02c00;
 $btp-bg: #f2f2f2;
@@ -10,7 +11,10 @@ $btp-bg-alt: #e9e9e9;
 $btp-ink: #f43800;
 $btp-ink-muted: rgba(244, 56, 0, 0.75);
 $btp-border: rgba(244, 56, 0, 0.2);
-$btp-card: #ffffff;
+$btp-surface: #fbfbfb;
+$btp-shadow: rgba(244, 56, 0, 0.08);
+/* stylelint-enable color-no-hex, function-disallowed-list */
+$btp-card: var(--color-white);
 
 // ─── Page wrapper ────────────────────────────────────────────────────────────
 .page {
@@ -124,7 +128,7 @@ $btp-card: #ffffff;
 
 .communityNav {
     // Tints the active/hover menu pill to suit this page's palette; only the pills use this token.
-    --color-util-brand-100: rgba(0, 0, 0, 0.05);
+    --color-util-brand-100: color-mix(in srgb, var(--color-black) 5%, transparent);
 
     // The page is permanently light, but the shared CommunityMenu reads global tokens that flip in
     // dark mode, so pin them to their light-theme values.
@@ -287,7 +291,7 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
     overflow: hidden;
     border-radius: 8px;
     // Slightly lighter than the page bg, so the frame lifts off it behind the transparent PNG.
-    background: #fbfbfb;
+    background: $btp-surface;
 }
 
 // Placeholder until the keynote is clicked and the script swaps in the autoplay embed.
@@ -303,7 +307,7 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
     border: 0;
     border-radius: 0;
     // Slightly lighter than the page bg, so the frame lifts off it behind the transparent PNG.
-    background: #fbfbfb;
+    background: $btp-surface;
     box-shadow: none;
     cursor: pointer;
 }
@@ -337,7 +341,7 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
         height: 0;
         border-style: solid;
         border-width: 11px 0 11px 18px;
-        border-color: transparent transparent transparent #fff;
+        border-color: transparent transparent transparent var(--color-white);
         margin-left: 4px;
     }
 }
@@ -384,7 +388,7 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
     padding: 3px 8px;
     border-radius: 999px;
     background: var(--btp-orange);
-    color: #fff;
+    color: var(--color-white);
     font-weight: 600;
 }
 
@@ -410,7 +414,7 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
     display: block;
     object-fit: contain;
     object-position: top;
-    filter: drop-shadow(0 12px 24px rgba(244, 56, 0, 0.08));
+    filter: drop-shadow(0 12px 24px $btp-shadow);
     transition: transform 0.4s ease;
 
     &:hover {
@@ -489,11 +493,11 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
 @keyframes btp-hero-face-in {
     from {
         opacity: 0;
-        filter: drop-shadow(0 12px 24px rgba(244, 56, 0, 0.08)) blur(18px);
+        filter: drop-shadow(0 12px 24px $btp-shadow) blur(18px);
     }
     to {
         opacity: 1;
-        filter: drop-shadow(0 12px 24px rgba(244, 56, 0, 0.08)) blur(0);
+        filter: drop-shadow(0 12px 24px $btp-shadow) blur(0);
     }
 }
 
@@ -577,11 +581,11 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
 .btnPrimary {
     composes: btn;
     background: var(--btp-orange);
-    color: #fff !important;
+    color: var(--color-white) !important;
     border-color: var(--btp-orange);
 
     :global(.icon) {
-        --icon-color: #fff;
+        --icon-color: var(--color-white);
     }
 
     &:hover {
@@ -604,7 +608,7 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
 
     &:hover {
         background: var(--btp-ink);
-        color: #fff;
+        color: var(--color-white);
     }
 }
 
@@ -1057,7 +1061,7 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: color-mix(in srgb, var(--color-black) 60%, transparent);
     transition: background-color 0.32s ease;
 
     &::after {
@@ -1067,7 +1071,7 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
         margin-left: 3px;
         border-style: solid;
         border-width: 7px 0 7px 12px;
-        border-color: transparent transparent transparent #ffffff;
+        border-color: transparent transparent transparent var(--color-white);
     }
 }
 
@@ -1455,14 +1459,14 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
     border-radius: 0;
     box-shadow: none;
     appearance: none;
-    background: rgba(255, 255, 255, 0.8);
+    background: color-mix(in srgb, var(--color-white) 80%, transparent);
     cursor: pointer;
 
     &:hover,
     &:focus,
     &:focus-visible,
     &:active {
-        background: rgba(255, 255, 255, 0.8);
+        background: color-mix(in srgb, var(--color-white) 80%, transparent);
         box-shadow: none;
         outline: none;
     }
@@ -1472,8 +1476,8 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
     position: relative;
     z-index: 1;
     width: min(960px, 100%);
-    background: #fff;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.24);
+    background: var(--color-white);
+    box-shadow: 0 24px 64px color-mix(in srgb, var(--color-black) 24%, transparent);
 }
 
 .page .sessionModalClose {
@@ -1499,7 +1503,7 @@ $btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) sat
         top: 6px;
         right: 6px;
         z-index: 2;
-        color: #fff;
+        color: var(--color-white);
     }
 }
 

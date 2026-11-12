@@ -6,6 +6,8 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    getSeriesNodeData,
+    getSeriesRect,
     getSwapChainText,
     hoverAction,
     isTooltipVisible,
@@ -19,6 +21,7 @@ import {
 import type { Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type {
+    AgAnnotation,
     AgAnnotationsToolbarButton,
     AgCartesianChartOptions,
     AgChartInstance,
@@ -708,6 +711,13 @@ describe('priceVolumePreset', () => {
             return labels;
         };
 
+        interface CandleNode {
+            centerX: number;
+            y: number;
+            height: number;
+            datum: { open: number; close: number };
+        }
+
         const isTickMultiple = (text: string | undefined) => {
             const ticks = Number(text) / TICK_SIZE;
             return Math.abs(ticks - Math.round(ticks)) < 1e-9;
@@ -723,8 +733,7 @@ describe('priceVolumePreset', () => {
         ])('snaps the price label to multiples of tickSize %s', async (_name, options) => {
             const labels = await hoverLabels({ ...options, tickSize: TICK_SIZE });
             const prices = labels.map((l) => l.price);
-            expect(prices.every(isTickMultiple)).toBe(true);
-            expect(new Set(prices).size).toBeGreaterThan(1);
+            expect(prices.every((price) => price != null && isTickMultiple(price))).toBe(true);
             expect(labels.map((l) => l.priceTop)).not.toEqual(HOVER_YS.map((y) => `${y}px`));
         });
 
@@ -754,6 +763,7 @@ describe('priceVolumePreset', () => {
 
         it.each<[string, AgFinancialChartOptions, boolean]>([
             ['snapped with tickSize', { tickSize: TICK_SIZE }, true],
+            ['snapped on a line chart', { tickSize: TICK_SIZE, chartType: 'line', volume: false }, true],
             [
                 'continuous when theme overrides turn snap off',
                 {
@@ -778,12 +788,74 @@ describe('priceVolumePreset', () => {
             expect(isTickMultiple(String(value))).toBe(snapped);
         });
 
+        it('snaps to the candle value nearest the pointer, rounded to tickSize', async () => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ data: getStockData(), chartType: 'candlestick', tickSize: TICK_SIZE })
+            );
+            await waitForChartStability(chart);
+            const index = deproxy(chart).series.findIndex((s) => s.type === 'candlestick');
+            const candle = getSeriesNodeData<CandleNode>(chart, index)
+                .filter((node) => node.centerX > 0)
+                .toSorted((a, b) => b.height - a.height)[0];
+            const rect = getSeriesRect(chart);
+            const roundToTick = (value: number) => (Math.round(value / TICK_SIZE) * TICK_SIZE).toFixed(2);
+            const { open, close } = candle.datum;
+
+            const prices: Array<string | undefined> = [];
+            for (const ratio of [0.1, 0.9]) {
+                await hoverAction(rect.x + candle.centerX, rect.y + candle.y + candle.height * ratio)(deproxy(chart));
+                await waitForChartStability(chart);
+                prices.push(crosshairLabel('y')?.textContent?.trim());
+            }
+            expect(prices).toEqual([roundToTick(Math.max(open, close)), roundToTick(Math.min(open, close))]);
+        });
+
         it('leaves the date label unchanged', async () => {
             const snapped = await hoverLabels({ tickSize: TICK_SIZE });
             chart.destroy();
             const continuous = await hoverLabels({});
             expect(snapped.map((l) => l.date)).toEqual(continuous.map((l) => l.date));
             expect(snapped.every((l) => l.date != null)).toBe(true);
+        });
+    });
+
+    describe('selected annotation axes (AG-12118)', () => {
+        const data = getStockData().slice(0, 40);
+        const [start, end] = [
+            { x: { __type: 'date' as const, value: data[5].date.toISOString() }, y: 140 },
+            { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 150 },
+        ];
+
+        // The labels and shading take the annotation's own colours, so the theme sets only the white text and the shading
+        // at the opacity of the annotation's background, or of its own when it has no background.
+        it.each<AgAnnotation>([
+            { type: 'line', start, end },
+            { type: 'arrow', start, end },
+            { type: 'parallel-channel', start, end, height: 5 },
+            { type: 'disjoint-channel', start, end, startHeight: 4, endHeight: 8 },
+            { type: 'fibonacci-retracement', start, end },
+            { type: 'date-price-range', start, end },
+        ])('themes the axis labels and shading of a $type without fixing their colour', async (annotation) => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ data, initialState: { annotations: [annotation] } })
+            );
+            await waitForChartStability(chart);
+
+            const state = chart.getState().annotations![0] as AgAnnotation & {
+                stroke?: string;
+                background?: { fillOpacity?: number };
+                axisLabel?: { fill?: string };
+                axisShading?: { fill?: string; fillOpacity?: number };
+            };
+            expect(state).toMatchObject({
+                axisLabel: { enabled: true, color: 'white' },
+                axisShading: { enabled: true },
+            });
+            expect(state.axisLabel?.fill).toBeUndefined();
+            expect(state.axisShading?.fill).toBeUndefined();
+            expect(state.axisShading?.fillOpacity ?? state.background?.fillOpacity).toBe(0.2);
+            // The annotation's colour, which they follow, is the theme's annotation colour and not the default foreground.
+            expect(state.stroke).not.toBe('#181d1f');
         });
     });
 

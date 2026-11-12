@@ -1,6 +1,7 @@
 import type { AgIconName } from 'ag-charts-types';
 
 import type { BoxBounds } from '../geometry/boxBounds';
+import type { ClientPoint } from '../types/scene';
 import { getWindow } from './globalsProxy';
 
 type StyledElement = new () => { style: CSSStyleDeclaration };
@@ -123,4 +124,10 @@ function setPixelValue(style: CSSStyleDeclaration, key: string, value: number | 
         const px = Math.abs(value) < 1e-6 ? 0 : value;
         style.setProperty(key, `${px}px`);
     }
+}
+
+export function deltaClientSquared(a: ClientPoint, b: ClientPoint): number {
+    const dx = a.clientX - b.clientX;
+    const dy = a.clientY - b.clientY;
+    return dx * dx + dy * dy;
 }

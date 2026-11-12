@@ -4,7 +4,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const { COMPARE, EXCLUDED_ENTRY, node, report, result, withFiles } = require('./memory-fixtures');
+const {
+    COMPARE,
+    EXCLUDED_ENTRY,
+    baseOnlyEntry,
+    node,
+    report,
+    result,
+    runCompare,
+    withFiles,
+} = require('./memory-fixtures');
 
 /** The Slack message the nightly posts: how failed or timed-out examples are listed beside the comparison. */
 
@@ -83,4 +92,65 @@ test('compare output with excluded examples feeds the slack message end to end',
         assert.equal(notesOf(message), '1 excluded (failed or timed out: hung)');
         assert.match(JSON.stringify(message), /healthy/);
     });
+});
+
+const newRow = (name, reason = null) => ({
+    test: name,
+    reason,
+    runCount: 3,
+    medianMs: '10.0',
+    minMs: '9.0',
+    samples: 5,
+});
+
+test('slack message lists the new head-only examples by name in its notes', () => {
+    const message = format(
+        comparison({
+            added: ['new-one / t', 'flaky / t'],
+            newHeadOnly: [newRow('new-one / t', 'not on base'), newRow('flaky / t', 'base failed')],
+        })
+    );
+    assert.equal(notesOf(message), '2 new (head only: new-one / t, flaky / t)');
+});
+
+test('slack message does not count a new head-only example twice as added', () => {
+    const message = format(comparison({ added: ['a / t'], newHeadOnly: [newRow('a / t')] }));
+    assert.doesNotMatch(notesOf(message), /added/);
+    assert.match(notesOf(message), /1 new \(head only: a \/ t\)/);
+});
+
+test('slack message joins the new note with the other notes and keeps the healthy comparison', () => {
+    const message = format(
+        comparison({
+            added: ['a / t'],
+            newHeadOnly: [newRow('a / t')],
+            errors: ['e1'],
+            excluded: ['hung: head r1 timeout'],
+        })
+    );
+    assert.equal(notesOf(message), '1 new (head only: a / t) | 1 errors | 1 excluded (failed or timed out: hung)');
+    assert.match(JSON.stringify(message), /healthy\/case/);
+});
+
+test('slack message has no new note for an empty or absent newHeadOnly list', () => {
+    assert.equal(notesOf(format(comparison({ newHeadOnly: [] }))), undefined);
+    assert.equal(notesOf(format(comparison())), undefined);
+});
+
+test('compare output with a base-only example feeds the slack message end to end', () => {
+    withFiles(
+        {
+            head: report({ healthy: [result('t')], fresh: [result('t')] }),
+            base: report({ healthy: [result('t')] }),
+            excluded: [baseOnlyEntry('fresh')],
+        },
+        (p) => {
+            const { status, stderr, json } = runCompare(
+                { base: p.base, compare: p.head, excluded: p.excluded },
+                { format: 'json' }
+            );
+            assert.equal(status, 0, stderr);
+            assert.equal(notesOf(format(json)), '1 new (head only: fresh / t)');
+        }
+    );
 });

@@ -1,6 +1,7 @@
 import type { Bounds4, BoxBounds, Point } from 'ag-charts-core';
 import { Vec2, Vec4 } from 'ag-charts-core';
 
+import { getStrokeColours } from '../annotationDatum';
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
@@ -11,7 +12,7 @@ import { StartEndScene } from '../scenes/startEndScene';
 import { applySceneNodeTopCenterAnchor } from '../utils/coords';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
-import { convertLine } from '../utils/values';
+import { convertLine, convertPoints } from '../utils/values';
 import { type LineTypeDatum, arrowDatum } from './lineDatum';
 
 export class LineScene extends StartEndScene<LineTypeDatum> {
@@ -98,6 +99,14 @@ export class LineScene extends StartEndScene<LineTypeDatum> {
             strokeWidth,
             strokeOpacity,
         });
+    }
+
+    protected override getSelectionPoints(datum: LineTypeDatum, context: AnnotationContext) {
+        return convertPoints([datum.start, datum.end], context);
+    }
+
+    protected override getSelectionColours(datum: LineTypeDatum) {
+        return getStrokeColours(datum);
     }
 
     override updateAnchor(_datum: LineTypeDatum, coords: Bounds4, _context: AnnotationContext, _bbox?: BoxBounds) {

@@ -10,6 +10,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     enterprise,
+    markerHighlightOptionsDef,
     markerOptionsDefs,
     multiSeriesGlowHighlightOptionsDef,
     number,
@@ -17,7 +18,6 @@ import {
     placedSeriesLabelOptionsDefs,
     positiveNumber,
     required,
-    shapeHighlightOptionsDef,
     string,
     tooltipOptionsDefs,
     undocumentedDefs,
@@ -40,14 +40,14 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     label: placedSeriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     styler: callbackDefs<AgBubbleSeriesStylerResult>({
-        ...without(markerOptionsDefs, ['size', 'shadow']),
+        ...without(markerOptionsDefs, ['size', 'shadow', 'glow']),
         minSize: positiveNumber,
         maxSize: positiveNumber,
     }),
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled', 'size']),
-    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(markerHighlightOptionsDef, markerHighlightOptionsDef),
     colorScale: enterprise(colorScaleOptionsDef),
 };
 
@@ -68,7 +68,7 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     legendItemName: string,
     xKeyAxis: string,
     yKeyAxis: string,
-    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(markerHighlightOptionsDef, markerHighlightOptionsDef),
     ...undocumentedDefs({
         // WARNING! `selectedKey` backs cross-filtering, an undocumented and unsupported feature — it is unrelated
         // to the public data selection API.

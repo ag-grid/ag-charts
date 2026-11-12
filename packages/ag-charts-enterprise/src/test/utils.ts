@@ -305,6 +305,23 @@ export function pixelAt(canvasCtx: Pick<MockCanvas, 'getRenderContext2D'>, x: nu
     return [...canvasCtx.getRenderContext2D().getImageData(x, y, 1, 1).data];
 }
 
+/** A sankey or chord flow of three links, shared by the series glow suites. */
+export const FLOW_DATA = [
+    { from: 'A', to: 'C', size: 8 },
+    { from: 'A', to: 'D', size: 4 },
+    { from: 'B', to: 'C', size: 5 },
+];
+export const WATERFALL_DATA = [
+    { x: 'Start', y: 10 },
+    { x: 'Down', y: -4 },
+    { x: 'Up', y: 6 },
+];
+export const OHLC_DATA = [
+    { x: 'Q1', open: 6, high: 7, low: 3, close: 4 },
+    { x: 'Q2', open: 5, high: 7, low: 4, close: 6 },
+    { x: 'Q3', open: 4, high: 5, low: 4, close: 4.5 },
+];
+
 /** A `Root > A, B > leaves` hierarchy with sizes, shared by the treemap and sunburst shadow suites. */
 export const HIERARCHY_SHADOW_DATA = [
     {

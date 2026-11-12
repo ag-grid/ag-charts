@@ -44,14 +44,28 @@ There are no breaking changes in AG Charts version {% migrationVersion() %}.
 
 The full list of breaking changes across all features for version {% migrationVersion() %}.
 
+{% if isFramework("angular") %}
+
 {% expandingSection headerText="Breaking Changes" %}
 This release includes the following breaking changes:
 
-### Breaking changes section Name
+### Compatibility
+
+- The minimum supported version of Angular is now Angular 21.
+
+{% /expandingSection %}
+{% /if %}
+
+{% if not(isFramework("angular")) %}
+
+{% expandingSection headerText="Breaking Changes" %}
+
+This release includes the following breaking changes:
 
 - TODO: describe change
 
 {% /expandingSection %}
+{% /if %}
 
 ## Behaviour Changes
 
@@ -71,6 +85,7 @@ This release includes the following behaviour changes:
 ### Theme Defaults
 
 - The default value of `contextMenu.allowBrowserMenuWithModifierKey` has changed from `false` to `true`.
+- The default value of `title.orientation` on a right-hand y-axis has changed from `'vertical-reversed'` to `'vertical'`.
 
 {% /expandingSection %}
 
@@ -87,9 +102,10 @@ The following APIs have been deprecated since version 14 and have now been remov
 
 {% expandingSection headerText="Removed Deprecated APIs" %}
 
-### Deprecated APIs section Name
+### Modules
 
-- TODO: describe change
+- `AllCartesianModule`, `AllCartesianAxesModule`, `AllCartesianSeriesModule`, `AllPolarModule`, `AllGaugeModule` and `AllMapSeriesModule` have been removed. Use `AllCommunityModule` / `AllEnterpriseModule`, or register the individual modules instead.
+- `AxisInteractionModule` is no longer exported. The Enterprise axis modules already include it.
 
 {% /expandingSection %}
 

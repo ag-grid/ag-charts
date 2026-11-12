@@ -22,11 +22,6 @@
                 "isCollapsed": true
             },
             {
-                "title": "Bryntum Scheduler Pro",
-                "url": "https://www.ag-grid.com/campaigns/bryntum-scheduler-pro/",
-                "isCollapsed": true
-            },
-            {
                 "title": "Bryntum Calendar",
                 "url": "https://www.ag-grid.com/campaigns/bryntum-calendar/",
                 "isCollapsed": true
@@ -41,12 +36,12 @@
                 "path": "/examples"
             },
             {
-                "title": "Theme Builder",
-                "path": "/theme-builder"
-            },
-            {
                 "title": "Gallery",
                 "path": "/gallery"
+            },
+            {
+                "title": "Theme Builder",
+                "path": "/theme-builder"
             },
             {
                 "title": "Docs",

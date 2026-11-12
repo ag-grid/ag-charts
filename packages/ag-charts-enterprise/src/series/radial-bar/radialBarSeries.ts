@@ -1,4 +1,9 @@
-import { type AgRadialSeriesLabelFormatterParams, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgItemShadowStyle,
+    type AgRadialSeriesLabelFormatterParams,
+    type AgRadialSeriesStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     CategoryScale,
     ChartAxisDirection,
@@ -20,6 +25,7 @@ import {
     placedPolarLabel,
     polarLabelData,
     polarSectorObstacles,
+    withoutCasts,
     writePlacedPolarLabels,
     zeroLike,
 } from 'ag-charts-core';
@@ -66,7 +72,7 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly clipSector: SectorBox;
     readonly reversed: boolean;
     readonly index: number;
-    style?: Required<AgRadialSeriesStyle>;
+    style?: Required<AgRadialSeriesStyle> & AgItemShadowStyle;
 }
 
 export interface RadialBarSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -415,9 +421,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         if (!contextNodeData) {
             return;
         }
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
         const hasItemStylers = this.hasItemStylers();
         // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
         const styleCache =
@@ -429,8 +434,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const datum = readDatum(nodeDatum);
                 if (datum == null || selection.isGarbage(node)) return;
 
+                const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
                 if (hasItemStylers) {
-                    const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
                     const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
                     const candidateState = this.getDataCandidacyState(nodeDatum.datumIndex);
 
@@ -462,9 +467,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                     }
                 }
 
-                const style =
-                    nodeDatum.style ??
-                    contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)];
+                const style = nodeDatum.style ?? contextNodeData.styles[highlightState];
 
                 const cornerRadius = style.cornerRadius;
 
@@ -475,7 +478,32 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 node.targetStyle = style as NormalisedRadialSeriesStyle;
                 node.fillParams = fillParams;
 
-                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+                node.fillShadow = this.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    nodeDatum.datumIndex,
+                    highlightState,
+                    undefined,
+                    hasItemStylers && !isHighlight && this.isHoveredInPlace(nodeDatum.datumIndex, highlightState)
+                        ? getItemStyle(
+                              this,
+                              nodeDatum,
+                              true,
+                              _ModuleSupport.HighlightState.Item,
+                              this.getDataSelectionState(nodeDatum.datumIndex),
+                              this.getDataCandidacyState(nodeDatum.datumIndex)
+                          ).shadow
+                        : nodeDatum.style?.shadow
+                );
+
+                node.fillGlow = this.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    nodeDatum.datumIndex,
+                    highlightState,
+                    undefined,
+                    nodeDatum.style?.glow
+                );
                 node.lineJoin = 'round';
                 node.inset = style.stroke == null ? 0 : (style.strokeWidth ?? 0) / 2;
 
@@ -637,7 +665,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 radiusKey,
                 radiusName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

@@ -151,6 +151,8 @@ export function createQuadrant(
 
     const chartOptions = pick(options, [
         'animation',
+        'background',
+        'border',
         'container',
         'contextMenu',
         'data',
@@ -161,17 +163,22 @@ export function createQuadrant(
         'formatter',
         'height',
         'initialState',
+        'keyboard',
         'listeners',
+        'loadGoogleFonts',
         'locale',
         'minHeight',
         'minWidth',
         'overrideDevicePixelRatio',
         'padding',
         'selection',
+        'styleNonce',
         'subtitle',
         'suppressFieldDotNotation',
         'title',
         'theme',
+        'touch',
+        'validations',
         'width',
     ]);
 

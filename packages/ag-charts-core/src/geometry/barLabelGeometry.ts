@@ -186,18 +186,12 @@ export function rotatedLabelInset(
 }
 
 /**
- * How far a rotated label's glyph centre drifts from where the anchor placed it. The node rotates the
- * padded box about its own centre, and asymmetric padding offsets that centre from the glyph centre by
- * `shift = ((right − left)/2, (bottom − top)/2)`; the glyph therefore lands at `glyph + (I − R(θ))·shift`.
- * Subtract this from the anchor to keep the glyph centred where the caller intended. Zero when
- * unrotated or when padding is symmetric on the rotating axis.
+ * Offset of a label's drawn box centre from its glyph centre: asymmetric padding grows the box further
+ * on one side. The node rotates about the box centre, so the offset holds at any rotation; subtract it
+ * from a centred anchor to centre the box rather than the glyph.
  */
-export function rotatedGlyphDrift(rotation: number, padding: Required<PaddingOptions>): Point {
-    const sx = (padding.right - padding.left) / 2;
-    const sy = (padding.bottom - padding.top) / 2;
-    const sin = Math.sin(rotation);
-    const cos = Math.cos(rotation);
-    return { x: sx * (1 - cos) + sy * sin, y: sy * (1 - cos) - sx * sin };
+export function labelBoxCentreOffset(padding: Required<PaddingOptions>): Point {
+    return { x: (padding.right - padding.left) / 2, y: (padding.bottom - padding.top) / 2 };
 }
 
 /**

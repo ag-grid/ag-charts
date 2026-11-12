@@ -16,14 +16,15 @@ import {
     constant,
     crosshairSnapToValidator,
     fillOptionsDef,
+    glowOptionsDefs,
     interpolationOptionsDefs,
     lineDashOptionsDef,
+    markerHighlightOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     required,
     shadowOptionsDefs,
-    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
@@ -35,6 +36,7 @@ const hlcSeriesItemLineThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemLineTheme
     marker: {
         enabled: boolean,
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         ...markerStyleOptionsDefs,
     },
     ...strokeOptionsDef,
@@ -78,7 +80,7 @@ export const hlcSeriesThemeableOptionsDef: OptionsDefs<AgHlcSeriesThemeableOptio
             close: { ...hlcSeriesLineStyleDef },
         },
     }),
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(markerHighlightOptionsDef, markerHighlightOptionsDef),
 };
 
 export const hlcSeriesOptionsDef: OptionsDefs<AgHlcSeriesOptions> = {

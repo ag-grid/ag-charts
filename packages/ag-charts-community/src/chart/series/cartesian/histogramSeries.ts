@@ -54,12 +54,14 @@ import {
     toArray,
     toNumber,
     upsertNodeDatum,
+    withoutCasts,
 } from 'ag-charts-core';
 import type {
     AgHistogramSeriesBinParams,
     AgHistogramSeriesItemStylerParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesStylerParams,
+    AgItemShadowStyle,
     AgNumericValue,
 } from 'ag-charts-types';
 
@@ -965,7 +967,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState
-    ): RequireOptional<NormalisedHistogramSeriesStyle> {
+    ): RequireOptional<NormalisedHistogramSeriesStyle> & AgItemShadowStyle {
         let style = this.getStyle(datumIndex === undefined, isHighlight, datumIndex, highlightState);
 
         const { itemStyler } = this.options;
@@ -1011,12 +1013,11 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
 
         opts.datumSelection.each((rect, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
+            const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[highlightState];
             const { cornerRadius = 0 } = style;
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
@@ -1027,7 +1028,25 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
             rect.crisp = datum.crisp;
-            rect.fillShadow = this.resolveItemShadow(shadow, opts.isHighlight, datum.datumIndex);
+            const { shadow: itemShadow, glow: itemGlow } = style as AgItemShadowStyle;
+            rect.fillShadow = this.resolveItemShadow(
+                shadow,
+                opts.isHighlight,
+                datum.datumIndex,
+                highlightState,
+                undefined,
+                this.isHoveredInPlace(datum.datumIndex, highlightState)
+                    ? this.getItemStyle(datum.datumIndex, true, HighlightState.Item).shadow
+                    : itemShadow
+            );
+            rect.fillGlow = this.resolveItemGlow(
+                glow,
+                opts.isHighlight,
+                datum.datumIndex,
+                highlightState,
+                undefined,
+                itemGlow
+            );
         });
     }
 
@@ -1276,7 +1295,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 yKey: yKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 yName,
                 ...this.binParams(bin),
-                ...this.getItemStyle(datumIndex, false),
+                ...withoutCasts(this.getItemStyle(datumIndex, false)),
             }
         );
     }

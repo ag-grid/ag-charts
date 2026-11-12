@@ -52,6 +52,7 @@ import {
     resolveSeriesLabelDefaults,
     toArray,
     toNumber,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { BoxBounds, Path, Segment, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -1334,6 +1335,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         );
     }
 
+    protected override castsHighlightGlowInGroup() {
+        return false;
+    }
+
+    protected override getSeriesGlows() {
+        const { low, high } = this.itemMarkers;
+        return [low.glow, high.glow];
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
         isHighlight: boolean;
@@ -1357,21 +1367,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             maxMarkerStrokePickInflation(contextNodeData.styles.high)
         );
         const shadows = { low: this.itemMarkers.low.shadow, high: this.itemMarkers.high.shadow };
+        const glows = { low: this.itemMarkers.low.glow, high: this.itemMarkers.high.glow };
 
         datumSelection.each((node, datum) => {
             const { itemType } = datum;
-            const style =
-                datum.style ??
-                contextNodeData.styles[itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[itemType][highlightState];
             // Style colours are resolved at runtime before reaching the scene node.
             this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, {
                 hideWithSize0,
                 pickInflation,
                 shadow: shadows[itemType],
+                glow: glows[itemType],
                 isHighlight,
                 datumIndex: datum.datumIndex,
+                highlightState,
             });
             node.drawingMode = drawingMode;
         });
@@ -1710,7 +1720,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 yHighKey,
                 yHighName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

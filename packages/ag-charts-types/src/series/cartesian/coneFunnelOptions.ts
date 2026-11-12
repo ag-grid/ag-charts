@@ -1,7 +1,7 @@
 import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState } from '../../chart/callbackOptions';
 import type { AgConeFunnelSeriesLabelPlacement } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgGlowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -74,6 +74,8 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = DatumDefault, TCont
     strokeWidth?: PixelSize;
     /** Configuration for the shadow used behind the drop-offs. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the drop-offs. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Bar rendering direction. */
     direction?: 'horizontal' | 'vertical';
     /** Configuration for the labels shown on between drop-offs. */

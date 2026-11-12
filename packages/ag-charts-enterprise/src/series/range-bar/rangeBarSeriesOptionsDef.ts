@@ -1,4 +1,5 @@
 import type {
+    AgItemShadowStyle,
     AgRangeBarSeriesOptions,
     AgRangeBarSeriesStyle,
     AgRangeBarSeriesThemeableOptions,
@@ -13,6 +14,8 @@ import {
     constant,
     crosshairSnapToValidator,
     fillOptionsDef,
+    glowOptionsDefs,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelOrientationDef,
@@ -36,11 +39,16 @@ import {
 
 export const rangeInsideOutsidePlacementDef = unionOrArray('inside', 'outside');
 
-const rangeBarStyleCallback = callbackDefs<AgRangeBarSeriesStyle>({
+const rangeBarStyleDefs = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     cornerRadius: positiveNumber,
+};
+const rangeBarStyleCallback = callbackDefs<AgRangeBarSeriesStyle>(rangeBarStyleDefs);
+const rangeBarItemStyleCallback = callbackDefs<AgRangeBarSeriesStyle & AgItemShadowStyle>({
+    ...rangeBarStyleDefs,
+    ...itemStylerCastDefs,
 });
 
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {
@@ -51,7 +59,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
     styler: rangeBarStyleCallback,
-    itemStyler: rangeBarStyleCallback,
+    itemStyler: rangeBarItemStyleCallback,
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
@@ -63,6 +71,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
+    glow: glowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,

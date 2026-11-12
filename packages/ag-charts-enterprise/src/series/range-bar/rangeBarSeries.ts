@@ -1,4 +1,5 @@
 import {
+    type AgItemShadowStyle,
     type AgRangeBarSeriesItemStylerParams,
     type AgRangeBarSeriesLabelFormatterParams,
     type AgRangeBarSeriesStyle,
@@ -46,14 +47,15 @@ import {
     insideBarContainer,
     insideBarRegion,
     isContinuous,
+    labelBoxCentreOffset,
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
-    rotatedGlyphDrift,
     rotatedLabelInset,
     toArray,
     toNumber,
     upsertNodeDatum,
+    withoutCasts,
 } from 'ag-charts-core';
 import type { BBox, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
@@ -175,6 +177,8 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     readonly labelBoxPadding: Required<PaddingOptions>;
     readonly yLowFacing: keyof Required<PaddingOptions>;
     readonly yHighFacing: keyof Required<PaddingOptions>;
+    // Pulls the anchor back so the drawn box, not the glyph, centres on the bar's cross axis.
+    readonly labelCrossOffset: number;
     // Orientation derived once (series-constant) to keep the per-datum label build allocation-free.
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
@@ -243,7 +247,7 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
 
     readonly clipBBox?: BBox;
     readonly opacity?: number;
-    style?: Required<NormalisedRangeBarSeriesStyle>;
+    style?: Required<NormalisedRangeBarSeriesStyle> & AgItemShadowStyle;
 }
 
 function isRangeBarNodeDatum(nodeDatum: _ModuleSupport.SeriesNodeDatum): nodeDatum is RangeBarNodeDatum {
@@ -537,6 +541,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const labelProps = this.options.label;
         const placementStyle = labelPlacement === 'outside' ? labelProps.outsideStyle : labelProps.insideStyle;
         const boxPadding = resolvePlacementLabelBoxExtent(labelProps, placementStyle);
+        const boxOffset = labelBoxCentreOffset(boxPadding);
         const isOutside = labelPlacement === 'outside';
         const sign = isOutside ? 1 : -1;
         // yLow and yHigh sit on opposite edges of the same axis, so one's outer side is the other's inner side.
@@ -584,6 +589,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelBoxPadding: boxPadding,
             yLowFacing,
             yHighFacing,
+            labelCrossOffset: barAlongX ? boxOffset.y : boxOffset.x,
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
             nodeIndex: 0,
@@ -1009,10 +1015,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         );
 
         // Reach from the bar edge to the anchor: series-constant when unrotated, per-datum (box cross-axis
-        // extent) when rotated; a rotated box's asymmetric drift off its anchor is pulled back on both labels.
+        // extent) when rotated.
         let yLowPadding = ctx.yLowPadding;
         let yHighPadding = ctx.yHighPadding;
-        let crossDrift = 0;
+        const crossOffset = ctx.labelCrossOffset;
         if (rotation !== 0) {
             const low = measureLabelText(yLowText, fontWithSize(label, yLowFontSize));
             const high = measureLabelText(yHighText, fontWithSize(label, yHighFontSize));
@@ -1023,12 +1029,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighPadding =
                 (labelSpacing + rotatedLabelInset(yHighFacing, rotation, high.width, high.height, labelBoxPadding)) *
                 labelSign;
-            const drift = rotatedGlyphDrift(rotation, labelBoxPadding);
-            crossDrift = barAlongX ? drift.y : drift.x;
         }
 
-        const yLowX = rectX + (barAlongX ? -yLowPadding : rectWidth / 2 - crossDrift);
-        const yLowY = rectY + (barAlongX ? rectHeight / 2 - crossDrift : rectHeight + yLowPadding);
+        const yLowX = rectX + (barAlongX ? -yLowPadding : rectWidth / 2 - crossOffset);
+        const yLowY = rectY + (barAlongX ? rectHeight / 2 - crossOffset : rectHeight + yLowPadding);
 
         let yLowTextAlign: CanvasTextAlign;
         if (placement === 'outside') {
@@ -1044,8 +1048,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowTextBaseline = barAlongX ? 'middle' : 'bottom';
         }
 
-        const yHighX = rectX + (barAlongX ? rectWidth + yHighPadding : rectWidth / 2 - crossDrift);
-        const yHighY = rectY + (barAlongX ? rectHeight / 2 - crossDrift : -yHighPadding);
+        const yHighX = rectX + (barAlongX ? rectWidth + yHighPadding : rectWidth / 2 - crossOffset);
+        const yHighY = rectY + (barAlongX ? rectHeight / 2 - crossOffset : -yHighPadding);
 
         let yHighTextAlign: CanvasTextAlign;
         if (placement === 'outside') {
@@ -1297,13 +1301,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         highlightState: _ModuleSupport.HighlightState | undefined,
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
-    ): Required<NormalisedRangeBarSeriesStyle> {
+    ): Required<NormalisedRangeBarSeriesStyle> & AgItemShadowStyle {
         const { options, dataModel, processedData } = this;
         const { itemStyler } = options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex, selectionState, candidateState);
-        let style = mergeDefaults(
+        let style: Required<NormalisedRangeBarSeriesStyle> & AgItemShadowStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
             this.getStyle(datumIndex === undefined, highlightState, selectionState, candidateState)
@@ -1396,13 +1400,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const crispCentreDirection = this.getCategoryCrispDirection();
 
-        const { shadow } = this.options;
+        const { shadow, glow } = this.options;
 
         const series = this;
         datumSelection.each(function updateRangeBarNode(rect, datum) {
-            const style =
-                datum.style ??
-                contextNodeData.styles[series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[highlightState];
             rect.targetStyle = style;
 
             // Batched static property updates - write directly to backing fields to reduce markDirty() calls
@@ -1414,7 +1417,24 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 style.cornerRadius ?? 0,
                 categoryAlongX ? datum.width > 0 : datum.height > 0,
                 datum.crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex)
+                series.resolveItemShadow(
+                    shadow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    !isHighlight && series.isHoveredInPlace(datum.datumIndex, highlightState)
+                        ? series.getHoveredItemShadow(datum.datumIndex, (...args) => series.getItemStyle(...args))
+                        : datum.style?.shadow
+                ),
+                series.resolveItemGlow(
+                    glow,
+                    isHighlight,
+                    datum.datumIndex,
+                    highlightState,
+                    undefined,
+                    datum.style?.glow
+                )
             );
             rect.crispCentreDirection = crispCentreDirection;
         });
@@ -1642,7 +1662,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 yLowName,
                 yHighName,
                 legendItemName,
-                ...format,
+                ...withoutCasts(format),
             }
         );
     }

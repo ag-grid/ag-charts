@@ -12,6 +12,8 @@ import {
     constant,
     fillOptionsDef,
     fontOptionsDef,
+    glowOptionsDefs,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelBoxOptionsDef,
     labelFitOptionsDefs,
@@ -33,6 +35,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgChartLabelStyleOptions,
+    AgItemShadowStyle,
     AgPieCalloutLineItemStylerResult,
     AgPieSeriesOptions,
     AgPieSeriesStyle,
@@ -59,7 +62,8 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
     hideZeroValueSectorsInLegend: boolean,
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgPieSeriesStyle>({
+    itemStyler: callbackDefs<AgPieSeriesStyle & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
@@ -122,6 +126,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
     strokes: arrayOf(colorOrRef),
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
+    glow: glowOptionsDefs,
     highlight,
     selection,
     ...lineDashOptionsDef,

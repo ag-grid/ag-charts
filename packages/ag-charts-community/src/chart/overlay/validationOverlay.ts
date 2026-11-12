@@ -1,4 +1,11 @@
-import type { AgDocument } from 'ag-charts-core';
+import {
+    type AgDocument,
+    ButtonWidget,
+    CodeWidget,
+    ContainerWidget,
+    SeparatorWidget,
+    TextSpanWidget,
+} from 'ag-charts-core';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import {
@@ -40,18 +47,16 @@ function summaryText(localeManager: LocaleManager, grouped: GroupedValidationIss
     return localeManager.t('overlayValidationSummary', { summary: fragments.join(', ') });
 }
 
-// Renders backtick-wrapped terms as inline <code> via text nodes, avoiding raw HTML injection.
-function appendMessage(agDocument: AgDocument, target: HTMLElement, message: string) {
+// Renders backtick-wrapped terms as inline <code> through text-only widgets, avoiding raw HTML injection.
+function appendMessage(doc: Document, target: ContainerWidget, message: string) {
     const parts = message.split('`');
     for (let index = 0; index < parts.length; index++) {
         const part = parts[index];
         if (part === '') continue;
         if (index % 2 === 1) {
-            const code = agDocument.createElement('code', `${BASE}__term`);
-            code.textContent = part;
-            target.appendChild(code);
+            target.addChild(CodeWidget.inline(doc, part, `${BASE}__term`));
         } else {
-            target.appendChild(agDocument.document.createTextNode(part));
+            target.addChild(new TextSpanWidget(doc, part));
         }
     }
 }
@@ -67,91 +72,100 @@ function diagnosticText(grouped: GroupedValidationIssues): string {
     return lines.join('\n');
 }
 
-function createEntry(agDocument: AgDocument, issue: ValidationIssue, severity: ValidationSeverity): HTMLElement {
-    const entry = agDocument.createElement('div', `${BASE}__entry ${BASE}__entry--${severity}`);
+function createEntry(doc: Document, issue: ValidationIssue, severity: ValidationSeverity): ContainerWidget {
+    const entry = new ContainerWidget(doc, `${BASE}__entry`, `${BASE}__entry--${severity}`);
 
-    const message = agDocument.createElement('div', `${BASE}__message`);
-    appendMessage(agDocument, message, issue.message);
-    entry.appendChild(message);
+    const message = new ContainerWidget(doc, `${BASE}__message`);
+    appendMessage(doc, message, issue.message);
+    entry.addChild(message);
 
     if (issue.detail != null && issue.detail !== '') {
-        const code = agDocument.createElement('pre', `${BASE}__code`);
-        code.textContent = issue.detail;
-        entry.appendChild(code);
+        entry.addChild(CodeWidget.block(doc, issue.detail, `${BASE}__code`));
     }
 
     return entry;
 }
 
+function createButton(doc: Document, text: string, ...classNames: string[]): ButtonWidget {
+    const button = new ButtonWidget(doc);
+    button.setType('button');
+    button.addClass(`${BASE}__button`, ...classNames);
+    button.setTextContent(text);
+    return button;
+}
+
 export function getValidationOverlay({ agDocument, localeManager, grouped, onDismiss }: ValidationOverlayParams) {
-    const container = agDocument.createElement('div', BASE);
-    const panel = agDocument.createElement('div', `${BASE}__panel`);
+    // Created in the chart's own document, which differs from the global one for a chart in a popup window.
+    const doc = agDocument.document;
+    const container = new ContainerWidget(doc, BASE);
+    const panel = new ContainerWidget(doc, `${BASE}__panel`);
 
     // The panel is a modal dialog over the chart, so a right-click on it must not open the chart's
     // context menu; preventDefault marks the bubbling event so the context-menu registry skips it.
-    panel.addEventListener('contextmenu', (event) => event.preventDefault());
+    panel.addListener('contextmenu', ({ sourceEvent }) => sourceEvent.preventDefault());
 
-    const header = agDocument.createElement('div', `${BASE}__header`);
-    const summary = agDocument.createElement('div', `${BASE}__summary`);
-    summary.textContent = summaryText(localeManager, grouped);
-    header.appendChild(summary);
+    const header = new ContainerWidget(doc, `${BASE}__header`);
+    const summary = new ContainerWidget(doc, `${BASE}__summary`);
+    summary.setTextContent(summaryText(localeManager, grouped));
+    header.addChild(summary);
 
-    const actions = agDocument.createElement('div', `${BASE}__actions`);
+    const actions = new ContainerWidget(doc, `${BASE}__actions`);
 
     // Offer Copy only when the clipboard is writable. An insecure context or a sandboxed iframe
     // leaves no writeText, so a rendered button would be guaranteed to fail on click.
     const clipboard = agDocument.navigator?.clipboard;
     if (clipboard != null && typeof clipboard.writeText === 'function') {
-        const copyButton = agDocument.createElement('button', `${BASE}__button ${BASE}__copy`);
-        copyButton.type = 'button';
-        copyButton.textContent = localeManager.t('overlayValidationCopy');
-        copyButton.addEventListener('click', () => {
+        const copyButton = createButton(doc, localeManager.t('overlayValidationCopy'), `${BASE}__copy`);
+        copyButton.addListener('click', () => {
             // writeText can still reject when permission is denied at click time; swallow it.
             clipboard
                 .writeText(diagnosticText(grouped))
                 .then(() => {
-                    copyButton.textContent = localeManager.t('overlayValidationCopied');
+                    copyButton.setTextContent(localeManager.t('overlayValidationCopied'));
                 })
                 .catch(() => undefined);
         });
-        actions.appendChild(copyButton);
+        actions.addChild(copyButton);
     }
 
-    const dismissButton = agDocument.createElement('button', `${BASE}__button ${BASE}__dismiss`);
-    dismissButton.type = 'button';
-    dismissButton.textContent = '×';
-    dismissButton.setAttribute('aria-label', localeManager.t('overlayValidationDismiss'));
-    dismissButton.setAttribute('title', localeManager.t('overlayValidationDismiss'));
-    dismissButton.addEventListener('click', () => onDismiss());
-    actions.appendChild(dismissButton);
+    const dismissLabel = localeManager.t('overlayValidationDismiss');
+    const dismissButton = createButton(doc, '×', `${BASE}__dismiss`);
+    dismissButton.setAriaLabel(dismissLabel);
+    dismissButton.setTitle(dismissLabel);
+    dismissButton.addListener('click', () => onDismiss());
+    actions.addChild(dismissButton);
 
-    header.appendChild(actions);
-    panel.appendChild(header);
+    header.addChild(actions);
+    panel.addChild(header);
 
-    const body = agDocument.createElement('div', `${BASE}__body`);
+    const body = new ContainerWidget(doc, `${BASE}__body`);
     let sectionRendered = false;
     for (const severity of SEVERITY_ORDER) {
         const issues = grouped[severity];
         if (issues.length === 0) continue;
 
         if (sectionRendered) {
-            body.appendChild(agDocument.createElement('hr', `${BASE}__divider`));
+            const divider = new SeparatorWidget(doc);
+            divider.addClass(`${BASE}__divider`);
+            body.addChild(divider);
         }
         sectionRendered = true;
 
-        const section = agDocument.createElement('div', `${BASE}__section ${BASE}__section--${severity}`);
+        const section = new ContainerWidget(doc, `${BASE}__section`, `${BASE}__section--${severity}`);
 
-        const heading = agDocument.createElement('div', `${BASE}__section-heading`);
-        heading.textContent = localeManager.t(HEADING_KEY[severity], { count: issues.length });
-        section.appendChild(heading);
+        const heading = new ContainerWidget(doc, `${BASE}__section-heading`);
+        heading.setTextContent(localeManager.t(HEADING_KEY[severity], { count: issues.length }));
+        section.addChild(heading);
 
         for (const issue of issues) {
-            section.appendChild(createEntry(agDocument, issue, severity));
+            section.addChild(createEntry(doc, issue, severity));
         }
-        body.appendChild(section);
+        body.addChild(section);
     }
-    panel.appendChild(body);
+    panel.addChild(body);
 
-    container.appendChild(panel);
-    return container;
+    container.addChild(panel);
+    // TODO: Phase 3 "Common Widget Ancestor" - the overlay renderer contract (shared with user renderers) and the
+    // DOMElementProxy it is mounted through both take a raw HTMLElement.
+    return container.getElement();
 }

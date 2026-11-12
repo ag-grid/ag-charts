@@ -237,6 +237,15 @@ export class AnnotationOptionsToolbar {
         this.events.emit('hid-overlays', null);
     }
 
+    public isMenuVisible() {
+        return (
+            this.colorPicker.isVisible() ||
+            this.textSizeMenu.isVisible() ||
+            this.lineStyleTypeMenu.isVisible() ||
+            this.lineStrokeWidthMenu.isVisible()
+        );
+    }
+
     public clearActiveButton() {
         this.openOverlay = undefined;
         this.toolbar.clearActiveButton();
@@ -501,7 +510,7 @@ export class AnnotationOptionsToolbar {
         this.updateStrokeWidth(item);
     }
 
-    private refreshButtons(datum: AnnotationDatum) {
+    public refreshButtons(datum: AnnotationDatum) {
         const locked = datum.locked ?? false;
 
         for (const [index, button] of this.visibleButtons.entries()) {

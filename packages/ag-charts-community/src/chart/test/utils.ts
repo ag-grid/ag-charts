@@ -364,6 +364,30 @@ export function deproxy(chartOrProxy: ChartOrProxy<any>): Chart {
     return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy as any).chart as Chart);
 }
 
+/** The RGBA of the device pixel nearest (`x`, `y`) on the chart's canvas. */
+export function chartPixelAt(chartOrProxy: ChartOrProxy<any>, x: number, y: number): number[] {
+    const { context } = deproxy(chartOrProxy).ctx.scene.canvas;
+    return [...context.getImageData(Math.round(x), Math.round(y), 1, 1).data];
+}
+
+/** How many device pixels of the chart's canvas are exactly `colour` (RGBA). */
+export function countChartPixels(chartOrProxy: ChartOrProxy<any>, colour: ArrayLike<number>): number {
+    const { canvas } = deproxy(chartOrProxy).ctx.scene;
+    const { data } = canvas.context.getImageData(0, 0, canvas.width, canvas.height);
+    let found = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        if (
+            data[i] === colour[0] &&
+            data[i + 1] === colour[1] &&
+            data[i + 2] === colour[2] &&
+            data[i + 3] === colour[3]
+        ) {
+            found++;
+        }
+    }
+    return found;
+}
+
 /**
  * Typed accessor for series internals used by aggregation/data-selection tests.
  * Centralises the shape so renames in the production code don't require sweeping
@@ -1410,10 +1434,17 @@ export function getSwapChainText() {
 }
 
 // The series-area widget handles keyboard navigation.
-export async function pressKey(chart: ChartOrProxy, key: string) {
+export async function pressKey(chart: ChartOrProxy, key: string, modifiers: KeyboardEventInit = {}) {
     const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
     expect(seriesArea).not.toBeNull();
-    seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+    seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true, ...modifiers }));
+    await waitForChartStability(chart);
+}
+
+export async function releaseKey(chart: ChartOrProxy, key: string, modifiers: KeyboardEventInit = {}) {
+    const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+    expect(seriesArea).not.toBeNull();
+    seriesArea!.dispatchEvent(new KeyboardEvent('keyup', { key, code: key, bubbles: true, ...modifiers }));
     await waitForChartStability(chart);
 }
 

@@ -1,4 +1,5 @@
 import type {
+    AgItemShadowStyle,
     AgTreemapSeriesOptions,
     AgTreemapSeriesStyle,
     AgTreemapSeriesThemeableOptions,
@@ -18,6 +19,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
+    itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     lineDashOptionsDef,
@@ -49,7 +51,8 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
     fills: arrayOf(colorUnion),
     strokes: arrayOf(colorOrRef),
     colorScale: colorScaleOptionsDef,
-    itemStyler: callbackDefs<AgTreemapSeriesStyle>({
+    itemStyler: callbackDefs<AgTreemapSeriesStyle & AgItemShadowStyle>({
+        ...itemStylerCastDefs,
         ...fillOptionsDef,
         ...strokeOptionsDef,
     }),

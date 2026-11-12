@@ -5,12 +5,14 @@ import type { CollapseWidgetEvent, ExpandControlledWidgetEvent, ExpandWidgetEven
 // These types cannot be derived from `WIDGET_META`, because that would cause cyclical-referencing:
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
-type MouseWidgetEventType = 'contextmenu' | 'click' | 'dblclick' | 'mouseenter' | 'mousemove' | 'mouseleave';
+type MouseWidgetEventType =
+    'contextmenu' | 'click' | 'dblclick' | 'mousedown' | 'mouseenter' | 'mousemove' | 'mouseleave';
 type TouchWidgetEventType = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
 type DragWidgetEventType = 'drag-start' | 'drag-move' | 'drag-end';
 type WidgetEventType =
     /* Union of all allowed `type` values for widget events: */
     | 'change'
+    | 'input'
     | 'wheel'
     | FocusWidgetEventType
     | KeyboardWidgetEventType
@@ -169,6 +171,12 @@ const WIDGET_META = {
             return { type: 'change', sourceEvent };
         },
     },
+    input: {
+        isNative: true,
+        allocator(sourceEvent: Event, _target: WidgetTarget): WidgetEvent<'input'> {
+            return { type: 'input', sourceEvent };
+        },
+    },
 
     // FocusEvent
     blur: {
@@ -218,6 +226,12 @@ const WIDGET_META = {
             return allocMouseEvent('dblclick', sourceEvent, target);
         },
         sythetics: undefined as DblClickWidgetEvent | undefined,
+    },
+    mousedown: {
+        isNative: true,
+        allocator(sourceEvent: MouseEvent, target: WidgetTarget): MouseWidgetEvent<'mousedown'> {
+            return allocMouseEvent('mousedown', sourceEvent, target);
+        },
     },
     mouseenter: {
         isNative: true,

@@ -318,6 +318,14 @@ export interface AgBaseChartThemeParams {
      */
     inputPlaceholderTextColor?: AgCssColorOrRef;
     /**
+     * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
+     * dropdown menus of the toolbars and the colour picker. Independent of `popupShadow`. The value must be a valid CSS
+     * box-shadow.
+     *
+     * @group Menus & Popups
+     */
+    cardShadow?: CssShadow;
+    /**
      * Border around menus. `true` for the default border, `false` to disable, or an object to customise it.
      *
      * Default: `color: borderColor, width: borderWidth`
@@ -356,16 +364,6 @@ export interface AgBaseChartThemeParams {
      * @group Panels & Dialogs
      */
     panelBackgroundColor?: AgCssColorOrRef;
-    /**
-     * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
-     * dropdown menus of the toolbars and the colour picker. Defaults to `popupShadow`. The value must be a valid CSS
-     * box-shadow.
-     *
-     * Default: `popupShadow`
-     *
-     * @group Menus & Popups
-     */
-    cardShadow?: CssShadow;
     /**
      * Background colour of tooltips, menus, dialogs, toolbars and buttons. A colour string, or a theme-colour reference object.
      *
@@ -527,6 +525,21 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * @group Colours
      */
     chartBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the outside of the chart. `true` for the default border, `false` to disable, or an object to
+     * customise it.
+     *
+     * @group Borders
+     */
+    chartBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the chart border. Also rounds the chart background while the border is enabled.
+     *
+     * Default: `borderRadius`
+     *
+     * @group Borders
+     */
+    chartBorderRadius?: PixelSize;
     /**
      * The outer chart padding.
      *
