@@ -10,18 +10,20 @@ import {
     SizeMonitor,
     StateTracker,
     type StrictHTMLElement,
+    attachListener,
     createElement,
     createId,
     createPerWindowRegistry,
     createStyleElement,
     entries,
+    getAttribute,
     isDirectionRtl,
     isDocumentFragment,
     isNode,
     isObject,
     kebabCase,
+    matchesKey,
     setAttribute,
-    stopPageScrolling,
     strictObjectKeys,
 } from 'ag-charts-core';
 import type { AgChartAllThemeParams } from 'ag-charts-types';
@@ -86,6 +88,16 @@ type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, StrictHTMLElement>;
 };
+
+function stopPageScrolling(element: HTMLElement) {
+    return attachListener(element, 'keydown', (event: KeyboardEvent) => {
+        if (event.defaultPrevented) return;
+        const shouldPrevent = getAttribute(event.target, 'data-preventdefault', true);
+        if (shouldPrevent && matchesKey(event, 'ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp')) {
+            event.preventDefault();
+        }
+    });
+}
 
 const NULL_DOMRECT: DOMRect = {
     x: 0,

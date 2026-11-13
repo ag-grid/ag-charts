@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { addMouseCloseListener } from './keynavUtil';
+import { addMouseCloseListener } from './menuListeners';
 
 describe('addMouseCloseListener', () => {
     let host: HTMLElement | undefined;
