@@ -193,7 +193,7 @@ describe('annotation coordinates', () => {
     });
 
     describe('resolveCoordinate', () => {
-        it('holds a point to the domain of its own axis, a bigint like a number, but not an offset', () => {
+        it('takes a number or time beyond the domain of its axis, a bigint like a number', () => {
             const context = createAxesContext(numberScale([0, 100]), numberScale([0, 50]));
             const datum = { ...lineDatum.create(), start: { x: 1, y: 2 }, end: { x: 3, y: 4 } };
             const [startX, startY] = getCoordinateFields(datum, context);
@@ -201,10 +201,9 @@ describe('annotation coordinates', () => {
             expect(resolveCoordinate(startX, 100, context)).toBe(100);
             expect(resolveCoordinate(startY, 0, context)).toBe(0);
             expect(resolveCoordinate(startX, 100n, context)).toBe(100n);
-            expect(resolveCoordinate(startX, 101, context)).toBeUndefined();
-            expect(resolveCoordinate(startX, 101n, context)).toBeUndefined();
-            expect(resolveCoordinate(startY, 51, context)).toBeUndefined();
-            expect(resolveCoordinate(startY, -1, context)).toBeUndefined();
+            expect(resolveCoordinate(startX, 101, context)).toBe(101);
+            expect(resolveCoordinate(startX, 101n, context)).toBe(101n);
+            expect(resolveCoordinate(startY, -1, context)).toBe(-1);
 
             const channel = { ...parallelChannelDatum.create(), height: 1 };
             const offset = getCoordinateFields(channel, context).find((f) => f.row === 'offset')!;
@@ -222,14 +221,14 @@ describe('annotation coordinates', () => {
             end: { x: 'Apples', y: 4 },
         };
 
-        it('suggests the categories and resolves typed text to the one it names, keeping the group percentage', () => {
+        it('suggests the categories and resolves typed text to the one it names or else keeps it, keeping the group percentage', () => {
             const startX = getCoordinateFields(datum, context)[0];
 
             expect(startX.kind).toBe('category');
             expect(startX.value).toBe('Pears');
             expect(startX.suggestions?.()).toEqual(['Apples', 'Pears', '7']);
             expect(parseCoordinate('', 'category')).toBeUndefined();
-            expect(resolveCoordinate(startX, 'apples', context)).toBeUndefined();
+            expect(resolveCoordinate(startX, 'Bananas', context)).toBe('Bananas');
 
             const resolved = resolveCoordinate(startX, '7', context);
 
@@ -255,12 +254,12 @@ describe('annotation coordinates', () => {
         scale.domain = [new Date(2024, 0, 2, 15), new Date(2024, 0, 4, 9)];
         scale.interval = 'day';
 
-        it('floors a date to the band holding it and rejects one before the first band or after the last', () => {
+        it('floors a date to the band holding it, including one beyond the first or last band', () => {
             expect(floorToBand(new Date(2024, 0, 3, 23, 59), scale)).toEqual(new Date(2024, 0, 3));
             expect(floorToBand(new Date(2024, 0, 2, 1), scale)).toEqual(new Date(2024, 0, 2));
             expect(floorToBand(new Date(2024, 0, 4, 23, 59), scale)).toEqual(new Date(2024, 0, 4));
-            expect(floorToBand(new Date(2024, 0, 1, 23, 59), scale)).toBeUndefined();
-            expect(floorToBand(new Date(2024, 0, 5), scale)).toBeUndefined();
+            expect(floorToBand(new Date(2024, 0, 1, 23, 59), scale)).toEqual(new Date(2024, 0, 1));
+            expect(floorToBand(new Date(2024, 0, 5, 7), scale)).toEqual(new Date(2024, 0, 5));
         });
 
         it('keeps the group percentage of the point being edited', () => {
@@ -287,13 +286,13 @@ describe('annotation coordinates', () => {
     describe('ordinal time axis', () => {
         const bars = [new Date(2024, 0, 1), new Date(2024, 0, 2), new Date(2024, 0, 4)];
 
-        it('snaps a date to the nearest bar and rejects one beyond the first or last bar', () => {
+        it('snaps a date to the nearest bar and keeps one beyond the first or last bar as typed', () => {
             expect(snapToBar(new Date(2024, 0, 2, 11), bars)).toEqual(bars[1]);
             expect(snapToBar(new Date(2024, 0, 2, 23), bars)).toEqual(bars[1]);
             expect(snapToBar(new Date(2024, 0, 3, 6), bars)).toEqual(bars[2]);
             expect(snapToBar(new Date(2024, 0, 1), bars)).toEqual(bars[0]);
-            expect(snapToBar(new Date(2023, 11, 31), bars)).toBeUndefined();
-            expect(snapToBar(new Date(2024, 0, 4, 1), bars)).toBeUndefined();
+            expect(snapToBar(new Date(2023, 11, 31), bars)).toEqual(new Date(2023, 11, 31));
+            expect(snapToBar(new Date(2024, 0, 4, 1), bars)).toEqual(new Date(2024, 0, 4, 1));
         });
 
         it('snaps the typed date, keeps the group percentage of the point being edited and rejects a number', () => {

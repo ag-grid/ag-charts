@@ -6,7 +6,6 @@ import {
     TimeScale,
     UnitTimeScale,
     intervalFloor,
-    intervalNext,
     isFiniteNumericValue,
     isNumericValue,
 } from 'ag-charts-core';
@@ -21,7 +20,6 @@ import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { getGrouping, getGroupingValue } from './scale';
 import type { PointType } from './scale';
 import { isCrossLineType } from './types';
-import { validateDatumPointDirection } from './validation';
 
 /** How an axis's values are typed into the settings dialog. */
 export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 'category';
@@ -119,10 +117,13 @@ export function parseCoordinate(text: string, kind: CoordinateKind): ParsedCoord
     return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-/** The bar nearest to a date, or `undefined` when the date is before the first bar or after the last. */
-export function snapToBar(date: Date, bars: readonly Date[]): Date | undefined {
+/**
+ * The bar nearest to a date. A date before the first bar or after the last is kept as typed, as data loaded later may
+ * extend the axis to it.
+ */
+export function snapToBar(date: Date, bars: readonly Date[]): Date {
     const target = date.getTime();
-    let nearest: Date | undefined;
+    let nearest = date;
     let nearestDistance = Infinity;
     let first = Infinity;
     let last = -Infinity;
@@ -136,26 +137,20 @@ export function snapToBar(date: Date, bars: readonly Date[]): Date | undefined {
             nearestDistance = distance;
         }
     }
-    return target < first || target > last ? undefined : nearest;
+    return target < first || target > last ? date : nearest;
 }
 
-/** The start of the band holding a date, or `undefined` when the date is before the first band or after the last. */
+/** The start of the band holding a date, or `undefined` when the axis has no interval to band by. */
 export function floorToBand(date: Date, scale: UnitTimeScale): Date | undefined {
-    const { interval, domain } = scale;
-    if (interval == null || domain.length < 2) {
-        return;
-    }
-
-    const first = intervalFloor(interval, Math.min(domain[0].getTime(), domain[1].getTime()));
-    const last = intervalFloor(interval, Math.max(domain[0].getTime(), domain[1].getTime()));
-    return date >= first && date < intervalNext(interval, last) ? intervalFloor(interval, date) : undefined;
+    const { interval } = scale;
+    return interval == null ? undefined : intervalFloor(interval, date);
 }
 
 /**
- * The value to apply for a parsed one, or `undefined` to reject it. A point must pass the test a dragged handle does,
- * land on a bar or band of a time band axis, or name a category; an offset is a distance, so it is not bound to the axis.
+ * The value to apply for a parsed one, or `undefined` to reject it. A value is checked against the type of its axis
+ * but not its domain, as data loaded later can change the domain: a time band axis puts it on a bar or band, and a
+ * category is any text. An offset is a distance, so it is not bound to the axis.
  */
-
 export function resolveCoordinate(
     field: CoordinateField,
     parsed: ParsedCoordinate,
@@ -167,7 +162,7 @@ export function resolveCoordinate(
 
     const axis = field.axis === 'x' ? context.xAxis : context.yAxis;
     if (field.kind === 'category') {
-        return axis.scale.domain.find((category) => withoutLineBreaks(category) === parsed);
+        return axis.scale.domain.find((category) => withoutLineBreaks(category) === parsed) ?? parsed;
     }
     if (field.kind === 'unit-time') {
         return parsed instanceof Date && UnitTimeScale.is(axis.scale) ? floorToBand(parsed, axis.scale) : undefined;
@@ -175,7 +170,7 @@ export function resolveCoordinate(
     if (field.kind === 'ordinal-time') {
         return parsed instanceof Date ? snapToBar(parsed, axis.scale.domain) : undefined;
     }
-    return validateDatumPointDirection(parsed, axis) ? parsed : undefined;
+    return parsed;
 }
 
 /** The editable coordinates of an annotation, in the order the dialog lists them. */

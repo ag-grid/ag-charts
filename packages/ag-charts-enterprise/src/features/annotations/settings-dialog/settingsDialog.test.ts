@@ -66,7 +66,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         chart.destroy();
     });
 
-    it('applies a value inside the axis and reverts one outside it', () => {
+    it('applies a value of the axis type and silently reverts text that is not one', () => {
         const yScale = new LinearScale();
         yScale.domain = [0, 50];
         show(createAxesContext(new CategoryScale(), yScale));
@@ -83,8 +83,12 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
 
         commit(startY, '51');
-        expect(startY.value).toBe('20');
-        expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
+        expect(onChangeCoordinates).toHaveBeenLastCalledWith({ start: { y: 51 } });
+        expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
+
+        commit(startY, '');
+        expect(startY.value).toBe('51');
+        expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
     it('follows the annotation when it changes behind the dialog', () => {
@@ -121,7 +125,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
-    it('offers the categories of a category axis and takes only one of them', () => {
+    it('offers the categories of a category axis and also takes text that is not one', () => {
         const xScale = new CategoryScale<string>();
         xScale.domain = ['Apples', 'Pears'];
         const yScale = new TimeScale();
@@ -139,8 +143,10 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
 
         commit(startX, 'Bananas');
-        expect(startX.value).toBe('Apples');
-        expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
+        expect(onChangeCoordinates).toHaveBeenLastCalledWith({
+            start: { x: { value: 'Bananas', groupPercentage: 0 } },
+        });
+        expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
     it('puts the label of a single value alongside it and that of a point above', () => {
