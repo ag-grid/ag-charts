@@ -344,10 +344,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation dialog's trend based fibonacci retracement end point coordinates label
     dialogInputCoordinatesEndRetracement: 'Retracement end',
     // Text for the annotation dialog's x axis coordinate input
-    dialogInputCoordinatesAxisX: 'x',
+    dialogInputCoordinatesAxisX: 'X',
     // Text for the annotation dialog's y axis coordinate input
-    dialogInputCoordinatesAxisY: 'y',
-    // Alt text for the annotation dialog's coordinate inputs, e.g. 'Start: x'
+    dialogInputCoordinatesAxisY: 'Y',
+    // Alt text for the annotation dialog's coordinate inputs, e.g. 'Start: X'
     dialogInputCoordinatesAltText: '${label}: ${axis}',
     // Text for the annotation dialog's text alignment radio label
     dialogInputAlign: 'Align',
