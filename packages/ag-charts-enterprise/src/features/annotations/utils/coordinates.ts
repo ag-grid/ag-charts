@@ -24,7 +24,7 @@ import { isCrossLineType } from './types';
 
 /**
  * How a value is typed into the settings dialog: the kind of its axis, or `offset` for the position of a point within
- * the band of a category-like axis, as a percentage from -50 (start of the band) to 50 (end of the band).
+ * the band of a category-like axis, as a percentage from -50 (start of the band) to 50 (end of the band), or beyond where the bands are spaced apart.
  */
 export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 'category' | 'offset';
 
@@ -169,11 +169,11 @@ export function resolveCoordinate(
     if (field.row === 'height' || field.row === 'startHeight' || field.row === 'endHeight') {
         return parsed;
     }
-    if (field.kind === 'offset') {
-        return typeof parsed === 'number' && parsed >= -OFFSET_LIMIT && parsed <= OFFSET_LIMIT ? parsed : undefined;
-    }
-
     const axis = field.axis === 'x' ? context.xAxis : context.yAxis;
+    if (field.kind === 'offset') {
+        const limit = getOffsetLimit(axis);
+        return typeof parsed === 'number' && Math.abs(parsed) <= limit ? parsed : undefined;
+    }
     if (field.kind === 'category') {
         return axis.scale.domain.find((category) => withoutLineBreaks(category) === parsed) ?? parsed;
     }
@@ -236,6 +236,13 @@ function pad(value: number, length = 2) {
 }
 
 const OFFSET_LIMIT = 50;
+
+/** A point is placed on the nearest band, so it reaches as far as half a step from the band's centre: 50 / (1 - paddingInner). */
+function getOffsetLimit({ scale }: Pick<AnnotationAxisContext, 'scale'>) {
+    const { step = 0, bandwidth = 0 } = scale;
+    const width = bandwidth === 0 ? step : bandwidth;
+    return width > 0 ? Math.max(OFFSET_LIMIT, (OFFSET_LIMIT * step) / width) : OFFSET_LIMIT;
+}
 
 const INTEGER_TEXT = /^[+-]?\d+$/;
 const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);

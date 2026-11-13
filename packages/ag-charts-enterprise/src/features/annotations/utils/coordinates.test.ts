@@ -252,6 +252,21 @@ describe('annotation coordinates', () => {
             expect(resolveCoordinate(offset, -51, context)).toBeUndefined();
         });
 
+        it('reaches as far as a point is placed in the gap between spaced bands', () => {
+            const spaced = new CategoryScale<string>();
+            spaced.domain = ['Apples', 'Pears'];
+            spaced.range = [0, 340];
+            spaced.paddingInner = 0.3;
+            const context = createAxesContext(spaced, numberScale([0, 50]));
+            const offset = getCoordinateFields(datum, context)[2];
+
+            // 50 / (1 - 0.3)
+            expect(resolveCoordinate(offset, -71.4, context)).toBe(-71.4);
+            expect(resolveCoordinate(offset, 71.4, context)).toBe(71.4);
+            expect(resolveCoordinate(offset, 71.5, context)).toBeUndefined();
+            expect(resolveCoordinate(offset, -71.5, context)).toBeUndefined();
+        });
+
         it('is left out on number axes and where points snap to the band centre', () => {
             const numbers = createAxesContext(numberScale([0, 100]), numberScale([0, 50]));
             expect(getCoordinateFields(datum, numbers).some((f) => f.kind === 'offset')).toBe(false);
