@@ -79,6 +79,7 @@ const options: AgCartesianChartOptions = {
                 maxSpacing: 200,
             },
             crosshair: {
+                enabled: true,
                 label: {
                     renderer: ({ value }) => {
                         return { text: dateFormatter.format(value) };

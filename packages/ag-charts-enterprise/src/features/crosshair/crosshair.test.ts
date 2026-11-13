@@ -84,11 +84,22 @@ function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: bo
 }
 
 const CROSSHAIR_OPTIONS = {
+    enabled: true,
     stroke: '#5470C6',
     strokeWidth: 3,
     lineDash: [10, 5],
     snap: false,
 };
+
+const withCrosshairEnabled = (
+    axes: AgCartesianAxesOptions = {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    }
+): AgCartesianAxesOptions =>
+    mapValues(axes, (axis) =>
+        axis.type === 'category' ? axis : { ...axis, crosshair: { enabled: true, ...axis.crosshair } }
+    ) as AgCartesianAxesOptions;
 
 const BASE_OPTIONS: AgCartesianChartOptions = {
     ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
@@ -381,6 +392,7 @@ describe('Crosshair', () => {
 
         const options: AgChartOptions = {
             data,
+            axes: withCrosshairEnabled(),
             series: [
                 {
                     type: 'area',
@@ -1249,11 +1261,11 @@ describe('Crosshair', () => {
         const boxOptions = (
             series: AgCartesianChartOptions['series'],
             axes?: AgCartesianAxesOptions
-        ): AgCartesianChartOptions => ({ data: BOX_DATA, series, axes });
+        ): AgCartesianChartOptions => ({ data: BOX_DATA, series, axes: withCrosshairEnabled(axes) });
         const rangeOptions = (
             series: AgCartesianChartOptions['series'],
             axes?: AgCartesianAxesOptions
-        ): AgCartesianChartOptions => ({ data: RANGES, series, axes });
+        ): AgCartesianChartOptions => ({ data: RANGES, series, axes: withCrosshairEnabled(axes) });
 
         const axisPositionOf = (axis: string, value: unknown) => {
             const { scale } = findAxis(chart, axis);
@@ -1448,6 +1460,7 @@ describe('Crosshair', () => {
                         { x: 'C', y: 25 },
                     ],
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: withCrosshairEnabled(),
                 },
                 hover: ['B', 30],
                 expected: { yKey: 30 },
@@ -1610,7 +1623,7 @@ describe('Crosshair', () => {
                         hi: Math.sin(i / 10) + 1,
                     })),
                     series: [rangeBar({ xKey: 'x', strokeWidth: 0 })],
-                    axes: STRIPPED_NUMBER_AXES as AgCartesianChartOptions['axes'],
+                    axes: withCrosshairEnabled(STRIPPED_NUMBER_AXES as AgCartesianAxesOptions),
                 });
 
                 const nodes = getSeriesNodeData<RangeBarNode>(chart);
@@ -1870,5 +1883,159 @@ describe('Crosshair', () => {
                 });
             });
         });
+    });
+
+    describe('crosshair default', () => {
+        const ROWS = ['A', 'B', 'C', 'D', 'E'].map((cat, i) => ({
+            cat,
+            cat2: ['P', 'Q'][i % 2],
+            n: i + 1,
+            v: 10 + i * 5,
+            w: [100, -30, -30, -30, -5][i],
+            lo: 5 + i,
+            hi: 25 + i * 3,
+            size: 5 + i,
+            min: 1 + i,
+            q1: 3 + i,
+            median: 5 + i,
+            q3: 8 + i,
+            max: 10 + i,
+            t: new Date(2024, 0, i + 1),
+        }));
+        const CANDLES = ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04'].map((date, i) => ({
+            date: new Date(date),
+            open: 100 + i,
+            high: 130 + i,
+            low: 90 + i,
+            close: 110 + i,
+        }));
+        const OHLC = { xKey: 'date', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' } as const;
+
+        type AxisType = 'number' | 'category' | 'time' | 'log';
+        const visibleLabels = () =>
+            document.querySelectorAll('.ag-charts-crosshair-label:not(.ag-charts-crosshair-label--hidden)').length;
+        const hasVisibleLabel = (position: string) =>
+            document.querySelectorAll(
+                `.ag-charts-crosshair-label[data-axis-id="${findAxis(chart, position).id}"]:not(.ag-charts-crosshair-label--hidden)`
+            ).length >= 1;
+
+        const hoverCentre = async () => {
+            const { x, y, width, height } = getSeriesRect(chart);
+            await hoverAction(x + width / 2, y + height / 2)(chart);
+            await waitForChartStability(chart);
+        };
+
+        const axesFor = ([xType, yType]: [AxisType, AxisType], crosshair?: { enabled: boolean }) =>
+            ({
+                x: { type: xType, position: 'bottom', ...(crosshair && { crosshair }) },
+                y: { type: yType, position: 'left', ...(crosshair && { crosshair }) },
+            }) as AgCartesianAxesOptions;
+
+        const OFF_CASES: [string, AgCartesianChartOptions['series'], [AxisType, AxisType]][] = [
+            ['line', [{ type: 'line', xKey: 'n', yKey: 'v' }], ['number', 'number']],
+            ['area', [{ type: 'area', xKey: 'n', yKey: 'v' }], ['number', 'number']],
+            ['scatter', [{ type: 'scatter', xKey: 'n', yKey: 'v' }], ['number', 'number']],
+            ['bubble', [{ type: 'bubble', xKey: 'n', yKey: 'v', sizeKey: 'size' }], ['number', 'number']],
+            ['bar vertical', [{ type: 'bar', xKey: 'cat', yKey: 'v' }], ['category', 'number']],
+            [
+                'bar horizontal',
+                [{ type: 'bar', direction: 'horizontal', xKey: 'cat', yKey: 'v' }],
+                ['number', 'category'],
+            ],
+            ['histogram', [{ type: 'histogram', xKey: 'v' }], ['number', 'number']],
+            [
+                'box plot',
+                [
+                    {
+                        type: 'box-plot',
+                        xKey: 'cat',
+                        minKey: 'min',
+                        q1Key: 'q1',
+                        medianKey: 'median',
+                        q3Key: 'q3',
+                        maxKey: 'max',
+                    },
+                ],
+                ['category', 'number'],
+            ],
+            ['range bar', [{ type: 'range-bar', xKey: 'cat', yLowKey: 'lo', yHighKey: 'hi' }], ['category', 'number']],
+            [
+                'range area',
+                [{ type: 'range-area', xKey: 'cat', yLowKey: 'lo', yHighKey: 'hi' }],
+                ['category', 'number'],
+            ],
+            ['waterfall', [{ type: 'waterfall', xKey: 'cat', yKey: 'w' }], ['category', 'number']],
+            ['heatmap', [{ type: 'heatmap', xKey: 'cat', yKey: 'cat2', colorKey: 'v' }], ['category', 'category']],
+            ['line with time x and log y', [{ type: 'line', xKey: 't', yKey: 'v' }], ['time', 'log']],
+        ];
+
+        it.each(OFF_CASES)(
+            '%s has no crosshair by default and shows one when enabled',
+            async (_name, series, types) => {
+                chart = await createEnterpriseChart({ data: ROWS, series, axes: axesFor(types) });
+                await hoverCentre();
+                expect(visibleLabels()).toBe(0);
+                chart.destroy();
+
+                chart = await createEnterpriseChart({ data: ROWS, series, axes: axesFor(types, { enabled: true }) });
+                await hoverCentre();
+                expect(hasVisibleLabel('bottom'), 'x label').toBe(true);
+                expect(hasVisibleLabel('left'), 'y label').toBe(true);
+            }
+        );
+
+        const FINANCIAL_CASES: [string, AgCartesianChartOptions][] = [
+            ['candlestick', { data: CANDLES, series: [{ type: 'candlestick', ...OHLC }] }],
+            ['ohlc', { data: CANDLES, series: [{ type: 'ohlc', ...OHLC }] }],
+            [
+                'hlc',
+                {
+                    data: CANDLES,
+                    series: [{ type: 'hlc', xKey: 'date', highKey: 'high', lowKey: 'low', closeKey: 'close' }],
+                },
+            ],
+            [
+                'candlestick with a time x axis',
+                { data: CANDLES, series: [{ type: 'candlestick', ...OHLC }], axes: { x: { type: 'time' } } },
+            ],
+            [
+                'candlestick with a unit-time x axis',
+                { data: CANDLES, series: [{ type: 'candlestick', ...OHLC }], axes: { x: { type: 'unit-time' } } },
+            ],
+            [
+                'candlestick with a log y axis',
+                { data: CANDLES, series: [{ type: 'candlestick', ...OHLC }], axes: { y: { type: 'log' } } },
+            ],
+            [
+                'candlestick followed by a line',
+                {
+                    data: CANDLES,
+                    series: [
+                        { type: 'candlestick', ...OHLC },
+                        { type: 'line', xKey: 'date', yKey: 'close' },
+                    ],
+                },
+            ],
+        ];
+
+        it.each(FINANCIAL_CASES)('%s shows x and y crosshair labels by default', async (_name, options) => {
+            chart = await createEnterpriseChart(options);
+            await hoverCentre();
+            expect(hasVisibleLabel('bottom'), 'x label').toBe(true);
+            expect(hasVisibleLabel('left'), 'y label').toBe(true);
+        });
+
+        it.each(FINANCIAL_CASES.slice(0, 3))(
+            '%s hides the y label when the y axis disables it',
+            async (_name, options) => {
+                chart = await createEnterpriseChart({
+                    ...options,
+                    axes: { y: { type: 'number', crosshair: { enabled: false } } },
+                });
+                await hoverCentre();
+                expect(hasVisibleLabel('bottom'), 'x label').toBe(true);
+                expect(visibleLabels()).toBe(1);
+            }
+        );
     });
 });

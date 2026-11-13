@@ -4,7 +4,6 @@ import {
     type AgCartesianChartOptions,
     type AgChartInstance,
     AllCommunityModule,
-    CategoryAxisModule,
     LineSeriesModule,
     NumberAxisModule,
 } from 'ag-charts-community';
@@ -13,7 +12,7 @@ import { type ModuleDefinition, ModuleRegistry, ModuleScope } from 'ag-charts-co
 
 import * as enterpriseCartesianAxisModules from './axes/cartesian/cartesianAxisModules';
 import { NumberAxisModule as EnterpriseNumberAxisModule } from './axes/cartesian/cartesianAxisModules';
-import { RangeBarSeriesModule } from './main';
+import { BackgroundRegionsModule, CandlestickSeriesModule, OrdinalTimeAxisModule } from './main';
 import { PriceVolumePresetModule } from './preset/price-volume/priceVolumePresetModule';
 import { VolumeProfilePresetModule } from './preset/volume-profile/volumeProfilePresetModule';
 import { createEnterpriseChart } from './test/utils';
@@ -42,17 +41,19 @@ describe('instance modules', () => {
     });
 });
 
-// The range-bar template enables `crosshair` by default; only a user-set crosshair should report the module.
+// The candlestick theme enables `crosshair` by default; only a user-set crosshair should report the module.
 describe('theme defaults for unregistered modules', () => {
     setupMockConsole();
     setupMockCanvas();
 
     const OPTIONS: AgCartesianChartOptions = {
         data: [
-            { month: 'Jan', low: -3, high: 8 },
-            { month: 'Feb', low: -1, high: 11 },
+            { date: new Date('2024-01-01'), open: 5, high: 8, low: 3, close: 6 },
+            { date: new Date('2024-01-02'), open: 6, high: 11, low: 4, close: 9 },
         ],
-        series: [{ type: 'range-bar', xKey: 'month', yLowKey: 'low', yHighKey: 'high' }],
+        series: [
+            { type: 'candlestick', xKey: 'date', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
+        ],
     };
 
     let chart: AgChartInstance | undefined;
@@ -61,7 +62,12 @@ describe('theme defaults for unregistered modules', () => {
     beforeEach(() => {
         registeredModules = [...ModuleRegistry.listModules()];
         ModuleRegistry.reset();
-        ModuleRegistry.registerModules([RangeBarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+        ModuleRegistry.registerModules([
+            CandlestickSeriesModule,
+            OrdinalTimeAxisModule,
+            NumberAxisModule,
+            BackgroundRegionsModule,
+        ]);
     });
 
     afterEach(() => {
@@ -90,7 +96,7 @@ describe('theme defaults for unregistered modules', () => {
         chart = await createEnterpriseChart({
             ...OPTIONS,
             axes: {
-                x: { type: 'category' },
+                x: { type: 'ordinal-time' },
                 y: { type: 'number', crosshair: { enabled: true } },
             },
         });

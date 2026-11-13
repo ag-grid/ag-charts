@@ -306,8 +306,8 @@ function createPriceVolumeProfileSeries(
 }
 
 function createPriceAxis(tickSize: number | undefined, volumeProfile: AgVolumeProfileOptions | undefined) {
-    // `snap` is themed so that theme overrides can turn snapping off.
-    const crosshair = { enabled: true, snapInterval: tickSize };
+    // `enabled` and `snap` are themed so that theme overrides can turn them off.
+    const crosshair = { snapInterval: tickSize };
     return {
         [PRICE_AXIS_KEY]: {
             type: 'number',
@@ -331,9 +331,6 @@ function createDateAxis() {
                 enabled: false,
             },
             label: {
-                enabled: true,
-            },
-            crosshair: {
                 enabled: true,
             },
         } satisfies AgOrdinalTimeAxisOptions,

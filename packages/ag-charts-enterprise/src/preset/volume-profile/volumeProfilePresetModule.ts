@@ -85,5 +85,8 @@ export const VolumeProfilePresetModule: PresetModuleDefinition<
             // @ts-expect-error undocumented option
             footnote: { layoutStyle: 'block', textAlign: 'center' },
         },
+        bar: {
+            axes: { number: { crosshair: { enabled: true } } },
+        },
     },
 };

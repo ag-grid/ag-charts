@@ -86,7 +86,8 @@ const NO_UNHIGHLIGHT_THEME = { unhighlightedItem: { opacity: 1 }, unhighlightedS
 // The axis theme is taken from the first series' type, and series themes set `snap` over `common`, so this is applied
 // to every series type the preset can put first.
 const PRICE_AXIS_THEME = {
-    number: { crosshair: { snap: { $if: [{ $preset: 'tickSize' }, true, false] } as any } },
+    number: { crosshair: { enabled: true, snap: { $if: [{ $preset: 'tickSize' }, true, false] } as any } },
+    'ordinal-time': { crosshair: { enabled: true } },
 };
 
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {

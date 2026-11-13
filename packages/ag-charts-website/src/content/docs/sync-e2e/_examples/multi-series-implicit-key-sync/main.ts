@@ -5,6 +5,9 @@ import { getBenchmark1Data, getBenchmark2Data } from './data';
 const commonOptions = {
     sync: { axes: 'xy' },
     tooltip: { mode: 'single' },
+    axes: {
+        y: { type: 'number', crosshair: { enabled: true } },
+    },
     series: [
         {
             type: 'bar',

@@ -98,7 +98,7 @@ export interface AgQuadrantAxisPlacementOptions {
      */
     label?: AgCartesianAxisCrossAtPlacement;
     /**
-     * Whether the crosshair label is placed at the crossing point, or at the axis' `position` edge.
+     * Whether the crosshair label is placed at the crossing point, or at the axis' `position` edge, when the crosshair is enabled.
      *
      * Default: `'edge'`
      */

@@ -55,6 +55,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Kilotonnes of Oil Equivalent',
             },
             crosshair: {
+                enabled: true,
                 snap: false,
                 label: {
                     renderer: crosshairLabelRenderer('right'),
@@ -64,6 +65,7 @@ const options: AgCartesianChartOptions = {
         x: {
             type: 'number',
             crosshair: {
+                enabled: true,
                 snap: false,
                 label: {
                     renderer: crosshairLabelRenderer('top'),
