@@ -69,6 +69,8 @@ export interface ShadowKey {
     readonly frames?: ShadowFrame[];
     /** All that clips every caster of a `root` key, in device pixels: the clips of its frames, and of a path. */
     readonly clips?: readonly ShadowRegion[];
+    /** For a key that a cast split from another by strength, see {@link splitByStrength}: that key, and every key split from it. */
+    readonly split?: { readonly from: ShadowKey; readonly parts: readonly ShadowKey[] };
 }
 
 /** The options that a node casts in a slot through a shadow root, which a cutout may, or undefined if it casts none. */
@@ -628,6 +630,73 @@ function getUniformSpreadStrength({ slot, casters, frames }: ShadowKey): number 
     return uniform;
 }
 
+/** The most keys that {@link splitByStrength} makes of one: past that, a key keeps its casters together, at no one strength. */
+const MAX_STRENGTH_SPLIT = 4;
+/**
+ * The fewest casters that {@link splitByStrength} splits a key of. The mask of a key at no one strength costs a canvas draw for
+ * each caster, which is small below this, so a smaller key keeps its one mask and the way its casters' glows merge in it.
+ */
+const MIN_STRENGTH_SPLIT_CASTERS = 512;
+
+interface StrengthPart {
+    readonly key: ShadowKey;
+    /** The strength all casters of the key cast at, or undefined if they differ or one draws another way. */
+    readonly strength: number | undefined;
+}
+
+/**
+ * Splits a key of an overlay whose casters cast at more than one strength, which a hovered series' items do beside the others,
+ * into a key for each. A key that casts at one strength draws each silhouette solid, which is far cheaper than drawing each
+ * through a canvas of its own, as a key at no one strength must. The footprints of the parts are cut out of each other's glows
+ * as those of one key are, so the cut is as it was before the split. A key is returned whole if it casts at one strength, or at
+ * more than {@link MAX_STRENGTH_SPLIT}, as the parts would then each cost a mask, a blur and a cut.
+ */
+function splitByStrength(key: ShadowKey): StrengthPart[] {
+    const whole = getUniformSpreadStrength(key);
+    const { slot, casters, frames } = key;
+    if (whole !== undefined || casters.length < MIN_STRENGTH_SPLIT_CASTERS) return [{ key, strength: whole }];
+
+    const strengths: Array<number | undefined> = [];
+    const members: number[][] = [];
+    // Casters that cast nothing have no mask to draw, so they go with the first part, which keeps their footprints in a cut.
+    const nothing: number[] = [];
+    for (let i = 0; i < casters.length; i++) {
+        const base = casters[i].getSpreadMaskStrength(slot);
+        const strength = base == null ? undefined : base * (frames?.[i].alpha ?? 1);
+        if (strength != null && strength <= 0) {
+            nothing.push(i);
+            continue;
+        }
+
+        let part = strengths.findIndex((s) =>
+            strength == null || s == null ? s === strength : Math.abs(s - strength) <= UNIFORM_STRENGTH_TOLERANCE
+        );
+        if (part < 0) {
+            if (strengths.length === MAX_STRENGTH_SPLIT) return [{ key, strength: undefined }];
+
+            part = strengths.length;
+            strengths.push(strength);
+            members.push([]);
+        }
+        members[part].push(i);
+    }
+    if (members.length < 2) return [{ key, strength: undefined }];
+
+    members[0].push(...nothing);
+    const parts: ShadowKey[] = [];
+    const split = { from: key, parts };
+    for (const indices of members) {
+        indices.sort((a, b) => a - b);
+        parts.push({
+            ...key,
+            casters: indices.map((i) => casters[i]),
+            frames: frames == null ? undefined : indices.map((i) => frames[i]),
+            split,
+        });
+    }
+    return parts.map((part, i) => ({ key: part, strength: strengths[i] }));
+}
+
 /** How a key casts its shadow: where its mask goes, and how it is blurred. */
 interface MaskPlan {
     readonly key: ShadowKey;
@@ -659,14 +728,17 @@ function planKey(
     key: ShadowKey,
     renderCtx: RenderContext,
     width: number,
-    height: number
+    height: number,
+    known?: StrengthPart
 ): MaskPlan | 'empty' | 'unusable' {
     const { ctx, devicePixelRatio } = renderCtx;
     const { shadow } = key;
 
     // A root key merges the casters of many series, whose overlaps would otherwise add up, with or without a spread.
     const spread = getShadowSpread(shadow);
-    const strength = dilatesShadow(shadow) || key.frames != null ? getUniformSpreadStrength(key) : undefined;
+    let strength: number | undefined;
+    if (known != null) strength = known.strength;
+    else if (dilatesShadow(shadow) || key.frames != null) strength = getUniformSpreadStrength(key);
     // A key whose casters all cast nothing, such as one fading in from zero opacity, has no mask or blur to draw.
     if (strength === 0) return 'empty';
 
@@ -951,46 +1023,82 @@ function castOverlay(
     glows.clearRect(0, 0, width, height);
 
     let cut: SpreadCanvas | undefined;
-    for (const plan of plans) {
-        const { key } = plan;
-        // A glow reaches no further than its own extent, so only that much of the canvas is blurred onto, cut and merged.
-        const reach = getKeyRect(keyExtents?.get(key) ?? extent, region, scaleX, scaleY, width, height);
-        if (reach == null) continue;
-
-        rendered = drawMask(plan, scratch, transform, renderCtx) && rendered;
+    const sources = new Set<ShadowKey>();
+    for (const { key } of plans) sources.add(key.split?.from ?? key);
+    const lone = sources.size === 1;
+    // Whether every glow was cut by the footprint of its own casters, dilated by its `gap`, before it merged.
+    let cutWhole = true;
+    let directKey: ShadowKey | undefined;
+    for (let first = 0; first < plans.length;) {
+        // The parts that a key was split into by strength cast one glow, so they share a canvas, and one cut.
+        const source = plans[first].key.split?.from ?? plans[first].key;
+        let end = first + 1;
+        while (end < plans.length && (plans[end].key.split?.from ?? plans[end].key) === source) end++;
 
         // A glow with a `gap` of its own clears the whole footprint of its casters, dilated by the gap, before it merges. One whose
         // `gap` was set for the overlay is cut only where an item is painted, along with every other glow, once they have merged.
-        const { gap, overlay } = key.shadow;
+        const { gap, overlay } = source.shadow;
         const hasGap = gap != null && overlay !== true;
-        if (hasGap) cut ??= acquireOwnCutCanvas(scene, width, height);
+        // A lone glow is blurred onto the merged canvas itself, and cut there, as there is no other glow to merge it with.
+        const direct = lone && hasGap;
+        if (hasGap && !direct) cut ??= acquireOwnCutCanvas(scene, width, height);
         // Without a canvas for its own cut, a glow is merged whole, and the cut of every footprint still clears the items.
-        const own = hasGap ? cut : undefined;
+        let own: SpreadCanvas | undefined;
+        if (hasGap) own = direct ? merged : cut;
         const dest = own?.context ?? glows;
+        // A glow reaches no further than its own extent, so only that much of the canvas is blurred onto, cut and merged.
+        const reach = getKeyRect(keyExtents?.get(source) ?? extent, region, scaleX, scaleY, width, height);
+        const group = plans.slice(first, end);
+        first = end;
+        if (reach == null) continue;
+
+        cutWhole &&= own != null;
         if (own != null) {
             own.context.setTransform(1, 0, 0, 1, 0, 0);
             own.context.clearRect(reach.x, reach.y, reach.width, reach.height);
         }
-        dest.save();
-        try {
-            dest.setTransform(1, 0, 0, 1, 0, 0);
-            dest.beginPath();
-            dest.rect(reach.x, reach.y, reach.width, reach.height);
-            dest.clip();
-            if (own == null) clipToKey(key, dest, transform, region.x, region.y, scaleX, scaleY);
-            blurMask(plan, scratch.canvas, dest, region.x, region.y, scaleX, scaleY);
-        } finally {
-            dest.restore();
+        for (const plan of group) {
+            rendered = drawMask(plan, scratch, transform, renderCtx) && rendered;
+            dest.save();
+            try {
+                dest.setTransform(1, 0, 0, 1, 0, 0);
+                dest.beginPath();
+                dest.rect(reach.x, reach.y, reach.width, reach.height);
+                dest.clip();
+                if (own == null) clipToKey(plan.key, dest, transform, region.x, region.y, scaleX, scaleY);
+                blurMask(plan, scratch.canvas, dest, region.x, region.y, scaleX, scaleY);
+            } finally {
+                dest.restore();
+            }
         }
         if (own == null) continue;
 
         rendered =
-            cutOut(own, reach, scratch, (ctx, op) =>
-                eraseFootprints(key, ctx, transform, renderCtx, region, resolutionOfHole, gap ?? 0, false, op)
-            ) && rendered;
+            cutOut(own, reach, scratch, (ctx, op) => {
+                let drew = true;
+                for (const plan of group) {
+                    drew =
+                        eraseFootprints(
+                            plan.key,
+                            ctx,
+                            transform,
+                            renderCtx,
+                            region,
+                            resolutionOfHole,
+                            gap ?? 0,
+                            false,
+                            op
+                        ) && drew;
+                }
+                return drew;
+            }) && rendered;
+        if (direct) {
+            directKey = group[0].key;
+            continue;
+        }
         glows.save();
         try {
-            clipToKey(key, glows, transform, region.x, region.y, scaleX, scaleY);
+            clipToKey(group[0].key, glows, transform, region.x, region.y, scaleX, scaleY);
             glows.resetTransform();
             glows.globalAlpha = 1;
             glows.drawImage(
@@ -1009,19 +1117,23 @@ function castOverlay(
         }
     }
 
-    // A glow with no `gap` is cut only where an item is painted, whereas a `gap` clears the whole footprint.
-    rendered =
-        cutOut(merged, { x: 0, y: 0, width, height }, scratch, (ctx, op) => {
-            let drew = true;
-            for (const plan of plans) {
-                drew =
-                    eraseFootprints(plan.key, ctx, transform, renderCtx, region, resolutionOfHole, 0, true, op) && drew;
-            }
-            return drew;
-        }) && rendered;
+    // A glow with no `gap` is cut only where an item is painted, whereas a `gap` clears the whole footprint. A lone glow with a
+    // `gap` is cut by all of its footprints already, so the cut of the painted ones would only clear what is clear.
+    if (!(cutWhole && lone))
+        rendered =
+            cutOut(merged, { x: 0, y: 0, width, height }, scratch, (ctx, op) => {
+                let drew = true;
+                for (const plan of plans) {
+                    drew =
+                        eraseFootprints(plan.key, ctx, transform, renderCtx, region, resolutionOfHole, 0, true, op) &&
+                        drew;
+                }
+                return drew;
+            }) && rendered;
 
     target.save();
     try {
+        if (directKey != null) clipToKey(directKey, target, transform, originX, originY);
         target.resetTransform();
         target.globalAlpha = 1;
         target.drawImage(
@@ -1332,13 +1444,15 @@ export function castShadows(
     let gapped = false;
     for (const key of keys) {
         gapped ||= key.shadow.gap != null;
-        const plan = planKey(key, renderCtx, width, height);
-        if (plan === 'unusable') return false;
-        if (plan === 'empty') continue;
+        for (const part of overlay === true ? splitByStrength(key) : [{ key, strength: undefined }]) {
+            const plan = planKey(part.key, renderCtx, width, height, overlay === true ? part : undefined);
+            if (plan === 'unusable') return false;
+            if (plan === 'empty') continue;
 
-        masks.push(plan);
-        maskWidth = Math.max(maskWidth, plan.maskWidth);
-        maskHeight = Math.max(maskHeight, plan.maskHeight);
+            masks.push(plan);
+            maskWidth = Math.max(maskWidth, plan.maskWidth);
+            maskHeight = Math.max(maskHeight, plan.maskHeight);
+        }
     }
     if (masks.length === 0) return true;
 
