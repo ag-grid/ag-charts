@@ -377,6 +377,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     update({ seriesRect }: { seriesRect?: BBox }) {
+        this.prepareRestyle();
         const resize = this.checkResize(seriesRect);
         this.maybeRefreshNodeData();
 
@@ -420,6 +421,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
 
         const { shadow, glow } = this.options;
+        const fillBBox = this.getShapeFillBBox();
         const hasItemStylers = this.hasItemStylers();
         // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
         const styleCache =
@@ -472,8 +474,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const fillParams: GradientParams | undefined =
                     isGradientFill(fill) && fill.bounds !== 'item' ? { centerX: 0, centerY: 0 } : undefined;
 
-                node.targetStyle = style as NormalisedRadialSeriesStyle;
                 node.fillParams = fillParams;
+                this.setTargetStyle(node, style as NormalisedRadialSeriesStyle, fillBBox);
 
                 node.fillShadow = this.resolveItemShadow(
                     shadow,

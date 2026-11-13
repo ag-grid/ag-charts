@@ -1927,6 +1927,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const series = this;
         const contextStyles = contextNodeData.styles;
+        const fillBBox = this.getShapeFillBBox();
 
         function updateDatumNode(rect: BarShape, datum: BarNodeDatum): void {
             // Resolved only when the datum has no style of its own, and then shared with the shadow.
@@ -1939,8 +1940,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const castState =
                 highlightState ?? series.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
 
-            // Applied, or animated to, by `restyleLayers`.
-            rect.targetStyle = style;
+            series.setTargetStyle(rect, style, fillBBox);
 
             const cornerRadius = style.cornerRadius ?? 0;
             const visible = categoryAlongX

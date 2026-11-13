@@ -379,6 +379,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     update({ seriesRect }: { seriesRect?: BBox }) {
+        this.prepareRestyle();
         const { _contextNodeData: previousContextData } = this;
 
         const resize = this.checkResize(seriesRect);

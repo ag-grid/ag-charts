@@ -1012,6 +1012,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const { shadow, glow } = this.options;
+        const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
             const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
@@ -1020,7 +1021,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            rect.targetStyle = style;
+            this.setTargetStyle(rect, style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;

@@ -42,18 +42,6 @@ const CASES: HighlightFadeCase[] = [
         itemCentre: rectCentre,
     },
     {
-        name: 'waterfall',
-        options: {
-            data: [
-                { stage: 'A', value: 5 },
-                { stage: 'B', value: 4 },
-                { stage: 'C', value: 6 },
-            ],
-            series: [{ type: 'waterfall', xKey: 'stage', yKey: 'value' }],
-        },
-        itemCentre: rectCentre,
-    },
-    {
         name: 'range-bar',
         options: {
             data: [
@@ -62,18 +50,6 @@ const CASES: HighlightFadeCase[] = [
                 { month: 'Mar', low: 1, high: 7 },
             ],
             series: [{ type: 'range-bar', xKey: 'month', yLowKey: 'low', yHighKey: 'high' }],
-        },
-        itemCentre: rectCentre,
-    },
-    {
-        name: 'funnel',
-        options: {
-            data: [
-                { stage: 'Visited', value: 10 },
-                { stage: 'Added', value: 6 },
-                { stage: 'Bought', value: 3 },
-            ],
-            series: [{ type: 'funnel', stageKey: 'stage', valueKey: 'value', label: { enabled: false } }],
         },
         itemCentre: rectCentre,
     },

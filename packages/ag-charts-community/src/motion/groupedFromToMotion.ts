@@ -17,6 +17,8 @@ export interface GroupedFromToFns<D, N extends Node<D>, T extends GroupedProps> 
     applyFn: (node: N, props: T, status: 'start' | 'update' | 'end') => void;
     /** Values that properties absent from one side take, so that they can still interpolate. */
     defaults?: Partial<Record<keyof T, number>>;
+    /** Whether two `toFn` results display the same, so a node keeps its running animation between them. */
+    equalFn?: (a: T, b: T) => boolean;
     /**
      * Properties a node takes over from another node that displayed them in its place, which it restarts from even if
      * its destination is unchanged.
@@ -34,7 +36,8 @@ interface MotionGroup<N> {
 
 /**
  * A {@link fromToMotion} for many nodes between few distinct sets of properties: nodes group by the objects `fromFn` and
- * `toFn` return, one animation per group. A node whose `toFn` result is unchanged keeps its running animation.
+ * `toFn` return, one animation per group. A node whose `toFn` result is unchanged, or equal by `equalFn`, keeps its
+ * running animation.
  */
 export class GroupedFromToMotion {
     /** The running group of each animating node. */
@@ -64,7 +67,7 @@ export class GroupedFromToMotion {
         fns: GroupedFromToFns<D, N, T>,
         { phase = 'transition', cleanupRemoved = true }: { phase?: AnimationPhase; cleanupRemoved?: boolean } = {}
     ) {
-        const { fromFn, toFn, takeoverFn } = fns;
+        const { fromFn, toFn, takeoverFn, equalFn } = fns;
         const { nodeGroups } = this;
 
         const pending = new Map<T, Map<T, N[]>>();
@@ -81,7 +84,9 @@ export class GroupedFromToMotion {
                 const to = toFn(node, datum, status);
                 const takeover = takeoverFn?.(node, datum, status);
                 const current = nodeGroups.get(node);
-                if (takeover == null && current?.to === to) continue;
+                if (takeover == null && current != null && (current.to === to || equalFn?.(current.to as T, to))) {
+                    continue;
+                }
                 if (current != null) this.leaveGroup(current, node);
 
                 const from = takeover ?? fromFn(node, datum, status);

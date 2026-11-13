@@ -225,7 +225,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: ['connector'],
             pathsZIndexSubOrderOffset: [-1, -1],
-            animatesStyles: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -1120,8 +1119,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const styleByState = new Map<string, Required<AgWaterfallSeriesStyle> & AgItemShadowStyle>();
             const thisSeries = this;
 
-            datumSelection.each(function updateDatumSelectionStyles(node, datum) {
-                if (datumSelection.isGarbage(node)) return;
+            datumSelection.each(function updateDatumSelectionStyles(_, datum) {
                 const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
                 const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
                 const stateKey = `${datum.itemType}:${highlightState}:${selectionState ?? '-'}`;
@@ -1141,8 +1139,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             return;
         }
 
-        datumSelection.each((node, datum) => {
-            if (datumSelection.isGarbage(node)) return;
+        datumSelection.each((_, datum) => {
             datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemType);
         });
     }
@@ -1162,12 +1159,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const crispCentreDirection = this.getCategoryCrispDirection();
+        const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const style = datum.style ?? contextNodeData.styles[datum.itemType][highlightState];
             // `style` is fully resolved by render time; narrow it to the shape-compatible normalised style.
-            rect.targetStyle = style as Required<NormalisedWaterfallSeriesStyle>;
+            rect.setStyleProperties(style as Required<NormalisedWaterfallSeriesStyle>, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
             const { shadow, glow } = this.getItemConfig(datum.itemType);

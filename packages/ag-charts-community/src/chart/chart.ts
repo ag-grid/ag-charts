@@ -71,6 +71,7 @@ import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
 import { inheritDataSet, replaceDataSet } from './data/dataSetUtil';
+import { MAX_ANIMATABLE_NODES } from './data/maxAnimatableNodes';
 import { SyncManager } from './interaction/syncManager';
 import { LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
@@ -838,7 +839,9 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
         if (type <= ChartUpdateType.SERIES_UPDATE) {
             const firstSeriesRequest = this.performUpdateType > ChartUpdateType.SERIES_UPDATE;
-            this.restyleOnlyOnUpdate = restyleOnly && (firstSeriesRequest || this.restyleOnlyOnUpdate);
+            const fades =
+                restyleOnly && this.ctx.chartState.getValue('options', 'highlight')?.transitionMode === 'gradual';
+            this.restyleOnlyOnUpdate = fades && (firstSeriesRequest || this.restyleOnlyOnUpdate);
         }
 
         if (this.debug.check()) {
@@ -897,6 +900,15 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         }
     }
 
+    /** Fading costs a style update per shape each frame, so past a chart-wide limit every series snaps instead. */
+    private canFadeStyles() {
+        let shapeCount = 0;
+        for (const series of this.series) {
+            shapeCount += series.styledShapeCount;
+        }
+        return shapeCount <= MAX_ANIMATABLE_NODES;
+    }
+
     private async performUpdate(count: number) {
         const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx, restyleOnlyOnUpdate } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
@@ -921,10 +933,11 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
         ctx.chartState.flushChanges();
 
+        const restyleOnly = restyleOnlyOnUpdate && this.canFadeStyles();
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
-            ctx.animationManager.startBatch(this._performUpdateSkipAnimations, restyleOnlyOnUpdate);
+            ctx.animationManager.startBatch(this._performUpdateSkipAnimations, restyleOnly);
             ctx.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
-        } else if (!restyleOnlyOnUpdate) {
+        } else if (!restyleOnly) {
             ctx.animationManager.endRestyle();
         }
 

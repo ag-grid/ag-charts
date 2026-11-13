@@ -1399,12 +1399,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const crispCentreDirection = this.getCategoryCrispDirection();
 
         const { shadow, glow } = this.options;
+        const fillBBox = this.getShapeFillBBox();
 
         const series = this;
         datumSelection.each(function updateRangeBarNode(rect, datum) {
             const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const style = datum.style ?? contextNodeData.styles[highlightState];
-            rect.targetStyle = style;
+            series.setTargetStyle(rect, style, fillBBox);
 
             // Batched static property updates - write directly to backing fields to reduce markDirty() calls
             rect.setStaticProperties(

@@ -1535,9 +1535,8 @@ export function expectFade(trajectory: readonly number[], from: number, to: numb
 
 /** The RGBA of the device pixel at canvas coordinates (`x`, `y`) as the chart last rendered it. */
 export function renderedPixelAt(chartOrProxy: ChartOrProxy<any>, x: number, y: number): number[] {
-    const { canvas } = deproxy(chartOrProxy).ctx.scene;
-    const { pixelRatio } = canvas;
-    return [...canvas.context.getImageData(Math.floor(x * pixelRatio), Math.floor(y * pixelRatio), 1, 1).data];
+    const { pixelRatio } = deproxy(chartOrProxy).ctx.scene.canvas;
+    return chartPixelAt(chartOrProxy, Math.floor(x * pixelRatio), Math.floor(y * pixelRatio));
 }
 
 /**

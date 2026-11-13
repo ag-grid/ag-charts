@@ -46,7 +46,6 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
-            animatesStyles: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
             },
@@ -160,12 +159,12 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const crispCentreDirection = this.getCategoryCrispDirection();
 
+        const fillBBox = this.getShapeFillBBox();
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         datumSelection.each((rect, datum) => {
-            if (datumSelection.isGarbage(rect)) return;
             const style = this.getItemStyle(datum, isHighlight);
-            rect.targetStyle = style;
+            rect.setStyleProperties(style, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;

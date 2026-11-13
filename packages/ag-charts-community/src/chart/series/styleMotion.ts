@@ -44,20 +44,14 @@ export class ShapeStyleMotion {
     /** Distinct styles from this restyle and the one before, so that equal styles stay shared across them. */
     private sharedStyles: ShapeStyle[] = [];
     private readonly hiddenStyles = new WeakMap<ShapeStyle, ShapeStyle>();
+    private lastShapeCount = 0;
 
-    constructor(
-        owner: { readonly id: string },
-        private readonly animationManager: AnimationManager
-    ) {
+    constructor(owner: { readonly id: string }, animationManager: AnimationManager) {
         this.motion = new GroupedFromToMotion(owner, animationManager);
     }
 
     animate<D extends StyledDatum, N extends Shape<D>>(layers: StyleLayer<D, N>[], fillBBox: ShapeFillBBox) {
-        if (!this.isAnimatable(layers)) {
-            this.reset(layers, fillBBox);
-            return;
-        }
-
+        this.lastShapeCount = countShapes(layers);
         const share = this.startRestyle();
         for (const { subId, selection, highlightSelection, restyled } of layers) {
             const prefix = subId === '' ? '' : `${subId}-`;
@@ -80,11 +74,30 @@ export class ShapeStyleMotion {
         }
     }
 
-    /** Apply each shape's `targetStyle` without animating, and remove the removed highlight copies. */
-    reset<D extends StyledDatum, N extends Shape<D>>(layers: StyleLayer<D, N>[], fillBBox: ShapeFillBBox) {
+    isAnimating() {
+        return this.motion.isAnimating();
+    }
+
+    /** How many shapes the last restyle styled, for the chart to bound how many fade at once. */
+    get shapeCount() {
+        return this.lastShapeCount;
+    }
+
+    /**
+     * Apply each shape's `targetStyle` without animating, unless the series `applied` them as it resolved them, and
+     * remove the removed highlight copies.
+     */
+    reset<D extends StyledDatum, N extends Shape<D>>(
+        layers: StyleLayer<D, N>[],
+        fillBBox: ShapeFillBBox,
+        { applied = false }: { applied?: boolean } = {}
+    ) {
+        this.lastShapeCount = countShapes(layers);
         for (const { selection, highlightSelection, restyled } of layers) {
-            if (restyled) this.resetSelection(selection, fillBBox);
-            this.resetSelection(highlightSelection, fillBBox);
+            if (!applied) {
+                if (restyled) this.resetSelection(selection, fillBBox);
+                this.resetSelection(highlightSelection, fillBBox);
+            }
             highlightSelection.cleanup();
         }
     }
@@ -144,15 +157,9 @@ export class ShapeStyleMotion {
                       },
             applyFn: (node, style) => node.setStyleProperties(style, fillBBox, node.fillParams),
             defaults: STYLE_DEFAULTS,
+            // Past `MAX_SHARED_STYLES` styles go unshared, so equal ones compare by value.
+            equalFn: equalStyles,
         };
-    }
-
-    private isAnimatable(layers: { selection: { length: number }; highlightSelection: { length: number } }[]) {
-        let shapeCount = 0;
-        for (const { selection, highlightSelection } of layers) {
-            shapeCount += selection.length + highlightSelection.length;
-        }
-        return shapeCount <= this.animationManager.maxAnimatableItems;
     }
 
     /** `style` at zero opacity; shared by every shape with `style`, so they animate together. */
@@ -191,6 +198,14 @@ export class ShapeStyleMotion {
             return shared;
         };
     }
+}
+
+function countShapes(layers: { selection: { length: number }; highlightSelection: { length: number } }[]) {
+    let count = 0;
+    for (const { selection, highlightSelection } of layers) {
+        count += selection.length + highlightSelection.length;
+    }
+    return count;
 }
 
 /** Bounds the per-shape cost of sharing styles, for series whose shapes mostly have distinct styles. */

@@ -27,6 +27,7 @@ import type {
     SeriesLabelDefaults,
     SeriesPluginModuleInstance,
     Shape,
+    ShapeStyle,
     SizedPoint,
 } from 'ag-charts-core';
 import {
@@ -157,6 +158,11 @@ type SeriesListenerEvent =
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
     readonly processedData: ProcessedData<any>;
+}
+
+export interface SeriesRestyleEvent {
+    /** Whether the series' shapes animate to their new styles, rather than snapping. */
+    readonly animate: boolean;
 }
 
 /** Pick radius substituted for `nodeClickRange: 'exact'` when a series has no pickable node shapes. */
@@ -685,6 +691,8 @@ export abstract class Series<
         'data-selection-change': null;
         'grouping-changed': SeriesGroupingChangedEvent;
         'visibility-change': AgSeriesVisibilityChange;
+        /** Emitted by series that animate styles, once `restyleLayers` has applied or animated their shapes' styles. */
+        restyle: SeriesRestyleEvent;
     }>();
 
     updatedDomains() {
@@ -1157,6 +1165,25 @@ export abstract class Series<
 
     protected readonly animatesStyles: boolean;
     private styleMotion?: ShapeStyleMotion;
+    /** Whether this update applies styles as it resolves them, as nothing fades: neither this update nor a running one. */
+    private stylesApplyInline = false;
+
+    /** Call before resolving styles in an update, so that `setTargetStyle` knows whether to apply them. */
+    protected prepareRestyle() {
+        this.stylesApplyInline =
+            !this.ctx.animationManager.isRestyleOnly() && !(this.styleMotion?.isAnimating() ?? false);
+    }
+
+    /**
+     * Resolve `shape`'s style for `restyleLayers` to apply or animate to. When nothing fades it applies now, saving
+     * `restyleLayers` a pass over the shapes.
+     */
+    protected setTargetStyle(shape: Shape, style: ShapeStyle, fillBBox: ShapeFillBBox | undefined) {
+        shape.targetStyle = style;
+        if (this.stylesApplyInline) {
+            shape.setStyleProperties(style, fillBBox, shape.fillParams);
+        }
+    }
 
     /**
      * Apply the `targetStyle` this update resolved for each layer's shapes. A restyle-only update, such as a highlight
@@ -1168,11 +1195,18 @@ export abstract class Series<
     ) {
         const { animationManager } = this.ctx;
         this.styleMotion ??= new ShapeStyleMotion(this, animationManager);
-        if (animationManager.isRestyleOnly()) {
+        const animate = animationManager.isRestyleOnly();
+        if (animate) {
             this.styleMotion.animate(layers, fillBBox);
         } else {
-            this.styleMotion.reset(layers, fillBBox);
+            this.styleMotion.reset(layers, fillBBox, { applied: this.stylesApplyInline });
         }
+        this.events.emit('restyle', { animate });
+    }
+
+    /** How many shapes the series' last restyle styled; none for series that do not animate styles. */
+    get styledShapeCount() {
+        return this.styleMotion?.shapeCount ?? 0;
     }
 
     /**
@@ -2310,7 +2344,7 @@ export abstract class Series<
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
         if (this.animatesStyles) {
-            markerNode.targetStyle = crossFilterSelected ? style : this.crossFilterDimmedStyle(style);
+            this.setTargetStyle(markerNode, crossFilterSelected ? style : this.crossFilterDimmedStyle(style), fillBBox);
         } else {
             markerNode.setStyleProperties(style, fillBBox);
             if (!crossFilterSelected) {
