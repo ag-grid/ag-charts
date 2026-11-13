@@ -32,7 +32,7 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import { getSeriesRect } from '../test/axisAccessors';
-import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
+import { expectPixelIdenticalAcrossUpdate, expectPixelsChangeAcrossUpdate } from '../test/bigintExamples';
 import { getSeriesSelectionNodes } from '../test/seriesAccessors';
 import type { CartesianTestCase } from '../test/utils';
 import {
@@ -44,6 +44,7 @@ import {
     deproxy,
     doubleClickAction,
     emitFontLoad,
+    hoverAction,
     expectWarningMessages,
     prepareTestOptions,
     repeat,
@@ -1015,9 +1016,48 @@ describe('CrossLine', () => {
                     })
                 );
             });
-            it('a series node under the pointer wins over the cross lines it overlaps', async () => {
+            it('a front cross line wins over a series node under the pointer, and reports it', async () => {
                 // The May bar sits under the blue line and inside the grey range band.
                 await clickAction(505, 470)(chart);
+                expect(chartCrossLineClick).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        crossLineId: 'blue-line',
+                        allMatchedParams: [
+                            expect.objectContaining({ type: 'crossLineClick', crossLineId: 'blue-line' }),
+                            expect.objectContaining({ type: 'crossLineClick', crossLineId: 'grey-range' }),
+                            expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'May', y: 3 } }),
+                        ],
+                    })
+                );
+                expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
+                expect(chartClick).toHaveBeenCalledTimes(0);
+            });
+            it('a front cross line wins a double-click over a series node with a double-click listener', async () => {
+                const seriesDoubleClick = vi.fn();
+                await chart.publicApi!.updateDelta({ listeners: { seriesNodeDoubleClick: seriesDoubleClick } });
+                await doubleClickAction(505, 470)(chart);
+                expect(chartCrossLineDoubleClick).toHaveBeenCalledWith(
+                    expect.objectContaining({ crossLineId: 'blue-line' })
+                );
+                expect(seriesDoubleClick).toHaveBeenCalledTimes(0);
+            });
+            it.each(['split', 'back'] as const)(
+                'a series node under the pointer wins over the %s cross lines it overlaps',
+                async (layer) => {
+                    await chart.publicApi!.updateDelta({
+                        axes: {
+                            myX: {
+                                type: 'category',
+                                crossLines: [
+                                    { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2, layer },
+                                    { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
+                                ],
+                            },
+                        },
+                    });
+                    // The May bar sits under the blue line and inside the grey range band.
+                    await clickAction(505, 470)(chart);
                 const expected = expect.objectContaining({
                     type: 'seriesNodeClick',
                     datum: { x: 'May', y: 3 },
@@ -1035,7 +1075,8 @@ describe('CrossLine', () => {
                 expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
                 expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
                 expect(chartClick).toHaveBeenCalledTimes(0);
-            });
+                }
+            );
             it('a cross line wins over a series node under the pointer that nothing listens to', async () => {
                 chart.destroy();
                 chart = deproxy(
@@ -1579,8 +1620,8 @@ describe('CrossLine', () => {
                 ...label,
             };
             return type === 'line'
-                ? { ...style, type, value: 0, label: fullLabel }
-                : { ...style, type, range: [0, 1], label: fullLabel };
+                ? { ...style, type, layer: 'front', value: 0, label: fullLabel }
+                : { ...style, type, layer: 'split', range: [0, 1], label: fullLabel };
         }
 
         function unitCrossLine() {
@@ -2950,6 +2991,36 @@ describe('CrossLine theme overrides', () => {
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['black']);
     });
 
+    it.each([
+        ['defaults by type', {}, LINE_AND_RANGE, ['front', 'split']],
+        ['applies the shared option to both types', { layer: 'back' }, LINE_AND_RANGE, ['back', 'back']],
+        [
+            'lets the type options beat the shared option',
+            { layer: 'back', range: { layer: 'front' } },
+            LINE_AND_RANGE,
+            ['back', 'front'],
+        ],
+        [
+            'lets the options of a cross line beat its type',
+            { line: { layer: 'front' } },
+            [{ type: 'line', value: 2, layer: 'back' }],
+            ['back'],
+        ],
+    ] as const)('resolves the layer: %s', async (_name, overrides, crossLines, expected) => {
+        chart = deproxy(await createChart(typedChart([...crossLines], overrides)));
+
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.layer)).toEqual(expected);
+    });
+
+    it('warns about an invalid layer and keeps the default', async () => {
+        chart = deproxy(
+            await createChart(typedChart([{ type: 'line', value: 2, layer: 'middle' as 'front' }], { layer: 'back' }))
+        );
+
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.layer)).toEqual(['back']);
+        expectWarningsCalls().toEqual([[expect.stringContaining('layer')]]);
+    });
+
     it('styles by type from the series-type namespace', async () => {
         chart = deproxy(await createChart(typedChart(LINE_AND_RANGE, { line: { strokeWidth: 5 } }, 'line')));
 
@@ -3430,5 +3501,112 @@ describe('CrossLine label fitting', () => {
         );
 
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
+});
+
+describe('CrossLine layer', () => {
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    let chart: Chart;
+
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    const LINE: AgCartesianCrossLineOptions = {
+        type: 'line',
+        value: 4,
+        stroke: 'red',
+        strokeWidth: 8,
+        label: { text: 'Line', fontSize: 20, placement: 'left' },
+    };
+    const RANGE: AgCartesianCrossLineOptions = {
+        type: 'range',
+        range: [2, 6],
+        fill: 'orange',
+        fillOpacity: 0.9,
+        label: { text: 'Range', fontSize: 20, placement: 'inside' },
+    };
+
+    const layerChart = (
+        yCrossLines: AgCartesianCrossLineOptions[],
+        xCrossLines: AgCartesianCrossLineOptions[] = []
+    ): AgCartesianChartOptions => ({
+        data: [
+            { x: 'A', y: 3 },
+            { x: 'B', y: 7 },
+            { x: 'C', y: 5 },
+        ],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y', fill: 'steelblue', label: { enabled: true, fontSize: 16 } }],
+        axes: {
+            x: { type: 'category', position: 'bottom', crossLines: xCrossLines },
+            y: { type: 'number', position: 'left', min: 0, max: 10, crossLines: yCrossLines },
+        },
+    });
+
+    it.each([
+        ['line', 'front', LINE],
+        ['line', 'split', LINE],
+        ['line', 'back', LINE],
+        ['range', 'front', RANGE],
+        ['range', 'split', RANGE],
+        ['range', 'back', RANGE],
+    ] as const)('draws a %s cross line with layer %s', async (_type, layer, crossLine) => {
+        chart = deproxy(await createChart(layerChart([{ ...crossLine, layer }])));
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
+    it('draws a line and a range on one axis on different sides, keeping same-side order', async () => {
+        chart = deproxy(
+            await createChart(
+                layerChart(
+                    [
+                        { ...RANGE, layer: 'front', fillOpacity: 0.5 },
+                        { ...LINE, layer: 'back' },
+                        { ...LINE, value: 5, stroke: 'green', layer: 'back', label: undefined },
+                    ],
+                    [{ type: 'range', range: ['A', 'B'], fill: 'purple', fillOpacity: 0.9, layer: 'back' }]
+                )
+            )
+        );
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
+    it('draws a highlighted series behind a front cross line', async () => {
+        chart = deproxy(await createChart(layerChart([{ ...RANGE, layer: 'front', fillOpacity: 0.6 }])));
+        // Inside bar B (y = 7), under the range [2, 6].
+        const { x, y, width, height } = getSeriesRect(chart);
+        await hoverAction(x + width * (1.5 / 3), y + height * 0.6)(chart);
+        await waitForChartStability(chart);
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
+    it('renders charts without a layer exactly as the per-type defaults', async () => {
+        await expectPixelIdenticalAcrossUpdate(
+            ctx,
+            createChart,
+            layerChart([LINE, RANGE]),
+            layerChart([
+                { ...LINE, layer: 'front' },
+                { ...RANGE, layer: 'split' },
+            ])
+        );
+    });
+
+    it.each([
+        ['line', 'front', 'back', LINE],
+        ['range', 'split', 'back', RANGE],
+        ['range', 'split', 'front', RANGE],
+    ] as const)('redraws a %s cross line when its layer changes from %s to %s', async (_type, from, to, crossLine) => {
+        // A large label, so that moving only the label is a change the image comparison can see.
+        const label = { ...crossLine.label, fontSize: 60 };
+        await expectPixelsChangeAcrossUpdate(
+            ctx,
+            createChart,
+            layerChart([{ ...crossLine, label, layer: from }]),
+            layerChart([{ ...crossLine, label, layer: to }])
+        );
     });
 });
