@@ -293,7 +293,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
             stroke,
             strokeWidth,
             strokeOpacity,
-            lineDash,
+            __lineDash: lineDash,
             lineDashOffset,
             wickStroke = stroke,
             wickStrokeWidth = strokeWidth,

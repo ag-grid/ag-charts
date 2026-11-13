@@ -6,6 +6,7 @@ import type {
     AgCssColorOrRef,
 } from '../../chart/themeParamsOptions';
 import type {
+    AgLineDashName,
     CssColor,
     DatumKey,
     FontFamily,
@@ -219,8 +220,8 @@ export interface LabelBoxOptions extends FillOptions {
  * Represents options for defining dashed strokes in a chart.
  */
 export interface LineDashOptions {
-    /** An array specifying the length in pixels of alternating dashes and gaps. */
-    lineDash?: PixelSize[];
+    /** The dash pattern: a stock pattern name, or an array specifying the length in pixels of alternating dashes and gaps. */
+    lineDash?: PixelSize[] | AgLineDashName;
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
 }

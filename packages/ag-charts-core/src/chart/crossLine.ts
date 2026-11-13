@@ -6,6 +6,7 @@ import type {
     NormalisedAxisCrossLineLabelOptions,
     NormalisedAxisCrossLineOptions,
 } from '../options/normalised/normalisedAxisOptions';
+import type { LineDashValue } from '../rendering/lineDash';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { Path } from '../scene/shape/path';
@@ -112,7 +113,7 @@ export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {
     labelGroup: Group;
     /** User-supplied pointer listeners, when the cross line's options set any. */
     listeners?: AgCrossLineListeners<unknown>;
-    lineDash?: number[];
+    lineDash?: LineDashValue;
     range?: [any, any];
     scale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
     stroke?: string;

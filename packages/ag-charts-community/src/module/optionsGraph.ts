@@ -212,6 +212,10 @@ const ATOMIC_LIST_OPTION_KEYS = new Set<string>([
     'crosshairSnapTo',
 ]);
 
+// A string at one of these keys replaces an array default outright. Arrays still merge index-by-index, so the
+// default's elements must not be resolved on top of the string.
+const STRING_OVER_ARRAY_OPTION_KEYS = new Set<string>(['lineDash']);
+
 /**
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
  * be resolved down into an object.
@@ -1368,6 +1372,14 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     private resolveVertexChildren(vertex: Vertex<unknown>, object: PlainObject, prune?: unknown) {
         const children = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
         if (!children) return;
+
+        const pathArray = this.getPathArray(vertex);
+        if (
+            STRING_OVER_ARRAY_OPTION_KEYS.has(pathArray.at(-1)!) &&
+            typeof getPathSafe(object, pathArray) === 'string'
+        ) {
+            return;
+        }
 
         prune ??= this.findNeighbourValue(vertex, PRUNE_EDGE);
 

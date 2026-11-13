@@ -15,6 +15,7 @@ import type {
     CallbackParamRules,
     DynamicContext,
     InternalAgColorType,
+    LineDashValue,
     Resolved,
 } from 'ag-charts-core';
 import { mergeDefaults } from 'ag-charts-core';
@@ -41,7 +42,7 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         readonly stroke: string;
         readonly strokeWidth: number;
         readonly strokeOpacity: number;
-        readonly lineDash: number[];
+        readonly lineDash: LineDashValue;
         readonly lineDashOffset: number;
         readonly cornerRadius: number;
         readonly stackGroup?: string;

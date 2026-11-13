@@ -300,6 +300,7 @@ export * from './chart/circleLayout';
 export * from './chart/crossLine';
 export * from './chart/legendUtil';
 export * from './chart/markerShapes';
+export * from './rendering/lineDash';
 export * from './chart/markerUtil';
 export * from './chart/numberAxisUtil';
 export * from './chart/polarAxisLayout';

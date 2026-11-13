@@ -213,7 +213,7 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
             stroke,
             strokeWidth,
             strokeOpacity,
-            lineDash,
+            __lineDash: lineDash,
             lineDashOffset,
             __wickStroke: wickStroke = stroke,
             __wickStrokeWidth: wickStrokeWidth = strokeWidth,

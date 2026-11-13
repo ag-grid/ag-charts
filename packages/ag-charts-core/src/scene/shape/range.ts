@@ -82,7 +82,7 @@ export class Range<D = any> extends Shape<D> {
         const strokeActive = (startLine || endLine) && stroke != null && stroke !== '' && strokeWidth > 0;
 
         if (strokeActive) {
-            const { lineDash, lineDashOffset, lineCap, lineJoin } = this;
+            const { __lineDash: lineDash, lineDashOffset, lineCap, lineJoin } = this;
 
             this.applyStrokeAndAlpha(ctx);
 

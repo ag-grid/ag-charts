@@ -1,6 +1,7 @@
 import type {
     Group,
     Line,
+    LineDashValue,
     NormalisedTextOrSegments,
     Rect,
     RotatableText,
@@ -45,7 +46,7 @@ export interface AxisLineDatum {
     y2: number;
     stroke: string | undefined;
     strokeWidth: number;
-    lineDash: number[] | undefined;
+    lineDash: LineDashValue | undefined;
 }
 
 export interface AxisFillDatum {

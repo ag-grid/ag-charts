@@ -14,6 +14,7 @@ import type {
     DomainWithMetadata,
     FillStrokeMorph,
     InternalAgColorType,
+    LineDashValue,
     Node,
     Normalised,
     NormalisedFlowProportionSeriesKeys,
@@ -649,7 +650,7 @@ export abstract class FlowProportionSeries<
             stroke?: string;
             strokeWidth?: number;
             strokeOpacity?: number;
-            lineDash?: number[];
+            lineDash?: LineDashValue;
             lineDashOffset?: number;
         } = {}
     ): _ModuleSupport.LegendSymbolOptions {

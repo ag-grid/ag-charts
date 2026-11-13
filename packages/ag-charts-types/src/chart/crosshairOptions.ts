@@ -1,7 +1,7 @@
 import type { AgAxisBoundSeries, AgTimeInterval, AgTimeIntervalUnit } from './axisOptions';
 import type { Formatter, Renderer } from './callbackOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
-import type { ContextDefault, CssColor, Opacity, PixelSize } from './types';
+import type { AgLineDashName, ContextDefault, CssColor, Opacity, PixelSize } from './types';
 
 /** Whether the crosshair snaps to every value in `crosshairSnapTo`, or only the one nearest the pointer. */
 export type AgCrosshairSnapMode = 'all' | 'nearest';
@@ -19,8 +19,8 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, Context
     strokeWidth?: PixelSize;
     /** The opacity of the stroke for the lines. */
     strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
+    /** Defines how the line stroke is rendered. Either a stock pattern name, or an array in which every number specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
+    lineDash?: PixelSize[] | AgLineDashName;
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
     /** The crosshair label configuration */

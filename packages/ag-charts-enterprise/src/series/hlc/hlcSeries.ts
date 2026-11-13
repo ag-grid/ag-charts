@@ -38,7 +38,7 @@ import {
     toNumber,
     withoutCasts,
 } from 'ag-charts-core';
-import type { Path, SegmentedPath, Selection, Text } from 'ag-charts-core';
+import type { LineDashValue, Path, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
@@ -114,7 +114,7 @@ type NormalisedHlcSeriesItemStyle = {
     stroke?: CssColor;
     strokeWidth?: number;
     strokeOpacity?: number;
-    lineDash?: number[];
+    lineDash?: LineDashValue;
     lineDashOffset?: number;
     marker?: NormalisedSeriesMarkerStyle & { enabled?: boolean };
 };
@@ -124,7 +124,7 @@ interface HlcItemStyle {
     stroke: CssColor;
     strokeWidth: number;
     strokeOpacity: number;
-    lineDash: number[];
+    lineDash: LineDashValue;
     lineDashOffset: number;
     marker: RequireOptional<NormalisedSeriesMarkerStyle> & { size: number };
 }

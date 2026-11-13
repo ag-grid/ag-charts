@@ -8,6 +8,7 @@ import {
     isGradientFill,
     isImageFill,
     isPatternFill,
+    resolveLineDash,
 } from 'ag-charts-core';
 import type { CssColor } from 'ag-charts-types';
 
@@ -111,7 +112,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
                 styleWick?.stroke,
                 styleWick?.strokeWidth,
                 styleWick?.strokeOpacity,
-                styleWick?.lineDash,
+                resolveLineDash(styleWick?.lineDash),
                 styleWick?.lineDashOffset
             );
 

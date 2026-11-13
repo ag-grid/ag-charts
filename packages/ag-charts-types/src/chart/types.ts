@@ -23,6 +23,32 @@ export type AgMarkerShape =
     | 'hourglass'
     | AgMarkerShapeFn;
 
+/**
+ * A stock dash pattern, applied by name wherever `lineDash` is accepted.
+ *
+ * - `'solid'`: `[0]`
+ * - `'dot'`: `[2, 3]`
+ * - `'dash'`: `[6, 4]`
+ * - `'dash-dot'`: `[6, 3, 2, 3]`
+ * - `'long-dash'`: `[14, 4]`
+ * - `'long-dash-dot'`: `[14, 3, 2, 3]`
+ * - `'long-dash-dot-dot'`: `[14, 4, 2, 4, 2, 4]`
+ * - `'dash-dot-dot'`: `[6, 3, 2, 3, 2, 3]`
+ * - `'dash-long-dash'`: `[6, 4, 14, 4]`
+ * - `'long-dash-dash-dash'`: `[14, 3, 6, 3, 6, 3]`
+ */
+export type AgLineDashName =
+    | 'solid'
+    | 'dot'
+    | 'dash'
+    | 'dash-dot'
+    | 'long-dash'
+    | 'long-dash-dot'
+    | 'long-dash-dot-dot'
+    | 'dash-dot-dot'
+    | 'dash-long-dash'
+    | 'long-dash-dash-dash';
+
 export interface AgPath {
     readonly moveTo: (x: number, y: number) => void;
     readonly lineTo: (x: number, y: number) => void;

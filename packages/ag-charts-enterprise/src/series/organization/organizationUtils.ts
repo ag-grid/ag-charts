@@ -5,7 +5,7 @@ import {
     type StrokeOptions,
     type TextAlign,
 } from 'ag-charts-community';
-import type { FontOptions, NormalisedColorType, Shape, Text } from 'ag-charts-core';
+import type { FontOptions, LineDashValue, NormalisedColorType, Shape, Text } from 'ag-charts-core';
 
 export function applyFillStyles(node: Shape, styles: FillOptions) {
     node.fill = styles.fill as NormalisedColorType; // refs resolved at runtime before reaching the node
@@ -14,7 +14,7 @@ export function applyFillStyles(node: Shape, styles: FillOptions) {
 
 export function applyStrokeStyles(
     node: Shape,
-    styles: StrokeOptions & { lineDash?: number[]; lineDashOffset?: number }
+    styles: StrokeOptions & { lineDash?: LineDashValue; lineDashOffset?: number }
 ) {
     node.lineDash = styles.lineDash;
     node.lineDashOffset = styles.lineDashOffset ?? 0;
