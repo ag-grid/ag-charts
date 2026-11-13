@@ -6,7 +6,7 @@ import type { AgGlowOptions } from 'ag-charts-types';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { expectSamePixels } from '../test/expectSamePixels';
-import { ALI_GLOW, RENDER_OPTIONS, canvasImage, hoverDatum } from '../test/glowRender';
+import { ALI_GLOW, ROOM, canvasImage, hoverDatum } from '../test/glowRender';
 import { getSeriesAt } from '../test/seriesAccessors';
 import { SERIES_SHADOW, shapesOf } from '../test/shadowFixtures';
 import {
@@ -23,6 +23,7 @@ const RED = [255, 0, 0, 255];
 const BLUE = [0, 0, 255, 255];
 const GREEN = [0, 128, 0, 255];
 const WHITE = [255, 255, 255, 255];
+const DIMMED_BLUE = [102, 102, 255, 255];
 
 /** Opaque and unblurred, so that the edges of a glow can be read off a pixel. */
 const hard = (glow: AgGlowOptions = {}): AgGlowOptions => ({
@@ -38,9 +39,6 @@ const CENTRED = {
     x: { type: 'number', min: 0, max: 4, gridLine: { enabled: false } },
     y: { type: 'number', min: 0, max: 8, gridLine: { enabled: false } },
 };
-
-/** The glow reaches 40px beyond an item, so the chart sits 60px inside the crop on three sides, and has room beneath. */
-const ROOM = { ...RENDER_OPTIONS, padding: { top: 60, left: 60, right: 440, bottom: 350 } };
 
 describe('glow refinements', () => {
     setupMockConsole();
@@ -280,6 +278,43 @@ describe('glow refinements', () => {
                 }
             );
         });
+
+        it.each([0, 1] as const)(
+            'covers a hovered bar that does not glow, not brought to front, by the glow of the bar beside it, with bar %s hovered',
+            async (hovered) => {
+                await create({
+                    axes: { x: { type: 'category', paddingInner: 0.1 }, y: { type: 'number', min: 0, max: 8 } },
+                    data: [
+                        { category: 'A', value: 6 },
+                        { category: 'B', value: 6 },
+                    ],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'category',
+                            yKey: 'value',
+                            fill: '#0000ff',
+                            fillOpacity: 1,
+                            glow: hard({ spread: SPREAD }),
+                            highlight: { bringToFront: false, highlightedItem: { glow: { enabled: false } } },
+                        },
+                    ],
+                });
+                const [first, second] = shapesOf(getSeriesAt(chart).contentGroup, Rect).map(boundsOf);
+                const bottom = Math.min(first.y + first.height, second.y + second.height) - 6;
+                const [hoveredBar, beside] = hovered === 0 ? [first, second] : [second, first];
+                // 3px into the hovered bar, from the edge it shares with the bar beside it, whose glow reaches it.
+                const edge = hovered === 0 ? hoveredBar.x + hoveredBar.width - 3 : hoveredBar.x + 3;
+
+                await hoverDatum(chart, 0, hovered);
+                // Covered by the glow, which is translucent over a bar that is dimmed: red shows where the bar was blue.
+                expect(pixel(edge, bottom)[0]).toBeGreaterThan(100);
+                // The bar beside it glows, so it is clear of its own glow, dimmed as the other items are, and the hovered bar
+                // is its own colour beyond the glow.
+                expect(pixel(beside.x + beside.width / 2, bottom)).toEqual(DIMMED_BLUE);
+                expect(pixel(hoveredBar.x + hoveredBar.width / 2, bottom)).toEqual(BLUE);
+            }
+        );
 
         describe.each(PLACEMENTS)(
             'with a hovered marker that a highlight makes larger, not brought to front, from %s',

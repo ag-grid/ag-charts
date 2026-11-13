@@ -177,11 +177,10 @@ export function castRootShadows(
     if (unchanged) return memo.cover;
 
     // A group that is only cut out of the overlay draws as it did, with its own glows.
-    const cover = new Map<object, ShadowCover>(
-        frames
-            .filter((frame) => !frame.cutsOnly)
-            .map((frame) => [frame.source, frame.glowsOnly ? 'glow' : frame.layered])
-    );
+    const cover = new Map<object, ShadowCover>();
+    for (const frame of frames) {
+        if (!frame.cutsOnly) cover.set(frame.source, frame.glowsOnly ? 'glow' : frame.layered);
+    }
     memos.set(user, { frames, keys, cover });
     return cover;
 }
