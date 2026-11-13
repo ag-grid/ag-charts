@@ -12,13 +12,15 @@ export interface PopoverPanelOptions {
 /**
  * The root of a popover: a presentational `<div>` that shows one panel at a time, with any child popovers attached to
  * it stacked above that panel.
+ *
+ * Ownership differs from other widgets: the panel is owned, but children given to `showChildren()` are only borrowed,
+ * and attached child popovers belong to whoever created them. Neither is destroyed with this widget.
  */
 export class PopoverWidget extends Widget<HTMLElement> {
     private attached: boolean;
     private panel?: Widget;
-    // Only set while `panel` was made by `showChildren()`; the container is then ours to destroy.
-    private container?: ContainerWidget;
     private readonly borrowedChildren: Widget[] = [];
+    private readonly attachedPopovers: PopoverWidget[] = [];
     private opener?: Opener;
     private initialFocus?: Widget;
 
@@ -38,6 +40,7 @@ export class PopoverWidget extends Widget<HTMLElement> {
         // Stack after the parent's panel (`domIndex` 0), so this popover is painted above it.
         this.domIndex = 1;
         parent.addChild(this);
+        parent.attachedPopovers.push(this);
         this.attached = true;
     }
 
@@ -45,10 +48,7 @@ export class PopoverWidget extends Widget<HTMLElement> {
         return this.panel;
     }
 
-    /**
-     * Shows `panel`, replacing the current one. The previous panel is forgotten as `removePanel()` describes, but a
-     * panel that was not made by `showChildren()` stays in the DOM until its owner destroys it.
-     */
+    /** Shows `panel`, replacing and destroying the current one. The popover owns `panel` from now on. */
     showPanel(panel: Widget, options: PopoverPanelOptions) {
         if (!this.attached) {
             throw new Error('Can not show popover that has not been attached to a parent.');
@@ -80,7 +80,6 @@ export class PopoverWidget extends Widget<HTMLElement> {
     showChildren(children: Widget[], options: PopoverPanelOptions): ContainerWidget {
         const container = new ContainerWidget();
         this.showPanel(container, options);
-        this.container = container;
         for (const child of children) {
             container.addChild(child);
             this.borrowedChildren.push(child);
@@ -88,15 +87,16 @@ export class PopoverWidget extends Widget<HTMLElement> {
         return container;
     }
 
-    /** Forgets the current panel, handing back any borrowed children and destroying the panel `showChildren()` made. */
+    /** Hands back any borrowed children, then destroys the current panel. */
     removePanel() {
+        const { panel } = this;
+        // Destroying a menu collapses it, and its owner may react by removing the panel again; it must find none.
         this.panel = undefined;
         for (const child of this.borrowedChildren) {
             child.remove();
         }
         this.borrowedChildren.length = 0;
-        this.container?.destroy();
-        this.container = undefined;
+        panel?.destroy();
     }
 
     /**
@@ -128,9 +128,13 @@ export class PopoverWidget extends Widget<HTMLElement> {
         this.opener = undefined;
     }
 
-    /** Borrowed children are handed back first, so destroying the root does not destroy them. */
+    /** Destroys the panel, but not borrowed children or attached child popovers: those are detached instead. */
     override destroy() {
         this.removePanel();
+        for (const popover of this.attachedPopovers) {
+            popover.remove();
+        }
+        this.attachedPopovers.length = 0;
         super.destroy();
     }
 

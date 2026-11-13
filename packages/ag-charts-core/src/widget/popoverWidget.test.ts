@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { CollapseMode } from './collapseMode';
 import { ContainerWidget } from './containerWidget';
+import { MenuItemWidget } from './menuItemWidget';
+import { MenuWidget } from './menuWidget';
 import { PopoverWidget } from './popoverWidget';
 import { clickEventFrom, createOpener } from './test/openerFixtures';
 import { TextSpanWidget } from './textSpanWidget';
+import type { Widget } from './widget';
 
 function createHostedPopover() {
     const host = document.createElement('div');
@@ -133,15 +137,86 @@ describe('PopoverWidget', () => {
         });
     });
 
-    it('forgets a panel it did not make without taking it out of the DOM', () => {
-        const popover = createHostedPopover();
-        const panel = new ContainerWidget();
-        popover.showPanel(panel, {});
+    describe('owned panel', () => {
+        it('destroys the panel when the panel is removed', () => {
+            const popover = createHostedPopover();
+            const panel = new ContainerWidget();
+            let destroyed = 0;
+            panel.destroyListener = () => destroyed++;
+            popover.showPanel(panel, {});
 
-        popover.removePanel();
+            popover.removePanel();
 
-        expect(popover.getPanel()).toBeUndefined();
-        expect(panel.getElement().parentElement).toBe(popover.getElement());
+            expect(popover.getPanel()).toBeUndefined();
+            expect(panel.getElement().isConnected).toBe(false);
+            expect(destroyed).toBe(1);
+        });
+
+        it('destroys the panel when another panel replaces it', () => {
+            const popover = createHostedPopover();
+            const panel = new ContainerWidget();
+            let destroyed = 0;
+            panel.destroyListener = () => destroyed++;
+            popover.showPanel(panel, {});
+
+            const replacement = new ContainerWidget();
+            popover.showPanel(replacement, {});
+
+            expect(destroyed).toBe(1);
+            expect(Array.from(popover.getElement().children)).toEqual([replacement.getElement()]);
+        });
+
+        it('destroys the panel when the root is destroyed', () => {
+            const popover = createHostedPopover();
+            const panel = new ContainerWidget();
+            let destroyed = 0;
+            panel.destroyListener = () => destroyed++;
+            popover.showPanel(panel, {});
+
+            popover.destroy();
+
+            expect(destroyed).toBe(1);
+            expect(popover.getElement().isConnected).toBe(false);
+        });
+
+        describe('menu panel', () => {
+            function showMenu(popover: PopoverWidget) {
+                const menu = new MenuWidget();
+                menu.addChild(new MenuItemWidget());
+                popover.showPanel(menu, {});
+                menu.expand({ sourceEvent: clickEventFrom(createOpener(true)) });
+                return menu;
+            }
+
+            it('is already gone from the popover when its destruction collapses it', () => {
+                const popover = createHostedPopover();
+                const menu = showMenu(popover);
+                const panelsSeenOnCollapse: Array<Widget | undefined> = [];
+                menu.addListener('collapse-widget', () => panelsSeenOnCollapse.push(popover.getPanel()));
+
+                popover.removePanel();
+
+                expect(panelsSeenOnCollapse).toEqual([undefined]);
+            });
+
+            it('is destroyed once when it closes and its collapse removes it from the popover', () => {
+                const popover = createHostedPopover();
+                const menu = showMenu(popover);
+                let destroyed = 0;
+                menu.destroyListener = () => destroyed++;
+                let collapses = 0;
+                menu.addListener('collapse-widget', () => {
+                    collapses++;
+                    popover.removePanel();
+                });
+
+                menu.collapse({ mode: CollapseMode.CLOSE });
+
+                expect(collapses).toBe(1);
+                expect(destroyed).toBe(1);
+                expect(popover.getPanel()).toBeUndefined();
+            });
+        });
     });
 
     describe('attached child popovers', () => {
@@ -173,6 +248,19 @@ describe('PopoverWidget', () => {
             const parentPanel = parent.showChildren([new TextSpanWidget('Parent')], {});
 
             expect(Array.from(parent.getElement().children)).toEqual([parentPanel.getElement(), child.getElement()]);
+        });
+
+        it('detaches but does not destroy a child popover when the parent is destroyed', () => {
+            const parent = createHostedPopover();
+            const child = new PopoverWidget();
+            child.attachTo(parent);
+            let destroyed = false;
+            child.destroyListener = () => (destroyed = true);
+
+            parent.destroy();
+
+            expect(destroyed).toBe(false);
+            expect(child.getElement().parentElement).toBeNull();
         });
 
         it('ignores a second attachment', () => {

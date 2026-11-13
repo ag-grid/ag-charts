@@ -52,23 +52,13 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
             this.widget = new PopoverWidget(ctx.domManager.addChild(canvasOverlay, this.moduleId));
         }
 
-        this.hideFns.push(() => this.setOwnedWidget(undefined));
+        // First, so that a menu panel is destroyed before the other hide functions and `onHide` callbacks run.
+        this.hideFns.push(() => this.widget.removePanel());
         this.cleanup.register(() => {
-            this.widget.removePanel();
-            this.widget.remove();
+            this.widget.destroy();
             ctx.domManager.removeChild(canvasOverlay, this.moduleId);
         });
     }
-
-    private readonly setOwnedWidget: (owns: OwnedWidget | undefined) => void = (() => {
-        let ownedWidget: OwnedWidget | undefined; // private member for this.setOwnedWidget()
-        return (owns: OwnedWidget | undefined): void => {
-            // Destroying a menu collapses it, which calls `hide()` again; it must find the popover already hidden.
-            if (ownedWidget != null && ownedWidget === this.widget.getPanel()) this.widget.removePanel();
-            ownedWidget?.destroy();
-            ownedWidget = owns;
-        };
-    })();
 
     public attachTo(popover: Popover) {
         this.widget.attachTo(popover.widget);
@@ -96,12 +86,10 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
     }
 
     protected showWidget(controller: ExpansionControllerWidget, owns: OwnedWidget, options: Options) {
-        this.setOwnedWidget(owns);
         this.widget.showPanel(owns, options);
         owns.addListener('collapse-widget', () => {
             this.hide();
             controller.setControlled(undefined);
-            this.setOwnedWidget(undefined);
         });
         controller.setControlled(owns);
         controller.expandControlled();
