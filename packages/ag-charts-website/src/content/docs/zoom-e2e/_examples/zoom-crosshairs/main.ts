@@ -17,6 +17,10 @@ const options: AgCartesianChartOptions = {
             nice: false,
             crosshair: { enabled: true, snap: false },
         },
+        y: {
+            type: 'number',
+            crosshair: { enabled: true },
+        },
     },
     data: getData(),
     series: [
