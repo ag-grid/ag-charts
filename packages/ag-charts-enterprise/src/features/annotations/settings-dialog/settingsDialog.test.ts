@@ -149,18 +149,32 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
-    it('puts the label of a single value alongside it and that of a point above', () => {
+    it('lays out the x and y of a point on one row with labels above, and a single value with its label alongside', () => {
         const yScale = new LinearScale();
         yScale.domain = [0, 50];
         const context = createAxesContext(new CategoryScale(), yScale);
-        const rows = () => Array.from(document.querySelectorAll('.ag-charts-dialog__input-group--inputs'));
-        const isInline = (row: Element) => row.classList.contains('ag-charts-dialog__input-group--inline');
+        const layout = () =>
+            Array.from(document.querySelectorAll('.ag-charts-dialog__input-row'), (row) =>
+                Array.from(row.querySelectorAll('.ag-charts-dialog__labelled-input'), (input) => ({
+                    label: input.querySelector('label')?.textContent,
+                    inline: input.classList.contains('ag-charts-dialog__labelled-input--inline'),
+                }))
+            );
 
         show(context);
-        expect(rows().map(isInline)).toEqual([false, false]);
+        expect(layout()).toEqual([
+            [
+                { label: 'Start X', inline: false },
+                { label: 'Start Y', inline: false },
+            ],
+            [
+                { label: 'End X', inline: false },
+                { label: 'End Y', inline: false },
+            ],
+        ]);
         dialog.hide();
 
         show(context, { ...horizontalLineDatum.create(), value: 10 });
-        expect(rows().map(isInline)).toEqual([true]);
+        expect(layout()).toEqual([[{ label: 'Value', inline: true }]]);
     });
 });

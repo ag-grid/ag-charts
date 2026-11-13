@@ -249,18 +249,28 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    /**
-     * A labelled row of inputs, for values that belong together such as the x and y of one point. The label of a
-     * single value is `inline`, alongside its input; otherwise it is above.
-     */
-    protected createInputRow(label: string, inputs: Widget[], inline = false) {
-        const group = this.createInputGroup(label);
-        group.addClass('ag-charts-dialog__input-group--inputs');
-        if (inline) {
-            group.addClass('ag-charts-dialog__input-group--inline');
-        }
+    /** Inputs side by side, such as the x and y of one point. */
+    protected createInputRow(inputs: Widget[]) {
+        const row = new ContainerWidget('ag-charts-dialog__input-row');
         for (const input of inputs) {
-            group.addChild(input);
+            row.addChild(input);
+        }
+        return row;
+    }
+
+    /** An input with its already translated label above it, or alongside it when `inline`. */
+    protected createLabelledInput(label: string, input: InputWidget, inline: boolean, ...extras: Widget[]) {
+        const group = new ContainerWidget('ag-charts-dialog__labelled-input');
+        if (inline) {
+            group.addClass('ag-charts-dialog__labelled-input--inline');
+        }
+        const labelWidget = new LabelWidget(label, 'ag-charts-dialog__input-group-label');
+        input.id = createElementId();
+        labelWidget.setFor(input.id);
+        group.addChild(labelWidget);
+        group.addChild(input);
+        for (const extra of extras) {
+            group.addChild(extra);
         }
         return group;
     }

@@ -1,5 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { DatalistWidget, type DynamicContext, EventEmitter, type Widget } from 'ag-charts-core';
+import { DatalistWidget, type DynamicContext, EventEmitter } from 'ag-charts-core';
 import type { AgAnnotationFollowName } from 'ag-charts-types';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
@@ -78,6 +78,8 @@ const COORDINATE_ROW_LABELS: Record<CoordinateRow, string> = {
     startOffset: 'dialogInputCoordinatesStartOffset',
     endOffset: 'dialogInputCoordinatesEndOffset',
 };
+
+const POINT_ROWS: ReadonlySet<CoordinateRow> = new Set(['start', 'end', 'endRetracement']);
 
 const COORDINATE_INPUT_TYPES = {
     number: 'number',
@@ -332,18 +334,21 @@ export class AnnotationSettingsDialog extends Dialog {
             return;
         }
 
-        const rows = new Map<CoordinateRow, { widgets: Widget[]; fields: number }>();
-        const refreshes: Array<(next: CoordinateField) => void> = [];
+        const rows = new Map<CoordinateRow, CoordinateField[]>();
         for (const field of fields) {
-            const { widgets, refresh } = this.createCoordinateInput(field, options);
-            refreshes.push(refresh);
-            const row = rows.get(field.row);
-            if (row) {
-                row.widgets.push(...widgets);
-                row.fields++;
-            } else {
-                rows.set(field.row, { widgets, fields: 1 });
-            }
+            rows.set(field.row, [...(rows.get(field.row) ?? []), field]);
+        }
+
+        const refreshes: Array<(next: CoordinateField) => void> = [];
+        const panel = this.createTabPanel();
+        for (const rowFields of rows.values()) {
+            const inline = rowFields.length === 1;
+            const widgets = rowFields.map((field) => {
+                const { widget, refresh } = this.createCoordinateInput(field, inline, options);
+                refreshes.push(refresh);
+                return widget;
+            });
+            panel.addChild(this.createInputRow(widgets));
         }
 
         this.refreshCoordinateInputs = () => {
@@ -357,14 +362,10 @@ export class AnnotationSettingsDialog extends Dialog {
             }
         };
 
-        const panel = this.createTabPanel();
-        for (const [row, { widgets, fields }] of rows) {
-            panel.addChild(this.createInputRow(COORDINATE_ROW_LABELS[row], widgets, fields === 1));
-        }
         return panel;
     }
 
-    private createCoordinateInput(initial: CoordinateField, options: LinearSettingsDialogOptions) {
+    private createCoordinateInput(initial: CoordinateField, inline: boolean, options: LinearSettingsDialogOptions) {
         const { localeManager } = this.ctx;
         const ariaLabel = localeManager.t('dialogInputCoordinatesAltText', {
             label: localeManager.t(COORDINATE_ROW_LABELS[initial.row]),
@@ -413,7 +414,9 @@ export class AnnotationSettingsDialog extends Dialog {
             }
         };
 
-        return { widgets: suggestions ? [input, suggestions] : [input], refresh };
+        const label = POINT_ROWS.has(initial.row) ? ariaLabel : localeManager.t(COORDINATE_ROW_LABELS[initial.row]);
+        const widget = this.createLabelledInput(label, input, inline, ...(suggestions ? [suggestions] : []));
+        return { widget, refresh };
     }
 
     private createColorPickerInput(

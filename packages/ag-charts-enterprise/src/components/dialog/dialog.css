@@ -120,15 +120,25 @@
 }
 
 /* Input */
-.ag-charts-dialog__input-group--inputs {
+.ag-charts-dialog__input-row {
     column-gap: 6px;
+    display: flex;
     flex-wrap: wrap;
     row-gap: 4px;
 }
 
-.ag-charts-dialog__input-group--inputs:not(.ag-charts-dialog__input-group--inline)
-    > .ag-charts-dialog__input-group-label {
-    flex: 0 0 100%;
+.ag-charts-dialog__labelled-input {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--ag-charts-chrome-font-size);
+    gap: 2px;
+    line-height: var(--ag-charts-chrome-line-height);
+    min-width: 0;
+}
+
+.ag-charts-dialog__labelled-input--inline {
+    align-items: center;
+    flex-direction: row;
 }
 
 .ag-charts-dialog__input {
