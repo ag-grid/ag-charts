@@ -37,7 +37,6 @@
     "classnames": "^2.5.1",
     "codesandbox-import-utils": "2.2.3",
     "commander": "2.20.3",
-    "dompurify": "^3.4.16",
     "dotenv": "10.0.0",
     "dotenv-expand": "10.0.0",
     "downshift": "^9.4.0",
