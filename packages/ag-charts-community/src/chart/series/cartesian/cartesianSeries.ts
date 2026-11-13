@@ -140,32 +140,41 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return this.contextNodeData?.nodeData;
     }
 
-    // Runs once per windowed dataSource load, stopping at the first datum inside the window.
+    // OPTIMIZATION: binary-search the window's rows, so only rows inside the window are ever walked.
     public override hasDataInXRange(start: number, end: number): boolean | undefined {
-        const { dataModel, processedData } = this;
+        const { processedData } = this;
         // A flipped series keeps its x-values on the vertical axis, so they can't be compared with the window.
         if (
             this.shouldFlipXY() ||
-            dataModel == null ||
             processedData?.type !== 'ungrouped' ||
-            !dataModel.hasColumnById(this, 'xValue')
+            this.dataModel?.hasColumnById(this, 'xValue') !== true
         ) {
             return undefined;
         }
 
-        // Keys and value columns are indexed separately, so read the x-values from whichever holds them.
-        const xValues =
-            dataModel.resolveProcessedDataDefById(this, 'xValue').def.type === 'key'
-                ? dataModel.resolveKeysById<unknown>(this, 'xValue', processedData)
-                : dataModel.resolveColumnById(this, 'xValue', processedData, 'object');
+        // The render pass reads the same cached sort order.
+        const sortOrder = this.sortOrder('xValue');
+        if (sortOrder == null) return undefined;
+
+        const xValues = this.keysOrValues<{ valueOf(): unknown } | null | undefined>('xValue');
+        const last = xValues.length - 1;
+        let searchable = true;
+        const xAt = (ascendingIndex: number) => {
+            const x = xValues[sortOrder === 1 ? ascendingIndex : last - ascendingIndex]?.valueOf();
+            if (isFiniteNumber(x)) return x;
+            searchable = false;
+            return Number.NaN;
+        };
+        const first = findMinIndex(0, last, (i) => xAt(i) >= start);
+        const final = findMaxIndex(0, last, (i) => xAt(i) <= end);
+        if (!searchable) return undefined;
+        if (first == null || final == null || first > final) return false;
+
+        const [from, to] = sortOrder === 1 ? [first, final] : [last - final, last - first];
         const yValues = this.gapValueColumn();
         const invalid = processedData.invalidData?.get(this.id);
-        for (let datumIndex = 0; datumIndex < xValues.length; datumIndex++) {
-            if (invalid?.[datumIndex] || (yValues != null && !isFiniteNumericValue(yValues[datumIndex]))) continue;
-            const x = (xValues[datumIndex] as { valueOf(): unknown } | null | undefined)?.valueOf();
-            // Category values have no order to compare against the window.
-            if (!isFiniteNumber(x)) return undefined;
-            if (x >= start && x <= end) return true;
+        for (let datumIndex = from; datumIndex <= to; datumIndex++) {
+            if (!invalid?.[datumIndex] && (yValues == null || isFiniteNumericValue(yValues[datumIndex]))) return true;
         }
         return false;
     }
