@@ -889,6 +889,75 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('lineDash', () => {
+        const warnings = () => (console.warn as Mock).mock.calls.map(([m]) => String(m));
+
+        const LOCATIONS: Array<[string, string, (lineDash: never) => AgCartesianChartOptions]> = [
+            [
+                'series',
+                'series[0].lineDash',
+                (lineDash) => ({ series: [{ type: 'line', xKey: 'x', yKey: 'y', lineDash }] }),
+            ],
+            [
+                'series marker',
+                'series[0].marker.lineDash',
+                (lineDash) => ({ series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { lineDash } }] }),
+            ],
+            [
+                'axis line',
+                'axes.x.line.lineDash',
+                (lineDash) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category', position: 'bottom', line: { lineDash } } },
+                }),
+            ],
+            [
+                'axis grid line',
+                'axes.y.gridLine.style[0].lineDash',
+                (lineDash) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: { y: { type: 'number', position: 'left', gridLine: { style: [{ lineDash }] } } },
+                }),
+            ],
+            [
+                'cross line',
+                'axes.x.crossLines[0].lineDash',
+                (lineDash) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: {
+                            type: 'category',
+                            position: 'bottom',
+                            crossLines: [{ type: 'line', value: 'a', lineDash }],
+                        },
+                    },
+                }),
+            ],
+        ];
+
+        it.each(LOCATIONS)('accepts a stock dash name on a %s', (_, path, build) => {
+            const named = prepareOptions<AgCartesianChartOptions>(build('long-dash-dot-dot' as never));
+            expect(warnings()).toEqual([]);
+            expect(optionAt(named, path)).toBe('long-dash-dot-dot');
+
+            const array = prepareOptions<AgCartesianChartOptions>(build([6, 4] as never));
+            expect(warnings()).toEqual([]);
+            expect(optionAt(array, path)).toEqual([6, 4]);
+        });
+
+        it.each(LOCATIONS)('rejects an unknown dash name on a %s and drops it', (_, path, build) => {
+            const options = prepareOptions<AgCartesianChartOptions>(build(invalidOption('wavy')));
+
+            // The reported path carries the cross line's discriminator.
+            const reportedPath = path.replace('crossLines[0]', 'crossLines[0][type=line]');
+            expect(warnings().some((m) => m.includes(`Option \`${reportedPath}\` cannot be set to \`"wavy"\``))).toBe(
+                true
+            );
+            expect(warnings().some((m) => m.includes("'solid'") && m.includes("'long-dash-dash-dash'"))).toBe(true);
+            expect(optionAt(options, path)).not.toBe('wavy');
+        });
+    });
+
     describe('highlight.mode and tooltip.mode defaults', () => {
         type Modes = { tooltip?: AgTooltipMode; highlight?: AgChartHighlightMode };
         const bar = (count: number) =>
