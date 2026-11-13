@@ -559,15 +559,21 @@ export class SunburstSeries extends HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
+            const hoveredInPlace = !highlighted && highlightedNode?.datumIndex === nodeDatum.datumIndex;
+            const hoveredStyle = hoveredInPlace ? this.getItemStyle(nodeDatum, true) : undefined;
             sector.fillShadow = this.resolveNodeShadow(
                 shadow,
                 glow,
                 highlighted,
                 highlightedNode,
                 nodeDatum,
-                !highlighted && highlightedNode?.datumIndex === nodeDatum.datumIndex
-                    ? this.getItemStyle(nodeDatum, true).shadow
-                    : style.shadow
+                hoveredStyle == null ? style.shadow : hoveredStyle.shadow
+            );
+            sector.fillGlow = this.resolveNodeGlow(
+                glow,
+                highlighted,
+                hoveredInPlace,
+                hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null
             );
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.

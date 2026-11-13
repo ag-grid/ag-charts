@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     BBox,
+    CUT_ONLY_GLOW,
     Group,
     Path,
     Rect,
@@ -64,6 +65,14 @@ describe('Shadow root', () => {
             return super.isolatedRender(renderCtx);
         }
     }
+
+    /** Marks the root dirty and renders it again, and returns how many items drew a mask: those whose shadow was not blitted. */
+    const redraw = (scene: Scene, root: Group) => {
+        masked = [];
+        root.markDirty();
+        scene.render();
+        return masked.length;
+    };
 
     beforeEach(() => {
         masked = [];
@@ -226,15 +235,21 @@ describe('Shadow root', () => {
             const casters = [20, 120, 220].map((x) => testRect(x, { fillShadow: RED_HALF, fillGlow: RED_HALF }));
             draw(true, () => [group('shared', casters.slice(0, 2)), group('shared', casters.slice(2))]);
 
-            // The shadow and glow of one shape have the same options, but are not one key.
-            expect(maskedSlots).toEqual(['20:shadow', '120:shadow', '220:shadow', '20:glow', '120:glow', '220:glow']);
+            // The shadow and glow of one shape have the same options, but are not one key. The glow draws each caster again,
+            // to cut its footprint out of the overlay.
+            expect(maskedSlots).toEqual([
+                ...['20:shadow', '120:shadow', '220:shadow'],
+                ...['20:glow', '120:glow', '220:glow'],
+                ...['20:glow', '120:glow', '220:glow'],
+            ]);
         });
 
         it('should cast a glow once for the casters that share it, however they are grouped', () => {
             const casters = [20, 120, 220].map((x) => testRect(x, { fillGlow: HALF_BLUE }));
             draw(true, () => [group('shared', casters.slice(0, 1)), group('shared', casters.slice(1))]);
 
-            expect(maskedSlots).toEqual(['20:glow', '120:glow', '220:glow']);
+            // Each caster is drawn into the mask, and again to cut its footprint out of the glow.
+            expect(maskedSlots).toEqual(['20:glow', '120:glow', '220:glow', '20:glow', '120:glow', '220:glow']);
         });
 
         // A cast is kept from the second repeat, on a canvas as large as the reach of its keys.
@@ -260,7 +275,7 @@ describe('Shadow root', () => {
 
             casters[1].fillGlow = HALF_BLUE;
             scene.render();
-            expect(maskedSlots).toEqual(['20:shadow', '120:shadow', '120:glow']);
+            expect(maskedSlots).toEqual(['20:shadow', '120:shadow', '120:glow', '120:glow']);
         });
 
         it('should leave a shadow cast by a group on its own as it was', () => {
@@ -419,6 +434,22 @@ describe('Shadow root', () => {
                 expect(pixelsOf(glow)).toEqual(pixelsOf(shadow));
             };
 
+            // The glow is cut out of the items that cast it, where a translucent item shows the shadow beneath it.
+            const expectGlowAsShadowOutsideItems = (shadow: Scene, glow: Scene) => {
+                expect(at(shadow, probeX, probeY)[3]).toBeGreaterThan(0);
+                const outside = (scene: Scene) => {
+                    const pixels = pixelsOf(scene);
+                    for (let i = 0; i < 3; i++) {
+                        for (let y = 60; y < 100; y++) {
+                            const start = (y * WIDTH + 20 + i * 70) * 4;
+                            pixels.fill(0, start, start + 40 * 4);
+                        }
+                    }
+                    return pixels;
+                };
+                expect(outside(glow)).toEqual(outside(shadow));
+            };
+
             it('should cast a glow as it casts a shadow', () => {
                 expectGlowAsShadow(draw(true, items('fillShadow')), draw(true, items('fillGlow')));
             });
@@ -436,7 +467,10 @@ describe('Shadow root', () => {
                 const withOpacity = (slot: 'fillShadow' | 'fillGlow') => () =>
                     items(slot)().map((node) => Object.assign(node, { opacity: 0.5 }));
 
-                expectGlowAsShadow(draw(true, withOpacity('fillShadow')), draw(true, withOpacity('fillGlow')));
+                expectGlowAsShadowOutsideItems(
+                    draw(true, withOpacity('fillShadow')),
+                    draw(true, withOpacity('fillGlow'))
+                );
             });
         });
 
@@ -487,7 +521,7 @@ describe('Shadow root', () => {
         });
     });
 
-    describe('a glow cast in the group of its series', () => {
+    describe('the glow overlay', () => {
         const GLOW = {
             enabled: true,
             fill: 'rgba(0, 0, 255, 0.5)',
@@ -496,74 +530,235 @@ describe('Shadow root', () => {
             blur: 0,
             glow: true as const,
         };
-        const IN_GROUP = { ...GLOW, inGroup: true as const };
+        const caster = (glow: typeof GLOW = GLOW) => square(120, 40, { fillGlow: glow });
+        // Its glow lands below its caster, over where `other` draws a square.
+        const other = (mixin: Partial<Group> = {}) => group('shared', [square(120, 110)], mixin);
+        const isHalfBlue = (pixel: Pixel) => isHalf(pixel, [0, 0, 255]);
+        const isGlowOverBlack = (pixel: Pixel) => pixel[0] === 0 && pixel[1] === 0 && pixel[2] > 0;
 
-        // A series is a group of `shared` groups. Its glow lands below its caster, over where `other` draws a square.
-        const hub = (children: readonly Node[]) => {
-            const node = new Group({ name: 'series', castsGroupGlows: true });
-            for (const child of children) node.appendChild(child);
-            return node;
+        // The root is given the level that the glows are cast at, as a chart gives its series root.
+        const drawAt = (glowOverlayZIndex: number | undefined, build: () => Group[]) => {
+            const root = new TranslatableGroup({ name: 'root', shadowRoot: true, glowOverlayZIndex });
+            for (const child of build()) root.appendChild(child);
+            const scene = newScene(root);
+            scene.render();
+            return scene;
         };
-        const caster = (glow: typeof GLOW) => square(120, 40, { fillGlow: glow });
-        const other = () => hub([group('shared', [square(120, 110)])]);
 
-        it('should draw beneath the items of an earlier series when the root casts it', () => {
-            const scene = draw(true, () => [other(), group('shared', [caster(GLOW)], { zIndex: 2 })]);
-
-            expect(at(scene, 150, 130)).toEqual(BLACK);
-        });
-
-        it.each([true, false])('should draw over the items of an earlier series, with a root %s', (root) => {
-            const scene = draw(root, () => [other(), hub([group('shared', [caster(IN_GROUP)])])]);
-
-            const [r, g, b] = at(scene, 150, 130);
-            expect([r, g]).toEqual([0, 0]);
-            expect(b).toBeGreaterThan(0);
-        });
-
-        // Whichever of its groups the item is in, and whichever draws first, no group draws a glow over a sibling's item.
         it.each([
-            { name: 'in an earlier group', groups: (c: Node, b: Node) => [group('shared', [c]), group('shared', [b])] },
-            { name: 'in a later group', groups: (c: Node, b: Node) => [group('shared', [b]), group('shared', [c])] },
-            { name: 'in its own group, after it', groups: (c: Node, b: Node) => [group('shared', [c, b])] },
-            { name: 'in its own group, before it', groups: (c: Node, b: Node) => [group('shared', [b, c])] },
-        ])('should draw beneath an item of its series that casts no glow, $name', ({ groups }) => {
-            const scene = draw(true, () => [
-                hub(groups(caster(IN_GROUP), square(120, 110))),
-                group('shared', [square(300, 10, { fillShadow: RED_HALF })]),
-            ]);
+            {
+                name: 'an earlier group',
+                build: () => [other({ zIndex: 1 }), group('shared', [caster()], { zIndex: 2 })],
+            },
+            { name: 'a later group', build: () => [group('shared', [caster()], { zIndex: 1 }), other({ zIndex: 2 })] },
+            { name: 'its own group', build: () => [group('shared', [caster(), square(120, 110)])] },
+        ])('should draw over an item that casts no glow in $name', ({ build }) => {
+            expect(isGlowOverBlack(at(draw(true, build), 150, 130))).toBe(true);
+        });
 
-            expect(isHalf(at(scene, 150, 105), [0, 0, 255])).toBe(true);
+        describe('for a group that batches its shadows by layer', () => {
+            it('should cast its glows over an item of its own that casts none', () => {
+                const scene = draw(true, () => [group('by-layer', [caster(), square(120, 110)])]);
+
+                expect(isGlowOverBlack(at(scene, 150, 130))).toBe(true);
+            });
+
+            it('should cast a glow once', () => {
+                const scene = draw(true, () => [group('by-layer', [caster()])]);
+
+                expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
+            });
+
+            it('should draw a group that casts only shadows as it does without a root', () => {
+                expectSameAsLocal(() => [
+                    group('by-layer', [
+                        square(120, 40, { fillShadow: RED_HALF }),
+                        square(40, 40, { fillShadow: RED_HALF }),
+                    ]),
+                ]);
+            });
+
+            it('should cast its shadow beside its glow, each once', () => {
+                const both = square(120, 40, { fillGlow: GLOW, fillShadow: RED_HALF });
+                const scene = draw(true, () => [group('by-layer', [both])]);
+
+                expect(isHalfRed(at(scene, 190, 70))).toBe(true);
+                expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
+            });
+
+            it.each([
+                { name: 'before', order: [0, 1] },
+                { name: 'after', order: [1, 0] },
+            ])('should cast the shadow of a layer beneath a glow-only item drawn $name it', ({ order }) => {
+                // The shadow of the second square lands 60px to its right, on the first, which casts only a glow.
+                const items = [square(180, 40, { fillGlow: GLOW }), square(120, 40, { fillShadow: RED_HALF })];
+                const scene = draw(true, () => [
+                    group(
+                        'by-layer',
+                        order.map((i) => items[i])
+                    ),
+                ]);
+
+                expect(at(scene, 200, 60)).toEqual(BLACK);
+            });
+
+            it('should cast its glows for itself when the root cannot cast the shadows of a group', () => {
+                // The shadow of the shared group has no finite blur, so the root fails open and casts no overlay.
+                const broken = group('shared', [square(10, 10, { fillShadow: UNUSABLE })]);
+                const scene = draw(true, () => [broken, group('by-layer', [caster()])]);
+
+                expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
+            });
+        });
+
+        it('should draw beneath the items that glow, whichever draws first and whichever glow they cast', () => {
+            const red = { ...GLOW, fill: 'rgba(255, 0, 0, 0.5)' };
+            const drawn = [
+                draw(true, () => [group('shared', [caster(), square(120, 110, { fillGlow: GLOW })])]),
+                draw(true, () => [group('shared', [square(120, 110, { fillGlow: GLOW }), caster()])]),
+                draw(true, () => [group('shared', [caster()]), group('shared', [square(120, 110, { fillGlow: red })])]),
+                draw(true, () => [group('shared', [square(120, 110, { fillGlow: red })]), group('shared', [caster()])]),
+            ];
+
+            for (const scene of drawn) expect(at(scene, 150, 130)).toEqual(BLACK);
+        });
+
+        it('should cut out an item that only cuts the overlay, beneath whichever glow, as one that glows', () => {
+            const cutter = () => group('shared', [square(120, 110, { fillGlow: CUT_ONLY_GLOW })]);
+            const scene = draw(true, () => [group('shared', [caster()]), cutter()]);
+
             expect(at(scene, 150, 130)).toEqual(BLACK);
+            // It casts no glow of its own, which would land 60px below it.
+            expect(at(scene, 150, 200)[3]).toBe(0);
+        });
+
+        it('should cut an item out of the glows only where its clip lets it paint', () => {
+            const clipped = group('shared', [square(120, 110, { fillGlow: GLOW })]);
+            clipped.setClipRectCanvasSpace(new BBox(0, 0, 150, HEIGHT));
+            const scene = draw(true, () => [group('shared', [caster()]), clipped]);
+
+            expect(at(scene, 135, 130)).toEqual(BLACK);
+            // Past the clip the item is not painted, so it does not cover the glow of the caster.
+            expect(isHalfBlue(at(scene, 165, 130))).toBe(true);
+        });
+
+        it('should merge the glows of the items that cast the same glow', () => {
+            const scene = draw(true, () => [group('shared', [caster(), square(150, 40, { fillGlow: GLOW })])]);
+
+            // The glows land below the squares and overlap from 150 to 180, where they are no stronger than elsewhere.
+            expect(isHalfBlue(at(scene, 135, 130))).toBe(true);
+            expect(isHalfBlue(at(scene, 165, 130))).toBe(true);
+        });
+
+        it('should draw beneath the children at or above the level of the overlay, and over the rest', () => {
+            const above = (zIndex: number) =>
+                drawAt(5, () => [
+                    group('shared', [caster()], { zIndex: 1 }),
+                    group(false, [square(120, 110)], { zIndex }),
+                ]);
+
+            expect(isGlowOverBlack(at(above(3), 150, 130))).toBe(true);
+            expect(at(above(5), 150, 130)).toEqual(BLACK);
+            expect(at(above(7), 150, 130)).toEqual(BLACK);
+        });
+
+        it('should draw over every child of a root with no level for the overlay', () => {
+            const scene = drawAt(undefined, () => [group('shared', [caster()]), group(false, [square(120, 110)])]);
+
+            expect(isGlowOverBlack(at(scene, 150, 130))).toBe(true);
+        });
+
+        describe('when the overlay cannot be cast', () => {
+            /** A caster whose glow mask throws, as only the overlay draws glow masks while the root casts the shadows. */
+            class ThrowingGlow extends Rect {
+                override isolatedRender(renderCtx: RenderContext) {
+                    if (shadowPass.state === 'mask' && shadowPass.slot === 'glow') throw new Error('glow mask');
+                    return super.isolatedRender(renderCtx);
+                }
+            }
+
+            const items = (glowing: () => Rect) => () => [
+                group('shared', [square(120, 40, { fillShadow: RED_HALF }), square(40, 140)]),
+                group('shared', [glowing()]),
+            ];
+            const throwing = () =>
+                Object.assign(new ThrowingGlow(), {
+                    x: 280,
+                    y: 40,
+                    width: 60,
+                    height: 60,
+                    fill: 'black',
+                    fillGlow: GLOW,
+                });
+            // The same item with the same glow, which casts without throwing.
+            const casting = () => square(280, 40, { fillGlow: GLOW });
+            // The same item with no glow.
+            const plain = () => square(280, 40);
+
+            it('should drop the glows for the frame, warn once however often it is drawn, and leave the items and shadows as they are', () => {
+                const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+                for (const child of items(throwing)()) root.appendChild(child);
+                const scene = newScene(root);
+                scene.render();
+                redraw(scene, root);
+                redraw(scene, root);
+
+                // The glow would land 60px below the item, and a glow that casts shows there.
+                expect(isHalfBlue(at(draw(true, items(casting)), 310, 130))).toBe(true);
+                expect(at(scene, 310, 130)[3]).toBe(0);
+                // The items and the shadow of the first group draw as they do for a chart with no glow.
+                expect(at(scene, 310, 70)).toEqual(BLACK);
+                expect(isHalfRed(at(scene, 190, 70))).toBe(true);
+                expectNearPixels(pixelsOf(scene), pixelsOf(draw(true, items(plain))));
+
+                // The pass is named in one warning, which `warnOnce` keeps to one for every frame after the first.
+                const warned = vi
+                    .mocked(console.warn)
+                    .mock.calls.filter((args) => args.some((arg) => String(arg).includes('glow overlay')));
+                expect(warned).toHaveLength(1);
+            });
+        });
+
+        it('should cast no overlay, and no glow, for a chart that casts only shadows', () => {
+            draw(true, () => [group('shared', [square(120, 40, { fillShadow: RED_HALF })])]);
+
+            expect(maskedSlots.some((slot) => slot.endsWith(':glow'))).toBe(false);
         });
 
         it('should cast the glow of a cutout, beside its shadow', () => {
-            const cutout = square(120, 40, { fillGlow: IN_GROUP, fillShadow: RED_HALF, drawingMode: 'cutout' });
-            const scene = draw(true, () => [hub([group('shared', [cutout])])]);
+            const cutout = square(120, 40, { fillGlow: GLOW, fillShadow: RED_HALF, drawingMode: 'cutout' });
+            const scene = draw(true, () => [group('shared', [cutout])]);
 
             // Below the cutout, past its shadow's offset and the cutout's own footprint.
             expect(at(scene, 150, 130)[3]).toBeGreaterThan(0);
         });
 
-        it('should blit the glow of an unchanged series on a repaint, rather than blur it again', () => {
+        it('should blit the glow of an unchanged chart on a repaint, rather than blur it again', () => {
             const item = new TestRect();
-            Object.assign(item, { x: 120, y: 40, width: 60, height: 60, fillGlow: IN_GROUP });
+            Object.assign(item, { x: 120, y: 40, width: 60, height: 60, fillGlow: GLOW });
             const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
-            const series = hub([group('shared', [item])]);
-            root.appendChild(series);
+            root.appendChild(group('shared', [item]));
             const scene = newScene(root);
-            const redraw = () => {
-                masked = [];
-                series.markDirty();
-                scene.render();
-                return masked.length;
-            };
             scene.render();
 
             // The second cast is the first to be kept, and the next ones blit it.
-            expect(redraw()).toBeGreaterThan(0);
-            expect(redraw()).toBe(0);
-            expect(redraw()).toBe(0);
+            expect(redraw(scene, root)).toBeGreaterThan(0);
+            expect(redraw(scene, root)).toBe(0);
+            expect(redraw(scene, root)).toBe(0);
+        });
+
+        it('should stop casting the overlay once the glows are removed', () => {
+            const item = caster();
+            const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+            root.appendChild(group('shared', [item]));
+            const scene = newScene(root);
+            scene.render();
+            expect(at(scene, 150, 130)[3]).toBeGreaterThan(0);
+
+            item.fillGlow = undefined;
+            scene.render();
+
+            expect(at(scene, 150, 130)).toEqual([0, 0, 0, 0]);
         });
     });
 
@@ -987,13 +1182,6 @@ describe('Shadow root', () => {
             return { rects, groups: [translatable(rects.slice(0, 2)), translatable(rects.slice(2))] };
         };
 
-        const redraw = (scene: Scene, root: Group) => {
-            masked = [];
-            root.markDirty();
-            scene.render();
-            return masked.length;
-        };
-
         it('should blit the shadows of the root again when nothing that casts changed', () => {
             const { groups } = casters();
             const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
@@ -1120,7 +1308,7 @@ describe('Shadow root', () => {
             expect(gatherChildren).not.toHaveBeenCalled();
         });
 
-        it('should not walk the groups of a series that casts no glow, where it casts group glows', () => {
+        it('should not walk the groups of a chart that casts no glow', () => {
             // The walk is private and leaves nothing else to observe, so the test names it by its method.
             const collect = vi.spyOn(
                 Group.prototype as unknown as { collectChildGroups: () => void },
@@ -1128,11 +1316,7 @@ describe('Shadow root', () => {
             );
 
             draw(true, () =>
-                Array.from({ length: 20 }, () => {
-                    const series = new Group({ name: 'series', castsGroupGlows: true });
-                    series.appendChild(group('shared', [group('shared', [square(20, 40)])]));
-                    return series;
-                })
+                Array.from({ length: 20 }, () => group(false, [group('shared', [group('shared', [square(20, 40)])])]))
             );
 
             expect(collect).not.toHaveBeenCalled();
@@ -1170,20 +1354,16 @@ describe('Shadow root', () => {
             root.appendChild(group('shared', rects.slice(0, 2)));
             root.appendChild(group('shared', rects.slice(2)));
             const scene = newScene(root);
-            const redraw = () => {
-                root.markDirty();
-                scene.render();
-            };
             scene.render();
-            redraw();
-            redraw();
+            redraw(scene, root);
+            redraw(scene, root);
 
             reads = 0;
-            redraw();
+            redraw(scene, root);
             expect(reads).toBe(0);
 
             rects[2].width = 50;
-            redraw();
+            redraw(scene, root);
             expect(reads).toBeGreaterThan(0);
         });
     });

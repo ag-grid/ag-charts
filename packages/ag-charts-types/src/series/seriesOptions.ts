@@ -37,13 +37,11 @@ export interface AgGlowHighlightStyleOptions {
      * replaces the `shadow` of the item while it applies, rather than being cast alongside it.
      *
      * The glow of the hovered item (`highlightedItem`) is drawn centred on the item, with the item drawn over its own
-     * glow. It sits above every series when `bringToFront` is on, and keeps its series' stacking order otherwise. The glow
-     * of the highlighted series (`highlightedSeries`, and `unhighlightedItem` as it falls back to it) is drawn behind all
-     * the items of that series, which `bringToFront` puts above the other series; with `bringToFront` off it stays behind the
-     * series drawn after it. It never covers an item of its own series. The glow of an item at rest, and the glow of
-     * `unhighlightedSeries`, stay behind every series, and are drawn together with the `shadow`: an item can cast both.
-     * The series with more than the items to draw (line, area, range area, radar, HLC, donut, sankey and chord) keep the
-     * glow of the highlighted series behind every series too.
+     * glow. It sits above every series when `bringToFront` is on, and keeps its series' stacking order otherwise. Every
+     * other glow (that of an item at rest, of the highlighted series, of `unhighlightedItem` and of `unhighlightedSeries`)
+     * is drawn in one layer above the items of every series. The footprint of every item that glows, the hovered item
+     * included, is cut out of that layer, so a glow covers the items beside it that do not glow, including the line and
+     * fill of its own series, and no glow covers an item that glows.
      *
      * Line, radar line and HLC series glow only on their markers (`marker.glow`), and area, radar area and range area
      * fills are not redrawn when highlighted, so only their markers glow. Cone funnel series do not have this option.

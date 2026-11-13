@@ -106,16 +106,17 @@ describe('a highlight glow of the markers of a series', () => {
         }
     );
 
-    it.each(['line', 'area'] as const)('does not cover the line or the fill of its own series (%s)', async (type) => {
+    // The glow is cast in the overlay above the series, so it covers the line and the fill, which do not glow, as the glow
+    // of a hovered marker does. Only the footprint of a marker, which glows, is cut out of it.
+    it.each(['line', 'area'] as const)('covers the line and the fill of its own series (%s)', async (type) => {
         const without = await hover(type, undefined);
         chart.destroy();
         const withGlow = await hover(type, GLOW);
 
-        // The glow reaches this far, past the line, where nothing else of the series is drawn.
-        expect(withGlow.beside).toEqual([0, 255, 0, 255]);
-        expect(withGlow.line).toEqual(STROKE);
-        expect(withGlow.line).toEqual(without.line);
-        if (type === 'area') expect(withGlow.fill).toEqual(STROKE);
+        expect(without.line).toEqual(STROKE);
+        expect(withGlow.beside).toEqual(GREEN);
+        expect(withGlow.line).toEqual(GREEN);
+        if (type === 'area') expect(withGlow.fill).toEqual(GREEN);
     });
 });
 

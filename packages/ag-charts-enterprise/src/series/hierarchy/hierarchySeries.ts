@@ -14,6 +14,7 @@ import type {
 } from 'ag-charts-core';
 import {
     type BoxBounds,
+    CUT_ONLY_GLOW,
     ColorScale,
     type Point,
     PointerEvents,
@@ -672,9 +673,8 @@ export abstract class HierarchySeries<
     }
 
     /**
-     * The shadow to draw on one copy of a node. The highlight layer's copy casts only its `glow`. An in-place copy casts
-     * the glow of its highlight state, in the base pass that keeps it behind every series, except for the hovered
-     * node's own in-place copy, which keeps its `shadow` beneath the highlight layer's copy.
+     * The shadow on one copy of a node, in `fillShadow`: the highlight copy casts its `glow` as one, the hovered node's in-place
+     * copy its `shadow`, and any other its `shadow` unless it has a glow, see {@link resolveNodeGlow}.
      */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,
@@ -687,7 +687,22 @@ export abstract class HierarchySeries<
         if (itemShadow != null) shadow = this.mergeItemShadow(shadow, itemShadow);
         if (isHighlight) return glow;
         if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
-        return glow ?? shadow;
+        return glow == null ? shadow : undefined;
+    }
+
+    /**
+     * The glow on one copy of a node, in `fillGlow`, cast in the root's overlay. The highlight copy has none there, and the
+     * hovered node's in-place copy only cuts itself out of it if the highlight copy glows.
+     */
+    protected resolveNodeGlow(
+        glow: NormalisedDropShadowOptions | undefined,
+        isHighlight: boolean,
+        hoveredInPlace: boolean,
+        hoveredGlows: boolean
+    ): NormalisedDropShadowOptions | undefined {
+        if (isHighlight) return;
+        if (!hoveredInPlace) return glow;
+        return hoveredGlows ? CUT_ONLY_GLOW : undefined;
     }
 
     public override getHighlightStateString(

@@ -320,7 +320,7 @@ describe('glow on rings linked through legendItemKey', () => {
         for (const seriesIndex of [0, 1]) {
             // The in-place sector that the highlight layer redraws swaps its shadow, and gives up its glow to the copy.
             expect(sector(seriesIndex, 'contentGroup', 0)?.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
-            expect(sector(seriesIndex, 'contentGroup', 0)?.fillGlow?.enabled).not.toBe(true);
+            expect(sector(seriesIndex, 'contentGroup', 0)?.getCastShadow('glow')).toBeUndefined();
             expect(sector(seriesIndex, 'highlightNodeGroup', 0)?.fillGlow).toMatchObject(GLOW_SHADOW);
             for (const datumIndex of [1, 2]) {
                 expect(sector(seriesIndex, 'contentGroup', datumIndex)?.fillShadow).toMatchObject(SERIES_SHADOW);

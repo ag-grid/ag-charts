@@ -9,14 +9,15 @@ import {
     endShadowCasts,
     getBatchedShadow,
     getShadowClip,
+    inLayerOf,
     joinsShadowKey,
     renderShadowless,
 } from './shadowEngine';
 
 /** The children that follow one another and cast the same slots, each slot with the shadow options and clip of the run. */
 interface Run {
-    readonly shadow: ShadowKey | undefined;
-    readonly glow: ShadowKey | undefined;
+    shadow: ShadowKey | undefined;
+    glow: ShadowKey | undefined;
     readonly members: ShadowCaster[];
 }
 
@@ -41,7 +42,9 @@ export function renderChildrenWithShadowBatches(
     scene: object | undefined,
     user: object,
     renderCtx: RenderContext,
-    scope: ShadowScope = 'run'
+    scope: ShadowScope = 'run',
+    /** Whether the glows are cast elsewhere, so that the children are drawn without one. */
+    glowsCast = false
 ): void {
     const { stats } = renderCtx;
     let run: Run | undefined;
@@ -52,7 +55,7 @@ export function renderChildrenWithShadowBatches(
 
         const { shadow, glow, members } = run;
         const keys = [shadow, glow].filter((key): key is ShadowKey => key != null);
-        if (castShadows({ scene, user, keys, index: casts++ }, renderCtx)) {
+        if (keys.length === 0 || castShadows({ scene, user, keys, index: casts++ }, renderCtx)) {
             renderShadowless(members, renderCtx);
         } else {
             // The shadow can't be cast (no context, an empty layer or a non-finite shadow): each member casts its own
@@ -73,28 +76,38 @@ export function renderChildrenWithShadowBatches(
         }
 
         const shadow = getBatchedShadow(child);
-        const glow = getBatchedShadow(child, 'glow');
+        const glow = glowsCast ? undefined : getBatchedShadow(child, 'glow');
         const castsAny = shadow != null || glow != null;
+        // A glow that is cast elsewhere is left off the child, which is a member of the run, so as not to split its shadows.
+        const glowCast = !castsAny && glowsCast && getBatchedShadow(child, 'glow') != null;
         const clip = castsAny ? getShadowClip(child) : undefined;
-        // A child that casts nothing, or one that does not continue the run in each slot, ends it.
-        if (
-            run != null &&
-            (!castsAny ||
-                !joinsSlot(run.shadow, child, shadow, clip, scope) ||
-                !joinsSlot(run.glow, child, glow, clip, scope))
-        ) {
-            flush();
+        // A run of glow-only members, whose layer the shadow of a later child casts beneath, rather than over, the members.
+        const glowOnly = run != null && run.shadow == null && run.glow == null;
+        if (run != null) {
+            // A child that casts nothing, or one that does not continue the run in each slot, ends it.
+            const joins =
+                glowCast || glowOnly
+                    ? (glowCast || castsAny) && inLayerOf(run.members[0], child, scope)
+                    : castsAny &&
+                      joinsSlot(run.shadow, child, shadow, clip, scope) &&
+                      joinsSlot(run.glow, child, glow, clip, scope);
+            if (!joins) flush();
+        }
+        if (glowCast) {
+            run ??= { shadow: undefined, glow: undefined, members: [] };
+            run.members.push(child as ShadowCaster);
+            continue;
         }
         if (!castsAny) {
             child.isolatedRender(renderCtx);
             continue;
         }
 
-        run ??= {
-            shadow: shadow == null ? undefined : { slot: 'shadow', shadow, clip, casters: [] },
-            glow: glow == null ? undefined : { slot: 'glow', shadow: glow, clip, casters: [] },
-            members: [],
-        };
+        run ??= { shadow: undefined, glow: undefined, members: [] };
+        if (run.shadow == null && run.glow == null) {
+            run.shadow = shadow == null ? undefined : { slot: 'shadow', shadow, clip, casters: [] };
+            run.glow = glow == null ? undefined : { slot: 'glow', shadow: glow, clip, casters: [] };
+        }
         run.shadow?.casters.push(child as ShadowCaster);
         run.glow?.casters.push(child as ShadowCaster);
         run.members.push(child as ShadowCaster);

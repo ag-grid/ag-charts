@@ -30,6 +30,7 @@ import type {
 } from 'ag-charts-core';
 import {
     BBox,
+    CUT_ONLY_GLOW,
     ChartAxisDirection,
     CleanupRegistry,
     EventEmitter,
@@ -55,6 +56,7 @@ import {
     mergeGlow,
     nearestSquared,
     resolveLabelAvoidance,
+    withOverlayCut,
     without,
 } from 'ag-charts-core';
 import type {
@@ -323,7 +325,6 @@ export abstract class Series<
         name: `${this.internalId}-content`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
         batchShadows: true,
-        castsGroupGlows: true,
     });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -1025,8 +1026,9 @@ export abstract class Series<
 
         // The in-place copies that cast the bucket or drop their glow change with the hovered item, or its shared category.
         const hasItemShadow = this.getItemShadowBucket() != null;
+        // The hovered in-place copy that cuts the overlay is restyled as the hover moves, or the item it leaves stays cut out.
         const castSwapped =
-            ((this.hasGlowIn(HighlightState.OtherItem) || hasItemShadow) &&
+            ((this.hasGlowIn(HighlightState.OtherItem) || hasItemShadow || this.hoveredCopyCutsOverlay()) &&
                 this.getRedrawnDatumIndex(previousHighlightedDatum) !==
                     this.getRedrawnDatumIndex(currentHighlightedDatum)) ||
             ((this.hasGlowIn(HighlightState.Item) || hasItemShadow) &&
@@ -1117,25 +1119,9 @@ export abstract class Series<
         if (glow === undefined) {
             glow =
                 glowToShadow(mergeGlow({ glow: this.getHighlightGlow(highlightState) }, { glow: seriesGlow })) ?? null;
-            // The glow of the highlighted series is cast beneath its own items, which sit above the other series.
-            if (
-                glow != null &&
-                (highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem) &&
-                this.castsHighlightGlowInGroup()
-            ) {
-                glow = { ...glow, inGroup: true };
-            }
             cascade.byState[highlightState] = glow;
         }
         return glow ?? undefined;
-    }
-
-    /**
-     * Whether the glow of the highlighted series is cast in the content group, beneath its items. A series whose items are not
-     * the only content, or are in other groups, leaves it to the root, which casts it beneath every series.
-     */
-    protected castsHighlightGlowInGroup(): boolean {
-        return true;
     }
 
     /** Whether any highlight state casts a glow, over any series-level `glow`; when none does, no glow is resolved per datum. */
@@ -1381,22 +1367,23 @@ export abstract class Series<
         index: number,
         keyPrefix: string,
         itemGlow: AgGlowOptions,
-        under: () => Array<DeepPartial<AgGlowOptions> | undefined>,
-        inGroup?: boolean
+        under: () => Array<DeepPartial<AgGlowOptions> | undefined>
     ): NormalisedDropShadowOptions | undefined {
         return this.mergeItemCast(base, itemGlow, index, `${keyPrefix}${JSON.stringify(itemGlow)}`, () => {
-            const merged = glowToShadow(
+            return glowToShadow(
                 mergeGlow({ glow: { enabled: true, ...itemGlow } }, ...under().map((glow) => ({ glow })), {
                     glow: GLOW_THEME_DEFAULTS,
                 })
             );
-            return merged != null && inGroup ? { ...merged, inGroup: true } : merged;
         });
     }
 
     /**
      * The glow one copy of an item casts: its highlight state's `glow` over `seriesGlow`. The in-place copy of the
-     * hovered item reads as `OtherItem`, so it is told by {@link getRedrawnDatumIndex} and casts none.
+     * hovered item reads as `OtherItem`, so it is told by {@link getRedrawnDatumIndex} and casts none, only cutting the overlay.
+     * If the series is not brought to front, the highlight layer's copy of it lies beneath the overlay, and so cuts it too: the
+     * hovered item, if it glows, is clear of the glows of other items over all that it draws, whatever its highlight style makes
+     * of its size.
      */
     protected resolveItemGlow(
         seriesGlow: DeepPartial<AgGlowOptions> | undefined,
@@ -1407,13 +1394,31 @@ export abstract class Series<
         itemGlow?: AgGlowOptions
     ): NormalisedDropShadowOptions | undefined {
         if (itemGlow == null && !this.hasAnyGlow()) return;
-        if (isHighlight) return this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
+
+        if (isHighlight) {
+            const glow = this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
+            // The copy draws beneath the overlay if the series is not brought to front, so it cuts the overlay as well.
+            return glow == null || this.bringToFront() ? glow : withOverlayCut(glow);
+        }
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         if (highlightedDatum == null) return this.castGlow(seriesGlow, HighlightState.None, itemGlow);
 
         const copy = this.resolveInPlaceCopy(highlightedDatum, datumIndex, highlightState, legendItemValues);
-        return copy === HOVERED_IN_PLACE ? undefined : this.castGlow(seriesGlow, copy, itemGlow);
+        if (copy !== HOVERED_IN_PLACE) return this.castGlow(seriesGlow, copy, itemGlow);
+
+        // A hovered item that does not glow is covered by its neighbours' glows. This copy's `itemGlow` is its styler's in the
+        // `OtherItem` state, so only the highlight layer's copy cuts for a glow that the styler sets in the `Item` state.
+        if (this.bringToFront()) return;
+        return this.castGlow(seriesGlow, HighlightState.Item, undefined) == null ? undefined : CUT_ONLY_GLOW;
+    }
+
+    /**
+     * Whether the in-place copy of the hovered item cuts the glow overlay, when any glow is cast: if the series is not brought
+     * to front, as its highlight copy lies beneath the overlay. A hierarchy restyles its nodes on every highlight change.
+     */
+    protected hoveredCopyCutsOverlay(): boolean {
+        return this.hasAnyGlow() && !this.bringToFront();
     }
 
     private castGlow(
@@ -1427,19 +1432,10 @@ export abstract class Series<
         const recalled = this.recallItemCast(seriesGlow, itemGlow, index);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        // As in getCascadedGlow, the glow of the highlighted series is cast in its own group, on top of the other series,
-        // unless the series leaves it to the root. Set on the interned result, so that a recalled cast allocates nothing per datum.
-        const inGroup =
-            (highlightState === HighlightState.Series || highlightState === HighlightState.OtherItem) &&
-            this.castsHighlightGlowInGroup();
-        return this.mergeItemGlow(
+        return this.mergeItemGlow(seriesGlow, index, `g${highlightState}`, itemGlow, () => [
+            this.getHighlightGlow(highlightState),
             seriesGlow,
-            index,
-            `g${highlightState}`,
-            itemGlow,
-            () => [this.getHighlightGlow(highlightState), seriesGlow],
-            inGroup
-        );
+        ]);
     }
 
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */
