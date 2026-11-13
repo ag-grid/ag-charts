@@ -140,6 +140,50 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return this.contextNodeData?.nodeData;
     }
 
+    // OPTIMIZATION: binary-search the window's rows, so only rows inside the window are ever walked.
+    public override hasDataInXRange(start: number, end: number): boolean | undefined {
+        const { processedData } = this;
+        // A flipped series keeps its x-values on the vertical axis, so they can't be compared with the window.
+        if (
+            this.shouldFlipXY() ||
+            processedData?.type !== 'ungrouped' ||
+            this.dataModel?.hasColumnById(this, 'xValue') !== true
+        ) {
+            return undefined;
+        }
+
+        // The render pass reads the same cached sort order.
+        const sortOrder = this.sortOrder('xValue');
+        if (sortOrder == null) return undefined;
+
+        const xValues = this.keysOrValues<{ valueOf(): unknown } | null | undefined>('xValue');
+        const last = xValues.length - 1;
+        let searchable = true;
+        const xAt = (ascendingIndex: number) => {
+            const x = xValues[sortOrder === 1 ? ascendingIndex : last - ascendingIndex]?.valueOf();
+            if (isFiniteNumber(x)) return x;
+            searchable = false;
+            return Number.NaN;
+        };
+        const first = findMinIndex(0, last, (i) => xAt(i) >= start);
+        const final = findMaxIndex(0, last, (i) => xAt(i) <= end);
+        if (!searchable) return undefined;
+        if (first == null || final == null || first > final) return false;
+
+        const [from, to] = sortOrder === 1 ? [first, final] : [last - final, last - first];
+        const yValues = this.gapValueColumn();
+        const invalid = processedData.invalidData?.get(this.id);
+        for (let datumIndex = from; datumIndex <= to; datumIndex++) {
+            if (!invalid?.[datumIndex] && (yValues == null || isFiniteNumericValue(yValues[datumIndex]))) return true;
+        }
+        return false;
+    }
+
+    /** A value column the data model keeps a row for when non-finite, which then renders as a gap. */
+    protected gapValueColumn(): unknown[] | undefined {
+        return undefined;
+    }
+
     private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
         new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1, batchShadows: 'shared' })
