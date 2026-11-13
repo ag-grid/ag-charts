@@ -424,7 +424,7 @@ export class AnnotationSettingsDialog extends Dialog {
         const label = this.getCoordinateLabel(
             initial,
             ariaLabel,
-            localeManager.t('dialogInputCoordinatesAltText', { label: offsetLabel, axis })
+            `${localeManager.t('dialogInputCoordinatesAltText', { label: offsetLabel, axis })} (%)`
         );
         const widget = this.createLabelledInput(label, input, inline, ...(suggestions ? [suggestions] : []));
         return { widget, refresh };
