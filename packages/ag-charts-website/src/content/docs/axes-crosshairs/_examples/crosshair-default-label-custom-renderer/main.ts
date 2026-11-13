@@ -52,6 +52,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Number of Bicycle Hires',
             },
             crosshair: {
+                enabled: true,
                 label: {
                     xOffset: 50,
                     renderer: crosshairLabelRenderer,
@@ -61,6 +62,7 @@ const options: AgCartesianChartOptions = {
         x: {
             type: 'time',
             crosshair: {
+                enabled: true,
                 label: {
                     format: `%b %d`,
                 },

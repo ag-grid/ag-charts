@@ -52,6 +52,7 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Hours',
             },
+            crosshair: { enabled: true },
         },
     },
 };

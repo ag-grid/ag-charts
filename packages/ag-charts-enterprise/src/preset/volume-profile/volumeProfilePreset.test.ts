@@ -6,6 +6,7 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    hoverAction,
     prepareFinancialTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -399,5 +400,21 @@ describe('volumeProfilePreset', () => {
         chart = AgCharts.createVolumeProfileChart(options);
         // `ag-financial`'s colours; the default theme would resolve a green of its own.
         await compareToSnapshot(DEFAULT_SNAPSHOT);
+    });
+
+    it.each<[string, AgVolumeProfileChartOptions['theme'], boolean]>([
+        ['shows', { params: {} }, true],
+        [
+            'hides',
+            { params: {}, overrides: { common: { axes: { number: { crosshair: { enabled: false } } } } } },
+            false,
+        ],
+    ])('%s the number axis crosshair label on hover by default or per theme overrides', async (_name, theme, shown) => {
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, theme }));
+        await waitForChartStability(chart);
+        await hoverAction(400, 300)(deproxy(chart));
+        await waitForChartStability(chart);
+        const labels = document.querySelectorAll('.ag-charts-crosshair-label:not(.ag-charts-crosshair-label--hidden)');
+        expect(labels.length > 0).toBe(shown);
     });
 });

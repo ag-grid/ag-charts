@@ -39,6 +39,7 @@ const options: AgCartesianChartOptions = {
         y: {
             type: 'number',
             crosshair: {
+                enabled: true,
                 snap: false,
             },
         },
@@ -48,6 +49,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Year',
             },
             crosshair: {
+                enabled: true,
                 snap: false,
             },
         },

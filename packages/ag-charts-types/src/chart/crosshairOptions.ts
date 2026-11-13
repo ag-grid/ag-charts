@@ -7,7 +7,11 @@ import type { ContextDefault, CssColor, Opacity, PixelSize } from './types';
 export type AgCrosshairSnapMode = 'all' | 'nearest';
 
 export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, ContextDefault>> {
-    /** Whether to show the crosshair. */
+    /**
+     * Whether to show the crosshair.
+     *
+     * Default: `true` on number, log, time, unit-time and ordinal-time axes when the chart's first series is candlestick, OHLC or HLC, and on the price and date axes of the Financial Charts presets; `false` otherwise.
+     */
     enabled?: boolean;
     /**
      * Whether the crosshair snaps to the highlighted data point. When unset, the crosshair snaps if the highlighted series has a single value on this axis or a `crosshairSnapTo` list, and follows the pointer otherwise.

@@ -14,6 +14,16 @@ const FINANCIAL_THEME = {
         ...THEME.overrides,
         common: {
             ...THEME.overrides.common,
+            axes: {
+                ...THEME.overrides.common.axes,
+                number: {
+                    ...THEME.overrides.common.axes.number,
+                    crosshair: {
+                        ...THEME.overrides.common.axes.number.crosshair,
+                        enabled: true,
+                    },
+                },
+            },
             padding: {
                 top: 8,
                 right: 12,

@@ -8,6 +8,7 @@ const ySecondaryAxis: AgCartesianAxisOptions = {
     type: 'number',
     position: 'right',
     label: { formatter: labelFormatter(formatBytes) },
+    crosshair: { enabled: true },
 };
 
 const commonOptions: AgCartesianChartOptions = {
@@ -18,6 +19,7 @@ const commonOptions: AgCartesianChartOptions = {
             type: 'number',
             position: 'left',
             label: { formatter: labelFormatter(formatMillis) },
+            crosshair: { enabled: true },
         },
         ySecondary: ySecondaryAxis,
     },
