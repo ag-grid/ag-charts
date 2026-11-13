@@ -951,7 +951,8 @@ export class SeriesAreaManager extends BaseManager {
         const builtin =
             type === 'click' &&
             (series.hasBuiltinListener(pick.target) || (pick.matches.length > 1 && this.chart.tooltip.pagination));
-        if (builtin || builtinOnly) return builtin;
+        if (builtin) return true;
+        if (builtinOnly) return false;
         if (type === 'dblclick') return series.hasNodeListener('seriesNodeDoubleClick');
         return (
             (series.isSelectionEnabled() && series.isDatumSelectable(found.datumIndex)) ||

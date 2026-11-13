@@ -1084,6 +1084,65 @@ describe('CrossLine', () => {
                     expect(chartClick).toHaveBeenCalledTimes(0);
                 }
             );
+            it.each([
+                {
+                    name: 'its own listener beats a series node listener',
+                    crossLines: [{ id: 'blue-line', type: 'line', value: 'May', listeners: { click: true } }],
+                    series: { listeners: { seriesNodeClick: true } },
+                    winner: 'cross-line',
+                },
+                {
+                    name: 'a front cross line beats datum selection',
+                    crossLines: [{ id: 'blue-line', type: 'line', value: 'May', listeners: { click: true } }],
+                    series: { selection: { enabled: true } },
+                    winner: 'cross-line',
+                },
+                {
+                    name: 'a front cross line without a listener does not lend its precedence to a split one',
+                    crossLines: [
+                        { id: 'blue-line', type: 'line', value: 'May' },
+                        { id: 'grey-range', type: 'range', range: ['May', 'May'], listeners: { click: true } },
+                    ],
+                    series: { listeners: { seriesNodeClick: true } },
+                    winner: 'series',
+                },
+                {
+                    name: 'a back cross line beats a series node that nothing listens to',
+                    crossLines: [
+                        { id: 'blue-line', type: 'line', value: 'May', layer: 'back', listeners: { click: true } },
+                    ],
+                    series: {},
+                    winner: 'cross-line',
+                },
+            ] as const)('precedence: $name', async ({ crossLines, series, winner }) => {
+                const crossLineListener = vi.fn();
+                const seriesListener = vi.fn();
+                const withListeners = <T extends { listeners?: object }>(options: T) =>
+                    options.listeners == null
+                        ? options
+                        : {
+                              ...options,
+                              listeners:
+                                  'click' in options.listeners
+                                      ? { click: crossLineListener }
+                                      : { seriesNodeClick: seriesListener },
+                          };
+                chart.destroy();
+                chart = deproxy(
+                    await createChart({
+                        data: [{ x: 'May', y: 3 }],
+                        series: [{ type: 'bar', xKey: 'x', yKey: 'y', ...withListeners(series) }],
+                        axes: {
+                            myX: { type: 'category', crossLines: crossLines.map(withListeners) },
+                            myY: { type: 'number' },
+                        },
+                    } as unknown as AgCartesianChartOptions)
+                );
+                const { x, y, width, height } = chart.seriesRect!;
+                await clickAction(x + width / 2, y + height - 10)(chart);
+                expect(crossLineListener).toHaveBeenCalledTimes(winner === 'cross-line' ? 1 : 0);
+                expect(seriesListener).toHaveBeenCalledTimes(winner === 'series' ? 1 : 0);
+            });
             it('a cross line wins over a series node under the pointer that nothing listens to', async () => {
                 chart.destroy();
                 chart = deproxy(

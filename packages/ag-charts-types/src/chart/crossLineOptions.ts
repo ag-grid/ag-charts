@@ -4,6 +4,7 @@ import type { AgChartLabelStyleOptions } from './labelOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { AxisValue, ContextDefault, FontFamilyFull, Opacity, PixelSize } from './types';
 
+/** Where a Cross Line and its label draw relative to the series. */
 export type AgCrossLineLayer = 'front' | 'back' | 'split';
 
 /** Cross Line listeners. */
