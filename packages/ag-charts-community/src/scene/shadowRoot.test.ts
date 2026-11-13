@@ -668,6 +668,57 @@ describe('Shadow root', () => {
             expect(isGlowOverBlack(at(scene, 150, 130))).toBe(true);
         });
 
+        describe('when the overlay cannot be cast', () => {
+            /** A caster whose glow mask throws, as only the overlay draws glow masks while the root casts the shadows. */
+            class ThrowingGlow extends Rect {
+                override isolatedRender(renderCtx: RenderContext) {
+                    if (shadowPass.state === 'mask' && shadowPass.slot === 'glow') throw new Error('glow mask');
+                    return super.isolatedRender(renderCtx);
+                }
+            }
+
+            const items = (glowing: () => Rect) => () => [
+                group('shared', [square(120, 40, { fillShadow: RED_HALF }), square(40, 140)]),
+                group('shared', [glowing()]),
+            ];
+            const throwing = () =>
+                Object.assign(new ThrowingGlow(), {
+                    x: 280,
+                    y: 40,
+                    width: 60,
+                    height: 60,
+                    fill: 'black',
+                    fillGlow: GLOW,
+                });
+            // The same item with the same glow, which casts without throwing.
+            const casting = () => square(280, 40, { fillGlow: GLOW });
+            // The same item with no glow.
+            const plain = () => square(280, 40);
+
+            it('should drop the glows for the frame, warn once however often it is drawn, and leave the items and shadows as they are', () => {
+                const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+                for (const child of items(throwing)()) root.appendChild(child);
+                const scene = newScene(root);
+                scene.render();
+                redraw(scene, root);
+                redraw(scene, root);
+
+                // The glow would land 60px below the item, and a glow that casts shows there.
+                expect(isHalfBlue(at(draw(true, items(casting)), 310, 130))).toBe(true);
+                expect(at(scene, 310, 130)[3]).toBe(0);
+                // The items and the shadow of the first group draw as they do for a chart with no glow.
+                expect(at(scene, 310, 70)).toEqual(BLACK);
+                expect(isHalfRed(at(scene, 190, 70))).toBe(true);
+                expectNearPixels(pixelsOf(scene), pixelsOf(draw(true, items(plain))));
+
+                // The pass is named in one warning, which `warnOnce` keeps to one for every frame after the first.
+                const warned = vi
+                    .mocked(console.warn)
+                    .mock.calls.filter((args) => args.some((arg) => String(arg).includes('glow overlay')));
+                expect(warned).toHaveLength(1);
+            });
+        });
+
         it('should cast no overlay, and no glow, for a chart that casts only shadows', () => {
             draw(true, () => [group('shared', [square(120, 40, { fillShadow: RED_HALF })])]);
 

@@ -86,6 +86,64 @@ describe('shadow and glow render (hierarchy series)', () => {
         });
     });
 
+    describe('the hovered tile or sector that glows, beside one that glows without being hovered', () => {
+        // How the hovered node comes by its glow: through its itemStyler, as its neighbour does, or its highlight state alone.
+        const WAYS = [
+            { way: 'its itemStyler', styled: true, highlight: undefined },
+            { way: 'the highlightedItem state', styled: false, highlight: { highlightedItem: { glow: GLOW } } },
+        ];
+
+        /** Hovers `hovered`, with `neighbour` glowing or not, and returns the pixel that `pixelOf` gives in its series. */
+        const hoveredPixel = async (
+            testCase: typeof treemap,
+            { hovered, neighbour, neighbourGlows, styled, highlight }: Record<string, any>,
+            pixelOf: () => readonly [number, number]
+        ) => {
+            const names = [...(styled ? [hovered] : []), ...(neighbourGlows ? [neighbour] : [])];
+            await create([glowSeries(testCase, glowing(...names), highlight)], testCase.data, RENDER_OPTIONS);
+            const node = [...getHierarchyRootNode(chart())!].find((candidate) => candidate.datum?.name === hovered)!;
+            await hoverNode(chart(), node);
+            return chartPixelAt(chart(), ...pixelOf());
+        };
+
+        describe.each(WAYS)('through $way', ({ styled, highlight }) => {
+            it('is not covered by the glow of the tile above it in a treemap', async () => {
+                // The pixel just inside the hovered tile A2, at the edge that it shares with A1 above it.
+                const insideA2 = () => {
+                    const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === 'A2')!;
+                    const { x, y, width } = tile.bbox!;
+                    return [x + padding.left + width / 2, y + padding.top + 3] as const;
+                };
+                const options = { hovered: 'A2', neighbour: 'A1', styled, highlight };
+
+                const alone = await hoveredPixel(treemap, { ...options, neighbourGlows: false }, insideA2);
+
+                expect(await hoveredPixel(treemap, { ...options, neighbourGlows: true }, insideA2)).toEqual(alone);
+            });
+
+            it('is not covered by the glow of its child in a sunburst', async () => {
+                // The pixel in the ring of the hovered sector A, 4px inside the sector of its child A1, at the middle of it.
+                const insideRing = () => {
+                    const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
+                    const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
+                    const leaves = sectors.filter(({ innerRadius }) => innerRadius > innerRing);
+                    const a1 = leaves.find(
+                        (sector) => sector.startAngle === Math.min(...leaves.map((leaf) => leaf.startAngle))
+                    )!;
+                    const { canvasX, canvasY } = Transformable.toCanvasPoint(a1, a1.centerX, a1.centerY);
+                    const angle = (a1.startAngle + a1.endAngle) / 2;
+                    const radius = a1.innerRadius - 4;
+                    return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
+                };
+                const options = { hovered: 'A', neighbour: 'A1', styled, highlight };
+
+                const alone = await hoveredPixel(sunburst, { ...options, neighbourGlows: false }, insideRing);
+
+                expect(await hoveredPixel(sunburst, { ...options, neighbourGlows: true }, insideRing)).toEqual(alone);
+            });
+        });
+    });
+
     describe('the shadows of the tiles beside a tile that only glows', () => {
         // The shadow of the tile below lands on the tile above it, which glows with its own shadow off.
         const SHADOW = { enabled: true, fill: '#ff0000', fillOpacity: 1, blur: 0, xOffset: 0, yOffset: -40 };
