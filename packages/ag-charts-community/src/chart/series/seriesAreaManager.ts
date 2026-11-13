@@ -156,14 +156,33 @@ function seriesNodeContexts(pickedNodes: readonly HighlightNodeDatum[]): SeriesN
 function primaryContextMenuRegion(
     contexts: ContextMenuRegionContexts,
     directNodeHit: boolean,
-    primaryRegions: readonly AgContextMenuItemShowOn[]
+    primaryRegions: readonly AgContextMenuItemShowOn[],
+    frontContexts: ContextMenuRegionContexts
 ): AgContextMenuItemShowOn {
     const hasNode = contexts['series-node'] != null;
-    if (hasNode && directNodeHit) return 'series-node';
+    if (hasNode && directNodeHit) {
+        const front = strictObjectKeys(frontContexts).find((region) => contexts[region] != null);
+        if (front == null) return 'series-node';
+        leadWithFrontEntries(contexts, frontContexts, front);
+        return front;
+    }
     const primary = primaryRegions.find((region) => contexts[region] != null);
     if (primary != null) return primary;
     if (hasNode) return 'series-node';
     return strictObjectKeys(contexts).at(0) ?? 'series-area';
+}
+
+/** Lists the entries that won `region` from a series node first, as `getItems` reports the first entry. */
+function leadWithFrontEntries(
+    contexts: ContextMenuRegionContexts,
+    frontContexts: ContextMenuRegionContexts,
+    region: AgContextMenuItemShowOn
+): void {
+    const front: unknown = frontContexts[region];
+    const all: unknown = contexts[region];
+    if (!Array.isArray(front) || !Array.isArray(all)) return;
+    const entries = [...front, ...all.filter((entry) => !front.includes(entry))];
+    (contexts as Record<AgContextMenuItemShowOn, unknown>)[region] = entries;
 }
 
 function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
@@ -483,7 +502,8 @@ export class SeriesAreaManager extends BaseManager {
         let pickedNodes: readonly HighlightNodeDatum[] = [];
         let position: CanvasPoint | undefined;
         let directNodeHit = true;
-        if (this.getFocusIndicator()?.isFocusVisible()) {
+        const focusedNode = this.getFocusIndicator()?.isFocusVisible() ?? false;
+        if (focusedNode) {
             const pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
             if (pickedNode) pickedNodes = [pickedNode];
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
@@ -515,11 +535,12 @@ export class SeriesAreaManager extends BaseManager {
 
         // Ask the modules owning other regions whether they overlap this point (mirrors the hover/drag handoff).
         // They annotate rather than dispatch, so a single menu can offer every region at the point.
-        const { primaryRegions } = this.collectContextMenuRegions(event, { canvasX, canvasY }, contexts);
+        const { primaryRegions, frontContexts } = this.collectContextMenuRegions(event, { canvasX, canvasY }, contexts);
         const regions: AgContextMenuItemShowOn[] = ['series-area', ...strictObjectKeys(contexts)];
 
         this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
-            primaryContextMenuRegion(contexts, directNodeHit, primaryRegions),
+            // A keyboard-focused node keeps the menu, as the pointer need not be over it.
+            primaryContextMenuRegion(contexts, directNodeHit, primaryRegions, focusedNode ? {} : frontContexts),
             regions,
             contexts,
             { widgetEvent: event, canvasX, canvasY },
@@ -559,6 +580,7 @@ export class SeriesAreaManager extends BaseManager {
             widgetEvent: event,
             regions,
             primaryRegions: [],
+            frontContexts: {},
         };
         this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
         return collectEvent;
@@ -669,13 +691,21 @@ export class SeriesAreaManager extends BaseManager {
 
         const claims = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
         const claimedParams = claims.flatMap((claim) => claim.matchedParams);
-        const claimed = claims.some((claim) => claim.isHandled()) && !(isSeriesWidget && this.isHandledNodeHit(event));
+        // A claim drawn in front of the series beats a node handled by user listeners, but not built-in controls.
+        const builtinOnly = claims.some((claim) => claim.beatsHandledNode?.() === true);
+        const claimed =
+            claims.some((claim) => claim.isHandled()) && !(isSeriesWidget && this.isHandledNodeHit(event, builtinOnly));
         if (claimed) {
+            const beatHandledNode = builtinOnly && isSeriesWidget && this.isHandledNodeHit(event, false);
+            // The node would have stopped a double-click resetting the zoom, had it won.
+            if (beatHandledNode && event.type === 'dblclick') {
+                (event as { preventZoomDblClick?: boolean }).preventZoomDblClick = true;
+            }
             // The claim wins the event, but still reports the series nodes within `nodeClickRange`.
             const nodeParams = isSeriesWidget ? this.pickSeriesNodeHitParams(event) : [];
             const allMatchedParams = nodeParams.length > 0 ? [...claimedParams, ...nodeParams] : claimedParams;
             for (const claim of claims) {
-                claim.fire(allMatchedParams);
+                claim.fire(allMatchedParams, beatHandledNode);
             }
             return; // dodge chart-level / series-level user callbacks.
         }
@@ -937,23 +967,33 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     /** Selection, built-in controls and tooltip pagination act on single clicks only. */
-    private handlesNodeEvent(pick: PickedNodes | undefined, type: ClickLikeEvent['type']): boolean {
+    private handlesNodeEvent(
+        pick: PickedNodes | undefined,
+        type: ClickLikeEvent['type'],
+        builtinOnly = false
+    ): boolean {
         const found = pick?.matches[0];
         if (pick == null || found == null) return false;
         const { series } = found;
+        const builtin =
+            type === 'click' &&
+            (series.hasBuiltinListener(pick.target) || (pick.matches.length > 1 && this.chart.tooltip.pagination));
+        if (builtin) return true;
+        if (builtinOnly) return false;
         if (type === 'dblclick') return series.hasNodeListener('seriesNodeDoubleClick');
         return (
             (series.isSelectionEnabled() && series.isDatumSelectable(found.datumIndex)) ||
-            series.hasNodeListener('seriesNodeClick') ||
-            series.hasBuiltinListener(pick.target) ||
-            (pick.matches.length > 1 && this.chart.tooltip.pagination)
+            series.hasNodeListener('seriesNodeClick')
         );
     }
 
-    /** Whether a node directly under the pointer handles the event, so it beats an overlapping cross line. */
-    private isHandledNodeHit(event: ClickLikeEvent & CurrentPoint): boolean {
+    /**
+     * Whether a node directly under the pointer handles the event, so it beats an overlapping cross line.
+     * With `builtinOnly`, only built-in controls and tooltip pagination count.
+     */
+    private isHandledNodeHit(event: ClickLikeEvent & CurrentPoint, builtinOnly: boolean): boolean {
         const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
-        return pick?.distance === 0 && this.handlesNodeEvent(pick, event.type);
+        return pick?.distance === 0 && this.handlesNodeEvent(pick, event.type, builtinOnly);
     }
 
     private pickSeriesNodeHitParams(event: ClickLikeEvent & CurrentPoint): AgMatchedParams<unknown>[] {

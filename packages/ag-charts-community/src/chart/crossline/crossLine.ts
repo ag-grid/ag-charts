@@ -16,6 +16,7 @@ interface PendingCallback {
     callers: Caller[];
     fn: (params: any) => void;
     params: PendingCrossLineCallbackParam;
+    frontParams?: PendingCrossLineCallbackParam;
 }
 
 export type PendingCrossLineCallbackParam =
@@ -27,8 +28,12 @@ export class PendingCrossLineCallbacks implements SeriesAreaClickClaim {
     chart?: PendingCallback;
     readonly axes = new Map<string, PendingCallback>();
     readonly crossLines = new Map<string, PendingCallback>();
+    /** Set when a matched `'front'` cross line reaches a listener, as it draws over the series beneath it. */
+    hasHandledFront = false;
+    /** The chart callback of the first axis with a handled `'front'` match. */
+    frontChart?: PendingCallback;
 
-    constructor(private readonly hasChartListener: boolean) {}
+    constructor(readonly hasChartListener: boolean) {}
 
     isHandled(): boolean {
         return (
@@ -36,20 +41,29 @@ export class PendingCrossLineCallbacks implements SeriesAreaClickClaim {
         );
     }
 
-    fire(allMatchedParams: AgMatchedParams<unknown>[]): void {
+    beatsHandledNode(): boolean {
+        return this.hasHandledFront;
+    }
+
+    fire(allMatchedParams: AgMatchedParams<unknown>[], beatHandledNode = false): void {
         for (const crossLine of this.crossLines.values()) {
-            firePendingCrossLineCallback(allMatchedParams, crossLine);
+            firePendingCrossLineCallback(allMatchedParams, crossLine, false);
         }
         for (const axis of this.axes.values()) {
-            firePendingCrossLineCallback(allMatchedParams, axis);
+            firePendingCrossLineCallback(allMatchedParams, axis, beatHandledNode);
         }
-        if (this.chart) {
-            firePendingCrossLineCallback(allMatchedParams, this.chart);
+        const chart = beatHandledNode ? (this.frontChart ?? this.chart) : this.chart;
+        if (chart) {
+            firePendingCrossLineCallback(allMatchedParams, chart, beatHandledNode);
         }
     }
 }
 
-function firePendingCrossLineCallback(allMatchedParams: AgMatchedParams<unknown>[], callback: PendingCallback): void {
-    const { callers, fn, params } = callback;
-    callWithContext(callers, fn, { ...params, allMatchedParams });
+function firePendingCrossLineCallback(
+    allMatchedParams: AgMatchedParams<unknown>[],
+    callback: PendingCallback,
+    front: boolean
+): void {
+    const { callers, fn, params, frontParams } = callback;
+    callWithContext(callers, fn, { ...((front ? frontParams : undefined) ?? params), allMatchedParams });
 }
