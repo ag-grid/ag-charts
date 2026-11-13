@@ -23,6 +23,8 @@ export interface CollectedFrame extends ShadowFrame {
     readonly layered: boolean;
     /** Whether the root casts only the glows of the group, which batches its shadows itself. */
     readonly glowsOnly: boolean;
+    /** Whether the root casts nothing for the group, which casts its own glows, and only cuts its items out of the overlay. */
+    readonly cutsOnly: boolean;
 }
 
 /** What the collector reads of the context that the shadow root draws into. */
@@ -55,7 +57,7 @@ export class ShadowCollector {
         this.alpha = alpha;
     }
 
-    addFrame(source: object, version: number, glowsOnly: boolean = false) {
+    addFrame(source: object, version: number, glowsOnly: boolean = false, cutsOnly: boolean = false) {
         const { a, b, c, d, e, f } = this.ctx.getTransform();
         this.frames.push({
             source,
@@ -65,6 +67,7 @@ export class ShadowCollector {
             clips: [...this.clips],
             layered: this.layers > 0,
             glowsOnly,
+            cutsOnly,
         });
     }
 
