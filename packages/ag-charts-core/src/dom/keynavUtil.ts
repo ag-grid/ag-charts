@@ -4,7 +4,6 @@ import { CleanupRegistry } from '../state/cleanupRegistry';
 import { getAttribute, setAttribute } from './attributeUtil';
 import { attachListener } from './domEvents';
 import { isDirectionRtl } from './domUtil';
-import { isElement } from './globalsProxy';
 
 export function addEscapeEventListener(
     elem: HTMLElement,
@@ -156,14 +155,6 @@ export function isButtonClickEvent(event: KeyboardEvent | MouseEvent): boolean {
     }
     // AG-12871 Use `key` for Enter to also include the Numpad Enter key.
     return hasNoModifiers(event) && (event.code === 'Space' || event.key === 'Enter');
-}
-
-export function getLastFocus(sourceEvent: Event | undefined): HTMLElement | undefined {
-    const target = sourceEvent?.target;
-    if (isElement(target) && 'tabindex' in (target as HTMLElement).attributes) {
-        return target as HTMLElement;
-    }
-    return undefined;
 }
 
 export function stopPageScrolling(element: HTMLElement) {
