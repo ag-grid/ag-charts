@@ -678,6 +678,10 @@ export class SeriesAreaManager extends BaseManager {
         const claimed =
             claims.some((claim) => claim.isHandled()) && !(isSeriesWidget && this.isHandledNodeHit(event, builtinOnly));
         if (claimed) {
+            if (builtinOnly && isSeriesWidget && event.type === 'dblclick' && this.isHandledNodeHit(event, false)) {
+                // A front claim took this double-click from a node, which would otherwise have stopped the zoom reset.
+                (event as { preventZoomDblClick?: boolean }).preventZoomDblClick = true;
+            }
             // The claim wins the event, but still reports the series nodes within `nodeClickRange`.
             const nodeParams = isSeriesWidget ? this.pickSeriesNodeHitParams(event) : [];
             const allMatchedParams = nodeParams.length > 0 ? [...claimedParams, ...nodeParams] : claimedParams;

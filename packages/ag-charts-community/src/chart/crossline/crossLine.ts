@@ -29,6 +29,8 @@ export class PendingCrossLineCallbacks implements SeriesAreaClickClaim {
     readonly crossLines = new Map<string, PendingCallback>();
     /** Set when a matched `'front'` cross line reaches a listener, as it draws over the series beneath it. */
     hasHandledFront = false;
+    /** Whether {@link chart} reports a `'front'` match. */
+    chartFromFront = false;
 
     constructor(readonly hasChartListener: boolean) {}
 
