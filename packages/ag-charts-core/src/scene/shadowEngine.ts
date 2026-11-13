@@ -104,6 +104,9 @@ export function getShadowClip(node: Node): ShadowClip | undefined {
     return corners;
 }
 
+/** How the footprint of an item is erased from a glow. */
+const ERASE: GlobalCompositeOperation = 'destination-out';
+
 function sameClip(a: ShadowClip | undefined, b: ShadowClip | undefined) {
     if (a === b) return true;
     if (a == null || b == null) return false;
@@ -160,6 +163,8 @@ interface ScratchPool {
     scratch: SpreadCanvas | undefined;
     /** The canvas that a glow with a `gap` is blurred onto and cut out of, once a cast needs it. */
     gapCanvas: SpreadCanvas | undefined;
+    /** The canvas that the glow of an overlay key with a `gap` of its own is cut on, before it merges with the others. */
+    cutCanvas: SpreadCanvas | undefined;
     /** The pixels of the canvases that the scene's caches hold. */
     cachedArea: number;
 }
@@ -172,17 +177,21 @@ function getPool(scene: object | undefined): ScratchPool {
     const key = scene ?? DETACHED;
     let pool = pools.get(key);
     if (pool == null) {
-        pool = { users: new Set(), scratch: undefined, gapCanvas: undefined, cachedArea: 0 };
+        pool = { users: new Set(), scratch: undefined, gapCanvas: undefined, cutCanvas: undefined, cachedArea: 0 };
         pools.set(key, pool);
     }
     return pool;
 }
 
 function freeScratch(pool: ScratchPool) {
-    const { scratch, gapCanvas } = pool;
+    const { scratch, gapCanvas, cutCanvas } = pool;
     if (gapCanvas != null) {
         disposeCanvas(gapCanvas.canvas);
         pool.gapCanvas = undefined;
+    }
+    if (cutCanvas != null) {
+        disposeCanvas(cutCanvas.canvas);
+        pool.cutCanvas = undefined;
     }
     if (scratch == null) return;
 
@@ -193,12 +202,25 @@ function freeScratch(pool: ScratchPool) {
 
 /** The scene's canvas that a glow's `gap` is cut out of, which holds one key's glow at a time. It only grows. */
 function acquireGapCanvas(scene: object | undefined, width: number, height: number): SpreadCanvas | undefined {
-    const pool = getPool(scene);
-    let { gapCanvas } = pool;
-    if (gapCanvas == null || gapCanvas.canvas.width < width || gapCanvas.canvas.height < height) {
-        const largestWidth = gapCanvas?.canvas.width ?? 0;
-        const largestHeight = gapCanvas?.canvas.height ?? 0;
-        if (gapCanvas != null) disposeCanvas(gapCanvas.canvas);
+    return acquireGrowingCanvas(getPool(scene), 'gapCanvas', width, height);
+}
+
+/** The scene's canvas that an overlay key's glow is cut on by its own `gap`, before it merges with the rest. It only grows. */
+function acquireOwnCutCanvas(scene: object | undefined, width: number, height: number): SpreadCanvas | undefined {
+    return acquireGrowingCanvas(getPool(scene), 'cutCanvas', width, height);
+}
+
+function acquireGrowingCanvas(
+    pool: ScratchPool,
+    field: 'gapCanvas' | 'cutCanvas',
+    width: number,
+    height: number
+): SpreadCanvas | undefined {
+    let canvas = pool[field];
+    if (canvas == null || canvas.canvas.width < width || canvas.canvas.height < height) {
+        const largestWidth = canvas?.canvas.width ?? 0;
+        const largestHeight = canvas?.canvas.height ?? 0;
+        if (canvas != null) disposeCanvas(canvas.canvas);
 
         let canvasWidth = Math.max(width, largestWidth);
         let canvasHeight = Math.max(height, largestHeight);
@@ -206,10 +228,10 @@ function acquireGapCanvas(scene: object | undefined, width: number, height: numb
             canvasWidth = width;
             canvasHeight = height;
         }
-        gapCanvas = allocateCanvas(canvasWidth, canvasHeight);
-        pool.gapCanvas = gapCanvas;
+        canvas = allocateCanvas(canvasWidth, canvasHeight);
+        pool[field] = canvas;
     }
-    return gapCanvas;
+    return canvas;
 }
 
 /** The scene's one scratch canvas for masks, shared because render passes run one after another. It only grows. */
@@ -546,11 +568,13 @@ function renderPass(
     resolution: { x: number; y: number } = FULL_RESOLUTION,
     before?: (index: number) => void,
     erase?: number,
-    erasePainted: boolean = false
+    erasePainted: boolean = false,
+    eraseOp: GlobalCompositeOperation = ERASE
 ): boolean {
     let rendered = true;
     const previousErase = shadowPass.erase;
     const previousErasePainted = shadowPass.erasePainted;
+    const previousEraseOp = shadowPass.eraseOp;
     const previousState = shadowPass.state;
     const previousSlot = shadowPass.slot;
     const previousOpaque = shadowPass.opaque;
@@ -563,6 +587,7 @@ function renderPass(
     shadowPass.resolution = resolution;
     shadowPass.erase = erase;
     shadowPass.erasePainted = erasePainted;
+    shadowPass.eraseOp = eraseOp;
     try {
         for (let i = 0; i < casters.length; i++) {
             before?.(i);
@@ -576,6 +601,7 @@ function renderPass(
         shadowPass.resolution = previousResolution;
         shadowPass.erase = previousErase;
         shadowPass.erasePainted = previousErasePainted;
+        shadowPass.eraseOp = previousEraseOp;
     }
     return rendered;
 }
@@ -718,23 +744,12 @@ function clipToRegions(target: RenderContext['ctx'], regions: readonly ShadowReg
     }
 }
 
-/** Casts a planned key onto `target`, whose top left is `origin` on the layer. Returns whether every caster drew. */
-function castPlan(
-    plan: KeyPlan,
-    scratch: SpreadCanvas,
-    target: Ctx,
-    transform: DOMMatrix,
-    renderCtx: RenderContext,
-    originX: number,
-    originY: number,
-    scene: object | undefined,
-    keyExtent: Extent | undefined,
-    peers: readonly ShadowKey[] | undefined
-): boolean {
+/** Draws the mask of a planned key into `scratch`, at the resolution of the cast. Returns whether every caster drew. */
+function drawMask(plan: KeyPlan, scratch: SpreadCanvas, transform: DOMMatrix, renderCtx: RenderContext): boolean {
     const { ctx } = renderCtx;
     let rendered: boolean;
     const { key, padLeft, padTop, canvasWidth, canvasHeight, scaleX, scaleY, opaque, tinted } = plan;
-    const { canvas, context } = scratch;
+    const { context } = scratch;
 
     context.save();
     try {
@@ -790,6 +805,24 @@ function castPlan(
     } finally {
         context.restore();
     }
+    return rendered;
+}
+
+/** Casts a planned key onto `target`, whose top left is `origin` on the layer. Returns whether every caster drew. */
+function castPlan(
+    plan: KeyPlan,
+    scratch: SpreadCanvas,
+    target: Ctx,
+    transform: DOMMatrix,
+    renderCtx: RenderContext,
+    originX: number,
+    originY: number,
+    scene: object | undefined,
+    keyExtent: Extent | undefined
+): boolean {
+    const { key } = plan;
+    const { canvas } = scratch;
+    let rendered = drawMask(plan, scratch, transform, renderCtx);
 
     const { gap } = key.shadow;
     if (gap != null) {
@@ -818,13 +851,6 @@ function castPlan(
             const painted = key.shadow.overlay === true;
             rendered =
                 eraseFootprints(key, erase, transform, renderCtx, region, resolutionOfHole, gap, painted) && rendered;
-            // The glows of an overlay land above every item that glows, whichever glow it casts, so none covers another's.
-            for (const peer of peers ?? []) {
-                if (peer === key) continue;
-                rendered =
-                    eraseFootprints(peer, erase, transform, renderCtx, region, resolutionOfHole, 0, true) && rendered;
-            }
-
             // The target holds what the layer has drawn and the glows of other keys, so only the cut glow is drawn onto it.
             target.save();
             try {
@@ -859,19 +885,236 @@ function castPlan(
     return rendered;
 }
 
-/** Clips `dest`, whose top left is `origin` on the layer, to what the path that the key's casters were drawn into clips. */
-function clipToKey({ clip, clips }: ShadowKey, dest: Ctx, transform: DOMMatrix, originX: number, originY: number) {
+/**
+ * Casts the glows of an overlay's keys onto `target`, whose top left is `origin` on the layer. The glows merge on one canvas,
+ * each cut by the footprint of its own casters dilated by its `gap`, if it has one. The footprint of the casters of every key
+ * is then cut out of the merge once, so that no glow covers an item that glows, whichever glow it casts. Each caster is drawn
+ * for a footprint no more than twice, so the cost grows with the casters, not with the keys by the casters. Returns whether
+ * every caster drew.
+ */
+function castOverlay(
+    plans: readonly KeyPlan[],
+    scratch: SpreadCanvas,
+    target: Ctx,
+    transform: DOMMatrix,
+    renderCtx: RenderContext,
+    originX: number,
+    originY: number,
+    scene: object | undefined,
+    keys: readonly ShadowKey[],
+    keysExtent: Extent | undefined,
+    measuredExtents: ReadonlyMap<ShadowKey, Extent> | undefined
+): boolean {
+    const { canvas } = renderCtx.ctx;
+    let extent = keysExtent;
+    let keyExtents = measuredExtents;
+    if (extent == null) {
+        const measured = new Map<ShadowKey, Extent>();
+        extent = getShadowExtent(
+            keys,
+            transform,
+            renderCtx.devicePixelRatio,
+            Math.ceil(canvas.width),
+            Math.ceil(canvas.height),
+            measured
+        );
+        keyExtents = measured;
+    }
+    const region = getGapRegion(keys[0], extent, transform, renderCtx, target, originX, originY);
+    if (region == null) return true;
+
+    // A glow that can't have a canvas to be cut on is cast without the cut, rather than not at all.
+    const resolution = fitMask(region.width, region.height);
+    const width = Math.max(1, Math.floor(region.width * resolution));
+    const height = Math.max(1, Math.floor(region.height * resolution));
+    const merged = acquireGapCanvas(scene, width, height);
+    let rendered = true;
+    if (merged == null) {
+        for (const plan of plans) {
+            rendered = drawMask(plan, scratch, transform, renderCtx) && rendered;
+            target.save();
+            try {
+                clipToKey(plan.key, target, transform, originX, originY);
+                blurMask(plan, scratch.canvas, target, originX, originY);
+            } finally {
+                target.restore();
+            }
+        }
+        return rendered;
+    }
+
+    const { canvas: mergedCanvas, context: glows } = merged;
+    const scaleX = width / region.width;
+    const scaleY = height / region.height;
+    const resolutionOfHole = { x: scaleX, y: scaleY };
+    glows.setTransform(1, 0, 0, 1, 0, 0);
+    glows.clearRect(0, 0, width, height);
+
+    let cut: SpreadCanvas | undefined;
+    for (const plan of plans) {
+        const { key } = plan;
+        // A glow reaches no further than its own extent, so only that much of the canvas is blurred onto, cut and merged.
+        const reach = getKeyRect(keyExtents?.get(key) ?? extent, region, scaleX, scaleY, width, height);
+        if (reach == null) continue;
+
+        rendered = drawMask(plan, scratch, transform, renderCtx) && rendered;
+
+        // A glow with a `gap` of its own clears the whole footprint of its casters, dilated by the gap, before it merges. One whose
+        // `gap` was set for the overlay is cut only where an item is painted, along with every other glow, once they have merged.
+        const { gap, overlay } = key.shadow;
+        const hasGap = gap != null && overlay !== true;
+        if (hasGap) cut ??= acquireOwnCutCanvas(scene, width, height);
+        // Without a canvas for its own cut, a glow is merged whole, and the cut of every footprint still clears the items.
+        const own = hasGap ? cut : undefined;
+        const dest = own?.context ?? glows;
+        if (own != null) {
+            own.context.setTransform(1, 0, 0, 1, 0, 0);
+            own.context.clearRect(reach.x, reach.y, reach.width, reach.height);
+        }
+        dest.save();
+        try {
+            dest.setTransform(1, 0, 0, 1, 0, 0);
+            dest.beginPath();
+            dest.rect(reach.x, reach.y, reach.width, reach.height);
+            dest.clip();
+            if (own == null) clipToKey(key, dest, transform, region.x, region.y, scaleX, scaleY);
+            blurMask(plan, scratch.canvas, dest, region.x, region.y, scaleX, scaleY);
+        } finally {
+            dest.restore();
+        }
+        if (own == null) continue;
+
+        rendered =
+            cutOut(own, reach, scratch, (ctx, op) =>
+                eraseFootprints(key, ctx, transform, renderCtx, region, resolutionOfHole, gap ?? 0, false, op)
+            ) && rendered;
+        glows.save();
+        try {
+            clipToKey(key, glows, transform, region.x, region.y, scaleX, scaleY);
+            glows.resetTransform();
+            glows.globalAlpha = 1;
+            glows.drawImage(
+                own.canvas,
+                reach.x,
+                reach.y,
+                reach.width,
+                reach.height,
+                reach.x,
+                reach.y,
+                reach.width,
+                reach.height
+            );
+        } finally {
+            glows.restore();
+        }
+    }
+
+    // A glow with no `gap` is cut only where an item is painted, whereas a `gap` clears the whole footprint.
+    rendered =
+        cutOut(merged, { x: 0, y: 0, width, height }, scratch, (ctx, op) => {
+            let drew = true;
+            for (const plan of plans) {
+                drew =
+                    eraseFootprints(plan.key, ctx, transform, renderCtx, region, resolutionOfHole, 0, true, op) && drew;
+            }
+            return drew;
+        }) && rendered;
+
+    target.save();
+    try {
+        target.resetTransform();
+        target.globalAlpha = 1;
+        target.drawImage(
+            mergedCanvas,
+            0,
+            0,
+            width,
+            height,
+            region.x - originX,
+            region.y - originY,
+            region.width,
+            region.height
+        );
+    } finally {
+        target.restore();
+    }
+    return rendered;
+}
+
+/**
+ * The part of the merged canvas, at `scaleX` by `scaleY` of the layer's resolution and whose top left is `region` on the layer,
+ * that the glow of a key can reach, or undefined if it reaches none of it.
+ */
+function getKeyRect(
+    extent: Extent,
+    region: Extent,
+    scaleX: number,
+    scaleY: number,
+    width: number,
+    height: number
+): Extent | undefined {
+    const x = Math.max(0, Math.floor((extent.x - region.x) * scaleX));
+    const y = Math.max(0, Math.floor((extent.y - region.y) * scaleY));
+    const right = Math.min(width, Math.ceil((extent.x + extent.width - region.x) * scaleX));
+    const bottom = Math.min(height, Math.ceil((extent.y + extent.height - region.y) * scaleY));
+    return right > x && bottom > y ? { x, y, width: right - x, height: bottom - y } : undefined;
+}
+
+/**
+ * Cuts out of `from`, whose top left is the top left of its canvas, what `draw` draws as solid. Drawn straight onto `from`,
+ * each of a thousand footprints costs a blended fill. So where `scratch`, which holds nothing now, is big enough, they are
+ * stamped there, over one another, and cut out in one draw. Returns what `draw` returns.
+ */
+function cutOut(
+    from: SpreadCanvas,
+    rect: Extent,
+    scratch: SpreadCanvas,
+    draw: (ctx: Ctx, op: GlobalCompositeOperation) => boolean
+): boolean {
+    const { canvas: stamps, context: stamp } = scratch;
+    const { x, y, width, height } = rect;
+    if (x + width > stamps.width || y + height > stamps.height) return draw(from.context, ERASE);
+
+    stamp.setTransform(1, 0, 0, 1, 0, 0);
+    stamp.clearRect(x, y, width, height);
+    const rendered = draw(stamp, 'source-over');
+    const { context } = from;
+    context.save();
+    try {
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.globalAlpha = 1;
+        context.globalCompositeOperation = ERASE;
+        context.drawImage(stamps, x, y, width, height, x, y, width, height);
+    } finally {
+        context.restore();
+    }
+    return rendered;
+}
+
+/**
+ * Clips `dest`, whose top left is `origin` on the layer and which holds the layer at `scaleX` by `scaleY` of its resolution,
+ * to what the path that the key's casters were drawn into clips.
+ */
+function clipToKey(
+    { clip, clips }: ShadowKey,
+    dest: Ctx,
+    transform: DOMMatrix,
+    originX: number,
+    originY: number,
+    scaleX: number = 1,
+    scaleY: number = 1
+) {
     if (clips != null) {
-        dest.setTransform(1, 0, 0, 1, -originX, -originY);
+        dest.setTransform(scaleX, 0, 0, scaleY, -originX * scaleX, -originY * scaleY);
         clipToRegions(dest, clips);
     } else if (clip != null) {
         dest.setTransform(
-            transform.a,
-            transform.b,
-            transform.c,
-            transform.d,
-            transform.e - originX,
-            transform.f - originY
+            transform.a * scaleX,
+            transform.b * scaleY,
+            transform.c * scaleX,
+            transform.d * scaleY,
+            (transform.e - originX) * scaleX,
+            (transform.f - originY) * scaleY
         );
         dest.beginPath();
         dest.moveTo(clip[0], clip[1]);
@@ -967,7 +1210,8 @@ function eraseFootprints(
     region: Extent,
     resolution: { x: number; y: number },
     gap: number,
-    painted: boolean
+    painted: boolean,
+    op: GlobalCompositeOperation = ERASE
 ): boolean {
     const { frames } = key;
     const place = ([a, b, c, d, e, f]: readonly number[]) =>
@@ -986,7 +1230,7 @@ function eraseFootprints(
             const { a, b, c, d, e, f } = transform;
             place([a, b, c, d, e, f]);
         }
-        erase.globalCompositeOperation = 'destination-out';
+        erase.globalCompositeOperation = op;
         erase.globalAlpha = renderCtx.ctx.globalAlpha > 0 ? 1 : 0;
         erase.direction = renderCtx.ctx.direction;
 
@@ -1016,7 +1260,8 @@ function eraseFootprints(
                       erase.globalAlpha = frame.alpha > 0 ? 1 : 0;
                   },
             gap,
-            painted
+            painted,
+            op
         );
     } finally {
         erase.restore();
@@ -1117,36 +1362,44 @@ export function castShadows(
 
     let kept: SpreadCanvas | undefined;
     let keyExtents: Map<ShadowKey, Extent> | undefined;
+    let keysExtent: Extent | undefined;
     if (cache != null && repeated && !isDeclined(cache, scene)) {
         keyExtents = gapped ? new Map() : undefined;
-        const extent = getShadowExtent(keys, transform, renderCtx.devicePixelRatio, width, height, keyExtents);
-        kept = acquireCacheCanvas(cache, scene, extent);
+        keysExtent = getShadowExtent(keys, transform, renderCtx.devicePixelRatio, width, height, keyExtents);
+        kept = acquireCacheCanvas(cache, scene, keysExtent);
     }
     if (cache != null && kept != null) {
         kept.context.clearRect(0, 0, kept.canvas.width, kept.canvas.height);
         let rendered = true;
-        for (const plan of plans) {
-            const keyExtent = keyExtents?.get(plan.key);
-            rendered =
-                castPlan(
-                    plan,
-                    scratch,
-                    kept.context,
-                    transform,
-                    renderCtx,
-                    cache.x,
-                    cache.y,
-                    scene,
-                    keyExtent,
-                    overlay === true ? keys : undefined
-                ) && rendered;
+        if (overlay === true) {
+            rendered = castOverlay(
+                plans,
+                scratch,
+                kept.context,
+                transform,
+                renderCtx,
+                cache.x,
+                cache.y,
+                scene,
+                keys,
+                keysExtent,
+                keyExtents
+            );
+        } else {
+            for (const plan of plans) {
+                const keyExtent = keyExtents?.get(plan.key);
+                rendered =
+                    castPlan(plan, scratch, kept.context, transform, renderCtx, cache.x, cache.y, scene, keyExtent) &&
+                    rendered;
+            }
         }
         // A caster that failed to draw is drawn again by the next cast, rather than left out of the shadows for good.
         cache.valid = rendered;
         blitCache(ctx, cache);
+    } else if (overlay === true) {
+        castOverlay(plans, scratch, ctx, transform, renderCtx, 0, 0, scene, keys, undefined, undefined);
     } else {
-        const peers = overlay === true ? keys : undefined;
-        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined, peers);
+        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined);
     }
     return true;
 }

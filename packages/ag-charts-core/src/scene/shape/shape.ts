@@ -1028,7 +1028,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const drawsStroke = stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
         const drawsFill = path != null && this.__shadowMode !== 'stroke' && (!painted || this.hasCastableFill());
         ctx.globalAlpha = 1;
-        ctx.globalCompositeOperation = 'destination-out';
+        ctx.globalCompositeOperation = shadowPass.eraseOp;
         this.drawSpreadSilhouette(slot, ctx, path, gap, drawsFill, drawsStroke, true);
     }
 
