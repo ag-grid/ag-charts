@@ -10,7 +10,7 @@ import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, PointerEvents } from './node';
 import { type CollectedFrame, ShadowCollector } from './shadowCollector';
 import { renderChildrenWithShadowBatches, renderChildrenWithSuppressedShadows } from './shadowCompositor';
-import { getBatchedShadow, getRootShadow, releaseShadowScratch } from './shadowEngine';
+import { castsCutOnly, getBatchedShadow, getRootShadow, releaseShadowScratch } from './shadowEngine';
 import type { ShadowCover } from './shadowRoot';
 import { castGlowOverlay, castRootShadows, releaseShadowRoot } from './shadowRoot';
 import { type CanvasContext, Shape } from './shape/shape';
@@ -48,6 +48,14 @@ const NO_GROUPS: readonly Group[] = [];
 /** Whether the node casts in either slot of its shape, a shadow or a glow, through the nearest of `castOf`. */
 function castsInEitherSlot(node: Node, castOf: typeof getRootShadow): boolean {
     return castOf(node) != null || castOf(node, 'glow') != null;
+}
+
+/** The children that a group has the root cast for, or cut the glow overlay with: see {@link Group.batchShadows}. */
+function rootCasterTotal(shared: boolean, glows: boolean, casters: number, glowCasters: number, cuts: number): number {
+    let own = 0;
+    if (shared) own = casters;
+    else if (glows) own = glowCasters;
+    return own + (glows ? cuts : 0);
 }
 
 export class Group<TDatum = unknown> extends Node<TDatum> {
@@ -109,11 +117,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      */
     private sharedShadowCover: ReadonlyMap<object, ShadowCover> | undefined = undefined;
 
-    /**
-     * On a shadow root, the level of the overlay that it casts the glows of the `shared` groups below it in, above the items
-     * that do not glow: the overlay is drawn before the first child at or above this `zIndex`, or after every child if
-     * it is undefined.
-     */
+    /** On a shadow root, the level its overlay casts the glows of the `shared` groups at: before the first child at or above it. */
     private readonly glowOverlayZIndex: ZIndex | undefined;
 
     /** On a shadow root, what its overlay's cast is kept under, or undefined while it has none. */
@@ -126,6 +130,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     private shadowCasterCount = -1;
     /** The children of a `shared` group that cast a glow through the root, which is -1 until counted. */
     private glowCasterCount = -1;
+    /** The children that only cut their footprint out of the root's glow overlay, which is -1 until counted. */
+    private cutCasterCount = -1;
     /** The glows cast through the root by this group and the visible groups below it, or -1 until counted. */
     private sharedGlowCasterCount = -1;
 
@@ -275,6 +281,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this._childFontDirty = true;
         this.shadowCasterCount = -1;
         this.glowCasterCount = -1;
+        this.cutCasterCount = -1;
         this.sharedGlowCasterCount = -1;
         this.childGroups = undefined;
         this.sharedCasterCount = -1;
@@ -496,6 +503,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             const glows = this.sharesGlows();
             let casters = 0;
             let glowCasters = 0;
+            let cuts = 0;
             let sharedBelow = 0;
             for (const child of this.children()) {
                 const childCounts = child.preRender(renderCtx);
@@ -505,6 +513,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 if (countCasters && child.visible) {
                     if (this.castsShadow(child, shared)) casters++;
                     if (glows && getRootShadow(child, 'glow') != null) glowCasters++;
+                    else if (glows && castsCutOnly(child)) cuts++;
                 }
                 // Only a group has groups in its counts, so a datum is not tested.
                 if (childCounts.groups > 0 && child.visible && child instanceof Group) {
@@ -513,10 +522,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             }
             this.shadowCasterCount = casters;
             this.glowCasterCount = glowCasters;
-            let rootCasters = 0;
-            if (shared) rootCasters = casters;
-            else if (glows) rootCasters = glowCasters;
-            this.sharedCasterCount = rootCasters + sharedBelow;
+            this.cutCasterCount = cuts;
+            this.sharedCasterCount = rootCasterTotal(shared, glows, casters, glowCasters, cuts) + sharedBelow;
             if (casters === 0 && !this.shadowRoot) {
                 // Nothing to batch, so the group gives up the scene's scratch canvas and the shadows its casts kept.
                 releaseShadowScratch(this.scene, this);
@@ -740,6 +747,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             if (cover == null) this.glowOverlayFrames = undefined;
             return cover;
         } catch (e) {
+            this.glowOverlayFrames = undefined;
             renderCtx.logger.warnOnce('Error during the shadow root pass', e);
             return;
         }
@@ -899,8 +907,16 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** The children of the group that the root casts for: their shadows and glows if it shares shadows, otherwise their glows. */
     private countRootCasters(): number {
+        if (!this.sharesGlows()) return 0;
+
         const casters = this.countShadowCasters();
-        return this.sharesShadows() ? casters : this.glowCasterCount;
+        return rootCasterTotal(
+            this.sharesShadows(),
+            this.sharesGlows(),
+            casters,
+            this.glowCasterCount,
+            this.cutCasterCount
+        );
     }
 
     /** The number of children that cast a batched shadow, which is cached until the group is next marked dirty. */
@@ -910,14 +926,17 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             const glows = this.sharesGlows();
             let casters = 0;
             let glowCasters = 0;
+            let cuts = 0;
             for (const child of this.children()) {
                 if (!child.visible) continue;
 
                 if (this.castsShadow(child, shared)) casters++;
                 if (glows && getRootShadow(child, 'glow') != null) glowCasters++;
+                else if (glows && castsCutOnly(child)) cuts++;
             }
             this.shadowCasterCount = casters;
             this.glowCasterCount = glowCasters;
+            this.cutCasterCount = cuts;
         }
         return this.shadowCasterCount;
     }
@@ -952,6 +971,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
         try {
             this.glowOverlayUser ??= {};
+            // The groups have drawn without their glows by now, so a glow that can't be cast is dropped for the frame.
             castGlowOverlay(frames, this.scene, this.glowOverlayUser, renderCtx);
         } catch (e) {
             renderCtx.logger.warnOnce('Error during the glow overlay pass', e);
@@ -985,13 +1005,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     /** The children that cast through a shadow root, in this group and the visible groups below it. Cached like the others. */
     protected getSharedCasterCount(): number {
         if (this.sharedCasterCount < 0) {
-            let count = 0;
-            if (this.sharesShadows()) {
-                count = this.countShadowCasters();
-            } else if (this.sharesGlows()) {
-                this.countShadowCasters();
-                count = this.glowCasterCount;
-            }
+            let count = this.countRootCasters();
             for (const child of this.getChildGroups()) {
                 if (child.visible) count += child.getSharedCasterCount();
             }

@@ -87,6 +87,8 @@ export type NormalisedDropShadowOptions = Normalised<
     overlay?: true;
     /** The `gap` of a glow: how far the shadow's silhouette is cut out of it, or undefined to cast it like a shadow. */
     gap?: PixelSize;
+    /** A glow that casts nothing, which only cuts the footprint of its item out of the glow overlay. */
+    cutOnly?: true;
 };
 
 /** A shadow with the `fill` that it casts in. */

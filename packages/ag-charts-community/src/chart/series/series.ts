@@ -30,6 +30,7 @@ import type {
 } from 'ag-charts-core';
 import {
     BBox,
+    CUT_ONLY_GLOW,
     ChartAxisDirection,
     CleanupRegistry,
     EventEmitter,
@@ -1377,7 +1378,7 @@ export abstract class Series<
 
     /**
      * The glow one copy of an item casts: its highlight state's `glow` over `seriesGlow`. The in-place copy of the
-     * hovered item reads as `OtherItem`, so it is told by {@link getRedrawnDatumIndex} and casts none.
+     * hovered item reads as `OtherItem`, so it is told by {@link getRedrawnDatumIndex} and casts none, only cutting the overlay.
      */
     protected resolveItemGlow(
         seriesGlow: DeepPartial<AgGlowOptions> | undefined,
@@ -1387,14 +1388,37 @@ export abstract class Series<
         legendItemValues?: string[],
         itemGlow?: AgGlowOptions
     ): NormalisedDropShadowOptions | undefined {
-        if (itemGlow == null && !this.hasAnyGlow()) return;
+        // A styler can glow the hovered item alone, which its in-place copy is not told, so a chart with one may need the cut.
+        if (itemGlow == null && !this.hasAnyGlow()) {
+            return !isHighlight && this.hasItemStylers()
+                ? this.cutHoveredInPlace(datumIndex, highlightState, legendItemValues)
+                : undefined;
+        }
         if (isHighlight) return this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         if (highlightedDatum == null) return this.castGlow(seriesGlow, HighlightState.None, itemGlow);
 
         const copy = this.resolveInPlaceCopy(highlightedDatum, datumIndex, highlightState, legendItemValues);
-        return copy === HOVERED_IN_PLACE ? undefined : this.castGlow(seriesGlow, copy, itemGlow);
+        if (copy !== HOVERED_IN_PLACE) return this.castGlow(seriesGlow, copy, itemGlow);
+
+        return this.bringToFront() ? undefined : CUT_ONLY_GLOW;
+    }
+
+    /**
+     * What the in-place copy of the hovered item casts, if the series is not brought to front: the overlay lies above the
+     * highlight copy then, so the item is cut out of it, whether or not that copy glows.
+     */
+    private cutHoveredInPlace(
+        datumIndex: DatumIndex | undefined,
+        highlightState: HighlightState | undefined,
+        legendItemValues: string[] | undefined
+    ): NormalisedDropShadowOptions | undefined {
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        if (highlightedDatum?.series !== this) return;
+
+        const copy = this.resolveInPlaceCopy(highlightedDatum, datumIndex, highlightState, legendItemValues);
+        return copy === HOVERED_IN_PLACE && !this.bringToFront() ? CUT_ONLY_GLOW : undefined;
     }
 
     private castGlow(

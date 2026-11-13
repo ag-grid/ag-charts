@@ -576,7 +576,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** A glow with no `fill` takes the shape's fill, else its stroke; kept per shadow and paint, as it is asked often. */
     getCastShadow(slot: ShadowSlot = 'shadow'): ResolvedDropShadowOptions | undefined {
         const shadow = this.getSlot(slot);
-        if (shadow?.enabled !== true) return;
+        if (shadow?.enabled !== true || shadow.cutOnly === true) return;
         if (shadow.fill != null) return shadow as ResolvedDropShadowOptions;
 
         const { __fill: fill, __fillOpacity: fillOpacity, __stroke: stroke, __strokeOpacity: strokeOpacity } = this;
@@ -610,6 +610,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
         }
         return cast.resolved;
+    }
+
+    /** Whether the shape only cuts its footprint out of the glow overlay of the shadow root, casting no glow. */
+    cutsGlowOverlay(): boolean {
+        return this.__fillGlow?.cutOnly === true;
     }
 
     /**
@@ -941,10 +946,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * Sets how the stroke that dilates the shape by a `spread` is drawn: solid, and capped so that open ends spread too.
-     * A `footprint` is joined as the outer edge of a glow is, mitred up to {@link DILATION_MITER_LIMIT}, so the inner edge of
-     * a `gap` follows the corners of the item as the outer edge does. The join of the item itself would spike at its sharp
-     * vertices, and cut the glow away well past the `gap`.
+     * Sets how the stroke that dilates the shape by a `spread` is drawn: solid, and capped so that open ends spread too. A
+     * `footprint` is mitred as the outer edge of a glow is, as the join of the item would spike at its sharp vertices.
      */
     private setDilationStyle(
         slot: ShadowSlot,
@@ -1011,10 +1014,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.executeStroke(ctx, path);
     }
 
-    /**
-     * Erases the geometry of the item, dilated by a glow's `gap`, from `ctx`, whatever its paint, or, if `painted`, only what
-     * it paints, so that an item with no fill leaves its inside open to the glow. A `Line` has no fill to erase.
-     */
+    /** Erases the geometry of the item, dilated by a glow's `gap`, or, if `painted`, only what it paints. A `Line` has no fill. */
     private eraseFootprint(
         slot: ShadowSlot,
         ctx: CanvasContext,

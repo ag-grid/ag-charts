@@ -245,6 +245,38 @@ describe('glow refinements', () => {
             });
         });
 
+        describe.each(PLACEMENTS)('with a hovered bar that is not brought to front, from %s', (_name, placement) => {
+            it.each([0, 1] as const)(
+                'is not covered by the glow of the bar beside it, with bar %s hovered',
+                async (hovered) => {
+                    const both = (index: number) => ({
+                        ...placement(hard({ spread: SPREAD })),
+                        highlight: { bringToFront: false },
+                        fill: index === 0 ? '#0000ff' : '#008000',
+                    });
+                    await create({
+                        ...HEADROOM,
+                        series: ['value', 'other'].map((yKey, index) => ({
+                            type: 'bar',
+                            xKey: 'category',
+                            yKey,
+                            fillOpacity: 1,
+                            ...both(index),
+                        })),
+                    });
+                    const [first, second] = [barBounds(0), barBounds(1)];
+                    const bottom = Math.min(first.y + first.height, second.y + second.height) - 6;
+                    // 3px into the hovered bar, from the edge it shares with the bar beside it, whose glow reaches it.
+                    const x = hovered === 0 ? first.x + first.width - 3 : second.x + 3;
+                    const colour = hovered === 0 ? BLUE : GREEN;
+                    expect(pixel(x, bottom)).toEqual(colour);
+
+                    await hoverDatum(chart, hovered);
+                    expect(pixel(x, bottom)).toEqual(colour);
+                }
+            );
+        });
+
         it('covers the bar beside it with the glow of the highlighted series', async () => {
             await create({
                 ...HEADROOM,

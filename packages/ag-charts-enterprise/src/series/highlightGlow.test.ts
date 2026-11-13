@@ -61,6 +61,8 @@ interface SeriesCase {
     /** The exact shape class that casts the shadow, so labels, lines and subclasses like sankey links are left out. */
     kind: abstract new (...args: never[]) => Shape;
     chartOptions?: object;
+    /** The series has no series-level `glow` yet, so a highlight bucket's glow replaces the shadow, in the shadow slot. */
+    glowInShadowSlot?: boolean;
     /** The in-place and highlight-layer shapes, for series that keep both copies of an item in one group. */
     layers?: (chart: AgChartInstance) => { inPlace: Shape[]; highlighted: Shape[] };
     /** How many copies of the hovered item the highlight layer draws; range-area lights both its low and high marker. */
@@ -306,6 +308,7 @@ const SERIES: SeriesCase[] = [
     {
         // Tile and group highlights live under `tile.highlight` and `group.highlight`, not the series' `highlight`.
         name: 'treemap tiles',
+        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Rect,
         hover: FIRST_LEAF,
@@ -321,6 +324,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'treemap groups',
+        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Rect,
         hover: FIRST_GROUP,
@@ -335,6 +339,7 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'sunburst',
+        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Sector,
         hover: FIRST_LEAF,
@@ -547,8 +552,10 @@ describe('highlight glow (enterprise series)', () => {
     const casts = (shape: Shape) => shape.fillShadow?.enabled === true || shape.fillGlow?.enabled === true;
 
     /** The options a shape of the case casts its glow with, and the shadow they are cast as. */
-    const castOptionsOf = (shape: Shape, _testCase: SeriesCase) => shape.fillGlow;
-    const castGlowOf = (shape: Shape, _testCase: SeriesCase) => shape.getCastShadow('glow');
+    const castOptionsOf = (shape: Shape, testCase: SeriesCase) =>
+        testCase.glowInShadowSlot ? shape.fillShadow : shape.fillGlow;
+    const castGlowOf = (shape: Shape, testCase: SeriesCase) =>
+        shape.getCastShadow(testCase.glowInShadowSlot ? 'shadow' : 'glow');
 
     /** The visible in-place and highlight-layer shapes of the case's shape kind. */
     const layersOf = (testCase: SeriesCase) => {

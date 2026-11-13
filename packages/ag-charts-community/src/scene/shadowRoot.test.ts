@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     BBox,
+    CUT_ONLY_GLOW,
     Group,
     Path,
     Rect,
@@ -585,11 +586,28 @@ describe('Shadow root', () => {
                 expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
             });
 
-            it('should cast its glows for itself when the root cannot cast them', () => {
-                const build = () => [group('by-layer', [caster({ ...GLOW, blur: Number.NaN }), square(40, 40)])];
-                const scene = draw(true, build);
+            it.each([
+                { name: 'before', order: [0, 1] },
+                { name: 'after', order: [1, 0] },
+            ])('should cast the shadow of a layer beneath a glow-only item drawn $name it', ({ order }) => {
+                // The shadow of the second square lands 60px to its right, on the first, which casts only a glow.
+                const items = [square(180, 40, { fillGlow: GLOW }), square(120, 40, { fillShadow: RED_HALF })];
+                const scene = draw(true, () => [
+                    group(
+                        'by-layer',
+                        order.map((i) => items[i])
+                    ),
+                ]);
 
-                expectNearPixels(pixelsOf(scene), pixelsOf(draw(false, build)));
+                expect(at(scene, 200, 60)).toEqual(BLACK);
+            });
+
+            it('should cast its glows for itself when the root cannot cast the shadows of a group', () => {
+                // The shadow of the shared group has no finite blur, so the root fails open and casts no overlay.
+                const broken = group('shared', [square(10, 10, { fillShadow: UNUSABLE })]);
+                const scene = draw(true, () => [broken, group('by-layer', [caster()])]);
+
+                expect(isHalfBlue(at(scene, 150, 130))).toBe(true);
             });
         });
 
@@ -603,6 +621,25 @@ describe('Shadow root', () => {
             ];
 
             for (const scene of drawn) expect(at(scene, 150, 130)).toEqual(BLACK);
+        });
+
+        it('should cut out an item that only cuts the overlay, beneath whichever glow, as one that glows', () => {
+            const cutter = () => group('shared', [square(120, 110, { fillGlow: CUT_ONLY_GLOW })]);
+            const scene = draw(true, () => [group('shared', [caster()]), cutter()]);
+
+            expect(at(scene, 150, 130)).toEqual(BLACK);
+            // It casts no glow of its own, which would land 60px below it.
+            expect(at(scene, 150, 200)[3]).toBe(0);
+        });
+
+        it('should cut an item out of the glows only where its clip lets it paint', () => {
+            const clipped = group('shared', [square(120, 110, { fillGlow: GLOW })]);
+            clipped.setClipRectCanvasSpace(new BBox(0, 0, 150, HEIGHT));
+            const scene = draw(true, () => [group('shared', [caster()]), clipped]);
+
+            expect(at(scene, 135, 130)).toEqual(BLACK);
+            // Past the clip the item is not painted, so it does not cover the glow of the caster.
+            expect(isHalfBlue(at(scene, 165, 130))).toBe(true);
         });
 
         it('should merge the glows of the items that cast the same glow', () => {

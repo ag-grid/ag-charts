@@ -211,9 +211,7 @@ export class SunburstSeries extends HierarchySeries<
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>({ batchShadows: 'by-layer' }));
-    private readonly highlightSectorGroup = this.scalingGroup.appendChild(
-        new Group<SunburstNode>({ batchShadows: 'shared' })
-    );
+    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
     // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
     // is painted over. Inside `scalingGroup`, so it takes the series' entry animation.
     private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
@@ -561,17 +559,22 @@ export class SunburstSeries extends HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
+            const hoveredInPlace = !highlighted && highlightedNode?.datumIndex === nodeDatum.datumIndex;
+            const hoveredStyle = hoveredInPlace ? this.getItemStyle(nodeDatum, true) : undefined;
             sector.fillShadow = this.resolveNodeShadow(
                 shadow,
                 glow,
                 highlighted,
                 highlightedNode,
                 nodeDatum,
-                !highlighted && highlightedNode?.datumIndex === nodeDatum.datumIndex
-                    ? this.getItemStyle(nodeDatum, true).shadow
-                    : style.shadow
+                hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
-            sector.fillGlow = this.resolveNodeGlow(glow, highlighted, highlightedNode, nodeDatum);
+            sector.fillGlow = this.resolveNodeGlow(
+                glow,
+                highlighted,
+                hoveredInPlace,
+                hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null
+            );
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;

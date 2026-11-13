@@ -364,7 +364,9 @@ describe('series-level glow (enterprise series)', () => {
 
     /** The shapes that cast in the glow slot, in the content and in the highlight layer. */
     const glowing = (group: 'contentGroup' | 'highlightGroup' = 'contentGroup') =>
-        collectShapes(getSeriesAt(chart)[group]).filter((shape) => shape.visible && shape.fillGlow?.enabled === true);
+        collectShapes(getSeriesAt(chart)[group]).filter(
+            (shape) => shape.visible && shape.getCastShadow('glow') != null
+        );
 
     const canvasPixels = () => {
         const { scene } = deproxy(chart).ctx;
