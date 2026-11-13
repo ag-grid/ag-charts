@@ -890,6 +890,13 @@ describe('DataSource', () => {
                     { date: new Date(2024, 6, 1), price: 100 },
                 ],
             ],
+            [
+                'null values throughout the window in descending date order, valid rows before it',
+                [
+                    ...Array.from({ length: 60 }, (_, i) => ({ date: new Date(2023, 9, 1 + i), price: 100 })),
+                    ...Array.from({ length: 120 }, (_, i) => ({ date: new Date(2024, 0, 1 + i), price: null })),
+                ].reverse(),
+            ],
         ])('keeps the data and zoom on %s and recovers on the next zoom', async (_label, invalidResponse) => {
             const validData = Array.from({ length: 120 }, (_, i) => ({
                 date: new Date(2024, 0, 1 + i),
