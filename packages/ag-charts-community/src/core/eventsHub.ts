@@ -119,6 +119,8 @@ export interface SeriesAreaContextMenuEvent extends Readonly<CanvasPoint> {
     readonly regions: ContextMenuRegionContexts;
     /** Annotated regions that win the primary `showOn` over a nearby series node, and apply outside the series area. */
     readonly primaryRegions: AgContextMenuItemShowOn[];
+    /** Annotated regions drawn in front of the series, which win the primary `showOn` over a node directly hit. */
+    readonly frontRegions: AgContextMenuItemShowOn[];
 }
 
 export interface DataModelSeriesDiff {

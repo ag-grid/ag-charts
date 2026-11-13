@@ -156,10 +156,11 @@ function seriesNodeContexts(pickedNodes: readonly HighlightNodeDatum[]): SeriesN
 function primaryContextMenuRegion(
     contexts: ContextMenuRegionContexts,
     directNodeHit: boolean,
-    primaryRegions: readonly AgContextMenuItemShowOn[]
+    primaryRegions: readonly AgContextMenuItemShowOn[],
+    frontRegions: readonly AgContextMenuItemShowOn[]
 ): AgContextMenuItemShowOn {
     const hasNode = contexts['series-node'] != null;
-    if (hasNode && directNodeHit) return 'series-node';
+    if (hasNode && directNodeHit) return frontRegions.find((region) => contexts[region] != null) ?? 'series-node';
     const primary = primaryRegions.find((region) => contexts[region] != null);
     if (primary != null) return primary;
     if (hasNode) return 'series-node';
@@ -483,7 +484,8 @@ export class SeriesAreaManager extends BaseManager {
         let pickedNodes: readonly HighlightNodeDatum[] = [];
         let position: CanvasPoint | undefined;
         let directNodeHit = true;
-        if (this.getFocusIndicator()?.isFocusVisible()) {
+        const focusedNode = this.getFocusIndicator()?.isFocusVisible() ?? false;
+        if (focusedNode) {
             const pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
             if (pickedNode) pickedNodes = [pickedNode];
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
@@ -515,11 +517,12 @@ export class SeriesAreaManager extends BaseManager {
 
         // Ask the modules owning other regions whether they overlap this point (mirrors the hover/drag handoff).
         // They annotate rather than dispatch, so a single menu can offer every region at the point.
-        const { primaryRegions } = this.collectContextMenuRegions(event, { canvasX, canvasY }, contexts);
+        const { primaryRegions, frontRegions } = this.collectContextMenuRegions(event, { canvasX, canvasY }, contexts);
         const regions: AgContextMenuItemShowOn[] = ['series-area', ...strictObjectKeys(contexts)];
 
         this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
-            primaryContextMenuRegion(contexts, directNodeHit, primaryRegions),
+            // A keyboard-focused node keeps the menu, as the pointer need not be over it.
+            primaryContextMenuRegion(contexts, directNodeHit, primaryRegions, focusedNode ? [] : frontRegions),
             regions,
             contexts,
             { widgetEvent: event, canvasX, canvasY },
@@ -559,6 +562,7 @@ export class SeriesAreaManager extends BaseManager {
             widgetEvent: event,
             regions,
             primaryRegions: [],
+            frontRegions: [],
         };
         this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
         return collectEvent;
