@@ -147,16 +147,18 @@
     border-radius: var(--ag-charts-input-border-radius);
     border-style: solid;
     border-width: var(--ag-charts-input-border-width);
-    flex: 1 1 170px;
+    flex: none;
     font-size: inherit;
-    min-width: 0;
     padding: 3px 4px 4px;
 }
 
 /* Room for six digits and the spin buttons. */
 .ag-charts-dialog__input[type='number'] {
-    flex: 0 0 auto;
     width: calc(6ch + 28px);
+}
+
+.ag-charts-dialog__input[type='text'] {
+    width: 170px;
 }
 
 /* Button */
