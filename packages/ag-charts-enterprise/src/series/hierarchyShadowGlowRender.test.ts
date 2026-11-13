@@ -4,11 +4,15 @@ import {
     HIGHLIGHT_GLOW,
     RENDER_OPTIONS,
     canvasImage,
+    chartPixelAt,
     describeGlowSeries,
+    getSeriesAt,
     glowSeries,
     hoverNode,
+    shapesOf,
     useGlowCharts,
 } from 'ag-charts-community-test';
+import { Sector, Transformable } from 'ag-charts-core';
 
 import { HIERARCHY_GLOW_SERIES } from '../test/glowSeriesCases';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
@@ -79,6 +83,74 @@ describe('shadow and glow render (hierarchy series)', () => {
             const plain = await pixelBelow('A2');
 
             expect(await pixelBelow('A2', 'A1', 'A2')).toEqual(plain);
+        });
+    });
+
+    describe('the glow of a hierarchy outside the footprints of its items', () => {
+        const GLOW = { enabled: true, fill: '#0000ff', fillOpacity: 1, blur: 0, spread: 14 };
+        const BLUE = [0, 0, 255, 255];
+        const { padding } = RENDER_OPTIONS;
+        const everyNode = { itemStyler: () => ({ glow: GLOW }) };
+
+        const treemap = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'treemap tile')!;
+        const sunburst = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'sunburst')!;
+
+        it('shows the glow of every tile round the outside of a treemap, and not on a tile', async () => {
+            await create([glowSeries(treemap, {})], treemap.data, RENDER_OPTIONS);
+            const plain = canvasImage(chart());
+            const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === 'A1')!;
+            const { x, y, width, height } = tile.bbox!;
+            // The series area is drawn at the padding, and a treemap fills it.
+            const [left, top] = [padding.left, padding.top];
+            const [right, bottom] = [left + 360, top + 250];
+            const inTile = [Math.round(left + x + 6), Math.round(top + y + height / 2 + 20)] as const;
+            const outside = [
+                [left + width / 2, top - 6],
+                [left - 6, top + y + height / 2],
+                [right + 6, top + y + height / 2],
+                [left + width / 2, bottom + 6],
+            ] as const;
+
+            await create([glowSeries(treemap, everyNode)], treemap.data, RENDER_OPTIONS);
+
+            for (const [probeX, probeY] of outside) expect(chartPixelAt(chart(), probeX, probeY)).toEqual(BLUE);
+            const offset = (inTile[1] * 800 + inTile[0]) * 4;
+            expect(chartPixelAt(chart(), ...inTile)).toEqual(Array.from(plain.data.slice(offset, offset + 4)));
+        });
+
+        describe('of a sunburst', () => {
+            /** The pixel in the ring of the parent of A1, 4px inside the sector of A1, at the middle of it. */
+            const parentPixel = async (itemStyler: object) => {
+                await create([glowSeries(sunburst, itemStyler)], sunburst.data, RENDER_OPTIONS);
+                const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
+                const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
+                const leaves = sectors.filter(({ innerRadius }) => innerRadius > innerRing);
+                const a1 = leaves.find(
+                    (sector) => sector.startAngle === Math.min(...leaves.map((leaf) => leaf.startAngle))
+                )!;
+                const { canvasX, canvasY } = Transformable.toCanvasPoint(a1, a1.centerX, a1.centerY);
+                const angle = (a1.startAngle + a1.endAngle) / 2;
+                const radius = a1.innerRadius - 4;
+                return chartPixelAt(chart(), canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle));
+            };
+
+            const glowing = (...names: string[]) => ({
+                itemStyler: ({ datum }: { datum?: { name?: string } }) =>
+                    names.includes(datum?.name ?? '') ? { glow: GLOW } : {},
+            });
+
+            it('covers the ring of the parent of a sector that glows, where the parent does not', async () => {
+                const plain = await parentPixel(glowing());
+
+                expect(await parentPixel(glowing('A1'))).toEqual(BLUE);
+                expect(plain).not.toEqual(BLUE);
+            });
+
+            it('does not cover the ring of a parent that glows too', async () => {
+                const plain = await parentPixel(glowing());
+
+                expect(await parentPixel(glowing('A', 'A1'))).toEqual(plain);
+            });
         });
     });
 });
