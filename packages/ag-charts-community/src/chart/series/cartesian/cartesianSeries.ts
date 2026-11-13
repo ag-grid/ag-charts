@@ -143,7 +143,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     // Runs once per windowed dataSource load, stopping at the first datum inside the window.
     public override hasDataInXRange(start: number, end: number): boolean | undefined {
         const { dataModel, processedData } = this;
-        if (dataModel == null || processedData?.type !== 'ungrouped' || !dataModel.hasColumnById(this, 'xValue')) {
+        // A flipped series keeps its x-values on the vertical axis, so they can't be compared with the window.
+        if (
+            this.shouldFlipXY() ||
+            dataModel == null ||
+            processedData?.type !== 'ungrouped' ||
+            !dataModel.hasColumnById(this, 'xValue')
+        ) {
             return undefined;
         }
 

@@ -961,11 +961,12 @@ describe('DataSource', () => {
         });
 
         it.each([
-            ['line', { type: 'line', xKey: 'date', yKey: 'price' }],
-            ['bar', { type: 'bar', xKey: 'date', yKey: 'price' }],
-            ['area', { type: 'area', xKey: 'date', yKey: 'price' }],
+            ['line', 2, { type: 'line', xKey: 'date', yKey: 'price' }],
+            ['bar', 2, { type: 'bar', xKey: 'date', yKey: 'price' }],
+            ['area', 2, { type: 'area', xKey: 'date', yKey: 'price' }],
             [
                 'candlestick',
+                2,
                 {
                     type: 'candlestick',
                     xKey: 'date',
@@ -975,7 +976,15 @@ describe('DataSource', () => {
                     closeKey: 'price',
                 },
             ],
-        ] as const)('commits a valid response to a zoom for a %s series', async (_label, series) => {
+            // The time keys sit on the left axis while the requested window comes from the bottom (value) axis;
+            // only the first scroll step there requests new data.
+            [
+                'horizontal bar',
+                1,
+                { type: 'bar', direction: 'horizontal', xKey: 'date', yKey: 'price' },
+                { x: { type: 'time', position: 'left' }, y: { type: 'number', position: 'bottom' } },
+            ],
+        ] as const)('commits a valid response to a zoom for a %s series', async (_label, zooms, series, axes?) => {
             const validData = Array.from({ length: 120 }, (_, i) => {
                 const price = 100 + Math.sin(i / 10) * 30 + i * 0.5;
                 return { date: new Date(2024, 0, 1 + i), open: price - 1, high: price + 2, low: price - 2, price };
@@ -985,6 +994,7 @@ describe('DataSource', () => {
             cy = CANVAS_HEIGHT / 2;
             chart = await createEnterpriseChart({
                 ...LINE_REPRO_OPTIONS,
+                axes: axes ?? LINE_REPRO_OPTIONS.axes,
                 series: [series],
                 dataSource: {
                     ...LINE_REPRO_OPTIONS.dataSource,
@@ -1000,8 +1010,9 @@ describe('DataSource', () => {
                 'the initial load'
             );
             await clickAction(cx, cy)(chart);
+            const zoomBefore = chart.getState().zoom;
 
-            for (const description of ['the first zoom request', 'the second zoom request']) {
+            for (const description of ['the first zoom request', 'the second zoom request'].slice(0, zooms)) {
                 const callsBefore = callCount;
                 const dataBefore = deproxy(chart).data;
                 await scrollAction(cx, cy, -1)(chart);
@@ -1010,7 +1021,7 @@ describe('DataSource', () => {
                 await waitForChartStability(chart);
                 expect(deproxy(chart).data).not.toBe(dataBefore);
             }
-            expect(chart.getState().zoom!.ratioX!.start).toBeGreaterThan(0);
+            expect(chart.getState().zoom).not.toEqual(zoomBefore);
         });
     });
 
