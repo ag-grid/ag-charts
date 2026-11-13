@@ -3,10 +3,12 @@ import type { NormalisedDropShadowOptions } from '../options/normalised/normalis
 import type { Node, RenderContext } from './node';
 import { type CollectedFrame, type ShadowFrame, transformCorners } from './shadowCollector';
 import {
+    CUT_ONLY_GLOW,
     type ShadowCaster,
     type ShadowClip,
     type ShadowKey,
     castShadows,
+    castsCutOnly,
     endShadowCasts,
     getBatchedShadow,
     getRootShadow,
@@ -21,10 +23,7 @@ interface ShadowSource extends Node {
     children(): Iterable<Node>;
 }
 
-/**
- * What the root casts for a group: whether its cutouts are covered too, if it casts its shadows and glows, or `'glow'` if it
- * casts only its glows, in the overlay, because the group batches its shadows itself.
- */
+/** What the root casts for a group: its shadows and glows, with whether its cutouts are covered, or `'glow'` for its glows only. */
 export type ShadowCover = boolean | 'glow';
 
 /** The keys of the root's last cast, and the frames they were built from, to tell whether they are still the keys. */
@@ -100,6 +99,7 @@ function withFootprintCut(glow: NormalisedDropShadowOptions): NormalisedDropShad
  */
 function buildKeys(frames: readonly CollectedFrame[], glows: boolean) {
     const keys = new SlotKeys(glows ? 'glow' : 'shadow');
+    let cuts: SlotKeys | undefined;
     for (const frame of frames) {
         // The root casts only the glows of a group that batches its shadows itself.
         if (!glows && frame.glowsOnly) continue;
@@ -110,13 +110,19 @@ function buildKeys(frames: readonly CollectedFrame[], glows: boolean) {
             // A cutout erases only its own layer, so in one it leaves the shadow of the root whole.
             const shadowOf = frame.layered ? getRootShadow : getBatchedShadow;
             const cast = glows ? shadowOf(child, 'glow') : shadowOf(child);
-            if (cast == null) continue;
+            if (cast == null) {
+                if (glows && castsCutOnly(child)) {
+                    cuts ??= new SlotKeys('glow');
+                    cuts.add(child as ShadowCaster, CUT_ONLY_GLOW, frame, getShadowClip(child));
+                }
+                continue;
+            }
 
             // Asked once, as it allocates for a clipped caster.
             keys.add(child as ShadowCaster, glows ? withFootprintCut(cast) : cast, frame, getShadowClip(child));
         }
     }
-    return keys.keys;
+    return cuts == null ? keys.keys : [...keys.keys, ...cuts.keys];
 }
 
 /** The cover of a cast of nothing, which is shared, as no frame has a group to put in one. */
@@ -129,10 +135,9 @@ export function releaseShadowRoot(scene: object | undefined, user: object) {
 }
 
 /**
- * Casts the shadows of the frames onto `renderCtx.ctx`, beneath what the root draws next. Returns the groups whose casters
- * now draw without a shadow or glow, each with whether that includes its cutouts, or undefined if the cast failed, having
- * drawn nothing, which leaves every group to cast its own. A failure is one of planning, as the cast of a root is not undone
- * if a caster fails to draw. With `glows`, the groups are covered even if no shadow is cast, as the overlay casts their glows.
+ * Casts the shadows of the frames beneath what the root draws next. Returns the groups whose casters now draw without a
+ * shadow or glow, with whether that includes cutouts, or undefined if the cast failed (in planning), leaving every group to
+ * cast its own. With `glows`, the groups are covered even if no shadow is cast, as the overlay casts their glows.
  */
 export function castRootShadows(
     frames: readonly CollectedFrame[],
@@ -168,11 +173,7 @@ export function castRootShadows(
     return cover;
 }
 
-/**
- * Casts the glows of the frames' casters onto `renderCtx.ctx`, above what it holds: one overlay for every glow, in which the
- * glows of the casters merge with one another, and the footprint of every caster that glows is cut out. Returns false if the
- * cast could not be made, having drawn nothing.
- */
+/** Casts one overlay of the glows of the frames' casters onto `renderCtx.ctx`. Returns false, having drawn nothing, if it can't. */
 export function castGlowOverlay(
     frames: readonly CollectedFrame[],
     scene: object | undefined,

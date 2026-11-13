@@ -49,6 +49,11 @@ type Bucket = 'highlightedItem' | 'unhighlightedItem' | 'highlightedBranch' | 'u
 /** A node's role relative to the hovered leaf A1. */
 type Role = 'hovered' | 'sameBranch' | 'otherBranch';
 
+// An in-place copy casts its glow through the glow slot, in the overlay of the series root, and the copy of the highlight
+// layer through its shadow slot, beneath itself.
+const castsGlow = (shape: Shape, layer: 'inPlace' | 'highlighted') =>
+    layer === 'inPlace' ? shape.getCastShadow('glow') != null : shape.fillShadow?.enabled === true;
+
 describe('highlight glow on every hierarchy bucket', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -116,25 +121,26 @@ describe('highlight glow on every hierarchy bucket', () => {
         return { inPlace: withRoles('datumSelection'), highlighted: withRoles('highlightSelection') };
     };
 
-    // A glow is cast through the glow slot of the shape, which the series root casts in its overlay.
-    const cast = (entries: Array<{ shape: Shape; role: Role }>) =>
-        entries.filter(({ shape }) => shape.fillGlow?.enabled === true).map(({ role }) => role);
+    const cast = (entries: Array<{ shape: Shape; role: Role }>, layer: 'inPlace' | 'highlighted') =>
+        entries.filter(({ shape }) => castsGlow(shape, layer)).map(({ role }) => role);
 
     describe.each(SERIES)('$name', ({ name, series }) => {
         // Which roles cast the glow of each bucket, from the highlight state each role is in.
         it('casts highlightedItem.glow from the hovered leaf only, via the highlight copy', async () => {
             const { inPlace, highlighted } = await hover(series('highlightedItem', HIGHLIGHT_GLOW));
 
-            expect(cast(highlighted)).toEqual(['hovered']);
-            expect(highlighted.find(({ shape }) => shape.fillGlow?.enabled)?.shape.fillGlow).toMatchObject(GLOW_SHADOW);
-            expect(cast(inPlace)).toEqual([]);
+            expect(cast(highlighted, 'highlighted')).toEqual(['hovered']);
+            expect(highlighted.find(({ shape }) => shape.fillShadow?.enabled)?.shape.fillShadow).toMatchObject(
+                GLOW_SHADOW
+            );
+            expect(cast(inPlace, 'inPlace')).toEqual([]);
         });
 
         it('casts highlightedBranch.glow from the hovered leaf and the other leaves of its branch, not the other branch', async () => {
             const { inPlace, highlighted } = await hover(series('highlightedBranch', HIGHLIGHT_GLOW));
 
-            expect(cast(highlighted)).toEqual(['hovered']);
-            expect(cast(inPlace)).toEqual(['sameBranch']);
+            expect(cast(highlighted, 'highlighted')).toEqual(['hovered']);
+            expect(cast(inPlace, 'inPlace')).toEqual(['sameBranch']);
             for (const { shape } of inPlace.filter(({ role }) => role === 'sameBranch')) {
                 expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
             }
@@ -143,15 +149,15 @@ describe('highlight glow on every hierarchy bucket', () => {
         it('casts unhighlightedItem.glow from the other leaves of the hovered branch only', async () => {
             const { inPlace, highlighted } = await hover(series('unhighlightedItem', HIGHLIGHT_GLOW));
 
-            expect(cast(highlighted)).toEqual([]);
-            expect(cast(inPlace)).toEqual(['sameBranch']);
+            expect(cast(highlighted, 'highlighted')).toEqual([]);
+            expect(cast(inPlace, 'inPlace')).toEqual(['sameBranch']);
         });
 
         it('casts unhighlightedBranch.glow from the leaves of the other branch only, in the base pass', async () => {
             const { inPlace, highlighted } = await hover(series('unhighlightedBranch', HIGHLIGHT_GLOW));
 
-            expect(cast(highlighted)).toEqual([]);
-            expect(cast(inPlace)).toEqual(['otherBranch', 'otherBranch']);
+            expect(cast(highlighted, 'highlighted')).toEqual([]);
+            expect(cast(inPlace, 'inPlace')).toEqual(['otherBranch', 'otherBranch']);
             for (const { shape } of inPlace.filter(({ role }) => role === 'otherBranch')) {
                 expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
             }
@@ -177,7 +183,7 @@ describe('highlight glow on every hierarchy bucket', () => {
                 }
             }
             // The hovered leaf's highlight copy casts no shadow when no glow is set for it.
-            expect(cast(highlighted)).toEqual([]);
+            expect(cast(highlighted, 'highlighted')).toEqual([]);
         });
 
         it("keeps the hovered leaf's in-place shadow beneath its glowing copy", async () => {
@@ -185,7 +191,7 @@ describe('highlight glow on every hierarchy bucket', () => {
 
             const hoveredInPlace = inPlace.find(({ role }) => role === 'hovered')!;
             expect(hoveredInPlace.shape.fillShadow).toMatchObject(SHADOW);
-            expect(highlighted.find(({ role }) => role === 'hovered')!.shape.fillGlow).toMatchObject(GLOW_SHADOW);
+            expect(highlighted.find(({ role }) => role === 'hovered')!.shape.fillShadow).toMatchObject(GLOW_SHADOW);
             // The other leaves of the branch have the glow in place of their shadow.
             for (const { shape } of inPlace.filter(({ role }) => role === 'sameBranch')) {
                 expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
@@ -198,8 +204,8 @@ describe('highlight glow on every hierarchy bucket', () => {
                 series('highlightedBranch', { ...HIGHLIGHT_GLOW, enabled: false })
             );
 
-            expect(cast(highlighted)).toEqual([]);
-            expect(cast(inPlace)).toEqual([]);
+            expect(cast(highlighted, 'highlighted')).toEqual([]);
+            expect(cast(inPlace, 'inPlace')).toEqual([]);
         });
 
         it('resolves the glow-free highlight style of each state once, until the options change', async () => {
@@ -237,7 +243,7 @@ describe('highlight glow on every hierarchy bucket', () => {
             const { highlighted } = await hover(options);
 
             // The item bucket overrides the colour alone; blur and spread come from the branch bucket.
-            expect(highlighted.find(({ shape }) => shape.fillGlow?.enabled)?.shape.fillGlow).toMatchObject({
+            expect(highlighted.find(({ shape }) => shape.fillShadow?.enabled)?.shape.fillShadow).toMatchObject({
                 fill: '#0000aa',
                 blur: HIGHLIGHT_GLOW.blur,
                 xOffset: 0,
@@ -288,27 +294,27 @@ describe('highlight glow on treemap groups', () => {
             getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name).filter(
                 (shape) => shape.visible && shape.datum?.hasChildren && shape.datum.depth === groupA.depth
             );
-        const castBy = (shapes: Array<Shape<HierarchyNode>>) =>
-            shapes.filter((shape) => shape.fillGlow?.enabled).map((shape) => shape.datum!.datum?.name);
+        const castBy = (shapes: Array<Shape<HierarchyNode>>, layer: 'inPlace' | 'highlighted') =>
+            shapes.filter((shape) => castsGlow(shape, layer)).map((shape) => shape.datum!.datum?.name);
         return { inPlace: groups('datumSelection'), highlighted: groups('highlightSelection'), castBy };
     };
 
     it('casts unhighlightedItem.glow from the sibling groups of the hovered group, not from the group itself', async () => {
         const { inPlace, highlighted, castBy } = await hoverGroupA({ unhighlightedItem: { glow: HIGHLIGHT_GLOW } });
 
-        expect(castBy(inPlace).sort((a, b) => String(a).localeCompare(String(b)))).toEqual(['B', 'C']);
+        expect(castBy(inPlace, 'inPlace').sort((a, b) => String(a).localeCompare(String(b)))).toEqual(['B', 'C']);
         for (const shape of inPlace.filter((s) => s.datum?.datum?.name !== 'A')) {
             expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
         }
-        expect(castBy(highlighted)).toEqual([]);
+        expect(castBy(highlighted, 'highlighted')).toEqual([]);
     });
 
     it('casts highlightedItem.glow from the hovered group alone, via the highlight copy', async () => {
         const { inPlace, highlighted, castBy } = await hoverGroupA({ highlightedItem: { glow: HIGHLIGHT_GLOW } });
 
-        expect(castBy(highlighted)).toEqual(['A']);
-        expect(highlighted.find((s) => s.fillGlow?.enabled)?.fillGlow).toMatchObject(GLOW_SHADOW);
-        expect(castBy(inPlace)).toEqual([]);
+        expect(castBy(highlighted, 'highlighted')).toEqual(['A']);
+        expect(highlighted.find((s) => s.fillShadow?.enabled)?.fillShadow).toMatchObject(GLOW_SHADOW);
+        expect(castBy(inPlace, 'inPlace')).toEqual([]);
     });
 
     it('resolves the glow-free group highlight style of each state once', async () => {

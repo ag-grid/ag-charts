@@ -14,6 +14,7 @@ import type {
 } from 'ag-charts-core';
 import {
     type BoxBounds,
+    CUT_ONLY_GLOW,
     ColorScale,
     type Point,
     PointerEvents,
@@ -672,9 +673,8 @@ export abstract class HierarchySeries<
     }
 
     /**
-     * The shadow to draw on one copy of a node, in `fillShadow`. The highlight layer's copy casts no shadow. The
-     * hovered node's own in-place copy keeps its `shadow`, beneath the highlight layer's copy. Any other copy casts its
-     * `shadow` unless it has a glow, which it casts instead, see {@link resolveNodeGlow}.
+     * The shadow on one copy of a node, in `fillShadow`: the highlight copy casts its `glow` as one, the hovered node's in-place
+     * copy its `shadow`, and any other its `shadow` unless it has a glow, see {@link resolveNodeGlow}.
      */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,
@@ -685,23 +685,24 @@ export abstract class HierarchySeries<
         itemShadow?: AgItemShadowStyle['shadow']
     ): NormalisedDropShadowOptions | undefined {
         if (itemShadow != null) shadow = this.mergeItemShadow(shadow, itemShadow);
-        if (isHighlight) return;
+        if (isHighlight) return glow;
         if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
         return glow == null ? shadow : undefined;
     }
 
     /**
-     * The glow to draw on one copy of a node, in `fillGlow`, which the series root casts in its overlay, above the
-     * series, with the footprint of every glowing copy cut out. The hovered node's in-place copy casts none: the highlight
-     * layer's copy casts the glow of the hovered node.
+     * The glow on one copy of a node, in `fillGlow`, cast in the root's overlay. The highlight copy has none there, and the
+     * hovered node's in-place copy only cuts itself out of it if the highlight copy glows.
      */
     protected resolveNodeGlow(
         glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
-        highlightedNode: TNodeClass | undefined,
-        nodeDatum: Pick<TNodeClass, 'datumIndex'>
+        hoveredInPlace: boolean,
+        hoveredGlows: boolean
     ): NormalisedDropShadowOptions | undefined {
-        return isHighlight || highlightedNode?.datumIndex !== nodeDatum.datumIndex ? glow : undefined;
+        if (isHighlight) return;
+        if (!hoveredInPlace) return glow;
+        return hoveredGlows ? CUT_ONLY_GLOW : undefined;
     }
 
     public override getHighlightStateString(

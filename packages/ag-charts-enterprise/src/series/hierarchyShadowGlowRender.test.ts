@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
     HIGHLIGHT_GLOW,
     RENDER_OPTIONS,
-    canvasImage,
     chartPixelAt,
     describeGlowSeries,
     getSeriesAt,
@@ -17,6 +16,18 @@ import { Sector, Transformable } from 'ag-charts-core';
 import { HIERARCHY_GLOW_SERIES } from '../test/glowSeriesCases';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
 import { createEnterpriseChart } from '../test/utils';
+
+const GLOW = { enabled: true, fill: '#0000ff', fillOpacity: 1, blur: 0, spread: 14 };
+const BLUE = [0, 0, 255, 255];
+const { padding } = RENDER_OPTIONS;
+
+const treemap = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'treemap tile')!;
+const sunburst = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'sunburst')!;
+
+/** An itemStyler that gives the nodes named a glow, and the rest nothing. */
+const glowing = (...names: string[]) => ({
+    itemStyler: ({ datum }: { datum?: { name?: string } }) => (names.includes(datum?.name ?? '') ? { glow: GLOW } : {}),
+});
 
 describe('shadow and glow render (hierarchy series)', () => {
     const charts = useGlowCharts(createEnterpriseChart);
@@ -54,23 +65,12 @@ describe('shadow and glow render (hierarchy series)', () => {
     });
 
     describe('the glow of a tile that is not hovered', () => {
-        const GLOW = { enabled: true, fill: '#0000ff', fillOpacity: 1, blur: 0, spread: 14 };
-        const treemap = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'treemap tile')!;
-
-        const glowing = (...names: string[]) => ({
-            itemStyler: ({ datum }: { datum?: { name?: string } }) =>
-                names.includes(datum?.name ?? '') ? { glow: GLOW } : {},
-        });
-
         /** The pixel just inside the tile `name`, at the edge that it shares with the tile above, in canvas coordinates. */
         const pixelBelow = async (name: string, ...glowingNames: string[]) => {
             await create([glowSeries(treemap, glowing(...glowingNames))], treemap.data, RENDER_OPTIONS);
             const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === name)!;
             const { x, y, width } = tile.bbox!;
-            const { padding } = RENDER_OPTIONS;
-            const { data } = canvasImage(chart());
-            const offset = (Math.round(y + padding.top + 3) * 800 + Math.round(x + padding.left + width / 2)) * 4;
-            return Array.from(data.slice(offset, offset + 4));
+            return chartPixelAt(chart(), x + padding.left + width / 2, y + padding.top + 3);
         };
 
         it('covers a tile beside it that does not glow', async () => {
@@ -86,18 +86,34 @@ describe('shadow and glow render (hierarchy series)', () => {
         });
     });
 
-    describe('the glow of a hierarchy outside the footprints of its items', () => {
-        const GLOW = { enabled: true, fill: '#0000ff', fillOpacity: 1, blur: 0, spread: 14 };
-        const BLUE = [0, 0, 255, 255];
-        const { padding } = RENDER_OPTIONS;
-        const everyNode = { itemStyler: () => ({ glow: GLOW }) };
+    describe('the shadows of the tiles beside a tile that only glows', () => {
+        // The shadow of the tile below lands on the tile above it, which glows with its own shadow off.
+        const SHADOW = { enabled: true, fill: '#ff0000', fillOpacity: 1, blur: 0, xOffset: 0, yOffset: -40 };
+        const glowOnly = {
+            itemStyler: ({ datum }: { datum?: { name?: string } }) =>
+                datum?.name === 'A1' ? { glow: GLOW, shadow: { enabled: false } } : {},
+        };
 
-        const treemap = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'treemap tile')!;
-        const sunburst = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'sunburst')!;
+        /** The pixel just inside the bottom edge of the tile A1, which the shadow of A2 reaches. */
+        const insideA1 = async (shadow?: object) => {
+            await create([glowSeries(treemap, { shadow, ...glowOnly })], treemap.data, RENDER_OPTIONS);
+            const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === 'A1')!;
+            const { x, y, width, height } = tile.bbox!;
+            return chartPixelAt(chart(), x + padding.left + width / 2, y + padding.top + height - 3);
+        };
+
+        it('are cast beneath it, as they are beneath the tiles that cast a shadow', async () => {
+            const plain = await insideA1();
+
+            expect(await insideA1(SHADOW)).toEqual(plain);
+        });
+    });
+
+    describe('the glow of a hierarchy outside the footprints of its items', () => {
+        const everyNode = { itemStyler: () => ({ glow: GLOW }) };
 
         it('shows the glow of every tile round the outside of a treemap, and not on a tile', async () => {
             await create([glowSeries(treemap, {})], treemap.data, RENDER_OPTIONS);
-            const plain = canvasImage(chart());
             const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === 'A1')!;
             const { x, y, width, height } = tile.bbox!;
             // The series area is drawn at the padding, and a treemap fills it.
@@ -111,11 +127,12 @@ describe('shadow and glow render (hierarchy series)', () => {
                 [left + width / 2, bottom + 6],
             ] as const;
 
+            const plain = chartPixelAt(chart(), ...inTile);
+
             await create([glowSeries(treemap, everyNode)], treemap.data, RENDER_OPTIONS);
 
             for (const [probeX, probeY] of outside) expect(chartPixelAt(chart(), probeX, probeY)).toEqual(BLUE);
-            const offset = (inTile[1] * 800 + inTile[0]) * 4;
-            expect(chartPixelAt(chart(), ...inTile)).toEqual(Array.from(plain.data.slice(offset, offset + 4)));
+            expect(chartPixelAt(chart(), ...inTile)).toEqual(plain);
         });
 
         describe('of a sunburst', () => {
@@ -133,11 +150,6 @@ describe('shadow and glow render (hierarchy series)', () => {
                 const radius = a1.innerRadius - 4;
                 return chartPixelAt(chart(), canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle));
             };
-
-            const glowing = (...names: string[]) => ({
-                itemStyler: ({ datum }: { datum?: { name?: string } }) =>
-                    names.includes(datum?.name ?? '') ? { glow: GLOW } : {},
-            });
 
             it('covers the ring of the parent of a sector that glows, where the parent does not', async () => {
                 const plain = await parentPixel(glowing());
