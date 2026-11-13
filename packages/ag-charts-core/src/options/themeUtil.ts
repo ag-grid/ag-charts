@@ -222,8 +222,20 @@ export const FILL_GRADIENT_CONIC_SERIES_DEFAULTS: WithThemeParams<RequiredIntern
 export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternColor> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
-    width: { $isUserOption: ['./height', { $path: './height' }, 10] },
-    height: { $isUserOption: ['./width', { $path: './width' }, 10] },
+    width: {
+        $isUserOption: [
+            './height',
+            { $path: './height' },
+            { $switch: [{ $path: './pattern' }, 10, [['polka-dots'], 8], [['waves'], 14]] },
+        ],
+    },
+    height: {
+        $isUserOption: [
+            './width',
+            { $path: './width' },
+            { $switch: [{ $path: './pattern' }, 10, [['polka-dots'], 8]] },
+        ],
+    },
     padding: 2,
     fill: {
         $if: [
@@ -248,6 +260,17 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
             { $path: './pattern' },
             0,
             [['backward-slanted-lines', 'forward-slanted-lines', 'horizontal-lines', 'vertical-lines'], 4],
+            [
+                [
+                    'waves',
+                    'hollow-circles',
+                    'criss-cross',
+                    'zig-zag',
+                    'horizontal-dashed-lines',
+                    'vertical-dashed-lines',
+                ],
+                2,
+            ],
         ],
     },
     backgroundFill: 'none',

@@ -66,12 +66,31 @@ export function getShapeFill(
             pattern === 'vertical-lines'
         ) {
             strokeWidth ??= defaultPattern.strokeWidth;
+        } else if (
+            pattern === 'waves' ||
+            pattern === 'hollow-circles' ||
+            pattern === 'criss-cross' ||
+            pattern === 'zig-zag' ||
+            pattern === 'horizontal-dashed-lines' ||
+            pattern === 'vertical-dashed-lines'
+        ) {
+            strokeWidth ??= 2;
         } else {
             strokeWidth ??= 0;
         }
 
-        const width = fill.width ?? fill.height ?? defaultPattern.width;
-        const height = fill.height ?? fill.width ?? defaultPattern.height;
+        let defaultWidth = defaultPattern.width;
+        let defaultHeight = defaultPattern.height;
+        if (pattern === 'polka-dots') {
+            defaultWidth = 8;
+            defaultHeight = 8;
+        } else if (pattern === 'waves') {
+            defaultWidth = 14;
+            defaultHeight = 10;
+        }
+
+        const width = fill.width ?? fill.height ?? defaultWidth;
+        const height = fill.height ?? fill.width ?? defaultHeight;
 
         return {
             type: 'pattern',
