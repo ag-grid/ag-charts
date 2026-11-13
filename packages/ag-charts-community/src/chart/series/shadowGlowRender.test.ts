@@ -1,7 +1,7 @@
 import { describe, it } from 'vitest';
 
 import { COMMUNITY_GLOW_SERIES } from '../test/glowCases';
-import { HARD_GAP_GLOW, HARD_GLOW, RENDER_OPTIONS, hoverDatum } from '../test/glowRender';
+import { HARD_GAP_GLOW, HARD_GLOW, RENDER_OPTIONS, ROOM, hoverDatum } from '../test/glowRender';
 import { HIGHLIGHT_STATES, describeGlowSeries, useGlowCharts } from '../test/glowRenderSuite';
 import { CATEGORY_DATA, ITEM_GLOW, ITEM_SHADOW } from '../test/shadowFixtures';
 import { createChart, hoverLegendItem, waitForChartStability } from '../test/utils';
@@ -10,6 +10,17 @@ const RED_GLOW = { ...HARD_GLOW, fill: '#d0021b', spread: 12 };
 
 // The y axis runs above the tallest bar, so that a glow on the top of a bar is not cut at the top of the series area.
 const HEADROOM_AXES = { ...RENDER_OPTIONS, axes: { y: { type: 'number', min: 0, max: 10 } } };
+
+const TRIANGLE = { type: 'scatter', xKey: 'x', yKey: 'y', shape: 'triangle', size: 40 };
+const TRIANGLE_DATA = [
+    { x: 1, y: 2 },
+    { x: 2, y: 4 },
+    { x: 3, y: 6 },
+];
+const TRIANGLE_OPTIONS = {
+    ...ROOM,
+    axes: { x: { type: 'number', min: 0, max: 4 }, y: { type: 'number', min: 0, max: 8 } },
+};
 
 const COLUMNS = CATEGORY_DATA.map((datum, i) => ({ ...datum, other: [3, 6, 5][i], third: [4, 7, 6][i] }));
 
@@ -20,9 +31,7 @@ describe('shadow and glow render', () => {
     describeGlowSeries(COMMUNITY_GLOW_SERIES, charts);
 
     describe('glow gap, with a hard-edged glow', () => {
-        // The glow reaches 40px beyond an item, and a pie fills the series area, so the chart sits 60px inside the crop, on
-        // every side, and the bars have headroom.
-        const ROOM = { ...RENDER_OPTIONS, padding: { top: 60, left: 60, right: 440, bottom: 350 } };
+        // A pie fills the series area, so the chart sits inside the crop, and the bars have headroom.
         const HEADROOM = { ...ROOM, axes: { y: { type: 'number', min: 0, max: 12 } } };
         const SHAPES: [string, object, object[], object][] = [
             ['a square-cornered bar', { type: 'bar', xKey: 'category', yKey: 'value' }, CATEGORY_DATA, HEADROOM],
@@ -32,19 +41,7 @@ describe('shadow and glow render', () => {
                 CATEGORY_DATA,
                 HEADROOM,
             ],
-            [
-                'a triangle marker',
-                { type: 'scatter', xKey: 'x', yKey: 'y', shape: 'triangle', size: 40 },
-                [
-                    { x: 1, y: 2 },
-                    { x: 2, y: 4 },
-                    { x: 3, y: 6 },
-                ],
-                {
-                    ...ROOM,
-                    axes: { x: { type: 'number', min: 0, max: 4 }, y: { type: 'number', min: 0, max: 8 } },
-                },
-            ],
+            ['a triangle marker', TRIANGLE, TRIANGLE_DATA, TRIANGLE_OPTIONS],
             ['a pie sector', { type: 'pie', angleKey: 'value' }, CATEGORY_DATA, ROOM],
             ['a donut sector', { type: 'donut', angleKey: 'value' }, CATEGORY_DATA, ROOM],
         ];
@@ -58,30 +55,10 @@ describe('shadow and glow render', () => {
 
     describe('the shadow spread of a sharp vertex', () => {
         // A shadow bevels the vertices under 60°, where a glow bevels those under about 57°, so the apex of a triangle marker
-        // (59.8°) is bevelled by the shadow. Its baseline is that of the code before the glow's limit was set.
+        // (59.8°) is bevelled by the shadow.
         it('renders the spread of a shadow around a triangle marker with its apex bevelled', async () => {
-            await create(
-                [
-                    {
-                        type: 'scatter',
-                        xKey: 'x',
-                        yKey: 'y',
-                        shape: 'triangle',
-                        size: 40,
-                        shadow: { enabled: true, fill: '#d0021b', fillOpacity: 1, blur: 0, spread: 16 },
-                    },
-                ],
-                [
-                    { x: 1, y: 2 },
-                    { x: 2, y: 4 },
-                    { x: 3, y: 6 },
-                ],
-                {
-                    ...RENDER_OPTIONS,
-                    padding: { top: 60, left: 60, right: 440, bottom: 350 },
-                    axes: { x: { type: 'number', min: 0, max: 4 }, y: { type: 'number', min: 0, max: 8 } },
-                }
-            );
+            const shadow = { enabled: true, fill: '#d0021b', fillOpacity: 1, blur: 0, spread: 16 };
+            await create([{ ...TRIANGLE, shadow }], TRIANGLE_DATA, TRIANGLE_OPTIONS);
             await snapshot();
         });
     });

@@ -30,6 +30,9 @@ export const RENDER_OPTIONS = {
     },
 } satisfies Partial<AgChartOptions>;
 
+/** A glow reaches 40px beyond an item, so the chart sits 60px inside the crop on three sides, and has room beneath. */
+export const ROOM = { ...RENDER_OPTIONS, padding: { top: 60, left: 60, right: 440, bottom: 350 } };
+
 /** The part of the canvas that {@link RENDER_OPTIONS} draws the chart in. */
 export const RENDER_CROP = { x: 0, y: 0, ...CROP_SIZE };
 
