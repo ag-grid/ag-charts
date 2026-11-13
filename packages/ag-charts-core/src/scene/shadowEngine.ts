@@ -88,9 +88,26 @@ export const CUT_ONLY_GLOW: NormalisedDropShadowOptions = {
     cutOnly: true,
 };
 
-/** Whether a node only cuts its footprint out of the glow overlay of a shadow root, see {@link CUT_ONLY_GLOW}. */
+/** Whether a node cuts its footprint out of the glow overlay of a shadow root, see {@link CUT_ONLY_GLOW}, and {@link withOverlayCut}. */
 export function castsCutOnly(node: Node): boolean {
     return node instanceof Shape && node.cutsGlowOverlay();
+}
+
+const overlayCuts = new WeakMap<NormalisedDropShadowOptions, NormalisedDropShadowOptions>();
+
+/**
+ * The glow, which an item casts itself, marked so that the item also cuts its footprint out of the glow overlay. The copy of a
+ * hovered item in the highlight layer, if it is beneath the overlay, casts this: the overlay is cut by the shape it draws.
+ */
+export function withOverlayCut(glow: NormalisedDropShadowOptions): NormalisedDropShadowOptions {
+    if (glow.cutsOverlay === true) return glow;
+
+    let cut = overlayCuts.get(glow);
+    if (cut == null) {
+        cut = { ...glow, cutsOverlay: true };
+        overlayCuts.set(glow, cut);
+    }
+    return cut;
 }
 
 /** The options that a node casts in a slot through the engine, or undefined if it casts none. */

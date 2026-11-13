@@ -612,9 +612,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return cast.resolved;
     }
 
-    /** Whether the shape only cuts its footprint out of the glow overlay of the shadow root, casting no glow. */
+    /** Whether the shape cuts its footprint out of the glow overlay of the shadow root, with or without casting a glow of its own. */
     cutsGlowOverlay(): boolean {
-        return this.__fillGlow?.cutOnly === true;
+        const glow = this.__fillGlow;
+        return glow?.cutOnly === true || (glow?.enabled === true && glow.cutsOverlay === true);
     }
 
     /**
@@ -1025,7 +1026,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (ctx.globalAlpha <= 0 || (this.__opacity ?? 1) <= 0) return;
 
         const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
-        const drawsStroke = stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
+        const hasStroke = stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
+        const drawsStroke = hasStroke && (!painted || this.hasCastableStroke());
         const drawsFill = path != null && this.__shadowMode !== 'stroke' && (!painted || this.hasCastableFill());
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = shadowPass.eraseOp;

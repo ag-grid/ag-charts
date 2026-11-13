@@ -132,7 +132,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         zIndex: ZIndexMap.SERIES_LAYER,
         shadowRoot: true,
         // The glows that are not of the hovered item, above every series' items. A hovered series that is brought to front
-        // casts its glow in the same level, and one that is not is cut out of the overlay, in place.
+        // casts its glow in the same level, and one that is not is cut out of the overlay, in place and by its highlight copy.
         glowOverlayZIndex: [SeriesZIndexMap.ANY_CONTENT, Number.MAX_VALUE, SeriesContentZIndexMap.HIGHLIGHT],
     });
     readonly annotationRoot = new TranslatableGroup({

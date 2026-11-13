@@ -61,6 +61,10 @@ describe('glow refinements', () => {
     const pixel = (x: number, y: number) => chartPixelAt(chart, x, y);
     const boundsOf = (node: Rect | Marker) => Transformable.toCanvas(node);
     const barBounds = (seriesIndex = 0) => boundsOf(shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Rect)[0]);
+    const markerCentre = (index: number) => {
+        const { x, y, width } = boundsOf(shapesOf(getSeriesAt(chart).contentGroup, Marker)[index]);
+        return { x: x + width / 2, y: y + width / 2 };
+    };
 
     describe('the inner edge of a glow gap', () => {
         // The glow of the design feedback, in red, as a glow with no fill takes the fill of its item.
@@ -275,6 +279,97 @@ describe('glow refinements', () => {
                     expect(pixel(x, bottom)).toEqual(colour);
                 }
             );
+        });
+
+        describe.each(PLACEMENTS)(
+            'with a hovered marker that a highlight makes larger, not brought to front, from %s',
+            (_name, placement) => {
+                const [REST, ENLARGED] = [20, 50];
+                const create2 = (gap: number) =>
+                    create({
+                        axes: CENTRED,
+                        data: [
+                            { x: 1.5, y: 4 },
+                            { x: 1.5 + gap, y: 4 },
+                        ],
+                        series: [
+                            {
+                                type: 'scatter',
+                                xKey: 'x',
+                                yKey: 'y',
+                                shape: 'circle',
+                                size: REST,
+                                fill: '#008000',
+                                fillOpacity: 1,
+                                strokeWidth: 0,
+                                highlight: {
+                                    bringToFront: false,
+                                    highlightedItem: {
+                                        fill: '#0000ff',
+                                        fillOpacity: 1,
+                                        size: ENLARGED,
+                                        strokeWidth: 0,
+                                    },
+                                },
+                                ...placement(hard({ spread: SPREAD })),
+                            },
+                        ],
+                    });
+
+                it('is not covered by the glow of the marker beside it, over the whole of the larger marker', async () => {
+                    // The two markers are laid 36px apart, however wide the chart is: each reaches 10px, so the glow of the one
+                    // beside reaches 20px further, over the ring of the hovered marker between 10 and 25px from its centre.
+                    await create2(1);
+                    const unit = markerCentre(1).x - markerCentre(0).x;
+                    await create2(36 / unit);
+                    const [centre, beside] = [markerCentre(0), markerCentre(1)];
+                    const distance = beside.x - centre.x;
+                    // 18px from the hovered marker's centre, towards the marker beside it: outside the marker at rest, and 18px
+                    // inside the glow of the marker beside it.
+                    const ring = [centre.x + 18, centre.y] as const;
+                    expect(distance).toBeCloseTo(36, 0);
+                    expect(pixel(...ring)).toEqual(RED);
+
+                    await hoverDatum(chart, 0);
+                    expect(pixel(...ring)).toEqual(BLUE);
+                    // The glow of the marker beside it still covers what is beyond the larger marker, which does not glow there.
+                    expect(pixel(centre.x + ENLARGED / 2 + 3, centre.y)).toEqual(RED);
+                });
+            }
+        );
+
+        it('does not cut the invisible stroke of a glowing item out of its glow', async () => {
+            const createBar = (strokeOpacity: number, placement: (glow: AgGlowOptions) => object) =>
+                create({
+                    ...HEADROOM,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'category',
+                            yKey: 'value',
+                            fill: '#0000ff',
+                            fillOpacity: 1,
+                            stroke: '#000000',
+                            strokeWidth: 20,
+                            strokeOpacity,
+                            ...placement(hard({ spread: SPREAD })),
+                        },
+                    ],
+                });
+
+            for (const [name, placement] of PLACEMENTS) {
+                // The bounds of the bar take in its stroke, which is centred on the edge of the bar, so 4px in from them is within
+                // the 10px of stroke outside the bar, where the glow, which reaches 20px from the bar, is to be seen if the stroke is not.
+                const probe = () => {
+                    const { x, y, height } = barBounds();
+                    return pixel(x + 4, y + height / 2);
+                };
+                await createBar(1, placement);
+                expect(probe(), `${name}, a visible stroke is painted over the glow`).toEqual([0, 0, 0, 255]);
+
+                await createBar(0, placement);
+                expect(probe(), `${name}, an invisible stroke is not cut out of it`).toEqual(RED);
+            }
         });
 
         it('covers the bar beside it with the glow of the highlighted series', async () => {

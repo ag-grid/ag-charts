@@ -56,6 +56,7 @@ import {
     mergeGlow,
     nearestSquared,
     resolveLabelAvoidance,
+    withOverlayCut,
     without,
 } from 'ag-charts-core';
 import type {
@@ -1379,6 +1380,8 @@ export abstract class Series<
     /**
      * The glow one copy of an item casts: its highlight state's `glow` over `seriesGlow`. The in-place copy of the
      * hovered item reads as `OtherItem`, so it is told by {@link getRedrawnDatumIndex} and casts none, only cutting the overlay.
+     * If the series is not brought to front, the highlight layer's copy of it lies beneath the overlay, and so cuts it too: the
+     * hovered item is clear of the glows of other items over all that it draws, whatever its highlight style makes of its size.
      */
     protected resolveItemGlow(
         seriesGlow: DeepPartial<AgGlowOptions> | undefined,
@@ -1394,7 +1397,11 @@ export abstract class Series<
                 ? this.cutHoveredInPlace(datumIndex, highlightState, legendItemValues)
                 : undefined;
         }
-        if (isHighlight) return this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
+        if (isHighlight) {
+            const glow = this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
+            // The copy draws beneath the overlay if the series is not brought to front, so it cuts the overlay as well.
+            return glow == null || this.bringToFront() ? glow : withOverlayCut(glow);
+        }
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         if (highlightedDatum == null) return this.castGlow(seriesGlow, HighlightState.None, itemGlow);

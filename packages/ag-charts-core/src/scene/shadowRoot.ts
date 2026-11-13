@@ -93,6 +93,13 @@ function withFootprintCut(glow: NormalisedDropShadowOptions): NormalisedDropShad
     return cut;
 }
 
+/** Adds the footprint of a child to the cuts of the overlay, which a child that casts no glow of its own makes. */
+function addCut(cuts: SlotKeys | undefined, child: Node, frame: CollectedFrame): SlotKeys {
+    cuts ??= new SlotKeys('glow');
+    cuts.add(child as ShadowCaster, CUT_ONLY_GLOW, frame, getShadowClip(child));
+    return cuts;
+}
+
 /**
  * The keys of the frames' casters: those of every shadow, or, for the overlay, those of every glow. A glow of the overlay is
  * cut by the footprint of its casters, see {@link withFootprintCut}.
@@ -101,20 +108,23 @@ function buildKeys(frames: readonly CollectedFrame[], glows: boolean) {
     const keys = new SlotKeys(glows ? 'glow' : 'shadow');
     let cuts: SlotKeys | undefined;
     for (const frame of frames) {
-        // The root casts only the glows of a group that batches its shadows itself.
-        if (!glows && frame.glowsOnly) continue;
+        // The root casts only the glows of a group that batches its shadows itself, and nothing for one that casts its own glows.
+        if (!glows && (frame.glowsOnly || frame.cutsOnly)) continue;
 
         for (const child of (frame.source as ShadowSource).children()) {
             if (!child.visible) continue;
+
+            // A group that casts its own glows has only its items cut out of the overlay.
+            if (frame.cutsOnly) {
+                if (castsCutOnly(child)) cuts = addCut(cuts, child, frame);
+                continue;
+            }
 
             // A cutout erases only its own layer, so in one it leaves the shadow of the root whole.
             const shadowOf = frame.layered ? getRootShadow : getBatchedShadow;
             const cast = glows ? shadowOf(child, 'glow') : shadowOf(child);
             if (cast == null) {
-                if (glows && castsCutOnly(child)) {
-                    cuts ??= new SlotKeys('glow');
-                    cuts.add(child as ShadowCaster, CUT_ONLY_GLOW, frame, getShadowClip(child));
-                }
+                if (glows && castsCutOnly(child)) cuts = addCut(cuts, child, frame);
                 continue;
             }
 
@@ -166,8 +176,11 @@ export function castRootShadows(
     }
     if (unchanged) return memo.cover;
 
+    // A group that is only cut out of the overlay draws as it did, with its own glows.
     const cover = new Map<object, ShadowCover>(
-        frames.map((frame) => [frame.source, frame.glowsOnly ? 'glow' : frame.layered])
+        frames
+            .filter((frame) => !frame.cutsOnly)
+            .map((frame) => [frame.source, frame.glowsOnly ? 'glow' : frame.layered])
     );
     memos.set(user, { frames, keys, cover });
     return cover;

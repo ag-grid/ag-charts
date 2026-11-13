@@ -50,12 +50,15 @@ function castsInEitherSlot(node: Node, castOf: typeof getRootShadow): boolean {
     return castOf(node) != null || castOf(node, 'glow') != null;
 }
 
-/** The children that a group has the root cast for, or cut the glow overlay with: see {@link Group.batchShadows}. */
+/**
+ * The children that a group has the root cast for, or cut the glow overlay with: see {@link Group.batchShadows}. A group that
+ * casts its own glows has the root only cut its children that glow out of the overlay.
+ */
 function rootCasterTotal(shared: boolean, glows: boolean, casters: number, glowCasters: number, cuts: number): number {
     let own = 0;
     if (shared) own = casters;
     else if (glows) own = glowCasters;
-    return own + (glows ? cuts : 0);
+    return own + cuts;
 }
 
 export class Group<TDatum = unknown> extends Node<TDatum> {
@@ -130,8 +133,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     private shadowCasterCount = -1;
     /** The children of a `shared` group that cast a glow through the root, which is -1 until counted. */
     private glowCasterCount = -1;
-    /** The children that only cut their footprint out of the root's glow overlay, which is -1 until counted. */
+    /** The children that cut their footprint out of the root's glow overlay, which is -1 until counted. */
     private cutCasterCount = -1;
+    /** Those of a group that casts its own glows, and is not `shared`: the root only cuts them out. Below, the cuts of its groups. */
+    private sharedLocalCutCount = -1;
     /** The glows cast through the root by this group and the visible groups below it, or -1 until counted. */
     private sharedGlowCasterCount = -1;
 
@@ -282,6 +287,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.shadowCasterCount = -1;
         this.glowCasterCount = -1;
         this.cutCasterCount = -1;
+        this.sharedLocalCutCount = -1;
         this.sharedGlowCasterCount = -1;
         this.childGroups = undefined;
         this.sharedCasterCount = -1;
@@ -513,7 +519,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 if (countCasters && child.visible) {
                     if (this.castsShadow(child, shared)) casters++;
                     if (glows && getRootShadow(child, 'glow') != null) glowCasters++;
-                    else if (glows && castsCutOnly(child)) cuts++;
+                    else if (castsCutOnly(child)) cuts++;
                 }
                 // Only a group has groups in its counts, so a datum is not tested.
                 if (childCounts.groups > 0 && child.visible && child instanceof Group) {
@@ -732,8 +738,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         const { ctx } = renderCtx;
         try {
             let frames: readonly CollectedFrame[] = [];
-            // With nothing that casts through the root, there is nothing to gather, whatever the number of groups.
-            if (this.getSharedCasterCount() > 0) {
+            // Nothing is gathered unless something casts through the root: a group that casts its own glows is only cut out.
+            if (this.getSharedCasterCount() > this.getSharedLocalCutCount()) {
                 const collector = new ShadowCollector(ctx, ctx.globalAlpha);
                 this.gatherShadowChildren(collector);
                 frames = collector.frames;
@@ -817,8 +823,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.sortChildrenIfDirty();
 
         // A group with no caster below it is not visited, so the root costs the groups that cast through it.
-        if (this.sharesGlows() && this.countRootCasters() > 0)
-            collector.addFrame(this, this.shadowVersion, !this.sharesShadows());
+        if (this.countRootCasters() > 0)
+            collector.addFrame(this, this.shadowVersion, !this.sharesShadows(), !this.sharesGlows());
 
         for (const child of this.getChildGroups()) {
             if (child.visible && child.getSharedCasterCount() > 0) child.gatherShadows(collector);
@@ -907,9 +913,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** The children of the group that the root casts for: their shadows and glows if it shares shadows, otherwise their glows. */
     private countRootCasters(): number {
-        if (!this.sharesGlows()) return 0;
-
         const casters = this.countShadowCasters();
+        if (!this.sharesGlows()) return this.cutCasterCount;
+
         return rootCasterTotal(
             this.sharesShadows(),
             this.sharesGlows(),
@@ -932,7 +938,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
                 if (this.castsShadow(child, shared)) casters++;
                 if (glows && getRootShadow(child, 'glow') != null) glowCasters++;
-                else if (glows && castsCutOnly(child)) cuts++;
+                else if (castsCutOnly(child)) cuts++;
             }
             this.shadowCasterCount = casters;
             this.glowCasterCount = glowCasters;
@@ -947,6 +953,28 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      */
     private getSharedGlowCasterCount(): number {
         return this.getSharedCasterCount() > 0 ? this.countGlowCasters() : 0;
+    }
+
+    /**
+     * The children that the root only cuts out of its overlay, in the groups at or below this one that cast their own glows.
+     * These alone make no overlay, nor a cast of the root, so a chart with only these allocates nothing here.
+     */
+    private getSharedLocalCutCount(): number {
+        // A group with no shared caster below it is not walked, so a chart with nothing cast allocates nothing here.
+        if (this.getSharedCasterCount() === 0) return 0;
+
+        if (this.sharedLocalCutCount < 0) {
+            let count = 0;
+            if (!this.sharesGlows()) {
+                this.countShadowCasters();
+                count = this.cutCasterCount;
+            }
+            for (const child of this.getChildGroups()) {
+                if (child.visible) count += child.getSharedLocalCutCount();
+            }
+            this.sharedLocalCutCount = count;
+        }
+        return this.sharedLocalCutCount;
     }
 
     private countGlowCasters(): number {
