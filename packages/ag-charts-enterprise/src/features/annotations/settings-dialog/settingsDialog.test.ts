@@ -91,6 +91,23 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
+    it('shows a number at the decimals of the crosshair label and applies what is typed in full', () => {
+        const yScale = new LinearScale();
+        yScale.domain = [0, 5000];
+        const datum = { ...defaultDatum(), start: { x: 'Pears', y: 4366.2765 } };
+        show(
+            createAxesContext(new CategoryScale(), yScale, (value) => Number(value).toFixed(2)),
+            datum
+        );
+        const [, startY] = inputs();
+
+        expect(startY.value).toBe('4366.28');
+
+        commit(startY, '4366.2799');
+        expect(onChangeCoordinates).toHaveBeenCalledWith({ start: { y: 4366.2799 } });
+        expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
+    });
+
     it('follows the annotation when it changes behind the dialog', () => {
         const yScale = new LinearScale();
         yScale.domain = [0, 50];

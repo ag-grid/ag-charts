@@ -24,6 +24,7 @@ import {
     type CoordinateField,
     type CoordinateKind,
     type CoordinateRow,
+    displayCoordinate,
     formatCoordinate,
     getCoordinateFields,
     parseCoordinate,
@@ -382,7 +383,7 @@ export class AnnotationSettingsDialog extends Dialog {
         const input = this.createInput({
             ariaLabel,
             type: COORDINATE_INPUT_TYPES[field.kind],
-            value: field.value,
+            value: displayCoordinate(field.value, field.fractionDigits),
             step: field.step,
             list: suggestions?.id,
             onChange: (text) => {
@@ -391,13 +392,13 @@ export class AnnotationSettingsDialog extends Dialog {
                 const resolved = parsed == null || !context ? undefined : resolveCoordinate(field, parsed, context);
                 const props = resolved == null ? undefined : field.toProps(resolved);
                 if (resolved == null || props == null) {
-                    input.value = committed;
+                    input.value = displayCoordinate(committed, field.fractionDigits);
                     return;
                 }
 
                 // A value that resolves to the one already set, such as a date snapped to the same bar, is not a change.
                 const formatted = formatCoordinate(resolved, field.kind);
-                input.value = formatted;
+                input.value = displayCoordinate(formatted, field.fractionDigits);
                 if (formatted !== committed) {
                     committed = formatted;
                     options.onChangeCoordinates(props);
@@ -413,7 +414,7 @@ export class AnnotationSettingsDialog extends Dialog {
                 input.setStep(next.step);
             }
             if (!input.isFocused()) {
-                input.value = committed;
+                input.value = displayCoordinate(committed, field.fractionDigits);
             }
         };
 

@@ -18,6 +18,7 @@ import { lineDatum } from '../line/lineDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { createAxesContext } from '../test/fixture';
 import {
+    displayCoordinate,
     floorToBand,
     formatCoordinate,
     getCoordinateFields,
@@ -258,6 +259,31 @@ describe('annotation coordinates', () => {
             const base = createAxesContext(scale, numberScale([0, 50]));
             const snapping = { ...base, xAxis: { ...base.xAxis, snapToGroup: true } };
             expect(getCoordinateFields(datum, snapping).some((f) => f.kind === 'offset')).toBe(false);
+        });
+    });
+
+    describe('decimals of a number', () => {
+        const datum = { ...lineDatum.create(), start: { x: 1, y: 4366.2765 }, end: { x: 2, y: 20 } };
+        const digitsOf = (format: (value: unknown) => string) =>
+            getCoordinateFields(datum, createAxesContext(numberScale([0, 100]), numberScale([0, 5000]), format))
+                .filter((f) => f.axis === 'y')
+                .map((f) => f.fractionDigits);
+
+        it('follow the text of the crosshair label of the axis', () => {
+            expect(digitsOf((value) => Number(value).toFixed(2))).toEqual([2, 2]);
+            expect(digitsOf((value) => `US$ ${Number(value).toLocaleString('en-US')}`)).toEqual([3, 0]);
+        });
+
+        it('are not taken from text that is not a plain number', () => {
+            expect(digitsOf(() => 'Q3 2024')).toEqual([undefined, undefined]);
+            expect(digitsOf(() => '1.5e+3')).toEqual([undefined, undefined]);
+        });
+
+        it('only round the text shown, never an integer or a value without decimals to show', () => {
+            expect(displayCoordinate('4366.2765', 2)).toBe('4366.28');
+            expect(displayCoordinate('4366.2765', undefined)).toBe('4366.2765');
+            expect(displayCoordinate('20', 2)).toBe('20');
+            expect(displayCoordinate('9007199254740993', 2)).toBe('9007199254740993');
         });
     });
 

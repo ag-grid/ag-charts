@@ -8,6 +8,7 @@ import {
     intervalFloor,
     isFiniteNumericValue,
     isNumericValue,
+    toPlainText,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -50,6 +51,8 @@ export interface CoordinateField {
     kind: CoordinateKind;
     /** The datum's current value, formatted for the input. */
     value: string;
+    /** The decimals the axis's crosshair label shows for a number, so that the input shows the same. */
+    fractionDigits?: number;
     /** The input's granularity in seconds, so that a time shows the precision of its value. */
     step?: number;
     /** The axis's categories for the input to suggest, read once as the input is created. */
@@ -269,6 +272,7 @@ function createPointField(
         axis,
         kind,
         value,
+        fractionDigits: getFractionDigits(kind, current, context),
         step: getTimeStep(kind, value),
         suggestions: kind === 'category' ? () => context.scale.domain.map(withoutLineBreaks) : undefined,
         toProps: (parsed) => toProps(toPointType(parsed, kind, current)),
@@ -297,6 +301,26 @@ function createOffsetPointFields(
                 typeof parsed === 'number' ? toProps({ value, groupPercentage: 0.5 + parsed / 100 }) : undefined,
         },
     ];
+}
+
+/** Undefined where the crosshair label is not a plain number, such as the text of a custom formatter. */
+function getFractionDigits(kind: CoordinateKind, current: PointType | undefined, context: AnnotationAxisContext) {
+    const value = getGroupingValue(current);
+    if (kind !== 'number' || typeof value !== 'number') {
+        return;
+    }
+    const text = toPlainText(context.formatScaleValue(value, 'crosshair'));
+    const match = /^\D*[\d,]+(?:\.(\d+))?\D*$/.exec(text);
+    return match ? (match[1]?.length ?? 0) : undefined;
+}
+
+/** A number's text at the decimals its input shows; the datum keeps the full precision. */
+export function displayCoordinate(text: string, fractionDigits: number | undefined): string {
+    if (fractionDigits == null || INTEGER_TEXT.test(text.trim())) {
+        return text;
+    }
+    const value = Number(text);
+    return text.trim() === '' || !Number.isFinite(value) ? text : value.toFixed(Math.min(fractionDigits, 20));
 }
 
 function getTimeStep(kind: CoordinateKind, formatted: string) {
