@@ -13,8 +13,7 @@ import {
 } from 'ag-charts-community-test';
 import { Sector, Transformable } from 'ag-charts-core';
 
-import { HIERARCHY_GLOW_SERIES } from '../test/glowSeriesCases';
-import { getHierarchyRootNode } from '../test/seriesAccessors';
+import { HIERARCHY_GLOW_SERIES, nodeNamed } from '../test/glowSeriesCases';
 import { createEnterpriseChart } from '../test/utils';
 
 const GLOW = { enabled: true, fill: '#0000ff', fillOpacity: 1, blur: 0, spread: 14 };
@@ -37,7 +36,7 @@ describe('shadow and glow render (hierarchy series)', () => {
 
     /** The point just inside the tile `name`, 3px below the edge that it shares with the tile above, in canvas coordinates. */
     const insideTopOf = (name: string) => {
-        const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === name)!;
+        const tile = nodeNamed(name)(chart());
         const { x, y, width } = tile.bbox!;
         return [x + padding.left + width / 2, y + padding.top + 3] as const;
     };
@@ -109,38 +108,33 @@ describe('shadow and glow render (hierarchy series)', () => {
             { way: 'the highlightedItem state', styled: false, highlight: { highlightedItem: { glow: GLOW } } },
         ];
 
-        /** Hovers `hovered`, with `neighbour` glowing or not, and returns the pixel that `pixelOf` gives in its series. */
+        /**
+         * Hovers each of the nodes in `hover` in turn, with the nodes in `glows` glowing through their itemStyler, and returns the
+         * pixel that `pixelOf` gives in its series.
+         */
         const hoveredPixel = async (
             testCase: typeof treemap,
-            { hovered, neighbour, neighbourGlows, styled, highlight }: Record<string, any>,
+            { hover, glows, highlight }: { hover: string[]; glows: string[]; highlight?: object },
             pixelOf: () => readonly [number, number]
         ) => {
-            const names = [...(styled ? [hovered] : []), ...(neighbourGlows ? [neighbour] : [])];
-            await create([glowSeries(testCase, glowing(...names), highlight)], testCase.data, RENDER_OPTIONS);
-            const node = [...getHierarchyRootNode(chart())!].find((candidate) => candidate.datum?.name === hovered)!;
-            await hoverNode(chart(), node);
+            await create([glowSeries(testCase, glowing(...glows), highlight)], testCase.data, RENDER_OPTIONS);
+            for (const name of hover) await hoverNode(chart(), nodeNamed(name)(chart()));
             return chartPixelAt(chart(), ...pixelOf());
         };
 
         describe.each(WAYS)('through $way', ({ styled, highlight }) => {
-            it('is not covered by the glow of the tile above it in a treemap', async () => {
-                const options = { hovered: 'A2', neighbour: 'A1', styled, highlight };
+            it.each([
+                ['the tile above it in a treemap', treemap, 'A2', 'A1', () => insideTopOf('A2')],
+                ['its child in a sunburst', sunburst, 'A', 'A1', insideRing],
+            ])('is not covered by the glow of %s', async (_name, testCase, hovered, neighbour, pixelOf) => {
+                const hover = [hovered];
+                const own = styled ? [hovered] : [];
 
-                const alone = await hoveredPixel(treemap, { ...options, neighbourGlows: false }, () =>
-                    insideTopOf('A2')
+                const alone = await hoveredPixel(testCase, { hover, glows: own, highlight }, pixelOf);
+
+                expect(await hoveredPixel(testCase, { hover, glows: [...own, neighbour], highlight }, pixelOf)).toEqual(
+                    alone
                 );
-
-                expect(
-                    await hoveredPixel(treemap, { ...options, neighbourGlows: true }, () => insideTopOf('A2'))
-                ).toEqual(alone);
-            });
-
-            it('is not covered by the glow of its child in a sunburst', async () => {
-                const options = { hovered: 'A', neighbour: 'A1', styled, highlight };
-
-                const alone = await hoveredPixel(sunburst, { ...options, neighbourGlows: false }, insideRing);
-
-                expect(await hoveredPixel(sunburst, { ...options, neighbourGlows: true }, insideRing)).toEqual(alone);
             });
         });
 
@@ -148,41 +142,13 @@ describe('shadow and glow render (hierarchy series)', () => {
         describe('through the highlightedItem state, once the hover has moved to another node', () => {
             const highlight = WAYS[1].highlight;
 
-            /** Hovers `hovered`, then `moved`, and returns the pixel that `pixelOf` gives, with `neighbour` glowing or not. */
-            const movedPixel = async (
-                testCase: typeof treemap,
-                { hovered, moved, neighbour, neighbourGlows }: Record<string, any>,
-                pixelOf: () => readonly [number, number]
-            ) => {
-                await create(
-                    [glowSeries(testCase, glowing(...(neighbourGlows ? [neighbour] : [])), highlight)],
-                    testCase.data,
-                    RENDER_OPTIONS
-                );
-                const nodes = [...getHierarchyRootNode(chart())!];
-                await hoverNode(
-                    chart(),
-                    nodes.find((candidate) => candidate.datum?.name === hovered)
-                );
-                await hoverNode(
-                    chart(),
-                    nodes.find((candidate) => candidate.datum?.name === moved)
-                );
-                return chartPixelAt(chart(), ...pixelOf());
-            };
-
             it.each([
-                [
-                    'a tile of a treemap',
-                    treemap,
-                    { hovered: 'A2', moved: 'B1', neighbour: 'A1' },
-                    () => insideTopOf('A2'),
-                ],
-                ['a sector of a sunburst', sunburst, { hovered: 'A', moved: 'B', neighbour: 'A1' }, insideRing],
-            ])('covers %s that it left with the glow beside it again', async (_name, testCase, options, pixelOf) => {
-                const alone = await movedPixel(testCase, { ...options, neighbourGlows: false }, pixelOf);
+                ['a tile of a treemap', treemap, ['A2', 'B1'], () => insideTopOf('A2')],
+                ['a sector of a sunburst', sunburst, ['A', 'B'], insideRing],
+            ])('covers %s that it left with the glow beside it again', async (_name, testCase, hover, pixelOf) => {
+                const alone = await hoveredPixel(testCase, { hover, glows: [], highlight }, pixelOf);
 
-                expect(await movedPixel(testCase, { ...options, neighbourGlows: true }, pixelOf)).not.toEqual(alone);
+                expect(await hoveredPixel(testCase, { hover, glows: ['A1'], highlight }, pixelOf)).not.toEqual(alone);
             });
         });
     });
@@ -198,7 +164,7 @@ describe('shadow and glow render (hierarchy series)', () => {
         /** The pixel just inside the bottom edge of the tile A1, which the shadow of A2 reaches. */
         const insideA1 = async (shadow?: object) => {
             await create([glowSeries(treemap, { shadow, ...glowOnly })], treemap.data, RENDER_OPTIONS);
-            const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === 'A1')!;
+            const tile = nodeNamed('A1')(chart());
             const { x, y, width, height } = tile.bbox!;
             return chartPixelAt(chart(), x + padding.left + width / 2, y + padding.top + height - 3);
         };
@@ -215,7 +181,7 @@ describe('shadow and glow render (hierarchy series)', () => {
 
         it('shows the glow of every tile round the outside of a treemap, and not on a tile', async () => {
             await create([glowSeries(treemap, {})], treemap.data, RENDER_OPTIONS);
-            const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === 'A1')!;
+            const tile = nodeNamed('A1')(chart());
             const { x, y, width, height } = tile.bbox!;
             // The series area is drawn at the padding, and a treemap fills it.
             const [left, top] = [padding.left, padding.top];

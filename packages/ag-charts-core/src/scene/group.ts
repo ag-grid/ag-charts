@@ -831,7 +831,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** Whether the nearest shadow root covers the group, and if so, whether its cutouts are covered too. */
     private getSharedShadowCover(): ShadowCover | undefined {
-        if (!this.sharesGlows()) return;
+        // A group that shares only its glows is covered where the root holds an overlay, which a glow below it needs. Without one
+        // there is nothing to find, so the walk up the tree is left out, as it is for a group that shares nothing.
+        if (!this.sharesShadows() && !(this.sharesGlows() && this.getSharedCasterCount() > 0)) return;
 
         for (const node of this.traverseUp()) {
             if (node instanceof Group && node.shadowRoot) return node.sharedShadowCover?.get(this);

@@ -454,45 +454,69 @@ describe('glow refinements', () => {
                 ],
             });
 
-        it('stops cutting the item that it leaves out of the glow beside it', async () => {
-            // The marker beside the first one is laid 36px from it, however wide the chart is: its glow reaches over the first.
-            const beside = (offset: number) => ({
-                type: 'scatter',
-                xKey: 'x',
-                yKey: 'other',
-                data: [{ x: 1.5 + offset, other: 4 }],
-                shape: 'circle',
-                size: 20,
-                fill: '#ff0000',
-                fillOpacity: 1,
-                strokeWidth: 0,
-                glow: hard({ spread: 20 }),
-            });
-            // Nothing is dimmed by the hover, so the glow beside the hovered marker is read at its full colour.
-            const undimmed = { opacity: 1 };
-            const highlight = {
-                bringToFront: false,
-                highlightedItem: { fill: '#0000ff', fillOpacity: 1, glow: hard({ spread: 4 }) },
-                unhighlightedItem: undimmed,
-                unhighlightedSeries: undimmed,
-            };
-            const build = (offset: number) =>
-                createMarkers([{ highlight }, { ...beside(offset), highlight: { unhighlightedSeries: undimmed } }]);
+        // The hovered marker glows by its highlight state, or by an itemStyler that returns a glow for the hovered item alone.
+        const HOVERED_GLOW = hard({ spread: 4 });
+        const WAYS: [string, object][] = [
+            [
+                'the glow of the highlightedItem state',
+                { highlight: { highlightedItem: { fill: '#0000ff', fillOpacity: 1, glow: HOVERED_GLOW } } },
+            ],
+            [
+                'an itemStyler that glows the hovered item alone',
+                {
+                    itemStyler: ({ highlightState }: { highlightState?: string }) =>
+                        highlightState === 'highlighted-item'
+                            ? { fill: '#0000ff', fillOpacity: 1, glow: HOVERED_GLOW }
+                            : {},
+                },
+            ],
+        ];
 
-            await build(1);
-            const unit = markerCentre(1).x - markerCentre(0).x;
-            await build(36 / unit);
-            const first = markerCentre(0);
-            // Inside the first marker, 8px from its centre, where the glow of the marker beside it reaches.
-            const probe = [first.x + 8, first.y] as const;
-            expect(pixel(...probe)).toEqual(RED);
+        it.each(WAYS)(
+            'with %s, stops cutting the item that it leaves out of the glow beside it',
+            async (_name, way) => {
+                // The marker beside the first one is laid 36px from it, however wide the chart is: its glow reaches over the first.
+                const beside = (offset: number) => ({
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'other',
+                    data: [{ x: 1.5 + offset, other: 4 }],
+                    shape: 'circle',
+                    size: 20,
+                    fill: '#ff0000',
+                    fillOpacity: 1,
+                    strokeWidth: 0,
+                    glow: hard({ spread: 20 }),
+                });
+                // Nothing is dimmed by the hover, so the glow beside the hovered marker is read at its full colour.
+                const undimmed = { opacity: 1 };
+                const highlight = {
+                    bringToFront: false,
+                    unhighlightedItem: undimmed,
+                    unhighlightedSeries: undimmed,
+                    ...(way as { highlight?: object }).highlight,
+                };
+                const build = (offset: number) =>
+                    createMarkers([
+                        { ...way, highlight },
+                        { ...beside(offset), highlight: { unhighlightedSeries: undimmed } },
+                    ]);
 
-            await hoverDatum(chart, 0, 0);
-            expect(pixel(...probe)).toEqual(BLUE);
+                await build(1);
+                const unit = markerCentre(1).x - markerCentre(0).x;
+                await build(36 / unit);
+                const first = markerCentre(0);
+                // Inside the first marker, 8px from its centre, where the glow of the marker beside it reaches.
+                const probe = [first.x + 8, first.y] as const;
+                expect(pixel(...probe)).toEqual(RED);
 
-            await hoverDatum(chart, 0, 1);
-            expect(pixel(...probe)).toEqual(RED);
-        });
+                await hoverDatum(chart, 0, 0);
+                expect(pixel(...probe)).toEqual(BLUE);
+
+                await hoverDatum(chart, 0, 1);
+                expect(pixel(...probe)).toEqual(RED);
+            }
+        );
     });
 
     describe('glows that meet', () => {
