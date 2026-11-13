@@ -59,9 +59,11 @@ export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
 /**
  * The miter limit of the stroke that dilates a shape for its shadow `spread`. Right angles keep their sharp corners,
- * like a CSS `box-shadow` spread, while acute vertices are bevelled instead of spiking out.
+ * like a CSS `box-shadow` spread, while acute vertices are bevelled instead of spiking out: those under about 57°. A limit
+ * of 2 would bevel under 60°, which flattens the apex of a triangle marker (59.8°, from a height of 0.87) and leaves its
+ * other two corners (60.1°) pointed. This one keeps the apex pointed, and bevels the points of a star (52.6°).
  */
-const DILATION_MITER_LIMIT = 2;
+const DILATION_MITER_LIMIT = 2.1;
 
 /** The alpha of a plain colour, which a shadow cast from an opaque copy of the shape has to follow. */
 function colourAlpha(colour: unknown): number {

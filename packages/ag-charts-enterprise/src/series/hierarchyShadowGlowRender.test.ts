@@ -35,6 +35,25 @@ describe('shadow and glow render (hierarchy series)', () => {
 
     describeGlowSeries(HIERARCHY_GLOW_SERIES, charts);
 
+    /** The point just inside the tile `name`, 3px below the edge that it shares with the tile above, in canvas coordinates. */
+    const insideTopOf = (name: string) => {
+        const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === name)!;
+        const { x, y, width } = tile.bbox!;
+        return [x + padding.left + width / 2, y + padding.top + 3] as const;
+    };
+
+    /** The point in the ring of the parent of the sunburst sector A1, 4px inside the sector of A1, at the middle of it. */
+    const insideRing = () => {
+        const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
+        const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
+        const leaves = sectors.filter(({ innerRadius }) => innerRadius > innerRing);
+        const a1 = leaves.find((sector) => sector.startAngle === Math.min(...leaves.map((leaf) => leaf.startAngle)))!;
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(a1, a1.centerX, a1.centerY);
+        const angle = (a1.startAngle + a1.endAngle) / 2;
+        const radius = a1.innerRadius - 4;
+        return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
+    };
+
     // The glow of `highlightedItem` is the hovered-item snapshot of the suite: one snapshot for each of the other states.
     describe.each(HIERARCHY_GLOW_SERIES)('$name', (testCase) => {
         const otherSteps = testCase.highlightSteps!.filter(({ bucket }) => bucket !== 'highlightedItem');
@@ -65,12 +84,9 @@ describe('shadow and glow render (hierarchy series)', () => {
     });
 
     describe('the glow of a tile that is not hovered', () => {
-        /** The pixel just inside the tile `name`, at the edge that it shares with the tile above, in canvas coordinates. */
         const pixelBelow = async (name: string, ...glowingNames: string[]) => {
             await create([glowSeries(treemap, glowing(...glowingNames))], treemap.data, RENDER_OPTIONS);
-            const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === name)!;
-            const { x, y, width } = tile.bbox!;
-            return chartPixelAt(chart(), x + padding.left + width / 2, y + padding.top + 3);
+            return chartPixelAt(chart(), ...insideTopOf(name));
         };
 
         it('covers a tile beside it that does not glow', async () => {
@@ -108,38 +124,65 @@ describe('shadow and glow render (hierarchy series)', () => {
 
         describe.each(WAYS)('through $way', ({ styled, highlight }) => {
             it('is not covered by the glow of the tile above it in a treemap', async () => {
-                // The pixel just inside the hovered tile A2, at the edge that it shares with A1 above it.
-                const insideA2 = () => {
-                    const tile = [...getHierarchyRootNode(chart())!].find((node) => node.datum?.name === 'A2')!;
-                    const { x, y, width } = tile.bbox!;
-                    return [x + padding.left + width / 2, y + padding.top + 3] as const;
-                };
                 const options = { hovered: 'A2', neighbour: 'A1', styled, highlight };
 
-                const alone = await hoveredPixel(treemap, { ...options, neighbourGlows: false }, insideA2);
+                const alone = await hoveredPixel(treemap, { ...options, neighbourGlows: false }, () =>
+                    insideTopOf('A2')
+                );
 
-                expect(await hoveredPixel(treemap, { ...options, neighbourGlows: true }, insideA2)).toEqual(alone);
+                expect(
+                    await hoveredPixel(treemap, { ...options, neighbourGlows: true }, () => insideTopOf('A2'))
+                ).toEqual(alone);
             });
 
             it('is not covered by the glow of its child in a sunburst', async () => {
-                // The pixel in the ring of the hovered sector A, 4px inside the sector of its child A1, at the middle of it.
-                const insideRing = () => {
-                    const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
-                    const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
-                    const leaves = sectors.filter(({ innerRadius }) => innerRadius > innerRing);
-                    const a1 = leaves.find(
-                        (sector) => sector.startAngle === Math.min(...leaves.map((leaf) => leaf.startAngle))
-                    )!;
-                    const { canvasX, canvasY } = Transformable.toCanvasPoint(a1, a1.centerX, a1.centerY);
-                    const angle = (a1.startAngle + a1.endAngle) / 2;
-                    const radius = a1.innerRadius - 4;
-                    return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
-                };
                 const options = { hovered: 'A', neighbour: 'A1', styled, highlight };
 
                 const alone = await hoveredPixel(sunburst, { ...options, neighbourGlows: false }, insideRing);
 
                 expect(await hoveredPixel(sunburst, { ...options, neighbourGlows: true }, insideRing)).toEqual(alone);
+            });
+        });
+
+        // Through its itemStyler, the hovered node glows at rest too, and so is not covered when it is not hovered.
+        describe('through the highlightedItem state, once the hover has moved to another node', () => {
+            const highlight = WAYS[1].highlight;
+
+            /** Hovers `hovered`, then `moved`, and returns the pixel that `pixelOf` gives, with `neighbour` glowing or not. */
+            const movedPixel = async (
+                testCase: typeof treemap,
+                { hovered, moved, neighbour, neighbourGlows }: Record<string, any>,
+                pixelOf: () => readonly [number, number]
+            ) => {
+                await create(
+                    [glowSeries(testCase, glowing(...(neighbourGlows ? [neighbour] : [])), highlight)],
+                    testCase.data,
+                    RENDER_OPTIONS
+                );
+                const nodes = [...getHierarchyRootNode(chart())!];
+                await hoverNode(
+                    chart(),
+                    nodes.find((candidate) => candidate.datum?.name === hovered)
+                );
+                await hoverNode(
+                    chart(),
+                    nodes.find((candidate) => candidate.datum?.name === moved)
+                );
+                return chartPixelAt(chart(), ...pixelOf());
+            };
+
+            it.each([
+                [
+                    'a tile of a treemap',
+                    treemap,
+                    { hovered: 'A2', moved: 'B1', neighbour: 'A1' },
+                    () => insideTopOf('A2'),
+                ],
+                ['a sector of a sunburst', sunburst, { hovered: 'A', moved: 'B', neighbour: 'A1' }, insideRing],
+            ])('covers %s that it left with the glow beside it again', async (_name, testCase, options, pixelOf) => {
+                const alone = await movedPixel(testCase, { ...options, neighbourGlows: false }, pixelOf);
+
+                expect(await movedPixel(testCase, { ...options, neighbourGlows: true }, pixelOf)).not.toEqual(alone);
             });
         });
     });
@@ -194,19 +237,10 @@ describe('shadow and glow render (hierarchy series)', () => {
         });
 
         describe('of a sunburst', () => {
-            /** The pixel in the ring of the parent of A1, 4px inside the sector of A1, at the middle of it. */
+            /** The pixel in the ring of the parent of A1, given the itemStyler that the sunburst is created with. */
             const parentPixel = async (itemStyler: object) => {
                 await create([glowSeries(sunburst, itemStyler)], sunburst.data, RENDER_OPTIONS);
-                const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
-                const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
-                const leaves = sectors.filter(({ innerRadius }) => innerRadius > innerRing);
-                const a1 = leaves.find(
-                    (sector) => sector.startAngle === Math.min(...leaves.map((leaf) => leaf.startAngle))
-                )!;
-                const { canvasX, canvasY } = Transformable.toCanvasPoint(a1, a1.centerX, a1.centerY);
-                const angle = (a1.startAngle + a1.endAngle) / 2;
-                const radius = a1.innerRadius - 4;
-                return chartPixelAt(chart(), canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle));
+                return chartPixelAt(chart(), ...insideRing());
             };
 
             it('covers the ring of the parent of a sector that glows, where the parent does not', async () => {

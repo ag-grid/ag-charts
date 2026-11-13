@@ -1026,8 +1026,9 @@ export abstract class Series<
 
         // The in-place copies that cast the bucket or drop their glow change with the hovered item, or its shared category.
         const hasItemShadow = this.getItemShadowBucket() != null;
+        // The hovered in-place copy that cuts the overlay is restyled as the hover moves, or the item it leaves stays cut out.
         const castSwapped =
-            ((this.hasGlowIn(HighlightState.OtherItem) || hasItemShadow) &&
+            ((this.hasGlowIn(HighlightState.OtherItem) || hasItemShadow || this.hoveredCopyCutsOverlay()) &&
                 this.getRedrawnDatumIndex(previousHighlightedDatum) !==
                     this.getRedrawnDatumIndex(currentHighlightedDatum)) ||
             ((this.hasGlowIn(HighlightState.Item) || hasItemShadow) &&
@@ -1410,6 +1411,14 @@ export abstract class Series<
         if (copy !== HOVERED_IN_PLACE) return this.castGlow(seriesGlow, copy, itemGlow);
 
         return this.bringToFront() ? undefined : CUT_ONLY_GLOW;
+    }
+
+    /**
+     * Whether the in-place copy of the hovered item cuts the glow overlay, when any glow is cast: if the series is not brought
+     * to front, as its highlight copy lies beneath the overlay. A hierarchy restyles its nodes on every highlight change.
+     */
+    protected hoveredCopyCutsOverlay(): boolean {
+        return this.hasAnyGlow() && !this.bringToFront();
     }
 
     /**

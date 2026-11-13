@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Rect, Sector, Transformable } from 'ag-charts-core';
+import { Group, Rect, Sector, Transformable } from 'ag-charts-core';
 import type { AgGlowOptions } from 'ag-charts-types';
 
 import type { Chart } from '../chart';
@@ -428,6 +428,73 @@ describe('glow refinements', () => {
         });
     });
 
+    describe('the hovered item that is not brought to front, when the hover moves', () => {
+        const MARKERS = [
+            { x: 1.5, y: 4 },
+            { x: 3, y: 4 },
+        ];
+        const createMarkers = (series: object[]) =>
+            create({
+                axes: CENTRED,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        data: MARKERS,
+                        shape: 'circle',
+                        size: 20,
+                        fill: '#008000',
+                        fillOpacity: 1,
+                        strokeWidth: 0,
+                        highlight: { bringToFront: false, highlightedItem: { fill: '#0000ff', fillOpacity: 1 } },
+                        ...series[0],
+                    },
+                    ...series.slice(1),
+                ],
+            });
+
+        it('stops cutting the item that it leaves out of the glow beside it', async () => {
+            // The marker beside the first one is laid 36px from it, however wide the chart is: its glow reaches over the first.
+            const beside = (offset: number) => ({
+                type: 'scatter',
+                xKey: 'x',
+                yKey: 'other',
+                data: [{ x: 1.5 + offset, other: 4 }],
+                shape: 'circle',
+                size: 20,
+                fill: '#ff0000',
+                fillOpacity: 1,
+                strokeWidth: 0,
+                glow: hard({ spread: 20 }),
+            });
+            // Nothing is dimmed by the hover, so the glow beside the hovered marker is read at its full colour.
+            const undimmed = { opacity: 1 };
+            const highlight = {
+                bringToFront: false,
+                highlightedItem: { fill: '#0000ff', fillOpacity: 1, glow: hard({ spread: 4 }) },
+                unhighlightedItem: undimmed,
+                unhighlightedSeries: undimmed,
+            };
+            const build = (offset: number) =>
+                createMarkers([{ highlight }, { ...beside(offset), highlight: { unhighlightedSeries: undimmed } }]);
+
+            await build(1);
+            const unit = markerCentre(1).x - markerCentre(0).x;
+            await build(36 / unit);
+            const first = markerCentre(0);
+            // Inside the first marker, 8px from its centre, where the glow of the marker beside it reaches.
+            const probe = [first.x + 8, first.y] as const;
+            expect(pixel(...probe)).toEqual(RED);
+
+            await hoverDatum(chart, 0, 0);
+            expect(pixel(...probe)).toEqual(BLUE);
+
+            await hoverDatum(chart, 0, 1);
+            expect(pixel(...probe)).toEqual(RED);
+        });
+    });
+
     describe('glows that meet', () => {
         const SPREAD = 14;
         const HALF = { ...hard({ spread: SPREAD }), fillOpacity: 0.5 };
@@ -539,6 +606,30 @@ describe('glow refinements', () => {
             await hoverDatum(chart);
             expectSamePixels(hovered, canvasImage(chart));
         });
+
+        it.each([
+            ['an itemStyler that returns no glow', { itemStyler: () => ({}) }],
+            ['a glow of the highlighted item alone', { highlight: { highlightedItem: { glow: hard() } } }],
+        ])(
+            'gathers nothing for the cut of a hovered item that is not brought to front, with %s',
+            async (_name, glow) => {
+                const gathered = vi.spyOn(Group.prototype, 'gatherShadowChildren');
+                try {
+                    const series = {
+                        ...SERIES,
+                        shadow: undefined,
+                        ...glow,
+                        highlight: { ...(glow as any).highlight, bringToFront: false },
+                    };
+                    await create({ data: DATA, series: [series] });
+                    await hoverDatum(chart, 0, 0);
+                    await hoverDatum(chart, 0, 1);
+                    expect(gathered).not.toHaveBeenCalled();
+                } finally {
+                    gathered.mockRestore();
+                }
+            }
+        );
 
         it('renders as a chart that never had a glow once the glow is removed', async () => {
             // Both are rendered by an update, as that draws the chart a little differently from its creation.
