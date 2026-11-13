@@ -152,9 +152,9 @@
     padding: 3px 4px 4px;
 }
 
-/* Room for six digits and the spin buttons. */
+/* Room for nine digits and the spin buttons. */
 .ag-charts-dialog__input[type='number'] {
-    width: calc(6ch + 28px);
+    width: calc(9ch + 28px);
 }
 
 .ag-charts-dialog__input[type='text'] {
