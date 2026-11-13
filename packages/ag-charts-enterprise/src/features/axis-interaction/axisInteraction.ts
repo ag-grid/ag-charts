@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AxisID,
     AxisWidget,
+    CallbackParamRules,
     CanvasPoint,
     ClickWidgetEvent,
     DblClickWidgetEvent,
@@ -10,7 +11,26 @@ import type {
     DynamicContext,
     MouseWidgetEvent,
 } from 'ag-charts-core';
-import { AbstractModuleInstance, BBox, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    BBox,
+    ButtonWidget,
+    ChartAxisDirection,
+    boxEmpty,
+    callWithContext,
+} from 'ag-charts-core';
+
+type AxisContext = _ModuleSupport.AxisContext;
+type AxisA11YTickData = ReturnType<_ModuleSupport.AxisContext['getA11YTickData']>[number];
+type AxisInteractionUpdateEvent = _ModuleSupport.AxisInteractionUpdateEvent;
+type ChartRegistry = _ModuleSupport.ChartRegistry;
+type ChartService = _ModuleSupport.ChartService;
+type LayoutCompleteEvent = _ModuleSupport.LayoutCompleteEvent;
+type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
+type SeriesAreaContextMenuEvent = _ModuleSupport.SeriesAreaContextMenuEvent;
+type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
+
+type PartialAxisClickEvent = CallbackParamRules<Omit<AgAxisClickEvent<string>, 'type'>> & { type?: never };
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
@@ -18,26 +38,27 @@ type ProxyAxis = {
     axisId: AxisID;
     direction: ChartAxisDirection;
     div: AxisWidget;
+    a11yTickData: AxisA11YTickData[];
     bounds?: BBox;
 };
 
-function hasAxisListener(
-    chartService: _ModuleSupport.ChartService,
-    axisCtx: _ModuleSupport.AxisContext,
-    isDoubleClick: boolean
-): boolean {
+function hasAxisListener(chartService: ChartService, axisCtx: AxisContext, isDoubleClick: boolean): boolean {
     return isDoubleClick
         ? chartService.listeners.axisDoubleClick != null || axisCtx.listeners?.doubleClick != null
         : chartService.listeners.axisClick != null || axisCtx.listeners?.click != null;
 }
 
-function hasAxisClickListener(chartService: _ModuleSupport.ChartService, axisCtx: _ModuleSupport.AxisContext): boolean {
+function hasAxisClickListener(chartService: ChartService, axisCtx: AxisContext): boolean {
     return hasAxisListener(chartService, axisCtx, false) || hasAxisListener(chartService, axisCtx, true);
 }
 
-function hasDraggableAxes(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): boolean {
+function hasDraggableAxes(ctx: DynamicContext<ChartRegistry>): boolean {
     const options = ctx.chartState.getValue('options');
     return !!(options?.zoom?.enabled && options.zoom.enableAxisDragging);
+}
+
+function needsTabStop(chartService: ChartService, axisCtx: AxisContext): boolean {
+    return hasAxisListener(chartService, axisCtx, false);
 }
 
 /**
@@ -64,7 +85,7 @@ export class AxisInteraction extends AbstractModuleInstance {
 
     private seriesRect: BBox | undefined;
 
-    constructor(readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         if (ctx.widgets.seriesDragInterpreter) {
@@ -88,16 +109,17 @@ export class AxisInteraction extends AbstractModuleInstance {
 
     private teardown() {
         for (const a of this.axes) {
-            this.ctx.widgets.axisWidgets.releaseRegion(a.axisId);
+            a.div.releaseInteractions();
         }
+        this.axes.length = 0;
     }
 
-    private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+    private onLayoutComplete(event: LayoutCompleteEvent) {
         this.seriesRect = event.series.rect;
         this.refresh();
     }
 
-    private onUpdate(event: _ModuleSupport.AxisInteractionUpdateEvent) {
+    private onUpdate(event: AxisInteractionUpdateEvent) {
         const { enabled, enableDoubleClick, enableDragging, enableScrolling, enableContextMenu, source } = event;
 
         this.enabled.set(source, enabled);
@@ -128,9 +150,7 @@ export class AxisInteraction extends AbstractModuleInstance {
     }
 
     private processAxisDiff() {
-        const {
-            ctx: { axisManager, chartService },
-        } = this;
+        const { axisManager } = this.ctx;
 
         const axesCtx = [
             ...axisManager.getAxisContext(ChartAxisDirection.X),
@@ -143,7 +163,7 @@ export class AxisInteraction extends AbstractModuleInstance {
             this.axes = this.axes.filter((entry) => {
                 if (!removed.includes(entry.axisId)) return true;
 
-                this.ctx.widgets.axisWidgets.releaseRegion(entry.axisId);
+                entry.div.releaseInteractions();
                 this.overlappingAxisIds.delete(entry.axisId);
 
                 if (this.hoveredAxisId === entry.axisId) this.hoveredAxisId = undefined;
@@ -156,27 +176,16 @@ export class AxisInteraction extends AbstractModuleInstance {
         for (const newAxisCtx of added) {
             const { axisId, direction } = newAxisCtx;
             const proxyAxis = this.createAxisInteraction(axisId, direction);
-
             this.axes.push(proxyAxis);
         }
 
         for (const axis of this.axes) {
             const axisCtx = axesCtx.find((ac) => ac.axisId === axis.axisId)!;
-            const bbox = axisCtx.getCanvasBounds();
-            axis.div.setHidden(boxEmpty(bbox));
-            if (bbox == undefined) {
-                axis.bounds = undefined;
-            } else {
-                this.ctx.widgets.axisWidgets.setRegionBounds(axis.axisId, bbox);
-                axis.bounds = new BBox(bbox.x, bbox.y, bbox.width, bbox.height);
-            }
-            // Signal interactivity only on axes that actually have a click listener.
-            const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);
-            axis.div.setCursor(needsCursor ? 'pointer' : undefined);
+            this.updateAxisInteraction(axis, axisCtx);
         }
     }
 
-    private onSeriesAreaHover(event: _ModuleSupport.SeriesAreaHoverEvent) {
+    private onSeriesAreaHover(event: SeriesAreaHoverEvent) {
         // Ignore events that have already been consumed elsewhere.
         if (event.consumed) {
             if (this.hoveredAxisId != null) {
@@ -206,7 +215,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         }
     }
 
-    private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent) {
+    private onSeriesAreaClick(event: SeriesAreaClickEvent) {
         if (event.sourceEvent.type !== 'dblclick') return;
 
         // Ignore events that have already been consumed elsewhere.
@@ -226,7 +235,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
     }
 
-    private onSeriesAreaContextMenu(event: _ModuleSupport.SeriesAreaContextMenuEvent) {
+    private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent) {
         if (!this.isEnabled() || !this.isEnabledContextMenu()) return;
 
         // Only continue if we know we have axes that overlap the series area.
@@ -317,6 +326,30 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
     }
 
+    private onKeyboardClick(event: ClickWidgetEvent, axis: ProxyAxis, tickDataIndex: number) {
+        const { axisId, a11yTickData, direction } = axis;
+
+        const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
+        const tickData: AxisA11YTickData | undefined = a11yTickData[tickDataIndex];
+        if (tickData == null || axisCtx == null) {
+            return;
+        }
+
+        const params: PartialAxisClickEvent = {
+            axisId: axisCtx.userAxisId,
+            boundSeries: axisCtx.getBoundedSeries(),
+            depth: tickData.depth,
+            direction,
+            domain: axisCtx.scale.domain,
+            event: event.sourceEvent,
+            groupPercentage: tickData.groupPercentage,
+            index: tickData.index,
+            value: tickData.value,
+        };
+
+        this.dispatchAxisClickEvent(axisCtx, params, false);
+    }
+
     private pickAxisValue(axisId: AxisID, point: Readonly<CanvasPoint>) {
         return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(point);
     }
@@ -362,14 +395,18 @@ export class AxisInteraction extends AbstractModuleInstance {
             groupPercentage,
         };
 
+        this.dispatchAxisClickEvent(axisCtx, params, isDoubleClick);
+    }
+
+    private dispatchAxisClickEvent(axisCtx: AxisContext, params: PartialAxisClickEvent, isDoubleClick: boolean) {
         const listener = isDoubleClick ? axisCtx.listeners?.doubleClick : axisCtx.listeners?.click;
         if (listener) {
-            // `pick.caller` is the axis, so `axes[].context` takes precedence over `chart.context`.
+            // `axes[].context` takes precedence over `chart.context`.
             const apiEvent: Omit<AgAxisClickEvent<'click' | 'doubleClick', never>, 'context'> = {
                 type: isDoubleClick ? 'doubleClick' : 'click',
                 ...params,
             };
-            callWithContext([pick.caller, this.ctx.chartService], listener, apiEvent);
+            callWithContext([axisCtx.caller, this.ctx.chartService], listener, apiEvent);
         }
 
         // The chart-level listener fires alongside the axis-level one, as `seriesNodeClick` does.
@@ -446,9 +483,8 @@ export class AxisInteraction extends AbstractModuleInstance {
     }
 
     private createAxisInteraction(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
-        const axisInteraction = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
-        const div = axisInteraction.widget;
-        const dragInterpretation = axisInteraction.dragInterpreter.events;
+        const div = this.ctx.widgets.acquireAxisWidget(axisId);
+        const dragInterpretation = div.acquireInteractions().dragInterpreter.events;
 
         dragInterpretation.on('drag-start', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
@@ -494,15 +530,48 @@ export class AxisInteraction extends AbstractModuleInstance {
             this.dispatchAxisContextMenu(axisId, event, event.canvasX, event.canvasY);
         });
 
-        return { axisId, div, direction };
+        return { axisId, div, direction, a11yTickData: [] };
     }
 
-    private diffAxisIds(axesCtx: _ModuleSupport.AxisContext[]) {
+    private updateAxisInteraction(axis: ProxyAxis, axisCtx: AxisContext) {
+        const { chartService } = this.ctx;
+
+        const bbox = axisCtx.getCanvasBounds();
+        axis.div.setHidden(boxEmpty(bbox));
+        if (bbox == undefined) {
+            axis.bounds = undefined;
+        } else {
+            axis.div.setBounds(bbox);
+            axis.bounds = new BBox(bbox.x, bbox.y, bbox.width, bbox.height);
+        }
+        // Signal interactivity only on axes that actually have a click listener.
+        const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);
+        axis.div.setCursor(needsCursor ? 'pointer' : undefined);
+
+        // Update keyboard navigation ticks
+        axis.a11yTickData = axisCtx.getA11YTickData();
+        const tickButtonList = axis.div.acquireInteractions().tickButtons;
+        tickButtonList.setRovingTabIndex(needsTabStop(chartService, axisCtx) ? 0 : -1);
+        tickButtonList.resize(axis.a11yTickData.length, (): ButtonWidget => {
+            const b = new ButtonWidget();
+            b.addClass('ag-charts-proxy-elem');
+            b.setPointerEvents('none');
+            b.addListener('click', (ev) => this.onKeyboardClick(ev, axis, b.index));
+            return b;
+        });
+        for (const button of tickButtonList.iterateChildren()) {
+            const tickData = axis.a11yTickData[button.index];
+            button.setTextContent(tickData.ariaLabel);
+            button.setBounds(tickData.focusBounds);
+        }
+    }
+
+    private diffAxisIds(axesCtx: AxisContext[]) {
         const currentIds = this.axes.map((entry) => entry.axisId);
         const ctxIds = axesCtx.map((ctx) => ctx.axisId);
 
         const removed: string[] = currentIds.filter((id) => !ctxIds.includes(id));
-        const added: _ModuleSupport.AxisContext[] = axesCtx.filter((ac) => !currentIds.includes(ac.axisId));
+        const added: AxisContext[] = axesCtx.filter((ac) => !currentIds.includes(ac.axisId));
 
         return { removed, added };
     }

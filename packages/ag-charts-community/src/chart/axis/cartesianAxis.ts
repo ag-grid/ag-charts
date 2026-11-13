@@ -280,9 +280,12 @@ export abstract class CartesianAxis<
                     this.animationState.transition('resize');
                 }
                 previousSize = size;
+                this.caption.updateA11yText(this.moduleCtx, this.id);
             }),
-            this.caption.registerInteraction(this.moduleCtx, this.id),
-            () => moduleCtx.labelManager.unregisterSource(this.labelSource.id, this.labelSource)
+            () => {
+                this.caption.destroy();
+                moduleCtx.labelManager.unregisterSource(this.labelSource.id, this.labelSource);
+            }
         );
     }
 
@@ -1363,6 +1366,24 @@ export abstract class CartesianAxis<
             line.strokeWidth = datum.strokeWidth;
             line.lineDash = datum.lineDash;
         });
+    }
+
+    protected override getA11YTitleBounds(): BBox | undefined {
+        const { node } = this.caption;
+        const { datum } = node;
+        if (!node.visible || datum == null) return undefined;
+
+        // Measured from the datum, not the node, which may still be animating towards it.
+        const { a11yTempText } = this;
+        const { x, y, rotation, rotationCenterX, rotationCenterY } = datum;
+        a11yTempText.setProperties({ x, y, rotation, rotationCenterX, rotationCenterY });
+        a11yTempText.text = node.text;
+        a11yTempText.textAlign = node.textAlign;
+        a11yTempText.textBaseline = node.textBaseline;
+        a11yTempText.setFont(node);
+        a11yTempText.setBoxing({});
+        const bbox = a11yTempText.getBBox();
+        return bbox == null ? undefined : Transformable.toCanvas(this.headingLabelGroup, bbox);
     }
 
     protected updateTitle(domain: D[], spacing: number): void {

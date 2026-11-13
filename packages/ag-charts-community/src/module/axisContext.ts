@@ -1,5 +1,6 @@
 import type {
     AxisID,
+    BBox,
     BoxBounds,
     CanvasPoint,
     ChartAxisDirection,
@@ -55,6 +56,15 @@ export interface AxisBandDatum extends AxisBandMeasurement {
     readonly position: number;
 }
 
+export interface AxisA11YTickData {
+    readonly value: AgAxisValue;
+    readonly index: number;
+    readonly depth: number | undefined;
+    readonly groupPercentage: number | undefined;
+    readonly ariaLabel: string;
+    readonly focusBounds: BBox; // Relative to `getCanvasBounds()`
+}
+
 export interface AxisContext {
     /**
      * Context provider for user callbacks scoped to this axis. Carries `axes[].context` only when
@@ -84,6 +94,7 @@ export interface AxisContext {
     hasDefinedDomain(): boolean;
     hasVisibleSeries(): boolean;
     getCanvasBounds(): BoxBounds | undefined;
+    getBoundedSeries(): AgAxisBoundSeries[];
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];
     scaleInvert(position: number): any;
@@ -106,6 +117,7 @@ export interface AxisContext {
     pickValue(point: CanvasPoint): AxisValuePick | undefined;
     pickBand(point: Point): AxisBandDatum | undefined;
     measureBand(value: string): AxisBandMeasurement | undefined;
+    getA11YTickData(): AxisA11YTickData[];
     /** Defined only on polar axes; cartesian axes leave it undefined. */
     getPolarLayout?(): PolarAxisLayout;
 }

@@ -119,6 +119,16 @@ export abstract class Widget<
     }
 
     destroy(): void {
+        const self: object & { isDestroying?: true } = this;
+        if (self.isDestroying) {
+            return; // block reentrance.
+        }
+        self.isDestroying = true;
+        this.nonReentrantDestruction();
+        delete self['isDestroying'];
+    }
+
+    private nonReentrantDestruction() {
         this.destroyListener?.();
         this.destroyListener = undefined;
         this.remove();
@@ -418,6 +428,21 @@ export abstract class Widget<
         child.domIndex = domIndex;
         this.removeChildFromDOM(child);
         this.addChildToDOM(child, this.getBefore(child));
+    }
+
+    prependChild(child: TChildWidget) {
+        this.addChildToDOM(child, this.children.at(0));
+        for (const c of this.children) {
+            c.index++;
+        }
+        this.children.unshift(child);
+        child.index = 0;
+        child.parent = this;
+        this.onChildAdded(child);
+    }
+
+    iterateChildren(): Iterable<TChildWidget> {
+        return this.children;
     }
 
     addClass(...tokens: string[]) {

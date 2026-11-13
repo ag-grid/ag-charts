@@ -83,15 +83,8 @@ export class Caption implements CaptionLike {
 
     private truncated = false;
     private proxyText?: BoundedTextWidget;
-    private proxyTextListeners?: Array<() => void>;
     private lastProxyTextContent?: string;
     private lastProxyBBox?: { x: number; y: number; width: number; height: number };
-    private a11yContext?: { moduleCtx: DynamicContext<ChartRegistry>; axisId: AxisID };
-
-    registerInteraction(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
-        this.a11yContext = { moduleCtx, axisId };
-        return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, axisId));
-    }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
         const { text, padding, wrapping, truncate } = this;
@@ -117,23 +110,31 @@ export class Caption implements CaptionLike {
         this.node.text = wrappedText;
     }
 
-    private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
+    private computeA11yBounds(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
+        const canvasBBox = Transformable.toCanvas(this.node);
+        if (canvasBBox != null) {
+            // The proxy is a child of the axis widget, which is positioned at the axis bounds.
+            const axisBounds = moduleCtx.axisManager.getAxisIdContext(axisId)?.getCanvasBounds();
+            return canvasBBox.clone().translate(-(axisBounds?.x ?? 0), -(axisBounds?.y ?? 0));
+        }
+    }
+
+    updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
         if (!this.enabled || this.text == null || this.text === '') {
             this.destroyProxyText();
             return;
         }
 
-        const bbox = Transformable.toCanvas(this.node);
+        const bbox = this.computeA11yBounds(moduleCtx, axisId);
         if (bbox == null) return;
 
         if (this.proxyText == null) {
-            this.proxyText = moduleCtx.widgets.axisWidgets.acquireTitle(axisId);
-            this.proxyTextListeners = [
-                this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
-                this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
-                this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx)),
-                this.proxyText.addListener('blur', () => this.handleTooltipHide(moduleCtx)),
-            ];
+            this.proxyText = moduleCtx.widgets.acquireAxisWidget(axisId).acquireTitle();
+            this.proxyText.addClass('ag-charts-proxy-elem');
+            this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev));
+            this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx));
+            this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx));
+            this.proxyText.addListener('blur', () => this.handleTooltipHide(moduleCtx));
         }
 
         // Only update DOM if content changed - avoids unnecessary DOM operations
@@ -151,7 +152,7 @@ export class Caption implements CaptionLike {
             bbox.width !== lastProxyBBox?.width ||
             bbox.height !== lastProxyBBox?.height
         ) {
-            moduleCtx.widgets.axisWidgets.setTitleBounds(axisId, bbox);
+            this.proxyText.setBounds(bbox);
             this.lastProxyBBox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
         }
     }
@@ -187,13 +188,7 @@ export class Caption implements CaptionLike {
 
     private destroyProxyText() {
         if (this.proxyText == null) return;
-
-        for (const cleanup of this.proxyTextListeners ?? []) {
-            cleanup();
-        }
-        this.proxyTextListeners = undefined;
-        // The widget itself is owned by AxisWidgets, not the caption; release it there.
-        this.a11yContext?.moduleCtx.widgets.axisWidgets.releaseTitle(this.a11yContext.axisId);
+        this.proxyText.destroy();
         this.proxyText = undefined;
         this.lastProxyTextContent = undefined;
         this.lastProxyBBox = undefined;

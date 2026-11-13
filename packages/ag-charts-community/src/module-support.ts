@@ -121,13 +121,14 @@ export type {
 } from './chart/interaction/contextMenuTypes';
 export { InteractionManager, InteractionState } from './chart/interaction/interactionManager';
 export { TooltipManager } from './chart/interaction/tooltipManager';
-export {
-    userInteraction,
-    type UpdateZoomSourcing,
-    type UpdateZoomWithFunction,
-    ZoomManager,
+export { userInteraction, ZoomManager } from './chart/interaction/zoomManager';
+export type {
+    CoreZoomState,
+    CoreZoomStateSafeRetrieval,
+    UpdateZoomChanges,
+    UpdateZoomSourcing,
+    UpdateZoomWithFunction,
 } from './chart/interaction/zoomManager';
-export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
 export { getItemId } from './chart/series/pickManager';
 export { Series } from './chart/series/series';
 export { SeriesNodePickMode } from './chart/series/pickTypes';
