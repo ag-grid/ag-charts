@@ -21,14 +21,17 @@ import { getGrouping, getGroupingValue } from './scale';
 import type { PointType } from './scale';
 import { isCrossLineType } from './types';
 
-/** How an axis's values are typed into the settings dialog. */
-export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 'category';
+/**
+ * How a value is typed into the settings dialog: the kind of its axis, or `offset` for the position of a point within
+ * the band of a category-like axis, as a percentage from -50 (start of the band) to 50 (end of the band).
+ */
+export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 'category' | 'offset';
 
 export type ParsedCoordinate = AgNumericValue | Date | string;
 
 type PointRow = 'start' | 'end' | 'endRetracement';
 
-export type CoordinateRow = PointRow | 'value' | 'offset' | 'startOffset' | 'endOffset';
+export type CoordinateRow = PointRow | 'value' | 'height' | 'startHeight' | 'endHeight';
 
 /** The datum properties a coordinate edit can change, merged onto the datum as-is. */
 export interface CoordinateChangeProps {
@@ -83,7 +86,7 @@ export function formatCoordinate(point: PointType | undefined, kind: CoordinateK
     if (value == null) {
         return '';
     }
-    if (kind === 'number') {
+    if (kind === 'number' || kind === 'offset') {
         return String(value);
     }
     if (kind === 'category') {
@@ -111,6 +114,10 @@ export function parseCoordinate(text: string, kind: CoordinateKind): ParsedCoord
 
     if (kind === 'number') {
         return parseNumeric(text);
+    }
+    if (kind === 'offset') {
+        const offset = Number(text);
+        return Number.isFinite(offset) ? offset : undefined;
     }
 
     const date = new Date(text);
@@ -149,15 +156,18 @@ export function floorToBand(date: Date, scale: UnitTimeScale): Date | undefined 
 /**
  * The value to apply for a parsed one, or `undefined` to reject it. A value is checked against the type of its axis
  * but not its domain, as data loaded later can change the domain: a time band axis puts it on a bar or band, and a
- * category is any text. An offset is a distance, so it is not bound to the axis.
+ * category is any text. A height is a distance, so it is not bound to the axis, but an offset is bound to its band.
  */
 export function resolveCoordinate(
     field: CoordinateField,
     parsed: ParsedCoordinate,
     context: AnnotationContext
 ): ParsedCoordinate | undefined {
-    if (field.row === 'offset' || field.row === 'startOffset' || field.row === 'endOffset') {
+    if (field.row === 'height' || field.row === 'startHeight' || field.row === 'endHeight') {
         return parsed;
+    }
+    if (field.kind === 'offset') {
+        return typeof parsed === 'number' && parsed >= -OFFSET_LIMIT && parsed <= OFFSET_LIMIT ? parsed : undefined;
     }
 
     const axis = field.axis === 'x' ? context.xAxis : context.yAxis;
@@ -180,7 +190,13 @@ export function getCoordinateFields(datum: LinearDialogDatumType, context: Annot
 
     if (isCrossLineType(datum)) {
         const axis = datum.type === AnnotationType.HorizontalLine ? y : x;
-        return axis ? [createPointField('value', axis, datum.value, (value) => ({ value }))] : [];
+        const toProps = (value: PointType) => ({ value });
+        return axis
+            ? [
+                  createPointField('value', axis, datum.value, toProps),
+                  ...createOffsetPointFields('value', axis, datum.value, toProps),
+              ]
+            : [];
     }
 
     const fields: CoordinateField[] = [];
@@ -191,11 +207,17 @@ export function getCoordinateFields(datum: LinearDialogDatumType, context: Annot
         if (y) {
             fields.push(createPointField(row, y, point.y, (value) => ({ [row]: { y: value } })));
         }
+        if (x) {
+            fields.push(...createOffsetPointFields(row, x, point.x, (value) => ({ [row]: { x: value } })));
+        }
+        if (y) {
+            fields.push(...createOffsetPointFields(row, y, point.y, (value) => ({ [row]: { y: value } })));
+        }
     }
 
     // A channel's offset is a distance along the y axis, which only a numeric axis can measure.
     if (y?.kind === 'number') {
-        fields.push(...getOffsetFields(datum));
+        fields.push(...getHeightFields(datum));
     }
 
     return fields;
@@ -209,6 +231,8 @@ function withoutLineBreaks(category: unknown) {
 function pad(value: number, length = 2) {
     return String(value).padStart(length, '0');
 }
+
+const OFFSET_LIMIT = 50;
 
 const INTEGER_TEXT = /^[+-]?\d+$/;
 const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
@@ -251,6 +275,30 @@ function createPointField(
     };
 }
 
+/** The position within its band of a point on a category-like axis; none where the axis snaps points to the band centre. */
+function createOffsetPointFields(
+    row: CoordinateRow,
+    { axis, context, kind }: CoordinateAxis,
+    current: PointType | undefined,
+    toProps: (value: PointType) => CoordinateChangeProps
+): CoordinateField[] {
+    if (kind === 'number' || kind === 'time' || context.snapToGroup) {
+        return [];
+    }
+
+    const { value, groupPercentage } = getGrouping(current);
+    return [
+        {
+            row,
+            axis,
+            kind: 'offset',
+            value: String(Math.round((groupPercentage - 0.5) * 1e4) / 100),
+            toProps: (parsed) =>
+                typeof parsed === 'number' ? toProps({ value, groupPercentage: 0.5 + parsed / 100 }) : undefined,
+        },
+    ];
+}
+
 function getTimeStep(kind: CoordinateKind, formatted: string) {
     if (kind === 'number' || kind === 'category') {
         return;
@@ -276,20 +324,20 @@ function getPointRows(datum: Exclude<LinearDialogDatumType, CrossLineDatum>): [P
     return rows;
 }
 
-function getOffsetFields(datum: LinearDialogDatumType): CoordinateField[] {
+function getHeightFields(datum: LinearDialogDatumType): CoordinateField[] {
     if (parallelChannelDatum.is(datum)) {
-        return [createOffsetField('offset', datum.height, 'height')];
+        return [createHeightField('height', datum.height, 'height')];
     }
     if (disjointChannelDatum.is(datum)) {
         return [
-            createOffsetField('startOffset', datum.startHeight, 'startHeight'),
-            createOffsetField('endOffset', datum.endHeight, 'endHeight'),
+            createHeightField('startHeight', datum.startHeight, 'startHeight'),
+            createHeightField('endHeight', datum.endHeight, 'endHeight'),
         ];
     }
     return [];
 }
 
-function createOffsetField(
+function createHeightField(
     row: CoordinateRow,
     current: AgNumericValue,
     key: 'height' | 'startHeight' | 'endHeight'

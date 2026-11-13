@@ -166,10 +166,12 @@ describe('AnnotationSettingsDialog coordinates', () => {
             [
                 { label: 'Start X', inline: false },
                 { label: 'Start Y', inline: false },
+                { label: 'Offset (%)', inline: false },
             ],
             [
                 { label: 'End X', inline: false },
                 { label: 'End Y', inline: false },
+                { label: 'Offset (%)', inline: false },
             ],
         ]);
         dialog.hide();

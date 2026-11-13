@@ -74,9 +74,9 @@ const COORDINATE_ROW_LABELS: Record<CoordinateRow, string> = {
     end: 'dialogInputCoordinatesEnd',
     endRetracement: 'dialogInputCoordinatesEndRetracement',
     value: 'dialogInputCoordinatesValue',
-    offset: 'dialogInputCoordinatesOffset',
-    startOffset: 'dialogInputCoordinatesStartOffset',
-    endOffset: 'dialogInputCoordinatesEndOffset',
+    height: 'dialogInputCoordinatesHeight',
+    startHeight: 'dialogInputCoordinatesStartHeight',
+    endHeight: 'dialogInputCoordinatesEndHeight',
 };
 
 const POINT_ROWS: ReadonlySet<CoordinateRow> = new Set(['start', 'end', 'endRetracement']);
@@ -87,6 +87,7 @@ const COORDINATE_INPUT_TYPES = {
     'ordinal-time': 'datetime-local',
     'unit-time': 'datetime-local',
     category: 'text',
+    offset: 'number',
 } as const satisfies Record<CoordinateKind, string>;
 
 interface EventMap {
@@ -367,8 +368,10 @@ export class AnnotationSettingsDialog extends Dialog {
 
     private createCoordinateInput(initial: CoordinateField, inline: boolean, options: LinearSettingsDialogOptions) {
         const { localeManager } = this.ctx;
+        const rowLabel = localeManager.t(COORDINATE_ROW_LABELS[initial.row]);
         const ariaLabel = localeManager.t('dialogInputCoordinatesAltText', {
-            label: localeManager.t(COORDINATE_ROW_LABELS[initial.row]),
+            label:
+                initial.kind === 'offset' ? `${rowLabel} ${localeManager.t('dialogInputCoordinatesOffset')}` : rowLabel,
             axis: localeManager.t(initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'),
         });
 
@@ -414,9 +417,17 @@ export class AnnotationSettingsDialog extends Dialog {
             }
         };
 
-        const label = POINT_ROWS.has(initial.row) ? ariaLabel : localeManager.t(COORDINATE_ROW_LABELS[initial.row]);
+        const label = this.getCoordinateLabel(initial, ariaLabel);
         const widget = this.createLabelledInput(label, input, inline, ...(suggestions ? [suggestions] : []));
         return { widget, refresh };
+    }
+
+    private getCoordinateLabel({ row, kind }: CoordinateField, ariaLabel: string) {
+        const { localeManager } = this.ctx;
+        if (kind === 'offset') {
+            return `${localeManager.t('dialogInputCoordinatesOffset')} (%)`;
+        }
+        return POINT_ROWS.has(row) ? ariaLabel : localeManager.t(COORDINATE_ROW_LABELS[row]);
     }
 
     private createColorPickerInput(
