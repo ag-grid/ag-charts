@@ -699,6 +699,53 @@ describe('Context Menu', () => {
             );
         });
 
+        it.each([
+            {
+                name: 'on one axis',
+                xCrossLines: [
+                    { id: 'band', type: 'range', range: [0.5, 1.5] },
+                    { id: 'threshold', type: 'line', value: 1 },
+                ],
+                yCrossLines: [],
+            },
+            {
+                name: 'across axes',
+                xCrossLines: [{ id: 'band', type: 'range', range: [0.5, 1.5] }],
+                yCrossLines: [{ id: 'threshold', type: 'line', value: 2 }],
+            },
+        ] as const)(
+            'right-clicking a marker offers the front cross line ahead of an earlier split one $name',
+            async ({ xCrossLines, yCrossLines }) => {
+                chart = await createEnterpriseChart(
+                    chartOptions(
+                        { enabled: true, getItems },
+                        {
+                            ...overlapOptions(),
+                            axes: {
+                                x: { type: 'number', crossLines: [...xCrossLines] },
+                                y: { type: 'number', crossLines: [...yCrossLines] },
+                            },
+                        } as AgChartOptions
+                    )
+                );
+                const { canvasX, canvasY } = datumCanvasPoint(1);
+                await contextMenuAction(canvasX, canvasY)(chart);
+                await waitForChartStability(chart);
+
+                expect(getItems).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        showOn: 'cross-line',
+                        crossLineId: 'threshold',
+                        allShowOnParams: expect.arrayContaining([
+                            crossLineParams,
+                            expect.objectContaining({ showOn: 'cross-line', crossLineId: 'band' }),
+                            nodeParams,
+                        ]),
+                    })
+                );
+            }
+        );
+
         it('right-clicking the cross line away from a marker within `nodeClickRange` offers the cross line first', async () => {
             chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, overlapOptions('nearest')));
             const { canvasX, canvasY } = datumCanvasPoint(1);

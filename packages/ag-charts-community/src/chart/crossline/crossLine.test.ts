@@ -1143,6 +1143,58 @@ describe('CrossLine', () => {
                 expect(crossLineListener).toHaveBeenCalledTimes(winner === 'cross-line' ? 1 : 0);
                 expect(seriesListener).toHaveBeenCalledTimes(winner === 'series' ? 1 : 0);
             });
+            it.each([
+                {
+                    name: 'on one axis',
+                    xCrossLines: [
+                        { id: 'x-range', type: 'range', range: ['May', 'May'] },
+                        { id: 'front', type: 'line', value: 'May' },
+                    ],
+                    yCrossLines: [],
+                },
+                {
+                    name: 'across axes',
+                    xCrossLines: [{ id: 'x-range', type: 'range', range: ['May', 'May'] }],
+                    yCrossLines: [{ id: 'front', type: 'range', range: [0, 1], layer: 'front' }],
+                },
+            ] as const)(
+                'axis and chart listeners report the front cross line that wins over a series node $name',
+                async ({ xCrossLines, yCrossLines }) => {
+                    const axisCrossLineClick = vi.fn();
+                    chart.destroy();
+                    chart = deproxy(
+                        await createChart({
+                            data: [{ x: 'May', y: 3 }],
+                            series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick: vi.fn() } }],
+                            axes: {
+                                myX: {
+                                    type: 'category',
+                                    crossLines: xCrossLines,
+                                    listeners: { crossLineClick: axisCrossLineClick },
+                                },
+                                myY: { type: 'number', crossLines: yCrossLines },
+                            },
+                            listeners: { crossLineClick: chartCrossLineClick },
+                        } as unknown as AgCartesianChartOptions)
+                    );
+                    const { x, y, width, height } = chart.seriesRect!;
+                    await clickAction(x + width / 2, y + height - 10)(chart);
+                    expect(chartCrossLineClick).toHaveBeenCalledWith(
+                        expect.objectContaining({
+                            crossLineId: 'front',
+                            allMatchedParams: [
+                                expect.objectContaining({ crossLineId: 'x-range' }),
+                                expect.objectContaining({ crossLineId: 'front' }),
+                                expect.objectContaining({ type: 'seriesNodeClick' }),
+                            ],
+                        })
+                    );
+                    // The x axis reports its own front match, if it has one.
+                    expect(axisCrossLineClick).toHaveBeenCalledWith(
+                        expect.objectContaining({ crossLineId: xCrossLines.length > 1 ? 'front' : 'x-range' })
+                    );
+                }
+            );
             it('a cross line wins over a series node under the pointer that nothing listens to', async () => {
                 chart.destroy();
                 chart = deproxy(

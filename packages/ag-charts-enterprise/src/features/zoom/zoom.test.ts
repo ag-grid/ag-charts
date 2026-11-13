@@ -1063,6 +1063,29 @@ describe('Zoom', () => {
             await compare(); // this should be a zoomed-in snapshot
         });
 
+        it('should not zoom out when a front cross line takes a double-click from a node', async () => {
+            const crossLineDoubleClick = vi.fn();
+            const seriesNodeDoubleClick = vi.fn();
+            await prepareChart({}, { ratioX: { start: 0, end: 0.5 } }, {
+                ...CATEGORY_EXAMPLE_OPTIONS,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeDoubleClick } }],
+                axes: {
+                    x: {
+                        type: 'category',
+                        crossLines: [{ type: 'line', value: 'one', listeners: { doubleClick: crossLineDoubleClick } }],
+                    },
+                    y: { type: 'number' },
+                },
+            });
+            const before = chart.getState().zoom;
+            // 'one' is the second of the four visible categories.
+            const { x, y, width, height } = deproxy(chart).seriesRect!;
+            await doubleClickAction(x + (width * 3) / 8, y + height - 10)(chart);
+            expect(crossLineDoubleClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(0);
+            expect(chart.getState().zoom).toEqual(before);
+        });
+
         it('should not fire zoom listeners for a sub-tolerance zoom change', async () => {
             let zoomCount: number = 0;
             await prepareChart(
