@@ -66,6 +66,34 @@ To stack bars enable the `stacked` series option.
 }
 ```
 
+### Gap
+
+{% chartExampleRunner title="Stacked Bar Gap" name="stacked-bar-gap" type="generated" /%}
+
+Use the `gap` series option to separate neighbouring segments in a stack. It is a number of pixels.
+
+```js format="snippet"
+{
+    series: [
+        { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, gap: 4 },
+        { type: 'bar', xKey: 'quarter', yKey: 'mac', stacked: true, gap: 4 },
+        { type: 'bar', xKey: 'quarter', yKey: 'ipad', stacked: true, gap: 4 },
+    ],
+}
+```
+
+Each segment pulls in by half the gap on every edge that has a neighbour, so a segment with `gap: 4` next to a segment with `gap: 0` leaves 2 pixels between them. The baseline and the end of the stack stay where they are, and `gap` has no effect on bars that are not stacked. It can also be set in a theme.
+
+{% note %}
+A gap visually splits a total that is continuous.
+{% /note %}
+
+Keep the following in mind:
+
+- A segment that is shorter than its share of the gap is not drawn, and its neighbours keep their gap. When the first segment of a stack is not drawn, the stack stops short of the baseline by the length of that segment plus half the gap.
+- When there are too many bars to draw individually, neighbouring bars are combined into one. If the values of the combined bars vary, the gap is smeared where each bar is narrower than a pixel.
+- At fractional pixel ratios an odd gap can be off by up to half a device pixel.
+
 ## Normalised Bar
 
 {% chartExampleRunner title="Normalised Bar Series" name="normalised-bar" type="generated" /%}

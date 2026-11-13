@@ -108,6 +108,14 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     direction?: 'horizontal' | 'vertical';
     /** Align bars to whole pixel values to remove anti-aliasing. */
     crisp?: boolean;
+    /**
+     * The gap, in pixels, between neighbouring segments in a stack. Each segment is pulled in by half the gap on every edge that has a neighbour, so a segment with `gap: 4` next to a segment with `gap: 0` leaves 2 pixels between them.
+     *
+     * The baseline and the end of the stack stay where they are, and the gap has no effect on bars that are not stacked.
+     *
+     * __Note:__ A segment that is shorter than its share of the gap is not drawn.
+     */
+    gap?: PixelSize;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the glow around the bars. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. The faint bars that a cross-filter draws behind the filtered ones cast no glow. */

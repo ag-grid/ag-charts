@@ -297,6 +297,7 @@ export * from './chart/cartesianSeriesUtil';
 export * from './chart/chartTypeContract';
 export * from './chart/circleLayout';
 export * from './chart/crossLine';
+export * from './chart/gapUtil';
 export * from './chart/legendUtil';
 export * from './chart/markerShapes';
 export * from './chart/markerUtil';

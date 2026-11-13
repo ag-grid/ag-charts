@@ -62,6 +62,11 @@ function omitInheritedShadow(ignoredProperties: readonly string[]) {
     return [...ignoredProperties, 'shadow', 'glow'];
 }
 
+// Likewise for a bar's `gap`: the mini chart doesn't inherit it, but `miniChart.series[].gap` can still be set.
+function omitInheritedBarGap(ignoredProperties: readonly string[]) {
+    return [...omitInheritedShadow(ignoredProperties), 'gap'];
+}
+
 const miniChartMarkerTheme = {
     // `$omit` only drops top-level keys and the first grafted value for a key wins, so the nested marker shadow and
     // glow are switched off here rather than alongside the omit.
@@ -121,7 +126,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                         $switch: [
                             typePath,
                             omitInheritedShadow(commonIgnoredMiniChartProperties),
-                            ['bar', omitInheritedShadow(barIgnoredMiniChartProperties)],
+                            ['bar', omitInheritedBarGap(barIgnoredMiniChartProperties)],
                             ['box-plot', omitInheritedShadow(boxPlotIngnoredMiniChartProperties)],
                             ['bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties)],
                             ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],

@@ -3,6 +3,7 @@ import type {
     CallbackParamRules,
     DomainWithMetadata,
     DynamicContext,
+    GapSpan,
     LabelFit,
     Mutable,
     NormalisedBarSeriesOptions,
@@ -13,6 +14,7 @@ import type {
     Point,
     PointLabelDatum,
     PositionedCandidateResolver,
+    QuadtreeNearest,
     RequireOptional,
     Scale,
     Segment,
@@ -46,6 +48,7 @@ import {
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     fontWithSize,
+    insetGapSpan,
     isContinuous,
     isFiniteNumber,
     maxValue,
@@ -112,7 +115,7 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
 import { type BucketLookupFeature, SplitBucketLookupManager } from '../bucketLookupFeature';
-import { type PickFocusInputs, SeriesNodePickMode } from '../pickTypes';
+import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../pickTypes';
 import type { SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
@@ -128,6 +131,7 @@ import {
     aggregateBarDataFromDataModel,
     aggregateBarDataFromDataModelPartial,
 } from './barAggregation';
+import { gapEdges } from './barGap';
 import {
     checkCrisp,
     collapsedStartingBarPosition,
@@ -143,6 +147,7 @@ import {
 } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { calculateDataDiff } from './diffUtil';
+import { QuadtreePickBBox, findQuadtreeMatch } from './quadtreeUtil';
 import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum {
@@ -224,6 +229,8 @@ interface BarSeriesNodeDatumContext {
     /** Per-side extent of the label's drawn box (padding + border stroke) folded into the collision footprint. */
     readonly labelBoxExtent: Required<PaddingOptions>;
     readonly crisp: boolean;
+    /** Half of `gap` when the series is stacked, else 0; every gap computation is behind a `> 0` check on this. */
+    readonly halfGap: number;
     readonly isStacked: boolean;
     readonly filteredValueExceedUnfiltered: boolean;
     readonly animationEnabled: boolean;
@@ -283,6 +290,12 @@ interface PreparedBarNodeDatumState {
     precomputedIsUpward?: boolean;
 }
 
+/** How many skews beyond the last one `createStackTotalLookup` tries before it builds a datum-to-group index. */
+const GROUP_SKEW_PROBES = 8;
+
+/** Scratch for `insetGapSpan`; always written before it is read. */
+const gapSpan: GapSpan = { start: 0, length: 0 };
+
 interface NodeDatumParams {
     nodeDatumScratch: PreparedBarNodeDatumState;
     datumIndex: number;
@@ -310,6 +323,11 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly bottomLeftCornerRadius: boolean;
     readonly featherRatio: number;
     readonly clipBBox: BBox | undefined;
+    /** The segment's span along the value axis before the gap inset; only written, and only read, when `gap > 0`. */
+    readonly pickStart: number;
+    readonly pickLength: number;
+    /** Created on first pick and updated in place, so a data update writes only the two numbers above. */
+    pickBBox: QuadtreePickBBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
     style?: Required<NormalisedBarSeriesStyle> & AgItemShadowStyle;
@@ -354,6 +372,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private readonly aggregationManager = new AggregationManager<BarSeriesDataAggregationFilter>();
 
     private nodeDatumContext: BarSeriesNodeDatumContext | undefined = undefined;
+    private datumGroupIndexCache: { source: GroupedData<any>; index: Int32Array } | undefined;
 
     override get pickModeAxis() {
         return this.options.sparklineMode ? 'main' : undefined;
@@ -399,7 +418,42 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.phantomHighlightGroup.opacity = 0.2;
     }
 
+    private usesGap(): boolean {
+        return this.nodeDatumContext != null && this.nodeDatumContext.halfGap > 0;
+    }
+
+    protected override initQuadTree(quadtree: QuadtreeNearest<BarNodeDatum>) {
+        if (!this.usesGap()) {
+            super.initQuadTree(quadtree);
+            return;
+        }
+        // The nodes' own bboxes are the drawn segments, which leave the gap unpicked.
+        const barAlongX = this.nodeDatumContext!.barAlongX;
+        for (const datum of this.contextNodeData?.nodeData ?? []) {
+            const { clipBBox, pickStart, pickLength } = datum;
+            if (clipBBox == null || pickLength <= 0 || datum.missing) continue;
+            const pickBBox = (datum.pickBBox ??= new QuadtreePickBBox());
+            if (barAlongX) {
+                pickBBox.setBounds(pickStart, clipBBox.y, pickLength, clipBBox.height);
+            } else {
+                pickBBox.setBounds(clipBBox.x, pickStart, clipBBox.width, pickLength);
+            }
+            quadtree.addValue(pickBBox, datum);
+        }
+    }
+
+    protected override pickNodesExactShape(point: Point): SeriesNodePickMatch[] {
+        const picks = super.pickNodesExactShape(point);
+        if (picks.length !== 0 || !this.usesGap()) return picks;
+        // The shape test decides inside the drawn segment, so only the gap strips are left to add.
+        const match = findQuadtreeMatch(this, point);
+        if (match?.distance !== 0) return [];
+        const { clipBBox } = match.datum as BarNodeDatum;
+        return clipBBox?.containsPoint(point.x, point.y) === true ? [] : [match];
+    }
+
     override async processData(dataController: DataController) {
+        this.datumGroupIndexCache = undefined;
         if (!this.data) return;
 
         const { xKey, yKey, yFilterKey, normalizedTo } = this.options;
@@ -799,6 +853,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                             this.smallestDataInterval,
                             this.largestDataInterval
                         ))),
+            halfGap: isStacked ? (this.options.gap ?? 0) / 2 : 0,
             isStacked,
             filteredValueExceedUnfiltered,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -973,6 +1028,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             bottomRightCornerRadius: false,
             bottomLeftCornerRadius: false,
             clipBBox: undefined,
+            pickStart: 0,
+            pickLength: 0,
+            pickBBox: undefined,
             crisp: ctx.crisp,
             label: undefined,
             missing: false,
@@ -1076,10 +1134,35 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const bboxHeight = ctx.yScale.convert(nodeYRange);
 
         const xOffset = params.width * 0.5 * (1 - (crossScale ?? 1));
-        const rectX = ctx.barAlongX ? Math.min(y, bottomY) : params.x + xOffset;
-        const rectY = ctx.barAlongX ? params.x + xOffset : Math.min(y, bottomY);
-        const rectWidth = ctx.barAlongX ? Math.abs(bottomY - y) : params.width * (crossScale ?? 1);
-        const rectHeight = ctx.barAlongX ? params.width * (crossScale ?? 1) : Math.abs(bottomY - y);
+        let rectX = ctx.barAlongX ? Math.min(y, bottomY) : params.x + xOffset;
+        let rectY = ctx.barAlongX ? params.x + xOffset : Math.min(y, bottomY);
+        let rectWidth = ctx.barAlongX ? Math.abs(bottomY - y) : params.width * (crossScale ?? 1);
+        let rectHeight = ctx.barAlongX ? params.width * (crossScale ?? 1) : Math.abs(bottomY - y);
+
+        if (ctx.halfGap > 0) {
+            gapSpan.start = ctx.barAlongX ? rectX : rectY;
+            gapSpan.length = ctx.barAlongX ? rectWidth : rectHeight;
+            mutableNode.pickStart = gapSpan.start;
+            mutableNode.pickLength = gapSpan.length;
+
+            const edges = gapEdges(
+                params.yStart,
+                params.yEnd,
+                params.yRange,
+                currY,
+                phantom || yFilterGeometryValue == null
+            );
+            if (edges !== 0) {
+                insetGapSpan(gapSpan, ctx.halfGap, edges, bottomY <= y);
+                if (ctx.barAlongX) {
+                    rectX = gapSpan.start;
+                    rectWidth = gapSpan.length;
+                } else {
+                    rectY = gapSpan.start;
+                    rectHeight = gapSpan.length;
+                }
+            }
+        }
 
         const barRectX = ctx.barAlongX ? Math.min(ctx.bboxBottom, bboxHeight) : params.x + xOffset;
         const barRectY = ctx.barAlongX ? params.x + xOffset : Math.min(ctx.bboxBottom, bboxHeight);
@@ -1290,6 +1373,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         for (let p = 0; p < 2; p += 1) {
             const positive = p === 0;
+            // One lookup per pass: each walks the data once.
+            const stackTotal = ctx.halfGap > 0 ? this.createStackTotalLookup(ctx) : undefined;
             const indices = positive
                 ? ctx.dataAggregationFilter!.positiveIndices
                 : ctx.dataAggregationFilter!.negativeIndices;
@@ -1355,7 +1440,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     nodeDatumParamsScratch.featherRatio =
                         (positive ? 1 : -1) * sign * (1 - toNumber(yEndMin) / toNumber(yEndMax));
                 }
-                nodeDatumParamsScratch.yRange = nodeDatumParamsScratch.yEnd;
+                nodeDatumParamsScratch.yRange = stackTotal?.(yMaxIndex, positive) ?? nodeDatumParamsScratch.yEnd;
 
                 this.upsertNodeDatum(ctx, nodeDatumParamsScratch);
             }
@@ -2281,6 +2366,52 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return this.options.label.enabled;
     }
 
+    /**
+     * The stack total, on the given side of the axis, of the group a datum belongs to; `undefined` when the datum has
+     * no group or no series lies beyond this one. Make one per walk along the data: it remembers its group skew.
+     */
+    private createStackTotalLookup(
+        ctx: BarSeriesNodeDatumContext
+    ): ((datumIndex: number, positive: boolean) => AgNumericValue | undefined) | undefined {
+        if (!ctx.stackedTowardEnd) return undefined;
+        const processedData = this.processedData as GroupedData<any> | undefined;
+        const { dataModel } = this;
+        if (processedData?.type !== 'grouped' || dataModel == null) return undefined;
+
+        const { groups } = processedData;
+        const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
+        const rangeIndex = dataModel.resolveProcessedDataIndexById(
+            this,
+            ctx.filteredValueExceedUnfiltered ? 'yFilterValue-range' : 'yValue-range'
+        );
+        const hasDatum = (groupIndex: number, datumIndex: number) =>
+            groups[groupIndex]?.datumIndices[columnIndex]?.includes(datumIndex - groupIndex) === true;
+
+        let skew = 0;
+        return (datumIndex, positive) => {
+            let groupIndex = -1;
+            for (let step = 0; step <= GROUP_SKEW_PROBES && groupIndex < 0; step++) {
+                if (hasDatum(datumIndex - skew - step, datumIndex)) groupIndex = datumIndex - skew - step;
+            }
+            if (groupIndex < 0) groupIndex = this.datumGroupIndex(processedData, columnIndex)[datumIndex] ?? -1;
+            if (groupIndex >= 0) skew = datumIndex - groupIndex;
+            return groups[groupIndex]?.aggregation[rangeIndex][positive ? 1 : 0];
+        };
+    }
+
+    private datumGroupIndex(processedData: GroupedData<any>, columnIndex: number): Int32Array {
+        const cache = this.datumGroupIndexCache;
+        if (cache?.source === processedData) return cache.index;
+
+        const index = new Int32Array(processedData.input.count).fill(-1);
+        const { groups } = processedData;
+        for (let g = 0; g < groups.length; g++) {
+            for (const relative of groups[g].datumIndices[columnIndex] ?? []) index[g + relative] = g;
+        }
+        this.datumGroupIndexCache = { source: processedData, index };
+        return index;
+    }
+
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
         const ctx = this.nodeDatumContext;
         if (ctx == null || this.processedData?.invalidData?.get(this.id)?.[datumIndex] === true) return undefined;
@@ -2294,7 +2425,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         // Stacking implies grouped data, so isStacked alone separates the grouped and simple paths.
         const baseline = zeroLike(yRawValue);
         const yStart = ctx.isStacked ? (ctx.yStartValues?.[datumIndex] ?? baseline) : baseline;
-        const yEnd = ctx.isStacked ? ctx.yEndValues?.[datumIndex] : yRawValue;
+        const yEnd: AgNumericValue | undefined = ctx.isStacked ? ctx.yEndValues?.[datumIndex] : yRawValue;
         if (yEnd == null || !isContinuous(yEnd)) return undefined;
 
         const yFilterValue = ctx.yFilterValues == null ? undefined : Number(ctx.yFilterValues[datumIndex]);
@@ -2314,8 +2445,16 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const barWidth = this.computeBarWidth(ctx, datumIndex);
         const crossStart = x + barWidth * 0.5 * (1 - crossScale);
         const crossWidth = barWidth * crossScale;
-        const alongStart = Math.min(y, bottomY);
-        const alongLength = Math.abs(bottomY - y);
+        gapSpan.start = Math.min(y, bottomY);
+        gapSpan.length = Math.abs(bottomY - y);
+
+        if (ctx.halfGap > 0) {
+            const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
+            const yRange = this.createStackTotalLookup(ctx)?.(datumIndex, isPositive) ?? yEnd;
+            const edges = gapEdges(yStart, yEnd, yRange, currY, yFilterValue == null);
+            insetGapSpan(gapSpan, ctx.halfGap, edges, bottomY <= y);
+        }
+        const { start: alongStart, length: alongLength } = gapSpan;
 
         const datumBox = ctx.barAlongX
             ? { x: alongStart, y: crossStart, width: alongLength, height: crossWidth }
