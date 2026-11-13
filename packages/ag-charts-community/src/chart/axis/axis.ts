@@ -1551,7 +1551,7 @@ export abstract class Axis<
             focusBounds.translate(-axisBounds.x, -axisBounds.y);
 
             const formattedValue = tick.formattedValue == null ? undefined : toPlainText(tick.formattedValue);
-            // Use `||` instead of `??` : We want to ignore boty undefined and empty strings
+            // Use `||` instead of `??` : We want to ignore both undefined and empty strings
             // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions,@typescript-eslint/prefer-nullish-coalescing
             const ariaLabel = label?.text || tick.text || formattedValue || this.formatA11YTickValue(tick.value);
             result.push({
