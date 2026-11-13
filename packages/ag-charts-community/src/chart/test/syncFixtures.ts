@@ -27,5 +27,5 @@ export function syncedYDomain(chart: ChartOrProxy) {
 }
 
 export function syncGroupSize(chart: ChartOrProxy, groupId: string) {
-    return deproxy(chart).ctx.syncManager.getGroupMembers(groupId).length;
+    return deproxy(chart).ctx.syncManager?.getGroupMembers(groupId).length ?? 0;
 }

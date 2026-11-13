@@ -297,6 +297,7 @@ export class SeriesAreaManager extends BaseManager {
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             chart.ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
+            chart.ctx.eventsHub.on('series-area:clear-active', () => this.onActiveClear()),
             chart.ctx.chartState.observe((get) => {
                 const activeItem = get('activeItem');
                 if (activeItem?.type === 'legend') {
@@ -1739,7 +1740,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    public onActiveClear() {
+    private onActiveClear() {
         this.pickManager.onClearAPI();
         this.setHoverDevice('setState');
         this.activeState.lastActive = undefined;

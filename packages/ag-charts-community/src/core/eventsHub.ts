@@ -191,6 +191,8 @@ export interface EventsHubMap {
     'series-area:click': SeriesAreaClickEvent;
     'series-area:canvas-click': SeriesAreaCanvasClickEvent;
     'series-area:contextmenu': SeriesAreaContextMenuEvent;
+    /** A synchronised sibling chart cleared its active item; clear this chart's too. */
+    'series-area:clear-active': null;
     'series:redo': null;
     'series:undo': null;
     /** Emitted when resolved theme parameters change, i.e. the theme CSS variables have been rewritten. */
@@ -220,6 +222,8 @@ export interface EventsHubMap {
      */
     'zoom:change-complete': ZoomChangeCompleteEvent;
     'zoom:pan-start': ZoomPanStartEvent;
+    /** A synchronised sibling chart zoomed; apply its zoom state to this chart. */
+    'zoom:sync-request': DefinedZoomState;
     'zoom-interaction:request-axis-wheel': ZoomInteractionRequestAxisWheelEvent;
     'zoom-interaction:scrollbar:wheel': ZoomInteractionWheelEvent;
     'zoom-interaction:zoom:wheel': ZoomInteractionWheelEvent;

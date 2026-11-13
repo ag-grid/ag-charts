@@ -197,6 +197,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
             ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequested(event)),
             ctx.eventsHub.on('zoom:pan-start', (event) => this.onZoomPanStart(event)),
+            ctx.eventsHub.on('zoom:sync-request', (zoom) => this.onSyncRequest(zoom)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),
             () => this.teardown()
         );
@@ -942,7 +943,7 @@ export class Zoom extends AbstractModuleInstance {
         this.ctx.zoomManager.resetZoom({ source: 'user-interaction', sourceDetail });
     }
 
-    public updateSyncZoom(zoom: DefinedZoomState) {
+    private onSyncRequest(zoom: DefinedZoomState) {
         this.updateZoom({ source: 'sync', sourceDetail: 'internal-updateSyncZoom' }, zoom);
     }
 

@@ -505,30 +505,6 @@ id = "GHSA-737v-mqg7-c878"
 reason = "defu is only used in dev - not used in final prod build"
 
 [[IgnoredVulns]]
-id = "GHSA-39q2-94rc-95cp"
-reason = "dompurify is only used in dev on the website"
-
-[[IgnoredVulns]]
-id = "GHSA-cj63-jhhr-wcxv"
-reason = "dompurify is only used in dev on the website"
-
-[[IgnoredVulns]]
-id = "GHSA-cjmm-f4jc-qw8r"
-reason = "dompurify is only used in dev on the website"
-
-[[IgnoredVulns]]
-id = "GHSA-h8r8-wccr-v5f2"
-reason = "dompurify is only used in dev on the website"
-
-[[IgnoredVulns]]
-id = "GHSA-c2j3-45gr-mqc4"
-reason = "dompurify is only used in dev on the website"
-
-[[IgnoredVulns]]
-id = "GHSA-55q2-fjhq-7xh7"
-reason = "dompurify is only used in dev on the website"
-
-[[IgnoredVulns]]
 id = "GHSA-w5hq-g745-h8pq"
 reason = "uuid is only used in dev/test - not used in final prod build"
 
@@ -648,10 +624,6 @@ id = "GHSA-6chq-wfr3-2hj9"
 reason = "axios is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
-id = "GHSA-76mc-f452-cxcm"
-reason = "dompurify is only used in testing/build, not in the final production build"
-
-[[IgnoredVulns]]
 id = "GHSA-777c-7fjr-54vf"
 reason = "axios is only used in testing/build, not in the final production build"
 
@@ -676,10 +648,6 @@ id = "GHSA-9vqf-7f2p-gf9v"
 reason = "hono is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
-id = "GHSA-cmwh-pvxp-8882"
-reason = "dompurify is only used in testing/build, not in the final production build"
-
-[[IgnoredVulns]]
 id = "GHSA-f577-qrjj-4474"
 reason = "hono is only used in testing/build, not in the final production build"
 
@@ -690,10 +658,6 @@ reason = "@babel/plugin-transform-modules-systemjs is only used in testing/build
 [[IgnoredVulns]]
 id = "GHSA-g7r4-m6w7-qqqr"
 reason = "esbuild is only used in testing/build, not in the final production build"
-
-[[IgnoredVulns]]
-id = "GHSA-gvmj-g25r-r7wr"
-reason = "dompurify is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
 id = "GHSA-h67p-54hq-rp68"
@@ -718,10 +682,6 @@ reason = "hono is only used in testing/build, not in the final production build"
 [[IgnoredVulns]]
 id = "GHSA-hmw2-7cc7-3qxx"
 reason = "form-data is only used in testing/build, not in the final production build"
-
-[[IgnoredVulns]]
-id = "GHSA-hpcv-96wg-7vj8"
-reason = "dompurify is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
 id = "GHSA-j5f8-grm9-p9fc"
@@ -824,16 +784,8 @@ id = "GHSA-qx2v-qp2m-jg93"
 reason = "postcss is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
-id = "GHSA-r47g-fvhr-h676"
-reason = "dompurify is only used in testing/build, not in the final production build"
-
-[[IgnoredVulns]]
 id = "GHSA-rgjc-h3x7-9mwg"
 reason = "@angular/core is only used in testing/build, not in the final production build"
-
-[[IgnoredVulns]]
-id = "GHSA-rp9w-3fw7-7cwq"
-reason = "dompurify is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
 id = "GHSA-rpmf-866q-6p89"
@@ -864,10 +816,6 @@ id = "GHSA-vf2m-468p-8v99"
 reason = "axios is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
-id = "GHSA-vxr8-fq34-vvx9"
-reason = "dompurify is only used in testing/build, not in the final production build"
-
-[[IgnoredVulns]]
 id = "GHSA-w7jw-789q-3m8p"
 reason = "shell-quote is only used in testing/build, not in the final production build"
 
@@ -886,10 +834,6 @@ reason = "hono is only used in testing/build, not in the final production build"
 [[IgnoredVulns]]
 id = "GHSA-wwfh-h76j-fc44"
 reason = "hono is only used in testing/build, not in the final production build"
-
-[[IgnoredVulns]]
-id = "GHSA-x4vx-rjvf-j5p4"
-reason = "dompurify is only used in testing/build, not in the final production build"
 
 [[IgnoredVulns]]
 id = "GHSA-x9g3-xrwr-cwfg"

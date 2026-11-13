@@ -10,7 +10,7 @@ import {
 } from '../../options/normalised/normalisedCommonOptions';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import { ExtendedPath2D } from '../extendedPath2D';
-import { PATTERNS } from './patterns';
+import { PATTERNS, STROKE_ONLY_PATTERNS } from './patterns';
 
 export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     pattern: AgPatternName;
@@ -59,7 +59,9 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
             PATTERNS[pattern](path, { width, height, pixelRatio, strokeWidth, padding });
         }
 
-        return path;
+        // A stock line or hollow pattern is stroked only; a fill would close the open segments or flood the outline.
+        const paintsFill = this.fill !== 'none' && !(renderPattern && STROKE_ONLY_PATTERNS.has(pattern));
+        return { path, paintsFill };
     }
 
     private renderStroke(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
@@ -73,10 +75,6 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
 
     private renderFill(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
         const { fill, fillOpacity } = this;
-
-        if (fill === 'none') {
-            return;
-        }
 
         ctx.fillStyle = fill;
         ctx.globalAlpha = fillOpacity;
@@ -104,9 +102,12 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
             offscreenPatternCtx.fillRect(0, 0, width, height);
         }
 
-        const path2d = this.getPath(pixelRatio).getPath2D();
+        const { path, paintsFill } = this.getPath(pixelRatio);
+        const path2d = path.getPath2D();
 
-        this.renderFill(path2d, offscreenPatternCtx);
+        if (paintsFill) {
+            this.renderFill(path2d, offscreenPatternCtx);
+        }
         this.renderStroke(path2d, offscreenPatternCtx);
 
         const pattern = ctx.createPattern(offscreenPattern.canvas, 'repeat');
@@ -176,14 +177,15 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         rect.setAttribute('fill-opacity', String(backgroundFillOpacity));
         pattern.appendChild(rect);
 
+        const { path: patternPath, paintsFill } = this.getPath(1);
         const path = createSvgElement('path');
-        path.setAttribute('fill', fill);
+        path.setAttribute('fill', paintsFill ? fill : 'none');
         path.setAttribute('fill-opacity', String(fillOpacity));
         path.setAttribute('stroke-opacity', String(strokeOpacity));
         path.setAttribute('stroke', stroke);
         path.setAttribute('stroke-width', String(strokeWidth));
         path.setAttribute('transform', `rotate(${rotation}) scale(${scale})`);
-        path.setAttribute('d', this.getPath(1).toSVG());
+        path.setAttribute('d', patternPath.toSVG());
         pattern.appendChild(path);
 
         return pattern;

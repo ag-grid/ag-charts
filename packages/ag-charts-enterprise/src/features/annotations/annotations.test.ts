@@ -1130,6 +1130,7 @@ describe('Annotations', () => {
             expect(lockSwitch()?.getAttribute('aria-checked')).toBe('true');
             expect(lockSwitch()?.querySelector('.ag-charts-icon-locked')).not.toBeNull();
             expect(lockSwitch()?.title).toBe('Unlock');
+            expect(lockSwitch()?.getAttribute('aria-label')).toBe('Unlock');
             expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')).toBeNull();
 
             lockSwitch()!.click();
@@ -1138,7 +1139,54 @@ describe('Annotations', () => {
             expect(lockSwitch()?.getAttribute('aria-checked')).toBe('false');
             expect(lockSwitch()?.querySelector('.ag-charts-icon-unlocked')).not.toBeNull();
             expect(lockSwitch()?.title).toBe('Lock');
+            expect(lockSwitch()?.getAttribute('aria-label')).toBe('Lock');
             expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
+        });
+    });
+
+    describe('toolbar button names', () => {
+        it('names the annotations toolbar buttons from their ariaLabel or tooltip', async () => {
+            await prepareChart(undefined, {
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                annotations: {
+                    enabled: true,
+                    toolbar: {
+                        buttons: [
+                            { icon: 'delete', value: 'clear', ariaLabel: 'Remove everything' },
+                            { icon: 'text-annotation', value: 'text-menu', tooltip: 'Add text' },
+                        ],
+                    },
+                },
+            });
+
+            const names = Array.from(
+                deproxy(chart).ctx.agDocument.body.querySelectorAll(
+                    '.ag-charts-shared-toolbar .ag-charts-toolbar__button'
+                ),
+                (button) => button.getAttribute('aria-label')
+            );
+            expect(names).toEqual(expect.arrayContaining(['Remove everything', 'Add text']));
+        });
+
+        it('names the annotation options toolbar buttons from their ariaLabel or tooltip', async () => {
+            await prepareChart(
+                { annotations: [{ type: 'horizontal-line', value: 50 }] },
+                {
+                    ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                    annotations: {
+                        ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations,
+                        optionsToolbar: {
+                            buttons: [
+                                { icon: 'delete', value: 'delete', ariaLabel: 'Remove annotation' },
+                                { icon: 'settings', value: 'settings', tooltip: 'Edit annotation' },
+                            ],
+                        },
+                    },
+                }
+            );
+
+            const names = getAnnotationOptionsToolbarButtons(chart).map((button) => button.getAttribute('aria-label'));
+            expect(names).toEqual(['Remove annotation', 'Edit annotation']);
         });
     });
 
