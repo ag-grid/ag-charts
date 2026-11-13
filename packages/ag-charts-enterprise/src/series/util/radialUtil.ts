@@ -5,6 +5,7 @@ import type {
     AgRadialSeriesStyle,
     AgRadialSeriesStylerParams,
     HighlightState as HighlightStateString,
+    PixelSize,
     SelectionState as SelectionStateString,
     Styler,
 } from 'ag-charts-community';
@@ -15,7 +16,6 @@ import type {
     CallbackParamRules,
     DynamicContext,
     InternalAgColorType,
-    LineDashValue,
     Resolved,
 } from 'ag-charts-core';
 import { mergeDefaults } from 'ag-charts-core';
@@ -24,8 +24,10 @@ const { createDatumId, toHighlightString, toSelectionString } = _ModuleSupport;
 
 type BaseNodeDatum = _ModuleSupport.DataModelSeriesNodeDatum;
 
-export interface RadialSeriesStyleResult extends Required<Omit<AgRadialSeriesStyle, 'fill'>>, AgItemShadowStyle {
+export interface RadialSeriesStyleResult
+    extends Required<Omit<AgRadialSeriesStyle, 'fill' | 'lineDash'>>, AgItemShadowStyle {
     fill: InternalAgColorType;
+    lineDash: PixelSize[];
     opacity: 1;
 }
 
@@ -42,7 +44,7 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         readonly stroke: string;
         readonly strokeWidth: number;
         readonly strokeOpacity: number;
-        readonly lineDash: LineDashValue;
+        readonly lineDash: number[];
         readonly lineDashOffset: number;
         readonly cornerRadius: number;
         readonly stackGroup?: string;

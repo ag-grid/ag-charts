@@ -26,7 +26,6 @@ import {
     isNumericValue,
     mergeDefaults,
     readDatumKey,
-    resolveLineDash,
     toNumber,
     upsertNodeDatum,
     withoutCasts,
@@ -1014,7 +1013,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             boxPlotNode.wickStroke = style.whisker.stroke;
             boxPlotNode.wickStrokeWidth = style.whisker.strokeWidth;
             boxPlotNode.wickStrokeOpacity = whiskerOpacity * nodeOpacity;
-            boxPlotNode.wickLineDash = resolveLineDash(style.whisker.lineDash);
+            boxPlotNode.wickLineDash = style.whisker.lineDash;
             boxPlotNode.wickLineDashOffset = style.whisker.lineDashOffset;
             boxPlotNode.cornerRadius = style.cornerRadius;
 

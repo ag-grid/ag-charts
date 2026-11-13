@@ -1,12 +1,4 @@
-import type {
-    AgDrawingMode,
-    AgImageFill,
-    AgLineDashName,
-    AgPatternColor,
-    CssColor,
-    LineDashOptions,
-    StrokeOptions,
-} from 'ag-charts-types';
+import type { AgDrawingMode, AgImageFill, AgPatternColor, CssColor, StrokeOptions } from 'ag-charts-types';
 
 import { clamp } from '../../data/numbers';
 import { objectsEqual } from '../../data/object';
@@ -25,10 +17,11 @@ import type {
 import {
     DeclaredSceneChangeDetection,
     DeclaredSceneObjectChangeDetection,
+    SceneArrayChangeDetection,
     SceneObjectChangeDetection,
     TRIPLE_EQ,
 } from '../../rendering/changeDetectable';
-import { resolveLineDash } from '../../rendering/lineDash';
+import type { ResolvedLineDashOptions } from '../../rendering/lineDash';
 import type { AlignedInterval } from '../../rendering/pixel';
 import { align, alignCentre, centreSnapApplies, deviceDimension } from '../../rendering/pixel';
 import { parseSvg } from '../../rendering/svg';
@@ -246,7 +239,7 @@ export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { col
 
 export type ShapeColor = CssColor | ShapeGradientColor | AgPatternColor | AgImageFill;
 
-type SvgAttributes = StrokeOptions & LineDashOptions;
+type SvgAttributes = StrokeOptions & ResolvedLineDashOptions;
 
 export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     @DeclaredSceneChangeDetection()
@@ -413,9 +406,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return centreSnapApplies(this.layerManager?.canvas?.pixelRatio ?? 1, length);
     }
 
-    /** Accepts a stock dash name, which is stored as its array of lengths (see `__lineDash`). */
-    @SceneObjectChangeDetection({ convertor: resolveLineDash, equals: TRIPLE_EQ })
-    lineDash?: readonly number[] | AgLineDashName;
+    @SceneArrayChangeDetection()
+    lineDash?: readonly number[];
     declare __lineDash: readonly number[] | undefined; // optimised field accessor
 
     @DeclaredSceneChangeDetection()
@@ -1603,7 +1595,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const opacity = style?.opacity ?? 1;
         const fill = style?.fill;
 
-        // Write directly to __ prefix fields for fields with @DeclaredSceneChangeDetection/@SceneObjectChangeDetection
+        // Write directly to __ prefix fields for fields with @DeclaredSceneChangeDetection/@SceneArrayChangeDetection
         // to avoid setter overhead. Fields with change callbacks (fill, stroke, fillBBox, fillParams) must use setters.
         const computedFillOpacity = (style?.fillOpacity ?? 1) * opacity;
         const computedStrokeOpacity = (style?.strokeOpacity ?? 1) * opacity;
@@ -1627,9 +1619,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             this.__lineDashOffset = computedLineDashOffset;
             hasDirectChanges = true;
         }
-        const computedLineDash = resolveLineDash(style?.lineDash);
-        if (this.__lineDash !== computedLineDash) {
-            this.__lineDash = computedLineDash;
+        if (this.__lineDash !== style?.lineDash) {
+            this.__lineDash = style?.lineDash;
             hasDirectChanges = true;
         }
 

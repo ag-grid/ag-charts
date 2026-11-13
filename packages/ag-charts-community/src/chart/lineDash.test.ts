@@ -61,6 +61,15 @@ describe('named line dash patterns', () => {
         );
     });
 
+    it('should render a named dash returned by a styler the same as its array', async () => {
+        const styled = (lineDash: AgLineDashName | number[]): AgCartesianChartOptions => ({
+            data: MONTHS.map((month, i) => ({ month, value: 20 + i * 5 })),
+            series: [{ type: 'line', xKey: 'month', yKey: 'value', strokeWidth: 3, styler: () => ({ lineDash }) }],
+        });
+
+        await expectPixelIdenticalAcrossUpdate(ctx, createChart, styled('dash-dot'), styled([6, 3, 2, 3]));
+    });
+
     it('should render a named dash the same on a bar series stroke as its array', async () => {
         const bars = (lineDash: AgLineDashName | number[]): AgCartesianChartOptions => ({
             data: MONTHS.map((month, i) => ({ month, value: 20 + i * 5 })),

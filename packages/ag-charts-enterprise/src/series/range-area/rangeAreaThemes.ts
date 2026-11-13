@@ -31,7 +31,7 @@ type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area',
 
 const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemOptions]> = {
     lineDash: {
-        $path: '/series/$index/lineDash',
+        $applyLineDash: { $path: '/series/$index/lineDash' },
     },
     lineDashOffset: {
         $path: '/series/$index/lineDashOffset',
@@ -92,7 +92,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
             $path: '/series/$index/marker/fillOpacity',
         },
         lineDash: {
-            $path: '/series/$index/marker/lineDash',
+            $applyLineDash: { $path: '/series/$index/marker/lineDash' },
         },
         lineDashOffset: {
             $path: '/series/$index/marker/lineDashOffset',

@@ -10,6 +10,7 @@ import {
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    UNSET_LINE_DASH_THEME_DEFAULT,
     fillThemeTemplate,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
@@ -40,6 +41,7 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         shadow: SHADOW_THEME_DEFAULTS,
         glow: GLOW_THEME_DEFAULTS,
         cap: { lengthRatio: 0.5 },
+        whisker: { lineDash: UNSET_LINE_DASH_THEME_DEFAULT },
         tooltip: SERIES_TOOLTIP_THEME,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },

@@ -669,7 +669,14 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
 export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickRange: 'exact' } as const;
 
 /** Solid, fully opaque stroke; the theme value every stroked element starts from. */
-export const STROKE_STYLE_THEME_DEFAULTS = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
+export const STROKE_STYLE_THEME_DEFAULTS = {
+    strokeOpacity: 1,
+    lineDash: { $applyLineDash: [0] },
+    lineDashOffset: 0,
+};
+
+/** The resolved value of {@link STROKE_STYLE_THEME_DEFAULTS}, for code that builds a style outside the theme. */
+export const SOLID_STROKE_STYLE = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
 
 /** Font size, family and weight taken from the theme params; most text theme blocks spread this. */
 export const FONT_THEME_DEFAULTS = {
@@ -723,6 +730,12 @@ export const GLOW_THEME_DEFAULTS = {
     blur: 2,
     spread: 4,
 } as const;
+
+/**
+ * The `lineDash` default of a style that falls back to another when unset, such as a highlight bucket: it leaves the
+ * option unset, and exists only so that a stock dash name set by the user or a theme override resolves to its array.
+ */
+export const UNSET_LINE_DASH_THEME_DEFAULT = { $applyLineDash: undefined };
 
 /** The highlight states of a series with only item states, and of a treemap group. */
 export const ITEM_GLOW_BUCKETS = ['highlightedItem', 'unhighlightedItem'] as const;
@@ -780,6 +793,7 @@ export function withGlowThemeDefaults<T extends object>(
         result[bucket] = {
             ...(result[bucket] as object | undefined),
             glow: { enabled: perPart ? { $isUserOption: ['./', enabled, undefined] } : enabled },
+            lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
         };
     };
     const enabledPaths = glowPaths.map((path) => ({ $path: `${path}/enabled` }));
@@ -915,12 +929,15 @@ export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelect
     containment: { $path: ['/selection/containment', 'any'] },
     selectedItem: {
         strokeWidth: 2,
+        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
     },
     unselectedItem: {
         opacity: 0.6,
+        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
     },
     unselectedSeries: {
         opacity: 0.2,
+        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
     },
 };
 
@@ -976,7 +993,7 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 ],
             },
             strokeOpacity: { $path: '../../../strokeOpacity' },
-            lineDash: { $path: '../../../lineDash' },
+            lineDash: { $applyLineDash: { $path: '../../../lineDash' } },
             lineDashOffset: { $path: '../../../lineDashOffset' },
         },
     },

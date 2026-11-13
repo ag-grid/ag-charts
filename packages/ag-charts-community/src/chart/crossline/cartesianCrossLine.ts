@@ -28,7 +28,6 @@ import type {
     CrossLineLabelPosition,
     CrossLineType,
     DynamicContext,
-    LineDashValue,
     NormalisedAxisCrossLineLabelOptions,
     NormalisedAxisCrossLineOptions,
     PointLabelDatum,
@@ -91,7 +90,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     stroke?: string;
     strokeWidth?: number;
     strokeOpacity?: number;
-    lineDash?: LineDashValue;
+    lineDash?: number[];
     label!: CartesianCrossLineLabelOptions;
     listeners?: AgCrossLineListeners<unknown>;
 

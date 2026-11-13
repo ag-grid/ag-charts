@@ -904,6 +904,20 @@ describe('ChartOptions', () => {
                 (lineDash) => ({ series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { lineDash } }] }),
             ],
             [
+                'series highlight',
+                'series[0].highlight.highlightedItem.lineDash',
+                (lineDash) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', highlight: { highlightedItem: { lineDash } } }],
+                }),
+            ],
+            [
+                'series selection',
+                'series[0].selection.selectedItem.lineDash',
+                (lineDash) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', selection: { selectedItem: { lineDash } } }],
+                }),
+            ],
+            [
                 'axis line',
                 'axes.x.line.lineDash',
                 (lineDash) => ({
@@ -935,10 +949,10 @@ describe('ChartOptions', () => {
             ],
         ];
 
-        it.each(LOCATIONS)('accepts a stock dash name on a %s', (_, path, build) => {
+        it.each(LOCATIONS)('resolves a stock dash name on a %s to its array', (_, path, build) => {
             const named = prepareOptions<AgCartesianChartOptions>(build('long-dash-dot-dot' as never));
             expect(warnings()).toEqual([]);
-            expect(optionAt(named, path)).toBe('long-dash-dot-dot');
+            expect(optionAt(named, path)).toEqual([14, 4, 2, 4, 2, 4]);
 
             const array = prepareOptions<AgCartesianChartOptions>(build([6, 4] as never));
             expect(warnings()).toEqual([]);

@@ -22,7 +22,7 @@ const commonAxisProperties = {
     crosshair: {
         enabled: false,
         stroke: '#aaa',
-        lineDash: [0],
+        lineDash: { $applyLineDash: [0] },
         label: {
             enabled: false,
         },

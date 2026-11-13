@@ -168,6 +168,7 @@ type TransformOperation =
     | { $applyPadding: Leaf<number> | Leaf<{ top: number; right: number; bottom: number; left: number }> }
     | { $applySwitch: any[] }
     | { $applyCycle: any[] }
+    | { $applyLineDash: Leaf<number[]> | undefined } // Default array of dash and gap lengths (or none), replaced by a named dash from the user or theme overrides
     | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found
     | { $map: [AnyLeaf | object, AnyLeaf] } // Operation to apply to each item in the array | Target array
     | { $merge: Leaf<object>[] } // Array of objects to merge

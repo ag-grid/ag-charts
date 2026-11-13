@@ -1,8 +1,7 @@
-import type { LineDashOptions } from 'ag-charts-types';
+import type { PixelSize } from 'ag-charts-types';
 
 import type { NormalisedStrokeOptions } from '../options/normalised/normalisedCommonOptions';
 import type { FontOptions } from '../types/text';
-import { resolveLineDash } from './lineDash';
 
 export function setSvgFontAttributes(element: SVGElement, options: FontOptions) {
     const { fontStyle, fontWeight, fontSize, fontFamily } = options;
@@ -19,9 +18,11 @@ export function setSvgStrokeAttributes(element: SVGElement, options: NormalisedS
     if (strokeOpacity != null) element.setAttribute('stroke-opacity', String(strokeOpacity));
 }
 
-export function setSvgLineDashAttributes(element: SVGElement, options: LineDashOptions) {
-    const { lineDashOffset } = options;
-    const lineDash = resolveLineDash(options.lineDash);
+export function setSvgLineDashAttributes(
+    element: SVGElement,
+    options: { lineDash?: readonly PixelSize[]; lineDashOffset?: PixelSize }
+) {
+    const { lineDash, lineDashOffset } = options;
     if (lineDash?.some((d) => d !== 0)) {
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setLineDash#segments
         // If the number of elements in the array is odd, the elements of the array get copied and concatenated

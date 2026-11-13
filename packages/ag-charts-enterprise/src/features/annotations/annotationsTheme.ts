@@ -244,7 +244,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...stroke,
         ...selectionAxes(axisLabel),
         middle: {
-            lineDash: [6, 5],
+            lineDash: { $applyLineDash: [6, 5] },
             strokeWidth: 1,
         },
         background: { ...background },

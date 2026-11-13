@@ -1,5 +1,4 @@
 import {
-    type LineDashValue,
     type NormalisedSeriesTooltipOptions,
     callWithContext,
     isDate,
@@ -17,7 +16,7 @@ export type TooltipRenderer<P> = Renderer<P, AgTooltipRendererResult>;
 
 function buildLineWithMarkerDefaults(
     line:
-        | { enabled?: boolean; stroke?: string; strokeWidth?: number; strokeOpacity?: number; lineDash?: LineDashValue }
+        | { enabled?: boolean; stroke?: string; strokeWidth?: number; strokeOpacity?: number; lineDash?: number[] }
         | undefined,
     marker: LegendMarker | undefined
 ): LegendLine | undefined {
@@ -28,7 +27,7 @@ function buildLineWithMarkerDefaults(
         stroke: (line.stroke ?? marker?.stroke ?? 'transparent') as string,
         strokeWidth: line.strokeWidth ?? marker?.strokeWidth ?? 1,
         strokeOpacity: line.strokeOpacity ?? marker?.strokeOpacity ?? 1,
-        lineDash: line.lineDash ?? marker?.lineDash ?? [],
+        lineDash: line.lineDash ?? (marker?.lineDash as number[]) ?? [],
     };
 }
 

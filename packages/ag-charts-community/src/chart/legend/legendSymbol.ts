@@ -1,10 +1,11 @@
-import type { InternalAgColorType, LineDashValue } from 'ag-charts-core';
+import type { InternalAgColorType } from 'ag-charts-core';
 import { Group, Line } from 'ag-charts-core';
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgSeriesMarkerStyle, PixelSize } from 'ag-charts-types';
 
 import { Marker } from '../marker/marker';
 
-export interface LegendMarker extends Omit<AgSeriesMarkerStyle, 'stroke'> {
+export interface LegendMarker extends Omit<AgSeriesMarkerStyle, 'stroke' | 'lineDash'> {
+    lineDash?: PixelSize[];
     fill?: InternalAgColorType;
     stroke?: InternalAgColorType;
     enabled?: boolean;
@@ -15,7 +16,7 @@ export interface LegendLine {
     stroke: string;
     strokeOpacity: number;
     strokeWidth: number;
-    lineDash: LineDashValue;
+    lineDash: number[];
 }
 
 export interface LegendSymbolOptions {

@@ -18,7 +18,7 @@ export const BandHighlightModule: AxisPluginModuleDefinition<AgBandHighlightOpti
         stroke: 'rgb(195, 195, 195)',
         strokeWidth: 0,
         strokeOpacity: 1,
-        lineDash: [],
+        lineDash: { $applyLineDash: [] },
         lineDashOffset: 0,
         fill: { $ref: 'bandHighlightColor' },
         fillOpacity: 1,

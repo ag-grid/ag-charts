@@ -756,7 +756,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
         if (stroke != null && stroke !== '' && effectiveStrokeWidth > 0) {
             const { globalAlpha } = ctx;
-            const { __lineDash: lineDash, lineDashOffset, lineCap, lineJoin, borderPath, borderClipPath } = this;
+            const { lineDash, lineDashOffset, lineCap, lineJoin, borderPath, borderClipPath } = this;
 
             if (borderClipPath) {
                 ctx.clip(borderClipPath.getPath2D());

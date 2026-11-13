@@ -31,7 +31,7 @@ export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
         stroke: { $ref: 'subtleTextColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
-        lineDash: [5, 6],
+        lineDash: { $applyLineDash: [5, 6] },
         lineDashOffset: 0,
         label: {
             enabled: true,

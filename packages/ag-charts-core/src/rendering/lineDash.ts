@@ -14,19 +14,8 @@ export const LINE_DASH_PATTERNS: Readonly<Record<AgLineDashName, readonly PixelS
     'long-dash-dash-dash': [14, 3, 6, 3, 6, 3],
 };
 
-/** A `lineDash` as a user can configure it: a stock dash name or an array of lengths. */
-export type LineDashValue = PixelSize[] | AgLineDashName;
-
-/**
- * Resolves a configured `lineDash` to its array of lengths. Arrays pass through by reference, and each name always
- * yields the same array, so identity-based change detection keeps working.
- */
-export function resolveLineDash(lineDash: readonly PixelSize[] | AgLineDashName): readonly PixelSize[];
-export function resolveLineDash(
-    lineDash: readonly PixelSize[] | AgLineDashName | undefined
-): readonly PixelSize[] | undefined;
-export function resolveLineDash(
-    lineDash: readonly PixelSize[] | AgLineDashName | undefined
-): readonly PixelSize[] | undefined {
-    return typeof lineDash === 'string' ? LINE_DASH_PATTERNS[lineDash] : lineDash;
+/** The `lineDash` options once the theme has resolved any dash name to its array of lengths. */
+export interface ResolvedLineDashOptions {
+    lineDash?: PixelSize[];
+    lineDashOffset?: PixelSize;
 }

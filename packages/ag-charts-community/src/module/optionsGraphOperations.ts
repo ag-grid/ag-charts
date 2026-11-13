@@ -1,6 +1,7 @@
 import {
     Color,
     Debug,
+    LINE_DASH_PATTERNS,
     ModuleRegistry,
     type PlainObject,
     circularSliceArray,
@@ -30,6 +31,7 @@ import {
     RESOLVED_TO_BRANCH,
     UNRESOLVABLE_PATH,
     USER_OPTIONS_EDGE,
+    USER_PARTIAL_OPTIONS_EDGE,
     type VertexInterface,
     getPathLastIndex,
     getPathSafe,
@@ -936,6 +938,7 @@ function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, va
 enum TransformOperation {
     Apply = '$apply',
     ApplyCycle = '$applyCycle',
+    ApplyLineDash = '$applyLineDash',
     ApplyPadding = '$applyPadding',
     ApplySwitch = '$applySwitch',
     ApplyTheme = '$applyTheme',
@@ -954,6 +957,7 @@ enum TransformOperation {
 const transformOperations: Record<TransformOperation, OperationFns> = {
     $apply: applyOperation,
     $applyCycle: applyCycleOperation,
+    $applyLineDash: applyLineDashOperation,
     $applyPadding: applyPaddingOperation,
     $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
@@ -1022,6 +1026,52 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         }
     }
 
+    return RESOLVED_TO_BRANCH;
+}
+
+function isLineDashName(value: unknown): value is keyof typeof LINE_DASH_PATTERNS {
+    return isString(value) && Object.hasOwn(LINE_DASH_PATTERNS, value);
+}
+
+/**
+ * The default is an array literal, whose elements arrive as separate values, or an operation that resolves to one.
+ * An `undefined` default stands for none.
+ */
+function resolveLineDashDefault(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const resolved = values.map((value) => graph.resolveVertexValue(vertex, value));
+    if (resolved.length === 1 && resolved[0] === undefined) return;
+    return resolved.length === 1 && Array.isArray(resolved[0]) ? resolved[0] : resolved;
+}
+
+/**
+ * Resolves a named `lineDash` (e.g. `'dash-dot'`) to its array of lengths. A name replaces the whole array, so the
+ * elements of any array at a lower priority are pruned rather than merged index by index over it, which is how
+ * arrays are layered.
+ */
+function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const pathArray = graph.getPathArray(vertex);
+    const userOption = graph.dangerouslyGetUserOption(pathArray);
+    const overrideOption =
+        graph.dangerouslyGetThemeOverride(pathArray) ?? graph.dangerouslyGetThemeOverride(withoutIndices(pathArray));
+
+    const winner = userOption ?? overrideOption;
+    if (isLineDashName(winner)) {
+        graph.prune(vertex, [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE]);
+        return [...LINE_DASH_PATTERNS[winner]];
+    }
+
+    const defaultDash = resolveLineDashDefault(graph, vertex, values);
+
+    // A user array still merges index by index over a named override, which stands in for the default.
+    const base = isLineDashName(overrideOption) ? [...LINE_DASH_PATTERNS[overrideOption]] : (defaultDash ?? []);
+
+    // An empty default with nothing to layer over it is the value as it stands: an empty array has no elements to
+    // graft, and no default leaves the option unset, so that what the style falls back to still applies.
+    if (base.length === 0 && userOption == null && overrideOption == null) return defaultDash;
+
+    // On the defaults edge, so that during a styler's partial resolution the base cannot clobber the partial's values,
+    // which graft to the user partial edge by default.
+    graph.graftObject(vertex, base, undefined, DEFAULTS_EDGE);
     return RESOLVED_TO_BRANCH;
 }
 

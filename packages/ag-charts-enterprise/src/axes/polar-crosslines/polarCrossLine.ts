@@ -25,7 +25,7 @@ import {
     resolvePadding,
     validateCrossLineValue,
 } from 'ag-charts-core';
-import type { BBox, ExtendedPath2D, LineDashValue, Node, Point } from 'ag-charts-core';
+import type { BBox, ExtendedPath2D, Node, Point } from 'ag-charts-core';
 
 import { drawPolygonRing } from '../polygonRing';
 
@@ -87,7 +87,7 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
     stroke?: string;
     strokeWidth?: number;
     strokeOpacity?: number;
-    lineDash?: LineDashValue;
+    lineDash?: number[];
     shape: 'polygon' | 'circle' = 'polygon';
     label!: PolarCrossLineLabelOptions;
     listeners?: AgCrossLineListeners<unknown>;

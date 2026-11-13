@@ -9,6 +9,7 @@ import type {
     AgAxisContinuousIntervalOptions,
     AgAxisCrossLineListeners,
     AgAxisGridLineOptions,
+    AgAxisGridStyle,
     AgAxisLineOptions,
     AgBandHighlightOptions,
     AgBaseAxisLabelOptions,
@@ -134,7 +135,11 @@ export type NormalisedAxisLineOptions = Normalised<
     { stroke?: CssColor }
 >;
 
-export type NormalisedAxisGridLineOptions = Normalised<AgAxisGridLineOptions, 'enabled' | 'width' | 'style'>;
+export type NormalisedAxisGridLineOptions = Normalised<
+    AgAxisGridLineOptions,
+    'enabled' | 'width' | 'style',
+    { style?: Array<Normalised<AgAxisGridStyle>> }
+>;
 
 export type NormalisedAxisTickOptions = Normalised<AgAxisBaseTickOptions, 'enabled' | 'width' | 'size'>;
 

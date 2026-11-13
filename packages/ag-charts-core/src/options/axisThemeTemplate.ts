@@ -100,7 +100,7 @@ export const commonAxisThemeTemplate = {
         enabled: true,
         strokeWidth: { $ref: 'axisLineWidth' },
         strokeOpacity: 1,
-        lineDash: [],
+        lineDash: { $applyLineDash: [] },
         stroke: { $ref: 'axisLineColor' },
     },
     tick: {
@@ -118,14 +118,14 @@ export const commonAxisThemeTemplate = {
                     fillOpacity: 1,
                     stroke: { $ref: 'gridLineColor' },
                     strokeWidth: { $path: '../../width' },
-                    lineDash: [],
+                    lineDash: { $applyLineDash: [] },
                 },
                 [
                     {
                         fillOpacity: 1,
                         stroke: { $ref: 'gridLineColor' },
                         strokeWidth: { $path: '../../width' },
-                        lineDash: [],
+                        lineDash: { $applyLineDash: [] },
                     },
                 ],
             ],
@@ -146,6 +146,7 @@ export const crossLinesThemeTemplate = {
             fillOpacity: { $if: [{ $eq: [{ $path: './type' }, 'range'] }, 0.08, undefined] },
             stroke: { $ref: 'foregroundColor' },
             strokeWidth: 1,
+            lineDash: { $applyLineDash: [] },
             label: {
                 ...LABEL_OVERFLOW_DEFAULTS,
                 ...undocumentedThemeOptions({ overflow: 'pad-chart' }),

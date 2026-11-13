@@ -31,7 +31,6 @@ import {
     mergeDefaults,
     normalizeAngle360,
     normalizeAngle360Inclusive,
-    resolveLineDash,
     sectorBox,
     tickFormat,
     toNumberOrUndefined,
@@ -1012,7 +1011,7 @@ export class RadialGaugeSeries
                 stroke,
                 strokeOpacity,
                 strokeWidth: strokeWidth / scale,
-                lineDash: resolveLineDash(lineDash).map((d) => d / scale),
+                lineDash: lineDash.map((d) => d / scale),
                 lineDashOffset: lineDashOffset / scale,
             });
 
