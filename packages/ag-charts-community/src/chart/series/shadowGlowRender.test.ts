@@ -71,6 +71,36 @@ describe('shadow and glow render', () => {
         });
     });
 
+    describe('the shadow spread of a sharp vertex', () => {
+        // A shadow bevels the vertices under 60°, where a glow bevels those under about 57°, so the apex of a triangle marker
+        // (59.8°) is bevelled by the shadow. Its baseline is that of the code before the glow's limit was set.
+        it('renders the spread of a shadow around a triangle marker with its apex bevelled', async () => {
+            await create(
+                [
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        shape: 'triangle',
+                        size: 40,
+                        shadow: { enabled: true, fill: '#d0021b', fillOpacity: 1, blur: 0, spread: 16 },
+                    },
+                ],
+                [
+                    { x: 1, y: 2 },
+                    { x: 2, y: 4 },
+                    { x: 3, y: 6 },
+                ],
+                {
+                    ...RENDER_OPTIONS,
+                    padding: { top: 60, left: 60, right: 440, bottom: 350 },
+                    axes: { x: { type: 'number', min: 0, max: 4 }, y: { type: 'number', min: 0, max: 8 } },
+                }
+            );
+            await snapshot();
+        });
+    });
+
     describe('a glow beside items that do not glow', () => {
         const GLOWING = { glow: HARD_GLOW };
 

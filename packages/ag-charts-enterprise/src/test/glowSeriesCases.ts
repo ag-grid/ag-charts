@@ -307,7 +307,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
 ];
 
 /** The node of a hierarchy series that the pointer is on: a leaf, or a group of the treemap. */
-const nodeNamed = (name: string) => (chart: Parameters<NonNullable<GlowSeriesCase['hoverDatum']>>[0]) => {
+export const nodeNamed = (name: string) => (chart: Parameters<NonNullable<GlowSeriesCase['hoverDatum']>>[0]) => {
     for (const node of getHierarchyRootNode(chart)!) if (node.datum?.name === name) return node;
     throw new Error(`No node named ${name}`);
 };

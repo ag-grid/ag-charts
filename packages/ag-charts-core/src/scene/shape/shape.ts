@@ -59,11 +59,20 @@ export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
 /**
  * The miter limit of the stroke that dilates a shape for its shadow `spread`. Right angles keep their sharp corners,
- * like a CSS `box-shadow` spread, while acute vertices are bevelled instead of spiking out: those under about 57°. A limit
- * of 2 would bevel under 60°, which flattens the apex of a triangle marker (59.8°, from a height of 0.87) and leaves its
- * other two corners (60.1°) pointed. This one keeps the apex pointed, and bevels the points of a star (52.6°).
+ * like a CSS `box-shadow` spread, while acute vertices are bevelled instead of spiking out: those under 60°.
  */
-const DILATION_MITER_LIMIT = 2.1;
+const SHADOW_MITER_LIMIT = 2;
+
+/**
+ * The same for a glow, for its outer edge and for the footprint that its `gap` cuts out. A limit of 2 bevels under 60°,
+ * which flattens the apex of a triangle marker (59.8°, from a height of 0.87) and leaves its other two corners (60.1°)
+ * pointed. This one bevels under about 57°, so the apex stays pointed, and the points of a star (52.6°) are bevelled.
+ */
+const GLOW_MITER_LIMIT = 2.1;
+
+function getDilationMiterLimit(slot: ShadowSlot): number {
+    return slot === 'glow' ? GLOW_MITER_LIMIT : SHADOW_MITER_LIMIT;
+}
 
 /** The alpha of a plain colour, which a shadow cast from an opaque copy of the shape has to follow. */
 function colourAlpha(colour: unknown): number {
@@ -965,7 +974,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.lineCap = dilationCap;
         const ownJoin = drawsStroke && !footprint;
         ctx.lineJoin = ownJoin ? (this.__lineJoin ?? 'miter') : 'miter';
-        ctx.miterLimit = ownJoin ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
+        ctx.miterLimit = ownJoin ? (this.__miterLimit ?? 10) : getDilationMiterLimit(slot);
         ctx.lineWidth = (drawsStroke ? this.__strokeWidth : 0) + spread * 2;
     }
 
@@ -1068,7 +1077,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const fillOnly = this.getShadowMode(slot) === 'fill';
         const halfStroke = (fillOnly ? 0 : this.getSilhouetteStrokeWidth() / 2) + spread;
         // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
-        const miterLimit = fillOnly ? DILATION_MITER_LIMIT : (this.__miterLimit ?? 10);
+        const miterLimit = fillOnly ? getDilationMiterLimit(slot) : (this.__miterLimit ?? 10);
         const joinReach = fillOnly || (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * miterLimit : halfStroke;
         // A square cap reaches a half-stroke along the diagonal. A spread dilation caps its open strokes too.
         const squareCap = spread > 0 || (!fillOnly && this.__lineCap === 'square');

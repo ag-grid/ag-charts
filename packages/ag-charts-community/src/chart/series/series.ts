@@ -1392,12 +1392,8 @@ export abstract class Series<
         legendItemValues?: string[],
         itemGlow?: AgGlowOptions
     ): NormalisedDropShadowOptions | undefined {
-        // A styler can glow the hovered item alone, which its in-place copy is not told, so a chart with one may need the cut.
-        if (itemGlow == null && !this.hasAnyGlow()) {
-            return !isHighlight && this.hasItemStylers()
-                ? this.cutHoveredInPlace(datumIndex, highlightState, legendItemValues)
-                : undefined;
-        }
+        if (itemGlow == null && !this.hasAnyGlow()) return;
+
         if (isHighlight) {
             const glow = this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
             // The copy draws beneath the overlay if the series is not brought to front, so it cuts the overlay as well.
@@ -1419,22 +1415,6 @@ export abstract class Series<
      */
     protected hoveredCopyCutsOverlay(): boolean {
         return this.hasAnyGlow() && !this.bringToFront();
-    }
-
-    /**
-     * What the in-place copy of the hovered item casts, if the series is not brought to front: the overlay lies above the
-     * highlight copy then, so the item is cut out of it, whether or not that copy glows.
-     */
-    private cutHoveredInPlace(
-        datumIndex: DatumIndex | undefined,
-        highlightState: HighlightState | undefined,
-        legendItemValues: string[] | undefined
-    ): NormalisedDropShadowOptions | undefined {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        if (highlightedDatum?.series !== this) return;
-
-        const copy = this.resolveInPlaceCopy(highlightedDatum, datumIndex, highlightState, legendItemValues);
-        return copy === HOVERED_IN_PLACE && !this.bringToFront() ? CUT_ONLY_GLOW : undefined;
     }
 
     private castGlow(
