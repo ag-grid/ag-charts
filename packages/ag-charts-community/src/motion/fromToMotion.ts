@@ -36,7 +36,7 @@ export type ApplyFn<
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
 > = (note: N, props: T, status: 'start' | 'update' | 'end') => void;
 
-export const NODE_UPDATE_STATE_TO_PHASE_MAPPING: Record<NodeUpdateState, AnimationPhase> = {
+export const NODE_UPDATE_STATE_TO_PHASE_MAPPING: Record<NodeUpdateState, Exclude<AnimationPhase, 'transition'>> = {
     added: 'add',
     updated: 'update',
     removed: 'remove',

@@ -26,6 +26,8 @@ import type {
     Selection,
     SeriesLabelDefaults,
     SeriesPluginModuleInstance,
+    Shape,
+    ShapeStyle,
     SizedPoint,
 } from 'ag-charts-core';
 import {
@@ -134,6 +136,7 @@ import {
     type SeriesNodeDatum,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
+import { ShapeStyleMotion, type StyleLayer } from './styleMotion';
 import { hasDimmedOpacity, isDatumHighlight, resolveMarkerDrawingMode } from './util';
 
 /** The key of a merge that has nothing under it. */
@@ -155,6 +158,11 @@ type SeriesListenerEvent =
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
     readonly processedData: ProcessedData<any>;
+}
+
+export interface SeriesRestyleEvent {
+    /** Whether the series' shapes animate to their new styles, rather than snapping. */
+    readonly animate: boolean;
 }
 
 /** Pick radius substituted for `nodeClickRange: 'exact'` when a series has no pickable node shapes. */
@@ -223,6 +231,11 @@ export type SeriesConstructorOpts<TOpts extends object> = {
     usesPlacedLabels?: boolean;
     alwaysClip?: boolean;
     supportsStandaloneZoom?: boolean;
+    /**
+     * Whether the series resolves its shapes' styles into `Shape.targetStyle` for `restyleLayers` to apply, so highlight
+     * changes animate them. Its removed highlight copies then stay while fading out, and it must not restyle them.
+     */
+    animatesStyles?: boolean;
 };
 
 function propertyAxisDirection(property: 'x' | 'y' | 'angle' | 'radius'): ChartAxisDirection;
@@ -550,6 +563,7 @@ export abstract class Series<
             usesPlacedLabels = false,
             alwaysClip = false,
             supportsStandaloneZoom = false,
+            animatesStyles = false,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
@@ -560,6 +574,7 @@ export abstract class Series<
         this.pickModes = pickModes;
         this.alwaysClip = alwaysClip;
         this.supportsStandaloneZoom = supportsStandaloneZoom;
+        this.animatesStyles = animatesStyles;
         this.highlightLabelGroup.pointerEvents = PointerEvents.None;
 
         this.cleanup.register(
@@ -676,6 +691,8 @@ export abstract class Series<
         'data-selection-change': null;
         'grouping-changed': SeriesGroupingChangedEvent;
         'visibility-change': AgSeriesVisibilityChange;
+        /** Emitted by series that animate styles, once `restyleLayers` has applied or animated their shapes' styles. */
+        restyle: SeriesRestyleEvent;
     }>();
 
     updatedDomains() {
@@ -1144,6 +1161,52 @@ export abstract class Series<
     protected hasAnyGlow(): boolean {
         this.anyGlow ??= this.hasGlowIn(HighlightState.Item) || this.hasInPlaceGlow();
         return this.anyGlow;
+    }
+
+    protected readonly animatesStyles: boolean;
+    private styleMotion?: ShapeStyleMotion;
+    /** Whether this update applies styles as it resolves them, as nothing fades: neither this update nor a running one. */
+    private stylesApplyInline = false;
+
+    /** Call before resolving styles in an update, so that `setTargetStyle` knows whether to apply them. */
+    protected prepareRestyle() {
+        this.stylesApplyInline =
+            !this.ctx.animationManager.isRestyleOnly() && !(this.styleMotion?.isAnimating() ?? false);
+    }
+
+    /**
+     * Resolve `shape`'s style for `restyleLayers` to apply or animate to. When nothing fades it applies now, saving
+     * `restyleLayers` a pass over the shapes.
+     */
+    protected setTargetStyle(shape: Shape, style: ShapeStyle, fillBBox: ShapeFillBBox | undefined) {
+        shape.targetStyle = style;
+        if (this.stylesApplyInline) {
+            shape.setStyleProperties(style, fillBBox, shape.fillParams);
+        }
+    }
+
+    /**
+     * Apply the `targetStyle` this update resolved for each layer's shapes. A restyle-only update, such as a highlight
+     * change, animates them from what is displayed; any other update snaps them.
+     */
+    protected restyleLayers<D extends SeriesNodeDatum, N extends Shape<D>>(
+        layers: StyleLayer<D, N>[],
+        fillBBox: ShapeFillBBox
+    ) {
+        const { animationManager } = this.ctx;
+        this.styleMotion ??= new ShapeStyleMotion(this, animationManager);
+        const animate = animationManager.isRestyleOnly();
+        if (animate) {
+            this.styleMotion.animate(layers, fillBBox);
+        } else {
+            this.styleMotion.reset(layers, fillBBox, { applied: this.stylesApplyInline });
+        }
+        this.events.emit('restyle', { animate });
+    }
+
+    /** How many shapes the series' last restyle styled; none for series that do not animate styles. */
+    get styledShapeCount() {
+        return this.styleMotion?.shapeCount ?? 0;
     }
 
     /**
@@ -2217,6 +2280,23 @@ export abstract class Series<
         return markerStyle;
     }
 
+    private crossFilterDimmedStyles?: WeakMap<NormalisedSeriesMarkerStyle, NormalisedSeriesMarkerStyle>;
+
+    /** `style` dimmed for markers outside a cross-filter selection; shared by every marker with `style`. */
+    private crossFilterDimmedStyle(style: NormalisedSeriesMarkerStyle) {
+        this.crossFilterDimmedStyles ??= new WeakMap();
+        let dimmed = this.crossFilterDimmedStyles.get(style);
+        if (dimmed == null) {
+            dimmed = {
+                ...style,
+                fillOpacity: (style.fillOpacity ?? 1) * CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR,
+                strokeOpacity: (style.strokeOpacity ?? 1) * CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR,
+            };
+            this.crossFilterDimmedStyles.set(style, dimmed);
+        }
+        return dimmed;
+    }
+
     protected applyMarkerStyle(
         style: NormalisedSeriesMarkerStyle,
         markerNode: Marker,
@@ -2263,7 +2343,15 @@ export abstract class Series<
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
-        markerNode.setStyleProperties(style, fillBBox);
+        if (this.animatesStyles) {
+            this.setTargetStyle(markerNode, crossFilterSelected ? style : this.crossFilterDimmedStyle(style), fillBBox);
+        } else {
+            markerNode.setStyleProperties(style, fillBBox);
+            if (!crossFilterSelected) {
+                markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;
+                markerNode.strokeOpacity *= CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR;
+            }
+        }
         const supported = isSupportedMarkerShape(shape);
         markerNode.fillShadow = shadow?.enabled && supported ? shadow : undefined;
         markerNode.fillGlow = glow?.enabled && supported ? glow : undefined;
@@ -2272,11 +2360,6 @@ export abstract class Series<
         // `itemStyler`'s. The guard is exact, as `markerStrokePickInflation` never exceeds `sw / 2`.
         markerNode.pickInflation =
             strokeWidth > pickInflation * 2 ? Math.max(pickInflation, markerStrokePickInflation(style)) : pickInflation;
-
-        if (!crossFilterSelected) {
-            markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;
-            markerNode.strokeOpacity *= CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR;
-        }
 
         // Only for custom marker shapes
         if (typeof shape === 'function' && !markerNode.dirtyPath) {

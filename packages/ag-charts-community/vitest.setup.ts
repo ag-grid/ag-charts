@@ -16,6 +16,9 @@ const { ModuleRegistry } = await import('ag-charts-core');
 const { AllCommunityModule } = await import('./src/module-bundles/all');
 ModuleRegistry.registerModules(AllCommunityModule);
 
+const { snapTransitionAnimationsByDefault } = await import('./src/chart/test/utils');
+snapTransitionAnimationsByDefault();
+
 // @ts-expect-error types don't exactly align
 globalThis.Canvas = mockCanvas.ConfiguredCanvas;
 

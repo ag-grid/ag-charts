@@ -36,6 +36,13 @@ export class AnimationBatch {
         return this.controllers.size > 0;
     }
 
+    hasBlockingAnimations() {
+        for (const [phase, controllers] of this.phases) {
+            if (phase !== 'transition' && controllers.length > 0) return true;
+        }
+        return false;
+    }
+
     getActiveControllers(): IAnimation[] {
         return this.phases.get(PHASE_ORDER[this.currentPhase]) ?? [];
     }
@@ -131,7 +138,8 @@ export class AnimationBatch {
             progressPhase();
         } while (unusedTime > 0 && !arePhasesComplete());
 
-        if (this.animationTimeConsumed > this.maxAnimationTime) {
+        // Successive restyles can keep a batch of only `transition` animations running indefinitely.
+        if (this.animationTimeConsumed > this.maxAnimationTime && this.hasBlockingAnimations()) {
             this.debug(`Animation batch exceeded max animation time, skipping`, [...this.controllers]);
             this.stop();
         }
@@ -197,6 +205,13 @@ export class AnimationBatch {
                 this.removeAnimation(controller);
             }
         }
+    }
+
+    abandonAnimation(id: string) {
+        const controller = this.controllers.get(id);
+        if (controller == null) return;
+        controller.abandon();
+        this.removeAnimation(controller);
     }
 
     stopByAnimationGroupId(id: string) {

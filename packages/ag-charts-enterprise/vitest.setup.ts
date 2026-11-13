@@ -93,6 +93,9 @@ afterEach(resetPointerCaptures);
 
 vi.mock('./src/license/licenseManager');
 
+const { snapTransitionAnimationsByDefault } = await import('ag-charts-community-test');
+snapTransitionAnimationsByDefault();
+
 const { setupEnterpriseModules } = await import('./src/setup');
 setupEnterpriseModules();
 

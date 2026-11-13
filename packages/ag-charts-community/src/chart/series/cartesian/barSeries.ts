@@ -117,6 +117,7 @@ import type { SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { type ErrorBoundSeriesNodeDatum, HighlightState, SelectionState } from '../seriesTypes';
+import type { StyleLayer } from '../styleMotion';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,
@@ -138,6 +139,7 @@ import {
 } from './barUtil';
 import {
     type CartesianAnimationData,
+    type CartesianRestyleData,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
@@ -388,6 +390,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             ],
             pathsPerSeries: [],
             datumSelectionGarbageCollection: false,
+            animatesStyles: true,
             animationAlwaysUpdateSelections: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
@@ -1661,6 +1664,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return out;
     }
 
+    protected override highlightSelections() {
+        return [this.highlightSelection, this.phantomHighlightSelection];
+    }
+
     protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
         super.updateNodes(itemHighlighted, nodeRefresh);
 
@@ -1688,8 +1695,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         nodeData: BarNodeDatum[];
         datumSelection: Selection<BarNodeDatum, BarShape>;
     }) {
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to ensure we match up nodes by id.
+        if (this.matchNodesByPosition(opts.datumSelection)) {
+            // Optimised update path for data too large to animate.
             return opts.datumSelection.update(opts.nodeData);
         }
         return opts.datumSelection.update(opts.nodeData, undefined, this.getDatumId.bind(this));
@@ -1913,7 +1920,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const { shadow, glow } = this.options;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
-        const fillBBox = this.getShapeFillBBox();
 
         const direction = this.getBarDirection();
         const crispCentreDirection = this.getCategoryCrispDirection();
@@ -1921,6 +1927,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const series = this;
         const contextStyles = contextNodeData.styles;
+        const fillBBox = this.getShapeFillBBox();
 
         function updateDatumNode(rect: BarShape, datum: BarNodeDatum): void {
             // Resolved only when the datum has no style of its own, and then shared with the shadow.
@@ -1933,7 +1940,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const castState =
                 highlightState ?? series.getItemCastState(highlightedDatum, isHighlight, datum.datumIndex);
 
-            rect.setStyleProperties(style, fillBBox);
+            series.setTargetStyle(rect, style, fillBBox);
 
             const cornerRadius = style.cornerRadius ?? 0;
             const visible = categoryAlongX
@@ -2215,8 +2222,24 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     override animateReadyHighlight(data: Selection<BarNodeDatum, BarShape<BarNodeDatum>>) {
-        // Use direct reset for phantom selection to bypass resetMotion callback overhead
-        resetBarSelectionsDirect([data, this.phantomHighlightSelection]);
+        // Direct reset bypasses resetMotion overhead; cleanup waits for unhighlighted overlay nodes to fade out.
+        resetBarSelectionsDirect([data, this.phantomHighlightSelection], { cleanup: false });
+    }
+
+    protected override getStyleLayers({
+        datumSelection,
+        highlightSelection,
+        datumSelectionRestyled,
+    }: CartesianRestyleData<BarNodeDatum, BarShape>): StyleLayer<BarNodeDatum, BarShape>[] {
+        return [
+            { subId: '', selection: datumSelection, highlightSelection, restyled: datumSelectionRestyled },
+            {
+                subId: 'phantom',
+                selection: this.phantomSelection,
+                highlightSelection: this.phantomHighlightSelection,
+                restyled: true,
+            },
+        ];
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {

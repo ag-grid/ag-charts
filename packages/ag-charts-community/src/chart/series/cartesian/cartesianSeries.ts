@@ -5,6 +5,7 @@ import type {
     NormalisedCartesianSeriesOptionsCommon,
     NormalisedSeriesOptions,
     Scaling,
+    Shape,
 } from 'ag-charts-core';
 import {
     BBox,
@@ -49,6 +50,7 @@ import type { PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickMatch } f
 import type { SeriesDirectionKeysMapping } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
+import type { StyleLayer } from '../styleMotion';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
     CartesianSeriesNodeDataContext,
@@ -105,6 +107,13 @@ type CartesianAnimationEvent<TTypes extends CartesianSeriesTypes> = {
     disable: undefined;
 };
 
+export interface CartesianRestyleData<TDatum extends CartesianSeriesNodeDatum, TNode extends Node<TDatum>> {
+    datumSelection: Selection<TDatum, TNode>;
+    highlightSelection: Selection<TDatum, TNode>;
+    /** Whether this update resolved the styles of `datumSelection`; `highlightSelection` is resolved every update. */
+    datumSelectionRestyled: boolean;
+}
+
 export interface CartesianAnimationData<
     TDatum extends CartesianSeriesNodeDatum,
     TNode extends Node<TDatum>,
@@ -147,15 +156,14 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup<LabelOf<TTypes>>({ name: `${this.id}-series-labels` })
     );
-    private datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    protected datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
     protected labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
         Text<LabelOf<TTypes>>
     >(this.labelGroup, RotatableText);
 
-    private highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(
-        this.highlightNodeGroup,
-        () => this.nodeFactory()
-    );
+    protected highlightSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    /** Whether this update resolved the styles of `datumSelection`. */
+    private datumSelectionRestyled = false;
     protected highlightLabelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
         Text<LabelOf<TTypes>>
     >(this.highlightLabelGroup, RotatableText);
@@ -215,6 +223,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             this.dataNodeGroup,
             () => this.nodeFactory(),
             datumSelectionGarbageCollection
+        );
+        this.highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(
+            this.highlightNodeGroup,
+            () => this.nodeFactory(),
+            !this.animatesStyles
         );
 
         this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent<TTypes>>(
@@ -366,6 +379,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     update({ seriesRect }: { seriesRect?: BBox }) {
+        this.prepareRestyle();
         const { _contextNodeData: previousContextData } = this;
 
         const resize = this.checkResize(seriesRect);
@@ -385,13 +399,24 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         });
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
-        if (!animationData) return;
-
-        if (resize) {
-            this.animationState.transition('resize', animationData);
+        if (animationData) {
+            if (resize) {
+                this.animationState.transition('resize', animationData);
+            }
+            this.animationState.transition('update', animationData);
+            this.processedDataUpdated = false;
         }
-        this.animationState.transition('update', animationData);
-        this.processedDataUpdated = false;
+
+        // After `update`, whose resets snap running restyles to their end, so the new styles apply last.
+        this.restyle({
+            datumSelection: this.datumSelection,
+            highlightSelection: this.highlightSelection,
+            datumSelectionRestyled: this.datumSelectionRestyled,
+        });
+        this.datumSelectionRestyled = false;
+        if (!itemHighlighted && !this.hasLeavingHighlightNodes()) {
+            this.highlightGroup.visible = false;
+        }
     }
 
     public createStackContext(): StackContextOf<TTypes> | undefined {
@@ -695,7 +720,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.contentGroup.visible = animationEnabled || visible;
         this.annotationGroup.visible = animationEnabled || visible;
 
-        this.highlightGroup.visible = (animationEnabled || visible) && itemHighlighted;
+        this.highlightGroup.visible =
+            (animationEnabled || visible) && (itemHighlighted || this.hasLeavingHighlightNodes());
 
         this.updateDatumStyles({ datumSelection: highlightSelection, isHighlight: true });
         const drawingMode = this.getChartHighlightDrawingMode();
@@ -732,6 +758,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         if (nodeRefresh || redrawAll) {
             this.updateDatumNodes({ datumSelection, isHighlight: false, drawingMode: 'overlay' });
+            this.datumSelectionRestyled = true;
             if (!this.usesPlacedLabels) {
                 this.labelGroup.batchedUpdate(() => {
                     this.updateLabelNodes({ labelSelection, isHighlight: false });
@@ -767,7 +794,16 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         // the overlay — whether the highlight is datum-level is what decides it.
         const item = seriesHighlighted && this.isDatumHighlight(highlightedDatum) ? highlightedDatum : undefined;
 
-        if (item == null) return false;
+        if (item == null) {
+            // Unhighlighted overlay nodes stay as garbage until their restyle removes them.
+            if (this.animatesStyles && highlightSelection.length > 0) {
+                this.highlightSelection = this.updateHighlightSelectionItem({ items: [], highlightSelection });
+                this.highlightLabelSelection =
+                    this.updateLabelSelection({ labelData: [], labelSelection: highlightLabelSelection }) ??
+                    highlightLabelSelection;
+            }
+            return false;
+        }
 
         const { nodeData, labelData } = contextNodeData;
         const highlightItems = this.getHighlightData(nodeData, item);
@@ -783,6 +819,29 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             }) ?? highlightLabelSelection;
 
         return true;
+    }
+
+    /** Whether the highlight selection holds removed nodes still animating out. */
+    private hasLeavingHighlightNodes() {
+        for (const selection of this.highlightSelections()) {
+            for (const node of selection.nodes()) {
+                if (selection.isGarbage(node)) return true;
+            }
+        }
+        return false;
+    }
+
+    /** The selections of highlight copies; series with further highlight layers override this. */
+    protected highlightSelections(): Selection<DatumOf<TTypes>, NodeOf<TTypes>>[] {
+        return [this.highlightSelection];
+    }
+
+    /**
+     * Whether `selection` may match nodes to data by position, skipping datum ids where data is too large to animate.
+     * Highlight copies match by id whatever the data size, so they fade in and out as the highlight moves.
+     */
+    protected matchNodesByPosition(selection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>) {
+        return !processedDataIsAnimatable(this.processedData!) && !this.highlightSelections().includes(selection);
     }
 
     protected markQuadtreeDirty() {
@@ -1550,10 +1609,39 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.resetAllAnimation(data);
     }
 
+    private restyle(data: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>) {
+        const layers = this.getStyleLayers(data);
+        if (layers == null) {
+            data.highlightSelection.cleanup();
+        } else {
+            this.restyleLayers(layers, this.getShapeFillBBox());
+        }
+    }
+
+    /** The layers `restyleLayers` applies; series with further layers override this. */
+    protected getStyleLayers({
+        datumSelection,
+        highlightSelection,
+        datumSelectionRestyled,
+    }: CartesianRestyleData<DatumOf<TTypes>, NodeOf<TTypes>>):
+        StyleLayer<DatumOf<TTypes>, NodeOf<TTypes> & Shape<DatumOf<TTypes>>>[] | undefined {
+        if (!this.animatesStyles) return undefined;
+        type ShapeSelection = Selection<DatumOf<TTypes>, NodeOf<TTypes> & Shape<DatumOf<TTypes>>>;
+        return [
+            {
+                subId: '',
+                selection: datumSelection as ShapeSelection,
+                highlightSelection: highlightSelection as ShapeSelection,
+                restyled: datumSelectionRestyled,
+            },
+        ];
+    }
+
     protected animateReadyHighlight(data: Selection<DatumOf<TTypes>, NodeOf<TTypes>>) {
         const { datum } = this.opts?.animationResetFns ?? {};
         if (datum) {
-            resetMotion([data], datum);
+            // Without garbage collection, removed highlight nodes animate out before their restyle removes them.
+            resetMotion([data], datum, { cleanup: !this.animatesStyles });
         }
     }
 

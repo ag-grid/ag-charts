@@ -70,6 +70,7 @@ import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
 import { inheritDataSet, replaceDataSet } from './data/dataSetUtil';
+import { MAX_ANIMATABLE_NODES } from './data/maxAnimatableNodes';
 import { LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
@@ -783,6 +784,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     private readonly seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
+    private restyleOnlyOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
@@ -799,6 +801,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             newAnimationBatch,
             apiUpdate = false,
             clearCallbackCache = false,
+            restyleOnly = false,
         } = opts ?? {};
 
         this.apiUpdate = apiUpdate;
@@ -821,12 +824,19 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             this._performUpdateSkipAnimations = true;
         }
 
-        if (newAnimationBatch && this.ctx.animationManager.isActive()) {
+        if (newAnimationBatch && this.ctx.animationManager.isBlocking()) {
             this._performUpdateSkipAnimations = true;
         }
 
         if (type === ChartUpdateType.FULL || clearCallbackCache) {
             this.clearCallbackCacheOnUpdate = true;
+        }
+
+        if (type <= ChartUpdateType.SERIES_UPDATE) {
+            const firstSeriesRequest = this.performUpdateType > ChartUpdateType.SERIES_UPDATE;
+            const fades =
+                restyleOnly && this.ctx.chartState.getValue('options', 'highlight')?.transitionMode === 'gradual';
+            this.restyleOnlyOnUpdate = fades && (firstSeriesRequest || this.restyleOnlyOnUpdate);
         }
 
         if (this.debug.check()) {
@@ -885,8 +895,17 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         }
     }
 
+    /** Fading costs a style update per shape each frame, so past a chart-wide limit every series snaps instead. */
+    private canFadeStyles() {
+        let shapeCount = 0;
+        for (const series of this.series) {
+            shapeCount += series.styledShapeCount;
+        }
+        return shapeCount <= MAX_ANIMATABLE_NODES;
+    }
+
     private async performUpdate(count: number) {
-        const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
+        const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx, restyleOnlyOnUpdate } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
         if (this.clearCallbackCacheOnUpdate) {
@@ -902,15 +921,19 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this.performUpdateType = ChartUpdateType.NONE;
+        this.restyleOnlyOnUpdate = false;
         this.seriesToUpdate.clear();
         this.runningUpdateType = performUpdateType;
         this.currentProcessingUpdateType = performUpdateType;
 
         ctx.chartState.flushChanges();
 
+        const restyleOnly = restyleOnlyOnUpdate && this.canFadeStyles();
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
-            ctx.animationManager.startBatch(this._performUpdateSkipAnimations);
+            ctx.animationManager.startBatch(this._performUpdateSkipAnimations, restyleOnly);
             ctx.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
+        } else if (!restyleOnly) {
+            ctx.animationManager.endRestyle();
         }
 
         this.ctx.scene.updateDebugFlags();

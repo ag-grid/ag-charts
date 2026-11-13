@@ -35,6 +35,7 @@ export class AnimationManager {
     public maxAnimatableItems = MAX_ANIMATABLE_NODES;
 
     private batch: AnimationBatch;
+    private restyleOnly = false;
 
     private readonly debug = Debug.create(true, 'animation');
     private readonly events = new EventEmitter<AnimationEventMap>();
@@ -80,7 +81,10 @@ export class AnimationManager {
             this.currentAnonymousAnimationId += 1;
         }
 
-        const skip = (this.isSkipped() && !opts.forceAnimation) || opts.phase === 'none';
+        const skip =
+            opts.phase === 'transition'
+                ? this.isTransitionSkipped() || batch.isSkipped()
+                : (this.isSkipped() && !opts.forceAnimation) || opts.phase === 'none';
         if (skip) {
             this.debug('AnimationManager - skipping animation');
         }
@@ -153,13 +157,16 @@ export class AnimationManager {
         }
     }
 
+    /** Stops the running animations at their end; returns whether any were running, so need rendering. */
     public reset() {
+        const stopped = this.batch.isActive();
         if (this.isPlaying) {
             this.stop();
             this.play();
         } else {
             this.stop();
         }
+        return stopped;
     }
 
     public skip(skip = true) {
@@ -170,8 +177,29 @@ export class AnimationManager {
         return !this.rafAvailable || this.skipAnimations || this.batch.isSkipped();
     }
 
-    public isActive() {
-        return this.isPlaying && this.batch.isActive();
+    /** Whether animations that block interaction are playing; `transition` animations alone do not. */
+    public isBlocking() {
+        return this.isPlaying && this.batch.hasBlockingAnimations();
+    }
+
+    /** Whether the running update only restyles existing nodes, so series animate their new styles. */
+    public isRestyleOnly() {
+        return this.restyleOnly;
+    }
+
+    /** Mark an update that runs again without a new batch as more than a restyle, so its styles snap. */
+    public endRestyle() {
+        this.restyleOnly = false;
+    }
+
+    /** Mocking point for tests; `transition` animations play without `animation.enabled`, but need frames. */
+    public isTransitionSkipped() {
+        return !this.rafAvailable;
+    }
+
+    /** End an animation without jumping to its end, for a successor that starts from what it displays. */
+    public abandonAnimation(id: string) {
+        this.batch.abandonAnimation(id);
     }
 
     public getRemainingTime(phase?: AnimationPhase) {
@@ -225,7 +253,9 @@ export class AnimationManager {
                         deltaTime,
                     });
 
-                    this.interactionManager.pushState(InteractionState.Animation);
+                    if (this.batch.hasBlockingAnimations()) {
+                        this.interactionManager.pushState(InteractionState.Animation);
+                    }
 
                     try {
                         this.batch.progress(deltaTime);
@@ -287,21 +317,30 @@ export class AnimationManager {
         }
     }
 
-    public startBatch(skipAnimations?: boolean) {
+    public startBatch(skipAnimations?: boolean, restyleOnly = false) {
         this.debug(`AnimationManager - startBatch() with skipAnimations=${skipAnimations}.`);
+        const restyle = restyleOnly && skipAnimations !== true;
+        // A restyle joins a running batch, so its `transition` animations play after the batch's other animations.
+        if (restyle && this.batch.isActive()) {
+            this.restyleOnly = true;
+            return;
+        }
+
         this.reset();
         this.batch.destroy();
         this.batch = new AnimationBatch(this.defaultDuration * 1.5, this.logger);
         if (skipAnimations === true) {
             this.batch.skip();
         }
+        this.restyleOnly = restyle;
     }
 
     public endBatch() {
         if (this.batch.isActive()) {
             this.batch.ready();
             this.requestAnimation();
-        } else {
+        }
+        if (!this.batch.hasBlockingAnimations()) {
             this.interactionManager.popState(InteractionState.Animation);
 
             if (this.batch.isSkipped()) {

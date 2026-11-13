@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, DynamicContext, Node } from 'ag-charts-core';
+import type { ChartAnimationPhase, DynamicContext, Node, Shape } from 'ag-charts-core';
 import {
     BBox,
     ChartAxisDirection,
@@ -88,10 +88,7 @@ export abstract class PolarSeries<
         () => this.labelFactory(),
         false
     );
-    protected highlightSelection: Selection<TDatum, TNode> = Selection.selectNoInference<TDatum, TNode>(
-        this.highlightNodeGroup,
-        () => this.nodeFactory()
-    );
+    protected highlightSelection: Selection<TDatum, TNode>;
     protected highlightLabelSelection: Selection<TDatum, Text<TDatum>> = Selection.select(
         this.highlightLabelGroup,
         () => this.labelFactory()
@@ -149,6 +146,11 @@ export abstract class PolarSeries<
             canHaveAxes,
         });
 
+        this.highlightSelection = Selection.selectNoInference<TDatum, TNode>(
+            this.highlightNodeGroup,
+            () => this.nodeFactory(),
+            !this.animatesStyles
+        );
         this.animationResetFns = animationResetFns;
         this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>(
             'empty',
@@ -228,6 +230,15 @@ export abstract class PolarSeries<
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null | Promise<BBox | null> {
         return null;
+    }
+
+    /** Apply, or animate, the styles this update resolved; call after `update`, whose resets snap running restyles. */
+    protected restyle() {
+        if (!this.animatesStyles) return;
+        type ShapeSelection = Selection<TDatum, TNode & Shape<TDatum>>;
+        const selection = this.itemSelection as ShapeSelection;
+        const highlightSelection = this.highlightSelection as ShapeSelection;
+        this.restyleLayers([{ subId: '', selection, highlightSelection, restyled: true }], this.getShapeFillBBox());
     }
 
     protected getShapeFillBBox(): ShapeFillBBox {

@@ -79,14 +79,7 @@ import type {
 } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
-import {
-    SORT_DOMAIN_GROUPS,
-    createDatumId,
-    keyProperty,
-    processedDataIsAnimatable,
-    rowCountProperty,
-    valueProperty,
-} from '../../data/processors';
+import { SORT_DOMAIN_GROUPS, createDatumId, keyProperty, rowCountProperty, valueProperty } from '../../data/processors';
 import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '../../label';
 import {
     adjustLabelPlacement,
@@ -273,6 +266,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: true,
+            animatesStyles: true,
             animationAlwaysPopulateNodeData: true,
             alwaysClip: true,
             animationResetFns: {
@@ -879,8 +873,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }) {
         const { nodeData, datumSelection } = opts;
 
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to match nodes by id.
+        if (this.matchNodesByPosition(datumSelection)) {
+            // Optimised update path for data too large to animate.
             return datumSelection.update(nodeData);
         }
 
@@ -1027,7 +1021,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            rect.setStyleProperties(style, fillBBox);
+            this.setTargetStyle(rect, style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;

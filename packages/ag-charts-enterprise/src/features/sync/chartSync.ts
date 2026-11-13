@@ -190,7 +190,8 @@ export class ChartSync extends AbstractModuleInstance implements _ModuleSupport.
                 opts: { forceNodeDataRefresh: true },
             });
         } else {
-            eventsHub.emit('chart:request-update', { type: updateType });
+            // Only the series stage follows a synced highlight, which restyles the series' nodes.
+            eventsHub.emit('chart:request-update', { type: updateType, opts: { restyleOnly: true } });
         }
     }
 

@@ -72,6 +72,11 @@ export interface UpdateOpts {
     backOffMs?: number;
     apiUpdate?: boolean;
     clearCallbackCache?: boolean;
+    /**
+     * The request only restyles existing series nodes, as a highlight change does, so the new styles animate, joining
+     * any animations playing. An update animates its restyle only if all its series-stage requests are restyles.
+     */
+    restyleOnly?: boolean;
 }
 
 export interface SeriesAreaHoverEvent extends Readonly<CanvasPoint> {

@@ -100,7 +100,6 @@ const {
     getItemId,
     getItemStylesPerItemId,
     DataSet,
-    processedDataIsAnimatable,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Point & {
@@ -1014,8 +1013,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
 
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to match nodes by id.
+        if (this.matchNodesByPosition(datumSelection)) {
+            // Optimised update path for data too large to animate.
             return datumSelection.update(data);
         }
 
