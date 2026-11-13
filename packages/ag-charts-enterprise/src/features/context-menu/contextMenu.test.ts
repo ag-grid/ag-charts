@@ -717,16 +717,13 @@ describe('Context Menu', () => {
             'right-clicking a marker offers the front cross line ahead of an earlier split one $name',
             async ({ xCrossLines, yCrossLines }) => {
                 chart = await createEnterpriseChart(
-                    chartOptions(
-                        { enabled: true, getItems },
-                        {
-                            ...overlapOptions(),
-                            axes: {
-                                x: { type: 'number', crossLines: [...xCrossLines] },
-                                y: { type: 'number', crossLines: [...yCrossLines] },
-                            },
-                        } as AgChartOptions
-                    )
+                    chartOptions({ enabled: true, getItems }, {
+                        ...overlapOptions(),
+                        axes: {
+                            x: { type: 'number', crossLines: [...xCrossLines] },
+                            y: { type: 'number', crossLines: [...yCrossLines] },
+                        },
+                    } as AgChartOptions)
                 );
                 const { canvasX, canvasY } = datumCanvasPoint(1);
                 await contextMenuAction(canvasX, canvasY)(chart);
