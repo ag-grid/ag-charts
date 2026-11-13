@@ -417,7 +417,7 @@ interface CrossLineLabelMorph {
 }
 
 // Normalised per variant so `type` still discriminates `value` from `range`.
-type CrossLineRequiredKeys = 'enabled' | 'stroke' | 'strokeWidth';
+type CrossLineRequiredKeys = 'enabled' | 'stroke' | 'strokeWidth' | 'layer';
 export type NormalisedAxisCrossLineOptions =
     | Normalised<
           AgLineCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, ContextDefault>,

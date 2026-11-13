@@ -146,6 +146,7 @@ export const crossLinesThemeTemplate = {
             fillOpacity: { $if: [{ $eq: [{ $path: './type' }, 'range'] }, 0.08, undefined] },
             stroke: { $ref: 'foregroundColor' },
             strokeWidth: 1,
+            layer: { $if: [{ $eq: [{ $path: './type' }, 'range'] }, 'split', 'front'] },
             label: {
                 ...LABEL_OVERFLOW_DEFAULTS,
                 ...undocumentedThemeOptions({ overflow: 'pad-chart' }),

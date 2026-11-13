@@ -1,4 +1,4 @@
-import type { AgCrossLineListeners } from 'ag-charts-community';
+import type { AgCrossLineLayer, AgCrossLineListeners } from 'ag-charts-community';
 import {
     BandScale,
     type CanvasPoint,
@@ -80,6 +80,7 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
     id?: string;
     enabled?: boolean;
     type!: CrossLineType;
+    layer: AgCrossLineLayer = 'front';
     range?: [unknown, unknown];
     value?: unknown;
     fill?: string;
@@ -144,11 +145,23 @@ export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOpt
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions) {
-        const { id, enabled, type, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, listeners } =
-            options;
+        const {
+            id,
+            enabled,
+            type,
+            layer,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            listeners,
+        } = options;
         this.id = id;
         this.enabled = enabled;
         this.type = type;
+        this.layer = layer;
         this.range = options.type === 'range' ? options.range : undefined;
         this.value = options.type === 'line' ? options.value : undefined;
         this.fill = fill;

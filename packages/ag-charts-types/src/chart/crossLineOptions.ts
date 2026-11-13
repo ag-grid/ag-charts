@@ -4,6 +4,8 @@ import type { AgChartLabelStyleOptions } from './labelOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { AxisValue, ContextDefault, FontFamilyFull, Opacity, PixelSize } from './types';
 
+export type AgCrossLineLayer = 'front' | 'back' | 'split';
+
 /** Cross Line listeners. */
 export interface AgCrossLineListeners<TContext = ContextDefault> {
     /** The listener to call when the Cross Line is clicked. */
@@ -25,6 +27,15 @@ export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOption
     strokeOpacity?: Opacity;
     /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
     lineDash?: PixelSize[];
+    /**
+     * Where the Cross Line draws relative to the series.
+     * - `'front'` draws the Cross Line and its label in front of every series.
+     * - `'back'` draws the Cross Line and its label behind every series.
+     * - `'split'` draws the Cross Line behind every series and its label in front of them.
+     *
+     * Default: `'front'` for `line` Cross Lines, `'split'` for `range` Cross Lines.
+     */
+    layer?: AgCrossLineLayer;
     /** Configuration for the Cross Line label. */
     label?: LabelType;
     /** A map of event names to listeners. */

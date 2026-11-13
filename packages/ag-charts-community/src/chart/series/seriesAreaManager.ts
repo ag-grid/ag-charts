@@ -669,7 +669,10 @@ export class SeriesAreaManager extends BaseManager {
 
         const claims = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
         const claimedParams = claims.flatMap((claim) => claim.matchedParams);
-        const claimed = claims.some((claim) => claim.isHandled()) && !(isSeriesWidget && this.isHandledNodeHit(event));
+        // A claim drawn in front of the series beats a node handled by user listeners, but not built-in controls.
+        const builtinOnly = claims.some((claim) => claim.beatsHandledNode?.() === true);
+        const claimed =
+            claims.some((claim) => claim.isHandled()) && !(isSeriesWidget && this.isHandledNodeHit(event, builtinOnly));
         if (claimed) {
             // The claim wins the event, but still reports the series nodes within `nodeClickRange`.
             const nodeParams = isSeriesWidget ? this.pickSeriesNodeHitParams(event) : [];
@@ -937,23 +940,28 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     /** Selection, built-in controls and tooltip pagination act on single clicks only. */
-    private handlesNodeEvent(pick: PickedNodes | undefined, type: ClickLikeEvent['type']): boolean {
+    private handlesNodeEvent(pick: PickedNodes | undefined, type: ClickLikeEvent['type'], builtinOnly = false): boolean {
         const found = pick?.matches[0];
         if (pick == null || found == null) return false;
         const { series } = found;
+        const builtin =
+            type === 'click' &&
+            (series.hasBuiltinListener(pick.target) || (pick.matches.length > 1 && this.chart.tooltip.pagination));
+        if (builtin || builtinOnly) return builtin;
         if (type === 'dblclick') return series.hasNodeListener('seriesNodeDoubleClick');
         return (
             (series.isSelectionEnabled() && series.isDatumSelectable(found.datumIndex)) ||
-            series.hasNodeListener('seriesNodeClick') ||
-            series.hasBuiltinListener(pick.target) ||
-            (pick.matches.length > 1 && this.chart.tooltip.pagination)
+            series.hasNodeListener('seriesNodeClick')
         );
     }
 
-    /** Whether a node directly under the pointer handles the event, so it beats an overlapping cross line. */
-    private isHandledNodeHit(event: ClickLikeEvent & CurrentPoint): boolean {
+    /**
+     * Whether a node directly under the pointer handles the event, so it beats an overlapping cross line.
+     * With `builtinOnly`, only built-in controls and tooltip pagination count.
+     */
+    private isHandledNodeHit(event: ClickLikeEvent & CurrentPoint, builtinOnly: boolean): boolean {
         const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
-        return pick?.distance === 0 && this.handlesNodeEvent(pick, event.type);
+        return pick?.distance === 0 && this.handlesNodeEvent(pick, event.type, builtinOnly);
     }
 
     private pickSeriesNodeHitParams(event: ClickLikeEvent & CurrentPoint): AgMatchedParams<unknown>[] {

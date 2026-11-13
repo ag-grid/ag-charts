@@ -97,6 +97,8 @@ export interface SeriesAreaClickClaim {
     readonly matchedParams: readonly AgMatchedParams<unknown>[];
     /** Whether the claim takes the click from the series node and chart-level listeners. */
     isHandled(): boolean;
+    /** Whether the claim also takes the click from a series node that a user listener or selection handles. */
+    beatsHandledNode?(): boolean;
     fire(allMatchedParams: AgMatchedParams<unknown>[]): void;
 }
 

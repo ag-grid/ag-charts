@@ -112,6 +112,8 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private readonly rangeGroup = new Group({ name: 'CrossLines-Range' });
     private readonly lineGroup = new Group({ name: 'CrossLines-Line' });
     private readonly labelGroup = new Group({ name: 'CrossLines-Label' });
+    // Attached after `rangeGroup` in the same slot, so `'back'` labels draw over this axis's behind shapes.
+    private readonly behindLabelGroup = new Group({ name: 'CrossLines-BehindLabel' });
     private instances: CrossLine[] = [];
     private visible = true;
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
@@ -131,6 +133,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             this.ctx.labelManager.registerSource(source);
         }
         this.axisCtx.attachAxisOverlay(this.rangeGroup, 'low');
+        this.axisCtx.attachAxisOverlay(this.behindLabelGroup, 'low');
         this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
         this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
         this.ctx.crossLinesDOMProxy?.attach(this);
@@ -264,6 +267,12 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         // `chart.axes[].listeners` level:
         const axisId = this.axisCtx.userAxisId;
         const axisListener = isClick ? listeners?.crossLineClick : listeners?.crossLineDoubleClick;
+        const sharedListener = axisListener != null || callbacks.hasChartListener;
+        callbacks.hasHandledFront ||= picks.some(
+            (crossLine) =>
+                crossLine.layer === 'front' &&
+                (sharedListener || (isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick) != null)
+        );
         if (axisListener && !callbacks.axes.has(axisId)) {
             callbacks.axes.set(axisId, { callers, fn: axisListener, params });
         }
@@ -360,6 +369,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         this.rangeGroup.visible = visible;
         this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
+        this.behindLabelGroup.visible = visible;
     }
 
     getInstances(): readonly CrossLine[] {
@@ -389,13 +399,16 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         this.rangeGroup.remove();
         this.lineGroup.remove();
         this.labelGroup.remove();
+        this.behindLabelGroup.remove();
         super.destroy();
     }
 
     private attachInstance(crossLine: CrossLine): void {
-        this.rangeGroup.appendChild(crossLine.rangeGroup);
-        this.lineGroup.appendChild(crossLine.lineGroup);
-        this.labelGroup.appendChild(crossLine.labelGroup);
+        const { layer } = crossLine;
+        const shapeGroup = layer === 'front' ? this.lineGroup : this.rangeGroup;
+        shapeGroup.appendChild(crossLine.rangeGroup);
+        shapeGroup.appendChild(crossLine.lineGroup);
+        (layer === 'back' ? this.behindLabelGroup : this.labelGroup).appendChild(crossLine.labelGroup);
     }
 
     private detachInstance(crossLine: CrossLine): void {
