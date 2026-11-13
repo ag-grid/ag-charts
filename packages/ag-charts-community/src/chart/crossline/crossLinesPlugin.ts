@@ -192,7 +192,10 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         this.toParamsArray(picks, regions, 'crossLineContextMenuAction');
         if (!event.primaryRegions.includes('cross-line')) event.primaryRegions.push('cross-line');
         const front = regions.slice(start).filter((_, i) => picks[i].layer === 'front');
-        if (front.length > 0) (event.frontContexts['cross-line'] ??= []).push(...front);
+        if (front.length > 0) {
+            event.frontContexts['cross-line'] ??= [];
+            event.frontContexts['cross-line'].push(...front);
+        }
     }
 
     private onSeriesAreaCanvasClick(event: SeriesAreaCanvasClickEvent): void {
