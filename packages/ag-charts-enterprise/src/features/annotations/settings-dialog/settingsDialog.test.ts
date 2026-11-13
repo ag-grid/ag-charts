@@ -72,7 +72,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         show(createAxesContext(new CategoryScale(), yScale));
 
         const [, startY] = inputs();
-        expect(startY.getAttribute('aria-label')).toBe('Start Y');
+        expect(startY.getAttribute('aria-label')).toBe('Start: y');
 
         commit(startY, '20');
         expect(onChangeCoordinates).toHaveBeenCalledWith({ start: { y: 20 } });
@@ -181,14 +181,14 @@ describe('AnnotationSettingsDialog coordinates', () => {
         show(context);
         expect(layout()).toEqual([
             [
-                { label: 'Start X', inline: false },
-                { label: 'Start Y', inline: false },
-                { label: 'Offset (%)', inline: false },
+                { label: 'Start: x', inline: false },
+                { label: 'Start: y', inline: false },
+                { label: 'Offset: x', inline: false },
             ],
             [
-                { label: 'End X', inline: false },
-                { label: 'End Y', inline: false },
-                { label: 'Offset (%)', inline: false },
+                { label: 'End: x', inline: false },
+                { label: 'End: y', inline: false },
+                { label: 'Offset: x', inline: false },
             ],
         ]);
         dialog.hide();

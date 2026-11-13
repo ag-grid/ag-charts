@@ -370,10 +370,13 @@ export class AnnotationSettingsDialog extends Dialog {
     private createCoordinateInput(initial: CoordinateField, inline: boolean, options: LinearSettingsDialogOptions) {
         const { localeManager } = this.ctx;
         const rowLabel = localeManager.t(COORDINATE_ROW_LABELS[initial.row]);
+        const axis = localeManager.t(
+            initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'
+        );
+        const offsetLabel = localeManager.t('dialogInputCoordinatesOffset');
         const ariaLabel = localeManager.t('dialogInputCoordinatesAltText', {
-            label:
-                initial.kind === 'offset' ? `${rowLabel} ${localeManager.t('dialogInputCoordinatesOffset')}` : rowLabel,
-            axis: localeManager.t(initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'),
+            label: initial.kind === 'offset' ? `${rowLabel} ${offsetLabel}` : rowLabel,
+            axis,
         });
 
         const suggestions = initial.suggestions && new DatalistWidget(initial.suggestions());
@@ -418,17 +421,20 @@ export class AnnotationSettingsDialog extends Dialog {
             }
         };
 
-        const label = this.getCoordinateLabel(initial, ariaLabel);
+        const label = this.getCoordinateLabel(
+            initial,
+            ariaLabel,
+            localeManager.t('dialogInputCoordinatesAltText', { label: offsetLabel, axis })
+        );
         const widget = this.createLabelledInput(label, input, inline, ...(suggestions ? [suggestions] : []));
         return { widget, refresh };
     }
 
-    private getCoordinateLabel({ row, kind }: CoordinateField, ariaLabel: string) {
-        const { localeManager } = this.ctx;
+    private getCoordinateLabel({ row, kind }: CoordinateField, ariaLabel: string, offsetLabel: string) {
         if (kind === 'offset') {
-            return `${localeManager.t('dialogInputCoordinatesOffset')} (%)`;
+            return offsetLabel;
         }
-        return POINT_ROWS.has(row) ? ariaLabel : localeManager.t(COORDINATE_ROW_LABELS[row]);
+        return POINT_ROWS.has(row) ? ariaLabel : this.ctx.localeManager.t(COORDINATE_ROW_LABELS[row]);
     }
 
     private createColorPickerInput(
