@@ -10,7 +10,7 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, Context
     /**
      * Whether to show the crosshair.
      *
-     * Default: `false`, or `true` on number, log, time, unit-time and ordinal-time axes when the chart's first series is candlestick, OHLC or HLC, and in the Financial Charts presets.
+     * Default: `true` on number, log, time, unit-time and ordinal-time axes when the chart's first series is candlestick, OHLC or HLC, and on the price and date axes of the Financial Charts presets; `false` otherwise.
      */
     enabled?: boolean;
     /**
