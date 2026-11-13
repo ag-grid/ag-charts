@@ -53,7 +53,7 @@ import type {
     SeriesOptionsTypes,
 } from 'ag-charts-types';
 
-import type { UpdateOpts } from '../core/eventsHub';
+import type { DataLoadWindow, UpdateOpts } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesGrouping } from '../module/seriesGrouping';
@@ -108,6 +108,27 @@ const SIZE_OPTIONS = [
 
 /** Options that change only the layout, which a chart with axes carries to its series through the axes' ranges. */
 const LAYOUT_ONLY_DELTA_KEYS = new Set(['title', 'subtitle', 'footnote', 'padding', 'background', 'border']);
+
+/** Whether a series has valid data, and some of it inside a zoom or pan's requested window. */
+function hasDataInWindow(series: UnknownSeries, window: DataLoadWindow | undefined) {
+    if (!series.hasData) return false;
+    if (window == null) return true;
+
+    const inRange = series.hasDataInXRange(window.start, window.end);
+    if (inRange != null) return inRange;
+
+    // Series that cannot check each datum fall back to their x-domain overlapping the window.
+    let min = Infinity;
+    let max = -Infinity;
+    for (const value of series.getDomain(ChartAxisDirection.X).domain) {
+        const n = value?.valueOf();
+        // Category domains have no order to compare against the window.
+        if (!isFiniteNumber(n)) return true;
+        if (n < min) min = n;
+        if (n > max) max = n;
+    }
+    return min > max || (max >= window.start && min <= window.end);
+}
 
 export type ChartTypeFactory = { readonly name: string; create(host: ChartTypeHost): ChartTypeInstance };
 
@@ -186,9 +207,11 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
     public data: DataSet;
 
-    // A lazy load's rows can still fail to render against the series keys, which only a post-process
-    // `series.hasData` check detects, so snapshot the outgoing data-set to restore on an empty render.
-    private pendingDataRetain: { snapshot: DataSet; requestId: number | undefined } | undefined = undefined;
+    // A lazy load's rows can still fail to render against the series keys or the requested window, which only
+    // the processed data shows, so snapshot the outgoing data-set to restore when the load renders nothing.
+    private pendingDataRetain:
+        | { snapshot: DataSet; requestId: number | undefined; window: DataLoadWindow | undefined; applied: boolean }
+        | undefined = undefined;
 
     public loading: boolean | undefined = undefined;
 
@@ -293,22 +316,17 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         return replaceDataSet(dataSelectionService, this.data, data, dataIdKey, logger, suppressFieldDotNotation);
     }
 
-    private resolveDataRetain() {
-        const retain = this.pendingDataRetain;
-        if (retain == null) return;
+    private async resolveDataRetain(retain: NonNullable<Chart['pendingDataRetain']>) {
         this.pendingDataRetain = undefined;
 
-        const rendered = this.series.some((series) => series.hasData);
+        const rendered = this.series.some((series) => hasDataInWindow(series, retain.window));
         this.ctx.eventsHub.emit('data:render-verdict', { requestId: retain.requestId, rendered });
         if (rendered) return;
 
-        // The load replaced the data-set but rendered nothing against the series keys; restore the
-        // prior renderable data-set so the chart stays non-blank, and re-run the data path to redraw.
+        // Restore the prior data-set before the domains, and the zoom fitted to them, see the rejected load.
         this.data = retain.snapshot;
-        this.ctx.eventsHub.emit('chart:request-update', {
-            type: ChartUpdateType.UPDATE_DATA,
-            opts: { forceNodeDataRefresh: true },
-        });
+        this.updateData();
+        await this.processData();
     }
 
     readonly chartType: ChartTypeInstance;
@@ -456,11 +474,15 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.pendingDataRetain = { snapshot: this.data, requestId: event.requestId };
+                this.pendingDataRetain = {
+                    // Loads not yet judged were never rendered, so keep the last data-set that was.
+                    snapshot: this.pendingDataRetain?.snapshot ?? this.data,
+                    requestId: event.requestId,
+                    window: event.window,
+                    applied: false,
+                };
                 this.data = this.createDataSet(event.data);
             }),
-
-            ctx.eventsHub.on('update:complete', () => this.resolveDataRetain()),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
             this.subtitle.registerInteraction(moduleContext, 'beforebegin'),
@@ -940,6 +962,9 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
                 if (this.checkUpdateShortcut(ChartUpdateType.PROCESS_DATA)) break;
 
                 await this.processData();
+                if (this.pendingDataRetain?.applied) {
+                    await this.resolveDataRetain(this.pendingDataRetain);
+                }
                 this.seriesAreaManager.dataChanged();
 
                 this.updateSplits('📊');
@@ -1256,6 +1281,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     }
 
     private updateData() {
+        if (this.pendingDataRetain) this.pendingDataRetain.applied = true;
         this.ctx.eventsHub.emit('data:update', this.getSeriesData());
         this.chartType.updateData?.();
     }
