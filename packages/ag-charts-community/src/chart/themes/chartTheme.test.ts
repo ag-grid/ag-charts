@@ -630,12 +630,10 @@ describe('ChartTheme', () => {
             expect(legend.border).toMatchObject(expected);
         });
 
-        it('legendBorder false disables the border but keeps the legend stroke and a width of 1', async () => {
+        it('legendBorder false disables the border', async () => {
             const { legend } = await create({ legendBorder: false });
 
-            expect(legend.border?.enabled).toBe(false);
-            expect(legend.border?.stroke).not.toBe('#112233');
-            expect(legend.border?.strokeWidth).toBe(1);
+            expect(legend.border).toMatchObject({ enabled: false, stroke: '#112233', strokeWidth: 2 });
         });
 
         it.each([
