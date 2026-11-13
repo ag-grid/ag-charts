@@ -157,14 +157,32 @@ function primaryContextMenuRegion(
     contexts: ContextMenuRegionContexts,
     directNodeHit: boolean,
     primaryRegions: readonly AgContextMenuItemShowOn[],
-    frontRegions: readonly AgContextMenuItemShowOn[]
+    frontContexts: ContextMenuRegionContexts
 ): AgContextMenuItemShowOn {
     const hasNode = contexts['series-node'] != null;
-    if (hasNode && directNodeHit) return frontRegions.find((region) => contexts[region] != null) ?? 'series-node';
+    if (hasNode && directNodeHit) {
+        const front = strictObjectKeys(frontContexts).find((region) => contexts[region] != null);
+        if (front == null) return 'series-node';
+        leadWithFrontEntries(contexts, frontContexts, front);
+        return front;
+    }
     const primary = primaryRegions.find((region) => contexts[region] != null);
     if (primary != null) return primary;
     if (hasNode) return 'series-node';
     return strictObjectKeys(contexts).at(0) ?? 'series-area';
+}
+
+/** Lists the entries that won `region` from a series node first, as `getItems` reports the first entry. */
+function leadWithFrontEntries(
+    contexts: ContextMenuRegionContexts,
+    frontContexts: ContextMenuRegionContexts,
+    region: AgContextMenuItemShowOn
+): void {
+    const front: unknown = frontContexts[region];
+    const all: unknown = contexts[region];
+    if (!Array.isArray(front) || !Array.isArray(all)) return;
+    const entries = [...front, ...all.filter((entry) => !front.includes(entry))];
+    (contexts as Record<AgContextMenuItemShowOn, unknown>)[region] = entries;
 }
 
 function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
@@ -517,12 +535,12 @@ export class SeriesAreaManager extends BaseManager {
 
         // Ask the modules owning other regions whether they overlap this point (mirrors the hover/drag handoff).
         // They annotate rather than dispatch, so a single menu can offer every region at the point.
-        const { primaryRegions, frontRegions } = this.collectContextMenuRegions(event, { canvasX, canvasY }, contexts);
+        const { primaryRegions, frontContexts } = this.collectContextMenuRegions(event, { canvasX, canvasY }, contexts);
         const regions: AgContextMenuItemShowOn[] = ['series-area', ...strictObjectKeys(contexts)];
 
         this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
             // A keyboard-focused node keeps the menu, as the pointer need not be over it.
-            primaryContextMenuRegion(contexts, directNodeHit, primaryRegions, focusedNode ? [] : frontRegions),
+            primaryContextMenuRegion(contexts, directNodeHit, primaryRegions, focusedNode ? {} : frontContexts),
             regions,
             contexts,
             { widgetEvent: event, canvasX, canvasY },
@@ -562,7 +580,7 @@ export class SeriesAreaManager extends BaseManager {
             widgetEvent: event,
             regions,
             primaryRegions: [],
-            frontRegions: [],
+            frontContexts: {},
         };
         this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
         return collectEvent;
@@ -678,15 +696,16 @@ export class SeriesAreaManager extends BaseManager {
         const claimed =
             claims.some((claim) => claim.isHandled()) && !(isSeriesWidget && this.isHandledNodeHit(event, builtinOnly));
         if (claimed) {
-            if (builtinOnly && isSeriesWidget && event.type === 'dblclick' && this.isHandledNodeHit(event, false)) {
-                // A front claim took this double-click from a node, which would otherwise have stopped the zoom reset.
+            const beatHandledNode = builtinOnly && isSeriesWidget && this.isHandledNodeHit(event, false);
+            // The node would have stopped a double-click resetting the zoom, had it won.
+            if (beatHandledNode && event.type === 'dblclick') {
                 (event as { preventZoomDblClick?: boolean }).preventZoomDblClick = true;
             }
             // The claim wins the event, but still reports the series nodes within `nodeClickRange`.
             const nodeParams = isSeriesWidget ? this.pickSeriesNodeHitParams(event) : [];
             const allMatchedParams = nodeParams.length > 0 ? [...claimedParams, ...nodeParams] : claimedParams;
             for (const claim of claims) {
-                claim.fire(allMatchedParams);
+                claim.fire(allMatchedParams, beatHandledNode);
             }
             return; // dodge chart-level / series-level user callbacks.
         }

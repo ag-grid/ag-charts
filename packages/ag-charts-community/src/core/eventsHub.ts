@@ -99,7 +99,8 @@ export interface SeriesAreaClickClaim {
     isHandled(): boolean;
     /** Whether the claim also takes the click from a series node that a user listener or selection handles. */
     beatsHandledNode?(): boolean;
-    fire(allMatchedParams: AgMatchedParams<unknown>[]): void;
+    /** `beatHandledNode` is set when the claim took the event from a node that a user listener or selection handles. */
+    fire(allMatchedParams: AgMatchedParams<unknown>[], beatHandledNode?: boolean): void;
 }
 
 export interface SeriesAreaCanvasClickEvent extends Readonly<CanvasPoint> {
@@ -119,8 +120,8 @@ export interface SeriesAreaContextMenuEvent extends Readonly<CanvasPoint> {
     readonly regions: ContextMenuRegionContexts;
     /** Annotated regions that win the primary `showOn` over a nearby series node, and apply outside the series area. */
     readonly primaryRegions: AgContextMenuItemShowOn[];
-    /** Annotated regions drawn in front of the series, which win the primary `showOn` over a node directly hit. */
-    readonly frontRegions: AgContextMenuItemShowOn[];
+    /** The annotated entries drawn in front of the series, which win the primary `showOn` over a node directly hit. */
+    readonly frontContexts: ContextMenuRegionContexts;
 }
 
 export interface DataModelSeriesDiff {

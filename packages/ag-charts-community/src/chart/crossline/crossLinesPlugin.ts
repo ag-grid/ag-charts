@@ -188,16 +188,11 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         const picks = this.pickCrosslines(event);
         if (picks.length === 0) return;
         const regions = (event.regions['cross-line'] ??= []);
+        const start = regions.length;
+        this.toParamsArray(picks, regions, 'crossLineContextMenuAction');
         if (!event.primaryRegions.includes('cross-line')) event.primaryRegions.push('cross-line');
-        const front = picks.filter((crossLine) => crossLine.layer === 'front');
-        if (front.length === 0 || event.frontRegions.includes('cross-line')) {
-            this.toParamsArray(picks, regions, 'crossLineContextMenuAction');
-            return;
-        }
-        event.frontRegions.push('cross-line');
-        const rest = picks.filter((crossLine) => crossLine.layer !== 'front');
-        const ordered = this.toParamsArray(front, [], 'crossLineContextMenuAction');
-        regions.unshift(...this.toParamsArray(rest, ordered, 'crossLineContextMenuAction'));
+        const front = regions.slice(start).filter((_, i) => picks[i].layer === 'front');
+        if (front.length > 0) (event.frontContexts['cross-line'] ??= []).push(...front);
     }
 
     private onSeriesAreaCanvasClick(event: SeriesAreaCanvasClickEvent): void {
@@ -260,10 +255,6 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             ...allParamsOnThisAxis[0],
             ...rootLevelParams,
         };
-        // Axis and chart listeners report the first 'front' match, as it draws over the others and wins the click.
-        const frontIndex = picks.findIndex((crossLine) => crossLine.layer === 'front');
-        const sharedParams: CallbackParamRules<EventType> =
-            frontIndex > 0 ? { ...params, ...allParamsOnThisAxis[frontIndex], ...rootLevelParams } : params;
         const callers = [this.axisCtx.caller, this.ctx.chartService];
 
         // `chart.axes[].crossLines[].listeners` level:
@@ -280,20 +271,23 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         const axisId = this.axisCtx.userAxisId;
         const axisListener = isClick ? listeners?.crossLineClick : listeners?.crossLineDoubleClick;
         const sharedListener = axisListener != null || callbacks.hasChartListener;
-        callbacks.hasHandledFront ||= picks.some(
+        const frontIndex = picks.findIndex(
             (crossLine) =>
                 crossLine.layer === 'front' &&
                 (sharedListener || (isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick) != null)
         );
+        callbacks.hasHandledFront ||= frontIndex >= 0;
+        // Reported instead of `params` when the 'front' match wins the click from a series node.
+        const frontParams =
+            frontIndex < 0 ? undefined : { ...params, ...allParamsOnThisAxis[frontIndex], ...rootLevelParams };
         if (axisListener && !callbacks.axes.has(axisId)) {
-            callbacks.axes.set(axisId, { callers, fn: axisListener, params: sharedParams });
+            callbacks.axes.set(axisId, { callers, fn: axisListener, params, frontParams });
         }
 
-        // `chart.listeners` level, from the first axis with a 'front' match if any:
-        if (callbacks.chart == null || (frontIndex >= 0 && !callbacks.chartFromFront)) {
-            callbacks.chart = { callers, fn: (p: any) => this.ctx.chartService.callListener(p), params: sharedParams };
-            callbacks.chartFromFront = frontIndex >= 0;
-        }
+        // `chart.listeners` level:
+        const chartCallback = { callers, fn: (p: any) => this.ctx.chartService.callListener(p), params, frontParams };
+        callbacks.chart ??= chartCallback;
+        if (frontParams != null) callbacks.frontChart ??= chartCallback;
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions[] | undefined): void {
