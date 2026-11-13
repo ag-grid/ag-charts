@@ -44,8 +44,8 @@ import {
     deproxy,
     doubleClickAction,
     emitFontLoad,
-    hoverAction,
     expectWarningMessages,
+    hoverAction,
     prepareTestOptions,
     repeat,
     resizeChartContainer,
@@ -1050,7 +1050,14 @@ describe('CrossLine', () => {
                             myX: {
                                 type: 'category',
                                 crossLines: [
-                                    { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2, layer },
+                                    {
+                                        id: 'blue-line',
+                                        type: 'line',
+                                        value: 'May',
+                                        stroke: 'blue',
+                                        strokeWidth: 2,
+                                        layer,
+                                    },
                                     { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
                                 ],
                             },
@@ -1058,23 +1065,23 @@ describe('CrossLine', () => {
                     });
                     // The May bar sits under the blue line and inside the grey range band.
                     await clickAction(505, 470)(chart);
-                const expected = expect.objectContaining({
-                    type: 'seriesNodeClick',
-                    datum: { x: 'May', y: 3 },
-                    allMatchedParams: [
-                        expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'May', y: 3 } }),
-                        expect.objectContaining({ type: 'crossLineClick', crossLineId: 'blue-line', value: 'May' }),
-                        expect.objectContaining({
-                            type: 'crossLineClick',
-                            crossLineId: 'grey-range',
-                            range: ['Mar', 'Jul'],
-                        }),
-                    ],
-                });
-                expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
-                expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
-                expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
-                expect(chartClick).toHaveBeenCalledTimes(0);
+                    const expected = expect.objectContaining({
+                        type: 'seriesNodeClick',
+                        datum: { x: 'May', y: 3 },
+                        allMatchedParams: [
+                            expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'May', y: 3 } }),
+                            expect.objectContaining({ type: 'crossLineClick', crossLineId: 'blue-line', value: 'May' }),
+                            expect.objectContaining({
+                                type: 'crossLineClick',
+                                crossLineId: 'grey-range',
+                                range: ['Mar', 'Jul'],
+                            }),
+                        ],
+                    });
+                    expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
+                    expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
+                    expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
+                    expect(chartClick).toHaveBeenCalledTimes(0);
                 }
             );
             it('a cross line wins over a series node under the pointer that nothing listens to', async () => {

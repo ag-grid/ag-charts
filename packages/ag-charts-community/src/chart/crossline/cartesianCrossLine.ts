@@ -134,19 +134,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions) {
-        const {
-            id,
-            enabled,
-            type,
-            layer,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            listeners,
-        } = options;
+        const { id, enabled, type, layer, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, listeners } =
+            options;
         this.id = id;
         this.enabled = enabled;
         this.type = type;

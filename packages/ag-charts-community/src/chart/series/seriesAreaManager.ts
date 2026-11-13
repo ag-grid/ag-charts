@@ -940,7 +940,11 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     /** Selection, built-in controls and tooltip pagination act on single clicks only. */
-    private handlesNodeEvent(pick: PickedNodes | undefined, type: ClickLikeEvent['type'], builtinOnly = false): boolean {
+    private handlesNodeEvent(
+        pick: PickedNodes | undefined,
+        type: ClickLikeEvent['type'],
+        builtinOnly = false
+    ): boolean {
         const found = pick?.matches[0];
         if (pick == null || found == null) return false;
         const { series } = found;

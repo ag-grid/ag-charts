@@ -565,20 +565,23 @@ describe('PolarCrossLine listeners', () => {
         return { crossLineClick, seriesNodeClick };
     };
 
-    it.each(['split', 'back'] as const)('a marker on a %s cross line wins the click over the cross line', async (layer) => {
-        const { crossLineClick, seriesNodeClick } = await clickMarkerUnderLine(layer);
+    it.each(['split', 'back'] as const)(
+        'a marker on a %s cross line wins the click over the cross line',
+        async (layer) => {
+            const { crossLineClick, seriesNodeClick } = await clickMarkerUnderLine(layer);
 
-        expect(seriesNodeClick).toHaveBeenCalledWith(
-            expect.objectContaining({
-                type: 'seriesNodeClick',
-                datum: { q: 'Q2', v: 4 },
-                allMatchedParams: expect.arrayContaining([
-                    expect.objectContaining({ type: 'crossLineClick', crossLineId: 'q2-line' }),
-                ]),
-            })
-        );
-        expect(crossLineClick).not.toHaveBeenCalled();
-    });
+            expect(seriesNodeClick).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: 'seriesNodeClick',
+                    datum: { q: 'Q2', v: 4 },
+                    allMatchedParams: expect.arrayContaining([
+                        expect.objectContaining({ type: 'crossLineClick', crossLineId: 'q2-line' }),
+                    ]),
+                })
+            );
+            expect(crossLineClick).not.toHaveBeenCalled();
+        }
+    );
 
     it('a front cross line wins the click over the marker beneath it', async () => {
         const { crossLineClick, seriesNodeClick } = await clickMarkerUnderLine(undefined);
