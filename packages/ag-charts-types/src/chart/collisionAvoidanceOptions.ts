@@ -137,8 +137,24 @@ export interface AgSeriesLabelCollideWithOptions {
     axisLabels?: boolean;
 }
 
+/** The kinds of chart element a label may overlap, on a series that supports error bars. */
+export interface AgErrorBarSeriesLabelCollideWithOptions extends AgSeriesLabelCollideWithOptions {
+    /**
+     * Whether labels may overlap error bars, including their caps. Applies to the error bars of every series, including the label's own.
+     *
+     * Default: `false`
+     */
+    errorBars?: boolean;
+}
+
 /** Configuration controlling how a series label behaves when it collides with other chart elements. */
 export interface AgSeriesLabelCollisionOptions extends AgChartLabelCollisionOptions {
     /** The kinds of chart element the label may overlap. */
     collideWith?: AgSeriesLabelCollideWithOptions;
+}
+
+/** Configuration controlling how a label behaves when it collides with other chart elements, on a series that supports error bars. */
+export interface AgErrorBarSeriesLabelCollisionOptions extends AgChartLabelCollisionOptions {
+    /** The kinds of chart element the label may overlap. */
+    collideWith?: AgErrorBarSeriesLabelCollideWithOptions;
 }
