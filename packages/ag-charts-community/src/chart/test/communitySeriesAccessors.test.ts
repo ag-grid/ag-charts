@@ -46,7 +46,14 @@ describe('community series test accessors', () => {
     const lineOptions = (label: object = {}): AgCartesianChartOptions => ({
         data,
         legend: { enabled: false },
-        series: [{ type: 'line', xKey: 'x', yKey: 'y', label: { enabled: true, placement: 'top', ...label } }],
+        series: [
+            {
+                type: 'line',
+                xKey: 'x',
+                yKey: 'y',
+                label: { enabled: true, placement: 'top', collision: { alwaysShow: true }, ...label },
+            },
+        ],
     });
 
     const barOptions: AgCartesianChartOptions = {
@@ -70,13 +77,19 @@ describe('community series test accessors', () => {
             chart = await createChart({
                 ...lineOptions(),
                 series: [
-                    { type: 'line', xKey: 'x', yKey: 'y', yName: 'First', label: { enabled: true, placement: 'top' } },
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        yName: 'First',
+                        label: { enabled: true, placement: 'top', collision: { alwaysShow: true } },
+                    },
                     {
                         type: 'line',
                         xKey: 'x',
                         yKey: 'y',
                         yName: 'Second',
-                        label: { enabled: true, placement: 'bottom' },
+                        label: { enabled: true, placement: 'bottom', collision: { alwaysShow: true } },
                     },
                 ],
             });

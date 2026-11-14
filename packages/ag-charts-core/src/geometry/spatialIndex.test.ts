@@ -86,6 +86,16 @@ describe('SpatialIndex', () => {
         expect(index.query(miss, (ref) => boxCollides(ref, miss.x, miss.y, miss.width, miss.height))).toBe(false);
     });
 
+    it('stays usable at a larger grid after a reset with a NaN cell size', () => {
+        const index = new SpatialIndex<BoxBounds>();
+        index.reset({ x: 0, y: 0, width: 100, height: 100 }, Number.NaN);
+        index.reset(bounds, 10);
+
+        const corner = { x: 700, y: 550, width: 5, height: 5 };
+        index.insert(corner, corner);
+        expect(index.query(corner, () => true)).toBe(true);
+    });
+
     it('stops early when the visitor returns true', () => {
         const index = new SpatialIndex<number>();
         index.reset({ x: 0, y: 0, width: 100, height: 100 }, 50);

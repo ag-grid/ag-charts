@@ -661,7 +661,14 @@ describe('HistogramSeries', () => {
         });
 
         it('rotates the label a quarter-turn for orientation vertical (bar parity)', async () => {
-            chart = await createChart(labelOptions({ placement: 'outside-end', orientation: 'vertical', spacing: 0 }));
+            chart = await createChart(
+                labelOptions({
+                    placement: 'outside-end',
+                    orientation: 'vertical',
+                    spacing: 0,
+                    collision: { alwaysShow: true },
+                })
+            );
             const { label } = firstBinLabel(chart);
             expect(label.rotation).toBeCloseTo(-Math.PI / 2);
             const [textNode] = getVisibleLabelTextNodes(chart);

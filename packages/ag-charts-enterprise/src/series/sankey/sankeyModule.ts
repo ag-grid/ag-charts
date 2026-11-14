@@ -7,7 +7,6 @@ import {
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
-    LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
@@ -58,7 +57,8 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             tooltip: SERIES_TOOLTIP_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
-                ...LABEL_OVERFLOW_DEFAULTS,
+                wrapping: 'on-space',
+                truncate: true,
                 enabled: true,
                 fontFamily: { $ref: 'seriesLabelFontFamily' },
                 fontSize: { $ref: 'seriesLabelFontSize' },
@@ -66,7 +66,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 10,
-                collision: { alwaysShow: false, collideWith: { shapes: false } },
+                collision: { threshold: 4, alwaysShow: false, collideWith: { shapes: false } },
             },
             node: {
                 spacing: { $if: [{ $greaterThan: [{ $path: './minSpacing' }, 20] }, { $path: './minSpacing' }, 20] },

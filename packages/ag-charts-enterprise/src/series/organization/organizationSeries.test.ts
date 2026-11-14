@@ -2649,7 +2649,7 @@ describe('OrganizationSeries', () => {
                 title: { key: 'name', lineHeight },
             });
             expect(titleOf((await render(node())).texts)).toContain('\n');
-            expect(titleOf((await render(node(60))).texts)).toBe('Alexandra…');
+            expect(titleOf((await render(node(60))).texts)).toBe('Alexandra Montgomer…');
         });
 
         it('should default to truncate: true on every tier', async () => {

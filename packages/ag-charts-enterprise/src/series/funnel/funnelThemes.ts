@@ -6,8 +6,6 @@ import {
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
-    LABEL_OVERFLOW_ALWAYS_SHOW,
-    LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_TOOLTIP_THEME,
@@ -90,7 +88,8 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
         },
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
-            ...LABEL_OVERFLOW_DEFAULTS,
+            wrapping: 'on-space',
+            truncate: false,
             enabled: true,
             fontSize: { $ref: 'seriesLabelFontSize' },
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
@@ -100,13 +99,13 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
             spacing: 8,
             collision: {
                 threshold: 4,
-                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+                alwaysShow: false,
                 // A value label must avoid the neighbouring stages; its own stage is excluded separately.
                 collideWith: { shapes: false },
             },
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
-            placement: 'inside-center',
+            placement: ['inside-center', 'outside-after'],
         },
         dropOff: {
             enabled: true,

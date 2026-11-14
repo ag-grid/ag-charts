@@ -50,9 +50,8 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             padding: 2,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
-                // The shape always bounds the label, so the shared opt-in triggers do not apply: wrapping is
-                // always on and overflow hides unless `truncate` is asked for.
                 wrapping: 'on-space',
+                truncate: true,
                 enabled: true,
                 color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'seriesLabelFontFamily' },

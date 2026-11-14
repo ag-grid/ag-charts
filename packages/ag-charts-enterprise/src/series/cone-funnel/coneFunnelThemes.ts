@@ -4,8 +4,6 @@ import {
     FILL_PATTERN_SINGLE_DEFAULTS,
     GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
-    LABEL_OVERFLOW_ALWAYS_SHOW,
-    LABEL_OVERFLOW_DEFAULTS,
     NEAREST_TOOLTIP_THEME,
     SAFE_FILLS_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -50,7 +48,8 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         glow: GLOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
-            ...LABEL_OVERFLOW_DEFAULTS,
+            wrapping: 'on-space',
+            truncate: false,
             enabled: true,
             fontSize: { $ref: 'seriesLabelFontSize' },
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
@@ -59,7 +58,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
             color: { $ref: 'textColor' },
             collision: {
                 threshold: 4,
-                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+                alwaysShow: false,
             },
             placement: 'start-center',
             spacing: 4,

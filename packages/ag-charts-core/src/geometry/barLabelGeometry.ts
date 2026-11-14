@@ -539,7 +539,8 @@ export function rectLabelObstacles(nodeData: readonly RectObstacleSource[] | und
     if (nodeData == null || nodeData.length === 0) return undefined;
     const obstacles: LabelObstacle[] = [];
     for (const { x, y, width, height, phantom } of nodeData) {
-        if (phantom === true || width <= 0 || height <= 0) continue;
+        // Negated so a NaN rect from an invalid datum is skipped too.
+        if (phantom === true || !(width > 0 && height > 0 && Number.isFinite(x + y))) continue;
         obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'shape' });
     }
     return obstacles.length > 0 ? obstacles : undefined;

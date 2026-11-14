@@ -1377,10 +1377,11 @@ describe('label collision avoidance', () => {
             });
 
             it('styles an inside placement differently from an outside one', async () => {
+                const visibleFills = () => labelNodes().flatMap((node) => (node.visible ? [node.fill] : []));
                 await render(options({ placement: 'inside-center' }));
-                const inside = labelNodes().map((node) => node.fill);
+                const inside = visibleFills();
                 await render(options({ placement: 'outside-start' }));
-                const outside = labelNodes().map((node) => node.fill);
+                const outside = visibleFills();
 
                 expect(new Set(inside).size).toBe(1);
                 expect(new Set(outside).size).toBe(1);
@@ -1789,7 +1790,7 @@ describe('label collision avoidance', () => {
         });
 
         it('shrinks the label running past its column rather than the one within its own column', async () => {
-            await render(options({ placement: 'center' }));
+            await render(options({ placement: 'center', wrapping: 'never' }));
             const texts = drawnLabels().map((node) => node.text);
             expect(texts).toContain('Alpha source with a…');
             expect(texts).not.toContain('An interior node with a very long label');

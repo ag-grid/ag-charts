@@ -149,7 +149,7 @@ export interface AgChartAutoSizedBaseLabelOptions<
      * Whether to truncate the label with an ellipsis when it does not fit within its bounds. When `false`, a
      * label that does not fit is hidden.
      *
-     * Default: `true`
+     * Default: `true` on sunburst and treemap `label` and radial gauge `secondaryLabel`; `false` otherwise.
      */
     truncate?: boolean;
 

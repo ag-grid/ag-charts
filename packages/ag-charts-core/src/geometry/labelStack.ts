@@ -180,8 +180,9 @@ function fitStackAtSizes(
     const { blocks, spacing } = stack;
     const maxHeight = container?.height ?? Infinity;
     let maxWidth = container?.width ?? Infinity;
+    let estimate = Infinity;
     if (shape != null) {
-        let estimate = spacing * (included.length - 1);
+        estimate = spacing * (included.length - 1);
         for (let i = 0; i < included.length; i++) {
             const { fit } = blocks[included[i]];
             const font = fontWithSize(fit.font, sizes[i]);
@@ -196,9 +197,26 @@ function fitStackAtSizes(
     // A wrapped block can make the stack taller than the estimate, and a shape narrower where it ends.
     const width = shapeWidthAt(shape, shapeAlign, fitted.height);
     if (fitted.width <= width) return fitted;
-    const refitted = fitBlocksToWidth(stack, included, sizes, atFloor, width, maxHeight);
-    if (refitted == null || refitted.overflows) return refitted;
-    return refitted.width > shapeWidthAt(shape, shapeAlign, refitted.height) ? undefined : refitted;
+    const narrowed = withinShape(
+        fitBlocksToWidth(stack, included, sizes, atFloor, width, maxHeight),
+        shape,
+        shapeAlign
+    );
+    // Narrowing can truncate more than holding the stack to its estimated height on the wider line.
+    const held = withinShape(
+        fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, Math.min(maxHeight, estimate)),
+        shape,
+        shapeAlign
+    );
+    if (narrowed == null || held == null) return narrowed ?? held;
+    if (narrowed.overflows !== held.overflows) return narrowed.overflows ? held : narrowed;
+    return held.dropped < narrowed.dropped ? held : narrowed;
+}
+
+/** `undefined` when the fit is wider than the shape where it ends; an overflowing fit is not bounded by it. */
+function withinShape(fit: StackFit | undefined, shape: FitRegion, align: RegionAlign): StackFit | undefined {
+    if (fit == null || fit.overflows) return fit;
+    return fit.width > shapeWidthAt(shape, align, fit.height) ? undefined : fit;
 }
 
 function fitBlocksToWidth(

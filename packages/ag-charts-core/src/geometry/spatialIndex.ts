@@ -21,7 +21,8 @@ export class SpatialIndex<R> {
     private readonly cells: R[][] = [];
 
     reset(bounds: BoxBounds, cellSize: number) {
-        let clampedCellSize = Math.max(cellSize, 1);
+        // Written so NaN falls back to 1: a NaN cell count would leave this shared index unallocated for later charts.
+        let clampedCellSize = cellSize >= 1 ? cellSize : 1;
         // Cap total cells so a degenerate cell size can't build a per-pixel grid over large bounds. Cell size
         // affects query cost only, not correctness, so growing it here is safe.
         const MAX_CELLS = 1 << 14;

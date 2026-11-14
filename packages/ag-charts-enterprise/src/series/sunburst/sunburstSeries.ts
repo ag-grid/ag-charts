@@ -722,7 +722,9 @@ export class SunburstSeries extends HierarchySeries<
         const cos = Math.cos(theta);
         const sin = Math.sin(theta);
         const centreFor = (width: number, height: number) => {
-            const radius = sectorLabelRadius(ring, labelPlacement, width, height, padding);
+            // A parallel stack is drawn inwards from this radius, so its centre lies half its height further in.
+            const edge = sectorLabelRadius(ring, labelPlacement, width, height, padding);
+            const radius = labelPlacement === LabelPlacement.Parallel ? edge - height / 2 : edge;
             return { x: centreX + cos * radius, y: centreY + sin * radius };
         };
         const { x, y } = centreFor(0, 0);

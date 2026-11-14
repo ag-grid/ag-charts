@@ -42,7 +42,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             wrapping: 'on-space',
-            truncate: true,
+            truncate: false,
             textAlign: 'center',
             verticalAlign: 'middle',
         },

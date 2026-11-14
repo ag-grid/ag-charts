@@ -45,8 +45,6 @@ type LabelCollisionConfig = {
     truncate?: boolean;
 };
 
-// `truncate: false` throughout: an array-valued `placement` defaults it on (see
-// `LABEL_OVERFLOW_DEFAULTS`), letting a colliding label give up text instead of taking a placement.
 const PLACED_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     'keep overlapping (alwaysShow: true)': {
         placement: ['top', 'bottom'],
@@ -225,9 +223,8 @@ describe('label collision avoidance', () => {
         }
     });
 
-    // Line and area default collision avoidance off; the theme default placement `'top'` is a scalar
-    // that seats every label above its point, and a user value must override the theme default.
-    describe('placement without collision avoidance (opt-out default)', () => {
+    // A user placement must override the theme default placement list.
+    describe('placement defaults', () => {
         const sparseData = Array.from({ length: 5 }, (_, i) => ({ x: i, y: 50 }));
 
         const placedLabels = () => getPlacedLabelData(chart);
@@ -246,6 +243,7 @@ describe('label collision avoidance', () => {
                         label: {
                             enabled: true,
                             formatter: ({ value }: any) => String(value),
+                            collision: { alwaysShow: true },
                             ...(placement == null ? {} : { placement }),
                         },
                     },
@@ -255,18 +253,20 @@ describe('label collision avoidance', () => {
             return placedLabels();
         };
 
-        for (const type of ['line', 'area'] as const) {
-            // The scalar default placement `'top'` seats every label above its point with avoidance
-            // off, regardless of whether 'top' fits the bounds.
-            it(`${type}: seats labels above the point by default`, async () => {
-                const placed = await render(type);
-                expect(placed.length).toBe(sparseData.length);
-                for (const label of placed) {
-                    expect(label.placement).toBe('top');
-                    expect(Math.sign(label.y - label.datum.point.y)).toBe(-1);
-                }
-            });
+        // The area's zero-based domain seats the flat data on the top edge, so `'top'` leaves the canvas.
+        it.each([
+            ['line', 'top', -1],
+            ['area', 'bottom', 1],
+        ] as const)('%s: takes the first default placement that fits (%s)', async (type, placement, side) => {
+            const placed = await render(type);
+            expect(placed.length).toBe(sparseData.length);
+            for (const label of placed) {
+                expect(label.placement).toBe(placement);
+                expect(Math.sign(label.y - label.datum.point.y)).toBe(side);
+            }
+        });
 
+        for (const type of ['line', 'area'] as const) {
             it(`${type}: honours a scalar placement over the theme default`, async () => {
                 const placed = await render(type, 'bottom');
                 expect(placed.length).toBe(sparseData.length);
@@ -305,7 +305,14 @@ describe('label collision avoidance', () => {
                 text?: string;
             } = {}
         ) => {
-            const { markerSize = 40, markerEnabled = true, placement = 'inside', alwaysShow, truncate, text } = opts;
+            const {
+                markerSize = 40,
+                markerEnabled = true,
+                placement = 'inside',
+                alwaysShow = true,
+                truncate,
+                text,
+            } = opts;
             const options: any = {
                 data: sparseData,
                 legend: { enabled: false },
@@ -321,7 +328,7 @@ describe('label collision avoidance', () => {
                             placement,
                             truncate,
                             formatter: ({ value }: any) => text ?? String(value),
-                            ...(alwaysShow == null ? {} : { collision: { alwaysShow } }),
+                            collision: { alwaysShow },
                         },
                     },
                 ],
@@ -341,7 +348,7 @@ describe('label collision avoidance', () => {
                 }
             });
 
-            it(`${type}: overflows a small marker at full text rather than hiding`, async () => {
+            it(`${type}: overflows a small marker at full text when alwaysShow is on`, async () => {
                 const placed = await render(type, { markerSize: 4 });
                 expect(placed.length).toBe(sparseData.length);
                 for (const label of placed) {
@@ -455,6 +462,7 @@ describe('label collision avoidance', () => {
                             enabled: true,
                             placement: 'inside',
                             formatter: () => 'Ab',
+                            collision: { alwaysShow: true },
                             ...labelStyle,
                         },
                     },
@@ -768,6 +776,7 @@ describe('label collision avoidance', () => {
                         yKey: 'y',
                         label: {
                             enabled: true,
+                            placement: 'top',
                             formatter: ({ value }) => (value === 10 ? 'Edge' : ''),
                             collision: { alwaysShow: false, collideWith: { seriesArea } },
                         },
@@ -938,7 +947,7 @@ describe('label collision avoidance', () => {
                             xKey: 'x',
                             yKey: 'line',
                             marker: { enabled: true, size: 6 },
-                            label: { enabled: true, placement: 'top', ...boxedLabel },
+                            label: { enabled: true, placement: 'top', ...boxedLabel, collision: { alwaysShow: true } },
                         },
                         {
                             type: 'bar',

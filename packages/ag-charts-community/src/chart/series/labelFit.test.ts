@@ -78,7 +78,8 @@ describe('series label fit', () => {
                 type: 'bar',
                 xKey: 'cat',
                 yKey: 'value',
-                label: { enabled: true, formatter: (p: any) => p.datum.label, ...label },
+                // Pinned inside, as the default placement falls back outside where these cases fit nothing.
+                label: { enabled: true, placement: 'inside-center', formatter: (p: any) => p.datum.label, ...label },
             },
         ],
     });
@@ -187,10 +188,10 @@ describe('series label fit', () => {
             expect(texts.some((text) => text === '' || text == null)).toBe(true);
         });
 
-        it('truncates rather than hides an oversized label when a wrapping mode opts into truncation', async () => {
-            // The wrapping mode resolves `truncate` to true, which outranks `alwaysShow: false`: every label is
-            // kept, the oversized ones ellipsised rather than dropped.
-            await renderAndSnapshot(barChart({ wrapping: 'on-space', collision: { alwaysShow: false } }));
+        it('truncates rather than hides an oversized label when truncate outranks alwaysShow false', async () => {
+            await renderAndSnapshot(
+                barChart({ wrapping: 'on-space', truncate: true, collision: { alwaysShow: false } })
+            );
             const texts = labelTexts();
             expect(texts.every((text) => typeof text === 'string' && text.length > 0)).toBe(true);
             expect(someWrapped(texts)).toBe(true);

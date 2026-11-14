@@ -41,7 +41,7 @@ export interface AgAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDef
      * Placement of the label in relation to the data point. Either a single placement or an ordered
      * fallback list tried in turn until one fits.
      *
-     * Default: `top`
+     * Default: `['top', 'bottom', 'right', 'left']`
      */
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
     /**

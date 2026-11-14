@@ -8,7 +8,6 @@ import {
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
-    LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
@@ -17,7 +16,7 @@ import {
     themeLineHeight,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
-import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme, Operation } from 'ag-charts-types';
+import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 /**
  * `series.item.<type>.label.<leaf>` is three levels below `series.label.<leaf>`, and one more per
@@ -26,40 +25,6 @@ import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme, Operatio
 const seriesLabelPath = (leaf: string, depth = 3) => `${'../'.repeat(depth)}label/${leaf}`;
 
 const inherited = (leaf: string, depth = 3) => ({ $path: seriesLabelPath(leaf, depth) });
-
-/**
- * An item label opts into overflow management on its own fit siblings, or on an array-valued
- * `placement`/`orientation` — which it now inherits from `series.label`, so the trigger fires on
- * series-level configuration too. `prefix` is `.` for a leaf of the label block and `..` one level
- * deeper, in `collision`.
- */
-const overflowTrigger = (prefix: '.' | '..', siblings: string[]): Operation => ({
-    $or: [
-        { $isUserOption: [siblings] },
-        { $isType: [{ $path: `${prefix}/placement` }, 'array'] },
-        { $isType: [{ $path: `${prefix}/orientation` }, 'array'] },
-    ],
-});
-
-/**
- * A fit option, whose inferred default must not displace a value the user set at series level: that
- * value is explicit for every bar type, so it outranks an inference the item's own `maxWidth` or an
- * inherited `placement` array triggered. Where the series leaves it unset, the inference applies and
- * falls back to the series-level resolution rather than to the unmanaged default.
- */
-const inheritedFit = (
-    leaf: string,
-    depth: number,
-    prefix: '.' | '..',
-    siblings: string[],
-    inferred: string | boolean
-): Operation => ({
-    $isUserOption: [
-        seriesLabelPath(leaf, depth),
-        inherited(leaf, depth),
-        { $if: [overflowTrigger(prefix, siblings), inferred, inherited(leaf, depth)] },
-    ],
-});
 
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
@@ -118,29 +83,11 @@ function itemTheme(
             maxWidth: inherited('maxWidth'),
             maxHeight: inherited('maxHeight'),
             minimumFontSize: inherited('minimumFontSize'),
-            wrapping: inheritedFit(
-                'wrapping',
-                3,
-                '.',
-                ['./maxWidth', './maxHeight', './truncate', './minimumFontSize'],
-                'on-space'
-            ),
-            truncate: inheritedFit(
-                'truncate',
-                3,
-                '.',
-                ['./maxWidth', './maxHeight', './wrapping', './minimumFontSize'],
-                true
-            ),
+            wrapping: inherited('wrapping'),
+            truncate: inherited('truncate'),
             collision: {
                 threshold: inherited('collision/threshold', 4),
-                alwaysShow: inheritedFit(
-                    'collision/alwaysShow',
-                    4,
-                    '..',
-                    ['../maxWidth', '../maxHeight', '../wrapping', '../truncate', '../minimumFontSize'],
-                    false
-                ),
+                alwaysShow: inherited('collision/alwaysShow', 4),
                 // Toggle by toggle, not as a block: a lower-priority edge is dropped once its
                 // vertex has user-defined children, and an absent `shapes` reads as `true`.
                 collideWith: {
@@ -199,7 +146,8 @@ function placementStyle(styleKey: 'insideStyle' | 'outsideStyle'): WithThemePara
 
 const seriesLabelTheme = {
     ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
-    ...LABEL_OVERFLOW_DEFAULTS,
+    wrapping: 'on-space' as const,
+    truncate: false,
     enabled: false,
     fontStyle: undefined,
     fontWeight: { $ref: 'seriesLabelFontWeight' as const },
@@ -207,12 +155,12 @@ const seriesLabelTheme = {
     lineHeight: themeLineHeight('seriesLabelLineHeight'),
     fontFamily: { $ref: 'seriesLabelFontFamily' as const },
     formatter: undefined,
-    spacing: 6,
-    padding: 6,
+    spacing: 8,
+    padding: 8,
     collision: BAR_LABEL_COLLISION_THEME,
     insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
     outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
-    placement: 'outside-end' as const,
+    placement: ['inside-center' as const, 'outside-end' as const],
 };
 
 export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
