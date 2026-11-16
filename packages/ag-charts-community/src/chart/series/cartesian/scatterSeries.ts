@@ -1,6 +1,7 @@
 import type { NormalisedScatterSeriesOwnOptions } from 'ag-charts-core';
 import type { AgBubbleSeriesStylerResult, AgScatterSeriesStylerResult } from 'ag-charts-types';
 
+import { withOverlayLabelObstacles } from '../../labelUtil';
 import { BubbleScatterSeries } from './bubbleSeries';
 
 export class ScatterSeries extends BubbleScatterSeries<NormalisedScatterSeriesOwnOptions> {
@@ -16,5 +17,9 @@ export class ScatterSeries extends BubbleScatterSeries<NormalisedScatterSeriesOw
         stylerResult: AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult
     ): number | undefined {
         return (stylerResult as AgScatterSeriesStylerResult).size;
+    }
+
+    getLabelObstacles() {
+        return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData);
     }
 }

@@ -5574,6 +5574,41 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('incomplete var() values', () => {
+        const value = 'var(--x, rgb(1,2,3) junk{} .testMarker{})';
+
+        it.each([
+            ['a title text', { title: { text: value } }, 'title.text'],
+            ['a series yName', { series: [{ type: 'bar', xKey: 'x', yKey: 'y', yName: value }] }, 'series[0].yName'],
+            [
+                'an annotation text',
+                { initialState: { annotations: [{ type: 'text', x: 'a', y: 1, text: value }] } },
+                'initialState.annotations[0].text',
+            ],
+        ])('does not collect %s as a CSS variable', (_name, options, path) => {
+            const container = document.createElement('div');
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+            mockComputedStyle(container, {});
+
+            const chartOptions = new ChartOptions<AgChartOptions>(
+                {
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    ...options,
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expect(chartOptions.processedCSSVariables).not.toHaveProperty([value]);
+            expect(optionAt(chartOptions.processedOptions, path)).toBe(value);
+        });
+    });
+
     describe('var() on a detached container', () => {
         // jsdom's style declaration rejects a `var()` as a colour, so these go through `ontoColor`, whose own
         // validator admits one.

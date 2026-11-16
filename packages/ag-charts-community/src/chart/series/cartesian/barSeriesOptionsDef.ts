@@ -7,13 +7,13 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    errorBarLabelCollisionFitOptionsDefs,
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
     fillOptionsDef,
     glowOptionsDefs,
     itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
-    labelCollisionFitOptionsDefs,
     labelOrientationDef,
     labelPlacementStyleDefs,
     lineDashOptionsDef,
@@ -60,7 +60,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     crisp: boolean,
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelCollisionFitOptionsDefs,
+        ...errorBarLabelCollisionFitOptionsDefs,
         ...labelAutoFontSizeOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: unionOrArray(

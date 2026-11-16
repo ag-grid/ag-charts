@@ -1,6 +1,5 @@
 import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-community';
 import {
-    CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
@@ -21,6 +20,8 @@ import {
     lineDashThemeDefault,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
+
+import { FINANCIAL_SERIES_AXES_THEME } from '../../features/crosshair/crosshairThemes';
 
 type HlcItemOptions = NonNullablePath<AgChartThemeOverrides, 'hlc', 'series', 'item'>;
 type HlcItemMarkerOptions = NonNullable<NonNullable<HlcItemOptions['close']>['marker']>;
@@ -161,12 +162,5 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
         ),
         selection: SERIES_SELECTION_THEME,
     },
-    axes: {
-        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
-            groupPaddingInner: 0,
-            crosshair: {
-                enabled: true,
-            },
-        },
-    },
+    axes: FINANCIAL_SERIES_AXES_THEME,
 };

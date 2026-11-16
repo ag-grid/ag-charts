@@ -22,8 +22,8 @@ const options: AgQuadrantChartOptions = {
     // labelName: 'Initiative',
     label: { enabled: false },
     pivot: { x: 4, y: 6 },
-    xAxis: { min: 0, max: 10, title: { text: 'Effort' } },
-    yAxis: { min: 0, max: 10, title: { text: 'Impact' } },
+    xAxis: { min: 0, max: 10, title: { text: 'Effort' }, crosshair: { enabled: true } },
+    yAxis: { min: 0, max: 10, title: { text: 'Impact' }, crosshair: { enabled: true } },
 };
 
 const chart = AgCharts.createQuadrantChart(options);

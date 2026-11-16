@@ -6,6 +6,7 @@ import {
     type ModuleScope,
     type PlainObject,
     type Resolved,
+    SKIP_JS_BUILTINS,
     type Vertex,
     ambientLog,
     isLineDashName,
@@ -963,7 +964,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const childPathArray = [...pathArray];
         const pathArrayLength = pathArray.length;
         for (const key of keys) {
-            if (ignorePaths?.has(key)) continue;
+            if (ignorePaths?.has(key) || SKIP_JS_BUILTINS.has(key)) continue;
 
             const childPathVertex = pathVertices?.get(key) ?? this.addVertex(key);
             childPathArray[pathArrayLength] = key;

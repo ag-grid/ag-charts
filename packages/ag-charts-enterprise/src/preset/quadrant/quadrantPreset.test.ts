@@ -384,6 +384,19 @@ describe('Quadrant Preset', () => {
         expect(console.warn).not.toHaveBeenCalled();
     });
 
+    it('accepts collideWith.errorBars on point labels without a validation warning', async () => {
+        const options: AgQuadrantChartOptions = {
+            ...NUMERIC,
+            label: { collision: { collideWith: { errorBars: true } } },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.createQuadrantChart(options);
+        await waitForChartStability(chart);
+
+        expect(console.warn).not.toHaveBeenCalled();
+    });
+
     it('selects an item through the series id it is given', async () => {
         const options: AgQuadrantChartOptions = {
             ...BUBBLE_SIZED_NUMERIC,

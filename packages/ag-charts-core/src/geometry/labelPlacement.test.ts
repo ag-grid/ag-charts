@@ -1936,6 +1936,42 @@ describe('placeLabels positioned candidates', () => {
         });
     });
 
+    describe('error bar collision', () => {
+        const ownBar = { x: 40, y: 40, width: 30, height: 120 };
+        const whisker: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 54, y: 20, width: 2, height: 160 },
+            category: 'errorBar',
+        };
+        const insideOwn: BarCandidate = {
+            box: { x: 44, y: 100, width: 22, height: 16 },
+            region: bounds,
+            anchor: anchorOf(55, 108),
+            placement: 'inside-center',
+        };
+        const elsewhere: BarCandidate = {
+            box: { x: 120, y: 100, width: 22, height: 16 },
+            region: bounds,
+            anchor: anchorOf(131, 108),
+            placement: 'outside-end',
+        };
+
+        it.each([
+            ['avoids a whisker crossing its own bar by default', {}, elsewhere],
+            ['avoids the whisker when allowed to overlap shapes', { shape: false }, elsewhere],
+            ['overlaps the whisker when allowed to overlap error bars', { errorBar: false }, insideOwn],
+        ])('%s', (_, avoid, expected) => {
+            const { placed } = place([insideOwn, elsewhere], [shapeRect(ownBar), whisker], ownBar, true, {
+                marker: true,
+                label: true,
+                shape: true,
+                seriesArea: true,
+                ...avoid,
+            });
+            expect(placed[0].candidate).toBe(expected);
+        });
+    });
+
     describe('hideable (alwaysShow: false)', () => {
         // Wider than its region on the cross axis, so no amount of sliding can contain the padded box.
         const overflowingCandidate = (): BarCandidate => ({

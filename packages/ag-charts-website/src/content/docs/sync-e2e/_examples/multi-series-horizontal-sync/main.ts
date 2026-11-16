@@ -11,11 +11,13 @@ const commonOptions: AgCartesianChartOptions = {
             type: 'number',
             position: 'bottom',
             label: { formatter: labelFormatter(formatMillis) },
+            crosshair: { enabled: true },
         },
         memory: {
             type: 'number',
             position: 'top',
             label: { formatter: labelFormatter(formatBytes) },
+            crosshair: { enabled: true },
         },
     },
     series: [

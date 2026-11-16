@@ -107,13 +107,14 @@ describe('Labels', () => {
     });
 
     describe('collision.resolveLabelAvoidance', () => {
-        it('avoids markers, labels, axis labels and the series area edge by default, but not shapes', () => {
+        it('avoids markers, labels, axis labels, error bars and the series area edge by default, but not shapes', () => {
             expect(resolveLabelAvoidance({ alwaysShow: true })).toEqual({
                 marker: true,
                 label: true,
                 shape: false,
                 seriesArea: true,
                 axisLabel: true,
+                errorBar: true,
             });
         });
 
@@ -121,9 +122,23 @@ describe('Labels', () => {
             expect(
                 resolveLabelAvoidance({
                     alwaysShow: true,
-                    collideWith: { markers: true, labels: true, shapes: false, seriesArea: true, axisLabels: true },
+                    collideWith: {
+                        markers: true,
+                        labels: true,
+                        shapes: false,
+                        seriesArea: true,
+                        axisLabels: true,
+                        errorBars: true,
+                    },
                 })
-            ).toEqual({ marker: false, label: false, shape: true, seriesArea: false, axisLabel: false });
+            ).toEqual({
+                marker: false,
+                label: false,
+                shape: true,
+                seriesArea: false,
+                axisLabel: false,
+                errorBar: false,
+            });
         });
     });
 
