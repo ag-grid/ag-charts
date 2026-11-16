@@ -9,7 +9,7 @@ interface SnapAxis {
     inRange(position: number): boolean;
 }
 
-function toNumber(value: unknown): number | undefined {
+function finiteNumber(value: unknown): number | undefined {
     const n = value instanceof Date ? value.getTime() : value;
     return typeof n === 'number' && Number.isFinite(n) ? n : undefined;
 }
@@ -55,13 +55,13 @@ function snapValueToInterval(
     interval: SnapInterval,
     isTime: boolean
 ): { value: unknown; position: number } | undefined {
-    const n = toNumber(value);
-    const [d0, d1] = [toNumber(axis.scale.domain[0]), toNumber(axis.scale.domain.at(-1))];
+    const n = finiteNumber(value);
+    const [d0, d1] = [finiteNumber(axis.scale.domain[0]), finiteNumber(axis.scale.domain.at(-1))];
     if (n == null || d0 == null || d1 == null) return undefined;
 
     const [min, max] = d0 < d1 ? [d0, d1] : [d1, d0];
     for (const multiple of nearestMultiples(n, interval, isTime, min) ?? []) {
-        // Clamping scales such as log map values outside the domain onto the range edge, so check the value too.
+        // Log scales map some values outside the domain, such as zero, onto the range edge, so check the value too.
         if (multiple < min || multiple > max) continue;
         const candidate = isTime ? new Date(multiple) : multiple;
         const position = axis.scale.convert(candidate);
