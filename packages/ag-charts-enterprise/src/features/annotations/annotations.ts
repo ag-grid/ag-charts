@@ -1077,7 +1077,7 @@ export class Annotations extends AbstractModuleInstance {
         this.trackMagnetModifier(event.sourceEvent);
 
         const offset = Vec2.from(event);
-        const point = invertCoords(context.magnet(offset), context);
+        const point = invertCoords(this.isCreating() ? context.magnet(offset) : offset, context);
 
         state.transition('hover', { offset, point, shiftKey, context });
     }
@@ -1090,7 +1090,8 @@ export class Annotations extends AbstractModuleInstance {
 
         const shiftKey = event.sourceEvent.shiftKey;
         this.trackMagnetModifier(event.sourceEvent);
-        const point = invertCoords(context.magnet(Vec2.from(event)), context);
+        const offset = Vec2.from(event);
+        const point = invertCoords(this.isCreating() ? context.magnet(offset) : offset, context);
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
@@ -1391,6 +1392,11 @@ export class Annotations extends AbstractModuleInstance {
 
     private isEditing() {
         return !this.state.isIdle() || this.settingsDialog.isVisible() || this.optionsToolbar.isMenuVisible();
+    }
+
+    /** Whether an annotation is being drawn, which is when a pointer position is read as a point to place. */
+    private isCreating() {
+        return this.ctx.interactionManager.isState(InteractionState.Annotations);
     }
 
     private isAnnotationState() {
