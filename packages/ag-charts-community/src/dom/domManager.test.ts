@@ -196,6 +196,43 @@ describe('DOMManager', () => {
             expect(styleEl!.hasAttribute('nonce')).toBe(false);
         });
 
+        describe('when the variable name is not a plain custom property name', () => {
+            const incomplete = 'var(--x, rgb(1,2,3) junk{} .testMarker{} @property --y)';
+
+            it.each([
+                ['an incomplete value', incomplete],
+                ['a fallback value', 'var(--a, red)'],
+            ])('adds no watcher for %s (normal DOM)', (_name, key) => {
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+                dm.updateCSSVariableWatchers({ [key]: 'red', 'var(--a)': 'red' });
+
+                expect(
+                    Array.from(container.querySelectorAll('[data-variable-name]'), (el) =>
+                        el.getAttribute('data-variable-name')
+                    )
+                ).toEqual(['--a']);
+                dm.destroy();
+                container.remove();
+            });
+
+            it('still watches a fallback value (shadow DOM)', () => {
+                const { shadow, container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+                dm.updateCSSVariableWatchers({ 'var(--a, red)': 'red' });
+
+                expect(
+                    Array.from(shadow.querySelectorAll('[data-variable-name]'), (el) =>
+                        el.getAttribute('data-variable-name')
+                    )
+                ).toEqual(['--a, red']);
+                dm.destroy();
+            });
+        });
+
         describe('in a shadow root', () => {
             it('refreshes once per watched transition however often the watchers are updated', () => {
                 const { shadow, container } = buildShadowTree();
@@ -438,12 +475,27 @@ describe('DOMManager', () => {
                 expect(countRefreshes(() => attach(dm, component.attachShadow({ mode: 'open' }), container))).toBe(1);
             });
 
-            it('after the chart moved into the light DOM', () => {
-                const container = doc.createElement('div');
-                const dm = new DOMManager(eventsHub, 'late-refresh-light', doc, container);
-                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+            it.each(['var(--my-color)', 'var(--my-color, green)'])(
+                'after the chart moved into the light DOM with %s watched',
+                (key) => {
+                    const container = doc.createElement('div');
+                    const dm = new DOMManager(eventsHub, 'late-refresh-light', doc, container);
+                    dm.updateCSSVariableWatchers({ [key]: 'red' });
 
-                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(1);
+                    expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(1);
+                }
+            );
+
+            it('after the chart moved into a shadow root with a fallback variable watched, which it then watches', () => {
+                const component = doc.createElement('div');
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-shadow-fallback', doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color, green)': 'green' });
+                doc.body.append(component);
+                const shadow = component.attachShadow({ mode: 'open' });
+
+                expect(countRefreshes(() => attach(dm, shadow, container))).toBe(1);
+                expect(shadowWatchers(shadow, '--my-color, green')).toHaveLength(1);
             });
 
             it('for a variable that could not be resolved while detached', () => {

@@ -33,6 +33,7 @@ import {
     getWindow,
     isFiniteNumber,
     isInputPending,
+    isObject,
     mergeDefaults,
     moduleMatchesChartType,
     pause,
@@ -1714,10 +1715,12 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             initialState?.annotations != null &&
             annotationManager
         ) {
-            const annotations = initialState.annotations.map((annotation) => {
-                const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
-                return mergeDefaults(annotation, annotationTheme);
-            });
+            const annotations = initialState.annotations
+                .filter((annotation) => isObject(annotation))
+                .map((annotation) => {
+                    const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
+                    return mergeDefaults(annotation, annotationTheme);
+                });
 
             stateManager.setState(annotationManager, annotations);
         }

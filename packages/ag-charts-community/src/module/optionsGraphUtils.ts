@@ -1,4 +1,4 @@
-import { type ModuleScope, type PlainObject, isNumber, isObjectLike } from 'ag-charts-core';
+import { type ModuleScope, type PlainObject, SKIP_JS_BUILTINS, isNumber, isObjectLike } from 'ag-charts-core';
 
 import type { PaletteType } from './coreModulesTypes';
 
@@ -147,9 +147,11 @@ export function setPathSafe(object: PlainObject, path: (string | number)[], valu
     let result = object;
     const lastIndex = pathLength - 1;
     const lastPart = path[lastIndex];
+    if (SKIP_JS_BUILTINS.has(lastPart as string)) return;
 
     for (let i = 0; i < lastIndex; i++) {
         const part = path[i];
+        if (SKIP_JS_BUILTINS.has(part as string)) return;
         const nextPart = path[i + 1];
         let currentValue = result[part];
 

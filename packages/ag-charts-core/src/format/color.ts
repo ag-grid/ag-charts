@@ -12,6 +12,10 @@ const lerp = (x: number, y: number, t: number) => x * (1 - t) + y * t;
 // Anchored on the leading function token so that the supported `oklch()` is never matched by `lch`.
 const unsupportedColorFormat = /^\s*(oklab|lab|lch|color|light-dark)\(/i;
 const lightDarkColor = /^\s*light-dark\(/i;
+const rgbFunction = /^\s*rgba?\([^()]*\)\s*$/i;
+const hslFunction = /^\s*hsla?\([^()]*\)\s*$/i;
+const oklchFunction = /^\s*oklch\([^()]*\)\s*$/i;
+const hexDigits = /^#[\da-f]*$/i;
 
 /**
  * Colour formats that AG Charts deliberately does not support, and which therefore cannot be
@@ -164,7 +168,9 @@ export class Color implements IColor {
 
     // See https://drafts.csswg.org/css-color/#hex-notation
     static parseHex(input: string): [number, number, number, number] | undefined {
-        input = input.replaceAll(' ', '').slice(1);
+        input = input.replaceAll(' ', '');
+        if (!hexDigits.test(input)) return;
+        input = input.slice(1);
         let parts: any;
 
         switch (input.length) {
@@ -203,11 +209,10 @@ export class Color implements IColor {
     }
 
     private static stringToRgba(str: string): number[] | undefined {
+        if (!rgbFunction.test(str)) return;
+
         const po = str.indexOf('(');
         const pc = str.indexOf(')');
-
-        if (po === -1 || pc === -1 || pc < po) return;
-
         const contents = str.substring(po + 1, pc);
 
         // The `/ alpha` form separates alpha with a slash; otherwise components split on whitespace and/or commas.
@@ -306,11 +311,10 @@ export class Color implements IColor {
     }
 
     private static stringToHsla(str: string): number[] | undefined {
+        if (!hslFunction.test(str)) return;
+
         const po = str.indexOf('(');
         const pc = str.indexOf(')');
-
-        if (po === -1 || pc === -1 || pc < po) return;
-
         const contents = str.substring(po + 1, pc);
 
         // The `/ alpha` form separates alpha with a slash; otherwise components split on whitespace and/or commas.
@@ -351,11 +355,10 @@ export class Color implements IColor {
     }
 
     private static stringToOklcha(str: string): number[] | undefined {
+        if (!oklchFunction.test(str)) return;
+
         const po = str.indexOf('(');
         const pc = str.indexOf(')');
-
-        if (po === -1 || pc === -1 || pc < po) return;
-
         const contents = str.substring(po + 1, pc);
 
         // The `/ alpha` form separates alpha with a slash; otherwise components split on whitespace and/or commas.

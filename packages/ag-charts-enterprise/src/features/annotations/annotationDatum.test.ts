@@ -235,6 +235,14 @@ describe('Annotation datum lifecycle', () => {
             }
         });
 
+        it('adds no CSS variable watcher for an incomplete var() value in restored text', async () => {
+            const text = 'var(--x, rgb(1,2,3) junk{} .testMarker{})';
+            await prepareChart([{ ...MINIMAL_ANNOTATIONS.text, text }]);
+
+            expect(document.querySelectorAll('[data-variable-name]')).toHaveLength(0);
+            expect(chart.getState().annotations[0].text).toBe(text);
+        });
+
         it('warns about and drops an unknown property in restored state', async () => {
             await prepareChart([MINIMAL_ANNOTATIONS.line]);
             await restore([{ ...MINIMAL_ANNOTATIONS.line, bogus: 1 }]);

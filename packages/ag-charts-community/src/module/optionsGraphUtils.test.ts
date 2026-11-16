@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     getPathLastIndex,
@@ -10,6 +10,10 @@ import {
 } from './optionsGraphUtils';
 
 describe('OptionsGraph Utils', () => {
+    afterEach(() => {
+        delete (Object.prototype as any).testMarker;
+    });
+
     it('getPathSafe', () => {
         const object = { one: { two: { three: 'value' } } };
         expect(getPathSafe(object, ['one', 'two', 'three'])).toEqual('value');
@@ -52,6 +56,24 @@ describe('OptionsGraph Utils', () => {
         expect(resolvePath(['one', 'two'], './three')).toEqual(['one', 'three']);
         expect(resolvePath(['one', 'two'], 'three')).toEqual(['one', 'two', 'three']);
         expect(resolvePath(['one', 'two'], '../three')).toEqual(['three']);
+    });
+
+    it('setPathSafe ignores prototype keys', () => {
+        const object = {};
+        setPathSafe(object, ['__proto__', 'testMarker'], 1);
+        expect(({} as any).testMarker).toBeUndefined();
+        expect(Object.prototype).not.toHaveProperty('testMarker');
+        expect(Object.keys(object)).toEqual([]);
+    });
+
+    it.each([
+        ['constructor', ['constructor', 'prototype', 'testMarker']],
+        ['prototype', ['prototype', 'testMarker']],
+        ['trailing __proto__', ['one', '__proto__']],
+    ])('setPathSafe leaves Object.prototype untouched for %s paths', (_name, path) => {
+        setPathSafe({}, path, 1);
+        expect(({} as any).testMarker).toBeUndefined();
+        expect(Object.prototype).not.toHaveProperty('testMarker');
     });
 
     it('getPathLastIndex', () => {
