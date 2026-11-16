@@ -218,17 +218,17 @@ describe('DOMManager', () => {
                 container.remove();
             });
 
-            it('adds no watcher for an incomplete value (shadow DOM)', () => {
+            it('still watches a fallback value (shadow DOM)', () => {
                 const { shadow, container } = buildShadowTree();
                 const dm = new DOMManager(eventsHub, undefined, doc, container);
 
-                dm.updateCSSVariableWatchers({ [incomplete]: 'red', 'var(--a)': 'red' });
+                dm.updateCSSVariableWatchers({ 'var(--a, red)': 'red' });
 
                 expect(
                     Array.from(shadow.querySelectorAll('[data-variable-name]'), (el) =>
                         el.getAttribute('data-variable-name')
                     )
-                ).toEqual(['--a']);
+                ).toEqual(['--a, red']);
                 dm.destroy();
             });
         });

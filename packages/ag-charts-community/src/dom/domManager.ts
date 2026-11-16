@@ -1162,7 +1162,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         // Minimal mode has no laid-out sensor container, so its watchers sit on the shadow root.
         const sensorParent = this.mode === 'normal' ? this.rootElements['style-sensors'].element : shadowRoot;
         for (const property of properties) {
-            if (this.shadowCssVariableWatchers.has(property) || !CSS_VARIABLE_NAME.test(property)) continue;
+            if (this.shadowCssVariableWatchers.has(property)) continue;
 
             // Unlike normal DOM, here we transition directly on the color property since we need to combine the style
             // and sensor into a single element.
