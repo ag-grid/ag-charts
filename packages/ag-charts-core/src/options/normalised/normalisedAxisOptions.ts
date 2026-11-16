@@ -373,8 +373,7 @@ export type NormalisedCrosshairOptions<TFormat = string, TContext = ContextDefau
     'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'label',
     CrosshairLabelMorph<TFormat, TContext>
 > & {
-    /** When set with `snap`, the pointer value snaps to the nearest multiple of this interval. */
-    snapInterval?: number;
+    snapInterval?: AgTimeInterval | AgTimeIntervalUnit | number;
 };
 
 export type NormalisedBandHighlightOptions = Normalised<

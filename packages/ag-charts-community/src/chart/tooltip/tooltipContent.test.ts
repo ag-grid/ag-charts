@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { Logger, LtrEmbedding, PopDirectionalFormatting } from 'ag-charts-core';
+import { Logger, LtrEmbedding, PopDirectionalFormatting, getDocument } from 'ag-charts-core';
 
 import { type TooltipContent, isTooltipValueMissing, tooltipContentAriaLabel, tooltipHtml } from './tooltipContent';
 
@@ -95,6 +95,16 @@ describe('tooltipContent', () => {
             expect(html).toContain(`<div class="ag-charts-tooltip-footer">${mark('1')} מתוך ${mark('3')}</div>`);
         });
 
+        it('escapes markup in the pagination footer text', () => {
+            const markupLocale = { t: () => '<b>1</b> of 3' };
+            const html = tooltipHtml({ localeManager: markupLocale, isRtl: false }, [structured()], 'shared', {
+                index: 0,
+                length: 3,
+            });
+            expect(html).toContain('<div class="ag-charts-tooltip-footer">&lt;b&gt;1&lt;/b&gt; of 3</div>');
+            expect(html).not.toContain('<b>');
+        });
+
         it('marks a label carrying a number beside RTL text in an LTR chart', () => {
             const content: TooltipContent = {
                 type: 'structured',
@@ -150,6 +160,26 @@ describe('tooltipContent', () => {
                 data: [{ value: 'only value' }, { label: 'only label' }],
             };
             expect(tooltipContentAriaLabel([content], new Logger())).toBe('only value; only label');
+        });
+    });
+
+    describe('tooltipContentAriaLabel raw HTML', () => {
+        it('reads the text of renderer HTML', () => {
+            const rawHtmlString = '<div>Profit: <b>-45</b></div>';
+            expect(tooltipContentAriaLabel([{ type: 'raw', rawHtmlString }], new Logger())).toBe('Profit: -45');
+        });
+
+        it('parses renderer HTML in an inert template', () => {
+            const document = getDocument();
+            const createElement = vi.spyOn(document, 'createElement');
+            try {
+                tooltipContentAriaLabel([{ type: 'raw', rawHtmlString: '<span>Profit</span>' }], new Logger());
+                const tags = createElement.mock.calls.map(([tag]) => tag);
+                expect(tags).toContain('template');
+                expect(tags).not.toContain('div');
+            } finally {
+                createElement.mockRestore();
+            }
         });
     });
 });

@@ -8,8 +8,6 @@ import type { CanvasPoint } from '../types/scene';
 
 export type ChartType = 'cartesian' | 'polar' | 'topology' | 'standalone';
 
-export type SyncStatus = 'init' | 'domains-calculated' | 'ready';
-
 export type SeriesChangeType =
     'no-op' | 'no-change' | 'replaced' | 'data-change' | 'series-grouping-change' | 'series-count-changed' | 'updated';
 
@@ -45,7 +43,6 @@ export interface ChartTypeHost<E extends ChartTypeEnv = ChartTypeEnv> extends Se
     readonly annotationRoot: TranslatableGroup;
     readonly seriesArea: EnvType<E, 'seriesArea'>;
     readonly chartOptions: EnvType<E, 'chartOptions'>;
-    syncStatus: SyncStatus;
     getOptions(): AgChartOptions;
     getSeriesAreaPadding(): { top: number; right: number; bottom: number; left: number };
     getCaptionText(): string;

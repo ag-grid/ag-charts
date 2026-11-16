@@ -1,4 +1,5 @@
 import {
+    type AgAreaSeriesLabelOptions,
     type AgBaseSeriesOptions,
     type AgBaseSeriesThemeableOptions,
     type AgBaseThemeableChartOptions,
@@ -21,6 +22,9 @@ import {
     type AgContextMenuItemType,
     type AgDropShadowOptions,
     type AgErrorBarOptions,
+    type AgErrorBarSeriesLabelCollideWithOptions,
+    type AgErrorBarSeriesLabelCollisionFitOptions,
+    type AgErrorBarSeriesLabelCollisionOptions,
     type AgErrorBarThemeableOptions,
     type AgGlowOptions,
     type AgGradientLegendOptions,
@@ -812,6 +816,16 @@ const seriesLabelCollisionOptionsDef: OptionsDefs<AgSeriesLabelCollisionOptions>
     collideWith: collideWithOptionsDef,
 };
 
+const errorBarSeriesCollideWithOptionsDef: OptionsDefs<AgErrorBarSeriesLabelCollideWithOptions> = {
+    ...collideWithOptionsDef,
+    errorBars: boolean,
+};
+
+const errorBarSeriesLabelCollisionOptionsDef: OptionsDefs<AgErrorBarSeriesLabelCollisionOptions> = {
+    ...seriesLabelCollisionOptionsDef,
+    collideWith: errorBarSeriesCollideWithOptionsDef,
+};
+
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
     enabled: boolean,
     formatter: callbackOf(textOrSegments),
@@ -852,6 +866,12 @@ export const labelCollisionFitOptionsDefs: OptionsDefs<AgChartLabelCollisionFitO
     collision: seriesLabelCollisionOptionsDef,
 };
 
+/** {@link labelCollisionFitOptionsDefs} for series that support error bars, whose labels may opt out of avoiding them. */
+export const errorBarLabelCollisionFitOptionsDefs: OptionsDefs<AgErrorBarSeriesLabelCollisionFitOptions> = {
+    ...labelFitOptionsDefs,
+    collision: errorBarSeriesLabelCollisionOptionsDef,
+};
+
 /** Style overrides applied to a label for its resolved inside/outside placement. */
 export const labelPlacementStyleOptionsDef: OptionsDefs<AgChartLabelPlacementStyleOptions> = {
     color: colorOrRef,
@@ -864,14 +884,20 @@ export const labelPlacementStyleDefs = {
     outsideStyle: labelPlacementStyleOptionsDef,
 };
 
-/** Label defs for point-like series (line, area, scatter, bubble) that expose a directional placement. */
-export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
+/** Label defs for point-like series (area, bubble) that expose a directional placement. */
+export const placedSeriesLabelOptionsDefs: OptionsDefs<AgAreaSeriesLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
     ...labelCollisionFitOptionsDefs,
     ...labelAutoFontSizeOptionsDefs,
     ...labelPlacementStyleDefs,
     placement: labelCollisionPlacementDef,
     spacing: positiveNumber,
+};
+
+/** {@link placedSeriesLabelOptionsDefs} for point-like series that support error bars (line, scatter). */
+export const errorBarPlacedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
+    ...placedSeriesLabelOptionsDefs,
+    ...errorBarLabelCollisionFitOptionsDefs,
 };
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {

@@ -141,7 +141,7 @@ the nearest example.
   own diff. `compare-browser-results.js` only calls a change a regression once it clears
   `--min-pct`, `--min-abs-ms` **and** `NOISE_BAND_FACTOR ×` the measured cross-run CV —
   so do not read a sub-noise-band percentage as a result in either direction.
-- **`.size-limit.js`** in each package holds the src and dist budgets. This is the
+- **`.size-limit.js`** in `ag-charts-community` and `ag-charts-enterprise` holds the src and dist budgets. This is the
   instrument for tier 4; benchmarks say nothing about it.
 - **`chartHeapMemory.test.ts`** is the existing memory guard, retried 5× because heap
   comparisons are flaky.

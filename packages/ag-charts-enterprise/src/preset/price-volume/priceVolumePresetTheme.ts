@@ -14,6 +14,7 @@ import {
     DEFAULT_FIBONACCI_STROKES,
     MEASURER_STATISTICS_THEME,
     QUICK_MEASURER_DIVIDER_THEME,
+    selectionAxes,
 } from '../../features/annotations/annotationsTheme';
 
 const stroke: WithThemeParams<StrokeOptions> = {
@@ -44,6 +45,7 @@ const background = { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 } as co
 
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
+    ...selectionAxes(axisLabel, background.fillOpacity),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'annotationColor' },
     handle: { ...handle },
@@ -58,6 +60,7 @@ const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
 
 const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     ...stroke,
+    ...selectionAxes(axisLabel),
     background: { ...background },
     handle: { ...handle },
     text: { ...lineText },
@@ -68,6 +71,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Lines
     line: {
         ...stroke,
+        ...selectionAxes(axisLabel, background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -87,12 +91,14 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Channels
     'disjoint-channel': {
         ...stroke,
+        ...selectionAxes(axisLabel),
         background: { ...background },
         handle: { ...handle },
         text: { ...lineText },
     },
     'parallel-channel': {
         ...stroke,
+        ...selectionAxes(axisLabel),
         background: { ...background },
         handle: { ...handle },
         text: { ...lineText },
@@ -141,6 +147,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Shapes
     arrow: {
         ...stroke,
+        ...selectionAxes(axisLabel, background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -164,6 +171,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...measurer,
     },
     'quick-date-price-range': {
+        ...selectionAxes(axisLabel),
         up: {
             ...stroke,
             fill: { $ref: 'annotationColor' },

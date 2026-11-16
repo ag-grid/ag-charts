@@ -134,6 +134,19 @@ function getDefaultDateTicks({
     return t ? intervalRange(t, new Date(start), new Date(stop), { visibleRange, extend }) : []; // inclusive stop
 }
 
+/** The calendar interval a step of `milliseconds` aligns to, when it is a whole multiple of a tick interval. */
+export function alignedTimeInterval(milliseconds: number): AgTimeInterval | undefined {
+    const tickInterval = TickIntervals.findLast((t) => milliseconds % t.duration === 0);
+    if (tickInterval == null) return undefined;
+
+    const { timeInterval, step, duration } = tickInterval;
+    return {
+        ...timeInterval,
+        step: step * intervalStep(timeInterval) * Math.round(milliseconds / duration),
+        epoch: defaultEpoch(timeInterval, { weekStart: sunday }),
+    };
+}
+
 export function getDateTicksForInterval({
     start,
     stop,
@@ -168,15 +181,8 @@ export function getDateTicksForInterval({
 
     if (isDenseInterval(Math.abs(stop - start) / absInterval, availableRange, logger)) return;
 
-    const tickInterval = TickIntervals.findLast((t) => absInterval % t.duration === 0);
-
-    if (tickInterval) {
-        const { timeInterval, step, duration } = tickInterval;
-        const alignedInterval: AgTimeInterval = {
-            ...timeInterval,
-            step: step * intervalStep(timeInterval) * Math.round(absInterval / duration),
-            epoch: defaultEpoch(timeInterval, { weekStart: sunday }),
-        };
+    const alignedInterval = alignedTimeInterval(absInterval);
+    if (alignedInterval) {
         return intervalRange(alignedInterval, new Date(start), new Date(stop), { visibleRange, extend });
     }
 
