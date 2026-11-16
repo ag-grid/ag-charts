@@ -92,10 +92,10 @@ export const commonChartOptions = {
         active: initialStatePickedOptionsDef,
         chartType: string,
         collapsed: arrayOf(or(string, number)),
-        annotations: defined,
+        annotations: array,
         legend: initialStateLegendOptionsDef,
         legendPagination: nonNegativeInteger,
-        zoom: defined,
+        zoom: object,
     },
 };
 

@@ -4,6 +4,7 @@ import type { AgAnnotation, AgAnnotationsEvent, AgCartesianChartOptions, AgChart
 import {
     clickAction,
     deproxy,
+    expectErrorsCalls,
     expectWarningsCalls,
     getAxisLayoutState,
     getSeriesRect,
@@ -93,6 +94,24 @@ describe('Annotations', () => {
                 overrides: { common: { annotations: { 'fibonacci-retracement': { strokes } } } },
             });
             expect(themes['fibonacci-retracement'].strokes).toEqual(strokes);
+        });
+    });
+
+    describe('malformed initialState', () => {
+        it.each([
+            ['annotations as an object', { annotations: {} }],
+            ['zoom as an array', { zoom: [] }],
+        ] as const)('ignores %s with a warning', async (_name, initialState) => {
+            await prepareChart(initialState as never);
+
+            expectWarningsCalls().not.toHaveLength(0);
+            expectErrorsCalls().toHaveLength(0);
+        });
+
+        it('skips a non-object annotation element', async () => {
+            await prepareChart({ annotations: [null] } as never);
+
+            expectErrorsCalls().toHaveLength(0);
         });
     });
 
