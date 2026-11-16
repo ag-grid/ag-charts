@@ -715,8 +715,7 @@ describe('series-level glow (enterprise series)', () => {
         });
 
         // Only the highlight layer's copy casts the hovered item's glow, so a move redraws no in-place node.
-        // A heatmap is left out: its cells have selection styling, so it always redraws. A series that is not brought to
-        // front redraws all the same, as the in-place copy of the hovered item cuts the glow overlay, and the cut moves with it.
+        // A heatmap is left out: its cells have selection styling, so it always redraws.
         describe.each(SERIES.filter((testCase) => testCase.hoverable && testCase.name !== 'heatmap'))(
             '$name, moving between items',
             (testCase) => {
@@ -733,22 +732,19 @@ describe('series-level glow (enterprise series)', () => {
                     await waitForChartStability(chart);
                 };
 
-                const NOT_BROUGHT_TO_FRONT = new Set(['nightingale']);
-                const redraws = NOT_BROUGHT_TO_FRONT.has(testCase.name);
-
-                it(`${redraws ? 'redraws' : 'stays cached'} where only the highlighted item glows`, async () => {
+                it('stays cached where only the highlighted item glows', async () => {
                     await moveHover({ highlightedItem: { glow: {} } });
 
-                    expect(getSeriesHasChangesOnHighlight(chart)).toBe(redraws);
+                    expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
                 });
 
                 // The state of the other series casts on no item of this one, so a move changes nothing it casts.
                 it.skipIf(NO_SERIES_STATES.has(testCase.name))(
-                    `${redraws ? 'redraws' : 'stays cached'} where only the unhighlighted series glows`,
+                    'stays cached where only the unhighlighted series glows',
                     async () => {
                         await moveHover({ unhighlightedSeries: { glow: {} } });
 
-                        expect(getSeriesHasChangesOnHighlight(chart)).toBe(redraws);
+                        expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
                     }
                 );
 

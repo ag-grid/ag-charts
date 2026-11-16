@@ -279,40 +279,61 @@ describe('glow refinements', () => {
             );
         });
 
-        it.each([0, 1] as const)(
-            'covers a hovered bar that does not glow, not brought to front, by the glow of the bar beside it, with bar %s hovered',
-            async (hovered) => {
-                await create({
-                    axes: { x: { type: 'category', paddingInner: 0.1 }, y: { type: 'number', min: 0, max: 8 } },
-                    data: [
-                        { category: 'A', value: 6 },
-                        { category: 'B', value: 6 },
-                    ],
-                    series: [
-                        {
-                            type: 'bar',
-                            xKey: 'category',
-                            yKey: 'value',
-                            fill: '#0000ff',
-                            fillOpacity: 1,
-                            glow: hard({ spread: SPREAD }),
-                            highlight: { bringToFront: false, highlightedItem: { glow: { enabled: false } } },
-                        },
-                    ],
-                });
-                const [first, second] = shapesOf(getSeriesAt(chart).contentGroup, Rect).map(boundsOf);
-                const bottom = Math.min(first.y + first.height, second.y + second.height) - 6;
-                const [hoveredBar, beside] = hovered === 0 ? [first, second] : [second, first];
-                // 3px into the hovered bar, from the edge it shares with the bar beside it, whose glow reaches it.
-                const edge = hovered === 0 ? hoveredBar.x + hoveredBar.width - 3 : hoveredBar.x + 3;
+        // The glow of the hovered item is turned off by its highlight style, or by an itemStyler keyed on its highlight state.
+        const UNGLOWN_HOVER: [string, object][] = [
+            [
+                'a highlight style',
+                { highlight: { bringToFront: false, highlightedItem: { glow: { enabled: false } } } },
+            ],
+            [
+                'an itemStyler',
+                {
+                    highlight: { bringToFront: false },
+                    itemStyler: ({ highlightState }: { highlightState: string }) =>
+                        highlightState === 'highlighted-item' ? { glow: { enabled: false } } : {},
+                },
+            ],
+        ];
 
-                await hoverDatum(chart, 0, hovered);
-                // Covered by the glow, which is translucent over a bar that is dimmed: red shows where the bar was blue.
-                expect(pixel(edge, bottom)[0]).toBeGreaterThan(100);
-                // The bar beside it glows, so it is clear of its own glow, dimmed as the other items are, and the hovered bar
-                // is its own colour beyond the glow.
-                expect(pixel(beside.x + beside.width / 2, bottom)).toEqual(DIMMED_BLUE);
-                expect(pixel(hoveredBar.x + hoveredBar.width / 2, bottom)).toEqual(BLUE);
+        describe.each(UNGLOWN_HOVER)(
+            'with a hovered bar that %s leaves without a glow, not brought to front',
+            (_name, hover) => {
+                it.each([0, 1] as const)(
+                    'is covered by the glow of the bar beside it, with bar %s hovered',
+                    async (hovered) => {
+                        await create({
+                            axes: { x: { type: 'category', paddingInner: 0.1 }, y: { type: 'number', min: 0, max: 8 } },
+                            data: [
+                                { category: 'A', value: 6 },
+                                { category: 'B', value: 6 },
+                            ],
+                            series: [
+                                {
+                                    type: 'bar',
+                                    xKey: 'category',
+                                    yKey: 'value',
+                                    fill: '#0000ff',
+                                    fillOpacity: 1,
+                                    glow: hard({ spread: SPREAD }),
+                                    ...hover,
+                                },
+                            ],
+                        });
+                        const [first, second] = shapesOf(getSeriesAt(chart).contentGroup, Rect).map(boundsOf);
+                        const bottom = Math.min(first.y + first.height, second.y + second.height) - 6;
+                        const [hoveredBar, beside] = hovered === 0 ? [first, second] : [second, first];
+                        // 3px into the hovered bar, from the edge it shares with the bar beside it, whose glow reaches it.
+                        const edge = hovered === 0 ? hoveredBar.x + hoveredBar.width - 3 : hoveredBar.x + 3;
+
+                        await hoverDatum(chart, 0, hovered);
+                        // Covered by the glow, which is translucent over a bar that is dimmed: red shows where the bar was blue.
+                        expect(pixel(edge, bottom)[0]).toBeGreaterThan(100);
+                        // The bar beside it glows, so it is clear of its own glow, dimmed as the other items are, and the hovered bar
+                        // is its own colour beyond the glow.
+                        expect(pixel(beside.x + beside.width / 2, bottom)).toEqual(DIMMED_BLUE);
+                        expect(pixel(hoveredBar.x + hoveredBar.width / 2, bottom)).toEqual(BLUE);
+                    }
+                );
             }
         );
 
