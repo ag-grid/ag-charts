@@ -1154,7 +1154,7 @@ describe('Annotations', () => {
             body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
             await waitForChartStability(chart);
 
-            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value Y"]')!;
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
             input.value = '60';
             input.dispatchEvent(new Event('change'));
             await waitForChartStability(chart);
@@ -1569,7 +1569,7 @@ describe('Annotations', () => {
             body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
             await waitForChartStability(chart);
 
-            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value Y"]')!;
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
             input.value = value;
             input.dispatchEvent(new Event('change'));
             await waitForChartStability(chart);
