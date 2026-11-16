@@ -85,6 +85,21 @@ describe('gauge preset', () => {
         expectWarningsCalls().toHaveLength(0);
     });
 
+    it.each(GAUGES)(
+        'resolves theme operators inside arrays of user theme overrides of a $name gauge',
+        async ({ options }) => {
+            const fills = [
+                { color: operator, stop: 0 },
+                { color: operator, stop: 100 },
+            ];
+            const theme = { params: { foregroundColor: '#123456' }, overrides: { [options.type]: { bar: { fills } } } };
+
+            const seriesOptions = await createSeriesOptions({ ...options, theme } as any);
+            expect(seriesOptions.bar.fills.map((f: { color: unknown }) => f.color)).toEqual(['#123456', '#123456']);
+            expectWarningsCalls().toHaveLength(0);
+        }
+    );
+
     it.each(GAUGES)('rejects theme operators in the options of a $name gauge', async ({ options }) => {
         const defaultFill = (await createSeriesOptions(options)).bar.fill;
         chart.destroy();

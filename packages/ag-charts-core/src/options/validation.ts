@@ -11,6 +11,7 @@ import {
     isFunction,
     isHtmlElement,
     isObject,
+    isObjectLike,
     isString,
     isValidDate,
 } from '../data/typeGuards';
@@ -217,7 +218,7 @@ const themeOriginOperators = new WeakSet<object>();
 
 /** Records the theme operators within `theme`, so options a preset merges them into still accept them. */
 export function markThemeOperators(theme: unknown) {
-    if (!isObject(theme)) return;
+    if (!isObjectLike(theme)) return;
     if (isThemeOperator(theme)) {
         themeOriginOperators.add(theme);
         return;
