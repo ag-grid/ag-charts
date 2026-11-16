@@ -1076,7 +1076,7 @@ export class Annotations extends AbstractModuleInstance {
         this.trackMagnetModifier(event.sourceEvent);
 
         const offset = Vec2.from(event);
-        const point = invertCoords(this.isCreating() ? context.magnet(offset) : offset, context);
+        const point = this.placementPoint(offset, context);
 
         state.transition('hover', { offset, point, shiftKey, context });
     }
@@ -1090,7 +1090,7 @@ export class Annotations extends AbstractModuleInstance {
         const shiftKey = event.sourceEvent.shiftKey;
         this.trackMagnetModifier(event.sourceEvent);
         const offset = Vec2.from(event);
-        const point = invertCoords(this.isCreating() ? context.magnet(offset) : offset, context);
+        const point = this.placementPoint(offset, context);
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
@@ -1164,7 +1164,7 @@ export class Annotations extends AbstractModuleInstance {
         this.trackMagnetModifier(event.sourceEvent);
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = this.placementPoint(offset, context);
 
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
@@ -1181,7 +1181,7 @@ export class Annotations extends AbstractModuleInstance {
         this.trackMagnetModifier(event.sourceEvent);
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = this.placementPoint(offset, context);
         const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
@@ -1391,6 +1391,15 @@ export class Annotations extends AbstractModuleInstance {
 
     private isEditing() {
         return !this.state.isIdle() || this.settingsDialog.isVisible() || this.optionsToolbar.isMenuVisible();
+    }
+
+    /**
+     * The data point at a pointer position. While an annotation is being drawn the pointer position is the point to
+     * place, so the magnet applies, including when drawing by dragging. Otherwise it is only a position to move from, and
+     * the scenes apply the magnet to the point that a handle ends on.
+     */
+    private placementPoint(offset: Point, context: AnnotationContext) {
+        return invertCoords(this.isCreating() ? context.magnet(offset) : offset, context);
     }
 
     /** Whether an annotation is being drawn, which is when a pointer position is read as a point to place. */

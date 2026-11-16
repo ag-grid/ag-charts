@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import type { AnnotationContext } from '../annotationTypes';
+import { magnetTranslation } from './coords';
 import { type MagnetSeries, applyMagnet, nearestMagnetPosition, resolveMagnetMode } from './magnet';
 
 describe('resolveMagnetMode', () => {
@@ -20,7 +22,7 @@ describe('nearestMagnetPosition', () => {
         { mode: 'weak', position: 41, range: 20, expected: 40 },
         { mode: 'weak', position: 65, range: 20, expected: undefined },
         { mode: 'weak', position: 60, range: 20, expected: 40 },
-        { mode: 'weak', position: 60, range: 30, expected: 40 },
+        { mode: 'weak', position: 61, range: 20, expected: undefined },
         { mode: 'strong', position: 60, range: 1, expected: 40 },
         { mode: 'strong', position: 500, range: 1, expected: 90 },
     ] as const)('$mode at $position within $range is $expected', ({ mode, position, range, expected }) => {
@@ -62,5 +64,28 @@ describe('applyMagnet', () => {
     it('snaps to the nearest value across series', () => {
         const line: MagnetSeries<number> = { pickNearest: () => 1, yPositions: () => [70] };
         expect(applyMagnet({ x: 93, y: 68 }, [candlesticks, line], 'weak')).toEqual({ x: 93, y: 70 });
+    });
+});
+
+describe('magnetTranslation', () => {
+    // A magnet that pulls any point to y = 50, as a datum with that single value would.
+    const context = { magnet: ({ x }: { x: number }) => ({ x, y: 50 }) } as unknown as AnnotationContext;
+
+    it('adjusts a translation so that the point ends on the magnet value', () => {
+        // From (10, 20), moving by (5, 25) would end at (15, 45); the magnet moves that to y = 50.
+        expect(magnetTranslation({ x: 10, y: 20 }, { x: 5, y: 25 }, context)).toEqual({ x: 5, y: 30 });
+    });
+
+    it('moves up or down as the magnet requires', () => {
+        expect(magnetTranslation({ x: 10, y: 80 }, { x: -5, y: -10 }, context)).toEqual({ x: -5, y: -30 });
+    });
+
+    it('is the translation itself when the point is already on the magnet value', () => {
+        expect(magnetTranslation({ x: 10, y: 20 }, { x: 5, y: 30 }, context)).toEqual({ x: 5, y: 30 });
+    });
+
+    it('is the translation itself when the magnet does not move the point', () => {
+        const off = { magnet: (offset: { x: number; y: number }) => offset } as unknown as AnnotationContext;
+        expect(magnetTranslation({ x: 10, y: 20 }, { x: 5, y: 25 }, off)).toEqual({ x: 5, y: 25 });
     });
 });
