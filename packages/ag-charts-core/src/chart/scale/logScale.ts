@@ -34,8 +34,6 @@ function pow(base: number, domain: number[], x: number) {
     return start >= 0 ? fn(base, x) : -fn(base, -x);
 }
 
-const CLAMP = { clamp: true };
-
 export class LogScale extends ContinuousScale<number> {
     static override is(value: unknown): value is LogScale {
         return value instanceof LogScale;
@@ -51,7 +49,7 @@ export class LogScale extends ContinuousScale<number> {
         const position = super.convert(value, options);
         if (options?.clamp != null || Number.isFinite(position)) return position;
         // Zero transforms to an infinity, so it falls back to the range edge.
-        return super.convert(value, CLAMP);
+        return super.convert(value, { clamp: true });
     }
 
     override transform(this: LogScale, x: number) {
@@ -144,11 +142,11 @@ export class LogScale extends ContinuousScale<number> {
         const availableSpacing = findRangeExtent(this.range) / tickCount;
         let lastTickPosition = Infinity;
         for (let p = p0; p <= p1; p++) {
-            const nextMagnitudeTickPosition = this.convert(this.pow(p + 1), CLAMP);
+            const nextMagnitudeTickPosition = this.convert(this.pow(p + 1), { clamp: true });
             for (let k = 1; k < base; k++) {
                 const q = isPositive ? k : base - k + 1;
                 const t = this.pow(p) * q;
-                const tickPosition = this.convert(t, CLAMP);
+                const tickPosition = this.convert(t, { clamp: true });
                 const prevSpacing = Math.abs(lastTickPosition - tickPosition);
                 const nextSpacing = Math.abs(tickPosition - nextMagnitudeTickPosition);
                 const fits = prevSpacing >= availableSpacing && nextSpacing >= availableSpacing;
