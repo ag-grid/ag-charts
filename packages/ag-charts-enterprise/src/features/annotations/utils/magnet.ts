@@ -9,7 +9,7 @@ export function resolveMagnetMode(
     mode: AgAnnotationMagnetMode,
     invert: boolean
 ): AgAnnotationMagnetMode | undefined {
-    return enabled !== invert ? mode : undefined;
+    return enabled === invert ? undefined : mode;
 }
 
 /**

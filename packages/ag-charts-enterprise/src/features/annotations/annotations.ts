@@ -204,7 +204,7 @@ export class Annotations extends AbstractModuleInstance {
         const mode = resolveMagnetMode(this.magnetEnabled, this.magnetStrength, this.magnetInverted);
         const { yAxis } = this;
         // The values of a category axis are bands, not positions to snap to.
-        if (mode == null || yAxis == null || !yAxis.context.continuous) return offset;
+        if (mode == null || !yAxis?.context.continuous) return offset;
 
         const seriesIds = yAxis.context.seriesIds();
         const series = this.ctx.chartService.series
@@ -1161,7 +1161,7 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        this.trackMagnetModifier(event.sourceEvent as MouseEvent);
+        this.trackMagnetModifier(event.sourceEvent);
 
         const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
@@ -1178,7 +1178,7 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        this.trackMagnetModifier(event.sourceEvent as MouseEvent);
+        this.trackMagnetModifier(event.sourceEvent);
 
         const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
