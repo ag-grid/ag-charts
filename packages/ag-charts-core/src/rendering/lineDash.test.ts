@@ -30,10 +30,15 @@ describe('stock line dash patterns', () => {
         });
     });
 
-    it.each(NAMES)('gives %s a non-empty pattern of non-negative lengths', (name) => {
-        const pattern = LINE_DASH_PATTERNS[name];
-        expect(pattern.length).toBeGreaterThan(0);
-        expect(pattern.every((length) => length >= 0)).toBe(true);
+    it('gives each stock pattern a non-empty pattern of non-negative lengths', () => {
+        for (const name of NAMES) {
+            const pattern = LINE_DASH_PATTERNS[name];
+            expect(pattern.length, name).toBeGreaterThan(0);
+            expect(
+                pattern.every((length) => length >= 0),
+                name
+            ).toBe(true);
+        }
     });
 
     it('writes no SVG dash for the solid pattern', () => {

@@ -962,43 +962,47 @@ describe('ChartOptions', () => {
             ],
         ];
 
-        // `long-dash-dot-dot` is [7, 2, 1, 2, 1, 2] in multiples of the stroke width.
+        // `long-dash-dot-dot` is [7, 2, 1, 2, 1, 2] in multiples of the stroke width. How a name renders is covered by
+        // the image snapshots in `chart/lineDash.test.ts`.
         it.each(LOCATIONS)(
-            'resolves a stock dash name on a %s to its array, scaled by its strokeWidth',
+            'resolves a stock dash name on a %s, scaled by its strokeWidth, and not an array',
             (_, path, build) => {
                 const named = prepareOptions<AgCartesianChartOptions>(build('long-dash-dot-dot' as never, 3));
-                expect(warnings()).toEqual([]);
                 expect(optionAt(named, path)).toEqual([21, 6, 3, 6, 3, 6]);
+
+                const array = prepareOptions<AgCartesianChartOptions>(build([6, 4] as never, 3));
+                expect(optionAt(array, path)).toEqual([6, 4]);
+                expect(warnings()).toEqual([]);
             }
         );
 
-        it.each(LOCATIONS)('does not scale an array on a %s', (_, path, build) => {
-            const array = prepareOptions<AgCartesianChartOptions>(build([6, 4] as never, 3));
-            expect(warnings()).toEqual([]);
-            expect(optionAt(array, path)).toEqual([6, 4]);
+        it('scales a stock dash name as if the strokeWidth were 1 when it is unset (1 on an axis line) or zero', () => {
+            for (const strokeWidth of [undefined, 0]) {
+                const options = prepareOptions<AgCartesianChartOptions>({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category', position: 'bottom', line: { lineDash: 'dash-dot', strokeWidth } } },
+                });
+                expect(optionAt(options, 'axes.x.line.lineDash'), `strokeWidth ${strokeWidth}`).toEqual([
+                    3, 1.5, 1, 1.5,
+                ]);
+            }
         });
 
-        it.each([
-            ['an unset strokeWidth, which is 1 on an axis line', undefined],
-            ['a zero strokeWidth', 0],
-        ])('scales a stock dash name as if the strokeWidth were 1 for %s', (_, strokeWidth) => {
-            const options = prepareOptions<AgCartesianChartOptions>({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: { x: { type: 'category', position: 'bottom', line: { lineDash: 'dash-dot', strokeWidth } } },
-            });
-            expect(optionAt(options, 'axes.x.line.lineDash')).toEqual([3, 1.5, 1, 1.5]);
-        });
+        it('rejects an unknown dash name at every location and drops it', () => {
+            for (const [location, path, build] of LOCATIONS) {
+                (console.warn as Mock).mockClear();
+                const options = prepareOptions<AgCartesianChartOptions>(build(invalidOption('wavy')));
 
-        it.each(LOCATIONS)('rejects an unknown dash name on a %s and drops it', (_, path, build) => {
-            const options = prepareOptions<AgCartesianChartOptions>(build(invalidOption('wavy')));
-
-            // The reported path carries the cross line's discriminator.
-            const reportedPath = path.replace('crossLines[0]', 'crossLines[0][type=line]');
-            expect(warnings().some((m) => m.includes(`Option \`${reportedPath}\` cannot be set to \`"wavy"\``))).toBe(
-                true
-            );
+                // The reported path carries the cross line's discriminator.
+                const reportedPath = path.replace('crossLines[0]', 'crossLines[0][type=line]');
+                const expected = `Option \`${reportedPath}\` cannot be set to \`"wavy"\``;
+                expect(
+                    warnings().some((m) => m.includes(expected)),
+                    location
+                ).toBe(true);
+                expect(optionAt(options, path), location).not.toBe('wavy');
+            }
             expect(warnings().some((m) => m.includes("'solid'") && m.includes("'long-dash-dash-dash'"))).toBe(true);
-            expect(optionAt(options, path)).not.toBe('wavy');
         });
     });
 
