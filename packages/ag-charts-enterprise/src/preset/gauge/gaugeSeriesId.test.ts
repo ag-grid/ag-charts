@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import {
+    deproxy,
+    expectWarningsCalls,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import type { AgChartInstance, AgLinearGaugeOptions, AgRadialGaugeOptions } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -54,5 +60,52 @@ describe('gauge preset series id', () => {
         chart.destroy();
         await create({ ...options, id: 'my-gauge', label } as AgRadialGaugeOptions);
         expect(Array.from(seriesIds)).toEqual(['my-gauge']);
+    });
+});
+
+describe('gauge preset theme overrides', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    const createSeriesOptions = async (options: AgRadialGaugeOptions | AgLinearGaugeOptions) => {
+        const prepared = { ...options } as AgRadialGaugeOptions;
+        prepareEnterpriseTestOptions(prepared);
+        chart = AgCharts.createGauge(prepared);
+        await waitForChartStability(chart);
+        return (deproxy(chart).series[0] as any).options;
+    };
+
+    const operator = { $ref: 'foregroundColor' };
+
+    it.each(GAUGES)('resolves theme operators in user theme overrides of a $name gauge', async ({ options }) => {
+        const theme = {
+            params: { foregroundColor: '#123456' },
+            overrides: {
+                [options.type]: { bar: { fill: operator }, scale: { fill: operator }, targets: { fill: operator } },
+            },
+        };
+
+        const seriesOptions = await createSeriesOptions({ ...options, targets: [{ value: 30 }], theme } as any);
+        expect(seriesOptions.bar.fill).toBe('#123456');
+        expect(seriesOptions.scale.fill).toBe('#123456');
+        expect(seriesOptions.targets[0].fill).toBe('#123456');
+        expectWarningsCalls().toHaveLength(0);
+    });
+
+    it.each(GAUGES)('rejects theme operators in the options of a $name gauge', async ({ options }) => {
+        const defaultFill = (await createSeriesOptions(options)).bar.fill;
+        chart.destroy();
+
+        expect((await createSeriesOptions({ ...options, bar: { fill: operator } } as any)).bar.fill).toEqual(
+            defaultFill
+        );
+        expectWarningsCalls().not.toHaveLength(0);
     });
 });

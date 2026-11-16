@@ -17,6 +17,7 @@ import {
     deepFreeze,
     getSequentialColors,
     groupBy,
+    markThemeOperators,
     mergeDefaults,
     mergeDefaultsShallowOperations,
     nestAtOptionsPath,
@@ -343,6 +344,7 @@ export class ChartTheme {
         this.chartDefaults = chartDefaults;
         this.overrides = deepFreeze(overrides);
         this.presets = deepFreeze(presets);
+        markThemeOperators(this.presets);
     }
 
     private getFrozenDefaultsConfig(presetName: string | undefined, moduleRegistry: ModuleScope) {
