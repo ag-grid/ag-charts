@@ -133,13 +133,13 @@ export abstract class Widget<
     private nonReentrantDestruction() {
         this.destroyListener?.();
         this.destroyListener = undefined;
+        this.destructor();
         this.remove();
         for (const child of this.children) {
             child.parent = undefined;
             child.destroy();
         }
         this.children.length = 0;
-        this.destructor();
         this.internalListener?.destroy();
         this.htmlListener?.destroy(this);
     }
