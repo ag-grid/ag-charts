@@ -4860,6 +4860,20 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.series?.[0]).toMatchObject({ xKeyAxis: 'y', yKeyAxis: 'x' });
             });
 
+            it.each([
+                ['an untyped axis', { axes: { y: { position: 'left', title: { text: { $path: '/title/text' } } } } }],
+                ['initial state', { initialState: { zoom: { $path: '/title' } } }],
+            ])('should not interpret a private theme operator in %s', (_name, options) => {
+                const preparedOptions = prepareOptions({
+                    title: { text: 'secret-title' },
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    ...options,
+                } as AgCartesianChartOptions);
+
+                expect(JSON.stringify(preparedOptions).split('secret-title')).toHaveLength(2);
+            });
+
             it('should flip axes when a theme operator makes a series horizontal', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
