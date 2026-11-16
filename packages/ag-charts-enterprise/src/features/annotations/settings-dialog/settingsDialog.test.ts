@@ -132,7 +132,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
-    it('offers the categories of a category axis and also takes text that is not one', () => {
+    it('offers the categories of a category axis and reverts text that is not one', () => {
         const xScale = new CategoryScale<string>();
         xScale.domain = ['Apples', 'Pears'];
         const yScale = new TimeScale();
@@ -150,10 +150,8 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
 
         commit(startX, 'Bananas');
-        expect(onChangeCoordinates).toHaveBeenLastCalledWith({
-            start: { x: { value: 'Bananas', groupPercentage: 0 } },
-        });
-        expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
+        expect(startX.value).toBe('Apples');
+        expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
     });
 
     it('lays out the x and y of a point on one row with labels above, a single value or offset with its label alongside, and a height with its label above', () => {

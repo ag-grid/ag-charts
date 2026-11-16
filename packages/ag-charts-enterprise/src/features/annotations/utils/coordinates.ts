@@ -2,12 +2,14 @@ import {
     CategoryScale,
     ContinuousScale,
     GroupedCategoryScale,
+    LogScale,
     OrdinalTimeScale,
     TimeScale,
     UnitTimeScale,
     intervalFloor,
     isFiniteNumericValue,
     isNumericValue,
+    toNumber,
     toPlainText,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -169,9 +171,11 @@ export function floorToBand(date: Date, scale: UnitTimeScale): Date | undefined 
 }
 
 /**
- * The value to apply for a parsed one, or `undefined` to reject it. A value is checked against the type of its axis
- * but not its domain, as data loaded later can change the domain: a time band axis puts it on a bar or band, and a
- * category is any text. A height is a distance, so it is not bound to the axis, but an offset is bound to its band.
+ * The value to apply for a parsed one, or `undefined` to reject it. A value must be one its axis can place, as an
+ * annotation at a position the axis cannot convert is not drawn and cannot be selected again: a category must be one
+ * of the axis's, and a log axis takes only the sign of its domain. A value is not bound to the domain otherwise, as
+ * data loaded later can change it: a time band axis puts a date on a bar or band. A height is a distance, so it is not
+ * bound to the axis, but an offset is bound to its band.
  */
 export function resolveCoordinate(
     field: CoordinateField,
@@ -186,7 +190,7 @@ export function resolveCoordinate(
         return typeof parsed === 'number' && Math.abs(parsed) <= OFFSET_LIMIT + OFFSET_TOLERANCE ? parsed : undefined;
     }
     if (field.kind === 'category') {
-        return axis.scale.domain.find((category) => withoutLineBreaks(category) === parsed) ?? parsed;
+        return axis.scale.domain.find((category) => withoutLineBreaks(category) === parsed);
     }
     if (field.kind === 'unit-time') {
         return parsed instanceof Date && UnitTimeScale.is(axis.scale) ? floorToBand(parsed, axis.scale) : undefined;
@@ -194,7 +198,19 @@ export function resolveCoordinate(
     if (field.kind === 'ordinal-time') {
         return parsed instanceof Date ? snapToBar(parsed, axis.scale.domain) : undefined;
     }
+    if (field.kind === 'number' && LogScale.is(axis.scale)) {
+        return hasSignOfLogDomain(parsed, axis.scale) ? parsed : undefined;
+    }
     return parsed;
+}
+
+/** A logarithm is not defined for zero or for the sign opposite to the domain's. */
+function hasSignOfLogDomain(parsed: ParsedCoordinate, { domain }: LogScale) {
+    if (!isNumericValue(parsed)) {
+        return false;
+    }
+    const value = toNumber(parsed);
+    return Math.min(...domain) >= 0 ? value > 0 : value < 0;
 }
 
 /** The editable coordinates of an annotation, in the order the dialog lists them. */

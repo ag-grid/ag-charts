@@ -385,14 +385,14 @@ export class AnnotationSettingsDialog extends Dialog {
             rows.set(field.row, rowFields);
         }
 
-        const refreshes: Array<(next: CoordinateField) => void> = [];
+        const refreshes = new Map<string, (next: CoordinateField) => void>();
         const panel = this.createTabPanel();
         // A single value or offset has its label alongside; an offset is on a row of its own, and a height has its label above.
         const addRow = (rowFields: CoordinateField[], follows = false) => {
             const inline = rowFields.length === 1 && !isHeightRow(rowFields[0].row);
             const widgets = rowFields.map((field) => {
                 const { widget, refresh } = this.createCoordinateInput(field, inline, options);
-                refreshes.push(refresh);
+                refreshes.set(getCoordinateLabelKey(field), refresh);
                 return widget;
             });
             panel.addChild(this.createInputRow(widgets, follows));
@@ -406,12 +406,8 @@ export class AnnotationSettingsDialog extends Dialog {
 
         this.refreshCoordinateInputs = () => {
             const current = options.getContext();
-            const next = current && getCoordinateFields(datum, current);
-            if (next?.length !== refreshes.length) {
-                return;
-            }
-            for (const [index, refresh] of refreshes.entries()) {
-                refresh(next[index]);
+            for (const field of current ? getCoordinateFields(datum, current) : []) {
+                refreshes.get(getCoordinateLabelKey(field))?.(field);
             }
         };
 

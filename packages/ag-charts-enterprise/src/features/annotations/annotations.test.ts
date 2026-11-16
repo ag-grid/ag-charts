@@ -5,6 +5,7 @@ import {
     clickAction,
     deproxy,
     expectWarningsCalls,
+    findAxis,
     getAxisLayoutState,
     getSeriesRect,
     hoverAction,
@@ -16,7 +17,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, type Node, Text } from 'ag-charts-core';
+import { BandScale, Group, type Node, Text } from 'ag-charts-core';
 import type { AgHorizontalLineAnnotation } from 'ag-charts-types';
 
 import {
@@ -1143,6 +1144,83 @@ describe('Annotations', () => {
     });
 
     describe('settings dialog coordinates', () => {
+        describe('on a category axis', () => {
+            const categoryOptions: AgCartesianChartOptions = {
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                data: [
+                    { category: 'Q1', value: 50 },
+                    { category: 'Q2', value: 70 },
+                    { category: 'Q3', value: 60 },
+                ],
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom', paddingInner: 0.3 },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            const getBandScale = () => {
+                const { scale } = findAxis(chart, 'bottom');
+                if (!BandScale.is(scale)) {
+                    throw new Error('Expected the x axis to have a band scale');
+                }
+                return scale;
+            };
+
+            // Selects the vertical line through the centre of the Q2 band, and opens its settings.
+            async function openVerticalLineCoordinates() {
+                await prepareChart(
+                    { annotations: [{ type: 'vertical-line', value: { value: 'Q2', groupPercentage: 0.5 } }] },
+                    categoryOptions
+                );
+                const scale = getBandScale();
+                const { x, y, height } = getSeriesRect(chart);
+                const lineX = x + scale.convert('Q2') + scale.bandwidth / 2;
+                await hoverAction(lineX, y + height / 2)(chart);
+                await clickAction(lineX, y + height / 2)(chart);
+                await waitForChartStability(chart);
+
+                const { body } = deproxy(chart).ctx.agDocument;
+                body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
+                await waitForChartStability(chart);
+                return body;
+            }
+
+            async function commitInput(body: HTMLElement, label: string, value: string) {
+                const input = body.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!;
+                input.value = value;
+                input.dispatchEvent(new Event('change'));
+                await waitForChartStability(chart);
+            }
+
+            it('places an offset of 50 at the midpoint between the band and the next, padding included', async () => {
+                const body = await openVerticalLineCoordinates();
+
+                await commitInput(body, 'Value offset: X (%)', '50');
+
+                const [{ value }] = chart.getState().annotations as Array<{
+                    value: { value: string; groupPercentage: number };
+                }>;
+                const scale = getBandScale();
+                const centres = (category: string) => scale.convert(category) + scale.bandwidth / 2;
+                expect(value.value).toBe('Q2');
+                expect(scale.convert('Q2') + value.groupPercentage * scale.bandwidth).toBeCloseTo(
+                    (centres('Q2') + centres('Q3')) / 2
+                );
+            });
+
+            it('keeps the annotation where it is for a category the axis does not have, and moves it to one it does', async () => {
+                const body = await openVerticalLineCoordinates();
+
+                await commitInput(body, 'Value: X', 'Q9');
+                expect(chart.getState().annotations).toMatchObject([{ value: { value: 'Q2' } }]);
+                expect(body.querySelector<HTMLInputElement>('input[aria-label="Value: X"]')!.value).toBe('Q2');
+
+                await commitInput(body, 'Value: X', 'Q3');
+                expect(chart.getState().annotations).toMatchObject([{ value: { value: 'Q3' } }]);
+            });
+        });
+
         it('edits the selected annotation and follows an undo', async () => {
             await prepareChart({ annotations: [{ type: 'horizontal-line', value: 50 }] });
             const { x, y, width, height } = getSeriesRect(chart);

@@ -5,6 +5,7 @@ import {
     CategoryScale,
     GroupedCategoryScale,
     LinearScale,
+    LogScale,
     OrdinalTimeScale,
     TimeScale,
     UnitTimeScale,
@@ -216,6 +217,29 @@ describe('annotation coordinates', () => {
             const height = getCoordinateFields(channel, context).find((f) => f.row === 'height')!;
             expect(resolveCoordinate(height, 500, context)).toBe(500);
         });
+
+        it('takes only values of the sign of the domain of a log axis, which cannot place any other', () => {
+            const logScale = (domain: number[]) => {
+                const scale = new LogScale();
+                scale.domain = domain;
+                return scale;
+            };
+            const datum = { ...lineDatum.create(), start: { x: 1, y: 2 }, end: { x: 3, y: 4 } };
+
+            const positive = createAxesContext(numberScale([0, 100]), logScale([1, 1000]));
+            const [, positiveY] = getCoordinateFields(datum, positive);
+            expect(resolveCoordinate(positiveY, 5000, positive)).toBe(5000);
+            expect(resolveCoordinate(positiveY, 0.01, positive)).toBe(0.01);
+            expect(resolveCoordinate(positiveY, 0, positive)).toBeUndefined();
+            expect(resolveCoordinate(positiveY, -5, positive)).toBeUndefined();
+            expect(resolveCoordinate(positiveY, -5n, positive)).toBeUndefined();
+
+            const negative = createAxesContext(numberScale([0, 100]), logScale([-1000, -1]));
+            const [, negativeY] = getCoordinateFields(datum, negative);
+            expect(resolveCoordinate(negativeY, -5, negative)).toBe(-5);
+            expect(resolveCoordinate(negativeY, 0, negative)).toBeUndefined();
+            expect(resolveCoordinate(negativeY, 5, negative)).toBeUndefined();
+        });
     });
 
     describe('offset within a band', () => {
@@ -320,14 +344,15 @@ describe('annotation coordinates', () => {
             end: { x: 'Apples', y: 4 },
         };
 
-        it('suggests the categories and resolves typed text to the one it names or else keeps it, keeping the group percentage', () => {
+        it('suggests the categories and resolves typed text to the one it names, keeping the group percentage', () => {
             const startX = getCoordinateFields(datum, context)[0];
 
             expect(startX.kind).toBe('category');
             expect(startX.value).toBe('Pears');
             expect(startX.suggestions?.()).toEqual(['Apples', 'Pears', '7']);
             expect(parseCoordinate('', 'category')).toBeUndefined();
-            expect(resolveCoordinate(startX, 'Bananas', context)).toBe('Bananas');
+            expect(resolveCoordinate(startX, 'Bananas', context)).toBeUndefined();
+            expect(resolveCoordinate(startX, '2025', context)).toBeUndefined();
 
             const resolved = resolveCoordinate(startX, '7', context);
 
