@@ -18,6 +18,7 @@ import {
     isPatternFill,
     isPlainObject,
     isString,
+    isThemeOriginOperator,
     without,
 } from 'ag-charts-core';
 
@@ -68,8 +69,9 @@ type OperationResolver = (
 export function getOperation(
     value: unknown,
     warnings: Pick<OptionsGraphInterface, 'warnOnce'>,
-    keys?: Array<string>
-): { operation: Operation; values: Array<any> } | undefined {
+    keys?: Array<string>,
+    userSource = false
+): { operation: Operation; values: Array<any> } | null | undefined {
     if (value == null || typeof value !== 'object' || Array.isArray(value)) return;
 
     keys ??= Object.keys(value);
@@ -80,6 +82,8 @@ export function getOperation(
 
     const operation = keys[0] as Operation;
     if (!operationTypes.has(operation)) return;
+    // `null` marks a private operator from a user source, which must not be interpreted.
+    if (userSource && !isThemeOriginOperator(value)) return null;
     return {
         operation,
         values: Array.isArray((value as PlainObject)[operation])
@@ -1046,7 +1050,7 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
         const value = cycledValue(cycledValues, index);
         if (value == null) continue;
         if (graftsValue) {
-            graph.graftValue(vertex, `${index}`, value, undefined, graftEdge);
+            graph.graftValue(vertex, `${index}`, value, undefined, graftEdge, userOption != null);
         }
         if (operation) {
             graph.graftValue(vertex, `${index}`, operation, value, graftEdge);
@@ -1122,7 +1126,7 @@ function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInter
         graph.graftObject(vertex, expandedOverrideOption, undefined, OVERRIDES_EDGE);
     }
     if (expandedUserOption) {
-        graph.graftObject(vertex, expandedUserOption, undefined, USER_OPTIONS_EDGE);
+        graph.graftObject(vertex, expandedUserOption, undefined, USER_OPTIONS_EDGE, undefined, true);
     }
 
     return RESOLVED_TO_BRANCH;
@@ -1207,8 +1211,9 @@ function cloneOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 
     if (!isPlainObject(value)) return;
 
-    // Graft as the 'user' edge to ensure it takes priority over the default values.
-    graph.graftObject(vertex, value, undefined, USER_OPTIONS_EDGE);
+    // Graft as the 'user' edge to ensure it takes priority over the default values. The resolved value can hold
+    // raw user values, e.g. a data row, so any operator left in it is untrusted.
+    graph.graftObject(vertex, value, undefined, USER_OPTIONS_EDGE, undefined, true);
 
     return RESOLVED_TO_BRANCH;
 }
@@ -1283,7 +1288,7 @@ function mergeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
         if (!isPlainObject(value)) continue;
-        graph.graftObject(vertex, value);
+        graph.graftObject(vertex, value, undefined, undefined, undefined, true);
     }
 
     return RESOLVED_TO_BRANCH;

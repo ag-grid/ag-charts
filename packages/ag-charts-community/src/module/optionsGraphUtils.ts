@@ -45,9 +45,17 @@ export interface OptionsGraphInterface {
         object: PlainObject,
         overridesPathArrays?: Array<Array<string> | undefined>,
         edgeValue?: string,
-        typeKeys?: OverrideTypeKeys
+        typeKeys?: OverrideTypeKeys,
+        userSource?: boolean
     ): void;
-    graftValue(target: VertexInterface, path: string, ontoObject: unknown, value: unknown, edgeValue?: string): void;
+    graftValue(
+        target: VertexInterface,
+        path: string,
+        ontoObject: unknown,
+        value: unknown,
+        edgeValue?: string,
+        userSource?: boolean
+    ): void;
     hasThemeOverride(path: Array<string>): boolean;
     hasUserOption(path: Array<string>): boolean;
     neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface> | undefined;

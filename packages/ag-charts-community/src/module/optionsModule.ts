@@ -1616,7 +1616,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     : (seriesModule.defaultAxes ??
                       this.moduleRegistry.getChartModule(seriesModule.chartType)?.defaultAxes);
         }
-        return defaultAxes ? deepClone(defaultAxes) : {};
+        if (!defaultAxes) return {};
+        const clone = deepClone(defaultAxes);
+        markThemeOperators(clone);
+        return clone;
     }
 
     private predictAxesMissingTypesAndPositions(
