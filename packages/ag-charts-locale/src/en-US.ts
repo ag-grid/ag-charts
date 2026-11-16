@@ -299,6 +299,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarZoomPanEnd: 'Pan to the end',
     // Text for the zoom toolbar's pan reset button
     toolbarZoomReset: 'Reset the zoom',
+    // Text for the color picker's cancel button, which reverts the colour to what it was before the picker opened
+    colorPickerCancel: 'Cancel',
+    // Text for the color picker's confirm button, which keeps the chosen colour and closes the picker
+    colorPickerConfirm: 'Confirm',
     // Text for the context menu's download button
     contextMenuDownload: 'Download',
     // Text for the context menu's toggle series visibility button

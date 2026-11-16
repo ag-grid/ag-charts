@@ -66,6 +66,8 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     ariaValueColorPalette: '的 ${s}[percent0to2dp]，v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp]，s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] 到 ${max}[percent0to2dp]',
+    colorPickerCancel: '取消',
+    colorPickerConfirm: '確認',
     contextMenuDownload: '下载',
     contextMenuPanToCursor: '平移到此處',
     contextMenuResetZoom: '重置縮放',

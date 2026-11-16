@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_SR_LATN_RS: Record<string, string> = {
     toolbarZoomPanStart: 'Pomeri na početak',
     toolbarZoomPanEnd: 'Pomeri na kraj',
     toolbarZoomReset: 'Resetuj zum',
+    colorPickerCancel: 'Otkaži',
+    colorPickerConfirm: 'Potvrdi',
     contextMenuDownload: 'Preuzmi',
     contextMenuToggleSeriesVisibility: 'Uključi/isključi vidljivost',
     contextMenuToggleOtherSeries: 'Uključi/isključi ostale serije',

@@ -66,6 +66,8 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] đến ${max}[percent0to2dp]',
+    colorPickerCancel: 'Hủy',
+    colorPickerConfirm: 'Xác nhận',
     contextMenuDownload: 'Tải về',
     contextMenuPanToCursor: 'Chuyển đến đây',
     contextMenuResetZoom: 'Đặt lại thu phóng',

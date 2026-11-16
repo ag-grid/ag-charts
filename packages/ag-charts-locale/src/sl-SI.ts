@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_SL_SI: Record<string, string> = {
     toolbarZoomPanStart: 'Premakni na začetek',
     toolbarZoomPanEnd: 'Premakni na konec',
     toolbarZoomReset: 'Ponastavi povečavo',
+    colorPickerCancel: 'Prekliči',
+    colorPickerConfirm: 'Potrdi',
     contextMenuDownload: 'Prenesi',
     contextMenuToggleSeriesVisibility: 'Preklopi vidnost',
     contextMenuToggleOtherSeries: 'Preklopi druge serije',

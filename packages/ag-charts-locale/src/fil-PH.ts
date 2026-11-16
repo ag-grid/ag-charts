@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     toolbarZoomPanStart: 'Ilipat sa simula',
     toolbarZoomPanEnd: 'Ilipat sa dulo',
     toolbarZoomReset: 'I-reset ang zoom',
+    colorPickerCancel: 'Kanselahin',
+    colorPickerConfirm: 'Kumpirmahin',
     contextMenuDownload: 'I-download',
     contextMenuToggleSeriesVisibility: 'I-toggle ang Visibility',
     contextMenuToggleOtherSeries: 'I-toggle ang Ibang Serye',

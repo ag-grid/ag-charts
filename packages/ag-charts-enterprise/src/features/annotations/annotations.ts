@@ -576,6 +576,12 @@ export class Annotations extends AbstractModuleInstance {
                     'annotations',
                     'defaults',
                 ]);
+                this.update();
+            }),
+            optionsToolbar.events.on('cancelled-color', () => {
+                // 'saved-color' has just queued the record of this picking session, so undoing once it is written
+                // restores the colour from before the picker opened.
+                this.postUpdateFns.push(() => this.ctx.historyManager.undo());
             }),
             optionsToolbar.events.on(
                 'updated-color',

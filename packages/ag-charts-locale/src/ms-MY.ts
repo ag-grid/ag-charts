@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     toolbarZoomPanStart: 'Pan ke permulaan',
     toolbarZoomPanEnd: 'Pan ke penghujung',
     toolbarZoomReset: 'Set semula zum',
+    colorPickerCancel: 'Batal',
+    colorPickerConfirm: 'Sahkan',
     contextMenuDownload: 'Muat turun',
     contextMenuToggleSeriesVisibility: 'Togol Keterlihatan',
     contextMenuToggleOtherSeries: 'Togol Siri Lain',

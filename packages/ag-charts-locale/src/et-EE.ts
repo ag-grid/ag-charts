@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     toolbarZoomPanStart: 'Liigu algusesse',
     toolbarZoomPanEnd: 'Liigu lõppu',
     toolbarZoomReset: 'Lähtesta suum',
+    colorPickerCancel: 'Tühista',
+    colorPickerConfirm: 'Kinnita',
     contextMenuDownload: 'Laadi alla',
     contextMenuToggleSeriesVisibility: 'Lülita nähtavust',
     contextMenuToggleOtherSeries: 'Lülita teiste sarjade nähtavust',

@@ -1233,6 +1233,70 @@ describe('Annotations', () => {
         });
     });
 
+    describe('colour picker confirm and cancel', () => {
+        const body = () => deproxy(chart).ctx.agDocument.body;
+        const strokeOf = () => (chart.getState().annotations?.[0] as { stroke?: string }).stroke;
+
+        const openLineColorPicker = async () => {
+            body().querySelector<HTMLElement>('button[title="Line Color"]')!.click();
+            await waitForChartStability(chart);
+        };
+        const pickColor = async (color: string) => {
+            const input = body().querySelector<HTMLInputElement>('.ag-charts-color-picker input[aria-label="Color"]')!;
+            input.value = color;
+            input.dispatchEvent(new Event('input'));
+            await waitForChartStability(chart);
+        };
+        const press = async (selector: string) => {
+            body().querySelector<HTMLElement>(selector)!.click();
+            await waitForChartStability(chart);
+        };
+        const hasPicker = () => body().querySelector('.ag-charts-color-picker') != null;
+        const hasToolbar = () => body().querySelector('button[title="Line Color"]') != null;
+
+        beforeEach(async () => {
+            await prepareChart({ annotations: [{ type: 'horizontal-line', value: 50, stroke: '#ff0000' }] });
+            const { x, y, width, height } = getSeriesRect(chart);
+            await hoverAction(x + width / 2, y + height / 2)(chart);
+            await clickAction(x + width / 2, y + height / 2)(chart);
+            await waitForChartStability(chart);
+            await openLineColorPicker();
+        });
+
+        it('keeps the colour and closes only the picker on confirm', async () => {
+            await pickColor('#00ff00');
+            await press('.ag-charts-color-picker__confirm-button');
+
+            expect(hasPicker()).toBe(false);
+            expect(hasToolbar()).toBe(true);
+            expect(strokeOf()).toBe('#00ff00');
+
+            deproxy(chart).ctx.historyManager.undo();
+            await waitForChartStability(chart);
+            expect(strokeOf()).toBe('#ff0000');
+        });
+
+        it('restores the colour from before the picker opened on cancel', async () => {
+            await pickColor('#00ff00');
+            await pickColor('#0000ff');
+            await press('.ag-charts-color-picker__cancel-button');
+
+            expect(hasPicker()).toBe(false);
+            expect(hasToolbar()).toBe(true);
+            expect(strokeOf()).toBe('#ff0000');
+        });
+
+        it('leaves an earlier change alone when cancelling without changing the colour', async () => {
+            await pickColor('#00ff00');
+            await press('.ag-charts-color-picker__confirm-button');
+
+            await openLineColorPicker();
+            await press('.ag-charts-color-picker__cancel-button');
+
+            expect(strokeOf()).toBe('#00ff00');
+        });
+    });
+
     describe('selected annotation axes', () => {
         // Both axes span 100 units (the x axis, 100 days from 2024-01-01), so a datum offset is also the fraction of the
         // way along its axis.

@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_LV_LV: Record<string, string> = {
     toolbarZoomPanStart: 'Pārvietot uz sākumu',
     toolbarZoomPanEnd: 'Pārvietot uz beigām',
     toolbarZoomReset: 'Atiestatīt tālummaiņu',
+    colorPickerCancel: 'Atcelt',
+    colorPickerConfirm: 'Apstiprināt',
     contextMenuDownload: 'Lejupielādēt',
     contextMenuToggleSeriesVisibility: 'Pārslēgt redzamību',
     contextMenuToggleOtherSeries: 'Pārslēgt citas rindas',

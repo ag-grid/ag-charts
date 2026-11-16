@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_LT_LT: Record<string, string> = {
     toolbarZoomPanStart: 'Slinkti į pradžią',
     toolbarZoomPanEnd: 'Slinkti į pabaigą',
     toolbarZoomReset: 'Atstatyti mastelį',
+    colorPickerCancel: 'Atšaukti',
+    colorPickerConfirm: 'Patvirtinti',
     contextMenuDownload: 'Atsisiųsti',
     contextMenuToggleSeriesVisibility: 'Perjungti matomumą',
     contextMenuToggleOtherSeries: 'Perjungti kitas serijas',

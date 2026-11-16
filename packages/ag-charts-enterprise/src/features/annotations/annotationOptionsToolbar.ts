@@ -60,6 +60,7 @@ interface EventMap {
         colorPickerType: AnnotationOptionsColorPickerType;
         color: string | undefined;
     };
+    'cancelled-color': null;
     'updated-color': {
         type: HasColorAnnotationType;
         colorPickerType: AnnotationOptionsColorPickerType;
@@ -384,6 +385,7 @@ export class AnnotationOptionsToolbar {
                             color: getDefaultColor(datum, type),
                         });
                     }).bind(this, button.value),
+                    onCancel: () => this.events.emit('cancelled-color', null),
                 });
                 break;
             }

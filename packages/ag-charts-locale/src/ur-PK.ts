@@ -66,6 +66,8 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaValueColorPalette: "s ${s}[percent0to2dp], v ${v}[percent0to2dp]' کا رنگ پیلی",
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] سے ${max}[percent0to2dp]',
+    colorPickerCancel: 'منسوخ کریں',
+    colorPickerConfirm: 'تصدیق کریں',
     contextMenuDownload: 'ڈاؤن لوڈ کریں',
     contextMenuPanToCursor: 'یہاں تک گھمائیں',
     contextMenuResetZoom: 'زوم ری سیٹ کریں',

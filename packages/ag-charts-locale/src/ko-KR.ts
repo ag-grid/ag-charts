@@ -66,6 +66,8 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaValueColorPalette: '의 s ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp]에서 ${max}[percent0to2dp]',
+    colorPickerCancel: '취소',
+    colorPickerConfirm: '확인',
     contextMenuDownload: '다운로드',
     contextMenuPanToCursor: '여기로 이동',
     contextMenuResetZoom: '줌 재설정',
