@@ -148,6 +148,12 @@ export abstract class BaseToolbar<
         }
     }
 
+    /** Unlike the active button, which is exclusive and cleared on reset, each button holds its own pressed state. */
+    public toggleButtonPressedByIndex(index: number, pressed: boolean) {
+        if (index === -1) return;
+        this.buttonWidgets.at(index)?.setPressed(pressed);
+    }
+
     public toggleButtonEnabledByIndex(index: number, enabled: boolean) {
         if (index === -1) return;
         this.buttonWidgets.at(index)?.setEnabled(enabled);

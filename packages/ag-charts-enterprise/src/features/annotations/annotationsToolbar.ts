@@ -18,6 +18,7 @@ interface EventMap {
     'pressed-create-annotation': { annotation: AnnotationType };
     'pressed-place-annotation': { annotation: AnnotationType; sourceEvent: KeyboardEvent };
     'pressed-clear': null;
+    'pressed-magnet': null;
     'pressed-show-menu': null;
     'pressed-unrelated': null;
 }
@@ -43,6 +44,7 @@ type AnnotationsToolbarButtonValue =
     | 'comment'
     | 'callout'
     | 'note'
+    | 'magnet'
     | 'clear';
 
 export class AnnotationsToolbar {
@@ -58,6 +60,7 @@ export class AnnotationsToolbar {
     private readonly menuMargin: number = 6;
     private menuItemPicked = false;
     private menuHideRegistered = false;
+    private magnetPressed = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('annotations');
@@ -93,6 +96,17 @@ export class AnnotationsToolbar {
     public toggleClearButtonEnabled(enabled: boolean) {
         const index = this.buttons.findIndex((button) => button.value === 'clear');
         this.toolbar.toggleButtonEnabledByIndex(index, enabled);
+    }
+
+    /** Shows whether the magnet is on; it persists across drawing, unlike the active button. */
+    public setMagnetPressed(pressed: boolean) {
+        this.magnetPressed = pressed;
+        this.applyMagnetPressed();
+    }
+
+    private applyMagnetPressed() {
+        const index = this.buttons.findIndex((button) => button.value === 'magnet');
+        this.toolbar.toggleButtonPressedByIndex(index, this.magnetPressed);
     }
 
     public resetButtonIcons() {
@@ -132,6 +146,7 @@ export class AnnotationsToolbar {
     private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
         this.toolbar.updateButtons(this.buttons);
+        this.applyMagnetPressed();
         this.toolbar.layout(ctx.layoutBox, this.padding);
     }
 
@@ -248,6 +263,10 @@ export class AnnotationsToolbar {
 
             case 'note':
                 this.onButtonPressCreateAnnotation(event, button.value, AnnotationType.Note);
+                break;
+
+            case 'magnet':
+                this.events.emit('pressed-magnet', null);
                 break;
 
             case 'clear':

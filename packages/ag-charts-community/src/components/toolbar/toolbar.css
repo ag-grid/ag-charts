@@ -74,7 +74,9 @@
 }
 
 .ag-charts-toolbar__button--active,
-.ag-charts-toolbar__button--active:hover {
+.ag-charts-toolbar__button--active:hover,
+.ag-charts-toolbar__button[aria-pressed='true'],
+.ag-charts-toolbar__button[aria-pressed='true']:hover {
     --toolbar-button-border-width: var(--toolbar-button-border-width--active);
     background: var(--toolbar-button-background-color--active);
     border-color: var(--toolbar-button-border-color--active);

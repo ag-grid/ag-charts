@@ -13,7 +13,7 @@ export function snapPoint(
     origin?: DataPoint,
     angleStep: number = 1
 ): DataPoint {
-    if (!snapping) return invertCoords(offset, context);
+    if (!snapping) return invertCoords(context.magnet(offset), context);
 
     const center = origin ? convertPoint(origin, context) : Vec2.origin();
     return invertCoords(snapToAngle(offset, center, angleStep), context);

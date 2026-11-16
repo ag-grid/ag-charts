@@ -25,7 +25,7 @@ import {
     isValidDate,
 } from 'ag-charts-core';
 import type { ClickWidgetEvent, DblClickWidgetEvent, DragWidgetEvent, KeyboardWidgetEvent } from 'ag-charts-core';
-import type { AgAnnotationAxesButtons, AgNumericValue } from 'ag-charts-types';
+import type { AgAnnotationAxesButtons, AgAnnotationMagnetMode, AgNumericValue, PixelSize } from 'ag-charts-types';
 
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
 import type { FontFields } from './annotationDatum';
@@ -59,6 +59,8 @@ import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './se
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
+import { DEFAULT_MAGNET_RANGE, applyMagnet, resolveMagnetMode } from './utils/magnet';
+import { createMagnetSeries } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
@@ -96,6 +98,13 @@ export class Annotations extends AbstractModuleInstance {
 
     public axesButtons: Required<AgAnnotationAxesButtons> = { enabled: false, axes: 'y' };
     private axesButtonsSnapInterval?: number;
+
+    /** The mode the options configure, which a change to resets `magnetMode`. */
+    private configuredMagnetMode?: AgAnnotationMagnetMode;
+    /** The mode the toolbar button has switched to, which holding Ctrl or Cmd inverts while drawing and dragging. */
+    private magnetMode: AgAnnotationMagnetMode = 'off';
+    private magnetOnMode: Exclude<AgAnnotationMagnetMode, 'off'> = 'weak';
+    private magnetRange: PixelSize = DEFAULT_MAGNET_RANGE;
 
     // Annotations is only created when the `annotations` subtree is configured, so assert
     // the subtree's presence here and rely on annotationsTheme for field-level defaults.
@@ -145,7 +154,8 @@ export class Annotations extends AbstractModuleInstance {
                 const opts = get('options', 'annotations');
                 const enabled = opts?.enabled ?? false;
 
-                const { toolbar, optionsToolbar, axesButtons } = opts ?? {};
+                const { toolbar, optionsToolbar, axesButtons, magnet } = opts ?? {};
+                this.applyMagnetOptions(magnet?.mode ?? 'off', magnet?.range);
                 this.toolbar.applyOptions({ ...toolbar, enabled: toolbar?.enabled ?? enabled });
                 this.optionsToolbar.applyOptions({ ...optionsToolbar, enabled: optionsToolbar?.enabled ?? enabled });
                 this.axesButtons = { enabled: axesButtons?.enabled ?? enabled, axes: axesButtons?.axes ?? 'y' };
@@ -159,6 +169,50 @@ export class Annotations extends AbstractModuleInstance {
             }
         );
     }
+
+    private applyMagnetOptions(mode: AgAnnotationMagnetMode, range: PixelSize = DEFAULT_MAGNET_RANGE) {
+        this.magnetRange = range;
+        if (mode === this.configuredMagnetMode) return;
+
+        this.configuredMagnetMode = mode;
+        this.magnetMode = mode;
+        if (mode !== 'off') this.magnetOnMode = mode;
+        this.toolbar.setMagnetPressed(mode !== 'off');
+    }
+
+    private toggleMagnet() {
+        if (this.magnetMode === 'off') {
+            this.magnetMode = this.magnetOnMode;
+        } else {
+            this.magnetOnMode = this.magnetMode;
+            this.magnetMode = 'off';
+        }
+        this.toolbar.setMagnetPressed(this.magnetMode !== 'off');
+    }
+
+    /** Whether Ctrl or Cmd is held, as of the latest pointer or key event, which inverts the magnet mode. */
+    private magnetInverted = false;
+
+    private trackMagnetModifier(sourceEvent: Pick<MouseEvent, 'ctrlKey' | 'metaKey'> | undefined) {
+        if (sourceEvent != null) this.magnetInverted = sourceEvent.ctrlKey || sourceEvent.metaKey;
+    }
+
+    /**
+     * Snaps the vertical position of an offset in the series area to the values of the nearest datum, as the magnet
+     * mode says. The horizontal position is untouched, as it snaps to the nearest datum anyway.
+     */
+    private readonly magnetOffset = (offset: Point): Point => {
+        const mode = resolveMagnetMode(this.magnetMode, this.magnetOnMode, this.magnetInverted);
+        const { yAxis } = this;
+        // The values of a category axis are bands, not positions to snap to.
+        if (mode === 'off' || yAxis == null || !yAxis.context.continuous) return offset;
+
+        const seriesIds = yAxis.context.seriesIds();
+        const series = this.ctx.chartService.series
+            .filter((s) => s.visible && seriesIds.includes(s.id))
+            .map((s) => createMagnetSeries(s, yAxis.context.scale));
+        return applyMagnet(offset, series, mode, this.magnetRange);
+    };
 
     private setupStateMachine() {
         const { ctx } = this;
@@ -543,6 +597,7 @@ export class Annotations extends AbstractModuleInstance {
             toolbar.events.on('pressed-place-annotation', ({ annotation, sourceEvent }) => {
                 this.createAnnotationAtCentre(annotation, sourceEvent);
             }),
+            toolbar.events.on('pressed-magnet', () => this.toggleMagnet()),
             toolbar.events.on('pressed-clear', () => {
                 this.clear();
                 this.recordActionAfterNextUpdate('Clear all');
@@ -994,6 +1049,7 @@ export class Annotations extends AbstractModuleInstance {
             isRtl: ctx.domManager.isRtl,
             getVolume: this.getDatumRangeVolume,
             getFollowedValue: this.getFollowedValue,
+            magnet: this.magnetOffset,
             xAxis: {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
@@ -1018,9 +1074,10 @@ export class Annotations extends AbstractModuleInstance {
         if (!context) return;
 
         const shiftKey = event.sourceEvent.shiftKey;
+        this.trackMagnetModifier(event.sourceEvent);
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = invertCoords(context.magnet(offset), context);
 
         state.transition('hover', { offset, point, shiftKey, context });
     }
@@ -1032,7 +1089,8 @@ export class Annotations extends AbstractModuleInstance {
         if (!context || event.device === 'keyboard') return;
 
         const shiftKey = event.sourceEvent.shiftKey;
-        const point = invertCoords(Vec2.from(event), context);
+        this.trackMagnetModifier(event.sourceEvent);
+        const point = invertCoords(context.magnet(Vec2.from(event)), context);
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
@@ -1103,6 +1161,8 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context) return;
 
+        this.trackMagnetModifier(event.sourceEvent as MouseEvent);
+
         const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
 
@@ -1117,6 +1177,8 @@ export class Annotations extends AbstractModuleInstance {
 
         const context = this.getAnnotationContext();
         if (!context) return;
+
+        this.trackMagnetModifier(event.sourceEvent as MouseEvent);
 
         const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
@@ -1188,6 +1250,7 @@ export class Annotations extends AbstractModuleInstance {
 
         const { sourceEvent } = event;
         const { shiftKey, ctrlKey, metaKey } = sourceEvent;
+        this.trackMagnetModifier(sourceEvent);
         const ctrlMeta = ctrlKey || metaKey;
         const ctrlShift = ctrlKey || shiftKey;
 
@@ -1245,6 +1308,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private onKeyUp(event: KeyboardWidgetEvent<'keyup'>) {
         const { shiftKey } = event.sourceEvent;
+        this.trackMagnetModifier(event.sourceEvent);
         const context = this.getAnnotationContext();
         if (!context) {
             return;

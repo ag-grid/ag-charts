@@ -1,5 +1,5 @@
 import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import type { BBox, Logger } from 'ag-charts-core';
+import type { BBox, Logger, Point } from 'ag-charts-core';
 import type { AgAnnotationFollow, AgNumericValue } from 'ag-charts-types';
 
 import type { PointType } from './utils/scale';
@@ -123,6 +123,8 @@ export interface AnnotationContext {
     isRtl: boolean;
     getVolume(from: DataPoint['x'], to: DataPoint['x']): AgNumericValue | undefined;
     getFollowedValue(follow: AgAnnotationFollow): PointType | undefined;
+    /** Snaps the vertical position of an offset in the series area to the nearest value, when the magnet is on. */
+    magnet(offset: Point): Point;
 }
 
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';

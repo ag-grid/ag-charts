@@ -87,6 +87,7 @@ const ARIA_HASPOPUP = {
     delete: 'false',
     line: 'false',
     lock: 'false',
+    magnet: 'false',
     menu: 'menu',
     note: 'false',
     reset: 'false',
@@ -229,6 +230,11 @@ export class ToolbarButtonWidget extends ButtonWidget {
 
     public setChecked(checked: boolean) {
         setAttribute(this.elem, 'aria-checked', checked);
+    }
+
+    /** For a button that toggles a mode on and off, rather than starting an action. */
+    public setPressed(pressed: boolean) {
+        setAttribute(this.elem, 'aria-pressed', pressed);
     }
 }
 

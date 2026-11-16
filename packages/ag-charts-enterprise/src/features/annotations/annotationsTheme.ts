@@ -353,6 +353,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
 
     axesButtons: {},
+    magnet: { mode: 'off', range: 20 },
     // Toolbars
     toolbar,
     optionsToolbar,

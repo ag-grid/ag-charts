@@ -16,6 +16,7 @@ export interface SharedToolbarWithSection<
     | 'updateButtonByIndex'
     | 'toggleActiveButtonByIndex'
     | 'toggleButtonEnabledByIndex'
+    | 'toggleButtonPressedByIndex'
     | 'clearActiveButton'
 > {
     layout: (layoutBox: BBox, padding?: number) => void;
@@ -146,6 +147,9 @@ export class SharedToolbar extends AbstractModuleInstance {
             },
             toggleButtonEnabledByIndex: (index: number, enabled: boolean) => {
                 sharedToolbar.toggleButtonEnabledByIndex(this.getIndex(section, index), enabled);
+            },
+            toggleButtonPressedByIndex: (index: number, pressed: boolean) => {
+                sharedToolbar.toggleButtonPressedByIndex(this.getIndex(section, index), pressed);
             },
             setHidden: (hidden: boolean) => {
                 if (hidden) {

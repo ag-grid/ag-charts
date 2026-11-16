@@ -29,6 +29,7 @@ import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
 import type { AggregationFilterBase } from './aggregationManager';
+import type { PickResult, SeriesNodePickIntent } from './pickTypes';
 
 export enum HighlightState {
     None,
@@ -238,6 +239,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
     isPointInArea?(x: number, y: number): boolean;
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum | undefined;
     readonly data?: DataSet<any>;
+    pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly?: boolean): PickResult | undefined;
     pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
     ensureBucketLookupFeature(): BucketLookupFeature | undefined;
 }
