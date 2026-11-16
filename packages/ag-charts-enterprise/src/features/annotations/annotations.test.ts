@@ -1320,9 +1320,19 @@ describe('Annotations', () => {
             expect(hasPicker()).toBe(false);
             await compare();
 
-            deproxy(chart).ctx.historyManager.undo();
+            const { historyManager } = deproxy(chart).ctx;
+            historyManager.undo();
             await waitForChartStability(chart);
             await compare();
+
+            // Cancelling does not touch the redo history.
+            await press('button[title="Line Color"]');
+            await pickColor('#ff00ff');
+            await press(CANCEL);
+            expect(annotation().stroke).toBe('#0000ff');
+            historyManager.redo();
+            await waitForChartStability(chart);
+            expect(annotation().stroke).toBe('#00ff00');
         });
 
         it('cancels a colour from the settings dialog without undoing earlier dialog edits', async () => {

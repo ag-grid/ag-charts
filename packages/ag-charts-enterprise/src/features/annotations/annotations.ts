@@ -5,6 +5,7 @@ import {
     type AgAnnotationLineStyleType,
     type AgAnnotationsEventSource,
     type Direction,
+    VERSION,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -125,6 +126,10 @@ export class Annotations extends AbstractModuleInstance {
 
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
+    private colorPickerSnapshot?: {
+        annotations: AgAnnotation[];
+        defaults: ReturnType<AnnotationDefaults['createMemento']>;
+    };
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -427,14 +432,11 @@ export class Annotations extends AbstractModuleInstance {
                         this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity, isMultiColor);
                         this.optionsToolbar.updateColorPickerColor(colorType, color, opacity, isMultiColor);
                     };
-                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => (cancelled: boolean) => {
-                    const recorded = this.recordActionAfterNextUpdate(
+                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => (cancelled: boolean) =>
+                    this.endColorPickerSession(
                         `Change ${datum.type} ${colorType} to ${getDefaultColor(datum, colorType)}`,
-                        ['annotations', 'defaults']
+                        cancelled
                     );
-                    this.update();
-                    if (cancelled && recorded) this.undoColorPickerSession();
-                };
 
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,
@@ -573,13 +575,7 @@ export class Annotations extends AbstractModuleInstance {
                 this.settingsDialog.hide();
             }),
             optionsToolbar.events.on('saved-color', ({ type, colorPickerType, color, cancelled }) => {
-                const recorded = this.recordActionAfterNextUpdate(`Change ${type} ${colorPickerType} to ${color}`, [
-                    'annotations',
-                    'defaults',
-                ]);
-                // Flush the record now, rather than on the next render, so an immediate undo sees it.
-                this.update();
-                if (cancelled && recorded) this.undoColorPickerSession();
+                this.endColorPickerSession(`Change ${type} ${colorPickerType} to ${color}`, cancelled);
             }),
             optionsToolbar.events.on(
                 'updated-color',
@@ -900,34 +896,37 @@ export class Annotations extends AbstractModuleInstance {
         return { layout: axisLayout, context: axisCtx, bounds, button };
     }
 
-    /** Returns whether a record was queued. */
-    private recordActionAfterNextUpdate(
-        label: string,
-        types: Array<'annotations' | 'defaults'> = ['annotations']
-    ): boolean {
+    private recordActionAfterNextUpdate(label: string, types: Array<'annotations' | 'defaults'> = ['annotations']) {
         const {
             defaults,
             ctx: { historyManager },
             ctx,
         } = this;
         const annotationManager = ctx.annotationManager;
-        if (!annotationManager) return false;
+        if (!annotationManager) return;
 
         // Suppress history records caused by side-effects of restoring a memento (undo/redo) — recording them
         // would truncate the redo stack.
-        if (this.isRestoringMemento) return false;
+        if (this.isRestoringMemento) return;
 
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
             historyManager.record(label, ...originators);
             annotationManager.fireChangedEvent('user-interaction');
         });
-        return true;
     }
 
-    // Queued after the picking session's own record, so the undo restores the state from before the picker opened.
-    private undoColorPickerSession() {
-        this.postUpdateFns.push(() => this.ctx.historyManager.undo());
+    private endColorPickerSession(label: string, cancelled: boolean) {
+        const snapshot = this.colorPickerSnapshot;
+        this.colorPickerSnapshot = undefined;
+
+        if (!cancelled) {
+            this.recordActionAfterNextUpdate(label, ['annotations', 'defaults']);
+            this.update();
+        } else if (snapshot) {
+            this.defaults.restoreMemento(VERSION, VERSION, snapshot.defaults);
+            this.ctx.annotationManager?.restoreMemento(VERSION, VERSION, snapshot.annotations, 'user-interaction');
+        }
     }
 
     private setColorAndDefault(
@@ -938,6 +937,11 @@ export class Annotations extends AbstractModuleInstance {
         opacity: number,
         isMultiColor: boolean
     ) {
+        // Cancelling restores this snapshot directly, as undo would drop the redo history.
+        this.colorPickerSnapshot ??= {
+            annotations: this.annotationData.map(serialiseAnnotation) as AgAnnotation[],
+            defaults: this.defaults.createMemento(),
+        };
         this.state.transition('color', { colorPickerType, colorOpacity, color, opacity, isMultiColor });
         this.defaults.setDefaultColor(datumType, colorPickerType, colorOpacity, color, opacity, isMultiColor);
     }
