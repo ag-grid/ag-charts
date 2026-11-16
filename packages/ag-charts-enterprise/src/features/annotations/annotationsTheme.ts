@@ -1,6 +1,7 @@
 import {
     type AgAnnotationAxisLabel,
     type AgAnnotationHandleStyles,
+    type AgAnnotationMagnet,
     type AgAnnotationOptionsToolbar,
     type AgAnnotationsThemeableOptions,
     type AgAnnotationsToolbar,
@@ -209,6 +210,9 @@ const optionsToolbar: WithThemeParams<AgAnnotationOptionsToolbar> = {
     },
 };
 
+/** The magnet defaults, which a preset with its own annotations theme repeats, so that they are themeable there too. */
+export const MAGNET_THEME: WithThemeParams<AgAnnotationMagnet> = { enabled: false, mode: 'weak', range: 20 };
+
 export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = {
     enabled: false,
 
@@ -353,7 +357,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
 
     axesButtons: {},
-    magnet: { enabled: false, mode: 'weak', range: 20 },
+    magnet: MAGNET_THEME,
     // Toolbars
     toolbar,
     optionsToolbar,
