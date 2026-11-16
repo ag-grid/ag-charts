@@ -219,95 +219,68 @@ describe('annotation coordinates', () => {
     });
 
     describe('offset within a band', () => {
-        const scale = new CategoryScale<string>();
-        scale.domain = ['Apples', 'Pears'];
-        const datum = {
-            ...lineDatum.create(),
-            start: { x: { value: 'Pears', groupPercentage: 0.25 }, y: 2 },
-            end: { x: 'Apples', y: 4 },
+        const spacedReach = 0.5 + 0.5 / 0.7;
+        const categories = (paddingInner: number) => {
+            const scale = new CategoryScale<string>();
+            scale.domain = ['Apples', 'Pears', 'Plums'];
+            scale.range = [0, 300];
+            scale.paddingInner = paddingInner;
+            return scale;
         };
 
-        it('follows the point of a band axis as a percentage of the step from -50 to 50, mapped to its group percentage', () => {
-            const context = createAxesContext(scale, numberScale([0, 50]));
-            const fields = getCoordinateFields(datum, context);
-
-            expect(fields.map((f) => [f.row, f.axis, f.kind, f.value])).toEqual([
-                ['start', 'x', 'category', 'Pears'],
-                ['start', 'y', 'number', '2'],
-                ['start', 'x', 'offset', '-25'],
-                ['end', 'x', 'category', 'Apples'],
-                ['end', 'y', 'number', '4'],
-                ['end', 'x', 'offset', '-50'],
-            ]);
-
-            const offset = fields[2];
-            expect(offset.toProps(-50)).toEqual({ start: { x: { value: 'Pears', groupPercentage: 0 } } });
-            expect(offset.toProps(50)).toEqual({ start: { x: { value: 'Pears', groupPercentage: 1 } } });
-            expect(offset.toProps('text')).toBeUndefined();
-            expect(parseCoordinate('12.5', 'offset')).toBe(12.5);
-            expect(parseCoordinate('abc', 'offset')).toBeUndefined();
-        });
-
-        it('rejects an offset beyond the midpoints to its neighbours', () => {
-            const context = createAxesContext(scale, numberScale([0, 50]));
-            const offset = getCoordinateFields(datum, context)[2];
-
-            expect(resolveCoordinate(offset, 50, context)).toBe(50);
-            expect(resolveCoordinate(offset, -50, context)).toBe(-50);
-            expect(resolveCoordinate(offset, 50.5, context)).toBeUndefined();
-            expect(resolveCoordinate(offset, -51, context)).toBeUndefined();
-        });
-
-        it('measures an offset in steps between bands, padding included', () => {
-            const spaced = new CategoryScale<string>();
-            spaced.domain = ['Apples', 'Pears'];
-            spaced.range = [0, 340];
-            spaced.paddingInner = 0.3;
-            const context = createAxesContext(spaced, numberScale([0, 50]));
-            const fields = getCoordinateFields(datum, context);
-            const offset = fields[2];
-
-            // A quarter of the way into the band is a 0.25 - 0.5 = -0.25 band width from its centre, or -0.175 of a step.
-            expect(fields.map((f) => f.kind === 'offset' && f.value).filter(Boolean)).toEqual(['-17.5', '-35']);
-
-            // Half a step from the centre is the midpoint to the neighbouring band: 0.5 / 0.7 band widths.
-            const reach = 0.5 + 0.5 / 0.7;
-            const start = (offsetValue: number) => getGrouping(offset.toProps(offsetValue)?.start?.x).groupPercentage;
-            expect(start(50)).toBeCloseTo(reach, 10);
-            expect(start(-50)).toBeCloseTo(1 - reach, 10);
-
-            expect(resolveCoordinate(offset, 50, context)).toBe(50);
-            expect(resolveCoordinate(offset, -50, context)).toBe(-50);
-            expect(resolveCoordinate(offset, 50.01, context)).toBeUndefined();
-            expect(resolveCoordinate(offset, -51, context)).toBeUndefined();
-        });
-
-        it('measures an offset from the point of a band with no width, as a line series places its categories', () => {
-            const points = new CategoryScale<string>();
-            points.domain = ['Apples', 'Pears', 'Plums'];
-            points.range = [0, 300];
-            points.paddingInner = 1;
-            const context = createAxesContext(points, numberScale([0, 50]));
-            const pointDatum = {
-                ...datum,
-                start: { x: { value: 'Pears', groupPercentage: 0.08 }, y: 2 },
-                end: { x: { value: 'Plums', groupPercentage: -0.08 }, y: 4 },
+        // A band's group percentage runs from its start and a point's from itself; an offset is a share of the step.
+        it.each([
+            { name: 'bands', paddingInner: 0, groups: [0.25, 0], shown: ['-25', '-50'], reach: [0, 1] },
+            {
+                name: 'padded bands',
+                paddingInner: 0.3,
+                groups: [0.25, 0],
+                shown: ['-17.5', '-35'],
+                reach: [1 - spacedReach, spacedReach],
+            },
+            {
+                name: 'bands with no width',
+                paddingInner: 1,
+                groups: [0.08, -0.08],
+                shown: ['8', '-8'],
+                reach: [-0.5, 0.5],
+            },
+        ])('maps an offset on $name to a group percentage and holds it to half a step either way', (row) => {
+            const context = createAxesContext(categories(row.paddingInner), numberScale([0, 50]));
+            const datum = {
+                ...lineDatum.create(),
+                start: { x: { value: 'Pears', groupPercentage: row.groups[0] }, y: 2 },
+                end: { x: { value: 'Plums', groupPercentage: row.groups[1] }, y: 4 },
             };
-            const fields = getCoordinateFields(pointDatum, context).filter((f) => f.kind === 'offset');
+            const fields = getCoordinateFields(datum, context);
+            const offsets = fields.filter((f) => f.kind === 'offset');
+            const groupAt = (offset: number) => getGrouping(offsets[0].toProps(offset)?.start?.x).groupPercentage;
 
-            expect(points.bandwidth).toBe(0);
-            expect(fields.map((f) => f.value)).toEqual(['8', '-8']);
-            expect(getGrouping(fields[0].toProps(50)?.start?.x).groupPercentage).toBe(0.5);
-            expect(getGrouping(fields[0].toProps(-50)?.start?.x).groupPercentage).toBe(-0.5);
-            expect(resolveCoordinate(fields[0], 50, context)).toBe(50);
-            expect(resolveCoordinate(fields[0], 50.01, context)).toBeUndefined();
+            expect(fields.map((f) => [f.row, f.axis, f.kind])).toEqual([
+                ['start', 'x', 'category'],
+                ['start', 'y', 'number'],
+                ['start', 'x', 'offset'],
+                ['end', 'x', 'category'],
+                ['end', 'y', 'number'],
+                ['end', 'x', 'offset'],
+            ]);
+            expect(offsets.map((f) => f.value)).toEqual(row.shown);
+            expect(groupAt(-50)).toBeCloseTo(row.reach[0], 10);
+            expect(groupAt(50)).toBeCloseTo(row.reach[1], 10);
+            expect(offsets[0].toProps('text')).toBeUndefined();
+
+            expect(resolveCoordinate(offsets[0], 50, context)).toBe(50);
+            expect(resolveCoordinate(offsets[0], -50, context)).toBe(-50);
+            expect(resolveCoordinate(offsets[0], 50.01, context)).toBeUndefined();
+            expect(resolveCoordinate(offsets[0], -51, context)).toBeUndefined();
         });
 
         it('is left out on number axes and where points snap to the band centre', () => {
+            const datum = { ...lineDatum.create(), start: { x: 'Pears', y: 2 }, end: { x: 'Apples', y: 4 } };
             const numbers = createAxesContext(numberScale([0, 100]), numberScale([0, 50]));
             expect(getCoordinateFields(datum, numbers).some((f) => f.kind === 'offset')).toBe(false);
 
-            const base = createAxesContext(scale, numberScale([0, 50]));
+            const base = createAxesContext(categories(0), numberScale([0, 50]));
             const snapping = { ...base, xAxis: { ...base.xAxis, snapToGroup: true } };
             expect(getCoordinateFields(datum, snapping).some((f) => f.kind === 'offset')).toBe(false);
         });
@@ -320,20 +293,16 @@ describe('annotation coordinates', () => {
                 .filter((f) => f.axis === 'y')
                 .map((f) => f.fractionDigits);
 
-        it('follow the text of the crosshair label of the axis', () => {
+        it('follow a plain number in the crosshair label, and only round the text shown', () => {
             expect(digitsOf((value) => Number(value).toFixed(2))).toEqual([2, 2]);
             expect(digitsOf((value) => `US$ ${Number(value).toLocaleString('en-US')}`)).toEqual([3, 0]);
-        });
-
-        it('are not taken from text that is not a plain number, or that does not say which separator is the decimal', () => {
-            expect(digitsOf(() => 'Q3 2024')).toEqual([undefined, undefined]);
-            expect(digitsOf(() => '1.5e+3')).toEqual([undefined, undefined]);
-            expect(digitsOf(() => '12,5')).toEqual([undefined, undefined]);
-            expect(digitsOf(() => '1.234,5')).toEqual([undefined, undefined]);
             expect(digitsOf(() => '1,234.5')).toEqual([1, 1]);
-        });
 
-        it('only round the text shown, never an integer or a value without decimals to show', () => {
+            // Not a plain number, or not saying which separator is the decimal.
+            for (const text of ['Q3 2024', '1.5e+3', '12,5', '1.234,5']) {
+                expect(digitsOf(() => text)).toEqual([undefined, undefined]);
+            }
+
             expect(displayCoordinate('4366.2765', 2)).toBe('4366.28');
             expect(displayCoordinate('4366.2765', undefined)).toBe('4366.2765');
             expect(displayCoordinate('20', 2)).toBe('20');

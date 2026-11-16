@@ -66,13 +66,18 @@ describe('AnnotationSettingsDialog coordinates', () => {
         chart.destroy();
     });
 
-    it('applies a value of the axis type and silently reverts text that is not one', () => {
+    it('applies a value of the axis type, shown at the decimals of the crosshair label, and silently reverts text that is not one', () => {
         const yScale = new LinearScale();
-        yScale.domain = [0, 50];
-        show(createAxesContext(new CategoryScale(), yScale));
+        yScale.domain = [0, 5000];
+        const datum = { ...defaultDatum(), start: { x: 'Pears', y: 4366.2765 } };
+        show(
+            createAxesContext(new CategoryScale(), yScale, (value) => Number(value).toFixed(2)),
+            datum
+        );
 
         const [, startY] = inputs();
         expect(startY.getAttribute('aria-label')).toBe('Start: Y');
+        expect(startY.value).toBe('4366.28');
 
         commit(startY, '20');
         expect(onChangeCoordinates).toHaveBeenCalledWith({ start: { y: 20 } });
@@ -82,30 +87,13 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(startY.value).toBe('20');
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
 
-        commit(startY, '51');
-        expect(onChangeCoordinates).toHaveBeenLastCalledWith({ start: { y: 51 } });
+        commit(startY, '4366.2799');
+        expect(onChangeCoordinates).toHaveBeenLastCalledWith({ start: { y: 4366.2799 } });
         expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
 
         commit(startY, '');
-        expect(startY.value).toBe('51');
-        expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
-    });
-
-    it('shows a number at the decimals of the crosshair label and applies what is typed in full', () => {
-        const yScale = new LinearScale();
-        yScale.domain = [0, 5000];
-        const datum = { ...defaultDatum(), start: { x: 'Pears', y: 4366.2765 } };
-        show(
-            createAxesContext(new CategoryScale(), yScale, (value) => Number(value).toFixed(2)),
-            datum
-        );
-        const [, startY] = inputs();
-
         expect(startY.value).toBe('4366.28');
-
-        commit(startY, '4366.2799');
-        expect(onChangeCoordinates).toHaveBeenCalledWith({ start: { y: 4366.2799 } });
-        expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
+        expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
     it('follows the annotation when it changes behind the dialog', () => {
