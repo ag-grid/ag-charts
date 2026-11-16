@@ -5481,7 +5481,7 @@ describe('ChartOptions', () => {
             document.body.append(container);
             onTestFinished(() => container.remove());
 
-            for (const styles of [{ '--brand': '#00ff00' }, {}]) {
+            for (const styles of [{ '--brand': '#00ff00' }, {}] as Record<string, string>[]) {
                 mockComputedStyle(container, styles);
                 const chartOptions = createChartOptions(container, options);
 

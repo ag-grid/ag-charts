@@ -819,7 +819,7 @@ describe('AgCharts', () => {
     });
 
     it('adds no CSS variable watcher for a complete var() value in a title', async () => {
-        vi.spyOn(window, 'getComputedStyle').mockReturnValue(fakeComputedStyle({ '--brand': '#00ff00' }));
+        vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue(fakeComputedStyle({ '--brand': '#00ff00' }));
         chart = await createChart({
             title: { text: 'var(--brand)' },
             data: [{ x: 'a', y: 1 }],
