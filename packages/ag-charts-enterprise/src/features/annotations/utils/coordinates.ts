@@ -40,6 +40,10 @@ export function isPointRow(row: CoordinateRow): row is PointRow {
 /** A `height` row is a distance along the y axis; the position of a point within its band is the `offset` kind. */
 export type CoordinateRow = PointRow | 'value' | 'height' | 'startHeight' | 'endHeight';
 
+export function isHeightRow(row: CoordinateRow) {
+    return row === 'height' || row === 'startHeight' || row === 'endHeight';
+}
+
 /** The datum properties a coordinate edit can change, merged onto the datum as-is. */
 export interface CoordinateChangeProps {
     start?: DataPoint;
@@ -172,7 +176,7 @@ export function resolveCoordinate(
     parsed: ParsedCoordinate,
     context: AnnotationContext
 ): ParsedCoordinate | undefined {
-    if (field.row === 'height' || field.row === 'startHeight' || field.row === 'endHeight') {
+    if (isHeightRow(field.row)) {
         return parsed;
     }
     const axis = field.axis === 'x' ? context.xAxis : context.yAxis;

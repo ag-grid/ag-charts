@@ -27,6 +27,7 @@ import {
     displayCoordinate,
     formatCoordinate,
     getCoordinateFields,
+    isHeightRow,
     isPointRow,
     parseCoordinate,
     resolveCoordinate,
@@ -344,9 +345,9 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const refreshes: Array<(next: CoordinateField) => void> = [];
         const panel = this.createTabPanel();
-        // A single input has its label alongside, which an offset always is, on a row of its own.
+        // A single value or offset has its label alongside; an offset is on a row of its own, and a height has its label above.
         const addRow = (rowFields: CoordinateField[]) => {
-            const inline = rowFields.length === 1;
+            const inline = rowFields.length === 1 && !isHeightRow(rowFields[0].row);
             const widgets = rowFields.map((field) => {
                 const { widget, refresh } = this.createCoordinateInput(field, inline, options);
                 refreshes.push(refresh);

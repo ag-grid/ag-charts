@@ -9,6 +9,7 @@ import type { AnnotationContext } from '../annotationTypes';
 import type { LinearDialogDatumType } from '../annotationsSuperTypes';
 import { horizontalLineDatum } from '../cross-line/crossLineDatum';
 import { lineDatum } from '../line/lineDatum';
+import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { ANNOTATIONS_EXAMPLE_OPTIONS, createAnnotationsChart, createAxesContext } from '../test/fixture';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settingsDialog';
 
@@ -154,7 +155,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
-    it('lays out the x and y of a point on one row with labels above, and a single value or offset with its label alongside', () => {
+    it('lays out the x and y of a point on one row with labels above, a single value or offset with its label alongside, and a height with its label above', () => {
         const yScale = new LinearScale();
         yScale.domain = [0, 50];
         const context = createAxesContext(new CategoryScale(), yScale);
@@ -184,5 +185,9 @@ describe('AnnotationSettingsDialog coordinates', () => {
 
         show(context, { ...horizontalLineDatum.create(), value: 10 });
         expect(layout()).toEqual([[{ label: 'Value', inline: true }]]);
+        dialog.hide();
+
+        show(context, { ...parallelChannelDatum.create(), height: 10 });
+        expect(layout().at(-1)).toEqual([{ label: 'Height', inline: false }]);
     });
 });
