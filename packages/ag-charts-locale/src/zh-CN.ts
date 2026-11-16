@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: '对齐',
     dialogInputColorPicker: '颜色',
     dialogInputColorPickerAltText: '文字颜色',

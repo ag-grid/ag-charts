@@ -186,6 +186,7 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Выравнивание',
     dialogInputColorPicker: 'Цвет',
     dialogInputColorPickerAltText: 'Цвет текста',

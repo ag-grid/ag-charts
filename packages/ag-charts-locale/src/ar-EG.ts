@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'توجيه',
     dialogInputColorPicker: 'اللون',
     dialogInputColorPickerAltText: 'لون النص',

@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Вирівняти',
     dialogInputColorPicker: 'Колір',
     dialogInputColorPickerAltText: 'Колір тексту',

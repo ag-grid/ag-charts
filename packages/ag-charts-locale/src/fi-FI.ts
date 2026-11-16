@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Tasaa',
     dialogInputColorPicker: 'Väri',
     dialogInputColorPickerAltText: 'Tekstin väri',

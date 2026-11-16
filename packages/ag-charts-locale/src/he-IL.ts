@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'ישור',
     dialogInputColorPicker: 'צבע',
     dialogInputColorPickerAltText: 'צבע טקסט',

@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Aliniază',
     dialogInputColorPicker: 'Culoare',
     dialogInputColorPickerAltText: 'Culoarea textului',

@@ -186,6 +186,7 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'จัดตำแหน่ง',
     dialogInputColorPicker: 'สี',
     dialogInputColorPickerAltText: 'สีข้อความ',

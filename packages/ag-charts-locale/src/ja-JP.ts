@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: '整列',
     dialogInputColorPicker: '色',
     dialogInputColorPickerAltText: 'テキストの色',

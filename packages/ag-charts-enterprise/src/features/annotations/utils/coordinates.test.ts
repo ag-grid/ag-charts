@@ -206,6 +206,11 @@ describe('annotation coordinates', () => {
             expect(resolveCoordinate(startX, 101n, context)).toBe(101n);
             expect(resolveCoordinate(startY, -1, context)).toBe(-1);
 
+            const timeContext = createAxesContext(timeScale([DAY, DAY]), timeScale([DAY, DAY]));
+            const [timeX] = getCoordinateFields(datum, timeContext);
+            const before = new Date(2000, 0, 1);
+            expect(resolveCoordinate(timeX, before, timeContext)).toBe(before);
+
             const channel = { ...parallelChannelDatum.create(), height: 1 };
             const height = getCoordinateFields(channel, context).find((f) => f.row === 'height')!;
             expect(resolveCoordinate(height, 500, context)).toBe(500);
@@ -263,7 +268,8 @@ describe('annotation coordinates', () => {
             // 50 / (1 - 0.3)
             expect(resolveCoordinate(offset, -71.4, context)).toBe(-71.4);
             expect(resolveCoordinate(offset, 71.4, context)).toBe(71.4);
-            expect(resolveCoordinate(offset, 71.5, context)).toBeUndefined();
+            expect(resolveCoordinate(offset, 71.43, context)).toBe(71.43);
+            expect(resolveCoordinate(offset, 71.44, context)).toBeUndefined();
             expect(resolveCoordinate(offset, -71.5, context)).toBeUndefined();
         });
 
@@ -289,9 +295,12 @@ describe('annotation coordinates', () => {
             expect(digitsOf((value) => `US$ ${Number(value).toLocaleString('en-US')}`)).toEqual([3, 0]);
         });
 
-        it('are not taken from text that is not a plain number', () => {
+        it('are not taken from text that is not a plain number, or that does not say which separator is the decimal', () => {
             expect(digitsOf(() => 'Q3 2024')).toEqual([undefined, undefined]);
             expect(digitsOf(() => '1.5e+3')).toEqual([undefined, undefined]);
+            expect(digitsOf(() => '12,5')).toEqual([undefined, undefined]);
+            expect(digitsOf(() => '1.234,5')).toEqual([undefined, undefined]);
+            expect(digitsOf(() => '1,234.5')).toEqual([1, 1]);
         });
 
         it('only round the text shown, never an integer or a value without decimals to show', () => {

@@ -87,6 +87,7 @@ export interface AxisContext {
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];
     scaleInvert(position: number): any;
+    /** Without a `label`, a `crosshair` value is formatted with the format of the axis's crosshair label. */
     formatScaleValue<FormatParams extends object = never>(
         value: unknown,
         source: 'annotation-label' | 'crosshair',

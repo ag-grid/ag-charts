@@ -24,7 +24,8 @@ import { isCrossLineType } from './types';
 
 /**
  * How a value is typed into the settings dialog: the kind of its axis, or `offset` for the position of a point within
- * the band of a category-like axis, as a percentage from -50 (start of the band) to 50 (end of the band), or beyond where the bands are spaced apart.
+ * the band of a category-like axis. An offset is a percentage from -50 (start of the band) to 50 (end of the band),
+ * and reaches further where the bands are spaced apart.
  */
 export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 'category' | 'offset';
 
@@ -32,6 +33,11 @@ export type ParsedCoordinate = AgNumericValue | Date | string;
 
 type PointRow = 'start' | 'end' | 'endRetracement';
 
+export function isPointRow(row: CoordinateRow): row is PointRow {
+    return row === 'start' || row === 'end' || row === 'endRetracement';
+}
+
+/** A `height` row is a distance along the y axis; the position of a point within its band is the `offset` kind. */
 export type CoordinateRow = PointRow | 'value' | 'height' | 'startHeight' | 'endHeight';
 
 /** The datum properties a coordinate edit can change, merged onto the datum as-is. */
@@ -172,7 +178,7 @@ export function resolveCoordinate(
     const axis = field.axis === 'x' ? context.xAxis : context.yAxis;
     if (field.kind === 'offset') {
         const limit = getOffsetLimit(axis);
-        return typeof parsed === 'number' && Math.abs(parsed) <= limit ? parsed : undefined;
+        return typeof parsed === 'number' && Math.abs(parsed) <= limit + OFFSET_TOLERANCE ? parsed : undefined;
     }
     if (field.kind === 'category') {
         return axis.scale.domain.find((category) => withoutLineBreaks(category) === parsed) ?? parsed;
@@ -236,6 +242,8 @@ function pad(value: number, length = 2) {
 }
 
 const OFFSET_LIMIT = 50;
+// An offset is shown to two decimals, so the limit it is shown at is accepted back.
+const OFFSET_TOLERANCE = 0.005;
 
 /** A point is placed on the nearest band, so it reaches as far as half a step from the band's centre: 50 / (1 - paddingInner). */
 function getOffsetLimit({ scale }: Pick<AnnotationAxisContext, 'scale'>) {
@@ -317,6 +325,10 @@ function getFractionDigits(kind: CoordinateKind, current: PointType | undefined,
         return;
     }
     const text = toPlainText(context.formatScaleValue(value, 'crosshair'));
+    // A comma without a point is a thousands separator or a decimal comma, and the text cannot say which.
+    if (text.includes(',') && !text.includes('.')) {
+        return;
+    }
     const match = /^\D*[\d,]+(?:\.(\d+))?\D*$/.exec(text);
     return match ? (match[1]?.length ?? 0) : undefined;
 }

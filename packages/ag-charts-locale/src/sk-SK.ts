@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Zarovnať',
     dialogInputColorPicker: 'Farba',
     dialogInputColorPickerAltText: 'Farba textu',

@@ -186,6 +186,7 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Joonda',
     dialogInputColorPicker: 'Värv',
     dialogInputColorPickerAltText: 'Teksti värv',

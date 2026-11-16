@@ -186,6 +186,7 @@ export const AG_CHARTS_LOCALE_SR_LATN_RS: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Poravnanje',
     dialogInputColorPicker: 'Boja',
     dialogInputColorPickerAltText: 'Boja teksta',

@@ -186,6 +186,7 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Perataan',
     dialogInputColorPicker: 'Warna',
     dialogInputColorPickerAltText: 'Warna Teks',

@@ -188,6 +188,7 @@ export const AG_CHARTS_LOCALE_BN_IN: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'সারিবদ্ধ করুন',
     dialogInputColorPicker: 'রঙ',
     dialogInputColorPickerAltText: 'টেক্সটের রঙ',

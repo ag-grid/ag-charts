@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Hizala',
     dialogInputColorPicker: 'Renk',
     dialogInputColorPickerAltText: 'Metin Rengi',

@@ -349,6 +349,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputCoordinatesAxisY: 'Y',
     // Alt text for the annotation dialog's coordinate inputs, e.g. 'Start: X'
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    // Alt text and label for the annotation dialog's band offset input, with its unit, e.g. 'Offset: X (%)'
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     // Text for the annotation dialog's text alignment radio label
     dialogInputAlign: 'Align',
     // Text for the annotation dialog's color picker label

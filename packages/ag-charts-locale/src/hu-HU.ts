@@ -92,6 +92,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Igazítás',
     dialogInputColorPicker: 'Szín',
     dialogInputColorPickerAltText: 'Szövegszín',

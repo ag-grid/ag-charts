@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_ES_ES: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Alinear',
     dialogInputColorPicker: 'Color',
     dialogInputColorPickerAltText: 'Color del texto',

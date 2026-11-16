@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Ευθυγράμμιση',
     dialogInputColorPicker: 'Χρώμα',
     dialogInputColorPickerAltText: 'Χρώμα Κειμένου',

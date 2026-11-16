@@ -27,6 +27,7 @@ import {
     displayCoordinate,
     formatCoordinate,
     getCoordinateFields,
+    isPointRow,
     parseCoordinate,
     resolveCoordinate,
 } from '../utils/coordinates';
@@ -79,8 +80,6 @@ const COORDINATE_ROW_LABELS: Record<CoordinateRow, string> = {
     startHeight: 'dialogInputCoordinatesStartHeight',
     endHeight: 'dialogInputCoordinatesEndHeight',
 };
-
-const POINT_ROWS: ReadonlySet<CoordinateRow> = new Set(['start', 'end', 'endRetracement']);
 
 const COORDINATE_INPUT_TYPES = {
     number: 'number',
@@ -338,7 +337,9 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const rows = new Map<CoordinateRow, CoordinateField[]>();
         for (const field of fields) {
-            rows.set(field.row, [...(rows.get(field.row) ?? []), field]);
+            const rowFields = rows.get(field.row) ?? [];
+            rowFields.push(field);
+            rows.set(field.row, rowFields);
         }
 
         const refreshes: Array<(next: CoordinateField) => void> = [];
@@ -374,10 +375,10 @@ export class AnnotationSettingsDialog extends Dialog {
             initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'
         );
         const offsetLabel = localeManager.t('dialogInputCoordinatesOffset');
-        const ariaLabel = localeManager.t('dialogInputCoordinatesAltText', {
-            label: initial.kind === 'offset' ? `${rowLabel} ${offsetLabel}` : rowLabel,
-            axis,
-        });
+        const isOffset = initial.kind === 'offset';
+        const ariaLabel = isOffset
+            ? localeManager.t('dialogInputCoordinatesOffsetAltText', { label: `${rowLabel} ${offsetLabel}`, axis })
+            : localeManager.t('dialogInputCoordinatesAltText', { label: rowLabel, axis });
 
         const suggestions = initial.suggestions && new DatalistWidget(initial.suggestions());
 
@@ -424,7 +425,7 @@ export class AnnotationSettingsDialog extends Dialog {
         const label = this.getCoordinateLabel(
             initial,
             ariaLabel,
-            `${localeManager.t('dialogInputCoordinatesAltText', { label: offsetLabel, axis })} (%)`
+            localeManager.t('dialogInputCoordinatesOffsetAltText', { label: offsetLabel, axis })
         );
         const widget = this.createLabelledInput(label, input, inline, ...(suggestions ? [suggestions] : []));
         return { widget, refresh };
@@ -434,7 +435,7 @@ export class AnnotationSettingsDialog extends Dialog {
         if (kind === 'offset') {
             return offsetLabel;
         }
-        return POINT_ROWS.has(row) ? ariaLabel : this.ctx.localeManager.t(COORDINATE_ROW_LABELS[row]);
+        return isPointRow(row) ? ariaLabel : this.ctx.localeManager.t(COORDINATE_ROW_LABELS[row]);
     }
 
     private createColorPickerInput(

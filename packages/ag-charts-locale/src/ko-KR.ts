@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: '정렬',
     dialogInputColorPicker: '색상',
     dialogInputColorPickerAltText: '텍스트 색상',

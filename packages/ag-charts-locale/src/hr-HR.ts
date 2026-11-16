@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Poravnaj',
     dialogInputColorPicker: 'Boja',
     dialogInputColorPickerAltText: 'Boja teksta',

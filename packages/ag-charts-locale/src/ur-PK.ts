@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'ترتیب دیں',
     dialogInputColorPicker: 'رنگ',
     dialogInputColorPickerAltText: 'متن کا رنگ',

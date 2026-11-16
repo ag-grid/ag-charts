@@ -186,6 +186,7 @@ export const AG_CHARTS_LOCALE_LT_LT: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Lygiuoti',
     dialogInputColorPicker: 'Spalva',
     dialogInputColorPickerAltText: 'Teksto spalva',

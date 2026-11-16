@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'تراز',
     dialogInputColorPicker: 'رنگ',
     dialogInputColorPickerAltText: 'رنگ متن',

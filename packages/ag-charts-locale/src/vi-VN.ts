@@ -91,6 +91,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'Căn chỉnh',
     dialogInputColorPicker: 'Màu sắc',
     dialogInputColorPickerAltText: 'Màu chữ',

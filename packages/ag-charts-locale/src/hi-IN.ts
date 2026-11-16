@@ -186,6 +186,7 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     dialogInputCoordinatesAxisX: 'X',
     dialogInputCoordinatesAxisY: 'Y',
     dialogInputCoordinatesAltText: '${label}: ${axis}',
+    dialogInputCoordinatesOffsetAltText: '${label}: ${axis} (%)',
     dialogInputAlign: 'संरेखण',
     dialogInputColorPicker: 'रंग',
     dialogInputColorPickerAltText: 'टेक्स्ट रंग',
