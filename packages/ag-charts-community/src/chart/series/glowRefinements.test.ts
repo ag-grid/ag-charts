@@ -7,6 +7,7 @@ import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { expectSamePixels } from '../test/expectSamePixels';
 import { ALI_GLOW, ROOM, canvasImage, hoverDatum } from '../test/glowRender';
+import { sectorJoinPixels } from '../test/sectorGlowJoins';
 import { getSeriesAt } from '../test/seriesAccessors';
 import { SERIES_SHADOW, shapesOf } from '../test/shadowFixtures';
 import {
@@ -24,6 +25,8 @@ const BLUE = [0, 0, 255, 255];
 const GREEN = [0, 128, 0, 255];
 const WHITE = [255, 255, 255, 255];
 const DIMMED_BLUE = [102, 102, 255, 255];
+const GREY_FILL = '#808080';
+const GLOW_FILLS: Record<string, string> = { A: '#ff0000', B: '#008000', C: '#0000ff' };
 
 /** Opaque and unblurred, so that the edges of a glow can be read off a pixel. */
 const hard = (glow: AgGlowOptions = {}): AgGlowOptions => ({
@@ -640,6 +643,49 @@ describe('glow refinements', () => {
             expect(pixel(...between)).toEqual(RED);
             expect(pixel(...leftBody)).toEqual(RED);
             expect(pixel(...underRight)).toEqual(GREEN);
+        });
+    });
+
+    describe('sectors that all glow, where their radii differ', () => {
+        const SPREAD = 10;
+        const GLOWS = [RED, GREEN, BLUE];
+        const GREY = [128, 128, 128, 255];
+
+        it('ends the glow of the shorter sector on the line between them, and wraps the taller one over it', async () => {
+            await create({
+                data: [
+                    { category: 'A', value: 4, radius: 2 },
+                    { category: 'B', value: 5, radius: 8 },
+                    { category: 'C', value: 3, radius: 5 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'value',
+                        radiusKey: 'radius',
+                        innerRadiusRatio: 0.3,
+                        fills: [GREY_FILL],
+                        fillOpacity: 1,
+                        strokeWidth: 0,
+                        itemStyler: ({ datum }: { datum: { category: string } }) => ({
+                            glow: hard({ spread: SPREAD, fill: GLOW_FILLS[datum.category] }),
+                        }),
+                    },
+                ],
+            });
+
+            const sectors = shapesOf(getSeriesAt(chart).contentGroup, Sector);
+            const joins = sectorJoinPixels(chart, sectors, SPREAD);
+
+            expect(joins).toHaveLength(3);
+            for (const { shorter, taller, band, wrap, body } of joins) {
+                // The glow of the shorter sector is cut away only on its neighbour's side of the line, over the whole of its edge.
+                expect(band).toEqual(GLOWS[shorter]);
+                // Past where its glow reaches, the taller sector's glow runs on round its edge, as round a free edge.
+                expect(wrap).toEqual(GLOWS[taller]);
+                // The glow of neither covers the other sector.
+                expect(body).toEqual(GREY);
+            }
         });
     });
 
