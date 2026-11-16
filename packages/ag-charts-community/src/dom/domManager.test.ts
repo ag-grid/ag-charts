@@ -475,12 +475,27 @@ describe('DOMManager', () => {
                 expect(countRefreshes(() => attach(dm, component.attachShadow({ mode: 'open' }), container))).toBe(1);
             });
 
-            it('after the chart moved into the light DOM', () => {
-                const container = doc.createElement('div');
-                const dm = new DOMManager(eventsHub, 'late-refresh-light', doc, container);
-                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+            it.each(['var(--my-color)', 'var(--my-color, green)'])(
+                'after the chart moved into the light DOM with %s watched',
+                (key) => {
+                    const container = doc.createElement('div');
+                    const dm = new DOMManager(eventsHub, 'late-refresh-light', doc, container);
+                    dm.updateCSSVariableWatchers({ [key]: 'red' });
 
-                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(1);
+                    expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(1);
+                }
+            );
+
+            it('after the chart moved into a shadow root with a fallback variable watched, which it then watches', () => {
+                const component = doc.createElement('div');
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-shadow-fallback', doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color, green)': 'green' });
+                doc.body.append(component);
+                const shadow = component.attachShadow({ mode: 'open' });
+
+                expect(countRefreshes(() => attach(dm, shadow, container))).toBe(1);
+                expect(shadowWatchers(shadow, '--my-color, green')).toHaveLength(1);
             });
 
             it('for a variable that could not be resolved while detached', () => {

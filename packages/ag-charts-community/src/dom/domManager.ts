@@ -1132,7 +1132,14 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         }
 
         for (const property of properties) {
-            if (this.cssVariableWatchers.has(property) || !CSS_VARIABLE_NAME.test(property)) continue;
+            if (this.cssVariableWatchers.has(property)) continue;
+
+            // Only a plain name can be written into an `@property` rule. Anything else, such as `--name, fallback`, is
+            // tracked without a rule so the attach still re-resolves it and a move into a shadow root still watches it.
+            if (!CSS_VARIABLE_NAME.test(property)) {
+                this.cssVariableWatchers.set(property, () => {});
+                continue;
+            }
 
             const styleElement = createStyleElement(this.styleNonce);
             styleElement.dataset.variableName = property;
