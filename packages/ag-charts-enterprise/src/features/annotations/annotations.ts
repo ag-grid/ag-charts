@@ -25,7 +25,13 @@ import {
     isValidDate,
 } from 'ag-charts-core';
 import type { ClickWidgetEvent, DblClickWidgetEvent, DragWidgetEvent, KeyboardWidgetEvent } from 'ag-charts-core';
-import type { AgAnnotationAxesButtons, AgAnnotationMagnetMode, AgNumericValue, PixelSize } from 'ag-charts-types';
+import type {
+    AgAnnotationAxesButtons,
+    AgAnnotationMagnet,
+    AgAnnotationMagnetMode,
+    AgNumericValue,
+    PixelSize,
+} from 'ag-charts-types';
 
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
 import type { FontFields } from './annotationDatum';
@@ -59,7 +65,7 @@ import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './se
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
-import { DEFAULT_MAGNET_RANGE, applyMagnet, resolveMagnetMode } from './utils/magnet';
+import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
 import { getMagnetPositions } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
@@ -103,8 +109,13 @@ export class Annotations extends AbstractModuleInstance {
     private configuredMagnetEnabled?: boolean;
     /** Whether the magnet is on, as the options or the toolbar button have set it; holding Ctrl or Cmd inverts it. */
     private magnetEnabled = false;
-    private magnetStrength: AgAnnotationMagnetMode = 'weak';
-    private magnetRange: PixelSize = DEFAULT_MAGNET_RANGE;
+    private magnetStrength: AgAnnotationMagnetMode = DEFAULT_MAGNET.mode;
+    private magnetRange: PixelSize = DEFAULT_MAGNET.range;
+    /**
+     * Whether Ctrl or Cmd is held, which inverts the magnet mode. Every snap follows a pointer event that has set it
+     * from its own modifiers, so it cannot stick when a `keyup` is missed.
+     */
+    private magnetInverted = false;
 
     // Annotations is only created when the `annotations` subtree is configured, so assert
     // the subtree's presence here and rely on annotationsTheme for field-level defaults.
@@ -155,7 +166,7 @@ export class Annotations extends AbstractModuleInstance {
                 const enabled = opts?.enabled ?? false;
 
                 const { toolbar, optionsToolbar, axesButtons, magnet } = opts ?? {};
-                this.applyMagnetOptions(magnet?.enabled ?? false, magnet?.mode ?? 'weak', magnet?.range);
+                this.applyMagnetOptions({ ...DEFAULT_MAGNET, ...magnet });
                 this.toolbar.applyOptions({ ...toolbar, enabled: toolbar?.enabled ?? enabled });
                 this.optionsToolbar.applyOptions({ ...optionsToolbar, enabled: optionsToolbar?.enabled ?? enabled });
                 this.axesButtons = { enabled: axesButtons?.enabled ?? enabled, axes: axesButtons?.axes ?? 'y' };
@@ -170,11 +181,7 @@ export class Annotations extends AbstractModuleInstance {
         );
     }
 
-    private applyMagnetOptions(
-        enabled: boolean,
-        mode: AgAnnotationMagnetMode,
-        range: PixelSize = DEFAULT_MAGNET_RANGE
-    ) {
+    private applyMagnetOptions({ enabled, mode, range }: Required<AgAnnotationMagnet>) {
         this.magnetStrength = mode;
         this.magnetRange = range;
         if (enabled === this.configuredMagnetEnabled) return;
@@ -188,9 +195,6 @@ export class Annotations extends AbstractModuleInstance {
         this.magnetEnabled = !this.magnetEnabled;
         this.toolbar.setMagnetPressed(this.magnetEnabled);
     }
-
-    /** Whether Ctrl or Cmd is held, as of the latest pointer or key event, which inverts the magnet mode. */
-    private magnetInverted = false;
 
     private trackMagnetModifier(sourceEvent: Pick<MouseEvent, 'ctrlKey' | 'metaKey'> | undefined) {
         if (sourceEvent != null) this.magnetInverted = sourceEvent.ctrlKey || sourceEvent.metaKey;
@@ -209,7 +213,7 @@ export class Annotations extends AbstractModuleInstance {
         const seriesIds = yAxis.context.seriesIds();
         const positions = this.ctx.chartService.series
             .filter((s) => s.visible && seriesIds.includes(s.id))
-            .flatMap((s) => getMagnetPositions(s, offset, yAxis.context.scale));
+            .flatMap((s) => getMagnetPositions(s, offset, yAxis.context));
         return applyMagnet(offset, positions, mode, this.magnetRange);
     };
 

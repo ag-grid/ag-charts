@@ -40,22 +40,22 @@ describe('applyMagnet', () => {
     const positions = [20, 50, 120, 80];
 
     it('only changes the vertical position', () => {
-        expect(applyMagnet({ x: 93, y: 82 }, positions, 'weak')).toEqual({ x: 93, y: 80 });
+        expect(applyMagnet({ x: 93, y: 82 }, positions, 'weak', 20)).toEqual({ x: 93, y: 80 });
     });
 
     it('leaves the point alone when there is no mode or it is out of range', () => {
         const offset = { x: 93, y: 82 };
-        expect(applyMagnet(offset, positions, undefined)).toBe(offset);
+        expect(applyMagnet(offset, positions, undefined, 20)).toBe(offset);
         expect(applyMagnet({ x: 93, y: 100 }, positions, 'weak', 5)).toEqual({ x: 93, y: 100 });
     });
 
     it('snaps from any distance when strong', () => {
-        expect(applyMagnet({ x: 93, y: 300 }, positions, 'strong')).toEqual({ x: 93, y: 120 });
+        expect(applyMagnet({ x: 93, y: 300 }, positions, 'strong', 20)).toEqual({ x: 93, y: 120 });
     });
 
     it('leaves the point alone when there is nothing to snap to', () => {
         const offset = { x: 500, y: 82 };
-        expect(applyMagnet(offset, [], 'strong')).toBe(offset);
+        expect(applyMagnet(offset, [], 'strong', 20)).toBe(offset);
     });
 });
 

@@ -58,10 +58,10 @@ describe('Annotations magnet', () => {
     }
 
     /** The position in the canvas of a time and a value of the axes of the chart, moved down by `pixelsBelow`. */
-    function canvasPoint(time: number, value: number, pixelsBelow = 0) {
+    function canvasPoint(time: number, value: number, pixelsBelow = 0, [min, max] = [0, 100]) {
         const { x, y, width, height } = getSeriesRect(chart);
         const canvasX = x + (width * (time - X_MIN)) / (X_MAX - X_MIN);
-        return { x: canvasX, y: y + height * (1 - value / 100) + pixelsBelow };
+        return { x: canvasX, y: y + height * (1 - (value - min) / (max - min)) + pixelsBelow };
     }
 
     /** Draws a horizontal line by hovering and clicking at the position, or by dragging from it. */
@@ -109,9 +109,13 @@ describe('Annotations magnet', () => {
         await updateMagnet({ enabled: false, mode: 'weak', range: 10 });
         await drawHorizontalLine(at(40, 4), 'click', true);
 
+        // The next line, drawn without Ctrl, is not inverted, so it stays where it is clicked: 45.
+        await drawHorizontalLine(at(45), 'click');
+
         await compareAnnotationsSnapshot(chart, ctx);
     });
 
+    const BAND = [{ x: new Date(X_MID), a: 30, b: 25 }];
     it.each([
         {
             name: 'a line series, ignoring a hidden series',
@@ -120,6 +124,13 @@ describe('Annotations magnet', () => {
                 { type: 'line', xKey: 'x', yKey: 'hidden', visible: false },
             ],
             data: [{ x: new Date(X_MID), y: 40, hidden: 80 }],
+            click: 90,
+        },
+        {
+            name: 'a scatter series, which has no cumulative value',
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+            data: [{ x: new Date(X_MID), y: 40 }],
+            click: 90,
         },
         {
             name: 'the top of a stacked bar series',
@@ -127,11 +138,76 @@ describe('Annotations magnet', () => {
                 { type: 'bar', xKey: 'x', yKey: 'a', stacked: true },
                 { type: 'bar', xKey: 'x', yKey: 'b', stacked: true },
             ],
-            data: [{ x: new Date(X_MID), a: 30, b: 25 }],
+            data: BAND,
+            click: 90,
         },
-    ])('snaps to the values of $name', async ({ series, data }) => {
-        await prepareChart({ enabled: true, mode: 'strong' }, { series, data } as any);
-        await drawHorizontalLine(canvasPoint(X_MID, 90), 'click');
+        {
+            name: 'the top of a stacked area series',
+            series: [
+                { type: 'area', xKey: 'x', yKey: 'a', stacked: true },
+                { type: 'area', xKey: 'x', yKey: 'b', stacked: true },
+            ],
+            data: BAND,
+            click: 90,
+        },
+        {
+            name: 'the bottom of a negative stack',
+            series: [
+                { type: 'bar', xKey: 'x', yKey: 'a', stacked: true },
+                { type: 'bar', xKey: 'x', yKey: 'b', stacked: true },
+            ],
+            data: [{ x: new Date(X_MID), a: 30, b: -20 }],
+            axes: { y: { type: 'number', min: -50, max: 50, nice: false } },
+            click: -45,
+            range: [-50, 50],
+        },
+        {
+            name: 'a log y-axis, in pixels rather than values',
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            data: [{ x: new Date(X_MID), y: 40 }],
+            axes: { y: { type: 'log', min: 1, max: 100 } },
+            click: 99,
+            range: [1, 100],
+        },
+        {
+            name: 'a time y-axis',
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            data: [{ x: new Date(X_MID), y: new Date(X_MID) }],
+            axes: { y: { type: 'time', min: new Date(X_MIN), max: new Date(X_MAX) } },
+            click: 90,
+        },
+        {
+            name: 'the values within the y-axis only',
+            series: [
+                { type: 'candlestick', xKey: 'x', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
+            ],
+            data: CANDLESTICKS,
+            axes: { y: { type: 'number', min: 0, max: 60, nice: false } },
+            click: 58,
+            range: [0, 60],
+        },
+        {
+            name: 'nothing when the y-axis is a category axis',
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+            data: [
+                { x: new Date(X_MID), y: 'low' },
+                { x: new Date(X_MID), y: 'high' },
+            ],
+            axes: { y: { type: 'category' } },
+            click: 90,
+        },
+    ])('snaps to the values of $name', async ({ series, data, click, axes, range }: any) => {
+        await prepareChart(
+            { enabled: true, mode: 'strong' },
+            {
+                series,
+                data,
+                ...(axes && {
+                    axes: { x: { type: 'time', min: new Date(X_MIN), max: new Date(X_MAX), nice: false }, ...axes },
+                }),
+            }
+        );
+        await drawHorizontalLine(canvasPoint(X_MID, click, 0, range), 'click');
         await compareAnnotationsSnapshot(chart, ctx);
     });
 

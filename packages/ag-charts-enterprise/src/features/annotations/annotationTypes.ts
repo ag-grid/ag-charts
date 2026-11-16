@@ -123,7 +123,12 @@ export interface AnnotationContext {
     isRtl: boolean;
     getVolume(from: DataPoint['x'], to: DataPoint['x']): AgNumericValue | undefined;
     getFollowedValue(follow: AgAnnotationFollow): PointType | undefined;
-    /** Snaps the vertical position of an offset in the series area to the nearest value, when the magnet is on. */
+    /**
+     * Snaps the vertical position of an offset in the series area to the nearest value, when the magnet is on. Creation
+     * applies it to the point it places, and each scene to the point that a handle drag ends on, through
+     * `snapPoint` or `magnetTranslation`; a new scene that moves a point with a handle must do the same. Moving a whole
+     * annotation, or moving it by keyboard, is exempt, as it has no single point to snap.
+     */
     magnet(offset: Point): Point;
 }
 

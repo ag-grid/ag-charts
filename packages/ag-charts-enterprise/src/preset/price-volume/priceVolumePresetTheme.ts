@@ -207,5 +207,5 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     axesButtons: {
         enabled: true,
     },
-    magnet: MAGNET_THEME,
+    magnet: { ...MAGNET_THEME },
 };
