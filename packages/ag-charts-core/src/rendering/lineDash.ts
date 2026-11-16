@@ -1,17 +1,20 @@
 import type { AgLineDashName, PixelSize } from 'ag-charts-types';
 
-/** The dash and gap lengths, in pixels, that each stock dash name stands for. */
-export const LINE_DASH_PATTERNS: Readonly<Record<AgLineDashName, readonly PixelSize[]>> = {
+/**
+ * The dash and gap lengths that each stock dash name stands for, in multiples of the stroke width, so that a dot is
+ * always as long as the line is wide.
+ */
+export const LINE_DASH_PATTERNS: Readonly<Record<AgLineDashName, readonly number[]>> = {
     solid: [0],
-    dot: [2, 3],
-    dash: [6, 4],
-    'dash-dot': [6, 3, 2, 3],
-    'long-dash': [14, 4],
-    'long-dash-dot': [14, 3, 2, 3],
-    'long-dash-dot-dot': [14, 4, 2, 4, 2, 4],
-    'dash-dot-dot': [6, 3, 2, 3, 2, 3],
-    'dash-long-dash': [6, 4, 14, 4],
-    'long-dash-dash-dash': [14, 3, 6, 3, 6, 3],
+    dot: [1, 1.5],
+    dash: [3, 2],
+    'dash-dot': [3, 1.5, 1, 1.5],
+    'long-dash': [7, 2],
+    'long-dash-dot': [7, 1.5, 1, 1.5],
+    'long-dash-dot-dot': [7, 2, 1, 2, 1, 2],
+    'dash-dot-dot': [3, 1.5, 1, 1.5, 1, 1.5],
+    'dash-long-dash': [3, 2, 7, 2],
+    'long-dash-dash-dash': [7, 1.5, 3, 1.5, 3, 1.5],
 };
 
 /** The `lineDash` options once the theme has resolved any dash name to its array of lengths. */

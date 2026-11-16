@@ -13,7 +13,7 @@ import {
     type TextOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, themeLineHeight } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, lineDashThemeDefault, themeLineHeight } from 'ag-charts-core';
 
 export const DEFAULT_FIBONACCI_STROKES = [
     '#797b86',
@@ -244,7 +244,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...stroke,
         ...selectionAxes(axisLabel),
         middle: {
-            lineDash: { $applyLineDash: [6, 5] },
+            lineDash: lineDashThemeDefault([6, 5]),
             strokeWidth: 1,
         },
         background: { ...background },

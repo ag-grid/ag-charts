@@ -1,5 +1,5 @@
 import type { AgScrollbarOptions, Operation, WithThemeParams } from 'ag-charts-community';
-import { themeBorderColor, themeBorderWidth } from 'ag-charts-core';
+import { lineDashThemeDefault, themeBorderColor, themeBorderWidth } from 'ag-charts-core';
 
 const HOVER_MIX_RATIO = 0.075;
 // The thumb colour mixed towards the foreground, for a hover border that sets no colour of its own.
@@ -17,7 +17,7 @@ const SCROLLBAR_ORIENTATION_THEME: WithThemeParams<AgScrollbarOptions> = {
         stroke: { $path: '../../track/stroke' },
         fillOpacity: { $path: '../../track/fillOpacity' },
         strokeWidth: { $path: '../../track/strokeWidth' },
-        lineDash: { $applyLineDash: { $path: '../../track/lineDash' } },
+        lineDash: lineDashThemeDefault({ $path: '../../track/lineDash' }),
         lineDashOffset: { $path: '../../track/lineDashOffset' },
         opacity: { $path: '../../track/opacity' },
         cornerRadius: { $path: '../../track/cornerRadius' },
@@ -27,7 +27,7 @@ const SCROLLBAR_ORIENTATION_THEME: WithThemeParams<AgScrollbarOptions> = {
         stroke: { $path: '../../thumb/stroke' },
         fillOpacity: { $path: '../../thumb/fillOpacity' },
         strokeWidth: { $path: '../../thumb/strokeWidth' },
-        lineDash: { $applyLineDash: { $path: '../../thumb/lineDash' } },
+        lineDash: lineDashThemeDefault({ $path: '../../thumb/lineDash' }),
         lineDashOffset: { $path: '../../thumb/lineDashOffset' },
         opacity: { $path: '../../thumb/opacity' },
         cornerRadius: { $path: '../../thumb/cornerRadius' },
@@ -89,7 +89,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         fill: { $ref: 'scrollbarTrackBackgroundColor' },
         stroke: themeBorderColor('scrollbarTrackBorder'),
         strokeWidth: themeBorderWidth('scrollbarTrackBorder'),
-        lineDash: { $applyLineDash: [0] },
+        lineDash: lineDashThemeDefault('solid'),
         lineDashOffset: 0,
         opacity: 1,
         cornerRadius: { $ref: 'scrollbarTrackBorderRadius' },
@@ -98,7 +98,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         fill: { $ref: 'scrollbarThumbBackgroundColor' },
         stroke: themeBorderColor('scrollbarThumbBorder'),
         strokeWidth: themeBorderWidth('scrollbarThumbBorder'),
-        lineDash: { $applyLineDash: [0] },
+        lineDash: lineDashThemeDefault('solid'),
         lineDashOffset: 0,
         opacity: 1,
         cornerRadius: { $ref: 'scrollbarThumbBorderRadius' },

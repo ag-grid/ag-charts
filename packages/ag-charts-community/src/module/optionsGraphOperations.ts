@@ -1033,37 +1033,59 @@ function isLineDashName(value: unknown): value is keyof typeof LINE_DASH_PATTERN
     return isString(value) && Object.hasOwn(LINE_DASH_PATTERNS, value);
 }
 
-/**
- * The default is an array literal, whose elements arrive as separate values, or an operation that resolves to one.
- * An `undefined` default stands for none.
- */
-function resolveLineDashDefault(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const resolved = values.map((value) => graph.resolveVertexValue(vertex, value));
-    if (resolved.length === 1 && resolved[0] === undefined) return;
-    return resolved.length === 1 && Array.isArray(resolved[0]) ? resolved[0] : resolved;
+/** The default is an array of lengths, which holds no operations, a stock name, or an operation resolving to either. */
+function resolveLineDashDefault(
+    graph: OptionsGraphInterface,
+    vertex: VertexInterface,
+    defaultVertex?: VertexInterface
+) {
+    if (defaultVertex == null) return;
+    const value = graph.getVertexValue(defaultVertex);
+    return Array.isArray(value) ? [...(value as number[])] : graph.resolveVertexValue(vertex, defaultVertex);
+}
+
+/** The stroke width that a stock dash scales by: any width that is not a positive number counts as 1. */
+function resolveLineDashWidth(graph: OptionsGraphInterface, vertex: VertexInterface, widthVertex?: VertexInterface) {
+    const width = widthVertex == null ? undefined : graph.resolveVertexValue(vertex, widthVertex);
+    return isNumber(width) && Number.isFinite(width) && width > 0 ? width : 1;
+}
+
+/** The stock dash's lengths, which are in multiples of the stroke width, in pixels. */
+function scaleStockLineDash(name: keyof typeof LINE_DASH_PATTERNS, width: number) {
+    return LINE_DASH_PATTERNS[name].map((length) => length * width);
 }
 
 /**
- * Resolves a named `lineDash` (e.g. `'dash-dot'`) to its array of lengths. A name replaces the whole array, so the
- * elements of any array at a lower priority are pruned rather than merged index by index over it, which is how
- * arrays are layered.
+ * Resolves a named `lineDash` (e.g. `'dash-dot'`) to its array of lengths, scaled by the stroke width. A name replaces
+ * the whole array, so the elements of any array at a lower priority are pruned rather than merged index by index over
+ * it, which is how arrays are layered. An array is in pixels and is never scaled.
+ *
+ * The values are the default, then the stroke width to scale a name by (e.g. `{ $path: './strokeWidth' }`). The
+ * default is a name, an array, an operation resolving to either, or `undefined` for none.
  */
 function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [defaultVertex, widthVertex] = values;
+
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
     const overrideOption =
         graph.dangerouslyGetThemeOverride(pathArray) ?? graph.dangerouslyGetThemeOverride(withoutIndices(pathArray));
 
+    const width = resolveLineDashWidth(graph, vertex, widthVertex);
+
     const winner = userOption ?? overrideOption;
     if (isLineDashName(winner)) {
         graph.prune(vertex, [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE]);
-        return [...LINE_DASH_PATTERNS[winner]];
+        return scaleStockLineDash(winner, width);
     }
 
-    const defaultDash = resolveLineDashDefault(graph, vertex, values);
+    const resolvedDefault = resolveLineDashDefault(graph, vertex, defaultVertex);
+    const defaultDash = isLineDashName(resolvedDefault)
+        ? scaleStockLineDash(resolvedDefault, width)
+        : (resolvedDefault as number[] | undefined);
 
     // A user array still merges index by index over a named override, which stands in for the default.
-    const base = isLineDashName(overrideOption) ? [...LINE_DASH_PATTERNS[overrideOption]] : (defaultDash ?? []);
+    const base = isLineDashName(overrideOption) ? scaleStockLineDash(overrideOption, width) : (defaultDash ?? []);
 
     // An empty default with nothing to layer over it is the value as it stands: an empty array has no elements to
     // graft, and no default leaves the option unset, so that what the style falls back to still applies.

@@ -23,6 +23,7 @@ import {
     inheritedGlowTheme,
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
+    lineDashThemeDefault,
     themeLineHeight,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
@@ -30,9 +31,7 @@ import {
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
 const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemOptions]> = {
-    lineDash: {
-        $applyLineDash: { $path: '/series/$index/lineDash' },
-    },
+    lineDash: lineDashThemeDefault({ $path: '/series/$index/lineDash' }),
     lineDashOffset: {
         $path: '/series/$index/lineDashOffset',
     },
@@ -91,9 +90,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         fillOpacity: {
             $path: '/series/$index/marker/fillOpacity',
         },
-        lineDash: {
-            $applyLineDash: { $path: '/series/$index/marker/lineDash' },
-        },
+        lineDash: lineDashThemeDefault({ $path: '/series/$index/marker/lineDash' }),
         lineDashOffset: {
             $path: '/series/$index/marker/lineDashOffset',
         },

@@ -6,6 +6,7 @@ import type {
     AgGlowOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
+    AgLineDashName,
     AgMultiSeriesHighlightOptions,
     AgSelectionOptions,
     AgSelectionStyleOptions,
@@ -668,10 +669,24 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
 /** Interaction defaults for series whose public options omit `showInLegend`. */
 export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickRange: 'exact' } as const;
 
+/** The stroke width that a stock dash name scales by when set at the same level as the `lineDash`. */
+const SIBLING_STROKE_WIDTH = { $path: './strokeWidth' } as const;
+
+/**
+ * The `lineDash` theme default: a `defaultDash` in pixels (or a stock name), and the `strokeWidth` that a stock dash
+ * name set by the user or a theme override scales by, which is that of the `lineDash`'s own style unless given.
+ */
+export function lineDashThemeDefault(
+    defaultDash: AgLineDashName | number[] | Operation | undefined,
+    strokeWidth: Operation = SIBLING_STROKE_WIDTH
+) {
+    return { $applyLineDash: [defaultDash, strokeWidth] } satisfies Operation;
+}
+
 /** Solid, fully opaque stroke; the theme value every stroked element starts from. */
 export const STROKE_STYLE_THEME_DEFAULTS = {
     strokeOpacity: 1,
-    lineDash: { $applyLineDash: [0] },
+    lineDash: lineDashThemeDefault('solid'),
     lineDashOffset: 0,
 };
 
@@ -733,9 +748,12 @@ export const GLOW_THEME_DEFAULTS = {
 
 /**
  * The `lineDash` default of a style that falls back to another when unset, such as a highlight bucket: it leaves the
- * option unset, and exists only so that a stock dash name set by the user or a theme override resolves to its array.
+ * option unset, and exists only so that a stock dash name set by the user or a theme override resolves to its array,
+ * scaled by the bucket's `strokeWidth` or else the series'.
  */
-export const UNSET_LINE_DASH_THEME_DEFAULT = { $applyLineDash: undefined };
+export const UNSET_LINE_DASH_THEME_DEFAULT = lineDashThemeDefault(undefined, {
+    $path: ['./strokeWidth', { $path: '/series/$index/strokeWidth' }],
+});
 
 /** The highlight states of a series with only item states, and of a treemap group. */
 export const ITEM_GLOW_BUCKETS = ['highlightedItem', 'unhighlightedItem'] as const;
@@ -993,7 +1011,7 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 ],
             },
             strokeOpacity: { $path: '../../../strokeOpacity' },
-            lineDash: { $applyLineDash: { $path: '../../../lineDash' } },
+            lineDash: lineDashThemeDefault({ $path: '../../../lineDash' }),
             lineDashOffset: { $path: '../../../lineDashOffset' },
         },
     },

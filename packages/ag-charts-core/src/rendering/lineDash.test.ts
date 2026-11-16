@@ -15,18 +15,18 @@ function svgAttributes(lineDash: number[]) {
 }
 
 describe('stock line dash patterns', () => {
-    it('defines each stock pattern as documented', () => {
+    it('defines each stock pattern as documented, in multiples of the stroke width', () => {
         expect(LINE_DASH_PATTERNS).toEqual({
             solid: [0],
-            dot: [2, 3],
-            dash: [6, 4],
-            'dash-dot': [6, 3, 2, 3],
-            'long-dash': [14, 4],
-            'long-dash-dot': [14, 3, 2, 3],
-            'long-dash-dot-dot': [14, 4, 2, 4, 2, 4],
-            'dash-dot-dot': [6, 3, 2, 3, 2, 3],
-            'dash-long-dash': [6, 4, 14, 4],
-            'long-dash-dash-dash': [14, 3, 6, 3, 6, 3],
+            dot: [1, 1.5],
+            dash: [3, 2],
+            'dash-dot': [3, 1.5, 1, 1.5],
+            'long-dash': [7, 2],
+            'long-dash-dot': [7, 1.5, 1, 1.5],
+            'long-dash-dot-dot': [7, 2, 1, 2, 1, 2],
+            'dash-dot-dot': [3, 1.5, 1, 1.5, 1, 1.5],
+            'dash-long-dash': [3, 2, 7, 2],
+            'long-dash-dash-dash': [7, 1.5, 3, 1.5, 3, 1.5],
         });
     });
 

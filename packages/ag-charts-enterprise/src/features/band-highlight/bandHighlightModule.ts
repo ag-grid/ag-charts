@@ -1,5 +1,5 @@
 import { type AgBandHighlightOptions, VERSION } from 'ag-charts-community';
-import type { AxisPluginModuleDefinition } from 'ag-charts-core';
+import { type AxisPluginModuleDefinition, lineDashThemeDefault } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { BandHighlight } from './bandHighlight';
@@ -18,7 +18,7 @@ export const BandHighlightModule: AxisPluginModuleDefinition<AgBandHighlightOpti
         stroke: 'rgb(195, 195, 195)',
         strokeWidth: 0,
         strokeOpacity: 1,
-        lineDash: { $applyLineDash: [] },
+        lineDash: lineDashThemeDefault([]),
         lineDashOffset: 0,
         fill: { $ref: 'bandHighlightColor' },
         fillOpacity: 1,

@@ -1,3 +1,4 @@
+import { lineDashThemeDefault } from 'ag-charts-core';
 import type {
     AgAxisGridLineOptions,
     AgChartTooltipOptions,
@@ -22,7 +23,7 @@ const commonAxisProperties = {
     crosshair: {
         enabled: false,
         stroke: '#aaa',
-        lineDash: { $applyLineDash: [0] },
+        lineDash: lineDashThemeDefault('solid'),
         label: {
             enabled: false,
         },

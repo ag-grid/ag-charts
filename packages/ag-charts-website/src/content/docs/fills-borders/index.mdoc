@@ -53,28 +53,33 @@ The `lineDash` option sets the dash pattern of a stroke. It accepts either a nam
             type: 'line',
             xKey: 'quarter',
             yKey: 'revenue',
+            strokeWidth: 2,
             lineDash: 'long-dash-dot', // same as [14, 3, 2, 3]
         },
     ],
 }
 ```
 
-Each name is shorthand for an array of alternating dash and gap lengths in pixels:
+Each name is shorthand for a pattern of alternating dash and gap lengths, measured in multiples of the `strokeWidth`. A dot is always as long as the line is wide, so a name looks the same on a thin line as on a thick one.
 
-| Name                    | Array                 |
-| ----------------------- | --------------------- |
-| `'solid'`               | `[0]`                 |
-| `'dot'`                 | `[2, 3]`              |
-| `'dash'`                | `[6, 4]`              |
-| `'dash-dot'`            | `[6, 3, 2, 3]`        |
-| `'long-dash'`           | `[14, 4]`             |
-| `'long-dash-dot'`       | `[14, 3, 2, 3]`       |
-| `'long-dash-dot-dot'`   | `[14, 4, 2, 4, 2, 4]` |
-| `'dash-dot-dot'`        | `[6, 3, 2, 3, 2, 3]`  |
-| `'dash-long-dash'`      | `[6, 4, 14, 4]`       |
-| `'long-dash-dash-dash'` | `[14, 3, 6, 3, 6, 3]` |
+| Name                    | Lengths                    | At `strokeWidth: 2`   |
+| ----------------------- | -------------------------- | --------------------- |
+| `'solid'`               | `[0]`                      | `[0]`                 |
+| `'dot'`                 | `[1, 1.5]`                 | `[2, 3]`              |
+| `'dash'`                | `[3, 2]`                   | `[6, 4]`              |
+| `'dash-dot'`            | `[3, 1.5, 1, 1.5]`         | `[6, 3, 2, 3]`        |
+| `'long-dash'`           | `[7, 2]`                   | `[14, 4]`             |
+| `'long-dash-dot'`       | `[7, 1.5, 1, 1.5]`         | `[14, 3, 2, 3]`       |
+| `'long-dash-dot-dot'`   | `[7, 2, 1, 2, 1, 2]`       | `[14, 4, 2, 4, 2, 4]` |
+| `'dash-dot-dot'`        | `[3, 1.5, 1, 1.5, 1, 1.5]` | `[6, 3, 2, 3, 2, 3]`  |
+| `'dash-long-dash'`      | `[3, 2, 7, 2]`             | `[6, 4, 14, 4]`       |
+| `'long-dash-dash-dash'` | `[7, 1.5, 3, 1.5, 3, 1.5]` | `[14, 3, 6, 3, 6, 3]` |
 
-A custom pattern is still given as an array, for example `lineDash: [8, 2, 2, 2]`. Legend items and tooltip markers are drawn with the same dash as the series.
+A custom pattern is still given as an array of lengths in pixels, for example `lineDash: [8, 2, 2, 2]`, and is never scaled. The `lineDashOffset` is in pixels too.
+
+Legend items and tooltip markers are drawn with the same dash as the series. The legend line is at most `2` pixels wide, so a named dash on a thicker series is drawn there at the series' dash lengths.
+
+A name takes the `strokeWidth` set alongside it, so a [Styler](./stylers/) that returns both a `strokeWidth` and a `lineDash` name scales the name by that width. A highlight or selection style that changes only the `strokeWidth` keeps the dash lengths of the series, as it sets no `lineDash` of its own.
 
 ## Padding
 

@@ -1,6 +1,12 @@
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
-import { FONT_THEME_DEFAULTS, LABEL_OVERFLOW_DEFAULTS, themeLineHeight, undocumentedThemeOptions } from './themeUtil';
+import {
+    FONT_THEME_DEFAULTS,
+    LABEL_OVERFLOW_DEFAULTS,
+    lineDashThemeDefault,
+    themeLineHeight,
+    undocumentedThemeOptions,
+} from './themeUtil';
 
 /**
  * Title defaults for axes that render a title (cartesian + radius). Composed via
@@ -100,7 +106,7 @@ export const commonAxisThemeTemplate = {
         enabled: true,
         strokeWidth: { $ref: 'axisLineWidth' },
         strokeOpacity: 1,
-        lineDash: { $applyLineDash: [] },
+        lineDash: lineDashThemeDefault([]),
         stroke: { $ref: 'axisLineColor' },
     },
     tick: {
@@ -118,14 +124,14 @@ export const commonAxisThemeTemplate = {
                     fillOpacity: 1,
                     stroke: { $ref: 'gridLineColor' },
                     strokeWidth: { $path: '../../width' },
-                    lineDash: { $applyLineDash: [] },
+                    lineDash: lineDashThemeDefault([]),
                 },
                 [
                     {
                         fillOpacity: 1,
                         stroke: { $ref: 'gridLineColor' },
                         strokeWidth: { $path: '../../width' },
-                        lineDash: { $applyLineDash: [] },
+                        lineDash: lineDashThemeDefault([]),
                     },
                 ],
             ],
@@ -146,7 +152,7 @@ export const crossLinesThemeTemplate = {
             fillOpacity: { $if: [{ $eq: [{ $path: './type' }, 'range'] }, 0.08, undefined] },
             stroke: { $ref: 'foregroundColor' },
             strokeWidth: 1,
-            lineDash: { $applyLineDash: [] },
+            lineDash: lineDashThemeDefault([]),
             label: {
                 ...LABEL_OVERFLOW_DEFAULTS,
                 ...undocumentedThemeOptions({ overflow: 'pad-chart' }),

@@ -892,71 +892,101 @@ describe('ChartOptions', () => {
     describe('lineDash', () => {
         const warnings = () => (console.warn as Mock).mock.calls.map(([m]) => String(m));
 
-        const LOCATIONS: Array<[string, string, (lineDash: never) => AgCartesianChartOptions]> = [
+        const LOCATIONS: Array<[string, string, (lineDash: never, strokeWidth?: number) => AgCartesianChartOptions]> = [
             [
                 'series',
                 'series[0].lineDash',
-                (lineDash) => ({ series: [{ type: 'line', xKey: 'x', yKey: 'y', lineDash }] }),
+                (lineDash, strokeWidth) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', lineDash, strokeWidth }],
+                }),
             ],
             [
                 'series marker',
                 'series[0].marker.lineDash',
-                (lineDash) => ({ series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { lineDash } }] }),
+                (lineDash, strokeWidth) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { lineDash, strokeWidth } }],
+                }),
             ],
             [
                 'series highlight',
                 'series[0].highlight.highlightedItem.lineDash',
-                (lineDash) => ({
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y', highlight: { highlightedItem: { lineDash } } }],
+                (lineDash, strokeWidth) => ({
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'x',
+                            yKey: 'y',
+                            highlight: { highlightedItem: { lineDash, strokeWidth } },
+                        },
+                    ],
                 }),
             ],
             [
                 'series selection',
                 'series[0].selection.selectedItem.lineDash',
-                (lineDash) => ({
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y', selection: { selectedItem: { lineDash } } }],
+                (lineDash, strokeWidth) => ({
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y', selection: { selectedItem: { lineDash, strokeWidth } } },
+                    ],
                 }),
             ],
             [
                 'axis line',
                 'axes.x.line.lineDash',
-                (lineDash) => ({
+                (lineDash, strokeWidth) => ({
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: { x: { type: 'category', position: 'bottom', line: { lineDash } } },
+                    axes: { x: { type: 'category', position: 'bottom', line: { lineDash, strokeWidth } } },
                 }),
             ],
             [
                 'axis grid line',
                 'axes.y.gridLine.style[0].lineDash',
-                (lineDash) => ({
+                (lineDash, strokeWidth) => ({
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: { y: { type: 'number', position: 'left', gridLine: { style: [{ lineDash }] } } },
+                    axes: { y: { type: 'number', position: 'left', gridLine: { style: [{ lineDash, strokeWidth }] } } },
                 }),
             ],
             [
                 'cross line',
                 'axes.x.crossLines[0].lineDash',
-                (lineDash) => ({
+                (lineDash, strokeWidth) => ({
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
                         x: {
                             type: 'category',
                             position: 'bottom',
-                            crossLines: [{ type: 'line', value: 'a', lineDash }],
+                            crossLines: [{ type: 'line', value: 'a', lineDash, strokeWidth }],
                         },
                     },
                 }),
             ],
         ];
 
-        it.each(LOCATIONS)('resolves a stock dash name on a %s to its array', (_, path, build) => {
-            const named = prepareOptions<AgCartesianChartOptions>(build('long-dash-dot-dot' as never));
-            expect(warnings()).toEqual([]);
-            expect(optionAt(named, path)).toEqual([14, 4, 2, 4, 2, 4]);
+        // `long-dash-dot-dot` is [7, 2, 1, 2, 1, 2] in multiples of the stroke width.
+        it.each(LOCATIONS)(
+            'resolves a stock dash name on a %s to its array, scaled by its strokeWidth',
+            (_, path, build) => {
+                const named = prepareOptions<AgCartesianChartOptions>(build('long-dash-dot-dot' as never, 3));
+                expect(warnings()).toEqual([]);
+                expect(optionAt(named, path)).toEqual([21, 6, 3, 6, 3, 6]);
+            }
+        );
 
-            const array = prepareOptions<AgCartesianChartOptions>(build([6, 4] as never));
+        it.each(LOCATIONS)('does not scale an array on a %s', (_, path, build) => {
+            const array = prepareOptions<AgCartesianChartOptions>(build([6, 4] as never, 3));
             expect(warnings()).toEqual([]);
             expect(optionAt(array, path)).toEqual([6, 4]);
+        });
+
+        it.each([
+            ['an unset strokeWidth, which is 1 on an axis line', undefined],
+            ['a zero strokeWidth', 0],
+        ])('scales a stock dash name as if the strokeWidth were 1 for %s', (_, strokeWidth) => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: { x: { type: 'category', position: 'bottom', line: { lineDash: 'dash-dot', strokeWidth } } },
+            });
+            expect(optionAt(options, 'axes.x.line.lineDash')).toEqual([3, 1.5, 1, 1.5]);
         });
 
         it.each(LOCATIONS)('rejects an unknown dash name on a %s and drops it', (_, path, build) => {
