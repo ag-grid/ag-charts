@@ -26,7 +26,7 @@ import {
     SOLID_STROKE_STYLE,
     ScalableGroup,
     Sector,
-    type SectorGlowEntry,
+    SectorGlowRing,
     Selection,
     Text,
     TransformableText,
@@ -208,6 +208,8 @@ export class SunburstSeries extends HierarchySeries<
 > {
     static override readonly className = 'SunburstSeries';
     static readonly type = 'sunburst' as const;
+
+    private readonly glowRings = new Map<number, SectorGlowRing>();
 
     NodeClass = SunburstNode;
 
@@ -636,19 +638,19 @@ export class SunburstSeries extends HierarchySeries<
 
     /** Ends the glow of each sector on the line between it and the sector beside it in its ring, where both glow. */
     private updateGlowEnds(angleOffset: number) {
-        const rings = new Map<number, SectorGlowEntry[]>();
+        const { glowRings } = this;
+        for (const ring of glowRings.values()) ring.clear();
         this.datumSelection.each((sector, { depth, startAngle, endAngle }) => {
             if (depth == null) return;
 
-            const entry = { sector, startAngle: startAngle + angleOffset, endAngle: endAngle + angleOffset };
-            const ring = rings.get(depth);
+            let ring = glowRings.get(depth);
             if (ring == null) {
-                rings.set(depth, [entry]);
-            } else {
-                ring.push(entry);
+                ring = new SectorGlowRing();
+                glowRings.set(depth, ring);
             }
+            ring.add(sector, startAngle + angleOffset, endAngle + angleOffset);
         });
-        for (const ring of rings.values()) setSectorGlowEnds(ring);
+        for (const ring of glowRings.values()) setSectorGlowEnds(ring);
     }
 
     override getLabelData(): PointLabelDatum[] {

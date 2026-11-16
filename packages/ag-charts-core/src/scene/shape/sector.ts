@@ -1,3 +1,4 @@
+import { normalizeAngle360 } from '../../geometry/angle';
 import { SceneChangeDetection, SceneObjectChangeDetection } from '../../rendering/changeDetectable';
 import type { Point, SerializedNodeState, SerializedSectorProps } from '../../types/scene';
 import type { BBox } from '../bbox';
@@ -653,51 +654,79 @@ export class Sector<D = unknown> extends Path<D> {
     }
 }
 
-/** A sector of a ring, with the angles it is laid out at, which a sector that is animating has not yet reached. */
-export interface SectorGlowEntry {
+interface SectorGlowEntry {
     sector: Sector;
     startAngle: number;
     endAngle: number;
 }
 
+const byStartAngle = (a: SectorGlowEntry, b: SectorGlowEntry) => a.startAngle - b.startAngle;
+const glows = ({ sector: { fillGlow } }: SectorGlowEntry) => fillGlow?.enabled === true && fillGlow.cutOnly !== true;
+
 /**
- * Ends the glow of each sector of a ring on the radial line between it and the next sector, where both glow. `ring` holds
- * the sectors drawn in the ring, in any order. It is edited in place: a sector with no sweep is left out, and the angles
- * are unwrapped and sorted. Two sectors are beside each other if their angles meet. In a `padded` ring, where the sectors
- * are set apart by a padding, every two in a row are beside each other, as are the last and the first if no more than the
- * widest padding is left between them.
+ * The sectors drawn in one ring, with the angles they are laid out at, which a sector that is animating has not yet
+ * reached. A series keeps one and refills it on each update, so no object is made per sector.
  */
-export function setSectorGlowEnds(ring: SectorGlowEntry[], padded: boolean = false) {
+export class SectorGlowRing {
+    private readonly pool: SectorGlowEntry[] = [];
+    readonly entries: SectorGlowEntry[] = [];
+
+    clear() {
+        this.entries.length = 0;
+    }
+
+    add(sector: Sector, startAngle: number, endAngle: number) {
+        const { pool, entries } = this;
+        const entry = pool[entries.length] ?? { sector, startAngle, endAngle };
+        entry.sector = sector;
+        entry.startAngle = startAngle;
+        entry.endAngle = endAngle;
+        pool[entries.length] = entry;
+        entries.push(entry);
+    }
+}
+
+/**
+ * Ends the glow of each sector of a ring on the radial line between it and the next sector, where both glow. The ring is
+ * edited in place: a sector with no sweep is left out, and the angles are unwrapped and sorted. Two sectors are beside
+ * each other if their angles meet. In a `padded` ring, where the sectors are set apart by a padding, every two in a row
+ * are beside each other, as are the last and the first if no more than the widest padding is left between them.
+ */
+export function setSectorGlowEnds(ring: SectorGlowRing, padded: boolean = false) {
     const full = 2 * Math.PI;
     const delta = 1e-6;
+    const { entries } = ring;
     let count = 0;
-    for (const entry of ring) {
+    let sorted = true;
+    for (const entry of entries) {
         const { sector } = entry;
         sector.glowStartSpan = 0;
         sector.glowEndSpan = 0;
-        const { startAngle, endAngle } = clockwiseAngles(entry.startAngle, entry.endAngle);
-        if (endAngle > startAngle) {
-            entry.startAngle = startAngle;
-            entry.endAngle = endAngle;
-            ring[count++] = entry;
+        const sweep =
+            Math.abs(entry.endAngle - entry.startAngle) >= full - delta
+                ? full
+                : normalizeAngle360(entry.endAngle - entry.startAngle);
+        if (sweep > 0) {
+            entry.startAngle = clockwiseAngle(entry.startAngle, 0);
+            entry.endAngle = entry.startAngle + sweep;
+            sorted &&= count === 0 || entries[count - 1].startAngle <= entry.startAngle;
+            entries[count++] = entry;
         }
     }
-    ring.length = count;
+    entries.length = count;
     if (count < 2) return;
-    ring.sort((a, b) => a.startAngle - b.startAngle);
+    if (!sorted) entries.sort(byStartAngle);
 
     let widest = delta;
     if (padded) {
         for (let i = 0; i < count - 1; i++) {
-            widest = Math.max(widest, ring[i + 1].startAngle - ring[i].endAngle);
+            widest = Math.max(widest, entries[i + 1].startAngle - entries[i].endAngle);
         }
     }
 
-    const glows = ({ sector: { fillGlow } }: SectorGlowEntry) =>
-        fillGlow?.enabled === true && fillGlow.cutOnly !== true;
     for (let i = 0; i < count; i++) {
-        const prev = ring[i];
-        const next = ring[(i + 1) % count];
+        const prev = entries[i];
+        const next = entries[(i + 1) % count];
         if (!glows(prev) || !glows(next)) continue;
 
         const gap = next.startAngle - prev.endAngle + (i === count - 1 ? full : 0);

@@ -31,7 +31,7 @@ import {
     PolarZIndexMap,
     type RequireOptional,
     Sector,
-    type SectorGlowEntry,
+    SectorGlowRing,
     Selection,
     SpatialIndex,
     Text,
@@ -257,6 +257,8 @@ export class DonutSeries extends PolarSeries<
 > {
     static override readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
+
+    private readonly glowRing = new SectorGlowRing();
 
     private phantomNodeData: PieDonutNodeDatum[] | undefined = undefined;
     private get calloutNodeData() {
@@ -1359,9 +1361,10 @@ export class DonutSeries extends PolarSeries<
         });
         if (glowing) {
             // A glow ends where the sector beside it glows too, so every sector is resolved before any is ended.
-            const ring: SectorGlowEntry[] = [];
-            this.itemSelection.each((sector, { startAngle, endAngle }) => ring.push({ sector, startAngle, endAngle }));
-            setSectorGlowEnds(ring);
+            const { glowRing } = this;
+            glowRing.clear();
+            this.itemSelection.each((sector, { startAngle, endAngle }) => glowRing.add(sector, startAngle, endAngle));
+            setSectorGlowEnds(glowRing);
         }
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
 

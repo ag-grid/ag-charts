@@ -5,7 +5,7 @@ import {
     PolarZIndexMap,
     Sector,
     SectorBox,
-    type SectorGlowEntry,
+    SectorGlowRing,
     polarSectorObstacles,
     setSectorGlowEnds,
 } from 'ag-charts-core';
@@ -21,6 +21,8 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
 > {
     static override readonly className = 'NightingaleSeries';
     static readonly type = 'nightingale' as const;
+
+    private readonly glowRing = new SectorGlowRing();
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
@@ -69,9 +71,10 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
     protected override updateGlowEnds(selection: Selection<RadialColumnNodeDatum, Sector<RadialColumnNodeDatum>>) {
         if (!selection.nodes().some((node) => node.fillGlow?.enabled === true)) return;
 
-        const ring: SectorGlowEntry[] = [];
-        selection.each((sector, { startAngle, endAngle }) => ring.push({ sector, startAngle, endAngle }));
-        setSectorGlowEnds(ring, true);
+        const { glowRing } = this;
+        glowRing.clear();
+        selection.each((sector, { startAngle, endAngle }) => glowRing.add(sector, startAngle, endAngle));
+        setSectorGlowEnds(glowRing, true);
     }
 
     getLabelObstacles() {
