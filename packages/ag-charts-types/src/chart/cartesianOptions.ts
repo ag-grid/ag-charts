@@ -72,7 +72,8 @@ export interface AgBaseCartesianAxisOptions<
      */
     maxThicknessRatio?: Ratio;
     /**
-     * The space between this axis and the next axis further out at the same `position`.
+     * The space between this axis and the next axis towards the series area at the same `position`. The first
+     * axis in `axes` at a position is the outermost, so `spacing` on the innermost axis has no effect.
      *
      * Default: `15`
      */
