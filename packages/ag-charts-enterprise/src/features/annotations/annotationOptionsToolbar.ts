@@ -59,8 +59,8 @@ interface EventMap {
         type: HasColorAnnotationType;
         colorPickerType: AnnotationOptionsColorPickerType;
         color: string | undefined;
+        cancelled: boolean;
     };
-    'cancelled-color': null;
     'updated-color': {
         type: HasColorAnnotationType;
         colorPickerType: AnnotationOptionsColorPickerType;
@@ -378,14 +378,14 @@ export class AnnotationOptionsToolbar {
                     hasMultiColorOption: isFibonacciType(datum),
                     isMultiColor: isFibonacciType(datum) && datum.isMultiColor,
                     onChange: datum == null ? undefined : this.onColorPickerChange.bind(this, button.value, datum),
-                    onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
+                    onChangeHide: ((type: AnnotationOptionsColorPickerType, cancelled: boolean) => {
                         this.events.emit('saved-color', {
                             type: datum.type,
                             colorPickerType: button.value as AnnotationOptionsColorPickerType,
                             color: getDefaultColor(datum, type),
+                            cancelled,
                         });
                     }).bind(this, button.value),
-                    onCancel: () => this.events.emit('cancelled-color', null),
                 });
                 break;
             }

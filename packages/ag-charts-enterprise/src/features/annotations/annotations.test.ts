@@ -1235,10 +1235,11 @@ describe('Annotations', () => {
 
     describe('colour picker confirm and cancel', () => {
         const body = () => deproxy(chart).ctx.agDocument.body;
-        const strokeOf = () => (chart.getState().annotations?.[0] as { stroke?: string }).stroke;
+        const annotation = () => chart.getState().annotations?.[0] as Record<string, any>;
+        const strokeOf = () => annotation().stroke as string | undefined;
 
-        const openLineColorPicker = async () => {
-            body().querySelector<HTMLElement>('button[title="Line Color"]')!.click();
+        const press = async (selector: string) => {
+            body().querySelector<HTMLElement>(selector)!.click();
             await waitForChartStability(chart);
         };
         const pickColor = async (color: string) => {
@@ -1247,66 +1248,161 @@ describe('Annotations', () => {
             input.dispatchEvent(new Event('input'));
             await waitForChartStability(chart);
         };
-        const press = async (selector: string) => {
-            body().querySelector<HTMLElement>(selector)!.click();
-            await waitForChartStability(chart);
-        };
         const hasPicker = () => body().querySelector('.ag-charts-color-picker') != null;
         const hasToolbar = () => body().querySelector('button[title="Line Color"]') != null;
+        const dialogPickerButtons = () =>
+            Array.from(body().querySelectorAll<HTMLElement>('.ag-charts-dialog__color-picker-button'));
+        const swatch = (index = 0) => dialogPickerButtons()[index].style.getPropertyValue('--color');
+        const toolbarSwatch = () =>
+            body().querySelector<HTMLElement>('button[title="Line Color"]')!.style.getPropertyValue('--color');
+        const keydown = (target: Element, key: string) => {
+            const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+            target.dispatchEvent(event);
+            return event;
+        };
+        const CANCEL = '.ag-charts-color-picker__cancel-button';
+        const CONFIRM = '.ag-charts-color-picker__confirm-button';
 
-        beforeEach(async () => {
-            await prepareChart({ annotations: [{ type: 'horizontal-line', value: 50, stroke: '#ff0000' }] });
+        async function select(annotations: NonNullable<AgCartesianChartOptions['initialState']>['annotations']) {
+            await prepareChart({ annotations });
             const { x, y, width, height } = getSeriesRect(chart);
             await hoverAction(x + width / 2, y + height / 2)(chart);
             await clickAction(x + width / 2, y + height / 2)(chart);
             await waitForChartStability(chart);
-            await openLineColorPicker();
+        }
+
+        describe('from the options toolbar', () => {
+            beforeEach(async () => {
+                await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000' }]);
+                await press('button[title="Line Color"]');
+            });
+
+            it('keeps the colour and closes only the picker on confirm', async () => {
+                await pickColor('#00ff00');
+                const swatchWhilePicking = toolbarSwatch();
+                await press(CONFIRM);
+
+                expect(hasPicker()).toBe(false);
+                expect(hasToolbar()).toBe(true);
+                expect(strokeOf()).toBe('#00ff00');
+                expect(toolbarSwatch()).toBe(swatchWhilePicking);
+
+                deproxy(chart).ctx.historyManager.undo();
+                await waitForChartStability(chart);
+                expect(strokeOf()).toBe('#ff0000');
+            });
+
+            it('restores the colour from before the picker opened on cancel', async () => {
+                const swatchBefore = toolbarSwatch();
+                await pickColor('#00ff00');
+                await pickColor('#0000ff');
+                expect(toolbarSwatch()).not.toBe(swatchBefore);
+                await press(CANCEL);
+
+                expect(hasPicker()).toBe(false);
+                expect(hasToolbar()).toBe(true);
+                expect(strokeOf()).toBe('#ff0000');
+                expect(toolbarSwatch()).toBe(swatchBefore);
+            });
+
+            it('leaves an earlier change alone when cancelling without changing the colour', async () => {
+                await pickColor('#00ff00');
+                await press(CONFIRM);
+
+                await press('button[title="Line Color"]');
+                await press(CANCEL);
+
+                expect(strokeOf()).toBe('#00ff00');
+            });
+
+            it('keeps the colour when closing with Escape or Enter', async () => {
+                await pickColor('#00ff00');
+                keydown(body().querySelector('.ag-charts-color-picker__palette')!, 'Escape');
+                await waitForChartStability(chart);
+                expect(hasPicker()).toBe(false);
+                expect(strokeOf()).toBe('#00ff00');
+
+                await press('button[title="Line Color"]');
+                await pickColor('#0000ff');
+                keydown(body().querySelector('.ag-charts-color-picker__palette')!, 'Enter');
+                await waitForChartStability(chart);
+                expect(hasPicker()).toBe(false);
+                expect(strokeOf()).toBe('#0000ff');
+            });
+
+            it.each([
+                [CANCEL, '#ff0000'],
+                [CONFIRM, '#00ff00'],
+            ])('presses the focused %s button on Enter', async (selector, expected) => {
+                await pickColor('#00ff00');
+                keydown(body().querySelector(selector)!, 'Enter');
+                await waitForChartStability(chart);
+
+                expect(hasPicker()).toBe(false);
+                expect(strokeOf()).toBe(expected);
+            });
         });
 
-        it('keeps the colour and closes only the picker on confirm', async () => {
-            await pickColor('#00ff00');
-            await press('.ag-charts-color-picker__confirm-button');
+        describe('from the settings dialog', () => {
+            const openDialog = async (tab?: string) => {
+                await press('button[title="Settings"]');
+                if (tab != null) {
+                    const tabButton = Array.from(body().querySelectorAll<HTMLElement>('.ag-charts-dialog__tab-button'));
+                    tabButton.find((button) => button.textContent === tab)!.click();
+                    await waitForChartStability(chart);
+                }
+            };
 
-            expect(hasPicker()).toBe(false);
-            expect(hasToolbar()).toBe(true);
-            expect(strokeOf()).toBe('#00ff00');
+            const channel = {
+                type: 'parallel-channel',
+                start: { x: { __type: 'date', value: '2024-05-01' }, y: 40 },
+                end: { x: { __type: 'date', value: '2024-08-30' }, y: 60 },
+                height: 20,
+                stroke: '#ff0000',
+                background: { fill: '#ff0000', fillOpacity: 1 },
+                text: { label: 'Text', color: '#ff0000', position: 'top', alignment: 'center' },
+            } as const;
+            it.each([
+                ['line colour', 0, 'Channel', (a: Record<string, any>) => a.stroke],
+                ['fill colour', 1, 'Channel', (a: Record<string, any>) => a.background?.fill],
+                ['text colour', 2, 'Text', (a: Record<string, any>) => a.text?.color],
+            ])('restores the %s, and its swatch, on cancel', async (_name, index, tab, read) => {
+                await select([channel]);
+                await openDialog(tab);
+                const before = read(annotation());
+                const swatchBefore = swatch(index);
 
-            deproxy(chart).ctx.historyManager.undo();
-            await waitForChartStability(chart);
-            expect(strokeOf()).toBe('#ff0000');
-        });
+                dialogPickerButtons()[index].click();
+                await waitForChartStability(chart);
+                await pickColor('#00ff00');
+                expect(read(annotation())).not.toBe(before);
+                await press(CANCEL);
 
-        it('restores the colour from before the picker opened on cancel', async () => {
-            await pickColor('#00ff00');
-            await pickColor('#0000ff');
-            await press('.ag-charts-color-picker__cancel-button');
+                expect(read(annotation())).toBe(before);
+                expect(swatch(index)).toBe(swatchBefore);
+            });
 
-            expect(hasPicker()).toBe(false);
-            expect(hasToolbar()).toBe(true);
-            expect(strokeOf()).toBe('#ff0000');
-        });
+            it('does not undo an earlier dialog edit when cancelling a colour', async () => {
+                await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
+                await openDialog();
 
-        it('leaves an earlier change alone when cancelling without changing the colour', async () => {
-            await pickColor('#00ff00');
-            await press('.ag-charts-color-picker__confirm-button');
+                const strokeWidth = body().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
+                strokeWidth.value = '4';
+                strokeWidth.dispatchEvent(new Event('change'));
+                await waitForChartStability(chart);
+                expect(annotation().strokeWidth).toBe(4);
 
-            await openLineColorPicker();
-            await press('.ag-charts-color-picker__cancel-button');
+                const swatchBefore = swatch();
+                await press('.ag-charts-dialog__color-picker-button');
+                await pickColor('#00ff00');
+                expect(swatch()).not.toBe(swatchBefore);
+                await press(CANCEL);
 
-            expect(strokeOf()).toBe('#00ff00');
-        });
-
-        it('restores the colour on cancel when the picker was opened from the settings dialog', async () => {
-            await press('.ag-charts-color-picker__cancel-button');
-            await press('button[title="Settings"]');
-
-            await press('.ag-charts-dialog__color-picker-button');
-            await pickColor('#00ff00');
-            expect(strokeOf()).toBe('#00ff00');
-            await press('.ag-charts-color-picker__cancel-button');
-
-            expect(strokeOf()).toBe('#ff0000');
-            expect(body().querySelector('.ag-charts-dialog')).not.toBeNull();
+                expect(strokeOf()).toBe('#ff0000');
+                expect(annotation().strokeWidth).toBe(4);
+                expect(swatch()).toBe(swatchBefore);
+                expect(body().querySelector('.ag-charts-dialog')).not.toBeNull();
+            });
         });
     });
 

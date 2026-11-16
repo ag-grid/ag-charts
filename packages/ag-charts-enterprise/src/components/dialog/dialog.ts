@@ -25,6 +25,8 @@ import { ColorPicker } from '../color-picker/colorPicker';
 
 const { DraggablePopover } = _ModuleSupport;
 
+const MULTI_COLOR_CLASS = 'ag-charts-dialog__color-picker-button--multi-color';
+
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
 
 interface RadioGroupOptions<T extends string> {
@@ -75,8 +77,7 @@ interface ColorPickerOptions {
     isMultiColor?: boolean;
     hasMultiColorOption: boolean;
     onChange: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
-    onChangeHide: () => void;
-    onCancel: () => void;
+    onChangeHide: (cancelled: boolean) => void;
 }
 
 /**
@@ -301,7 +302,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         altText,
         onChange,
         onChangeHide,
-        onCancel,
         isMultiColor,
         hasMultiColorOption,
     }: ColorPickerOptions) {
@@ -319,6 +319,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             // Retrieve the anchor for this particular color picker element, and use it when repositioning if the chart
             // is resized. When a different color picker trigger element is clicked that one will take over this task.
             const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
+            // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
+            const swatchEl = colorEl.getElement();
+            const swatch = {
+                color: swatchEl.style.getPropertyValue('--color'),
+                isMultiColor: swatchEl.classList.contains(MULTI_COLOR_CLASS),
+            };
             this.colorPicker.show({
                 anchor,
                 fallbackAnchor,
@@ -329,16 +335,21 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 sourceEvent,
                 onChange: (newColorOpacity: string, newColor: string, newOpacity: number, newIsMultiColor: boolean) => {
                     colorEl.setCSSVariable('--color', newColorOpacity);
-                    colorEl.toggleClass('ag-charts-dialog__color-picker-button--multi-color', newIsMultiColor);
+                    colorEl.toggleClass(MULTI_COLOR_CLASS, newIsMultiColor);
                     onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
                 },
-                onChangeHide,
-                onCancel,
+                onChangeHide: (cancelled) => {
+                    if (cancelled) {
+                        colorEl.setCSSVariable('--color', swatch.color === '' ? null : swatch.color);
+                        colorEl.toggleClass(MULTI_COLOR_CLASS, swatch.isMultiColor);
+                    }
+                    onChangeHide(cancelled);
+                },
             });
         });
 
         if (isMultiColor) {
-            colorEl.addClass('ag-charts-dialog__color-picker-button--multi-color');
+            colorEl.addClass(MULTI_COLOR_CLASS);
         } else if (color != null && color !== '') {
             const hex = Color.fromString(color);
             const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);

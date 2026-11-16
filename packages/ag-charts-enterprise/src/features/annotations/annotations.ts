@@ -427,12 +427,13 @@ export class Annotations extends AbstractModuleInstance {
                         this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity, isMultiColor);
                         this.optionsToolbar.updateColorPickerColor(colorType, color, opacity, isMultiColor);
                     };
-                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () => {
+                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => (cancelled: boolean) => {
                     this.recordActionAfterNextUpdate(
                         `Change ${datum.type} ${colorType} to ${getDefaultColor(datum, colorType)}`,
                         ['annotations', 'defaults']
                     );
                     this.update();
+                    if (cancelled) this.undoColorPickerSession();
                 };
 
                 const options: LinearSettingsDialogOptions = {
@@ -487,7 +488,6 @@ export class Annotations extends AbstractModuleInstance {
                     },
                     onChangeTextColor: onChangeColor('text-color'),
                     onChangeHideTextColor: onChangeHideColor('text-color'),
-                    onCancelColor: () => this.undoColorPickerSession(),
                     onChangeTextFontSize: (fontSize) => {
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
@@ -572,14 +572,15 @@ export class Annotations extends AbstractModuleInstance {
             optionsToolbar.events.on('hid-overlays', () => {
                 this.settingsDialog.hide();
             }),
-            optionsToolbar.events.on('saved-color', ({ type, colorPickerType, color }) => {
+            optionsToolbar.events.on('saved-color', ({ type, colorPickerType, color, cancelled }) => {
                 this.recordActionAfterNextUpdate(`Change ${type} ${colorPickerType} to ${color}`, [
                     'annotations',
                     'defaults',
                 ]);
+                // Flush the record now, rather than on the next render, so an immediate undo sees it.
                 this.update();
+                if (cancelled) this.undoColorPickerSession();
             }),
-            optionsToolbar.events.on('cancelled-color', () => this.undoColorPickerSession()),
             optionsToolbar.events.on(
                 'updated-color',
                 ({ type, colorPickerType, colorOpacity, color, opacity, isMultiColor }) => {
@@ -919,10 +920,7 @@ export class Annotations extends AbstractModuleInstance {
         });
     }
 
-    /**
-     * Cancelling a colour picker closes it first, which queues the record of that picking session. Undoing once it
-     * is written restores the colour from before the picker opened.
-     */
+    // Queued after the picking session's own record, so the undo restores the state from before the picker opened.
     private undoColorPickerSession() {
         this.postUpdateFns.push(() => this.ctx.historyManager.undo());
     }

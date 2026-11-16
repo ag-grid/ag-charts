@@ -22,9 +22,8 @@ export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOption
     hasMultiColorOption: boolean;
     sourceEvent: Event;
     onChange?: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
-    onChangeHide?: () => void;
-    /** Called after the picker closes via Cancel, if the colour changed while it was open. */
-    onCancel?: () => void;
+    /** Called when the picker closes after the colour changed. `cancelled` is set when it closed via Cancel. */
+    onChangeHide?: (cancelled: boolean) => void;
 }
 
 const getHsva = (input: string) => {
@@ -39,20 +38,22 @@ const getHsva = (input: string) => {
 
 export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptions> {
     private hasChanged = false;
-    private onChangeHide?: () => void;
+    private cancelled = false;
+    private onChangeHide?: (cancelled: boolean) => void;
     private i18nUpdater?: () => void;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>, options?: _ModuleSupport.PopoverConstructorOptions) {
         super(ctx, 'color-picker', options);
         this.hideFns.push(() => {
             this.i18nUpdater = undefined;
-            if (this.hasChanged) this.onChangeHide?.();
+            if (this.hasChanged) this.onChangeHide?.(this.cancelled);
         });
         this.cleanup.register(this.ctx.eventsHub.on('locale:change', () => this.i18nUpdater?.()));
     }
 
     public show(options: ColorPickerOptions) {
         this.hasChanged = false;
+        this.cancelled = false;
         this.onChangeHide = options.onChangeHide;
 
         const { content, initialFocus } = this.createColorPicker(options);
@@ -189,8 +190,6 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         };
 
         colorPicker.addListener('keydown', ({ sourceEvent }: KeyboardWidgetEvent) => {
-            // Let Enter press the focused Cancel or Confirm button instead of closing the picker.
-            if (sourceEvent.key === 'Enter' && actionsRow.getElement().contains(sourceEvent.target as Node)) return;
             switch (sourceEvent.key) {
                 case 'Enter':
                 case 'Escape':
@@ -203,10 +202,9 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         });
         confirmButton.addListener('click', () => this.hide());
         cancelButton.addListener('click', () => {
-            // Closing records the change; the owner's onCancel then undoes that record.
-            const hasChanged = this.hasChanged;
+            // Closing records the change; onChangeHide(true) then lets the owner undo that record.
+            this.cancelled = true;
             this.hide();
-            if (hasChanged) opts.onCancel?.();
         });
         paletteInput.addListener('drag-start', (event) => {
             paletteInput.focus();

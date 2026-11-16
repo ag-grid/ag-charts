@@ -318,11 +318,6 @@
 .ag-charts-color-picker__actions {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.ag-charts-color-picker__cancel-button,
-.ag-charts-color-picker__confirm-button {
-    padding: 4px 12px;
+    gap: calc(var(--ag-charts-spacing) * 2);
+    margin-top: calc(var(--ag-charts-spacing) * 2);
 }
