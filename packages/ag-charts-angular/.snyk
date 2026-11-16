@@ -1,6 +1,36 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-UNDICI-22392401:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.090Z
+  SNYK-JS-UNDICI-22370261:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.086Z
+  SNYK-JS-UNDICI-22291127:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.081Z
+  SNYK-JS-UNDICI-22291066:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.077Z
+  SNYK-JS-UNDICI-22290988:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.076Z
   SNYK-JS-OPEN-22112123:
     - '@angular-devkit/build-angular@21.2.29 > webpack-dev-server@5.2.6 > open@10.2.0':
         reason: >-

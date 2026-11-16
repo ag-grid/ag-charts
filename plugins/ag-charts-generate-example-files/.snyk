@@ -1,6 +1,61 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-UNDICI-22392401:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.321Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.304Z
+  SNYK-JS-UNDICI-22370261:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.319Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.298Z
+  SNYK-JS-UNDICI-22291127:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.317Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.295Z
+  SNYK-JS-UNDICI-22291066:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.313Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.292Z
+  SNYK-JS-UNDICI-22290988:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.311Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:29:16.292Z
   SNYK-JS-FOLLOWREDIRECTS-21762031:
     - ag-charts-test@* > *:
         reason: >-
