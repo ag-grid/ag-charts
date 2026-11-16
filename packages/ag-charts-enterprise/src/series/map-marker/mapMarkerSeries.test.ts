@@ -136,6 +136,26 @@ describe('MapMarkerSeries', () => {
         });
     });
 
+    describe('tooltip heading', () => {
+        it('labels negative longitudes W and positive longitudes E', async () => {
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: [
+                        { lat: 50, lon: -8 },
+                        { lat: -50, lon: 8 },
+                    ],
+                    series: [{ type: 'map-marker', latitudeKey: 'lat', longitudeKey: 'lon' }],
+                })
+            );
+            const series = getSeriesInstance(chart, MapMarkerSeries);
+            const headings = [0, 1].map((i) => {
+                const content = series.getTooltipContent(i);
+                return content?.type === 'structured' ? content.heading : undefined;
+            });
+            expect(headings).toEqual(['50.0000° N, 8.0000° W', '50.0000° S, 8.0000° E']);
+        });
+    });
+
     describe('Bubble markers', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIZE_EXAMPLE };
