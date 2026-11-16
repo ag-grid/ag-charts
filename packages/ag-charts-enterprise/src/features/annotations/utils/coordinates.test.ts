@@ -282,6 +282,27 @@ describe('annotation coordinates', () => {
             expect(resolveCoordinate(offset, -51, context)).toBeUndefined();
         });
 
+        it('measures an offset from the point of a band with no width, as a line series places its categories', () => {
+            const points = new CategoryScale<string>();
+            points.domain = ['Apples', 'Pears', 'Plums'];
+            points.range = [0, 300];
+            points.paddingInner = 1;
+            const context = createAxesContext(points, numberScale([0, 50]));
+            const pointDatum = {
+                ...datum,
+                start: { x: { value: 'Pears', groupPercentage: 0.08 }, y: 2 },
+                end: { x: { value: 'Plums', groupPercentage: -0.08 }, y: 4 },
+            };
+            const fields = getCoordinateFields(pointDatum, context).filter((f) => f.kind === 'offset');
+
+            expect(points.bandwidth).toBe(0);
+            expect(fields.map((f) => f.value)).toEqual(['8', '-8']);
+            expect(getGrouping(fields[0].toProps(50)?.start?.x).groupPercentage).toBe(0.5);
+            expect(getGrouping(fields[0].toProps(-50)?.start?.x).groupPercentage).toBe(-0.5);
+            expect(resolveCoordinate(fields[0], 50, context)).toBe(50);
+            expect(resolveCoordinate(fields[0], 50.01, context)).toBeUndefined();
+        });
+
         it('is left out on number axes and where points snap to the band centre', () => {
             const numbers = createAxesContext(numberScale([0, 100]), numberScale([0, 50]));
             expect(getCoordinateFields(datum, numbers).some((f) => f.kind === 'offset')).toBe(false);

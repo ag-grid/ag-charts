@@ -244,9 +244,13 @@ const OFFSET_LIMIT = 50;
 // An offset is shown to two decimals, so the limit it is shown at is accepted back.
 const OFFSET_TOLERANCE = 0.005;
 
-/** How many bands wide a step is, as `groupPercentage` is a fraction of the band and an offset a fraction of the step. */
-function getStepInBands({ step = 0, bandwidth = 0 }: Pick<AnnotationAxisContext['scale'], 'step' | 'bandwidth'>) {
-    return bandwidth > 0 && step > 0 ? step / bandwidth : 1;
+/**
+ * Where an offset of zero lies in `groupPercentage`, and how many of its units make a step. A band's group percentage
+ * runs from its start across its width, so its centre is 0.5 and a step is more than one unit where bands are padded. A
+ * band with no width is a point, which a group percentage measures from across a whole step.
+ */
+function getOffsetBasis({ step = 0, bandwidth = 0 }: Pick<AnnotationAxisContext['scale'], 'step' | 'bandwidth'>) {
+    return bandwidth > 0 && step > 0 ? { centre: 0.5, stepInUnits: step / bandwidth } : { centre: 0, stepInUnits: 1 };
 }
 
 const INTEGER_TEXT = /^[+-]?\d+$/;
@@ -303,16 +307,16 @@ function createOffsetPointFields(
     }
 
     const { value, groupPercentage } = getGrouping(current);
-    const stepInBands = getStepInBands(context.scale);
+    const { centre, stepInUnits } = getOffsetBasis(context.scale);
     return [
         {
             row,
             axis,
             kind: 'offset',
-            value: String(Math.round(((groupPercentage - 0.5) / stepInBands) * 1e4) / 100),
+            value: String(Math.round(((groupPercentage - centre) / stepInUnits) * 1e4) / 100),
             toProps: (parsed) =>
                 typeof parsed === 'number'
-                    ? toProps({ value, groupPercentage: 0.5 + (parsed / 100) * stepInBands })
+                    ? toProps({ value, groupPercentage: centre + (parsed / 100) * stepInUnits })
                     : undefined,
         },
     ];
