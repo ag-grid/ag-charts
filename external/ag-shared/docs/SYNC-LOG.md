@@ -92,6 +92,24 @@ Draft PRs skip CI, so `/ci` dispatches `ci.yml` on the branch. A dispatch has no
 
 Only read-only tools are allowed. `executeWrite`, `executeDestructive`, `addGraphContext` and the create/edit/transition/comment tools are not listed and keep prompting. Existing v1 entries (`mcp__atlassian__search`, `mcp__claude_ai_Atlassian__*`) are unchanged.
 
+## 2026-11-06 -- updateLicenses.ts uses fs.globSync, tsconfig.spec.json drops module: commonjs
+
+**Branch:** `ghabot-as-2356-build-make-tsconfigs-typescript-7` (ag-studio)
+
+### Why
+
+ag-studio's `tsconfig.base.json` moved to `moduleResolution: bundler`, which `tsconfig.json` here inherits. Under it the `glob` default import fails to type-check (glob 11 has no default export), so `ag-shared:build:types` failed, and `tsconfig.spec.json`'s `module: commonjs` override is rejected alongside it (TS5095). ag-grid already made both changes in its copy; this entry brings the same files into ag-studio ahead of the next sync.
+
+### Changes
+
+- **[scripts]** `scripts/license/updateLicenses.ts`: Node's `fs.globSync` instead of the `glob` package. The file is byte-identical to ag-grid's copy, so syncing that copy changes nothing here.
+- **[config]** `tsconfig.spec.json`: drops the `module: commonjs` override, as ag-grid's copy does, so the inherited `module` pairs validly with `moduleResolution: bundler`.
+
+### Migration Actions
+
+- [ ] The repo runs Node 22.17 or later (`fs.globSync`).
+- [ ] ag-grid: none (already has these changes).
+
 ## 2026-11-05 -- TypeScript 7-ready configs
 
 **Branch:** `ts7-ready-tsconfig` (ag-grid)
