@@ -954,7 +954,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const keys = Object.keys(object);
         const operation = getOperation(object, this, keys, userSource);
         if (operation === null) {
-            this.warnRejectedOperator(pathArrayVertex);
+            this.warnRejectedOperator(pathArrayVertex ? (this.getVertexValue(pathArrayVertex) as Array<string>) : []);
             return;
         }
         if (operation) {
@@ -1066,7 +1066,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     ) {
         const operation = getOperation(value, this, undefined, userSource);
         if (operation === null) {
-            this.warnRejectedOperator(undefined, pathArray);
+            this.warnRejectedOperator(pathArray);
             return;
         }
 
@@ -1107,8 +1107,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
     }
 
-    private warnRejectedOperator(pathArrayVertex?: Vertex<unknown>, pathArray?: Array<string>) {
-        pathArray ??= pathArrayVertex ? (this.getVertexValue(pathArrayVertex) as Array<string>) : [];
+    private warnRejectedOperator(pathArray: Array<string>) {
         this.warnOnce(`Theme operators are only supported in themes, ignoring [${pathArray.join('.')}].`);
     }
 

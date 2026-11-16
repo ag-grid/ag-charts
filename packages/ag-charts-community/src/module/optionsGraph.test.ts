@@ -95,6 +95,21 @@ describe('OptionsGraph', () => {
             expectWarningsCalls().toStrictEqual([[ignoredWarning('title.text')], [ignoredWarning('footnote.text')]]);
         });
 
+        it('should interpret operators in a literal theme operand of $merge or $clone', () => {
+            const overrides = {
+                line: {
+                    title: { $merge: [{ text: { $ref: 'foo' } }, { color: 'red' }] },
+                    footnote: { $clone: { text: { $ref: 'foo' } } },
+                },
+            };
+            const options = new OptionsGraph({}, prepareOptions({}), { foo: 'bar' }, {}, {}, overrides).resolve(
+                testLogger
+            );
+
+            expect(options.title).toStrictEqual({ text: 'bar', color: 'red' });
+            expect(options.footnote).toStrictEqual({ text: 'bar' });
+        });
+
         it('should not interpret operators in user values grafted by $applyPadding and $applyCycle', () => {
             const themeConfig = {
                 line: {

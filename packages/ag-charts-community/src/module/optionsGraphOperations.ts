@@ -1211,9 +1211,8 @@ function cloneOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 
     if (!isPlainObject(value)) return;
 
-    // Graft as the 'user' edge to ensure it takes priority over the default values. The resolved value can hold
-    // raw user values, e.g. a data row, so any operator left in it is untrusted.
-    graph.graftObject(vertex, value, undefined, USER_OPTIONS_EDGE, undefined, true);
+    // Graft as the 'user' edge to ensure it takes priority over the default values.
+    graph.graftObject(vertex, value, undefined, USER_OPTIONS_EDGE, undefined, isResolvedOperand(graph, valueVertex));
 
     return RESOLVED_TO_BRANCH;
 }
@@ -1288,10 +1287,15 @@ function mergeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
         if (!isPlainObject(value)) continue;
-        graph.graftObject(vertex, value, undefined, undefined, undefined, true);
+        graph.graftObject(vertex, value, undefined, undefined, undefined, isResolvedOperand(graph, valueVertex));
     }
 
     return RESOLVED_TO_BRANCH;
+}
+
+// An operand resolved through an operation can hold raw user values, e.g. a data row, so its operators are untrusted.
+function isResolvedOperand(graph: OptionsGraphInterface, valueVertex: VertexInterface) {
+    return getOperation(graph.getVertexValue(valueVertex), graph) != null;
 }
 
 function omitOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {

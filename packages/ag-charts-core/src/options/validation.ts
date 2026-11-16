@@ -235,9 +235,7 @@ export function isThemeOriginOperator(value: unknown) {
 
 /** Accepts a theme operator when validating a theme, or one recorded by {@link markThemeOperators}. */
 export function isThemeOperatorAllowed(value: unknown, context: ValidatorContext) {
-    return (
-        isThemeOperator(value) && (context.params.themeOperators === true || themeOriginOperators.has(value as object))
-    );
+    return isThemeOperator(value) && (context.params.themeOperators === true || isThemeOriginOperator(value));
 }
 
 function callbackResultParams(params: ValidateParams): ValidateParams {
