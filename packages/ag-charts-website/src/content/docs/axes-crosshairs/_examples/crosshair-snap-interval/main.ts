@@ -37,12 +37,14 @@ const options: AgCartesianChartOptions = {
         x: {
             type: 'time',
             crosshair: {
+                enabled: true,
                 snapInterval: { unit: 'minute', step: 15 },
             },
         },
         y: {
             type: 'number',
             crosshair: {
+                enabled: true,
                 snapInterval: 0.25,
             },
         },

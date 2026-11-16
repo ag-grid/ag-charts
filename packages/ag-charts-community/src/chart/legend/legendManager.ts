@@ -58,7 +58,10 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
         const { seriesId, itemId, legendItemName, visible } = datum;
 
         if (seriesId != null) {
-            const legendData = this.legendDataRecord[seriesId] ?? [];
+            const legendData = this.getSeriesData(seriesId);
+            if (legendData == null) {
+                return;
+            }
 
             const data = legendData.map((d) => {
                 const match = d.seriesId === seriesId && (itemId == null || d.itemId === itemId);
@@ -88,7 +91,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
                 return;
             }
 
-            const seriesLegendData = (this.legendDataRecord[legendDatum.seriesId] ?? []).map((d) =>
+            const seriesLegendData = (this.getSeriesData(legendDatum.seriesId) ?? []).map((d) =>
                 d.itemId === itemId || d.legendItemName === legendItemName ? { ...d, enabled: visible } : d
             );
 
@@ -105,6 +108,11 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
         );
     }
 
+    private getSeriesData(seriesId: string): CategoryLegendDatum[] | undefined {
+        const record = this.legendDataRecord;
+        return Object.hasOwn(record, seriesId) ? record[seriesId] : undefined;
+    }
+
     private get legendDataRecord(): Record<string, CategoryLegendDatum[]> {
         return this.chartState.getValue('legendData') ?? {};
     }
@@ -119,9 +127,8 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
 
     public toggleItem(enabled: boolean, seriesId: string, itemId?: any, legendItemName?: string) {
         if (legendItemName != null && legendItemName !== '') {
-            const record = this.legendDataRecord;
             for (const datum of this.getData()) {
-                const newData = (record[datum.seriesId] ?? []).map((d) =>
+                const newData = (this.getSeriesData(datum.seriesId) ?? []).map((d) =>
                     d.legendItemName === legendItemName ? { ...d, enabled } : d
                 );
 
@@ -141,13 +148,11 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     public getData(seriesId?: string) {
-        const record = this.legendDataRecord;
-
         if (seriesId != null) {
-            return record[seriesId] ?? [];
+            return this.getSeriesData(seriesId) ?? [];
         }
 
-        return Object.values(record).flat();
+        return Object.values(this.legendDataRecord).flat();
     }
 
     public getDatum({ seriesId, itemId }: { seriesId?: string; itemId?: any } = {}) {

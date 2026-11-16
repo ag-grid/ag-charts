@@ -9,8 +9,8 @@ import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoida
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
-    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
+    AgErrorBarSeriesLabelCollisionFitOptions,
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -44,7 +44,7 @@ export type AgLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgLineSeri
 export interface AgLineSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, TParams, TContext>,
-        AgChartLabelCollisionFitOptions,
+        AgErrorBarSeriesLabelCollisionFitOptions,
         AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**

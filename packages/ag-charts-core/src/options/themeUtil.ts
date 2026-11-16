@@ -927,13 +927,10 @@ export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelect
 export const LEGEND_CONTAINER_THEME: any = {
     border: {
         enabled: { $isType: [{ $ref: 'legendBorder' }, 'boolean', { $ref: 'legendBorder' }, true] },
-        // `legendBorder: false` keeps the legend's own stroke for a border enabled through the legend options.
-        stroke: themeBorderColor('legendBorder', {
-            off: { $foregroundBackgroundMix: 0.25 },
-            unset: { $ref: 'borderColor' },
-        }),
+        // A border enabled through the legend options still resolves its stroke and width when `legendBorder` is false.
+        stroke: themeBorderColor('legendBorder', { unset: { $ref: 'borderColor' } }),
         strokeOpacity: 1,
-        strokeWidth: themeBorderWidth('legendBorder', { off: 1, unset: { $ref: 'borderWidth' } }),
+        strokeWidth: themeBorderWidth('legendBorder', { off: { $ref: 'borderWidth' }, unset: { $ref: 'borderWidth' } }),
     },
     cornerRadius: { $ref: 'legendBorderRadius' },
     fillOpacity: 1,

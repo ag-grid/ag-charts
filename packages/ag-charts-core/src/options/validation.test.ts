@@ -4,7 +4,14 @@ import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 import { Logger, reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import { textOrSegments } from './chartDefaults';
-import { colorOrRef, colorOrRefNoOperator, fontFamilyFull, fontFamilyNoOperator, padding } from './optionsDefaults';
+import {
+    colorOrRef,
+    colorOrRefNoOperator,
+    fontFamilyFull,
+    fontFamilyNoOperator,
+    padding,
+    themeOperator,
+} from './optionsDefaults';
 import {
     ErrorType,
     type OptionsDefs,
@@ -743,6 +750,38 @@ describe('Validation utils', () => {
         });
     });
 
+    describe('themeOperator', () => {
+        const operator = { $ref: 'foregroundColor' };
+        const themeContext = (): ValidatorContext => ({
+            ...mockContext(),
+            params: { logger: validationLogger, themeOperators: true },
+        });
+
+        it.each([
+            ['themeOperator', themeOperator],
+            ['colorOrRef', colorOrRef],
+            ['fontFamilyFull', fontFamilyFull],
+        ])('%s accepts a theme operator only when validating a theme', (_name, validator) => {
+            expect(runValidator(validator, operator)).toBe(false);
+            expect(runValidator(validator, operator, themeContext())).toBe(true);
+        });
+
+        it('rejects a theme operator returned by a callbackOf callback declared in a theme', () => {
+            const { cleared } = callbackOf(colorOrRef)(() => operator, themeContext()) as ValidatorResult;
+            expect((cleared as () => unknown)()).toBeUndefined();
+            expect(console.warn).toHaveBeenCalled();
+        });
+
+        it('rejects a theme operator returned by a callbackDefs callback declared in a theme', () => {
+            const { cleared } = callbackDefs<{ fill?: string }>({ fill: colorOrRef })(
+                () => ({ fill: operator }),
+                themeContext()
+            ) as ValidatorResult;
+            expect((cleared as () => unknown)()).toEqual({});
+            expect(console.warn).toHaveBeenCalled();
+        });
+    });
+
     describe('colorOrRefNoOperator', () => {
         it('accepts a colour string and a colour ref', () => {
             expect(isValid({ c: 'red' }, { c: colorOrRefNoOperator })).toBe(true);
@@ -752,9 +791,8 @@ describe('Validation utils', () => {
             ).toBe(true);
         });
 
-        it('rejects a theme operator, which colorOrRef accepts', () => {
+        it('rejects a theme operator', () => {
             const operator = { $ref: 'foregroundColor' };
-            expect(isValid({ c: operator }, { c: colorOrRef })).toBe(true);
             expect(isValid({ c: operator }, { c: colorOrRefNoOperator })).toBe(false);
             expect(validate({ c: operator }, { c: colorOrRefNoOperator }).cleared).toEqual({});
         });
@@ -767,9 +805,8 @@ describe('Validation utils', () => {
             expect(isValid({ f: [{ googleFont: 'Roboto' }, 'serif'] }, { f: fontFamilyNoOperator })).toBe(true);
         });
 
-        it('rejects a theme operator, which fontFamilyFull accepts', () => {
+        it('rejects a theme operator', () => {
             const operator = { $ref: 'axisLabelFontFamily' };
-            expect(isValid({ f: operator }, { f: fontFamilyFull })).toBe(true);
             expect(isValid({ f: operator }, { f: fontFamilyNoOperator })).toBe(false);
             expect(validate({ f: operator }, { f: fontFamilyNoOperator }).cleared).toEqual({});
         });

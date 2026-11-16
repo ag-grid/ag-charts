@@ -2,7 +2,7 @@ import type { AgChartLabelOrientation, PaddingOptions, TextWrap } from 'ag-chart
 
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
-import type { NormalisedChartLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
+import type { NormalisedErrorBarSeriesLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
 import { type TextMeasurer, cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
 import {
     appendEllipsis,
@@ -347,7 +347,14 @@ export interface PointLabelDatum {
     readonly stack?: LabelStack;
 }
 
-export type ObstacleCategory = 'marker' | 'label' | 'shape' | 'axisLabel';
+/** Obstacles drawn over series shapes: a label sitting on its own shape is not excused from them. */
+export type OverlayObstacleCategory = 'errorBar';
+
+export type ObstacleCategory = 'marker' | 'label' | 'shape' | 'axisLabel' | OverlayObstacleCategory;
+
+function isOverlayCategory(category: ObstacleCategory): category is OverlayObstacleCategory {
+    return category === 'errorBar';
+}
 
 /** Per-category toggle: `false` disables avoidance of that obstacle category. */
 export interface LabelAvoidance {
@@ -358,6 +365,7 @@ export interface LabelAvoidance {
     readonly seriesArea?: boolean;
     /** Opt-in, unlike the other categories: only `true` makes axis tick labels obstacles. */
     readonly axisLabel?: boolean;
+    readonly errorBar?: boolean;
 }
 
 /**
@@ -438,20 +446,21 @@ export function labelsAvoidAxisLabels(labelData: ReadonlyMap<string, SeriesLabel
 }
 
 /** Inverts the user-facing `collideWith` flags, where `true` allows overlap, into what a label avoids. */
-export function resolveLabelAvoidance(collision: NormalisedChartLabelCollisionOptions): LabelAvoidance {
-    const { markers, labels, shapes, seriesArea, axisLabels } = collision.collideWith ?? {};
+export function resolveLabelAvoidance(collision: NormalisedErrorBarSeriesLabelCollisionOptions): LabelAvoidance {
+    const { markers, labels, shapes, seriesArea, axisLabels, errorBars } = collision.collideWith ?? {};
     return {
         marker: markers !== true,
         label: labels !== true,
         shape: shapes === false,
         seriesArea: seriesArea !== true,
         axisLabel: axisLabels !== true,
+        errorBar: errorBars !== true,
     };
 }
 
 /** Resolves a series' collision config into the shared {@link SeriesLabelDefaults}. */
 export function resolveSeriesLabelDefaults(
-    src: NormalisedChartLabelCollisionOptions,
+    src: NormalisedErrorBarSeriesLabelCollisionOptions,
     placements?: readonly LabelPlacement[],
     spacing?: number
 ): SeriesLabelDefaults {
@@ -496,9 +505,7 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
  * A single obstacle labels must avoid. `box` is the AABB used to prune candidates in the spatial
  * index; the discriminant selects the exact narrow-phase test. `circle` and `rect` are dispatched
  * inline (no allocation on the hot path); `custom` carries its own predicate for shapes the core
- * engine doesn't model (e.g. pie sectors, whose geometry lives in the community package). An `overlay`
- * obstacle is drawn over series shapes (an error bar), so neither sitting on its own shape nor a
- * `collideWith` toggle excuses a label from it.
+ * engine doesn't model (e.g. pie sectors, whose geometry lives in the community package).
  */
 export type LabelObstacle =
     | {
@@ -510,7 +517,6 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
-          readonly overlay?: boolean;
       }
     | {
           readonly kind: 'rect';
@@ -522,7 +528,6 @@ export type LabelObstacle =
           readonly labelGroup?: string;
           /** Blocks {@link PointLabelDatum.yields yielding} labels too. */
           readonly outranks?: boolean;
-          readonly overlay?: boolean;
       }
     | {
           readonly kind: 'orientedRect';
@@ -533,7 +538,6 @@ export type LabelObstacle =
           readonly entityIndex?: number;
           /** Blocks {@link PointLabelDatum.yields yielding} labels too. */
           readonly outranks?: boolean;
-          readonly overlay?: boolean;
       }
     | {
           readonly kind: 'custom';
@@ -542,7 +546,6 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
-          readonly overlay?: boolean;
       };
 
 /** External obstacles, or a function producing them so a solve that never queries the index skips gathering. */
@@ -933,18 +936,17 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         return true;
     }
 
-    // An inside label never collides with the shape it sits on, so anything overlapping its own box is
-    // excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
+    // An inside label never collides with the shape it sits on, so anything but an overlay overlapping its own
+    // box is excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
     if (
         candidateOwnBox != null &&
-        o.overlay !== true &&
+        !isOverlayCategory(category) &&
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
         boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
     ) {
         return true;
     }
 
-    if (o.overlay === true) return false;
     const enabled = candidateAvoid?.[category];
     return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
