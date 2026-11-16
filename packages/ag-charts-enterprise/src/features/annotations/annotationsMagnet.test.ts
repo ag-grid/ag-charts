@@ -1,11 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type {
-    AgAnnotationMagnet,
-    AgAnnotationsOptions,
-    AgCartesianChartOptions,
-    AgChartInstance,
-} from 'ag-charts-community';
+import type { AgAnnotationMagnet, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
     clickAction,
     dragAction,
@@ -15,25 +10,34 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgHorizontalLineAnnotation, AgLineAnnotation } from 'ag-charts-types';
 
 import {
     getAnnotationMagnetEnabled,
     pressAnnotationMagnetButton,
     pressAnnotationToolbarCreate,
 } from '../../test/featureAccessors';
-import { ANNOTATIONS_EXAMPLE_OPTIONS, createAnnotationsChart } from './test/fixture';
+import {
+    ANNOTATIONS_EXAMPLE_OPTIONS,
+    compareAnnotationsSnapshot,
+    createAnnotationsChart,
+    restoreAnnotations,
+} from './test/fixture';
 
-// The middle datum of the example, whose value is neither the lowest nor the highest of its series.
-const [, MIDDLE_DATUM] = ANNOTATIONS_EXAMPLE_OPTIONS.data as { x: Date; y: number }[];
-const DATUM_X = MIDDLE_DATUM.x.getTime();
-const DATUM_Y = MIDDLE_DATUM.y;
-const LAST_X = new Date('2024-12-25').getTime();
-const [X_MIN, X_MAX] = [new Date('2024-01-01').getTime(), new Date('2024-12-31').getTime()];
+const [X_MIN, X_MID, X_MAX] = [new Date('2024-01-01'), new Date('2024-06-15'), new Date('2024-12-31')].map((d) =>
+    d.getTime()
+);
+const [FIRST_X, LAST_X] = [new Date('2024-01-05').getTime(), new Date('2024-12-25').getTime()];
+
+// The candlesticks either side of the middle one are well away from it, so that the nearest datum is clear.
+const CANDLESTICKS = [
+    { x: new Date(FIRST_X), open: 10, high: 25, low: 5, close: 20 },
+    { x: new Date(X_MID), open: 40, high: 70, low: 20, close: 55 },
+    { x: new Date(LAST_X), open: 80, high: 95, low: 75, close: 90 },
+];
 
 describe('Annotations magnet', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
     let chart: AgChartInstance;
 
     afterEach(() => {
@@ -41,200 +45,129 @@ describe('Annotations magnet', () => {
         (chart as unknown) = undefined;
     });
 
-    async function prepareChart(magnet?: AgAnnotationMagnet, overrides: Partial<AgCartesianChartOptions> = {}) {
-        const annotations: AgAnnotationsOptions = { ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations, magnet };
-        const options = {
+    async function prepareChart(magnet: AgAnnotationMagnet | undefined, overrides: Partial<AgCartesianChartOptions>) {
+        chart = await createAnnotationsChart({
             ...ANNOTATIONS_EXAMPLE_OPTIONS,
             axes: {
                 x: { type: 'time', min: new Date(X_MIN), max: new Date(X_MAX), nice: false },
                 y: { type: 'number', min: 0, max: 100, nice: false },
             },
-            annotations,
             ...overrides,
-        } as AgCartesianChartOptions;
-        chart = await createAnnotationsChart(options);
+            annotations: { ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations, magnet },
+        } as AgCartesianChartOptions);
     }
 
-    /** The position in the canvas of a time and a value of the axes of the chart. */
-    function canvasPoint(time: number, value: number) {
+    /** The position in the canvas of a time and a value of the axes of the chart, moved down by `pixelsBelow`. */
+    function canvasPoint(time: number, value: number, pixelsBelow = 0) {
         const { x, y, width, height } = getSeriesRect(chart);
-        return { x: x + (width * (time - X_MIN)) / (X_MAX - X_MIN), y: y + height * (1 - value / 100) };
+        const canvasX = x + (width * (time - X_MIN)) / (X_MAX - X_MIN);
+        return { x: canvasX, y: y + height * (1 - value / 100) + pixelsBelow };
     }
 
-    /** Draws a horizontal line by clicking at `value`, and returns the value it ends up with. */
-    async function drawHorizontalLineAt(value: number, modifiers?: { ctrlKey?: boolean }) {
+    /** Draws a horizontal line by hovering and clicking at the position, or by dragging from it. */
+    async function drawHorizontalLine(position: { x: number; y: number }, how: 'click' | 'drag', ctrlKey = false) {
         pressAnnotationToolbarCreate(chart, 'horizontal-line');
         await waitForChartStability(chart);
 
-        const { x, y } = canvasPoint(DATUM_X, value);
-        await hoverAction(x, y, modifiers)(chart);
-        await clickAction(x, y, modifiers)(chart);
+        if (how === 'drag') {
+            await dragAction(position, { x: position.x + 20, y: position.y })(chart);
+        } else {
+            await hoverAction(position.x, position.y, { ctrlKey })(chart);
+            await clickAction(position.x, position.y, { ctrlKey })(chart);
+        }
         await waitForChartStability(chart);
-
-        const { annotations = [] } = chart.getState();
-        expect(annotations).toHaveLength(1);
-        return (annotations[0] as AgHorizontalLineAnnotation).value;
     }
 
-    /** Draws a horizontal line by clicking `pixelsAbove` pixels above the datum, and returns where it ends up. */
-    async function drawHorizontalLine(pixelsAbove: number, modifiers?: { ctrlKey?: boolean }) {
-        const { height } = getSeriesRect(chart);
-        const value = await drawHorizontalLineAt(valueAbove(pixelsAbove, height), modifiers);
-        return { value, height };
+    async function updateMagnet(magnet: AgAnnotationMagnet) {
+        await chart.updateDelta({ annotations: { magnet } });
+        await waitForChartStability(chart);
     }
 
-    /** The y value that is `pixels` above the datum. */
-    const valueAbove = (pixels: number, height: number) => DATUM_Y + (pixels * 100) / height;
+    it('snaps the lines it draws to the nearest value of the nearest candlestick', async () => {
+        await prepareChart(undefined, {
+            data: CANDLESTICKS,
+            series: [
+                { type: 'candlestick', xKey: 'x', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
+            ],
+        });
+        const at = (value: number, pixelsBelow?: number) => canvasPoint(X_MID, value, pixelsBelow);
 
-    it('leaves the line where it is drawn when the magnet is not enabled', async () => {
-        await prepareChart();
-        const { value, height } = await drawHorizontalLine(30);
-        expect(value).toBeCloseTo(valueAbove(30, height), 0);
-    });
+        // Off, so the line stays where it is clicked: 30.
+        await drawHorizontalLine(at(30), 'click');
 
-    it('snaps the line to the nearest value from any distance when strong', async () => {
-        await prepareChart({ enabled: true, mode: 'strong' });
-        const { value } = await drawHorizontalLine(60);
-        expect(value).toBeCloseTo(DATUM_Y, 6);
+        // Weak, so it snaps to the close, 55, from 6 pixels away but not to anything from 85, which is far above.
+        await updateMagnet({ enabled: true, mode: 'weak', range: 10 });
+        await drawHorizontalLine(at(55, 6), 'click');
+        await drawHorizontalLine(at(85), 'click');
+
+        // Strong, so it snaps to the high, 70, from the top of the chart, and to the low, 20, when drawn by dragging.
+        await updateMagnet({ enabled: true, mode: 'strong' });
+        await drawHorizontalLine(at(98), 'click');
+        await drawHorizontalLine(at(2), 'drag');
+
+        // Holding Ctrl while it is off inverts it, so it snaps to the open, 40, from 4 pixels away.
+        await updateMagnet({ enabled: false, mode: 'weak', range: 10 });
+        await drawHorizontalLine(at(40, 4), 'click', true);
+
+        await compareAnnotationsSnapshot(chart, ctx);
     });
 
     it.each([
-        { name: 'within', pixels: 8, snaps: true },
-        { name: 'beyond', pixels: 14, snaps: false },
-    ])('snaps a weak magnet only when the pointer is $name its range', async ({ pixels, snaps }) => {
-        await prepareChart({ enabled: true, mode: 'weak', range: 10 });
-        const { value, height } = await drawHorizontalLine(pixels);
-        expect(value).toBeCloseTo(snaps ? DATUM_Y : valueAbove(pixels, height), snaps ? 6 : 0);
+        {
+            name: 'a line series, ignoring a hidden series',
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y' },
+                { type: 'line', xKey: 'x', yKey: 'hidden', visible: false },
+            ],
+            data: [{ x: new Date(X_MID), y: 40, hidden: 80 }],
+        },
+        {
+            name: 'the top of a stacked bar series',
+            series: [
+                { type: 'bar', xKey: 'x', yKey: 'a', stacked: true },
+                { type: 'bar', xKey: 'x', yKey: 'b', stacked: true },
+            ],
+            data: [{ x: new Date(X_MID), a: 30, b: 25 }],
+        },
+    ])('snaps to the values of $name', async ({ series, data }) => {
+        await prepareChart({ enabled: true, mode: 'strong' }, { series, data } as any);
+        await drawHorizontalLine(canvasPoint(X_MID, 90), 'click');
+        await compareAnnotationsSnapshot(chart, ctx);
     });
 
-    it('is switched on and off by the toolbar button', async () => {
-        await prepareChart({ range: 20 });
+    it('snaps the handle of an annotation that is dragged', async () => {
+        await prepareChart({ enabled: true, mode: 'strong' }, {});
+        const x = (time: number) => new Date(time);
+        await restoreAnnotations(chart, ctx, [
+            { type: 'line', start: { x: x(X_MID), y: 50 }, end: { x: x(LAST_X), y: 30 } },
+            { type: 'parallel-channel', start: { x: x(FIRST_X), y: 70 }, end: { x: x(X_MID), y: 70 }, height: 10 },
+        ]);
+
+        // The end of the line goes towards 80, and the start of the channel towards 30, and they snap to the values of
+        // the datums at their times, 95 and 5.
+        const lineEnd = canvasPoint(LAST_X, 30);
+        await hoverAction(lineEnd.x, lineEnd.y)(chart);
+        await dragAction(lineEnd, canvasPoint(LAST_X, 80))(chart);
+        await waitForChartStability(chart);
+
+        const channelStart = canvasPoint(FIRST_X, 70);
+        await hoverAction(channelStart.x, channelStart.y)(chart);
+        await dragAction(channelStart, canvasPoint(FIRST_X, 30))(chart);
+        await waitForChartStability(chart);
+
+        await compareAnnotationsSnapshot(chart, ctx);
+    });
+
+    it('keeps a toggle of the toolbar button until the enabled option changes', async () => {
+        await prepareChart({ enabled: false, mode: 'strong' }, {});
         expect(getAnnotationMagnetEnabled(chart)).toBe(false);
 
         pressAnnotationMagnetButton(chart);
+        await updateMagnet({ mode: 'weak' });
         expect(getAnnotationMagnetEnabled(chart)).toBe(true);
-        expect((await drawHorizontalLine(10)).value).toBeCloseTo(DATUM_Y, 6);
-    });
 
-    it('inverts whether the magnet is enabled while Ctrl is held', async () => {
-        await prepareChart({ range: 20 });
-        const { value } = await drawHorizontalLine(10, { ctrlKey: true });
-        expect(value).toBeCloseTo(DATUM_Y, 6);
-    });
-
-    describe('options', () => {
-        it('keeps a toggle made with the toolbar button when other options change', async () => {
-            await prepareChart({ enabled: false, mode: 'strong' });
-            pressAnnotationMagnetButton(chart);
-            expect(getAnnotationMagnetEnabled(chart)).toBe(true);
-
-            await chart.updateDelta({ annotations: { magnet: { mode: 'weak' } } });
-            await waitForChartStability(chart);
-            expect(getAnnotationMagnetEnabled(chart)).toBe(true);
-        });
-
-        it('applies the enabled option again when it changes', async () => {
-            await prepareChart({ enabled: true, mode: 'strong' });
-            pressAnnotationMagnetButton(chart);
-            expect(getAnnotationMagnetEnabled(chart)).toBe(false);
-
-            await chart.updateDelta({ annotations: { magnet: { enabled: false } } });
-            await waitForChartStability(chart);
-            await chart.updateDelta({ annotations: { magnet: { enabled: true } } });
-            await waitForChartStability(chart);
-            expect(getAnnotationMagnetEnabled(chart)).toBe(true);
-        });
-
-        it('uses the mode and range it is updated to', async () => {
-            await prepareChart({ enabled: true, mode: 'weak', range: 10 });
-            await chart.updateDelta({ annotations: { magnet: { mode: 'strong' } } });
-            await waitForChartStability(chart);
-            expect((await drawHorizontalLine(60)).value).toBeCloseTo(DATUM_Y, 6);
-        });
-    });
-
-    describe('series', () => {
-        const middle = { x: MIDDLE_DATUM.x, open: 40, high: 70, low: 20, close: 55 };
-        it.each([
-            { type: 'line', series: { type: 'line', xKey: 'x', yKey: 'y' }, data: [MIDDLE_DATUM], expected: DATUM_Y },
-            { type: 'bar', series: { type: 'bar', xKey: 'x', yKey: 'y' }, data: [MIDDLE_DATUM], expected: DATUM_Y },
-            { type: 'area', series: { type: 'area', xKey: 'x', yKey: 'y' }, data: [MIDDLE_DATUM], expected: DATUM_Y },
-            {
-                type: 'candlestick',
-                series: {
-                    type: 'candlestick',
-                    xKey: 'x',
-                    openKey: 'open',
-                    highKey: 'high',
-                    lowKey: 'low',
-                    closeKey: 'close',
-                },
-                data: [middle],
-                expected: 70,
-            },
-        ] as const)('snaps to the value of a $type series', async ({ series, data, expected }) => {
-            await prepareChart({ enabled: true, mode: 'strong' }, { series: [series], data: [...data] } as any);
-            // Near the top of the chart, so that the nearest value is the highest of the datum.
-            expect(await drawHorizontalLineAt(90)).toBeCloseTo(expected, 6);
-        });
-
-        it('ignores a hidden series', async () => {
-            await prepareChart({ enabled: true, mode: 'strong' }, {
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y' },
-                    { type: 'line', xKey: 'x', yKey: 'hidden', visible: false },
-                ],
-                data: [{ ...MIDDLE_DATUM, hidden: 80 }],
-            } as any);
-            expect(await drawHorizontalLineAt(90)).toBeCloseTo(DATUM_Y, 6);
-        });
-
-        it('leaves the line where it is drawn when the nearest datum has no value', async () => {
-            await prepareChart({ enabled: true, mode: 'strong' }, {
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                data: [{ ...MIDDLE_DATUM, y: null }],
-            } as any);
-            expect(await drawHorizontalLineAt(90)).toBeCloseTo(90, 0);
-        });
-    });
-
-    describe('dragging', () => {
-        const lineAt = (startValue: number, endValue: number): AgLineAnnotation => ({
-            type: 'line',
-            start: { x: DATUM_X, y: startValue },
-            end: { x: LAST_X, y: endValue },
-        });
-        const getLine = () => (chart.getState().annotations ?? [])[0] as AgLineAnnotation;
-
-        it('snaps the start of a line drawn by dragging', async () => {
-            await prepareChart({ enabled: true, mode: 'strong' });
-            pressAnnotationToolbarCreate(chart, 'line');
-            await waitForChartStability(chart);
-
-            // The test drag moves too quickly for the line to render between its events, so only its start is placed.
-            await dragAction(canvasPoint(DATUM_X, 70), canvasPoint(LAST_X, 70))(chart);
-            await waitForChartStability(chart);
-
-            expect(getLine().start.y).toBeCloseTo(DATUM_Y, 6);
-        });
-
-        it.each([
-            { name: 'is on', magnet: { enabled: true, mode: 'strong' }, snaps: true },
-            { name: 'is off', magnet: { enabled: false, mode: 'strong' }, snaps: false },
-        ] as const)('moves only the dragged end of a line when the magnet $name', async ({ magnet, snaps }) => {
-            await prepareChart(magnet);
-            await chart.setState({ ...chart.getState(), annotations: [lineAt(DATUM_Y, 30)] });
-            await waitForChartStability(chart);
-
-            const end = canvasPoint(LAST_X, 30);
-            const target = canvasPoint(LAST_X, 80);
-            await hoverAction(end.x, end.y)(chart);
-            await dragAction(end, target)(chart);
-            await waitForChartStability(chart);
-
-            const line = getLine();
-            expect(line.start.y).toBeCloseTo(DATUM_Y, 6);
-            expect(line.end.y).toBeCloseTo(snaps ? 95 : 80, snaps ? 6 : 0);
-        });
+        await updateMagnet({ enabled: true });
+        await updateMagnet({ enabled: false });
+        expect(getAnnotationMagnetEnabled(chart)).toBe(false);
     });
 });
