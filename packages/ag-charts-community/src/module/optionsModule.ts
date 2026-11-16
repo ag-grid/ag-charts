@@ -210,6 +210,7 @@ enum GroupingType {
 }
 
 const stringFormat = (value: string) => `'${value}'`;
+const COMPLETE_CSS_VARIABLE = /^var\(\s*--[\w-]+\s*(?:,[^{};]*)?\)$/;
 
 // TODO: move this somewhere more appropriate
 const AXIS_ID_PREFIX = '__AXIS_ID_';
@@ -2095,7 +2096,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private static isExternalColorVar(value: unknown): value is string {
-        return typeof value === 'string' && value.startsWith('var(--') && !value.slice(4, -1).startsWith('--ag-charts');
+        return (
+            typeof value === 'string' &&
+            value.startsWith('var(--') &&
+            !value.startsWith('--ag-charts', 4) &&
+            COMPLETE_CSS_VARIABLE.test(value)
+        );
     }
 
     private static resolveColorVar(
@@ -2106,7 +2112,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const [mainKey, ...fallbackKeys] = propertyKey.split(',');
 
         const computedStyle = getComputedStyle(container);
-        let propertyValue = computedStyle.getPropertyValue(mainKey.trim());
+        let propertyValue = computedStyle.getPropertyValue(mainKey.trim()).trim();
         let isValid = Color.validColorString(propertyValue);
 
         if (!isValid && fallbackKeys.length > 0) {
@@ -2115,7 +2121,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (fallback.startsWith('var(--')) {
                 return ChartOptions.resolveColorVar(fallback, container);
             }
-            const fallbackValue = computedStyle.getPropertyValue(fallback);
+            const fallbackValue = computedStyle.getPropertyValue(fallback).trim();
             propertyValue = fallbackValue === '' ? fallback : fallbackValue;
             isValid = Color.validColorString(propertyValue);
         }

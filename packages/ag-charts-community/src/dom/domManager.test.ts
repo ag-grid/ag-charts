@@ -196,6 +196,43 @@ describe('DOMManager', () => {
             expect(styleEl!.hasAttribute('nonce')).toBe(false);
         });
 
+        describe('when the variable name is not a plain custom property name', () => {
+            const incomplete = 'var(--x, rgb(1,2,3) junk{} .testMarker{} @property --y)';
+
+            it.each([
+                ['an incomplete value', incomplete],
+                ['a fallback value', 'var(--a, red)'],
+            ])('adds no watcher for %s (normal DOM)', (_name, key) => {
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+                dm.updateCSSVariableWatchers({ [key]: 'red', 'var(--a)': 'red' });
+
+                expect(
+                    Array.from(container.querySelectorAll('[data-variable-name]'), (el) =>
+                        el.getAttribute('data-variable-name')
+                    )
+                ).toEqual(['--a']);
+                dm.destroy();
+                container.remove();
+            });
+
+            it('adds no watcher for an incomplete value (shadow DOM)', () => {
+                const { shadow, container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+                dm.updateCSSVariableWatchers({ [incomplete]: 'red', 'var(--a)': 'red' });
+
+                expect(
+                    Array.from(shadow.querySelectorAll('[data-variable-name]'), (el) =>
+                        el.getAttribute('data-variable-name')
+                    )
+                ).toEqual(['--a']);
+                dm.destroy();
+            });
+        });
+
         describe('in a shadow root', () => {
             it('refreshes once per watched transition however often the watchers are updated', () => {
                 const { shadow, container } = buildShadowTree();

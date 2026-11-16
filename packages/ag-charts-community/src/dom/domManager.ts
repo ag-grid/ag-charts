@@ -47,6 +47,7 @@ const DOM_ELEMENT_CLASSES = [
 const BUTTON_STATE_BORDER_KEYS = new Set(['buttonHoverBorder', 'buttonActiveBorder', 'buttonDisabledBorder']);
 
 const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
+const CSS_VARIABLE_NAME = /^--[\w-]+$/;
 const CONTAINER_MODIFIERS = {
     safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
     safeVertical: 'ag-charts-wrapper--safe-vertical',
@@ -1131,7 +1132,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         }
 
         for (const property of properties) {
-            if (this.cssVariableWatchers.has(property)) continue;
+            if (this.cssVariableWatchers.has(property) || !CSS_VARIABLE_NAME.test(property)) continue;
 
             const styleElement = createStyleElement(this.styleNonce);
             styleElement.dataset.variableName = property;
@@ -1161,7 +1162,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         // Minimal mode has no laid-out sensor container, so its watchers sit on the shadow root.
         const sensorParent = this.mode === 'normal' ? this.rootElements['style-sensors'].element : shadowRoot;
         for (const property of properties) {
-            if (this.shadowCssVariableWatchers.has(property)) continue;
+            if (this.shadowCssVariableWatchers.has(property) || !CSS_VARIABLE_NAME.test(property)) continue;
 
             // Unlike normal DOM, here we transition directly on the color property since we need to combine the style
             // and sensor into a single element.
