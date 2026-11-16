@@ -62,5 +62,7 @@ export class AxisWidget extends NativeWidget {
 
     releaseInteractions(): void {
         this.interactions?.tickButtons.destroy();
+        this.htmlListener?.clear(this);
+        this.internalListener?.clear();
     }
 }
