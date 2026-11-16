@@ -41,6 +41,7 @@ import {
     jsonPropertyCompare,
     jsonWalk,
     mapValues,
+    markThemeOperators,
     merge,
     mergeDefaults,
     setDocument,
@@ -658,6 +659,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
             const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
+            markThemeOperators(presetTheme);
 
             const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '', this.validateParams);
             this.logValidationErrors(invalid);

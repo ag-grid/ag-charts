@@ -4,6 +4,7 @@ import { AgCharts } from 'ag-charts-community';
 import {
     deproxy,
     expectWarningsCalls,
+    getSeriesOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -17,7 +18,7 @@ const GAUGES: { name: string; options: AgRadialGaugeOptions | AgLinearGaugeOptio
     { name: 'linear', options: { type: 'linear-gauge', value: 50, scale: { min: 0, max: 100 } } },
 ];
 
-describe('gauge preset series id', () => {
+describe('gauge preset', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -61,25 +62,10 @@ describe('gauge preset series id', () => {
         await create({ ...options, id: 'my-gauge', label } as AgRadialGaugeOptions);
         expect(Array.from(seriesIds)).toEqual(['my-gauge']);
     });
-});
-
-describe('gauge preset theme overrides', () => {
-    setupMockConsole();
-    setupMockCanvas();
-
-    let chart: AgChartInstance;
-
-    afterEach(() => {
-        chart?.destroy();
-        (chart as unknown) = undefined;
-    });
 
     const createSeriesOptions = async (options: AgRadialGaugeOptions | AgLinearGaugeOptions) => {
-        const prepared = { ...options } as AgRadialGaugeOptions;
-        prepareEnterpriseTestOptions(prepared);
-        chart = AgCharts.createGauge(prepared);
-        await waitForChartStability(chart);
-        return (deproxy(chart).series[0] as any).options;
+        await create(options);
+        return getSeriesOptions<any>(chart);
     };
 
     const operator = { $ref: 'foregroundColor' };
