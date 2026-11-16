@@ -90,7 +90,7 @@ export class AnnotationsToolbar {
         }
         this.toolbar.setButtonSize(buttonSize);
         this.padding = padding;
-        this.buttons = [...buttons];
+        this.buttons = buttons.map((button) => this.withPressed(button));
     }
 
     public toggleClearButtonEnabled(enabled: boolean) {
@@ -101,12 +101,12 @@ export class AnnotationsToolbar {
     /** Shows whether the magnet is on; it persists across drawing, unlike the active button. */
     public setMagnetPressed(pressed: boolean) {
         this.magnetPressed = pressed;
-        this.applyMagnetPressed();
+        const index = this.buttons.findIndex((button) => button.value === 'magnet');
+        if (index !== -1) this.updateButtonByIndex(index, { pressed });
     }
 
-    private applyMagnetPressed() {
-        const index = this.buttons.findIndex((button) => button.value === 'magnet');
-        this.toolbar.toggleButtonPressedByIndex(index, this.magnetPressed);
+    private withPressed<T extends { value: string }>(button: T): T {
+        return button.value === 'magnet' ? { ...button, pressed: this.magnetPressed } : button;
     }
 
     public resetButtonIcons() {
@@ -146,7 +146,6 @@ export class AnnotationsToolbar {
     private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
         this.toolbar.updateButtons(this.buttons);
-        this.applyMagnetPressed();
         this.toolbar.layout(ctx.layoutBox, this.padding);
     }
 

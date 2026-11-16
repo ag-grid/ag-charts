@@ -37,6 +37,8 @@ export interface ToolbarButtonWidgetOptions {
     tooltip?: string;
     value: ButtonValue;
     buttonSize?: number;
+    /** Whether a button that toggles a mode on and off is on, rather than starting an action. */
+    pressed?: boolean;
 }
 
 export interface ToolbarButtonInteractionOptions {
@@ -179,6 +181,8 @@ export class ToolbarButtonWidget extends ButtonWidget {
         const ariaLabel = options.ariaLabel == null ? undefined : localeManager.t(options.ariaLabel);
         this.setAriaLabel(ariaLabel ?? tooltip ?? content.label);
 
+        setAttribute(this.elem, 'aria-pressed', options.pressed);
+
         const haspopup = getAriaHasPopupOfValue(options.value);
         if (haspopup == 'false') {
             this.setAriaHasPopup(undefined);
@@ -230,11 +234,6 @@ export class ToolbarButtonWidget extends ButtonWidget {
 
     public setChecked(checked: boolean) {
         setAttribute(this.elem, 'aria-checked', checked);
-    }
-
-    /** For a button that toggles a mode on and off, rather than starting an action. */
-    public setPressed(pressed: boolean) {
-        setAttribute(this.elem, 'aria-pressed', pressed);
     }
 }
 

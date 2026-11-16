@@ -90,4 +90,15 @@ describe('ToolbarButtonWidget', () => {
         update({ icon: 'zoom-in' });
         expect(elem.hasAttribute('aria-label')).toBe(false);
     });
+
+    it('shows whether a toggle button is pressed, and nothing on a button that is reused for another', () => {
+        const { elem, update } = createButton({ icon: 'magnet', pressed: true });
+        expect(elem.getAttribute('aria-pressed')).toBe('true');
+
+        update({ icon: 'magnet', pressed: false });
+        expect(elem.getAttribute('aria-pressed')).toBe('false');
+
+        update({ icon: 'zoom-in' });
+        expect(elem.hasAttribute('aria-pressed')).toBe(false);
+    });
 });
