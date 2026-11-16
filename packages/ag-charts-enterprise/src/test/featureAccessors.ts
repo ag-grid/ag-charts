@@ -105,7 +105,7 @@ interface AnnotationsHost {
             emit(event: 'pressed-magnet', data: null): void;
         };
     };
-    magnetMode: string;
+    magnetEnabled: boolean;
     optionsToolbar: {
         enabled?: boolean;
         updateButtons(annotation: object | undefined): void;
@@ -142,9 +142,9 @@ export function pressAnnotationMagnetButton(chartOrProxy: ChartOrProxy<any>): vo
     getAnnotations(chartOrProxy).toolbar.events.emit('pressed-magnet', null);
 }
 
-/** The mode the magnet is in, before Ctrl or Cmd inverts it. */
-export function getAnnotationMagnetMode(chartOrProxy: ChartOrProxy<any>): string {
-    return getAnnotations(chartOrProxy).magnetMode;
+/** Whether the magnet is on, before Ctrl or Cmd inverts it. */
+export function getAnnotationMagnetEnabled(chartOrProxy: ChartOrProxy<any>): boolean {
+    return getAnnotations(chartOrProxy).magnetEnabled;
 }
 
 /** Whether the annotations module enabled its annotation toolbar and its options toolbar. */

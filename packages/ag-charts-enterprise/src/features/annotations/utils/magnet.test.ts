@@ -4,18 +4,12 @@ import { type MagnetSeries, applyMagnet, nearestMagnetPosition, resolveMagnetMod
 
 describe('resolveMagnetMode', () => {
     it.each([
-        { mode: 'off', invert: false, expected: 'off' },
-        { mode: 'weak', invert: false, expected: 'weak' },
-        { mode: 'strong', invert: false, expected: 'strong' },
-        { mode: 'off', invert: true, expected: 'strong' },
-        { mode: 'weak', invert: true, expected: 'off' },
-        { mode: 'strong', invert: true, expected: 'off' },
-    ] as const)('$mode with invert $invert is $expected', ({ mode, invert, expected }) => {
-        expect(resolveMagnetMode(mode, 'strong', invert)).toBe(expected);
-    });
-
-    it('swaps off for the mode that is on', () => {
-        expect(resolveMagnetMode('off', 'weak', true)).toBe('weak');
+        { enabled: false, invert: false, expected: undefined },
+        { enabled: true, invert: false, expected: 'strong' },
+        { enabled: false, invert: true, expected: 'strong' },
+        { enabled: true, invert: true, expected: undefined },
+    ])('enabled $enabled with invert $invert is $expected', ({ enabled, invert, expected }) => {
+        expect(resolveMagnetMode(enabled, 'strong', invert)).toBe(expected);
     });
 });
 
@@ -23,7 +17,6 @@ describe('nearestMagnetPosition', () => {
     const candidates = [10, 40, 90];
 
     it.each([
-        { mode: 'off', position: 41, range: 20, expected: undefined },
         { mode: 'weak', position: 41, range: 20, expected: 40 },
         { mode: 'weak', position: 65, range: 20, expected: undefined },
         { mode: 'weak', position: 60, range: 20, expected: 40 },
@@ -51,9 +44,9 @@ describe('applyMagnet', () => {
         expect(applyMagnet({ x: 93, y: 82 }, [candlesticks], 'weak')).toEqual({ x: 93, y: 80 });
     });
 
-    it('leaves the point alone when it is off or out of range', () => {
+    it('leaves the point alone when there is no mode or it is out of range', () => {
         const offset = { x: 93, y: 82 };
-        expect(applyMagnet(offset, [candlesticks], 'off')).toBe(offset);
+        expect(applyMagnet(offset, [candlesticks], undefined)).toBe(offset);
         expect(applyMagnet({ x: 93, y: 100 }, [candlesticks], 'weak', 5)).toEqual({ x: 93, y: 100 });
     });
 

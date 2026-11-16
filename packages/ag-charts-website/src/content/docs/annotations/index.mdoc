@@ -62,10 +62,9 @@ In the above example:
 
 The magnet snaps the points of a drawing or annotation to the values of the nearest data point, such as the open, high, low and close of a candlestick, or the value of a line series. The pointer does not move: the drawing is placed as if it were at the value. Only the vertical position is affected, as drawings already snap to the nearest data point horizontally.
 
-The `magnet.mode` option sets how strongly points snap:
+The magnet is off by default. Set `magnet.enabled` to `true` to turn it on, and `magnet.mode` to set how strongly points snap:
 
-- `'off'` never snaps. This is the default.
-- `'weak'` snaps only when the pointer is within `magnet.range` pixels of a value. The range defaults to `20`.
+- `'weak'` snaps only when the pointer is within `magnet.range` pixels of a value. The range defaults to `20`. This is the default mode.
 - `'strong'` always snaps to the nearest value.
 
 The magnet applies when creating a drawing and when dragging its handles, on any cartesian series type.
@@ -75,6 +74,7 @@ The magnet applies when creating a drawing and when dragging its handles, on any
     annotations: {
         enabled: true,
         magnet: {
+            enabled: true,
             mode: 'weak',
             range: 30,
         },
@@ -98,7 +98,7 @@ The Financial Charts preset adds a magnet button to the toolbar, which switches 
 }
 ```
 
-Holding {% kbd "^ Ctrl"/%} or {% kbd "⌘ Cmd"/%} whilst creating a drawing or dragging a handle inverts the magnet: it snaps when it is off, and does not snap when it is on.
+Holding {% kbd "^ Ctrl"/%} or {% kbd "⌘ Cmd"/%} whilst creating a drawing or dragging a handle inverts the magnet: it snaps when the magnet is off, and does not snap when it is on.
 
 ## Keyboard Shortcuts
 

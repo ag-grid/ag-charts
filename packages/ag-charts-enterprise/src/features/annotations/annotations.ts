@@ -99,11 +99,11 @@ export class Annotations extends AbstractModuleInstance {
     public axesButtons: Required<AgAnnotationAxesButtons> = { enabled: false, axes: 'y' };
     private axesButtonsSnapInterval?: number;
 
-    /** The mode the options configure, which a change to resets `magnetMode`. */
-    private configuredMagnetMode?: AgAnnotationMagnetMode;
-    /** The mode the toolbar button has switched to, which holding Ctrl or Cmd inverts while drawing and dragging. */
-    private magnetMode: AgAnnotationMagnetMode = 'off';
-    private magnetOnMode: Exclude<AgAnnotationMagnetMode, 'off'> = 'weak';
+    /** Whether the options enable the magnet, which a change to resets `magnetEnabled`. */
+    private configuredMagnetEnabled?: boolean;
+    /** Whether the magnet is on, as the options or the toolbar button have set it; holding Ctrl or Cmd inverts it. */
+    private magnetEnabled = false;
+    private magnetStrength: AgAnnotationMagnetMode = 'weak';
     private magnetRange: PixelSize = DEFAULT_MAGNET_RANGE;
 
     // Annotations is only created when the `annotations` subtree is configured, so assert
@@ -155,7 +155,7 @@ export class Annotations extends AbstractModuleInstance {
                 const enabled = opts?.enabled ?? false;
 
                 const { toolbar, optionsToolbar, axesButtons, magnet } = opts ?? {};
-                this.applyMagnetOptions(magnet?.mode ?? 'off', magnet?.range);
+                this.applyMagnetOptions(magnet?.enabled ?? false, magnet?.mode ?? 'weak', magnet?.range);
                 this.toolbar.applyOptions({ ...toolbar, enabled: toolbar?.enabled ?? enabled });
                 this.optionsToolbar.applyOptions({ ...optionsToolbar, enabled: optionsToolbar?.enabled ?? enabled });
                 this.axesButtons = { enabled: axesButtons?.enabled ?? enabled, axes: axesButtons?.axes ?? 'y' };
@@ -170,24 +170,23 @@ export class Annotations extends AbstractModuleInstance {
         );
     }
 
-    private applyMagnetOptions(mode: AgAnnotationMagnetMode, range: PixelSize = DEFAULT_MAGNET_RANGE) {
+    private applyMagnetOptions(
+        enabled: boolean,
+        mode: AgAnnotationMagnetMode,
+        range: PixelSize = DEFAULT_MAGNET_RANGE
+    ) {
+        this.magnetStrength = mode;
         this.magnetRange = range;
-        if (mode === this.configuredMagnetMode) return;
+        if (enabled === this.configuredMagnetEnabled) return;
 
-        this.configuredMagnetMode = mode;
-        this.magnetMode = mode;
-        if (mode !== 'off') this.magnetOnMode = mode;
-        this.toolbar.setMagnetPressed(mode !== 'off');
+        this.configuredMagnetEnabled = enabled;
+        this.magnetEnabled = enabled;
+        this.toolbar.setMagnetPressed(enabled);
     }
 
     private toggleMagnet() {
-        if (this.magnetMode === 'off') {
-            this.magnetMode = this.magnetOnMode;
-        } else {
-            this.magnetOnMode = this.magnetMode;
-            this.magnetMode = 'off';
-        }
-        this.toolbar.setMagnetPressed(this.magnetMode !== 'off');
+        this.magnetEnabled = !this.magnetEnabled;
+        this.toolbar.setMagnetPressed(this.magnetEnabled);
     }
 
     /** Whether Ctrl or Cmd is held, as of the latest pointer or key event, which inverts the magnet mode. */
@@ -202,10 +201,10 @@ export class Annotations extends AbstractModuleInstance {
      * mode says. The horizontal position is untouched, as it snaps to the nearest datum anyway.
      */
     private readonly magnetOffset = (offset: Point): Point => {
-        const mode = resolveMagnetMode(this.magnetMode, this.magnetOnMode, this.magnetInverted);
+        const mode = resolveMagnetMode(this.magnetEnabled, this.magnetStrength, this.magnetInverted);
         const { yAxis } = this;
         // The values of a category axis are bands, not positions to snap to.
-        if (mode === 'off' || yAxis == null || !yAxis.context.continuous) return offset;
+        if (mode == null || yAxis == null || !yAxis.context.continuous) return offset;
 
         const seriesIds = yAxis.context.seriesIds();
         const series = this.ctx.chartService.series

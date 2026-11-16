@@ -158,16 +158,15 @@ export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, S
 
 /**
  * How strongly annotation points snap to the values of the nearest datum, measured along the y-axis.
- * - `'off'` never snaps.
  * - `'weak'` snaps only when the pointer is within `range` pixels of a value.
  * - `'strong'` always snaps to the nearest value.
  */
-export type AgAnnotationMagnetMode = 'off' | 'weak' | 'strong';
+export type AgAnnotationMagnetMode = 'weak' | 'strong';
 
-export interface AgAnnotationMagnet {
-    /** Whether, and how strongly, annotation points snap to the values of the nearest datum, such as the open, high, low and close of a candlestick. Holding Ctrl or Cmd while drawing or dragging inverts this mode, between `'off'` and `'weak'` or `'strong'`. Default: `'off'` */
+export interface AgAnnotationMagnet extends Toggleable {
+    /** How strongly annotation points snap to the values of the nearest datum, such as the open, high, low and close of a candlestick. Holding Ctrl or Cmd while drawing or dragging inverts whether the magnet is enabled. Default: `'weak'` */
     mode?: AgAnnotationMagnetMode;
-    /** The distance in pixels from a value within which a `'weak'` mode snaps to it. Default: `20` */
+    /** The distance in pixels from a value within which a `'weak'` magnet snaps to it. Default: `20` */
     range?: PixelSize;
 }
 

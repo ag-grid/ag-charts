@@ -17,7 +17,7 @@ import {
 import type { AgHorizontalLineAnnotation } from 'ag-charts-types';
 
 import {
-    getAnnotationMagnetMode,
+    getAnnotationMagnetEnabled,
     pressAnnotationMagnetButton,
     pressAnnotationToolbarCreate,
 } from '../../test/featureAccessors';
@@ -72,14 +72,14 @@ describe('Annotations magnet', () => {
     /** The y value that is `pixels` above the datum. */
     const valueAbove = (pixels: number, height: number) => DATUM_Y + (pixels * 100) / height;
 
-    it('leaves the line where it is drawn when the magnet is off', async () => {
+    it('leaves the line where it is drawn when the magnet is not enabled', async () => {
         await prepareChart();
         const { value, height } = await drawHorizontalLine(30);
         expect(value).toBeCloseTo(valueAbove(30, height), 0);
     });
 
     it('snaps the line to the nearest value from any distance when strong', async () => {
-        await prepareChart({ mode: 'strong' });
+        await prepareChart({ enabled: true, mode: 'strong' });
         const { value } = await drawHorizontalLine(60);
         expect(value).toBeCloseTo(DATUM_Y, 6);
     });
@@ -88,21 +88,21 @@ describe('Annotations magnet', () => {
         { name: 'within', pixels: 8, snaps: true },
         { name: 'beyond', pixels: 14, snaps: false },
     ])('snaps a weak magnet only when the pointer is $name its range', async ({ pixels, snaps }) => {
-        await prepareChart({ mode: 'weak', range: 10 });
+        await prepareChart({ enabled: true, mode: 'weak', range: 10 });
         const { value, height } = await drawHorizontalLine(pixels);
         expect(value).toBeCloseTo(snaps ? DATUM_Y : valueAbove(pixels, height), snaps ? 6 : 0);
     });
 
     it('is switched on and off by the toolbar button', async () => {
         await prepareChart({ range: 20 });
-        expect(getAnnotationMagnetMode(chart)).toBe('off');
+        expect(getAnnotationMagnetEnabled(chart)).toBe(false);
 
         pressAnnotationMagnetButton(chart);
-        expect(getAnnotationMagnetMode(chart)).toBe('weak');
+        expect(getAnnotationMagnetEnabled(chart)).toBe(true);
         expect((await drawHorizontalLine(10)).value).toBeCloseTo(DATUM_Y, 6);
     });
 
-    it('inverts the mode while Ctrl is held', async () => {
+    it('inverts whether the magnet is enabled while Ctrl is held', async () => {
         await prepareChart({ range: 20 });
         const { value } = await drawHorizontalLine(10, { ctrlKey: true });
         expect(value).toBeCloseTo(DATUM_Y, 6);

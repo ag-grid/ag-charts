@@ -242,7 +242,8 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
         ...undocumentedDefs({ snap: boolean, snapInterval: positiveNumberNonZero }),
     },
     magnet: {
-        mode: union('off', 'weak', 'strong'),
+        enabled: boolean,
+        mode: union('weak', 'strong'),
         range: positiveNumber,
     },
     toolbar: {

@@ -3,14 +3,13 @@ import type { AgAnnotationMagnetMode, PixelSize } from 'ag-charts-types';
 
 export const DEFAULT_MAGNET_RANGE: PixelSize = 20;
 
-/** The mode that holding Ctrl or Cmd swaps `off` for, as `onMode`, and every other mode for `off`. */
+/** The mode to snap by, or `undefined` for none: the magnet is on when enabled, which holding Ctrl or Cmd inverts. */
 export function resolveMagnetMode(
+    enabled: boolean,
     mode: AgAnnotationMagnetMode,
-    onMode: Exclude<AgAnnotationMagnetMode, 'off'>,
     invert: boolean
-): AgAnnotationMagnetMode {
-    if (!invert) return mode;
-    return mode === 'off' ? onMode : 'off';
+): AgAnnotationMagnetMode | undefined {
+    return enabled !== invert ? mode : undefined;
 }
 
 /**
@@ -23,8 +22,6 @@ export function nearestMagnetPosition(
     mode: AgAnnotationMagnetMode,
     range: PixelSize
 ): number | undefined {
-    if (mode === 'off') return;
-
     let nearest: number | undefined;
     let nearestDistance = Infinity;
     for (const candidate of candidates) {
@@ -55,10 +52,10 @@ export interface MagnetSeries<TDatum> {
 export function applyMagnet<TDatum>(
     offset: Point,
     series: Iterable<MagnetSeries<TDatum>>,
-    mode: AgAnnotationMagnetMode,
+    mode: AgAnnotationMagnetMode | undefined,
     range: PixelSize = DEFAULT_MAGNET_RANGE
 ): Point {
-    if (mode === 'off') return offset;
+    if (mode == null) return offset;
 
     const positions: number[] = [];
     for (const candidate of series) {
