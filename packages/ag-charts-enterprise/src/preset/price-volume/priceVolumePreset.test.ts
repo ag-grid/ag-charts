@@ -907,9 +907,14 @@ describe('priceVolumePreset', () => {
             expect(buttons).toEqual(userButtons);
         });
 
-        it('falls back to the six default buttons without an override', () => {
-            expect(presetButtons()).toHaveLength(6);
-            expect(presetButtons({ common: {} })).toHaveLength(6);
+        it('falls back to the seven default buttons without an override', () => {
+            expect(presetButtons()).toHaveLength(7);
+            expect(presetButtons({ common: {} })).toHaveLength(7);
+        });
+
+        it('includes the magnet button by default, before the clear button', () => {
+            const values = presetButtons()?.map((button) => button.value);
+            expect(values?.slice(-2)).toEqual(['magnet', 'clear']);
         });
     });
 });

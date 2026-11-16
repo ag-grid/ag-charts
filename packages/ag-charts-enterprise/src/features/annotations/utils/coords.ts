@@ -19,6 +19,15 @@ export function snapPoint(
     return invertCoords(snapToAngle(offset, center, angleStep), context);
 }
 
+/**
+ * Adjusts `translation` so that a point starting at `from` ends on the nearest magnet value, when the magnet is on.
+ * Moving the other points of an annotation by the same translation keeps their position relative to the dragged one.
+ */
+export function magnetTranslation(from: Point, translation: Point, context: AnnotationContext): Point {
+    const to = Vec2.add(from, translation);
+    return Vec2.add(translation, Vec2.sub(context.magnet(to), to));
+}
+
 export function snapToAngle(vector: Point, center: Point, step: number) {
     const radial = Vec2.sub(vector, center);
     const stepRadians = toRadians(step);
