@@ -147,7 +147,7 @@ describe('label minimumFontSize', () => {
         // whose wrapped text fits the bar; short bars make height the binding constraint here.
         const short = {
             ...barChart({ wrapping: 'on-space', truncate: true, minimumFontSize: 4 }),
-            data: data.map((datum, i) => ({ ...datum, value: 9 + i })),
+            data: data.map((datum, i) => ({ ...datum, value: 7 + i })),
             axes: { ...axes, y: { ...axes.y, max: 100 } },
         };
         await render(short);

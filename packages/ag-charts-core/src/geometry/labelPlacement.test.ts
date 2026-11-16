@@ -2622,6 +2622,39 @@ describe('placeLabels per-candidate fit', () => {
             }
         );
 
+        it.each([0, 6])('fits to its own shape whatever the positive threshold, at %i', (threshold) => {
+            const placed = placeLabels(
+                new Map([
+                    [
+                        's',
+                        seriesLabels([
+                            buildBarPositionedLabelDatum(
+                                TEXT,
+                                50,
+                                20,
+                                [
+                                    {
+                                        box: { x: 25, y: 30, width: 50, height: 40 },
+                                        fitTo: { container: { width: 34, height: 40 }, anchor, padding },
+                                    },
+                                ],
+                                target(),
+                                { x: 33, y: 30, width: 34, height: 40 },
+                                true,
+                                {},
+                                threshold,
+                                false,
+                                { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
+                            ),
+                        ]),
+                    ],
+                ]),
+                bounds,
+                0
+            ).get('s')![0];
+            expect(placed.text).toBe('WW…');
+        });
+
         describe('nudging along the bar', () => {
             const region = { x: 20, y: 20, width: 60, height: 60 };
             const placeNudged = (obstacle: LabelObstacle) =>

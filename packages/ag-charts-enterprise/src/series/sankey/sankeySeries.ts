@@ -813,7 +813,6 @@ export class SankeySeries extends FlowProportionSeries<
                             flushToRegion: false,
                             fitTo: {
                                 container: { width: room, height: heightRoom },
-                                ownShape: false,
                                 anchor,
                                 padding,
                                 font,

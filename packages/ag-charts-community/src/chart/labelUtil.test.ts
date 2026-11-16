@@ -138,6 +138,12 @@ describe('insideMarkerContainer', () => {
         expect(insideMarkerContainer(0)).toEqual({ width: 0, height: 0 });
     });
 
+    it('ignores a positive threshold and grows by a negative one', () => {
+        const base = insideMarkerContainer(100, 'square');
+        expect(insideMarkerContainer(100, 'square', 6)).toEqual(base);
+        expect(insideMarkerContainer(100, 'square', -6).width).toBeCloseTo(base.width + 12);
+    });
+
     it('hides an inside label that overflows a small marker', () => {
         const result = fitToContainer(LONG_TEXT, { avoid: true }, insideMarkerContainer(12));
         expect(result).toBe('');

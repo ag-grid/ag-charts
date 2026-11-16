@@ -151,8 +151,6 @@ export function resolveLabelFitDescriptors(
  */
 export interface CandidateFitTarget {
     readonly container?: { readonly width: number; readonly height: number };
-    /** Whether {@link container} is the label's own shape, kept clear by the collision threshold. Defaults to `true`. */
-    readonly ownShape?: boolean;
     /** Shape the text is fitted to, when the candidate's container is only its bounding box. */
     readonly shape?: FitRegion;
     /** Where the block sits against {@link anchor} within that shape; defaults to centred on it. */
@@ -903,8 +901,7 @@ function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
  * How much of the collision threshold a containment region takes: only the negative part, which is spill
  * allowance — the label may overflow the region by that much without counting as a collision. A positive
  * threshold must not inset a containment region, because the label is flushed against that region's raw
- * edge and an inset bound could then only ever reject it. Positive clearance is the glyph budget's job
- * ({@link deflateContainer}), not containment's.
+ * edge and an inset bound could then only ever reject it. A positive threshold clears other obstacles only.
  */
 function containmentThreshold(threshold: number): number {
     return Math.min(threshold, 0);
@@ -921,12 +918,12 @@ function deflateRegion(dest: BoxBounds, src: BoxBounds, threshold: number): BoxB
     return dest;
 }
 
-// The only way a positive threshold reaches an own shape: text wraps or truncates to the clearance it
-// must keep, rather than the box moving to make room.
-function deflateContainer(container: { width: number; height: number } | undefined, threshold: number) {
-    if (container == null || threshold === 0) return container;
-    candidateContainer.width = Math.max(0, container.width - 2 * threshold);
-    candidateContainer.height = Math.max(0, container.height - 2 * threshold);
+// A negative threshold widens a label's own room by its spill allowance; a positive one clears other obstacles only.
+function spillContainer(container: { width: number; height: number } | undefined, threshold: number) {
+    const spill = containmentThreshold(threshold);
+    if (container == null || spill === 0) return container;
+    candidateContainer.width = container.width - 2 * spill;
+    candidateContainer.height = container.height - 2 * spill;
     return candidateContainer;
 }
 
@@ -2991,7 +2988,6 @@ interface TrialFit {
     hasContainer: boolean;
     containerWidth: number;
     containerHeight: number;
-    ownShape: boolean;
     shape: FitRegion | undefined;
     shapeAlign: RegionAlign | undefined;
     fitted: boolean;
@@ -3031,7 +3027,6 @@ function newTrialFit(): TrialFit {
         hasContainer: false,
         containerWidth: 0,
         containerHeight: 0,
-        ownShape: true,
         shape: undefined,
         shapeAlign: undefined,
         fitted: false,
@@ -3048,7 +3043,6 @@ function newTrialFit(): TrialFit {
 
 function findTrialFit(font: FontOptions, fitTo: CandidateFitTarget): TrialFit | undefined {
     const { container, shape, shapeAlign } = fitTo;
-    const ownShape = fitTo.ownShape !== false;
     for (let i = 0; i < trialFitCount; i++) {
         const t = trialFits[i];
         if (
@@ -3060,7 +3054,6 @@ function findTrialFit(font: FontOptions, fitTo: CandidateFitTarget): TrialFit | 
             t.hasContainer === (container != null) &&
             t.containerWidth === (container?.width ?? 0) &&
             t.containerHeight === (container?.height ?? 0) &&
-            t.ownShape === ownShape &&
             t.shape === shape &&
             t.shapeAlign === shapeAlign
         ) {
@@ -3085,7 +3078,6 @@ function storeTrialFit(font: FontOptions, fitTo: CandidateFitTarget, fitted: boo
     t.hasContainer = container != null;
     t.containerWidth = container?.width ?? 0;
     t.containerHeight = container?.height ?? 0;
-    t.ownShape = fitTo.ownShape !== false;
     t.shape = fitTo.shape;
     t.shapeAlign = fitTo.shapeAlign;
     t.fitted = fitted;
@@ -3135,19 +3127,12 @@ function fitPositionedCandidateAt(
     threshold: number
 ): boolean {
     const fontSearch = candidateTrialFontSize == null;
-    const container = fitTo.ownShape === false ? fitTo.container : deflateContainer(fitTo.container, threshold);
-    // The clearance a label keeps from its own surface must not erase it: refit to the surface
-    // itself rather than draw the bare ellipsis the deflated container left, or drop the label.
-    const fitsDeflated = fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign);
-    const fitted = fitsDeflated
-        ? container === fitTo.container ||
-          hasRealChars(fittedLabel.text) ||
-          fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign)
-        : container !== fitTo.container && fitOwnShapeAtFloor(fit, fitTo, font, source, fontSearch);
+    const container = spillContainer(fitTo.container, threshold);
+    const fitted = fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign);
     if (fitted && (d.neverDrop !== true || hasRealChars(fittedLabel.text))) return true;
     if (d.neverDrop !== true || !fontSearch || fitTo.container == null) return false;
     const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
-    const { floorFit, floorFont } = atFloor(fit, font);
+    const { floorFit, floorFont } = floorFitOf(fit, font);
     keptLineContainer.width = fitTo.container.width;
     keptLineContainer.height = Math.max(fitTo.container.height, drawnLineHeight(floorFont));
     // Too narrow for even one character: overflow by the least a truncated label can show.
@@ -3166,32 +3151,7 @@ function fitPositionedCandidateAt(
     return true;
 }
 
-/**
- * Fits a label the clearance rejected to its own surface, at no larger a font than the clearance search
- * reached, so the label never grows back as its container shrinks.
- */
-function fitOwnShapeAtFloor(
-    fit: LabelFitDescriptor,
-    fitTo: CandidateFitTarget,
-    font: FontOptions,
-    source: { width: number; height: number } | undefined,
-    fontSearch: boolean
-): boolean {
-    const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
-    if (floor >= font.fontSize) {
-        return fitLabelToCandidate(fit, font, source, fitTo.container, false, fitTo.shape, fitTo.shapeAlign);
-    }
-    // A trial above the floor would draw the fallback larger than the floor; the ladder reaches the floor itself.
-    if (!fontSearch) return false;
-    const { floorFit, floorFont } = atFloor(fit, font);
-    if (!fitLabelToCandidate(floorFit, floorFont, undefined, fitTo.container, false, fitTo.shape, fitTo.shapeAlign)) {
-        return false;
-    }
-    fittedLabel.fontSize = floor;
-    return true;
-}
-
-// The last label's text and font at its floor, shared by its candidates so a fallback allocates once per datum.
+// The last label's text and font at its floor, shared by its candidates so the floor allocates once per datum.
 const floorCache: {
     fit: LabelFitDescriptor | undefined;
     font: FontOptions | undefined;
@@ -3200,7 +3160,7 @@ const floorCache: {
 } = { fit: undefined, font: undefined, floorFit: undefined!, floorFont: undefined! };
 
 /** Every segment at its own floor too, so no part of the label grows back as its container shrinks. */
-function atFloor(fit: LabelFitDescriptor, font: FontOptions) {
+function floorFitOf(fit: LabelFitDescriptor, font: FontOptions) {
     if (floorCache.fit !== fit || floorCache.font !== font) {
         floorCache.fit = fit;
         floorCache.font = font;
@@ -3235,13 +3195,9 @@ function leadCharacter(text: string): string | undefined {
     return graphemeSegments(text.trimStart())[0];
 }
 
-/** Fits a stack into {@link candidateStack}; one that fits only without the threshold's clearance is kept. */
+/** Fits a stack into {@link candidateStack}. */
 function fitStackToCandidate(stack: LabelStack, fitTo: CandidateFitTarget, threshold: number): boolean {
-    const container = deflateContainer(fitTo.container, threshold);
-    let fitted = fitLabelStack(stack, container, fitTo.shape, fitTo.shapeAlign);
-    if (fitted == null && container !== fitTo.container) {
-        fitted = fitLabelStack(stack, fitTo.container, fitTo.shape, fitTo.shapeAlign);
-    }
+    const fitted = fitLabelStack(stack, spillContainer(fitTo.container, threshold), fitTo.shape, fitTo.shapeAlign);
     if (fitted == null) return false;
     const first = fitted.blocks.find((block) => block != null);
     candidateStack = fitted;

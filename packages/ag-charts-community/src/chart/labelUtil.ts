@@ -202,10 +202,9 @@ export function boundLabelFit(
 
 /**
  * Container that keeps an `inside` label within a marker of diameter `markerSize`, sized to the largest
- * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). `threshold`
- * shrinks that rectangle on every side so the label clears the marker walls by that many pixels. Pair
+ * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). Pair
  * with {@link resolveInsidePlacement}'s `offset` to position the label at that rectangle, which need not
- * be marker-centred.
+ * be marker-centred. Only a negative `threshold` applies, as spill allowance: a positive one clears other obstacles.
  */
 export function insideMarkerContainer(
     markerSize: number,
@@ -213,9 +212,10 @@ export function insideMarkerContainer(
     threshold = 0
 ): { width: number; height: number } {
     const rect = markerLabelRect(shape);
+    const inset = 2 * Math.min(threshold, 0);
     return {
-        width: Math.max(0, markerSize * rect.width - 2 * threshold),
-        height: Math.max(0, markerSize * rect.height - 2 * threshold),
+        width: Math.max(0, markerSize * rect.width - inset),
+        height: Math.max(0, markerSize * rect.height - inset),
     };
 }
 
