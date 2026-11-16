@@ -2436,7 +2436,9 @@ describe('BarSeries', () => {
             const fill = await defaultFill();
             chart = await createChart({
                 data,
-                series: [{ ...series, itemStyler: ({ datum }) => ({ fill: datum.c }) }],
+                series: [
+                    { ...series, itemStyler: ({ datum }: { datum: (typeof data)[number] }) => ({ fill: datum.c }) },
+                ],
             });
 
             expect(getBarSeriesContextNodeData(chart).nodeData[0].style?.fill).toEqual(fill);
@@ -2451,7 +2453,7 @@ describe('BarSeries', () => {
                     params: { foregroundColor: '#123456' },
                     overrides: { bar: { series: { fill: { $ref: 'foregroundColor' }, stroke: { $path: './fill' } } } },
                 },
-            } as AgChartOptions);
+            } as unknown as AgChartOptions);
 
             expect(getSeriesOptions<{ fill: unknown; stroke: unknown }>(chart)).toMatchObject({
                 fill: '#123456',
