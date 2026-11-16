@@ -117,6 +117,28 @@ describe('shadow and glow render', () => {
         });
     });
 
+    describe('adjacent sectors that all glow', () => {
+        const FILLS: Record<string, string> = { A: '#d0021b', B: '#7ed321', C: '#4a90e2' };
+
+        it('renders a donut with sector spacing, each glow ending midway between its sector and the next', async () => {
+            await create(
+                [
+                    {
+                        type: 'donut',
+                        angleKey: 'value',
+                        sectorSpacing: 12,
+                        itemStyler: ({ datum }: { datum: { category: string } }) => ({
+                            glow: { ...HARD_GLOW, fill: FILLS[datum.category] },
+                        }),
+                    },
+                ],
+                BARS,
+                ROOM
+            );
+            await snapshot();
+        });
+    });
+
     describe('each highlight state', () => {
         const FILLS = ['#d0021b', '#7ed321', '#f5a623', '#4a90e2'];
         const GLOWS = Object.fromEntries(
