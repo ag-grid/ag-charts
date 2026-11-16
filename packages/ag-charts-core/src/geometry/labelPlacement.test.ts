@@ -165,7 +165,7 @@ function placeLabelsOracle(data: Map<string, SeriesLabels>, bounds: BoxBounds, p
             }
             if (
                 boxContains(bounds, x, y, width, height) &&
-                !dataValues.some((dd) => circleRectOverlapOracle(dd, x, y, width, height)) &&
+                !dataValues.some((dd) => dd !== d && circleRectOverlapOracle(dd, x, y, width, height)) &&
                 !previousResults.some((pr) => boxCollides(pr, x, y, width, height))
             ) {
                 const resultDatum = { index, text, x, y, width, height, datum: d };
@@ -369,6 +369,37 @@ describe('placeLabels', () => {
         const withNeighbour = placeLabels(new Map([['s', seriesLabels([own, neighbour])]]), bounds, 5).get('s')!;
         expect(withNeighbour.some((l) => l.datum === own)).toBe(false);
     });
+
+    it.each([
+        { neighbourAt: undefined, placed: true },
+        { neighbourAt: 118, placed: false },
+    ])(
+        'keeps the threshold clear of other markers only, neighbour at $neighbourAt: $placed',
+        ({ neighbourAt, placed }) => {
+            const own: PointLabelDatum = {
+                point: { x: 100, y: 100, size: 20 },
+                label: { text: 'T', width: 10, height: 10 },
+                anchor: undefined,
+                placement: 'top',
+                placements: ['top'],
+                gap: 5,
+                alwaysShow: false,
+            };
+            const neighbour: PointLabelDatum = {
+                point: { x: neighbourAt ?? 0, y: 80, size: 20 },
+                label: { text: '', width: 0, height: 0 },
+                anchor: undefined,
+                placement: undefined,
+            };
+            const datums = neighbourAt == null ? [own] : [own, neighbour];
+            const labels = placeLabels(
+                new Map([['s', seriesLabels(datums, { alwaysShow: false, threshold: 6 })]]),
+                bounds,
+                5
+            ).get('s')!;
+            expect(labels.some((l) => l.datum === own)).toBe(placed);
+        }
+    );
 
     it.each([
         { neighbourSeries: 'earlier', placed: true },
@@ -820,47 +851,6 @@ describe('placeLabels', () => {
             5
         ).get('s')!;
         expect(result.some((l) => l.datum === label)).toBe(false);
-    });
-
-    it('keeps a label clear of its own anchor marker until the threshold exceeds its spacing', () => {
-        // A labelled point that also renders a marker: the label sits `spacing` from that marker's edge,
-        // so it is exempt from threshold inflation until the threshold demands more clearance than spacing.
-        const labelled = (): PointLabelDatum => ({
-            point: { x: 100, y: 100, size: 20 },
-            label: { text: 'X', width: 30, height: 12 },
-            anchor: undefined,
-            placement: 'top',
-            placements: ['top'],
-            spacing: 10,
-        });
-        const place = (threshold: number, d: PointLabelDatum) =>
-            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold })]]), bounds, 5).get('s')!;
-
-        const kept = labelled();
-        const dropped = labelled();
-        // threshold == spacing: still clear of its own marker.
-        expect(place(10, kept).some((l) => l.datum === kept)).toBe(true);
-        // threshold > spacing: the box reaches back onto its own marker, so the label is dropped.
-        expect(place(20, dropped).some((l) => l.datum === dropped)).toBe(false);
-    });
-
-    it('measures own-marker clearance geometrically, so a diagonal keeps its longer corner gap', () => {
-        // A diagonal label's corner gap is √2·(r + spacing) − r ≈ 18.3, not `spacing` = 10.
-        const labelled = (placement: 'top' | 'top-right'): PointLabelDatum => ({
-            point: { x: 100, y: 100, size: 20 },
-            label: { text: 'X', width: 30, height: 12 },
-            anchor: undefined,
-            placement,
-            placements: [placement],
-            spacing: 10,
-        });
-        const place = (d: PointLabelDatum) =>
-            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold: 12 })]]), bounds, 5).get('s')!;
-
-        const above = labelled('top');
-        const diagonal = labelled('top-right');
-        expect(place(above).some((l) => l.datum === above)).toBe(false);
-        expect(place(diagonal).some((l) => l.datum === diagonal)).toBe(true);
     });
 
     it('keeps a label flush against the shared bounds at a positive threshold', () => {

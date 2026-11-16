@@ -2286,6 +2286,39 @@ describe('label collision avoidance', () => {
             const placed = await renderPlaced({ collision: { alwaysShow: false, threshold: -1000 } });
             expect(placed.length).toBe(closeData.length);
         });
+
+        it('keeps a label whose threshold exceeds its spacing beside its own marker', async () => {
+            const data = [
+                { x: 3, y: 20, label: 'Alpha' },
+                { x: 9, y: 60, label: 'Beta' },
+                { x: 15, y: 40, label: 'Gamma' },
+                { x: 21, y: 70, label: 'Delta' },
+            ];
+            await renderAndSnapshot({
+                data,
+                legend: { enabled: false },
+                axes: {
+                    x: { position: 'bottom', type: 'number', min: 0, max: 24 },
+                    y: { position: 'left', type: 'number', min: 0, max: 100 },
+                },
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        labelKey: 'label',
+                        size: 16,
+                        label: {
+                            enabled: true,
+                            placement: 'top',
+                            spacing: 5,
+                            collision: { alwaysShow: false, threshold: 6 },
+                        },
+                    },
+                ],
+            });
+            expect(placedLabelPlacements().length).toBe(data.length);
+        });
     });
 
     // The threshold is a property of the label's own box, so it acts identically on both axes, against

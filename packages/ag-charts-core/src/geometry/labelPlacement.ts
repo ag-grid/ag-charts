@@ -750,8 +750,8 @@ let candidateAvoid: LabelAvoidance | undefined;
 let candidateThreshold = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
-// Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on and
-// so never avoids. Radius disambiguates a coincident marker of a different size; -1 never matches.
+// Centre and radius of the candidate datum's own anchor marker, which its label never avoids. Radius
+// disambiguates a coincident marker of a different size; -1 never matches.
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
@@ -954,18 +954,17 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     }
 
     const category = o.category ?? 'shape';
-    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
-    // directional labels fall through to the circle test, which measures their real clearance.
-    // Nor with an earlier series' marker while it lies wholly on its own, which is drawn over that overlap.
-    if (
-        candidatePlacement === 'inside' &&
-        category === 'marker' &&
-        o.kind === 'circle' &&
-        ((o.cx === candidateOwnMarkerCx && o.cy === candidateOwnMarkerCy && o.r === candidateOwnMarkerR) ||
-            ((o.seriesOrder ?? Infinity) < candidateSeriesOrder &&
-                boxWithinCircle(candidateBox, candidateOwnMarkerCx, candidateOwnMarkerCy, candidateOwnMarkerR)))
-    ) {
-        return true;
+    if (category === 'marker' && o.kind === 'circle') {
+        // A label's own marker is never a collision source; the threshold only clears other markers.
+        if (o.cx === candidateOwnMarkerCx && o.cy === candidateOwnMarkerCy && o.r === candidateOwnMarkerR) return true;
+        // An inside label lying wholly on its own marker is drawn over an earlier series' marker beneath it.
+        if (
+            candidatePlacement === 'inside' &&
+            (o.seriesOrder ?? Infinity) < candidateSeriesOrder &&
+            boxWithinCircle(candidateBox, candidateOwnMarkerCx, candidateOwnMarkerCy, candidateOwnMarkerR)
+        ) {
+            return true;
+        }
     }
 
     // An inside label never collides with the shape it sits on, so anything overlapping its own box is
@@ -1294,7 +1293,7 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
 }
 
 // Anchor-adjusted marker centre, written into the shared scratch (allocation-free). Marker-obstacle
-// creation and the `inside` own-marker match both read it, so they cannot drift out of sync.
+// creation and the own-marker match both read it, so they cannot drift out of sync.
 const markerCentre = { cx: 0, cy: 0 };
 function markerCentreOf(d: PointLabelDatum) {
     const { x, y } = d.point;
@@ -2728,7 +2727,7 @@ function placeFromPositionedCandidates(
     candidateAvoid = avoid;
     candidateThreshold = threshold;
     // No compass placement and no own marker on this path (bars): the own-marker gate in
-    // obstacleOverlapsCandidate must stay inert, so no obstacle centre can match.
+    // obstacleExcluded must stay inert, so no obstacle centre can match.
     candidatePlacement = undefined;
     candidateOwnMarkerCx = Number.NaN;
     candidateOwnMarkerCy = Number.NaN;
@@ -3120,20 +3119,20 @@ function fitPositionedCandidateAt(
     const fontSearch = candidateTrialFontSize == null;
     const container = fitTo.ownShape === false ? fitTo.container : deflateContainer(fitTo.container, threshold);
     // The clearance a label keeps from its own surface must not erase it: refit to the surface
-    // itself rather than draw the bare ellipsis the deflated container left.
-    const fitted =
-        fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign) &&
-        (container === fitTo.container ||
-            hasRealChars(fittedLabel.text) ||
-            fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign));
+    // itself rather than draw the bare ellipsis the deflated container left, or drop the label.
+    const fitsDeflated = fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign);
+    const fitted = fitsDeflated
+        ? container === fitTo.container ||
+          hasRealChars(fittedLabel.text) ||
+          fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign)
+        : container !== fitTo.container && fitOwnShapeAtFloor(fit, fitTo, font, source, fontSearch);
     if (fitted && (d.neverDrop !== true || hasRealChars(fittedLabel.text))) return true;
     if (d.neverDrop !== true || !fontSearch || fitTo.container == null) return false;
     const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
     const floorFont = fontWithSize(font, floor);
     keptLineContainer.width = fitTo.container.width;
     keptLineContainer.height = Math.max(fitTo.container.height, drawnLineHeight(floorFont));
-    // Every segment at its own floor too, so no part of the label grows back as its container shrinks.
-    const floorFit = { ...fit, text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text };
+    const floorFit = fitAtFloorText(fit, font);
     // Too narrow for even one character: overflow by the least a truncated label can show.
     if (!fitKeptAtFloor(floorFit, floorFont)) {
         keptLineContainer.width = Math.max(keptLineContainer.width, leadCharacterWidth(floorFit.text, floorFont));
@@ -3148,6 +3147,37 @@ function fitPositionedCandidateAt(
         fittedLabel.fontSize = floor;
     }
     return true;
+}
+
+/**
+ * Fits a label the clearance rejected to its own surface, at no larger a font than the clearance search
+ * reached, so the label never grows back as its container shrinks.
+ */
+function fitOwnShapeAtFloor(
+    fit: LabelFitDescriptor,
+    fitTo: CandidateFitTarget,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined,
+    fontSearch: boolean
+): boolean {
+    const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
+    if (floor >= font.fontSize) {
+        return fitLabelToCandidate(fit, font, source, fitTo.container, false, fitTo.shape, fitTo.shapeAlign);
+    }
+    // A trial above the floor would draw the fallback larger than the floor; the ladder reaches the floor itself.
+    if (!fontSearch) return false;
+    const floorFit = fitAtFloorText(fit, font);
+    const floorFont = fontWithSize(font, floor);
+    if (!fitLabelToCandidate(floorFit, floorFont, undefined, fitTo.container, false, fitTo.shape, fitTo.shapeAlign)) {
+        return false;
+    }
+    fittedLabel.fontSize = floor;
+    return true;
+}
+
+/** Every segment at its own floor too, so no part of the label grows back as its container shrinks. */
+function fitAtFloorText(fit: LabelFitDescriptor, font: FontOptions): LabelFitDescriptor {
+    return { ...fit, text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text };
 }
 
 function fitKeptAtFloor(fit: LabelFitDescriptor, floorFont: FontOptions): boolean {
