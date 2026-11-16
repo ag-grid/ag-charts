@@ -92,6 +92,7 @@ import {
     resolveSeriesThemeDefaultsMemoised,
     resolveSeriesThemeOption,
 } from './optionsGraph';
+import { isColorOptionKey } from './optionsGraphUtils';
 import {
     type StructuralCacheEntry,
     VOLATILE_KEYS,
@@ -2066,35 +2067,67 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processedCSSVariables ??= {};
 
         const container = ctx?.container;
-        if (!ctx || !optionsNode || !isObjectLike(optionsNode) || !container) {
+        // An array does not know its own key, so its entries are handled with the object that holds it.
+        if (!ctx || !optionsNode || !isObjectLike(optionsNode) || Array.isArray(optionsNode) || !container) {
             return processedCSSVariables;
         }
 
-        for (const key of Object.keys(optionsNode) as any[]) {
+        for (const key of Object.keys(optionsNode)) {
             const value = optionsNode[key];
 
-            if (!ChartOptions.isExternalColorVar(value)) continue;
-
-            const resolved = ChartOptions.resolveColorVar(value, container);
-            if (!resolved) continue;
-
-            if (!resolved.isValid) {
-                // A detached element has no computed style, so a variable with no value yet may be given one once
-                // the container is attached; the value is left out for now and the attach re-resolves it.
-                if (!container.isConnected && resolved.propertyValue === '') {
-                    ctx.deferred?.add(value);
-                } else {
-                    ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+            if (Array.isArray(value)) {
+                if (isColorOptionKey(key)) {
+                    ChartOptions.processCSSVariablesArray(value, ctx, container, processedCSSVariables);
                 }
-                ctx.removed = true;
-                delete optionsNode[key];
-                continue;
+            } else if (ChartOptions.isExternalColorVar(value) && isColorOptionKey(key)) {
+                ChartOptions.processCSSVariable(optionsNode, key, ctx, container, processedCSSVariables);
             }
-
-            processedCSSVariables[value] ??= resolved.propertyValue;
         }
 
         return processedCSSVariables;
+    }
+
+    private static processCSSVariablesArray(
+        array: unknown[],
+        ctx: CSSVariableContext,
+        container: HTMLElement,
+        processedCSSVariables: Record<string, string>
+    ) {
+        for (let i = 0; i < array.length; i++) {
+            const value = array[i];
+            if (Array.isArray(value)) {
+                ChartOptions.processCSSVariablesArray(value, ctx, container, processedCSSVariables);
+            } else if (ChartOptions.isExternalColorVar(value)) {
+                ChartOptions.processCSSVariable(array, i, ctx, container, processedCSSVariables);
+            }
+        }
+    }
+
+    private static processCSSVariable(
+        parent: any,
+        key: string | number,
+        ctx: CSSVariableContext,
+        container: HTMLElement,
+        processedCSSVariables: Record<string, string>
+    ) {
+        const value: string = parent[key];
+        const resolved = ChartOptions.resolveColorVar(value, container);
+        if (!resolved) return;
+
+        if (!resolved.isValid) {
+            // A detached element has no computed style, so a variable with no value yet may be given one once
+            // the container is attached; the value is left out for now and the attach re-resolves it.
+            if (!container.isConnected && resolved.propertyValue === '') {
+                ctx.deferred?.add(value);
+            } else {
+                ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+            }
+            ctx.removed = true;
+            delete parent[key];
+            return;
+        }
+
+        processedCSSVariables[value] ??= resolved.propertyValue;
     }
 
     private static isExternalColorVar(value: unknown): value is string {

@@ -232,3 +232,23 @@ export function resolvePath(currentPath: string[], path: string, variables?: Pla
 
 export const UNRESOLVABLE_PATH = Symbol('unresolvable-path');
 export const RESOLVED_TO_BRANCH = Symbol('resolved-to-branch');
+
+const COLOR_OPTION_KEYS = new Set(['fill', 'stroke', 'color', 'fills', 'strokes', 'colors']);
+const COLOR_OPTION_KEY_REGEX = /(?:Colors?|Fills?|Strokes?|ColorRange)$/;
+
+/** Whether an option key holds a colour, or a list of colours, so a `var(--…)` value there is a CSS variable. */
+export function isColorOptionKey(key: string) {
+    return COLOR_OPTION_KEYS.has(key) || COLOR_OPTION_KEY_REGEX.test(key);
+}
+
+/**
+ * Whether the nearest named segment of `pathArray` is a colour option key. A path with no named segment is treated as
+ * a colour location, as its key is unknown.
+ */
+export function isColorOptionPath(pathArray: Array<string>) {
+    for (let i = pathArray.length - 1; i >= 0; i--) {
+        const part = pathArray[i];
+        if (!DIGITS_ONLY_REGEX.test(part)) return isColorOptionKey(part);
+    }
+    return true;
+}

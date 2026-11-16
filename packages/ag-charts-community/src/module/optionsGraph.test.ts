@@ -1997,6 +1997,29 @@ describe('OptionsGraph', () => {
                 series: expect.any(Array),
             });
         });
+
+        it('should substitute CSS variables only in colour options (AG-19346)', () => {
+            const themeConfig = { line: { stroke: { ref: 'accentColor' } } };
+            const params = { accentColor: 'var(--brand)' };
+            const userOptions = prepareOptions({
+                title: { text: 'var(--brand)' },
+                fill: 'var(--brand)',
+                fills: ['var(--brand)'],
+                yName: 'var(--brand)',
+            });
+            const options = new OptionsGraph(themeConfig, userOptions, params, {}, {}, undefined, false, {
+                'var(--brand)': '#00ff00',
+            }).resolve(testLogger);
+            expect(options).toStrictEqual({
+                stroke: '#00ff00',
+                title: { text: 'var(--brand)' },
+                fill: '#00ff00',
+                fills: ['#00ff00'],
+                yName: 'var(--brand)',
+                axes: expect.any(Object),
+                series: expect.any(Array),
+            });
+        });
     });
 
     describe('public api', () => {
