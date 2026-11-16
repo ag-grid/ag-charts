@@ -73,7 +73,11 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
 
         const { glowRing } = this;
         glowRing.clear();
-        selection.each((sector, { startAngle, endAngle }) => glowRing.add(sector, startAngle, endAngle));
+        // This runs before the sectors are laid out, so the radii come from the datum, as `updateItemPath` takes them.
+        selection.each((sector, datum) => {
+            const { innerRadius, outerRadius } = getRadii(datum);
+            glowRing.add(sector, datum.startAngle, datum.endAngle, innerRadius, outerRadius);
+        });
         setSectorGlowEnds(glowRing, true);
     }
 

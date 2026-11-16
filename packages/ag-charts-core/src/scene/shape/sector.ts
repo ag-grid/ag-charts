@@ -658,14 +658,16 @@ interface SectorGlowEntry {
     sector: Sector;
     startAngle: number;
     endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
 }
 
 const byStartAngle = (a: SectorGlowEntry, b: SectorGlowEntry) => a.startAngle - b.startAngle;
 const glows = ({ sector: { fillGlow } }: SectorGlowEntry) => fillGlow?.enabled === true && fillGlow.cutOnly !== true;
 
 /**
- * The sectors drawn in one ring, with the angles they are laid out at, which a sector that is animating has not yet
- * reached. A series keeps one and refills it on each update, so no object is made per sector.
+ * The sectors drawn in one ring, with the angles and radii they are laid out at, which a sector that is animating, or
+ * not yet laid out, has not reached. A series keeps one and refills it on each update, so no object is made per sector.
  */
 export class SectorGlowRing {
     private readonly pool: SectorGlowEntry[] = [];
@@ -675,12 +677,20 @@ export class SectorGlowRing {
         this.entries.length = 0;
     }
 
-    add(sector: Sector, startAngle: number, endAngle: number) {
+    add(
+        sector: Sector,
+        startAngle: number,
+        endAngle: number,
+        innerRadius: number = sector.innerRadius,
+        outerRadius: number = sector.outerRadius
+    ) {
         const { pool, entries } = this;
-        const entry = pool[entries.length] ?? { sector, startAngle, endAngle };
+        const entry = pool[entries.length] ?? { sector, startAngle, endAngle, innerRadius, outerRadius };
         entry.sector = sector;
         entry.startAngle = startAngle;
         entry.endAngle = endAngle;
+        entry.innerRadius = innerRadius;
+        entry.outerRadius = outerRadius;
         pool[entries.length] = entry;
         entries.push(entry);
     }
@@ -737,10 +747,10 @@ export function setSectorGlowEnds(ring: SectorGlowRing, padded: boolean = false)
         const { sector: b } = next;
         a.glowEndGap = b.glowStartGap = Math.max(gap, 0);
         a.glowEndSpan = next.endAngle - next.startAngle;
-        a.glowEndInner = b.innerRadius;
-        a.glowEndOuter = b.outerRadius;
+        a.glowEndInner = next.innerRadius;
+        a.glowEndOuter = next.outerRadius;
         b.glowStartSpan = prev.endAngle - prev.startAngle;
-        b.glowStartInner = a.innerRadius;
-        b.glowStartOuter = a.outerRadius;
+        b.glowStartInner = prev.innerRadius;
+        b.glowStartOuter = prev.outerRadius;
     }
 }
