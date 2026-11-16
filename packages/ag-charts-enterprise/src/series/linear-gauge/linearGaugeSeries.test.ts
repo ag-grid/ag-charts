@@ -61,7 +61,7 @@ describe('LinearGaugeSeries', () => {
     // The value bar sweeps open by growing its clip window along the gauge's main axis; every other
     // node holds constant.
     it('can be destroyed while its value label is still counting up', async () => {
-        const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS };
+        const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS, label: { enabled: true } };
         prepareEnterpriseTestOptions(options);
         options.animation = { enabled: true };
 
@@ -74,7 +74,6 @@ describe('LinearGaugeSeries', () => {
         const frames = spyOnAnimationFrames();
 
         const VALUE_BAR = 'series[0]/rect[value-0]';
-        const VALUE_LABEL = 'series[0]/text[0]';
 
         it.each(['horizontal', 'vertical'] as const)(
             'value bar reveals by growing its clip window along the %s main axis',
@@ -110,11 +109,7 @@ describe('LinearGaugeSeries', () => {
                         ? { clipX1: grows, width: grows, visible: 'any' as const }
                         : { clipY0: shrinks, y: shrinks, height: grows, visible: 'any' as const };
 
-                // The value label rides the bar's leading edge and fades in.
-                const valueLabelSpec =
-                    direction === 'horizontal' ? { x: grows, opacity: grows } : { y: shrinks, opacity: grows };
-
-                expectSceneTrajectory(trajectory, { [VALUE_BAR]: valueBarSpec, [VALUE_LABEL]: valueLabelSpec });
+                expectSceneTrajectory(trajectory, { [VALUE_BAR]: valueBarSpec });
             }
         );
 

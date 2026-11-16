@@ -65,8 +65,8 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
         },
         label: {
             ...LABEL_BOXING_DEFAULTS,
-            enabled: true,
-            placement: ['bar-inside', 'bar-outside-end'],
+            enabled: false,
+            placement: 'inside-start',
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $rem: 2 },
