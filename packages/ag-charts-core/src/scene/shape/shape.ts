@@ -247,6 +247,14 @@ export type ShapeColor = CssColor | ShapeGradientColor | AgPatternColor | AgImag
 
 type SvgAttributes = StrokeOptions & LineDashOptions;
 
+/** The style properties {@link Shape.setStyleProperties} applies. */
+export type ShapeStyle = Partial<
+    Pick<
+        Shape,
+        'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset' | 'opacity'
+    >
+>;
+
 export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     @DeclaredSceneChangeDetection()
     drawingMode: AgDrawingMode = 'overlay';
@@ -259,6 +267,17 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     @DeclaredSceneChangeDetection()
     strokeOpacity: number = 1;
     declare __strokeOpacity: number; // optimised field accessor
+
+    /**
+     * The style a series resolved for this shape, for its style animations or resets to apply; see
+     * {@link displayedStyle}.
+     */
+    targetStyle?: ShapeStyle;
+    /**
+     * The style last applied by {@link setStyleProperties}. Shared by every shape displaying the same style, so style
+     * animations can group shapes by it.
+     */
+    displayedStyle?: ShapeStyle;
 
     @DeclaredSceneObjectChangeDetection({
         equals: objectsEqual,
@@ -1580,23 +1599,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * Sets style properties on the shape, optimizing by writing directly to __ prefix fields
      * where possible to avoid setter overhead.
      */
-    setStyleProperties(
-        style?: Partial<
-            Pick<
-                Shape,
-                | 'fill'
-                | 'fillOpacity'
-                | 'stroke'
-                | 'strokeOpacity'
-                | 'strokeWidth'
-                | 'lineDash'
-                | 'lineDashOffset'
-                | 'opacity'
-            >
-        >,
-        fillBBox?: { series: BBox; axis: BBox },
-        fillParams?: GradientParams
-    ): void {
+    setStyleProperties(style?: ShapeStyle, fillBBox?: { series: BBox; axis: BBox }, fillParams?: GradientParams): void {
+        this.displayedStyle = style;
+
         // Opacity is managed by animation - so don't set it on the shape
         const opacity = style?.opacity ?? 1;
         const fill = style?.fill;

@@ -116,6 +116,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 item: resetRadialBarSelectionsFn,
                 label: resetLabelFn,
             },
+            animatesStyles: true,
         });
     }
 
@@ -376,6 +377,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     update({ seriesRect }: { seriesRect?: BBox }) {
+        this.prepareRestyle();
         const resize = this.checkResize(seriesRect);
         this.maybeRefreshNodeData();
 
@@ -396,6 +398,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             this.animationState.transition('resize');
         }
         this.animationState.transition('update');
+        this.restyle();
     }
 
     protected updateSectorSelection(
@@ -417,8 +420,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             return;
         }
 
-        const fillBBox = this.getShapeFillBBox();
         const { shadow, glow } = this.options;
+        const fillBBox = this.getShapeFillBBox();
         const hasItemStylers = this.hasItemStylers();
         // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
         const styleCache =
@@ -428,7 +431,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const datum = readDatum(nodeDatum);
-                if (datum == null) return;
+                if (datum == null || selection.isGarbage(node)) return;
 
                 const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
                 if (hasItemStylers) {
@@ -471,7 +474,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const fillParams: GradientParams | undefined =
                     isGradientFill(fill) && fill.bounds !== 'item' ? { centerX: 0, centerY: 0 } : undefined;
 
-                node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
+                node.fillParams = fillParams;
+                this.setTargetStyle(node, style as NormalisedRadialSeriesStyle, fillBBox);
 
                 node.fillShadow = this.resolveItemShadow(
                     shadow,
@@ -500,7 +504,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                     nodeDatum.style?.glow
                 );
                 node.lineJoin = 'round';
-                node.inset = node.stroke == null ? 0 : node.strokeWidth / 2;
+                node.inset = style.stroke == null ? 0 : (style.strokeWidth ?? 0) / 2;
 
                 node.startInnerCornerRadius = datum.reversed ? cornerRadius : 0;
                 node.startOuterCornerRadius = datum.reversed ? cornerRadius : 0;

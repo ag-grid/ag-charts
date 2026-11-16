@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { BBox, Group, Rect, Selection } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { getSeriesAreaFocus } from '../test/seriesAccessors';
@@ -17,6 +18,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from '../test/utils';
+import { computeHighlightInViewport } from './seriesAreaManager';
 
 const data = [
     { month: 'January', sales: 1200, expenses: 800 },
@@ -272,5 +274,30 @@ describe('focusIndex', () => {
         await waitForChartStability(chart);
 
         expect(await readFocusOrder()).toEqual(['Delta', 'Alpha', 'Bravo', 'Charlie']);
+    });
+});
+
+describe('computeHighlightInViewport', () => {
+    const viewport = new BBox(0, 0, 100, 100);
+    const selectRectsKeepingGarbage = (...bounds: [number, number][]) => {
+        const selection = Selection.select(new Group(), Rect, false);
+        selection.update(bounds);
+        for (const { node, datum } of selection) {
+            const [x, y] = datum as [number, number];
+            node.setProperties({ x, y, width: 10, height: 10 });
+        }
+        return selection;
+    };
+
+    it('finds a highlighted node in the viewport', () => {
+        expect(computeHighlightInViewport(selectRectsKeepingGarbage([50, 50]), viewport)).toBe(true);
+        expect(computeHighlightInViewport(selectRectsKeepingGarbage([500, 500]), viewport)).toBe(false);
+    });
+
+    it('ignores nodes that are no longer highlighted', () => {
+        const selection = selectRectsKeepingGarbage([50, 50]);
+        selection.update([]);
+
+        expect(computeHighlightInViewport(selection, viewport)).toBeUndefined();
     });
 });

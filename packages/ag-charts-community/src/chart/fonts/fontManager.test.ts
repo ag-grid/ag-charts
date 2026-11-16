@@ -39,7 +39,7 @@ globalThis.ResizeObserver = MockResizeObserver;
 function createMockAnimationManager(active = false) {
     const listeners = new Set<() => void>();
     return {
-        isActive: () => active,
+        isBlocking: () => active,
         addListener: (_type: string, listener: () => void) => {
             listeners.add(listener);
             return () => listeners.delete(listener);

@@ -352,6 +352,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             },
             categoryKey: 'xValue',
             datumSelectionGarbageCollection: false,
+            animatesStyles: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -1285,8 +1286,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
-        if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to ensure we match up nodes by id.
+        if (this.matchNodesByPosition(datumSelection)) {
+            // Optimised update path for data too large to animate.
             return datumSelection.update(data);
         }
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
@@ -1397,14 +1398,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const crispCentreDirection = this.getCategoryCrispDirection();
 
-        const fillBBox = this.getShapeFillBBox();
         const { shadow, glow } = this.options;
+        const fillBBox = this.getShapeFillBBox();
 
         const series = this;
         datumSelection.each(function updateRangeBarNode(rect, datum) {
             const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const style = datum.style ?? contextNodeData.styles[highlightState];
-            rect.setStyleProperties(style, fillBBox);
+            series.setTargetStyle(rect, style, fillBBox);
 
             // Batched static property updates - write directly to backing fields to reduce markDirty() calls
             rect.setStaticProperties(

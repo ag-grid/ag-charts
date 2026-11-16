@@ -260,7 +260,8 @@ export function resetBarSelectionsFn(
  * Uses batchedUpdate to consolidate markDirty calls per selection.
  */
 export function resetBarSelectionsDirect<D extends AnimatableBarDatum & { crisp?: boolean }>(
-    selections: { nodes(): Iterable<Rect<D>>; cleanup(): void; batchedUpdate(fn: () => void): void }[]
+    selections: { nodes(): Iterable<Rect<D>>; cleanup(): void; batchedUpdate(fn: () => void): void }[],
+    { cleanup = true }: { cleanup?: boolean } = {}
 ): void {
     for (const selection of selections) {
         const nodes = selection.nodes();
@@ -280,8 +281,9 @@ export function resetBarSelectionsDirect<D extends AnimatableBarDatum & { crisp?
                 );
                 node.crisp = datum.crisp ?? false;
             }
-            // Important: cleanup garbage-collected nodes (same as resetMotion does)
-            selection.cleanup();
+            // Important: cleanup garbage-collected nodes (same as resetMotion does), unless another motion owns
+            // their removal.
+            if (cleanup) selection.cleanup();
         });
     }
 }

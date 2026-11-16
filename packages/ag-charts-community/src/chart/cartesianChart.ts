@@ -379,7 +379,7 @@ export class CartesianChartType implements ChartTypeInstance {
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
 
-        if (this.ctx.animationManager.isActive() && lastUpdateClipRect != null) {
+        if (this.ctx.animationManager.isBlocking() && lastUpdateClipRect != null) {
             this.ctx.animationManager.animate({
                 id,
                 groupId: 'clip-rect',

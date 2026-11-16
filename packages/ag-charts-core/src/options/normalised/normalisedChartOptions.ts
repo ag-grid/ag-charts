@@ -2,6 +2,7 @@ import type {
     AgAnimationOptions,
     AgAnnotationsOptions,
     AgChartBackground,
+    AgChartHighlightOptions,
     AgChartOptions,
     AgChartOverlayOptions,
     AgChartSyncOptions,
@@ -145,6 +146,11 @@ export type NormalisedSeriesAreaOptions = Omit<AgSeriesAreaOptions, 'border'> & 
     backgroundRegions?: NormalisedSeriesAreaBackgroundRegion[];
 };
 
+export type NormalisedChartHighlightOptions = AgChartHighlightOptions & {
+    // Undocumented: whether highlight changes fade (`'gradual'`) or snap (`'immediate'`, the default).
+    transitionMode?: 'immediate' | 'gradual';
+};
+
 export type ResolvedChartOptions = Omit<
     AgChartOptions,
     | 'animation'
@@ -156,6 +162,7 @@ export type ResolvedChartOptions = Omit<
     | 'flashOnUpdate'
     | 'footnote'
     | 'gradientLegend'
+    | 'highlight'
     | 'keyboard'
     | 'legend'
     | 'navigator'
@@ -181,6 +188,7 @@ export type ResolvedChartOptions = Omit<
     flashOnUpdate?: NormalisedFlashOnUpdateOptions;
     footnote?: NormalisedChartCaptionOptions;
     gradientLegend?: NormalisedGradientLegendOptions;
+    highlight?: NormalisedChartHighlightOptions;
     keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
     legend: NormalisedLegendOptions;
     navigator?: NormalisedNavigatorOptions;

@@ -18,8 +18,14 @@ export type AnimationMetadata = {
     skipIfNoEarlierAnimations?: boolean;
 };
 export const QUICK_TRANSITION = 0.2;
+/** Restyles of existing nodes, as a proportion of the animation duration: 300ms at the default 1s. */
+export const STYLE_TRANSITION = 0.3;
 
-export const PHASE_ORDER = ['initial', 'remove', 'update', 'add', 'trailing', 'end', 'none'] as const;
+/**
+ * `transition` animations restyle existing nodes, such as on a highlight change, once any other animations in their
+ * batch have played. Unlike the other phases they play when animations are disabled, and do not block interaction.
+ */
+export const PHASE_ORDER = ['initial', 'remove', 'update', 'add', 'trailing', 'end', 'transition', 'none'] as const;
 export type AnimationPhase = (typeof PHASE_ORDER)[number];
 export const PHASE_METADATA: Record<AnimationPhase, AnimationMetadata> = {
     initial: {
@@ -47,6 +53,10 @@ export const PHASE_METADATA: Record<AnimationPhase, AnimationMetadata> = {
         animationDelay: 1 + QUICK_TRANSITION,
         animationDuration: 0,
         skipIfNoEarlierAnimations: true,
+    },
+    transition: {
+        animationDuration: STYLE_TRANSITION,
+        animationDelay: 0,
     },
     none: {
         animationDuration: 0,
@@ -111,6 +121,7 @@ export interface IAnimation {
     readonly autoplay: boolean;
     readonly play: (initialUpdate?: boolean) => void;
     readonly stop: () => void;
+    readonly abandon: () => void;
     readonly update: (time: number) => number;
 }
 
@@ -219,6 +230,12 @@ export class Animation<T extends AnimationValue> implements IAnimation {
 
         // Initialise the animation immediately without requesting a frame to prevent flashes
         this.onUpdate?.(this.from!, true, this);
+    }
+
+    /** Ends the animation without `onStop`, for a successor that takes over from its current state. */
+    abandon() {
+        this.isPlaying = false;
+        this.isComplete = true;
     }
 
     stop() {

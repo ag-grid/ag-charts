@@ -89,7 +89,9 @@ export class BandHighlight extends AbstractModuleInstance {
             ctx.scene.attachNode(this.bandHighlightGroup),
             seriesBoundsWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
             seriesBoundsWidget.addListener('mouseleave', () => this.clearAllHighlight()),
-            animationManager.addListener('animation-start', () => this.clearAllHighlight()),
+            animationManager.addListener('animation-start', () => {
+                if (animationManager.isBlocking()) this.clearAllHighlight();
+            }),
             eventsHub.on('layout:complete', (event) => this.layout(event)),
             eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
             eventsHub.on('series:focus-change', () => this.onKeyPress()),

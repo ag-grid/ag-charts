@@ -590,6 +590,9 @@ export const commonChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBas
         drawingMode: union('overlay', 'cutout'),
         range: union('tooltip', 'node'),
         mode: union('single', 'shared'),
+        ...undocumentedDefs({
+            transitionMode: union('immediate', 'gradual'),
+        }),
     },
     overlays: {
         loading: chartOverlayOptionsDefs,

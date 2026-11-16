@@ -12,17 +12,22 @@ import {
     type Styler,
 } from 'ag-charts-community';
 import {
+    type ChartOrProxy,
     MIN_UNHIGHLIGHT_DELAY,
     type MockErrorBarStyler,
+    UNHIGHLIGHTED_SERIES,
     clickAction,
     compareImageSnapshot,
     computeLegendBBox,
     deproxy,
+    expectFade,
     getCursor,
+    getDatumCanvasBounds,
     getSeriesAt,
     getSeriesContextNodeData,
     hoverAction,
     newFreezableMock,
+    setupHighlightFade,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -1450,5 +1455,31 @@ describe('ErrorBars', () => {
                 await compare();
             });
         });
+    });
+});
+
+describe('ErrorBars highlight fade', () => {
+    // Bars from zero to 5, with whiskers up to 9: the sampled point is on the whisker, two units above the bar.
+    const whiskerPoint = (chart: ChartOrProxy<any>, seriesIndex: number, datumIndex: number) => {
+        const { x, y, width, height } = getDatumCanvasBounds(chart, seriesIndex, datumIndex);
+        return { x: x + width / 2, y: y - (2 * height) / 5 };
+    };
+    const { datum, shown, highlight, capture, create } = setupHighlightFade(createEnterpriseChart, whiskerPoint);
+
+    it('fades the error bars of a series with its items', async () => {
+        const errorBar = { yLowerKey: 'low', yUpperKey: 'high', stroke: '#000000', strokeWidth: 6 };
+        await create({
+            data: ['Q1', 'Q2', 'Q3'].map((category) => ({ category, a: 5, b: 5, low: 1, high: 9 })),
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left', min: 0, gridLine: { enabled: false } },
+            },
+            series: (['a', 'b'] as const).map((yKey) => ({ type: 'bar' as const, xKey: 'category', yKey, errorBar })),
+        });
+
+        highlight(datum(0, 1));
+        const trajectory = await capture(() => shown(1, 0));
+
+        expectFade(trajectory, 1, UNHIGHLIGHTED_SERIES);
     });
 });

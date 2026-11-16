@@ -1,6 +1,7 @@
 // Undocumented APIs used by Enterprise Modules.
 export * from './chart/test/axisAccessors';
 export * from './chart/test/seriesAccessors';
+export * from './chart/test/highlightFadeSuite';
 export * from './chart/test/utils';
 export * from './chart/test/axisTestCases';
 export * from './chart/test/random';

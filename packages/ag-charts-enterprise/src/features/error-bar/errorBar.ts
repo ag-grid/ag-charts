@@ -13,6 +13,7 @@ import {
     Selection,
     type SeriesPluginModuleInstance,
     datumKeyName,
+    easeOut,
     findMinMax,
     isDefined,
     mergeDefaults,
@@ -66,6 +67,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private processedData?: AnyProcessedData;
     // Resolved while the series anchors its labels, then drawn by the `data-update` that follows.
     private readonly anchoredStyles = new Map<ErrorBarNodeDatum, NormalisedErrorBarStyles>();
+    /** Whether the series restyles, so its restyle applies the group opacity, fading it with the series' shapes. */
+    private followsRestyle = false;
 
     constructor(private readonly ctx: _ModuleSupport.ChartSeriesRegistry) {
         super();
@@ -87,6 +90,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             series.events.on('data-processed', (e) => this.onDataProcessed(e)),
             series.events.on('data-update', (e) => this.onDataUpdate(e)),
             series.events.on('data-selection-change', (e) => this.onDataSelectionChange(e)),
+            series.events.on('restyle', (e) => this.onRestyle(e.animate)),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             () => this.groupNode.remove(),
             () => this.clearOverlays(),
@@ -371,7 +375,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private update() {
         this.groupNode.visible = this.cartesianSeries.visible;
         // Series-level dimming is expressed as group opacity, so it must be re-applied on every update.
-        this.groupNode.opacity = this.cartesianSeries.getOpacity();
+        if (!this.followsRestyle) this.groupNode.opacity = this.cartesianSeries.getOpacity();
         const nodeData = this.getNodeData();
         this.sceneSelection.update(nodeData ?? []);
         if (nodeData != null) {
@@ -524,7 +528,37 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             this.restyleHighlightChange(previousHighlight, this.getDefaultStyle(), false);
         }
 
-        this.groupNode.opacity = this.cartesianSeries.getOpacity();
+        if (!this.followsRestyle) this.groupNode.opacity = this.cartesianSeries.getOpacity();
+    }
+
+    private onRestyle(animate: boolean) {
+        this.followsRestyle = true;
+        const { animationManager } = this.ctx;
+        const id = `${this.groupNode.id}-opacity`;
+        animationManager.abandonAnimation(id);
+
+        const from = this.groupNode.opacity;
+        const to = this.cartesianSeries.getOpacity();
+        if (!animate || from === to) {
+            this.groupNode.opacity = to;
+            return;
+        }
+        const { groupNode } = this;
+        animationManager.animate({
+            id,
+            groupId: this.cartesianSeries.id,
+            phase: 'transition',
+            from,
+            to,
+            ease: easeOut,
+            collapsable: false,
+            onUpdate(opacity) {
+                groupNode.opacity = opacity;
+            },
+            onStop() {
+                groupNode.opacity = to;
+            },
+        });
     }
 
     private errorBarFactory(): ErrorBarNode {

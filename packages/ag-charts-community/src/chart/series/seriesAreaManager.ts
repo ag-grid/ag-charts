@@ -130,17 +130,20 @@ export interface SeriesAreaChartDependencies {
     overlays: ChartOverlays;
 }
 
-function computeHighlightInViewport(
+/** Whether any highlighted node is in `viewport`; `undefined` when nothing is highlighted. */
+export function computeHighlightInViewport(
     highlightSelection: HighlightSelectionUpdatedEvent['highlightSelection'],
     viewport: BBox
-): boolean {
-    for (const highlightSelectionEntry of highlightSelection) {
-        const highlightBBox = Transformable.toCanvas(highlightSelectionEntry.node);
-        if (highlightBBox.intersectsWith(viewport)) {
+): boolean | undefined {
+    let highlighted = false;
+    for (const { node } of highlightSelection) {
+        if (highlightSelection.isGarbage(node)) continue;
+        highlighted = true;
+        if (Transformable.toCanvas(node).intersectsWith(viewport)) {
             return true;
         }
     }
-    return false;
+    return highlighted ? false : undefined;
 }
 
 /** Nodes without a datum index cannot be identified by a context-menu item action, so they are dropped. */
@@ -444,6 +447,8 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onAnimationStart(): void {
+        // A batch of only `transition` animations is the fade of the current highlight.
+        if (!this.chart.ctx.animationManager.isBlocking()) return;
         if (this.getHoverDevice() !== 'setState' && this.activeState.lastActive !== 'legend') {
             this.clearAll();
         }
@@ -630,7 +635,7 @@ export class SeriesAreaManager extends BaseManager {
             return; // already handled natively by 'keydown' listener
         }
         // Skip any playing animations
-        if (current === this.chart.ctx.widgets.seriesWidget && this.chart.ctx.animationManager.isActive()) {
+        if (current === this.chart.ctx.widgets.seriesWidget && this.chart.ctx.animationManager.isBlocking()) {
             this.chart.ctx.animationManager.skipCurrentBatch();
         }
 
@@ -1171,7 +1176,9 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (this.getFocusIndicator()?.isFocusVisible()) {
-            this.chart.ctx.animationManager.reset();
+            if (this.chart.ctx.animationManager.reset()) {
+                this.update(ChartUpdateType.SCENE_RENDER);
+            }
 
             const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
@@ -1462,7 +1469,9 @@ export class SeriesAreaManager extends BaseManager {
         if (!event || !this.isState(InteractionState.Hoverable)) return;
 
         const { canvasX, canvasY } = event;
-        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
+        if (
+            redisplay ? this.chart.ctx.animationManager.isBlocking() : !this.hoverRect?.containsPoint(canvasX, canvasY)
+        ) {
             this.clearHighlight();
             return;
         }
@@ -1495,7 +1504,9 @@ export class SeriesAreaManager extends BaseManager {
 
         const { canvasX, canvasY } = event;
         const targetElement = event.sourceEvent.target as HTMLElement;
-        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
+        if (
+            redisplay ? this.chart.ctx.animationManager.isBlocking() : !this.hoverRect?.containsPoint(canvasX, canvasY)
+        ) {
             if (this.getHoverDevice() == 'pointer') this.clearTooltip();
             return;
         }
@@ -1589,11 +1600,12 @@ export class SeriesAreaManager extends BaseManager {
             suppressionChanged ||
             sharedHighlight
         ) {
-            this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
+            this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true, restyleOnly: true });
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, {
                 seriesToUpdate: new Set([lastSeries, newSeries].filter(Boolean)),
                 clearCallbackCache: true,
+                restyleOnly: true,
             });
         }
     }
@@ -1605,12 +1617,10 @@ export class SeriesAreaManager extends BaseManager {
             this.activeState.highlightInViewport = true;
             return;
         }
-        if (event.highlightSelection.length === 0) {
-            return;
+        const highlightInViewport = computeHighlightInViewport(event.highlightSelection, this.seriesRect);
+        if (highlightInViewport != null) {
+            this.activeState.highlightInViewport = highlightInViewport;
         }
-
-        const highlightInViewport: boolean = computeHighlightInViewport(event.highlightSelection, this.seriesRect);
-        this.activeState.highlightInViewport = highlightInViewport;
     }
 
     private pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly?: boolean): PickedNodes | undefined {

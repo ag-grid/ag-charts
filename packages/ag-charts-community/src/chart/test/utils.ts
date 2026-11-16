@@ -1501,6 +1501,57 @@ export function focusIndicatorContainsCanvasPoint(chart: ChartOrProxy, point: Re
 export const MIN_UNHIGHLIGHT_DELAY = 150;
 export const MIN_TOOLTIP_HIDE_DELAY = 150;
 
+/**
+ * Make `transition` animations snap to their end, as they otherwise run on jsdom's `requestAnimationFrame` and leave
+ * snapshots mid-animation. Called by the test setup; suites that test them opt back in with
+ * {@link playTransitionAnimations}.
+ */
+export function snapTransitionAnimationsByDefault() {
+    AnimationManager.prototype.isTransitionSkipped = function () {
+        return true;
+    };
+}
+
+/** Lets `transition` animations play in the calling suite, as they do in a browser. */
+export function playTransitionAnimations() {
+    let restore: (() => void) | undefined;
+    beforeEach(() => {
+        const spy = vi.spyOn(AnimationManager.prototype, 'isTransitionSkipped').mockReturnValue(false);
+        restore = () => spy.mockRestore();
+    });
+    afterEach(() => restore?.());
+}
+
+/** Expects `trajectory` to run from `from` to `to` through at least one value between, never turning back. */
+export function expectFade(trajectory: readonly number[], from: number, to: number) {
+    expect(trajectory[0]).toBe(from);
+    expect(trajectory.at(-1)).toBe(to);
+    for (let i = 1; i < trajectory.length; i++) {
+        const step = trajectory[i] - trajectory[i - 1];
+        expect(Math.sign(step) === Math.sign(to - from) || step === 0).toBe(true);
+    }
+    expect(trajectory.some((value) => value !== from && value !== to)).toBe(true);
+}
+
+/** The RGBA of the device pixel at canvas coordinates (`x`, `y`) as the chart last rendered it. */
+export function renderedPixelAt(chartOrProxy: ChartOrProxy<any>, x: number, y: number): number[] {
+    const { pixelRatio } = deproxy(chartOrProxy).ctx.scene.canvas;
+    return chartPixelAt(chartOrProxy, Math.floor(x * pixelRatio), Math.floor(y * pixelRatio));
+}
+
+/**
+ * The opacity at which `pixel` shows a colour that renders as `opaque` at full opacity over `background`, read from
+ * the channel where the two differ most, to two decimal places.
+ */
+export function shownOpacity(pixel: readonly number[], opaque: readonly number[], background: readonly number[]) {
+    let channel = 0;
+    for (let i = 1; i < 3; i++) {
+        if (Math.abs(background[i] - opaque[i]) > Math.abs(background[channel] - opaque[channel])) channel = i;
+    }
+    const opacity = (background[channel] - pixel[channel]) / (background[channel] - opaque[channel]);
+    return Math.round(opacity * 100) / 100;
+}
+
 let activeAnimateCb: ((totalDuration: number, ratio: number) => void) | undefined;
 export function spyOnAnimationManager() {
     const mocks: { mockRestore: () => void }[] = [];
@@ -1685,6 +1736,7 @@ export function spyOnAnimationFrames() {
             frames = 30,
             duration = 1600,
             onFrame,
+            rendered = false,
         }: {
             frames?: number;
             duration?: number;
@@ -1694,11 +1746,17 @@ export function spyOnAnimationFrames() {
              * interrupted batch has re-scheduled before the next frame fires.
              */
             onFrame?: (frameIndex: number) => void | Promise<void>;
+            /** Samples once the chart has rendered each frame, for samplers that read the canvas. */
+            rendered?: boolean;
         } = {}
     ): Promise<T[] & PhasedTrajectory> => {
         await settle(chartOrProxy);
         const step = duration / frames;
-        const samples: T[] = [sampler()];
+        const sample = async () => {
+            if (rendered) await deproxy(chartOrProxy).waitForUpdate();
+            return sampler();
+        };
+        const samples: T[] = [await sample()];
         const phaseIntervals: AnimationPhase[][] = [];
         for (let i = 0; i < frames; i++) {
             await onFrame?.(i);
@@ -1710,7 +1768,7 @@ export function spyOnAnimationFrames() {
             phaseIntervals.push(
                 from >= PHASE_ORDER.length ? [] : PHASE_ORDER.slice(from, Math.min(to, PHASE_ORDER.length - 1) + 1)
             );
-            samples.push(sampler());
+            samples.push(await sample());
         }
         return Object.assign(samples, { phaseIntervals });
     };
