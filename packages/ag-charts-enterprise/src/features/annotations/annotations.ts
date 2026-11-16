@@ -5,7 +5,6 @@ import {
     type AgAnnotationLineStyleType,
     type AgAnnotationsEventSource,
     type Direction,
-    VERSION,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -126,10 +125,6 @@ export class Annotations extends AbstractModuleInstance {
 
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
-    private colorPickerSnapshot?: {
-        annotations: AgAnnotation[];
-        defaults: ReturnType<AnnotationDefaults['createMemento']>;
-    };
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -917,16 +912,14 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private endColorPickerSession(label: string, cancelled: boolean) {
-        const snapshot = this.colorPickerSnapshot;
-        this.colorPickerSnapshot = undefined;
-
-        if (!cancelled) {
-            this.recordActionAfterNextUpdate(label, ['annotations', 'defaults']);
-            this.update();
-        } else if (snapshot) {
-            this.defaults.restoreMemento(VERSION, VERSION, snapshot.defaults);
-            this.ctx.annotationManager?.restoreMemento(VERSION, VERSION, snapshot.annotations, 'user-interaction');
+        const { defaults, ctx } = this;
+        if (cancelled) {
+            if (ctx.annotationManager) ctx.historyManager.revert(defaults, ctx.annotationManager);
+            return;
         }
+
+        this.recordActionAfterNextUpdate(label, ['annotations', 'defaults']);
+        this.update();
     }
 
     private setColorAndDefault(
@@ -937,11 +930,6 @@ export class Annotations extends AbstractModuleInstance {
         opacity: number,
         isMultiColor: boolean
     ) {
-        // Cancelling restores this snapshot directly, as undo would drop the redo history.
-        this.colorPickerSnapshot ??= {
-            annotations: this.annotationData.map(serialiseAnnotation) as AgAnnotation[],
-            defaults: this.defaults.createMemento(),
-        };
         this.state.transition('color', { colorPickerType, colorOpacity, color, opacity, isMultiColor });
         this.defaults.setDefaultColor(datumType, colorPickerType, colorOpacity, color, opacity, isMultiColor);
     }
