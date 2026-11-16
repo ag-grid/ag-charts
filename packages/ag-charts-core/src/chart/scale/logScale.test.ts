@@ -150,6 +150,26 @@ describe('LogScale', () => {
         }
     });
 
+    it('converts values outside the domain beyond the range, and zero to the range edge', () => {
+        const scale = new LogScale([10, 1000]);
+        expect(scale.convert(1)).toBeCloseTo(-0.5);
+        expect(scale.convert(10000)).toBeCloseTo(1.5);
+        expect(scale.convert(0)).toBe(0);
+        expect(scale.convert(1, { clamp: true })).toBe(0);
+    });
+
+    it('spaces ticks on a non-nice domain as if values outside it were clamped', () => {
+        const scale = new LogScale([3, 700]);
+        const params = {
+            nice: [false, false],
+            interval: undefined,
+            tickCount: 5,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+        expect(scale.ticks(params)?.ticks).toEqual([3, 10, 30, 100]);
+    });
+
     test('base', () => {
         const expTicks = {
             ticks: [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351],

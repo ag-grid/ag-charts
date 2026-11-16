@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import { findMinMax, findRangeExtent } from '../../data/numberArray';
 import { isInteger } from '../../data/numbers';
 import { createTicks, isDenseInterval, range } from '../../time/ticks';
@@ -32,6 +34,8 @@ function pow(base: number, domain: number[], x: number) {
     return start >= 0 ? fn(base, x) : -fn(base, -x);
 }
 
+const CLAMP = { clamp: true };
+
 export class LogScale extends ContinuousScale<number> {
     static override is(value: unknown): value is LogScale {
         return value instanceof LogScale;
@@ -39,11 +43,15 @@ export class LogScale extends ContinuousScale<number> {
 
     readonly type = 'log';
 
-    // Handling <1 and crossing 0 cases is tricky, easiest solution is to default to clamping.
-    protected override defaultClamp: boolean = true;
-
     public constructor(d: number[] = [1, 10], r: number[] = [0, 1]) {
         super(d, r);
+    }
+
+    override convert(value: AgNumericValue, options?: { clamp?: boolean }) {
+        const position = super.convert(value, options);
+        if (options?.clamp != null || Number.isFinite(position)) return position;
+        // Zero transforms to an infinity, so it falls back to the range edge.
+        return super.convert(value, CLAMP);
     }
 
     override transform(this: LogScale, x: number) {
@@ -136,11 +144,11 @@ export class LogScale extends ContinuousScale<number> {
         const availableSpacing = findRangeExtent(this.range) / tickCount;
         let lastTickPosition = Infinity;
         for (let p = p0; p <= p1; p++) {
-            const nextMagnitudeTickPosition = this.convert(this.pow(p + 1));
+            const nextMagnitudeTickPosition = this.convert(this.pow(p + 1), CLAMP);
             for (let k = 1; k < base; k++) {
                 const q = isPositive ? k : base - k + 1;
                 const t = this.pow(p) * q;
-                const tickPosition = this.convert(t);
+                const tickPosition = this.convert(t, CLAMP);
                 const prevSpacing = Math.abs(lastTickPosition - tickPosition);
                 const nextSpacing = Math.abs(tickPosition - nextMagnitudeTickPosition);
                 const fits = prevSpacing >= availableSpacing && nextSpacing >= availableSpacing;
