@@ -444,6 +444,13 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
       "yName": "Company 1",
     },
   ],
+]
+`;
+
+exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 5`] = `[]`;
+
+exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
+[
   [
     {
       "candidateState": undefined,
@@ -487,56 +494,6 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
       "yName": "Company 2",
     },
   ],
-  [
-    {
-      "candidateState": undefined,
-      "cap": {
-        "lengthRatio": 0.5,
-      },
-      "cornerRadius": 0,
-      "fill": "#fee5bb",
-      "fillOpacity": 1,
-      "highlightState": "unhighlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "maxKey": "s2_max",
-      "maxName": "s2_max",
-      "medianKey": "s2_median",
-      "medianName": "s2_median",
-      "minKey": "s2_min",
-      "minName": "s2_min",
-      "q1Key": "s2_q1",
-      "q1Name": "s2_q1",
-      "q3Key": "s2_q3",
-      "q3Name": "s2_q3",
-      "selectionState": undefined,
-      "seriesId": "BoxPlotSeries-2",
-      "stroke": "#b07513",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-      "whisker": {
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 2,
-      },
-      "xKey": "role",
-      "xName": "role",
-      "yName": "Company 2",
-    },
-  ],
-]
-`;
-
-exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 5`] = `[]`;
-
-exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
-[
   [
     {
       "candidateState": undefined,

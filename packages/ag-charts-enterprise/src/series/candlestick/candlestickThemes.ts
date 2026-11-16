@@ -1,6 +1,5 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams } from 'ag-charts-community';
 import {
-    CARTESIAN_AXIS_TYPE,
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
@@ -15,6 +14,8 @@ import {
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
+
+import { FINANCIAL_SERIES_AXES_THEME } from '../../features/crosshair/crosshairThemes';
 
 function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemOptions> {
     return {
@@ -61,12 +62,5 @@ export const CANDLESTICK_SERIES_THEME: ExtensibleSeriesTheme<'candlestick'> = {
         selection: SERIES_SELECTION_THEME,
     },
     animation: { enabled: false },
-    axes: {
-        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
-            groupPaddingInner: 0,
-            crosshair: {
-                enabled: true,
-            },
-        },
-    },
+    axes: FINANCIAL_SERIES_AXES_THEME,
 };
