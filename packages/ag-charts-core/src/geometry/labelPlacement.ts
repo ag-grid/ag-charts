@@ -731,6 +731,7 @@ interface PooledLabelObstacle {
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
 const obstacleIndex = new SpatialIndex<LabelObstacle>();
 const markerPool: PooledCircleObstacle[] = [];
+let markerPoolUsed = 0;
 const labelObstaclePool: PooledLabelObstacle[] = [];
 const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // Broad-phase query box: the candidate inflated by the positive part of the collision threshold, a
@@ -1354,6 +1355,18 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
             obstacleIndex.insert(obstacle.box, obstacle);
         }
     }
+    markerPoolUsed = markerCount;
+}
+
+/** Drops the datum references the module-scoped scratch state took during a pass, so it never pins user data. */
+function releaseDatumReferences() {
+    for (let i = 0; i < markerPoolUsed; i++) {
+        markerPool[i].datum = undefined;
+    }
+    markerPoolUsed = 0;
+    candidateDatum = undefined;
+    floorCache.fit = undefined;
+    floorCache.font = undefined;
 }
 
 /** True if any series has labels to place; gates the per-update sort and obstacle-index build. */
@@ -1473,6 +1486,23 @@ export function placeLabels(
         ])
     );
 
+    try {
+        placeAll(placementData, result, padding, bounds, obstacles);
+    } finally {
+        releaseDatumReferences();
+    }
+    return result;
+}
+
+type PlacementSeries = SeriesLabels & { readonly order: number };
+
+function placeAll(
+    placementData: Map<string, PlacementSeries>,
+    result: Map<string, PlacedLabel[]>,
+    padding: number,
+    bounds: BoxBounds,
+    obstacles: LabelObstacles
+) {
     // Common keep-only case (line/area/bar with a single placement): no label queries the index, so
     // building it and seeding it with obstacles is wasted work.
     const useIndex = !noLabelQueriesIndex(placementData);
@@ -1509,8 +1539,6 @@ export function placeLabels(
 
         result.set(seriesId, labels);
     }
-
-    return result;
 }
 
 /**
