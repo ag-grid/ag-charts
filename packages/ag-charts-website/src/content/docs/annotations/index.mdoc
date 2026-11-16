@@ -58,6 +58,48 @@ In the above example:
 - Only the Text Annotations and Delete button are available.
 - The order of these is switched.
 
+## Magnet
+
+The magnet snaps the points of a drawing or annotation to the values of the nearest data point, such as the open, high, low and close of a candlestick, or the value of a line series. The pointer does not move: the drawing is placed as if it were at the value. Only the vertical position is affected, as drawings already snap to the nearest data point horizontally.
+
+The `magnet.mode` option sets how strongly points snap:
+
+- `'off'` never snaps. This is the default.
+- `'weak'` snaps only when the pointer is within `magnet.range` pixels of a value. The range defaults to `20`.
+- `'strong'` always snaps to the nearest value.
+
+The magnet applies when creating a drawing and when dragging its handles, on any cartesian series type.
+
+```js format="snippet"
+{
+    annotations: {
+        enabled: true,
+        magnet: {
+            mode: 'weak',
+            range: 30,
+        },
+    },
+}
+```
+
+The Financial Charts preset adds a magnet button to the toolbar, which switches the magnet on and off. On other charts, add the button to the `toolbar.buttons` array:
+
+```js format="snippet"
+{
+    annotations: {
+        enabled: true,
+        toolbar: {
+            buttons: [
+                { icon: 'magnet', tooltip: 'toolbarAnnotationsMagnet', value: 'magnet' },
+                // ...
+            ],
+        },
+    },
+}
+```
+
+Holding {% kbd "^ Ctrl"/%} or {% kbd "⌘ Cmd"/%} whilst creating a drawing or dragging a handle inverts the magnet: it snaps when it is off, and does not snap when it is on.
+
 ## Keyboard Shortcuts
 
 Drawings and annotations can be created without a pointer:
@@ -75,6 +117,7 @@ The following keyboard shortcuts can also be used.
 - Arrow keys ({% kbd "←"/%} {% kbd "↑"/%} {% kbd "→"/%} {% kbd "↓"/%}) will move the selected drawing or annotation by 1 pixel.  
   Use in combination with {% kbd "^ Ctrl"/%} or {% kbd "⇧ Shift"/%} to move by 10 pixels.
 - Holding down {% kbd "⇧ Shift"/%} whilst creating a drawing or dragging a handle will snap it to the nearest 45° angle.
+- Holding down {% kbd "^ Ctrl"/%} or {% kbd "⌘ Cmd"/%} whilst creating a drawing or dragging a handle will invert the [magnet](#magnet).
 
 ## Save & Restore
 
