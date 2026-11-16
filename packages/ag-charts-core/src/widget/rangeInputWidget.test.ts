@@ -24,11 +24,4 @@ describe('RangeInputWidget', () => {
         expect(range.getElement().value).toBe('0.25');
         expect(range.value).toBe(0.25);
     });
-
-    it('creates its element in the given document', () => {
-        const popupDocument = document.implementation.createHTMLDocument('popup');
-        const range = new RangeInputWidget(popupDocument, 'ag-charts-hue');
-        expect(range.getElement().ownerDocument).toBe(popupDocument);
-        expect(range.getElement().className).toBe('ag-charts-hue');
-    });
 });

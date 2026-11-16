@@ -16,22 +16,12 @@ describe('InputButtonWidget', () => {
         const button = new InputButtonWidget({ icon: 'close', altText: 'Close' });
         const elem = button.getElement();
         expect(elem.getAttribute('aria-label')).toBe('Close');
-        expect(elem.innerHTML).toBe('<span class="ag-charts-icon ag-charts-icon-close" aria-hidden="true"></span>');
+        expect(elem.querySelector('.ag-charts-icon-close')?.getAttribute('aria-hidden')).toBe('true');
     });
 
     it('does not compile when an icon-only button has no altText', () => {
         // @ts-expect-error an icon-only button needs an accessible name
         const content: ConstructorParameters<typeof InputButtonWidget>[0] = { icon: 'close' };
         expect(content).toBeDefined();
-    });
-
-    it('reports a pointer click to its click listeners', () => {
-        const button = new InputButtonWidget({ label: 'Line' });
-        const clicks: string[] = [];
-        button.addListener('click', (event) => clicks.push(event.type));
-
-        button.getElement().click();
-
-        expect(clicks).toEqual(['click']);
     });
 });

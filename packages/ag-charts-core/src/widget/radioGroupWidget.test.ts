@@ -4,11 +4,7 @@ import { InputButtonWidget } from './inputButtonWidget';
 import { LabelWidget } from './labelWidget';
 import { RadioGroupWidget } from './radioGroupWidget';
 import { TabListWidget } from './tabListWidget';
-
-function pressKey(widget: InputButtonWidget, key: string) {
-    const event = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key });
-    widget.getElement().dispatchEvent(event);
-}
+import { pressKey } from './test/openerFixtures';
 
 describe('RadioGroupWidget', () => {
     afterEach(() => {
