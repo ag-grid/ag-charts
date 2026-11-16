@@ -60,7 +60,7 @@ import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET_RANGE, applyMagnet, resolveMagnetMode } from './utils/magnet';
-import { createMagnetSeries } from './utils/magnetSeries';
+import { getMagnetPositions } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
@@ -207,10 +207,10 @@ export class Annotations extends AbstractModuleInstance {
         if (mode == null || !yAxis?.context.continuous) return offset;
 
         const seriesIds = yAxis.context.seriesIds();
-        const series = this.ctx.chartService.series
+        const positions = this.ctx.chartService.series
             .filter((s) => s.visible && seriesIds.includes(s.id))
-            .map((s) => createMagnetSeries(s, yAxis.context.scale));
-        return applyMagnet(offset, series, mode, this.magnetRange);
+            .flatMap((s) => getMagnetPositions(s, offset, yAxis.context.scale));
+        return applyMagnet(offset, positions, mode, this.magnetRange);
     };
 
     private setupStateMachine() {

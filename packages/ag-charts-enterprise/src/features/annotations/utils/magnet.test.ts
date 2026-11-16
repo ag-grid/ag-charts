@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { magnetTranslation } from './coords';
-import { type MagnetSeries, applyMagnet, nearestMagnetPosition, resolveMagnetMode } from './magnet';
+import { applyMagnet, nearestMagnetPosition, resolveMagnetMode } from './magnet';
 
 describe('resolveMagnetMode', () => {
     it.each([
@@ -36,34 +36,26 @@ describe('nearestMagnetPosition', () => {
 });
 
 describe('applyMagnet', () => {
-    // A candlestick at x = 100 with open, high, low and close values.
-    const candlesticks: MagnetSeries<number> = {
-        pickNearest: ({ x }) => (Math.abs(x - 100) <= 30 ? 100 : undefined),
-        yPositions: () => [20, 50, 120, 80],
-    };
+    // The open, high, low and close of a candlestick, as positions in the series area.
+    const positions = [20, 50, 120, 80];
 
     it('only changes the vertical position', () => {
-        expect(applyMagnet({ x: 93, y: 82 }, [candlesticks], 'weak')).toEqual({ x: 93, y: 80 });
+        expect(applyMagnet({ x: 93, y: 82 }, positions, 'weak')).toEqual({ x: 93, y: 80 });
     });
 
     it('leaves the point alone when there is no mode or it is out of range', () => {
         const offset = { x: 93, y: 82 };
-        expect(applyMagnet(offset, [candlesticks], undefined)).toBe(offset);
-        expect(applyMagnet({ x: 93, y: 100 }, [candlesticks], 'weak', 5)).toEqual({ x: 93, y: 100 });
+        expect(applyMagnet(offset, positions, undefined)).toBe(offset);
+        expect(applyMagnet({ x: 93, y: 100 }, positions, 'weak', 5)).toEqual({ x: 93, y: 100 });
     });
 
     it('snaps from any distance when strong', () => {
-        expect(applyMagnet({ x: 93, y: 300 }, [candlesticks], 'strong')).toEqual({ x: 93, y: 120 });
+        expect(applyMagnet({ x: 93, y: 300 }, positions, 'strong')).toEqual({ x: 93, y: 120 });
     });
 
-    it('leaves the point alone when no series has a datum nearby', () => {
+    it('leaves the point alone when there is nothing to snap to', () => {
         const offset = { x: 500, y: 82 };
-        expect(applyMagnet(offset, [candlesticks], 'strong')).toBe(offset);
-    });
-
-    it('snaps to the nearest value across series', () => {
-        const line: MagnetSeries<number> = { pickNearest: () => 1, yPositions: () => [70] };
-        expect(applyMagnet({ x: 93, y: 68 }, [candlesticks, line], 'weak')).toEqual({ x: 93, y: 70 });
+        expect(applyMagnet(offset, [], 'strong')).toBe(offset);
     });
 });
 
