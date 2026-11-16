@@ -52,6 +52,9 @@ const SIGNED_DATA = [
     { k: 'D', a: 20, b: 10, c: -10 },
 ];
 
+// Every column has one sign only.
+const NEGATIVE_DATA = DATA.map(({ k, a, b, c }) => ({ k, a: -a, b: -b, c: -c }));
+
 const HIDDEN = { enabled: false };
 
 interface StackOptions {
@@ -144,10 +147,11 @@ describe('bar series gap', () => {
         { k: 'B', a: 15, aF: 15, b: 15, bF: 5 },
     ];
 
-    function crossFilterOptions(gap: number) {
+    /** `signed` leaves the value axis to cover both sides of the axis, in place of starting it at 0. */
+    function crossFilterOptions(gap: number, data: object[] = CROSS_FILTER_DATA, signed = false) {
         return {
-            ...stackOptions({ gaps: [gap, gap], min: 0 }),
-            data: CROSS_FILTER_DATA,
+            ...stackOptions({ gaps: [gap, gap], data, min: signed ? undefined : 0 }),
+            data,
             series: [
                 ['a', 'aF', '#ff0000'],
                 ['b', 'bF', '#00ff00'],
@@ -158,6 +162,18 @@ describe('bar series gap', () => {
                 )
             ),
         } as AgCartesianChartOptions;
+    }
+
+    /** The [top, bottom] canvas edges of the drawn clip of each bar and its phantom bar, by series then column. */
+    function readClipEdges() {
+        const edges = (box: { y: number; height: number } | undefined) => [box!.y, box!.y + box!.height];
+        return [0, 1].map((i) => {
+            const { nodeData, phantomNodeData } = getBarSeriesContextNodeData(chart!, i);
+            return nodeData.map((node, d) => ({
+                node: edges(node.clipBBox),
+                phantom: edges(phantomNodeData[d].clipBBox),
+            }));
+        });
     }
 
     /**
@@ -195,11 +211,12 @@ describe('bar series gap', () => {
 
     /**
      * What `runs` should become when each run's edges that touch a neighbour are pulled in by half that run's gap.
-     * Runs are in baseline-outwards order. `outwardIsHigher` says whether outwards is towards higher pixels.
+     * Runs are in baseline-outwards order, and the first one touches a neighbour at the baseline when `axisNeighbour`.
+     * `outwardIsHigher` says whether outwards is towards higher pixels.
      */
-    function insetRuns(runs: Run[], gaps: number[], outwardIsHigher: boolean): Run[] {
+    function insetRuns(runs: Run[], gaps: number[], outwardIsHigher: boolean, axisNeighbour: boolean): Run[] {
         return runs.map((run, i) => {
-            const inner = i > 0 ? gaps[i] / 2 : 0;
+            const inner = i > 0 || axisNeighbour ? gaps[i] / 2 : 0;
             const outer = i < runs.length - 1 ? gaps[i] / 2 : 0;
             return outwardIsHigher
                 ? { ...run, start: run.start + inner, end: run.end - outer }
@@ -209,13 +226,24 @@ describe('bar series gap', () => {
 
     /**
      * Asserts that a gapped render is the no-gap render with every neighbouring edge pulled in by half its segment's
-     * gap, so the baseline and the end of the stack stay on their true values.
+     * gap, so the end of the stack stays on its true value, and so does the baseline unless a segment on the other side
+     * of the axis is its neighbour (`axisNeighbour`).
      */
-    function expectInsetOf(base: Run[], gapped: Run[], gaps: number[], direction: Direction, positive = true) {
+    function expectInsetOf(
+        base: Run[],
+        gapped: Run[],
+        gaps: number[],
+        direction: Direction,
+        positive = true,
+        axisNeighbour = false
+    ) {
         const outwardIsHigher = (direction === 'vertical') !== positive;
-        const expected = insetRuns(fromBaseline(base, direction, positive), gaps, outwardIsHigher).filter(
-            (r) => r.end > r.start
-        );
+        const expected = insetRuns(
+            fromBaseline(base, direction, positive),
+            gaps,
+            outwardIsHigher,
+            axisNeighbour
+        ).filter((r) => r.end > r.start);
         expect(fromBaseline(gapped, direction, positive)).toEqual(expected);
     }
 
@@ -288,31 +316,96 @@ describe('bar series gap', () => {
         });
 
         it.each(['vertical', 'horizontal'] as const)(
-            '%s: AC6 negative and positive stacks are separated alike and the edge on the axis does not move',
+            '%s: AC6 a stack with negative values is separated like one with positive values and its axis edge does not move',
+            async (direction) => {
+                await open(stackOptions({ gaps: [0, 0, 0], direction, data: NEGATIVE_DATA }));
+                const base = [0, 1, 2, 3].map((c) => runsThrough(direction, c));
+                expect(base.map((r) => r.length)).toEqual([3, 3, 3, 3]);
+
+                await update(stackOptions({ gaps: [4, 4, 4], direction, data: NEGATIVE_DATA }));
+                for (const category of [0, 1, 2, 3]) {
+                    const gapped = runsThrough(direction, category);
+                    expect(gapsBetween(gapped)).toEqual([4, 4]);
+                    expectInsetOf(base[category], gapped, [4, 4, 4], direction, false);
+                }
+            }
+        );
+
+        /** The runs of the series with a positive (or a negative) value in `row`, from the baseline outwards. */
+        const sideOf = (runs: Run[], row: Record<string, unknown>, positive: boolean) =>
+            runs.filter((r) => KEYS.some((k, i) => (row[k] as number) > 0 === positive && RGB[i] === r.rgb));
+
+        it.each(['vertical', 'horizontal'] as const)(
+            '%s: a column with segments on both sides of the axis has a gap centred on the axis',
             async (direction) => {
                 await open(stackOptions({ gaps: [0, 0, 0], direction, data: SIGNED_DATA }));
                 const base = [0, 1, 2, 3].map((c) => runsThrough(direction, c));
+                expect(base.map((r) => r.length)).toEqual([3, 3, 3, 3]);
 
                 await update(stackOptions({ gaps: [4, 4, 4], direction, data: SIGNED_DATA }));
                 for (const [category, row] of SIGNED_DATA.entries()) {
                     const gapped = runsThrough(direction, category);
-                    const values = KEYS.map((k) => (row as Record<string, number | string>)[k] as number);
+                    // Between every pair of neighbours, the axis included, there are 4px.
+                    expect(gapsBetween(gapped)).toEqual([4, 4]);
                     for (const positive of [true, false]) {
-                        // The runs of the series on this side of the axis, from the baseline outwards.
-                        const onSide = (runs: Run[]) =>
-                            runs.filter((r) => values.some((v, i) => v > 0 === positive && RGB[i] === r.rgb));
-                        const side = onSide(base[category]);
+                        // Each side pulls its axis edge in by 2px and its far end stays on its true value.
+                        const side = sideOf(base[category], row, positive);
                         expectInsetOf(
                             side,
-                            onSide(gapped),
+                            sideOf(gapped, row, positive),
                             side.map(() => 4),
                             direction,
-                            positive
+                            positive,
+                            true
                         );
                     }
                 }
             }
         );
+
+        it.each(['vertical', 'horizontal'] as const)(
+            '%s: a gap of 4 beside a gap of 0 across the axis leaves 2px',
+            async (direction) => {
+                await open(stackOptions({ gaps: [0, 0, 0], direction, data: SIGNED_DATA }));
+                // The series next to the axis on each side, and so the pair that is separated across it.
+                const nextToAxis = (row: Record<string, unknown>) =>
+                    [true, false].map((positive) => KEYS.findIndex((k) => (row[k] as number) > 0 === positive));
+
+                for (const gaps of [
+                    [4, 0, 0],
+                    [0, 4, 0],
+                    [0, 0, 4],
+                    [4, 0, 4],
+                ]) {
+                    await update(stackOptions({ gaps, direction, data: SIGNED_DATA }));
+                    for (const [category, row] of SIGNED_DATA.entries()) {
+                        const runs = runsThrough(direction, category);
+                        const [above, below] = nextToAxis(row).map((i) => runs.find((r) => r.rgb === RGB[i])!);
+                        const [a, b] = nextToAxis(row);
+                        expect(
+                            Math.max(above.start - below.end, below.start - above.end),
+                            `gaps ${gaps}, column ${category}`
+                        ).toBe((gaps[a] + gaps[b]) / 2);
+                    }
+                }
+            }
+        );
+
+        it('a stack with segments on one side of the axis only leaves its axis edge where it is, in a mixed chart', async () => {
+            // Column B has one sign only, though the chart has segments on both sides of the axis.
+            const data = [
+                { k: 'A', a: 10, b: -20, c: -30 },
+                { k: 'B', a: 15, b: 15, c: 15 },
+                { k: 'C', a: -5, b: -25, c: -20 },
+                { k: 'D', a: 20, b: -10, c: 10 },
+            ];
+            await open(stackOptions({ gaps: [0, 0, 0], data }));
+            const base = [1, 2].map((c) => runsThrough('vertical', c));
+
+            await update(stackOptions({ gaps: [4, 4, 4], data }));
+            expectInsetOf(base[0], runsThrough('vertical', 1), [4, 4, 4], 'vertical', true);
+            expectInsetOf(base[1], runsThrough('vertical', 2), [4, 4, 4], 'vertical', false);
+        });
 
         it('AC7: a normalised stack separates segments like any other stack', async () => {
             await open(stackOptions({ gaps: [0, 0, 0], normalizedTo: 100 }));
@@ -328,6 +421,28 @@ describe('bar series gap', () => {
             for (const category of [0, 1, 2, 3]) {
                 expect(runsThrough('vertical', category).at(-1)!.end).toBe(ctx.snapshot().height);
                 expect(runsThrough('vertical', category)[0].start).toBe(0);
+            }
+        });
+
+        it('a normalised stack with segments on both sides of the axis has a gap centred on the axis', async () => {
+            await open(stackOptions({ gaps: [0, 0, 0], normalizedTo: 100, data: SIGNED_DATA }));
+            const base = [0, 1, 2, 3].map((c) => runsThrough('vertical', c));
+
+            await update(stackOptions({ gaps: [4, 4, 4], normalizedTo: 100, data: SIGNED_DATA }));
+            for (const [category, row] of SIGNED_DATA.entries()) {
+                const gapped = runsThrough('vertical', category);
+                expect(gapsBetween(gapped), `column ${category}`).toEqual([4, 4]);
+                for (const positive of [true, false]) {
+                    const side = sideOf(base[category], row, positive);
+                    expectInsetOf(
+                        side,
+                        sideOf(gapped, row, positive),
+                        side.map(() => 4),
+                        'vertical',
+                        positive,
+                        true
+                    );
+                }
             }
         });
 
@@ -480,21 +595,10 @@ describe('bar series gap', () => {
         });
 
         it('cross-filter phantom bars take the inset of the segment drawn on top of them', async () => {
-            // [top, bottom] canvas edges of each drawn clip.
-            const edges = (box: { y: number; height: number } | undefined) => [box!.y, box!.y + box!.height];
-            const read = () =>
-                [0, 1].map((i) => {
-                    const { nodeData, phantomNodeData } = getBarSeriesContextNodeData(chart!, i);
-                    return nodeData.map((node, d) => ({
-                        node: edges(node.clipBBox),
-                        phantom: edges(phantomNodeData[d].clipBBox),
-                    }));
-                });
-
             await open(crossFilterOptions(0));
-            const base = read();
+            const base = readClipEdges();
             await update(crossFilterOptions(4));
-            const gapped = read();
+            const gapped = readClipEdges();
 
             // Each filtered bar is pulled in only at the edges with a neighbour (see CROSS_FILTER_HALF_GAPS).
             for (const [series, column] of [
@@ -522,6 +626,31 @@ describe('bar series gap', () => {
         });
     });
 
+    describe('cross-filter bars at the axis', () => {
+        // Series a is above the axis and b below it, so each starts on the axis next to the other.
+        const SIGNED_CROSS_FILTER_DATA = [
+            { k: 'A', a: 10, aF: 4, b: -20, bF: -20 },
+            { k: 'B', a: 15, aF: 15, b: -15, bF: -5 },
+        ];
+
+        it('the filtered bar and its phantom bar are pulled in at the axis edge and nowhere else', async () => {
+            await open(crossFilterOptions(0, SIGNED_CROSS_FILTER_DATA, true));
+            const base = readClipEdges();
+            await update(crossFilterOptions(4, SIGNED_CROSS_FILTER_DATA, true));
+            const gapped = readClipEdges();
+
+            for (const column of [0, 1]) {
+                // The positive series meets the axis at the bottom of its bar, the negative one at the top.
+                for (const kind of ['node', 'phantom'] as const) {
+                    const [aTop, aBottom] = base[0][column][kind];
+                    expect(gapped[0][column][kind], `a, column ${column}, ${kind}`).toEqual([aTop, aBottom - 2]);
+                    const [bTop, bBottom] = base[1][column][kind];
+                    expect(gapped[1][column][kind], `b, column ${column}, ${kind}`).toEqual([bTop + 2, bBottom]);
+                }
+            }
+        });
+    });
+
     describe('collapsed segments', () => {
         // The first segment is 1 unit (10px) of a 60 unit stack; a gap of 20 wants 10px from it.
         const SMALL = [
@@ -545,6 +674,29 @@ describe('bar series gap', () => {
             expect(gapped[0].end).toBe(base[1].end - 10);
             // The top of the stack stays on its true value.
             expect(gapped[1].start).toBe(base[2].start);
+        });
+
+        it('a segment on the other side of the axis that collapses still counts as a neighbour at the axis', async () => {
+            // The only positive segment next to the axis is b, 1 unit (10px) of a 60 unit chart: too short for a gap of 20.
+            const data = [
+                { k: 'A', a: -30, b: 1, c: 29 },
+                { k: 'B', a: -10, b: 10, c: 10 },
+            ];
+            const options = (gap: number) => stackOptions({ gaps: [gap, gap, gap], data });
+            await open(options(0));
+            const base = runsThrough('vertical', 0);
+            expect(base.map((r) => r.rgb)).toEqual([RGB[2], RGB[1], RGB[0]]);
+            const [top, middle, bottom] = base;
+
+            await update(options(20));
+            const gapped = runsThrough('vertical', 0);
+            // b is not drawn; c (above the axis) and a (below it) each keep half the gap at the axis edge...
+            expect(gapped.map((r) => r.rgb)).toEqual([RGB[2], RGB[0]]);
+            expect(gapped[0].end).toBe(middle.start - 10);
+            expect(gapped[1].start).toBe(bottom.start + 10);
+            // ...and the far ends of the two stacks stay on their true values.
+            expect(gapped[0].start).toBe(top.start);
+            expect(gapped[1].end).toBe(bottom.end);
         });
 
         it('a collapsed segment keeps its pick area, so hovering the empty space picks it', async () => {
@@ -593,6 +745,28 @@ describe('bar series gap', () => {
                 // Deep inside the gap, either side of the gap's own middle.
                 expect(await at(towardsA * 1)).toBe('a');
                 expect(await at(towardsA * -1)).toBe('b');
+            }
+        );
+
+        it.each(['vertical', 'horizontal'] as const)(
+            '%s: hovering inside the gap at the axis picks the segment on the side that owns that half of it',
+            async (direction) => {
+                // Column A has a positive segment (a) and, across the axis, a negative one (b) as its first.
+                await open(stackOptions({ gaps: [0, 0, 0], direction, data: SIGNED_DATA }));
+                const img = ctx.snapshot();
+                const [positive] = runsThrough(direction, 0, img).filter((r) => r.rgb === RGB[0]);
+                const axis = direction === 'vertical' ? positive.end : positive.start;
+                await update(stackOptions({ gaps: [8, 8, 8], direction, data: SIGNED_DATA }));
+
+                const centre = categoryCentre(img, direction, 0);
+                const at = (offset: number) =>
+                    direction === 'vertical' ? pickAt(centre, axis + offset) : pickAt(axis + offset, centre);
+                // Positive values run upwards in a vertical chart and rightwards in a horizontal one.
+                const towardsPositive = direction === 'vertical' ? -1 : 1;
+                expect(await at(towardsPositive * 1)).toBe('a');
+                expect(await at(towardsPositive * 3)).toBe('a');
+                expect(await at(towardsPositive * -1)).toBe('b');
+                expect(await at(towardsPositive * -3)).toBe('b');
             }
         );
 
@@ -870,7 +1044,10 @@ describe('bar series gap', () => {
             return { negative: own < 0, inset: neighbour ? halfGap : 0 };
         }
 
-        /** Expected start inset of a bucket's segment from the rows it covers; `undefined` where those rows disagree. */
+        /**
+         * Expected start inset of a bucket's segment from the rows it covers; `undefined` where those rows disagree. A
+         * start has a neighbour below it in the stack, or, on the axis, a segment on the other side of it.
+         */
         function expectedStart(rows: Row[], xs: number[], series: number, node: ReturnType<typeof nodeInsets>[number]) {
             const sign = Math.sign(value(rows[node.datumIndex], series));
             const covered: Row[] = [];
@@ -879,9 +1056,9 @@ describe('bar series gap', () => {
                 if (inSpan && value(rows[r], series) * sign > 0) covered.push(rows[r]);
             }
             const hasNeighbour = (row: Row) =>
-                KEYS.slice(0, series).some((_, i) => {
+                KEYS.some((_, i) => {
                     const v = value(row, i);
-                    return Number.isFinite(v) && v * sign > 0;
+                    return Number.isFinite(v) && ((i < series && v * sign > 0) || v * sign < 0);
                 });
             const withNeighbour = covered.filter(hasNeighbour).length;
             let inset: number | undefined;
@@ -922,13 +1099,22 @@ describe('bar series gap', () => {
             }
             // The same for the start edge: where the neighbour below goes missing in the run, the series above has
             // its start at the baseline there (0) and next to a neighbour outside it (2).
-            const raised = { nullBottom: 1, zeroBottom: 1, negBottom: 1 } as Partial<Record<Shape, number>>;
+            const raised = { nullBottom: 1, zeroBottom: 1 } as Partial<Record<Shape, number>>;
             const above = raised[shape];
             if (above != null) {
                 expect(seen.has(`${above}:run:start:0`)).toBe(true);
                 expect(seen.has(`${above}:rest:start:2`)).toBe(true);
                 // The series above that one still has the series in between below it.
                 expect(seen.has('2:run:start:2')).toBe(true);
+            }
+            // A segment on the other side of the axis is a neighbour at the axis: inside the run, where it is there, the
+            // start on the axis is inset; outside it, where the column has one sign, it is not.
+            const crossing = { negTop: [0], negBottom: [0, 1] } as Partial<Record<Shape, number[]>>;
+            for (const crossingSeries of crossing[shape] ?? []) {
+                expect(seen.has(`${crossingSeries}:run:start:2`)).toBe(true);
+            }
+            if (shape === 'negTop' || shape === 'negBottom') {
+                expect(seen.has('0:rest:start:0')).toBe(true);
             }
             // A neighbour that is not directly above or below the series is still a neighbour.
             if (shape === 'nullMiddle') {
@@ -1019,20 +1205,40 @@ describe('bar series gap', () => {
             expect(gappedTop.map((d) => d.clipBBox!.y)).toEqual(tops);
         });
 
-        it('a bucket whose neighbour above is null, zero or on the other side of the axis loses no baseline', async () => {
-            for (const shape of ['nullTop', 'zeroTop', 'negTop'] as const) {
+        it.each([
+            ['nullTop', 0],
+            ['zeroTop', 0],
+            ['negTop', 2],
+        ] as const)(
+            '%s: the baseline of the bottom segment moves by %s px in the run, where the top one is on the other side of the axis, and nowhere else',
+            async (shape, insetInRun) => {
+                const baselines = () =>
+                    getBarSeriesContextNodeData(chart!, 0).nodeData.map((d) => ({
+                        datumIndex: d.datumIndex,
+                        edge: d.clipBBox!.y + d.clipBBox!.height,
+                    }));
                 await open(aggregatedOptions(shape, 0));
-                const baseline = getBarSeriesContextNodeData(chart!, 0).nodeData.map(
-                    (d) => d.clipBBox!.y + d.clipBBox!.height
-                );
+                const base = baselines();
                 await update(aggregatedOptions(shape, 4));
-                const gapped = getBarSeriesContextNodeData(chart!, 0).nodeData.map(
-                    (d) => d.clipBBox!.y + d.clipBBox!.height
-                );
-                expect(gapped).toEqual(baseline);
-                chart?.destroy();
+                const gapped = baselines();
+
+                expect(gapped.map((d) => d.datumIndex)).toEqual(base.map((d) => d.datumIndex));
+                let inside = 0;
+                for (const [i, { datumIndex, edge }] of base.entries()) {
+                    // A bucket on the edge of the run can hold rows from either side of it.
+                    const nearEdge = [RUN_START, RUN_END, SKEW_START, SKEW_END].some(
+                        (boundary) => Math.abs(datumIndex - boundary) < 20
+                    );
+                    if (nearEdge) continue;
+                    const inRun =
+                        (datumIndex >= RUN_START && datumIndex < RUN_END) ||
+                        (datumIndex >= SKEW_START && datumIndex < SKEW_END);
+                    if (inRun) inside++;
+                    expect(gapped[i].edge, `datum ${datumIndex}`).toBe(edge - (inRun ? insetInRun : 0));
+                }
+                expect(inside).toBeGreaterThan(0);
             }
-        });
+        );
     });
 
     describe('image snapshots', () => {
