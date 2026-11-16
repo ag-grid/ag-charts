@@ -12,6 +12,8 @@ import type { AgTooltipRendererResult, Renderer } from 'ag-charts-types';
 import type { LegendLine, LegendMarker, LegendSymbolOptions } from '../legend/legendSymbol';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 
+const OVERRIDE_KEYS = ['heading', 'title', 'data'] as const;
+
 export type TooltipRenderer<P> = Renderer<P, AgTooltipRendererResult>;
 
 function buildLineWithMarkerDefaults(
@@ -57,7 +59,13 @@ export function formatSeriesTooltip<P>(
                   }
                 : undefined;
 
-        return { type: 'structured', ...content, ...overrides, symbol };
+        const result: TooltipContent = { type: 'structured', ...content, symbol };
+        for (const key of OVERRIDE_KEYS) {
+            if (key in overrides) {
+                Object.assign(result, { [key]: overrides[key] });
+            }
+        }
+        return result;
     }
     return { type: 'structured', ...content };
 }
