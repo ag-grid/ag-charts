@@ -648,7 +648,7 @@ export class SunburstSeries extends HierarchySeries<
                 ring = new SectorGlowRing();
                 glowRings.set(depth, ring);
             }
-            ring.add(sector, startAngle + angleOffset, endAngle + angleOffset);
+            ring.add(sector, startAngle + angleOffset, endAngle + angleOffset, sector.innerRadius, sector.outerRadius);
         });
         for (const ring of glowRings.values()) setSectorGlowEnds(ring);
     }

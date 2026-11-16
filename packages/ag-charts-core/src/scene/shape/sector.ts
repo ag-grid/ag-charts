@@ -666,8 +666,8 @@ const byStartAngle = (a: SectorGlowEntry, b: SectorGlowEntry) => a.startAngle - 
 const glows = ({ sector: { fillGlow } }: SectorGlowEntry) => fillGlow?.enabled === true && fillGlow.cutOnly !== true;
 
 /**
- * The sectors drawn in one ring, with the angles and radii they are laid out at, which a sector that is animating, or
- * not yet laid out, has not reached. A series keeps one and refills it on each update, so no object is made per sector.
+ * The sectors drawn in one ring, with the angles and radii they are laid out at, never the node's, which may be animating.
+ * A series keeps one and refills it on each update, so no object is made per sector.
  */
 export class SectorGlowRing {
     private readonly pool: SectorGlowEntry[] = [];
@@ -677,13 +677,7 @@ export class SectorGlowRing {
         this.entries.length = 0;
     }
 
-    add(
-        sector: Sector,
-        startAngle: number,
-        endAngle: number,
-        innerRadius: number = sector.innerRadius,
-        outerRadius: number = sector.outerRadius
-    ) {
+    add(sector: Sector, startAngle: number, endAngle: number, innerRadius: number, outerRadius: number) {
         const { pool, entries } = this;
         const entry = pool[entries.length] ?? { sector, startAngle, endAngle, innerRadius, outerRadius };
         entry.sector = sector;

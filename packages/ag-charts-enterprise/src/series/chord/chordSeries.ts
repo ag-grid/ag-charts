@@ -630,7 +630,9 @@ export class ChordSeries extends FlowProportionSeries<
         if (glowing) {
             const { glowRing } = this;
             glowRing.clear();
-            datumSelection.each((sector, { startAngle, endAngle }) => glowRing.add(sector, startAngle, endAngle));
+            datumSelection.each((sector, datum) =>
+                glowRing.add(sector, datum.startAngle, datum.endAngle, datum.innerRadius, datum.outerRadius)
+            );
             setSectorGlowEnds(glowRing, true);
         }
     }

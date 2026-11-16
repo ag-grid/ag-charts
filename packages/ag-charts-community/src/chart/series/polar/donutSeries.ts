@@ -1363,7 +1363,9 @@ export class DonutSeries extends PolarSeries<
             // A glow ends where the sector beside it glows too, so every sector is resolved before any is ended.
             const { glowRing } = this;
             glowRing.clear();
-            this.itemSelection.each((sector, { startAngle, endAngle }) => glowRing.add(sector, startAngle, endAngle));
+            this.itemSelection.each((sector, datum) =>
+                glowRing.add(sector, datum.startAngle, datum.endAngle, datum.innerRadius, datum.outerRadius)
+            );
             setSectorGlowEnds(glowRing);
         }
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
