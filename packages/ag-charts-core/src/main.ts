@@ -178,7 +178,7 @@ export * from './dom/dragInterpreter';
 export * from './dom/focusIndicator';
 export * from './dom/focusSwapChain';
 export * from './dom/globalsProxy';
-export * from './dom/keynavUtil';
+export { hasNoModifiers } from './dom/keynavUtil';
 export * from './dom/longTapInterpreter';
 export * from './dom/perWindowRegistry';
 export * from './dom/pixelRatioObserver';
