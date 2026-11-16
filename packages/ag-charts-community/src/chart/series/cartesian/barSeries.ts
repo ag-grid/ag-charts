@@ -131,7 +131,7 @@ import {
     aggregateBarDataFromDataModel,
     aggregateBarDataFromDataModelPartial,
 } from './barAggregation';
-import { barGapEdges } from './barGap';
+import { barGapEdges, hasOppositeStack } from './barGap';
 import {
     checkCrisp,
     collapsedStartingBarPosition,
@@ -305,6 +305,8 @@ interface NodeDatumParams {
     yStart: AgNumericValue;
     yEnd: AgNumericValue;
     yRange: AgNumericValue;
+    /** Whether the stack has a segment on the other side of the axis; only set when the gap is on and `yStart` is on it. */
+    hasOpposite: boolean;
     featherRatio: number;
     opacity: number;
 }
@@ -1132,7 +1134,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 params.yEnd,
                 params.yRange,
                 currY,
-                phantom || yFilterGeometryValue == null
+                phantom || yFilterGeometryValue == null,
+                params.hasOpposite
             );
             if (edges !== 0) {
                 insetGapSpan(gapSpan, ctx.halfGap, edges, bottomY <= y);
@@ -1422,7 +1425,15 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     nodeDatumParamsScratch.featherRatio =
                         (positive ? 1 : -1) * sign * (1 - toNumber(yEndMin) / toNumber(yEndMax));
                 }
-                nodeDatumParamsScratch.yRange = stackTotal?.(yMaxIndex, positive) ?? nodeDatumParamsScratch.yEnd;
+                nodeDatumParamsScratch.yRange =
+                    (ctx.stackedTowardEnd ? stackTotal?.(yMaxIndex, positive) : undefined) ??
+                    nodeDatumParamsScratch.yEnd;
+                // The zero edge has a neighbour only when the other side of the axis holds a segment.
+                const yStart = nodeDatumParamsScratch.yStart;
+                nodeDatumParamsScratch.hasOpposite =
+                    stackTotal != null &&
+                    yStart === zeroLike(yStart) &&
+                    hasOppositeStack(stackTotal(yMinIndex, !positive), positive);
 
                 this.upsertNodeDatum(ctx, nodeDatumParamsScratch);
             }
@@ -1488,6 +1499,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 let yRange = yEnd;
                 if (ctx.isStacked) {
                     yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
+                    nodeDatumParamsScratch.hasOpposite =
+                        ctx.halfGap > 0 && hasOppositeStack(aggregation[yRangeIndex][isPositive ? 0 : 1], isPositive);
                 }
 
                 nodeDatumParamsScratch.datumIndex = datumIndex;
@@ -1632,6 +1645,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yStart: 0,
             yEnd: 0,
             yRange: 0,
+            hasOpposite: false,
             featherRatio: 0,
             opacity: 1,
         };
@@ -2350,12 +2364,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     /**
      * The stack total, on the given side of the axis, of the group a datum belongs to; `undefined` when the datum has
-     * no group or no series lies beyond this one. Make one per walk along the data: it remembers its group skew.
+     * no group. Make one per walk along the data: it remembers its group skew.
      */
     private createStackTotalLookup(
         ctx: BarSeriesNodeDatumContext
     ): ((datumIndex: number, positive: boolean) => AgNumericValue | undefined) | undefined {
-        if (!ctx.stackedTowardEnd) return undefined;
         const processedData = this.processedData as GroupedData<any> | undefined;
         const { dataModel } = this;
         if (processedData?.type !== 'grouped' || dataModel == null) return undefined;
@@ -2432,8 +2445,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         if (ctx.halfGap > 0) {
             const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-            const yRange = this.createStackTotalLookup(ctx)?.(datumIndex, isPositive) ?? yEnd;
-            const edges = barGapEdges(yStart, yEnd, yRange, currY, yFilterValue == null);
+            const stackTotal = this.createStackTotalLookup(ctx);
+            const yRange = (ctx.stackedTowardEnd ? stackTotal?.(datumIndex, isPositive) : undefined) ?? yEnd;
+            const hasOpposite =
+                yStart === zeroLike(yStart) && hasOppositeStack(stackTotal?.(datumIndex, !isPositive), isPositive);
+            const edges = barGapEdges(yStart, yEnd, yRange, currY, yFilterValue == null, hasOpposite);
             insetGapSpan(gapSpan, ctx.halfGap, edges, bottomY <= y);
         }
         const { start: alongStart, length: alongLength } = gapSpan;
