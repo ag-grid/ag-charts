@@ -734,6 +734,7 @@ describe('priceVolumePreset', () => {
             const labels = await hoverLabels({ ...options, tickSize: TICK_SIZE });
             const prices = labels.map((l) => l.price);
             expect(prices.every((price) => price != null && isTickMultiple(price))).toBe(true);
+            expect(new Set(prices).size).toBeGreaterThan(1);
             expect(labels.map((l) => l.priceTop)).not.toEqual(HOVER_YS.map((y) => `${y}px`));
         });
 
@@ -818,7 +819,7 @@ describe('priceVolumePreset', () => {
             expect(isTickMultiple(String(value))).toBe(snapped);
         });
 
-        it('snaps to the candle value nearest the pointer, rounded to tickSize', async () => {
+        it('rounds the pointer price inside a candle rather than snapping to its values', async () => {
             chart = AgCharts.createFinancialChart(
                 prepareFinancialTestOptions({ data: getStockData(), chartType: 'candlestick', tickSize: TICK_SIZE })
             );
@@ -829,15 +830,17 @@ describe('priceVolumePreset', () => {
                 .toSorted((a, b) => b.height - a.height)[0];
             const rect = getSeriesRect(chart);
             const roundToTick = (value: number) => (Math.round(value / TICK_SIZE) * TICK_SIZE).toFixed(2);
-            const { open, close } = candle.datum;
+            const top = Math.max(candle.datum.open, candle.datum.close);
+            const bottom = Math.min(candle.datum.open, candle.datum.close);
+            const ratios = [0.3, 0.7];
 
             const prices: Array<string | undefined> = [];
-            for (const ratio of [0.1, 0.9]) {
+            for (const ratio of ratios) {
                 await hoverAction(rect.x + candle.centerX, rect.y + candle.y + candle.height * ratio)(deproxy(chart));
                 await waitForChartStability(chart);
                 prices.push(crosshairLabel('y')?.textContent?.trim());
             }
-            expect(prices).toEqual([roundToTick(Math.max(open, close)), roundToTick(Math.min(open, close))]);
+            expect(prices).toEqual(ratios.map((ratio) => roundToTick(top - (top - bottom) * ratio)));
         });
 
         it('leaves the date label unchanged', async () => {

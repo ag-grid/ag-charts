@@ -14,6 +14,7 @@ export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
 
     themeTemplate: {
         enabled: false,
+        snap: { $if: [{ $path: ['./snapInterval', undefined] }, true, undefined] },
         stroke: { $ref: 'subtleTextColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
