@@ -128,8 +128,9 @@ export class Caption implements CaptionLike {
         const bbox = this.computeA11yBounds(moduleCtx, axisId);
         if (bbox == null) return;
 
+        const axisWidget = moduleCtx.widgets.acquireAxisWidget(axisId);
         if (this.proxyText == null) {
-            this.proxyText = moduleCtx.widgets.acquireAxisWidget(axisId).acquireTitle();
+            this.proxyText = axisWidget.acquireTitle();
             this.proxyText.addClass('ag-charts-proxy-elem');
             this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev));
             this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx));
@@ -155,6 +156,9 @@ export class Caption implements CaptionLike {
             this.proxyText.setBounds(bbox);
             this.lastProxyBBox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
         }
+
+        const axisCtx = moduleCtx.axisManager.getAxisIdContext(axisId);
+        axisWidget.setBounds(axisCtx?.getCanvasBounds() ?? {});
     }
 
     private showTooltip(moduleCtx: DynamicContext<ChartRegistry>, canvasX: number, canvasY: number) {
