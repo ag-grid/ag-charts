@@ -40,7 +40,7 @@ import type {
 import { without } from '../data/object';
 import type { OptionsContribution } from '../modules/optionsContribution';
 import type { CARTESIAN_AXIS_TYPE, POLAR_AXIS_TYPE } from '../types/themeConstants';
-import { crossLinesThemeTemplate } from './axisThemeTemplate';
+import { type CrossLineLabelDefaults, crossLinesThemeTemplate } from './axisThemeTemplate';
 import { numberFormatValidator, textOrSegments, timeInterval, timeIntervalUnit } from './chartDefaults';
 import {
     borderOptionsDef,
@@ -159,14 +159,15 @@ export type CrossLinesAxisType = `${CARTESIAN_AXIS_TYPE}` | `${POLAR_AXIS_TYPE}`
 export function crossLinesContribution(
     axisTypes: CrossLinesAxisType[],
     value: Validator,
-    labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
+    labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>,
+    labelDefaults?: CrossLineLabelDefaults
 ): OptionsContribution {
     return {
         path: 'axes[].crossLines',
         axisTypes,
         options: crossLinesArrayOptionsDefs(value, labelDefs),
         themeOptions: crossLineThemeOptionsDefs(labelDefs),
-        themeTemplate: crossLinesThemeTemplate,
+        themeTemplate: crossLinesThemeTemplate(labelDefaults),
     };
 }
 

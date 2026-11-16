@@ -757,7 +757,7 @@ export interface AgCartesianCrossLineLabelOptions
     /**
      * Where to place the label. An array is tried in order, and the first placement that fits is used.
      *
-     * Default: `'top'`
+     * Default: `['top', 'bottom']`
      */
     placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
     /** The rotation of the Cross Line label in degrees. */

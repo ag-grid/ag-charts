@@ -74,7 +74,7 @@ In this configuration:
 
 ## Label Placement
 
-Use `label.placement` to choose where a label sits relative to its Cross Line. The default is `top`.
+Use `label.placement` to choose where a label sits relative to its Cross Line. The default is `['top', 'bottom']`.
 
 {% chartExampleRunner title="Label Placement" name="label-placement" type="generated" /%}
 
@@ -140,6 +140,8 @@ In this example:
 
 - Use the controls to see how the labels wrap, shrink and truncate.
 - A label that exceeds `maxWidth` or `maxHeight` or does not fit within the series area, wraps according to `wrapping`, shrinks towards `minimumFontSize`, then is truncated if `truncate` is enabled. See [Series Label Collision Avoidance](./series-labels/#collision-avoidance) for details.
+- A `range` label is fitted to its band. An explicit `maxWidth` or `maxHeight` replaces the band's bound in that direction.
+- `wrapping` defaults to `'on-space'`, `truncate` to `true` and `collision.alwaysShow` to `true`. Set `wrapping: 'never'` and `truncate: false` to render the label at full length.
 
 ## Polar Axes Cross Lines
 

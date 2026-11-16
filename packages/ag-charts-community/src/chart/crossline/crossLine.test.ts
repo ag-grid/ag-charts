@@ -33,6 +33,7 @@ import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import { getSeriesRect } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
+import { prepareProcessedOptions } from '../test/prepareOptions';
 import { getSeriesSelectionNodes } from '../test/seriesAccessors';
 import type { CartesianTestCase } from '../test/utils';
 import {
@@ -1925,11 +1926,13 @@ describe('CrossLine', () => {
         // that overlaps it and pads the chart further.
         function collisionChart({
             alwaysShow = false,
+            defaultPlacement = false,
             stroke = 'blue',
             small = {},
             values: [smallValue, largeValue] = [5, 5],
         }: {
             alwaysShow?: boolean;
+            defaultPlacement?: boolean;
             stroke?: string;
             small?: Partial<SmallLabel>;
             values?: [number, number];
@@ -1950,7 +1953,12 @@ describe('CrossLine', () => {
                             {
                                 type: 'line',
                                 value: largeValue,
-                                label: { text: 'LARGE LABEL', fontSize: 40, collision: { alwaysShow } },
+                                label: {
+                                    text: 'LARGE LABEL',
+                                    fontSize: 40,
+                                    placement: defaultPlacement ? undefined : 'top',
+                                    collision: { alwaysShow },
+                                },
                             },
                         ],
                     },
@@ -1981,6 +1989,15 @@ describe('CrossLine', () => {
         it('renders a colliding label hidden without the space it would pad', async () => {
             chart = deproxy(await createChart(collisionChart()));
             await compare();
+        });
+
+        it('moves a colliding label to the bottom by default', async () => {
+            chart = deproxy(await createChart(collisionChart({ defaultPlacement: true })));
+
+            expect(labelsShown()).toEqual([true, true]);
+            const [, large] = crossLineInstancesOf(chart, 'x');
+            const { y } = Transformable.toCanvas(large.labelGroup);
+            expect(y).toBeGreaterThan(chart.seriesRect!.y + chart.seriesRect!.height);
         });
 
         it('keeps a label outside the series area when nothing collides with it', async () => {
@@ -3114,6 +3131,22 @@ describe('CrossLine label fitting', () => {
         expect(rendered.height).toBeLessThanOrEqual(label.maxHeight ?? Infinity);
     });
 
+    it.each<[AgCartesianCrossLineLabelOptions, Pick<AgCartesianCrossLineLabelOptions, 'wrapping' | 'truncate'>]>([
+        [{}, {}],
+        [{ maxWidth: 40 }, {}],
+        [{ maxHeight: 40 }, {}],
+        [{ minimumFontSize: 8 }, {}],
+        [{ placement: ['bottom', 'top'] }, {}],
+        [{ wrapping: 'never' }, { wrapping: 'never' }],
+        [{ truncate: false }, { truncate: false }],
+    ])('resolves the label defaults independently of %o', (label, changed) => {
+        const { processedOptions } = prepareProcessedOptions(fitChart(lineWith(label)));
+        const [crossLine] = (processedOptions as AgCartesianChartOptions).axes!.y!.crossLines!;
+        const { wrapping, truncate } = crossLine.label!;
+
+        expect({ wrapping, truncate }).toEqual({ wrapping: 'on-space', truncate: true, ...changed });
+    });
+
     it('lets a label that does not fit overflow when truncate is disabled', async () => {
         chart = deproxy(await createChart(fitChart(lineWith({ maxWidth: 80, wrapping: 'never', truncate: false }))));
 
@@ -3328,8 +3361,17 @@ describe('CrossLine label fitting', () => {
             return { band: Transformable.toCanvas(crossLine.rangeGroup), label: footprint, text };
         }
 
-        it('renders the label whole past the band without a fit option', async () => {
+        it('fits the label to the band without a fit option', async () => {
             chart = deproxy(await createChart(fitChart(rangeWith({ placement: 'inside-top' }), 'x')));
+
+            const { band, label, text } = bandAndLabel('x');
+            expect(text).not.toBe(LONG_TEXT);
+            expect(label.width).toBeLessThanOrEqual(band.width);
+        });
+
+        it('renders the label whole past the band with wrapping and truncation off', async () => {
+            const crossLine = rangeWith({ placement: 'inside-top', wrapping: 'never', truncate: false });
+            chart = deproxy(await createChart(fitChart(crossLine, 'x')));
 
             const { band, label, text } = bandAndLabel('x');
             expect(text).toBe(LONG_TEXT);
