@@ -11,6 +11,7 @@ import {
     type PointLabelDatum,
     type RequireOptional,
     Sector,
+    type SectorGlowEntry,
     angleBetween,
     cachedTextMeasurer,
     evaluateBezier,
@@ -20,6 +21,7 @@ import {
     mergeDefaults,
     normalizeAngle360,
     resolveLabelFit,
+    setSectorGlowEnds,
     toDegrees,
     toPlainText,
     wrapText,
@@ -592,6 +594,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { shadow, glow } = this.options.node;
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
+        let glowing = false;
         datumSelection.each((sector, datum) => {
             const { datumIndex } = datum;
             const style = this.getNodeStyle(datum, datumIndex, isHighlight);
@@ -619,7 +622,17 @@ export class ChordSeries extends FlowProportionSeries<
             sector.endAngle = datum.endAngle;
             sector.inset = sector.strokeWidth / 2;
             sector.cornerRadius = style.cornerRadius;
+            glowing ||= !isHighlight && sector.fillGlow?.enabled === true;
         });
+
+        if (glowing) {
+            const ring: SectorGlowEntry[] = [];
+            datumSelection.each((sector, { startAngle, endAngle }) => {
+                if (endAngle > startAngle) ring.push({ sector, startAngle, endAngle });
+            });
+            ring.sort((a, b) => a.startAngle - b.startAngle);
+            setSectorGlowEnds(ring, true);
+        }
     }
 
     protected updateLinkSelection(opts: {

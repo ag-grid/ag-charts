@@ -52,18 +52,8 @@ import { type ShadowSlot, dilatesShadow, getShadowSpread, shadowPass } from '../
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
-/**
- * The miter limit of the stroke that dilates a shape for its shadow `spread`. Right angles keep their sharp corners,
- * like a CSS `box-shadow` spread, while acute vertices are bevelled instead of spiking out: those under 60°.
- */
-const SHADOW_MITER_LIMIT = 2;
-
-/** The same for a glow's outer edge and `gap` footprint: it bevels under about 57°, so a triangle marker's apex stays pointed. */
-const GLOW_MITER_LIMIT = 2.1;
-
-function getDilationMiterLimit(slot: ShadowSlot): number {
-    return slot === 'glow' ? GLOW_MITER_LIMIT : SHADOW_MITER_LIMIT;
-}
+/** The miter limit of the stroke that dilates a shape for a `spread` or `gap`: it bevels vertices under about 57°, so a triangle marker's apex stays pointed. */
+const DILATION_MITER_LIMIT = 2.1;
 
 /** The alpha of a plain colour, which a shadow cast from an opaque copy of the shape has to follow. */
 function colourAlpha(colour: unknown): number {
@@ -954,7 +944,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.lineCap = dilationCap;
         const ownJoin = drawsStroke && !footprint;
         ctx.lineJoin = ownJoin ? (this.__lineJoin ?? 'miter') : 'miter';
-        ctx.miterLimit = ownJoin ? (this.__miterLimit ?? 10) : getDilationMiterLimit(slot);
+        ctx.miterLimit = ownJoin ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
         ctx.lineWidth = (drawsStroke ? this.__strokeWidth : 0) + spread * 2;
     }
 
@@ -971,31 +961,44 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         drawsStroke: boolean,
         footprint: boolean = false
     ) {
-        const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
-        ctx.fillStyle = tint;
-        ctx.strokeStyle = tint;
-        this.setDilationStyle(slot, ctx, spread, drawsStroke, footprint);
+        const clipped = slot === 'glow' && this.clipGlowEnds(ctx, spread);
+        try {
+            const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
+            ctx.fillStyle = tint;
+            ctx.strokeStyle = tint;
+            this.setDilationStyle(slot, ctx, spread, drawsStroke, footprint);
 
-        if (drawsFill) {
-            this.executeFill(ctx, path);
-        }
-        if (drawsStroke) {
-            this.shadowStrokeGrowth = spread * 2;
-            try {
-                this.executeStroke(ctx, path);
-            } finally {
-                this.shadowStrokeGrowth = 0;
+            if (drawsFill) {
+                this.executeFill(ctx, path);
             }
-            // The capped mitre leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
-            if (footprint) this.executeOwnStroke(ctx, path);
-        } else if (drawsFill && spread > 0 && path != null) {
-            this.dilateFill(ctx, path);
+            if (drawsStroke) {
+                this.shadowStrokeGrowth = spread * 2;
+                try {
+                    this.executeStroke(ctx, path);
+                } finally {
+                    this.shadowStrokeGrowth = 0;
+                }
+                // The capped mitre leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
+                if (footprint) this.executeOwnStroke(ctx, path);
+            } else if (drawsFill && spread > 0 && path != null) {
+                this.dilateFill(ctx, path);
+            }
+            // A set gap casts the extras at any dilation, as the real paint of an ungapped glow does. A footprint has them always.
+            const shadow = this.getSlot(slot);
+            if (footprint || (this.getShadowMode(slot) !== 'fill' && shadow != null && dilatesShadow(shadow))) {
+                this.dilateSilhouetteExtras(ctx, spread * 2);
+            }
+        } finally {
+            if (clipped) ctx.restore();
         }
-        // A set gap casts the extras at any dilation, as the real paint of an ungapped glow does. A footprint has them always.
-        const shadow = this.getSlot(slot);
-        if (footprint || (this.getShadowMode(slot) !== 'fill' && shadow != null && dilatesShadow(shadow))) {
-            this.dilateSilhouetteExtras(ctx, spread * 2);
-        }
+    }
+
+    /**
+     * Saves `ctx` and clips it to where this shape's glow, or its `gap` cut, may reach, dilated by `reach`. Returns true if
+     * it did, for the caller to restore. A shape's glow reaches everywhere around it unless it says otherwise.
+     */
+    protected clipGlowEnds(_ctx: CanvasContext, _reach: number): boolean {
+        return false;
     }
 
     /** Strokes the path as the item paints it, with its own width and join. */
@@ -1057,7 +1060,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const fillOnly = this.getShadowMode(slot) === 'fill';
         const halfStroke = (fillOnly ? 0 : this.getSilhouetteStrokeWidth() / 2) + spread;
         // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
-        const miterLimit = fillOnly ? getDilationMiterLimit(slot) : (this.__miterLimit ?? 10);
+        const miterLimit = fillOnly ? DILATION_MITER_LIMIT : (this.__miterLimit ?? 10);
         const joinReach = fillOnly || (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * miterLimit : halfStroke;
         // A square cap reaches a half-stroke along the diagonal. A spread dilation caps its open strokes too.
         const squareCap = spread > 0 || (!fillOnly && this.__lineCap === 'square');

@@ -60,7 +60,7 @@ const options = (gap?: number, itemStyler?: ItemStyler): AgChartOptions => ({
     })) as AgCartesianSeriesOptions[],
 });
 
-describe('highlight glow above the other series', () => {
+describe('highlight glow beneath the neighbouring items that glow', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
@@ -98,7 +98,7 @@ describe('highlight glow above the other series', () => {
     // The middle series, so that a series on each side is drawn over and under its glow.
     const HOVERED = 1;
 
-    // A gap is cut out of every glow of the hovered series, which is cast in the overlay, over its neighbours.
+    // The glows of the hovered series are cast in the overlay, where the neighbours' bodies and `gap` cut them out.
     const GAPS: [string, number | undefined][] = [
         ['', undefined],
         [', glow gap 0', 0],
@@ -109,13 +109,16 @@ describe('highlight glow above the other series', () => {
         { name: 'series-level hover', hover: () => hoverSeries(HOVERED), glowing: 3 },
         { name: 'item hover', hover: () => hoverItem(HOVERED, 1), glowing: 2 },
     ])('$name', ({ name, hover, glowing }) => {
-        it.each(GAPS)(`draws the highlighted series' glow over its neighbours (${name}%s)`, async (_suffix, gap) => {
-            await create(gap);
-            await hover();
+        it.each(GAPS)(
+            `keeps the highlighted series' glow beneath its neighbours that glow (${name}%s)`,
+            async (_suffix, gap) => {
+                await create(gap);
+                await hover();
 
-            expect(glowGaps()).toEqual(Array(glowing).fill(gap));
-            await compareImageSnapshot(chart, ctx);
-        });
+                expect(glowGaps()).toEqual(Array(glowing).fill(gap));
+                await compareImageSnapshot(chart, ctx);
+            }
+        );
     });
 
     it('casts the glow of every item of the hovered series, and the other series cast theirs', async () => {

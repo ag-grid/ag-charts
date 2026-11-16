@@ -5,8 +5,11 @@ import {
     PolarZIndexMap,
     Sector,
     SectorBox,
+    type SectorGlowEntry,
     polarSectorObstacles,
+    setSectorGlowEnds,
 } from 'ag-charts-core';
+import type { Selection } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
@@ -61,6 +64,17 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
             node.endAngle = endAngle;
             node.clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
         }
+    }
+
+    protected override updateGlowEnds(selection: Selection<RadialColumnNodeDatum, Sector<RadialColumnNodeDatum>>) {
+        if (!selection.nodes().some((node) => node.fillGlow?.enabled === true)) return;
+
+        const ring: SectorGlowEntry[] = [];
+        selection.each((sector, { startAngle, endAngle }) => {
+            if (endAngle > startAngle) ring.push({ sector, startAngle, endAngle });
+        });
+        ring.sort((a, b) => a.startAngle - b.startAngle);
+        setSectorGlowEnds(ring, true);
     }
 
     getLabelObstacles() {

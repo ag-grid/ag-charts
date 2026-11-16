@@ -26,6 +26,7 @@ import {
     SOLID_STROKE_STYLE,
     ScalableGroup,
     Sector,
+    type SectorGlowEntry,
     Selection,
     Text,
     TransformableText,
@@ -40,6 +41,7 @@ import {
     mergeDefaults,
     normalizeAngle360,
     readDatumKey,
+    setSectorGlowEnds,
     withoutCasts,
 } from 'ag-charts-core';
 import type { Path } from 'ag-charts-core';
@@ -588,12 +590,15 @@ export class SunburstSeries extends HierarchySeries<
             sector.cornerRadius = cornerRadius;
         };
 
+        let glowing = false;
         this.datumSelection.each((sector, datum) => {
             updateSector(datum, sector, false);
+            glowing ||= sector.fillGlow?.enabled === true;
         });
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
         });
+        if (glowing) this.updateGlowEnds(angleOffset);
 
         const { innerLabels = [] } = this.options;
         const centre = this.resolveCentreCircle();
@@ -626,6 +631,26 @@ export class SunburstSeries extends HierarchySeries<
 
         if (centre != null && innerLabels.length > 0) {
             this.updateInnerLabelNodes(centre);
+        }
+    }
+
+    /** Ends the glow of each sector on the line between it and the sector beside it in its ring, where both glow. */
+    private updateGlowEnds(angleOffset: number) {
+        const rings = new Map<number, SectorGlowEntry[]>();
+        this.datumSelection.each((sector, { depth, startAngle, endAngle }) => {
+            if (depth == null || endAngle <= startAngle) return;
+
+            const entry = { sector, startAngle: startAngle + angleOffset, endAngle: endAngle + angleOffset };
+            const ring = rings.get(depth);
+            if (ring == null) {
+                rings.set(depth, [entry]);
+            } else {
+                ring.push(entry);
+            }
+        });
+        for (const ring of rings.values()) {
+            ring.sort((a, b) => a.startAngle - b.startAngle);
+            setSectorGlowEnds(ring);
         }
     }
 

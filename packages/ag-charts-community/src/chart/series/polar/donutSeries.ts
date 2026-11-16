@@ -31,6 +31,7 @@ import {
     PolarZIndexMap,
     type RequireOptional,
     Sector,
+    type SectorGlowEntry,
     Selection,
     SpatialIndex,
     Text,
@@ -63,6 +64,7 @@ import {
     sectorBox,
     sectorEdges,
     sectorLabelPlacer,
+    setSectorGlowEnds,
     toNumber,
     toPlainText,
     toRadians,
@@ -1350,7 +1352,19 @@ export class DonutSeries extends PolarSeries<
             this.applySelectedOffset(sector, datum.datumIndex);
         };
 
-        this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+        let glowing = false;
+        this.itemSelection.each((node, datum, index) => {
+            updateSectorFn(node, datum, index, false, 'overlay');
+            glowing ||= node.fillGlow?.enabled === true;
+        });
+        if (glowing) {
+            // A glow ends where the sector beside it glows too, so every sector is resolved before any is ended.
+            const ring: SectorGlowEntry[] = [];
+            this.itemSelection.each((sector, { startAngle, endAngle }) => {
+                if (endAngle > startAngle) ring.push({ sector, startAngle, endAngle });
+            });
+            setSectorGlowEnds(ring);
+        }
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
 
         this.innerCircleCutoutSelection.each((sector, datum) => {

@@ -43,6 +43,8 @@ export interface AgGlowHighlightStyleOptions {
      * included, is cut out of that layer, so a glow covers the items beside it that do not glow, including the line and
      * fill of its own series, and no glow covers an item that glows. If the highlight style draws the hovered item smaller
      * than at rest, its at-rest edge outside that shape is covered by the glows of its neighbours.
+     * Where two sectors of a ring (pie, donut, sunburst, chord and nightingale series) glow beside each other, each glow ends on
+     * the radial line between them.
      *
      * Line, radar line and HLC series glow only on their markers (`marker.glow`), and area, radar area and range area
      * fills are not redrawn when highlighted, so only their markers glow. Cone funnel series do not have this option.

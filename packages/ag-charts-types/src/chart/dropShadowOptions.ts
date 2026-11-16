@@ -28,8 +28,9 @@ export interface AgDropShadowOptions {
     /** The radius of the shadow's blur, given in pixels. */
     blur?: PixelSize;
     /**
-     * How far, in pixels, the shadow grows beyond the shape that casts it, before the blur is applied.
-     * Negative values are not supported: they are ignored with a warning.
+     * How far, in pixels, the shadow grows beyond the shape that casts it, before the blur is applied. The shape's corners
+     * are kept, except that vertices under about 57° are bevelled. Negative values are not supported: they are ignored
+     * with a warning.
      *
      * Default: `0`
      */

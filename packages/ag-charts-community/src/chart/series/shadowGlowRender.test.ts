@@ -54,9 +54,7 @@ describe('shadow and glow render', () => {
     });
 
     describe('the shadow spread of a sharp vertex', () => {
-        // A shadow bevels the vertices under 60°, where a glow bevels those under about 57°, so the apex of a triangle marker
-        // (59.8°) is bevelled by the shadow.
-        it('renders the spread of a shadow around a triangle marker with its apex bevelled', async () => {
+        it('renders the spread of a shadow around a triangle marker with its apex pointed', async () => {
             const shadow = { enabled: true, fill: '#d0021b', fillOpacity: 1, blur: 0, spread: 16 };
             await create([{ ...TRIANGLE, shadow }], TRIANGLE_DATA, TRIANGLE_OPTIONS);
             await snapshot();
