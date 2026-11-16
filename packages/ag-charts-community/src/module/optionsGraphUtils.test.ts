@@ -5,6 +5,8 @@ import {
     getPathLastIndexIndex,
     getPathSafe,
     hasTemplatePathSafe,
+    isColorOptionKey,
+    isColorOptionPath,
     resolvePath,
     setPathSafe,
 } from './optionsGraphUtils';
@@ -84,5 +86,34 @@ describe('OptionsGraph Utils', () => {
     it('getPathLastIndexIndex', () => {
         expect(getPathLastIndexIndex(['one', '2', 'three', '4'])).toEqual(3);
         expect(getPathLastIndexIndex(['one', '2', 'three'])).toEqual(1);
+    });
+
+    it.each([
+        'fill',
+        'color',
+        'fills',
+        'backgroundFill',
+        'rangeStroke',
+        'ontoColor',
+        'foregroundColor',
+        'sequentialColors',
+        'defaultColorRange',
+        'undocumentedGroupStrokes',
+    ])('isColorOptionKey(%s) is true', (key) => {
+        expect(isColorOptionKey(key)).toBe(true);
+    });
+
+    it.each(['text', 'yName', 'legendItemName', 'fontFamily', 'id', 'fillOpacity'])(
+        'isColorOptionKey(%s) is false',
+        (key) => {
+            expect(isColorOptionKey(key)).toBe(false);
+        }
+    );
+
+    it('isColorOptionPath', () => {
+        expect(isColorOptionPath(['series', '0', 'fills', '1'])).toBe(true);
+        expect(isColorOptionPath(['series', '0', 'yName'])).toBe(false);
+        expect(isColorOptionPath(['title', 'text'])).toBe(false);
+        expect(isColorOptionPath([])).toBe(true);
     });
 });

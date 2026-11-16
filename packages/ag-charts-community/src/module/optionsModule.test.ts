@@ -5452,6 +5452,88 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('complete var() values outside colour options (AG-19346)', () => {
+        const value = 'var(--brand)';
+        const createChartOptions = (container: HTMLElement, options: object) =>
+            new ChartOptions<AgChartOptions>(
+                {
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    ...options,
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+        it.each([
+            ['a title text', { title: { text: value } }, 'title.text'],
+            ['a series yName', { series: [{ type: 'bar', xKey: 'x', yKey: 'y', yName: value }] }, 'series[0].yName'],
+            [
+                'an annotation text',
+                { initialState: { annotations: [{ type: 'text', x: 'a', y: 1, text: value }] } },
+                'initialState.annotations[0].text',
+            ],
+        ])('leaves %s literal whether or not the variable is set', (_name, options, path) => {
+            const container = document.createElement('div');
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+
+            for (const styles of [{ '--brand': '#00ff00' }, {}]) {
+                mockComputedStyle(container, styles);
+                const chartOptions = createChartOptions(container, options);
+
+                expect(chartOptions.processedCSSVariables).not.toHaveProperty([value]);
+                expect(optionAt(chartOptions.processedOptions, path)).toBe(value);
+            }
+            expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
+                false
+            );
+        });
+
+        it('substitutes a variable shared with a colour option only in the colour option', () => {
+            const container = document.createElement('div');
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+            mockComputedStyle(container, { '--brand': '#00ff00' });
+
+            const chartOptions = createChartOptions(container, {
+                title: { text: value },
+                // jsdom's style declaration rejects a `var()` as a colour, so this goes through `ontoColor`.
+                theme: {
+                    params: {
+                        accentColor: '#ff0000',
+                        foregroundColor: { ref: 'accentColor', mix: 0.5, ontoColor: value },
+                    },
+                },
+            });
+
+            expect(chartOptions.processedCSSVariables).toEqual({ [value]: '#00ff00' });
+            expect(chartOptions.themeParameters.foregroundColor).toBe('#808000');
+            expect(optionAt(chartOptions.processedOptions, 'title.text')).toBe(value);
+        });
+
+        it('collects variables in colour lists, but not in other lists', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--a': '#ff0000', '--b': '#0000ff', '--c': '#00ff00' });
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = {
+                fills: ['var(--a)', { type: 'gradient', colorStops: [{ color: 'var(--b)' }] }],
+                sequentialColors: [['var(--c)']],
+                keys: ['var(--d)'],
+            };
+
+            expect(chartOptions.processCSSVariablesPartial(node, container)).toEqual({
+                'var(--a)': '#ff0000',
+                'var(--b)': '#0000ff',
+                'var(--c)': '#00ff00',
+            });
+        });
+    });
+
     describe('var() on a detached container', () => {
         // jsdom's style declaration rejects a `var()` as a colour, so these go through `ontoColor`, whose own
         // validator admits one.
