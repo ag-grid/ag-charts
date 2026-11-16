@@ -53,10 +53,12 @@ const options: AgChartOptions = {
                 {
                     icon: 'delete',
                     value: 'clear',
+                    tooltip: 'Clear All',
                 },
                 {
                     icon: 'text-annotation',
                     value: 'text-menu',
+                    tooltip: 'Text Annotations',
                 },
             ],
         },

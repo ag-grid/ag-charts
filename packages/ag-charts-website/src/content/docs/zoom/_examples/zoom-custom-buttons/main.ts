@@ -80,6 +80,7 @@ const options: AgCartesianChartOptions = {
                 autoRotate: false,
             },
             crosshair: {
+                enabled: true,
                 label: {
                     format: `%d %b %Y`,
                 },

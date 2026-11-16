@@ -14,6 +14,8 @@ import {
 } from 'ag-charts-core';
 import type { AgQuadrantChartOptions } from 'ag-charts-types';
 
+import { basePresetOptionsDefs } from '../presetCommonOptions';
+
 const axisPlacementOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['axisPlacement']>> = {
     crosshairLabel: union('crossing', 'edge'),
     label: union('crossing', 'edge'),
@@ -126,6 +128,7 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
 
     // Chart
     animation: defined,
+    background: defined,
     container: defined,
     contextMenu: defined,
     context: () => true,
@@ -142,12 +145,13 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     minWidth: defined,
     padding: defined,
     selection: defined,
-    styleNonce: string,
     subtitle: defined,
     suppressFieldDotNotation: boolean,
     title: defined,
     theme: defined,
+    touch: defined,
     width: defined,
+    ...basePresetOptionsDefs,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
     }),

@@ -126,7 +126,7 @@ export class ChartTheme {
             borderColor: { $foregroundBackgroundMix: 0.15 },
             borderRadius: 4,
             borderWidth: 1,
-            cardShadow: { $ref: 'popupShadow' },
+            cardShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             chartBackgroundColor: { $ref: 'backgroundColor' },
             chartBorder: false,
             chartBorderRadius: { $ref: 'borderRadius' },

@@ -12,6 +12,8 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
+import { hasSelectionAxes } from './annotationDatum';
+import { annotationDatums } from './annotationDatums';
 import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
     compareAnnotationsSnapshot,
@@ -231,6 +233,14 @@ describe('Annotation datum lifecycle', () => {
             } finally {
                 delete (Object.prototype as Record<string, unknown>).polluted;
             }
+        });
+
+        it('adds no CSS variable watcher for an incomplete var() value in restored text', async () => {
+            const text = 'var(--x, rgb(1,2,3) junk{} .testMarker{})';
+            await prepareChart([{ ...MINIMAL_ANNOTATIONS.text, text }]);
+
+            expect(document.querySelectorAll('[data-variable-name]')).toHaveLength(0);
+            expect(chart.getState().annotations[0].text).toBe(text);
         });
 
         it('warns about and drops an unknown property in restored state', async () => {
@@ -664,5 +674,28 @@ describe('Annotation datum lifecycle', () => {
             await prepareChart([MINIMAL_ANNOTATIONS['date-range']], options);
             await compare();
         });
+    });
+});
+
+describe('Annotation selection axes', () => {
+    const WITH_SELECTION_AXES = [
+        'line',
+        'arrow',
+        'parallel-channel',
+        'disjoint-channel',
+        'fibonacci-retracement',
+        'fibonacci-retracement-trend-based',
+        'date-range',
+        'price-range',
+        'date-price-range',
+        'quick-date-price-range',
+    ];
+
+    it('is carried by the annotations with two or more points and no others', () => {
+        const carriers = Object.entries(annotationDatums)
+            .filter(([, datumType]) => hasSelectionAxes(datumType.create()))
+            .map(([type]) => type);
+
+        expect(new Set(carriers)).toEqual(new Set(WITH_SELECTION_AXES));
     });
 });

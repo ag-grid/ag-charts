@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import {
+    deproxy,
+    expectWarningsCalls,
+    getSeriesOptions,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import type { AgChartInstance, AgLinearGaugeOptions, AgRadialGaugeOptions } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -11,7 +18,7 @@ const GAUGES: { name: string; options: AgRadialGaugeOptions | AgLinearGaugeOptio
     { name: 'linear', options: { type: 'linear-gauge', value: 50, scale: { min: 0, max: 100 } } },
 ];
 
-describe('gauge preset series id', () => {
+describe('gauge preset', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -54,5 +61,52 @@ describe('gauge preset series id', () => {
         chart.destroy();
         await create({ ...options, id: 'my-gauge', label } as AgRadialGaugeOptions);
         expect(Array.from(seriesIds)).toEqual(['my-gauge']);
+    });
+
+    const createSeriesOptions = async (options: AgRadialGaugeOptions | AgLinearGaugeOptions) => {
+        await create(options);
+        return getSeriesOptions<any>(chart);
+    };
+
+    const operator = { $ref: 'foregroundColor' };
+
+    it.each(GAUGES)('resolves theme operators in user theme overrides of a $name gauge', async ({ options }) => {
+        const theme = {
+            params: { foregroundColor: '#123456' },
+            overrides: {
+                [options.type]: { bar: { fill: operator }, scale: { fill: operator }, targets: { fill: operator } },
+            },
+        };
+
+        const seriesOptions = await createSeriesOptions({ ...options, targets: [{ value: 30 }], theme } as any);
+        expect(seriesOptions.bar.fill).toBe('#123456');
+        expect(seriesOptions.scale.fill).toBe('#123456');
+        expect(seriesOptions.targets[0].fill).toBe('#123456');
+        expectWarningsCalls().toHaveLength(0);
+    });
+
+    it.each(GAUGES)(
+        'resolves theme operators inside arrays of user theme overrides of a $name gauge',
+        async ({ options }) => {
+            const fills = [
+                { color: operator, stop: 0 },
+                { color: operator, stop: 100 },
+            ];
+            const theme = { params: { foregroundColor: '#123456' }, overrides: { [options.type]: { bar: { fills } } } };
+
+            const seriesOptions = await createSeriesOptions({ ...options, theme } as any);
+            expect(seriesOptions.bar.fills.map((f: { color: unknown }) => f.color)).toEqual(['#123456', '#123456']);
+            expectWarningsCalls().toHaveLength(0);
+        }
+    );
+
+    it.each(GAUGES)('rejects theme operators in the options of a $name gauge', async ({ options }) => {
+        const defaultFill = (await createSeriesOptions(options)).bar.fill;
+        chart.destroy();
+
+        expect((await createSeriesOptions({ ...options, bar: { fill: operator } } as any)).bar.fill).toEqual(
+            defaultFill
+        );
+        expectWarningsCalls().not.toHaveLength(0);
     });
 });

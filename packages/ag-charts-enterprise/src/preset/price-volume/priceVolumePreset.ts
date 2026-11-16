@@ -123,7 +123,7 @@ export function priceVolume(
             ...createPriceSeries(chartType, keys, logger),
         ],
         axes: {
-            ...createPriceAxis(tickSize, volumeProfile),
+            ...createPriceAxis(volumeProfile),
             ...createDateAxis(),
             ...createVolumeAxis(volume),
             ...createVolumeProfileAxis(volumeProfile),
@@ -204,6 +204,8 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
             type: 'ohlc',
             ...common,
             ...keys,
+            crosshairSnapTo: ['open', 'high', 'low', 'close'],
+            crosshairSnapMode: 'nearest',
         } satisfies AgOhlcSeriesOptions,
     ];
 }
@@ -227,6 +229,8 @@ function createPriceSeriesHLC(common: PriceSeriesCommon, { xKey, highKey, lowKey
             highKey,
             lowKey,
             closeKey,
+            crosshairSnapTo: ['high', 'low', 'close'],
+            crosshairSnapMode: 'nearest',
         } satisfies AgHlcSeriesOptions,
     ];
 }
@@ -240,6 +244,8 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
             yHighKey: highKey,
             yLowKey: lowKey,
             tooltip: { range: 'nearest' },
+            crosshairSnapTo: ['yLow', 'yHigh'],
+            crosshairSnapMode: 'nearest',
         } satisfies AgRangeBarSeriesOptions,
     ];
 }
@@ -250,6 +256,8 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
             type: 'candlestick',
             ...common,
             ...keys,
+            crosshairSnapTo: ['open', 'high', 'low', 'close'],
+            crosshairSnapMode: 'nearest',
         } satisfies AgCandlestickSeriesOptions,
     ];
 }
@@ -297,14 +305,11 @@ function createPriceVolumeProfileSeries(
     return createVolumeProfileSeries(getTheme, PRICE_AXIS_KEY, levels, undefined, volumeProfile, false);
 }
 
-function createPriceAxis(tickSize: number | undefined, volumeProfile: AgVolumeProfileOptions | undefined) {
-    // `snapInterval` is undocumented; `snap` is themed so that theme overrides can turn snapping off.
-    const crosshair = { enabled: true, snapInterval: tickSize };
+function createPriceAxis(volumeProfile: AgVolumeProfileOptions | undefined) {
     return {
         [PRICE_AXIS_KEY]: {
             type: 'number',
             position: 'right',
-            crosshair,
             spacing: 0,
             ...createTotalSegmentAxisOptions(
                 volumeProfile?.totalSegment,
@@ -323,9 +328,6 @@ function createDateAxis() {
                 enabled: false,
             },
             label: {
-                enabled: true,
-            },
-            crosshair: {
                 enabled: true,
             },
         } satisfies AgOrdinalTimeAxisOptions,

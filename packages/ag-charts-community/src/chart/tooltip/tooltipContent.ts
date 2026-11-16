@@ -115,9 +115,9 @@ function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipConte
 }
 
 function readTextContent(html: string, logger: Logger): string {
-    const tempDiv = getDocument().createElement('div');
-    tempDiv.innerHTML = html;
-    const result: string | undefined = tempDiv.textContent?.trim();
+    const template = getDocument().createElement('template');
+    template.innerHTML = html;
+    const result: string | undefined = template.content.textContent?.trim();
 
     if (result == null) {
         logger.warnOnce('cannot retrieve tooltip textContent (required for aria-label)');
@@ -241,7 +241,7 @@ function tooltipPaginationContentHtml(ctx: TooltipHtmlContext, pagination: Toolt
         index: pagination.index + 1,
         count: pagination.length,
     });
-    return `<div class="${DEFAULT_TOOLTIP_CLASS}-footer">${forceLtrNumbersIn(text, ctx.isRtl)}</div>`;
+    return `<div class="${DEFAULT_TOOLTIP_CLASS}-footer">${tooltipTextHtml(ctx, text)}</div>`;
 }
 
 function tooltipContentHtml(

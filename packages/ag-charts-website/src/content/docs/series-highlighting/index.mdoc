@@ -16,7 +16,7 @@ Highlighting is enabled by default. Use `highlight.enabled` to configure it glob
 
 ## Highlight Modes
 
-By default, hovering an item highlights only that item. Use `highlight.mode: 'shared'` to also highlight the item of every other series that shares the hovered item's category.
+By default a shared highlight will be used for most charts containing 3 or fewer series, highlighting all items within the same category. Use the mode option to configure this behaviour.
 
 {% chartExampleRunner title="Highlight Mode" name="highlight-mode" type="generated" /%}
 

@@ -11,8 +11,8 @@ import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../.
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
-    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
+    AgErrorBarSeriesLabelCollisionFitOptions,
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -30,7 +30,7 @@ import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, St
 export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, TParams, TContext>,
-        AgChartLabelCollisionFitOptions,
+        AgErrorBarSeriesLabelCollisionFitOptions,
         AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**

@@ -465,7 +465,7 @@ export function withOverlayLabelObstacles(
         if (overlayBoxes == null) continue;
         obstacles ??= [];
         for (const box of overlayBoxes) {
-            obstacles.push({ kind: 'rect', box, overlay: true });
+            obstacles.push({ kind: 'rect', box, category: 'errorBar' });
         }
     }
     return obstacles;

@@ -11,6 +11,7 @@ import {
     isFunction,
     isHtmlElement,
     isObject,
+    isObjectLike,
     isString,
     isValidDate,
 } from '../data/typeGuards';
@@ -211,6 +212,31 @@ export function isThemeOperator(value: unknown) {
     if (!isObject(value)) return false;
     const keys = Object.keys(value);
     return keys.length === 1 && keys[0].startsWith('$');
+}
+
+const themeOriginOperators = new WeakSet<object>();
+
+/** Records the theme operators within `theme`, so options a preset merges them into still accept them. */
+export function markThemeOperators(theme: unknown) {
+    if (!isObjectLike(theme)) return;
+    if (isThemeOperator(theme)) {
+        themeOriginOperators.add(theme);
+        return;
+    }
+    for (const value of Object.values(theme)) {
+        markThemeOperators(value);
+    }
+}
+
+/** Accepts a theme operator when validating a theme, or one recorded by {@link markThemeOperators}. */
+export function isThemeOperatorAllowed(value: unknown, context: ValidatorContext) {
+    return (
+        isThemeOperator(value) && (context.params.themeOperators === true || themeOriginOperators.has(value as object))
+    );
+}
+
+function callbackResultParams(params: ValidateParams): ValidateParams {
+    return params.themeOperators ? { ...params, themeOperators: false } : params;
 }
 
 /**
@@ -864,12 +890,13 @@ export const callbackOf = (validator: Validator, description?: string) =>
         if (markedSymbol in value) return true;
 
         const validatorDescription = description ?? validator[descriptionSymbol];
+        const params = callbackResultParams(context.params);
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
                 const result = safeCall(value, args, context.params.logger, context.path);
                 if (result == null) return;
-                const validatorResult = validator(result, { options: result, path: '', params: context.params });
+                const validatorResult = validator(result, { options: result, path: '', params });
                 if (typeof validatorResult === 'object') {
                     warnCallbackErrors(validatorResult, context, validatorDescription);
                     if (validatorResult.valid) {
@@ -911,6 +938,7 @@ export const callbackDefs = <T>(
 
         const validatorDescription = description;
         const memo = rememberResults ? new CallbackResultMemo<Partial<T>>() : undefined;
+        const params = callbackResultParams(context.params);
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
@@ -920,7 +948,7 @@ export const callbackDefs = <T>(
                 const remembered = memo?.recall(result);
                 if (remembered !== undefined) return remembered;
 
-                const validatorResult = validate(result, defs, context.path, context.params);
+                const validatorResult = validate(result, defs, context.path, params);
                 warnCallbackErrors(validatorResult, context, validatorDescription);
                 if (validatorResult.cleared != null) memo?.remember(result, validatorResult.cleared);
                 return validatorResult.cleared;

@@ -44,6 +44,7 @@ import { Image } from '../image/image';
 import type { MatrixFrame } from '../matrix';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
+import { STROKE_ONLY_PATTERNS } from '../pattern/patterns';
 import {
     canTintShadows,
     getColourAlpha,
@@ -85,24 +86,16 @@ function gradientAlpha(gradient: Gradient): number {
     return stops.length === 0 ? 1 : Math.max(...stops.map((stop) => colourAlpha(stop.color)));
 }
 
-/** The patterns that draw open segments, whose fill paints nothing. */
-const LINE_PATTERNS: ReadonlySet<string> = new Set([
-    'vertical-lines',
-    'horizontal-lines',
-    'forward-slanted-lines',
-    'backward-slanted-lines',
-]);
-
 /**
  * The most that a pattern paints. Its background, fill and stroke are drawn over one another, and where all three
  * overlap they composite, so that is `1 - (1 - a)(1 - b)(1 - c)`. `Pattern` paints nothing for a background or a fill that it
- * was not given, and draws no stroke of 0px. The line patterns draw open segments, so their fill paints nothing either,
+ * was not given, and draws no stroke of 0px. The stroke-only patterns paint no fill either,
  * unless a custom `path` replaces the segments, which it does only if it parses.
  */
 function patternAlpha(pattern: Pattern): number {
     const { fill, fillOpacity, backgroundFill, backgroundFillOpacity, stroke, strokeOpacity, strokeWidth } = pattern;
     const customPath = pattern.path != null && pattern.path !== '' && parseSvg(pattern.path) != null;
-    const fillsNothing = LINE_PATTERNS.has(pattern.pattern) && !customPath;
+    const fillsNothing = STROKE_ONLY_PATTERNS.has(pattern.pattern) && !customPath;
     const parts = [
         backgroundFill === 'none' ? 0 : paintAlpha(backgroundFill, backgroundFillOpacity),
         fill === 'none' || fillsNothing ? 0 : paintAlpha(fill, fillOpacity),

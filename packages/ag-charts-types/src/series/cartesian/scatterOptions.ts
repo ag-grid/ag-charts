@@ -11,8 +11,8 @@ import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../.
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
-    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
+    AgErrorBarSeriesLabelCollisionFitOptions,
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -59,7 +59,7 @@ export type AgScatterSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
 export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>, TContext>,
-        AgChartLabelCollisionFitOptions,
+        AgErrorBarSeriesLabelCollisionFitOptions,
         AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /** Whether to show the labels. Labels render only when `labelKey` is set. */

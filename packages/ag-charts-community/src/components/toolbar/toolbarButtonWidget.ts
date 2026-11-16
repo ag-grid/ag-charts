@@ -163,12 +163,10 @@ export class ToolbarButtonWidget extends ButtonWidget {
     public update(options: ToolbarButtonWidgetOptions, interactionOptions: ToolbarButtonInteractionOptions) {
         const { localeManager } = this;
 
-        if (options.tooltip != null) {
-            const tooltip = localeManager.t(options.tooltip);
-            if (tooltip !== this.lastTooltip) {
-                this.elem.title = tooltip;
-                this.lastTooltip = tooltip;
-            }
+        const tooltip = options.tooltip == null ? undefined : localeManager.t(options.tooltip);
+        if (tooltip != null && tooltip !== this.lastTooltip) {
+            this.elem.title = tooltip;
+            this.lastTooltip = tooltip;
         }
 
         const content: ToolbarButtonContent = {
@@ -176,6 +174,9 @@ export class ToolbarButtonWidget extends ButtonWidget {
             iconAfter: options.iconPosition === 'after',
             label: options.label == null ? undefined : localeManager.t(options.label),
         };
+
+        const ariaLabel = options.ariaLabel == null ? undefined : localeManager.t(options.ariaLabel);
+        this.setAriaLabel(ariaLabel ?? tooltip ?? content.label);
 
         const haspopup = getAriaHasPopupOfValue(options.value);
         if (haspopup == 'false') {

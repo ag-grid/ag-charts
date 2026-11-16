@@ -16,6 +16,7 @@ import type { AgBaseFinancialPresetOptions, AgVolumeProfileChartPreset } from 'a
 import { AxisInsetValueModule } from '../../features/axis-inset-value/axisInsetValueModule';
 import { AxisSelectedBandModule } from '../../features/axis-selected-band/axisSelectedBandModule';
 import { SelectionModule } from '../../features/data-selection/dataSelectionModule';
+import { basePresetOptionsDefs } from '../presetCommonOptions';
 import {
     groupVolumeProfile,
     volumeProfileBarsOptionsDef,
@@ -48,7 +49,9 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     formatter: defined,
     enableRtl: boolean,
     suppressFieldDotNotation: boolean,
-    styleNonce: string,
+    locale: defined,
+    touch: defined,
+    ...basePresetOptionsDefs,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
         foreground: defined,
@@ -81,6 +84,9 @@ export const VolumeProfilePresetModule: PresetModuleDefinition<
             subtitle: { layoutStyle: 'block', textAlign: 'center' },
             // @ts-expect-error undocumented option
             footnote: { layoutStyle: 'block', textAlign: 'center' },
+        },
+        bar: {
+            axes: { number: { crosshair: { enabled: true } } },
         },
     },
 };

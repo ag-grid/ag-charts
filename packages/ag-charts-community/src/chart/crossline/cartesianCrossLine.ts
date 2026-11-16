@@ -1,11 +1,13 @@
 import {
     BBox,
     Group,
+    type LabelFit,
     PointerEvents,
     Range,
     type TextMeasurer,
     Transformable,
     TransformableText,
+    type TurnedBounds,
     bandRangeExpansion,
     cachedTextMeasurer,
     clampArray,
@@ -67,12 +69,27 @@ function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: numbe
     return 2 * Math.min(anchorAt - low, high - anchorAt);
 }
 
+/** Room the band leaves along one axis for a label anchored inside it on that axis; unbounded outside it. */
+function bandRoom(
+    rangeDir: AnchorDirection,
+    labelDir: AnchorDirection,
+    pad: number,
+    start: number,
+    size: number,
+    paddingDiff: number
+): number {
+    if (labelDir !== rangeDir) return Infinity;
+    const anchorAt = start + (size * (rangeDir + 1)) / 2 - paddingDiff / 2;
+    return availableExtent(anchorAt, labelDir, pad, start, start + size);
+}
+
 export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions & {
     reserveSpace: boolean;
 };
 
 type NodeData = [number, number];
 type FittedLabel = { text: string; fontSize: number };
+type FitCache = FittedLabel & { measurer: TextMeasurer; key: string };
 
 const DEFAULT_RANGE_FILL = '#c16068';
 
@@ -122,7 +139,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private chosen = 0;
     private readonly candidateIndices = new Map<PositionedLabelCandidate, number>();
     private labelBounds: BBox | undefined = undefined;
-    private fitted: (FittedLabel & { measurer: TextMeasurer }) | undefined = undefined;
+    private fitted: FitCache | undefined = undefined;
 
     constructor(private readonly ctx: DynamicContext<CrossLinesRegistry>) {
         this.crossLineRange.pointerEvents = PointerEvents.None;
@@ -220,6 +237,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculateLayout(visible: boolean) {
         this.data = undefined;
+        this.labelBounds = undefined;
 
         if (!visible) return;
 
@@ -290,8 +308,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - rangePadding && yEnd <= clampedYEnd;
 
         this.data = [clampedYStart, clampedYEnd];
-
-        if (this.label.enabled === false || this.label.text == null || this.label.text === '') return;
+        // Read by the chart padding, which is collected before the nodes update.
+        this.labelBounds = this.bandBounds();
     }
 
     getLabelBox(): BBox | undefined {
@@ -300,7 +318,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     /** Taken from the drawn node, so whatever `positionLabel` and `clipLabelText` settled on is reserved. */
     private labelFootprint(): BBox | undefined {
-        if (!this.hasFittedText || !this.labelGroup.visible) return;
+        if (!this.hasFittedText() || !this.labelGroup.visible) return;
 
         return Transformable.toCanvas(this.crossLineLabel);
     }
@@ -310,9 +328,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     getLabelDatum(seriesRect: BBox): PointLabelDatum | undefined {
-        if (this.labelHeld) return;
-        const box = this.labelFootprint();
-        if (box == null) return;
+        if (this.labelHeld || !this.labelGroup.visible) return;
 
         const { collision, reserveSpace } = this.label;
         const keep = this.keepsLabel;
@@ -320,16 +336,17 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const seriesArea = collision?.collideWith?.seriesArea === false;
         const axisLabel = collision?.collideWith?.axisLabels === false;
         const avoid = { ...resolveLabelAvoidance(collision ?? { alwaysShow: true }), seriesArea, axisLabel };
-        const { width, height } = box;
 
         // A re-layout settles the placement already chosen rather than choosing again.
         const indices = this.relayingOut ? [this.chosen] : Array.from(this.resolvedAnchors.keys());
         const sole = indices.length === 1;
         const positionedCandidates: PositionedLabelCandidate[] = [];
+        let firstAnchor: Anchor | undefined;
         this.candidateIndices.clear();
         for (const index of indices) {
             const anchor = this.anchorAt(index);
-            const footprint = this.footprintAt(index, box);
+            if (!this.hasFittedText(anchor)) continue;
+            const footprint = this.footprintAt(index);
             const candidateBox = {
                 x: footprint.x - seriesRect.x,
                 y: footprint.y - seriesRect.y,
@@ -344,11 +361,17 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             };
             this.candidateIndices.set(candidate, index);
             positionedCandidates.push(candidate);
+            firstAnchor ??= anchor;
         }
 
+        if (firstAnchor == null) return;
+        // The drawn placement may have no text to fit, while a fallback does.
+        const drawn = this.labelFootprint();
+        const { width, height } = drawn ?? positionedCandidates[0].box;
+        const text = drawn == null ? this.fittedLabel(firstAnchor).text : (this.crossLineLabel.text ?? '');
         return {
             point: { x: 0, y: 0, size: 0 },
-            label: { text: this.crossLineLabel.text ?? '', width, height },
+            label: { text, width, height },
             anchor: undefined,
             placement: undefined,
             alwaysShow: keep ? undefined : false,
@@ -381,7 +404,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         if (!unpadded) return region;
 
         // Laid out without padding for it, an outer label is tested against the room that padding would give it.
-        const extent = this.paddingExtent(side) ?? 0;
+        const extent = this.paddingExtent(side, anchor) ?? 0;
         if (side === 'left' || side === 'right') region.width += extent;
         else region.height += extent;
         if (side === 'left') region.x -= extent;
@@ -389,10 +412,11 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return region;
     }
 
-    /** A `'clip-text'` label shortens to the room at its anchor, so another placement is laid out to measure it. */
-    private footprintAt(index: number, box: BBox): BoxBounds {
-        if (index === this.chosen) return box;
-        if (this.label.overflow !== 'clip-text') {
+    /** A label fitted to the room at its anchor is laid out at another placement to measure it there. */
+    private footprintAt(index: number): BoxBounds {
+        if (index === this.chosen) return Transformable.toCanvas(this.crossLineLabel);
+        if (this.label.overflow !== 'clip-text' && !this.fitsToBand) {
+            const box = Transformable.toCanvas(this.crossLineLabel);
             const offset = this.labelOffset(this.anchorAt(index));
             return { x: box.x + offset.x, y: box.y + offset.y, width: box.width, height: box.height };
         }
@@ -445,7 +469,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         this.labelHeld = hold && this.labelHidden;
     }
 
-    private updateNodes() {
+    private bandBounds(): BBox {
         const { position, data: [r0, r1] = [0, 0], gridLength, gridPadding } = this;
 
         const dr = Number.isFinite(r1) ? r1 - r0 : 0;
@@ -453,17 +477,18 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const direction = position === 'bottom' || position === 'right' ? -1 : 1;
         const crossStart = Math.min(direction * gridPadding, direction * (gridLength + gridPadding));
 
-        let bounds: BBox;
         switch (position) {
             case 'top':
             case 'bottom':
-                bounds = new BBox(r0, crossStart, dr, gridLength);
-                break;
+                return new BBox(r0, crossStart, dr, gridLength);
             case 'left':
             case 'right':
-                bounds = new BBox(crossStart, r0, gridLength, dr);
+                return new BBox(crossStart, r0, gridLength, dr);
         }
+    }
 
+    private updateNodes() {
+        const bounds = this.bandBounds();
         this.updateRangeNode(bounds);
 
         this.labelBounds = bounds;
@@ -529,30 +554,69 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         crossLineLabel.setBoxing(label);
     }
 
-    /**
-     * The label fitted to its own `maxWidth`/`maxHeight`, which do not depend on where it is placed. Keyed on
-     * the measurer, which a web font load replaces.
-     */
-    private fittedLabel(): FittedLabel {
+    /** The label fitted at `anchor`. Keyed on the measurer, which a web font load replaces, and on the bounds. */
+    private fittedLabel(anchor: Anchor = this.anchor): FittedLabel {
         const { label } = this;
         const measurer = cachedTextMeasurer(label);
-        if (this.fitted?.measurer !== measurer) {
+        const policy = resolveLabelFit(label, !this.keepsLabel);
+        const fit = policy == null ? undefined : this.boundByBand(policy, anchor);
+        const key = fit?.rotated == null ? '' : `${fit.rotated.width}:${fit.rotated.height}`;
+        if (this.fitted?.measurer !== measurer || this.fitted.key !== key) {
             const text = label.text ?? '';
-            const fitted = fitLabelTextAutoSize(text, resolveLabelFit(label, !this.keepsLabel), label);
+            const fitted = fitLabelTextAutoSize(text, fit, label);
             this.fitted = {
                 text: typeof fitted.text === 'string' ? fitted.text : text,
                 fontSize: fitted.fontSize ?? label.fontSize,
                 measurer,
+                key,
             };
         }
         return this.fitted;
     }
 
+    private get fitsToBand(): boolean {
+        return this.type === 'range' && resolveLabelFit(this.label, !this.keepsLabel) != null;
+    }
+
+    private boundByBand(fit: LabelFit, anchor: Anchor): LabelFit {
+        const rotated = this.bandTurnedBounds(fit, anchor);
+        return rotated == null ? fit : { ...fit, rotated };
+    }
+
+    /**
+     * The room the visible band leaves the turned label: both ways inside it, and along the side a label
+     * outside it sits on. An explicit `maxWidth`/`maxHeight` replaces it on the axis that bound lies along.
+     */
+    private bandTurnedBounds(fit: Pick<LabelFit, 'maxWidth' | 'maxHeight'>, anchor: Anchor): TurnedBounds | undefined {
+        const { labelBounds: band, label } = this;
+        if (this.type !== 'range' || band == null) return;
+
+        const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
+        const roomX = bandRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
+        const roomY = bandRoom(anchor.rangeV, anchor.labelV, pad, band.y, band.height, yPaddingDiff);
+
+        const rotation = label.rotation ?? 0;
+        const cos = Math.abs(Math.cos(toRadians(rotation)));
+        const sin = Math.abs(Math.sin(toRadians(rotation)));
+        let explicitX: number | undefined;
+        let explicitY: number | undefined;
+        if (sin <= ROTATION_EPSILON) [explicitX, explicitY] = [fit.maxWidth, fit.maxHeight];
+        else if (cos <= ROTATION_EPSILON) [explicitX, explicitY] = [fit.maxHeight, fit.maxWidth];
+
+        const insets = this.boxed ? resolvePadding(label.padding) : undefined;
+        const insetsH = insets == null ? 0 : insets.left + insets.right;
+        const insetsV = insets == null ? 0 : insets.top + insets.bottom;
+        const width = explicitX == null ? Math.max(roomX - insetsH * cos - insetsV * sin, 0) : Infinity;
+        const height = explicitY == null ? Math.max(roomY - insetsH * sin - insetsV * cos, 0) : Infinity;
+        if (!Number.isFinite(width) && !Number.isFinite(height)) return;
+        return { rotation, width, height };
+    }
+
     /** False once the fit has erased the text, as a `maxHeight` below one line does. */
-    private get hasFittedText(): boolean {
+    private hasFittedText(anchor: Anchor = this.anchor): boolean {
         const { label } = this;
         if (label.enabled === false || label.text == null || label.text === '') return false;
-        return this.fittedLabel().text !== '';
+        return this.fittedLabel(anchor).text !== '';
     }
 
     private get horizontal(): boolean {
@@ -630,8 +694,13 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         // It cannot bound the lines wrapping adds, so an overflowing wrapped label collapses to one line first.
         const { text: fittedText, fontSize } = this.fittedLabel();
         const font = fontWithSize(label, fontSize);
+        const rotated = this.fitsToBand ? this.bandTurnedBounds(label, anchor) : undefined;
         const oneLine = (maxWidth: number | undefined) => {
-            const fitted = fitLabelText(text, { maxWidth, wrapping: 'never', overflowStrategy: 'ellipsis' }, font);
+            const fitted = fitLabelText(
+                text,
+                { maxWidth, wrapping: 'never', overflowStrategy: 'ellipsis', rotated },
+                font
+            );
             return typeof fitted === 'string' ? fitted : text;
         };
         let lineText = fittedText;
@@ -682,10 +751,10 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         crossLineLabel.rotationCenterY = y;
     }
 
-    private computeLabelSize(): { width: number; height: number } | undefined {
-        if (!this.hasFittedText) return;
+    private computeLabelSize(anchor: Anchor): { width: number; height: number } | undefined {
+        if (!this.hasFittedText(anchor)) return;
         const { label } = this;
-        const { text, fontSize } = this.fittedLabel();
+        const { text, fontSize } = this.fittedLabel(anchor);
         const tempText = new TransformableText();
         tempText.setFont(fontWithSize(label, fontSize));
         tempText.text = text;
@@ -720,20 +789,21 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculatePadding(into: Partial<Record<CrossLineLabelPosition, number>>) {
         this.paddedSide = undefined;
-        if (!this.padsForLabel) return;
+        // Without a band in view there is nothing to size a band-fitted label from.
+        if (!this.padsForLabel || (this.fitsToBand && this.labelBounds == null)) return;
 
         const side = this.labelPaddingSide;
         if (side == null) return;
 
-        const offset = this.paddingExtent(side);
+        const offset = this.paddingExtent(side, this.anchor);
         if (offset == null) return;
 
         into[side] = Math.max(into[side] ?? 0, offset);
         this.paddedSide = side;
     }
 
-    private paddingExtent(side: PaddingSide): number | undefined {
-        const size = this.computeLabelSize();
+    private paddingExtent(side: PaddingSide, anchor: Anchor): number | undefined {
+        const size = this.computeLabelSize(anchor);
         if (!size) return;
 
         const { spacing } = this.label;

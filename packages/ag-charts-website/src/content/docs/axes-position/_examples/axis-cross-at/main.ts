@@ -32,6 +32,7 @@ const options: AgCartesianChartOptions = {
             crossAt: {
                 value: 0,
             },
+            crosshair: { enabled: true },
         },
         y: {
             type: 'number',
@@ -39,6 +40,7 @@ const options: AgCartesianChartOptions = {
             crossAt: {
                 value: 0,
             },
+            crosshair: { enabled: true },
         },
     },
     series: [
