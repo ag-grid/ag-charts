@@ -131,9 +131,14 @@
     display: flex;
     flex-direction: column;
     font-size: var(--ag-charts-chrome-font-size);
+    flex: 1 1 90px;
     gap: 2px;
     line-height: var(--ag-charts-chrome-line-height);
     min-width: 0;
+}
+
+.ag-charts-dialog__labelled-input:has(> .ag-charts-dialog__input[type='number']) {
+    flex: none;
 }
 
 .ag-charts-dialog__labelled-input--inline {
@@ -147,18 +152,16 @@
     border-radius: var(--ag-charts-input-border-radius);
     border-style: solid;
     border-width: var(--ag-charts-input-border-width);
-    flex: none;
+    flex: 1 1 auto;
     font-size: inherit;
+    min-width: 0;
     padding: 3px 4px 4px;
 }
 
-/* Room for nine digits and the spin buttons. */
+/* Room for six digits, a decimal point and the spin buttons. */
 .ag-charts-dialog__input[type='number'] {
-    width: calc(9ch + 28px);
-}
-
-.ag-charts-dialog__input[type='text'] {
-    width: 170px;
+    flex: none;
+    width: calc(7ch + 28px);
 }
 
 /* Button */
