@@ -24,8 +24,8 @@ import { isCrossLineType } from './types';
 
 /**
  * How a value is typed into the settings dialog: the kind of its axis, or `offset` for the position of a point within
- * the band of a category-like axis. An offset is a percentage from -50 (start of the band) to 50 (end of the band),
- * and reaches further where the bands are spaced apart.
+ * the band of a category-like axis. An offset is a percentage of the step between bands, including their padding,
+ * from the centre of the band: -50 and 50 reach the midpoints between it and its neighbours.
  */
 export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 'category' | 'offset';
 
@@ -177,8 +177,7 @@ export function resolveCoordinate(
     }
     const axis = field.axis === 'x' ? context.xAxis : context.yAxis;
     if (field.kind === 'offset') {
-        const limit = getOffsetLimit(axis);
-        return typeof parsed === 'number' && Math.abs(parsed) <= limit + OFFSET_TOLERANCE ? parsed : undefined;
+        return typeof parsed === 'number' && Math.abs(parsed) <= OFFSET_LIMIT + OFFSET_TOLERANCE ? parsed : undefined;
     }
     if (field.kind === 'category') {
         return axis.scale.domain.find((category) => withoutLineBreaks(category) === parsed) ?? parsed;
@@ -245,11 +244,9 @@ const OFFSET_LIMIT = 50;
 // An offset is shown to two decimals, so the limit it is shown at is accepted back.
 const OFFSET_TOLERANCE = 0.005;
 
-/** A point is placed on the nearest band, so it reaches as far as half a step from the band's centre: 50 / (1 - paddingInner). */
-function getOffsetLimit({ scale }: Pick<AnnotationAxisContext, 'scale'>) {
-    const { step = 0, bandwidth = 0 } = scale;
-    const width = bandwidth === 0 ? step : bandwidth;
-    return width > 0 ? Math.max(OFFSET_LIMIT, (OFFSET_LIMIT * step) / width) : OFFSET_LIMIT;
+/** How many bands wide a step is, as `groupPercentage` is a fraction of the band and an offset a fraction of the step. */
+function getStepInBands({ step = 0, bandwidth = 0 }: Pick<AnnotationAxisContext['scale'], 'step' | 'bandwidth'>) {
+    return bandwidth > 0 && step > 0 ? step / bandwidth : 1;
 }
 
 const INTEGER_TEXT = /^[+-]?\d+$/;
@@ -306,14 +303,17 @@ function createOffsetPointFields(
     }
 
     const { value, groupPercentage } = getGrouping(current);
+    const stepInBands = getStepInBands(context.scale);
     return [
         {
             row,
             axis,
             kind: 'offset',
-            value: String(Math.round((groupPercentage - 0.5) * 1e4) / 100),
+            value: String(Math.round(((groupPercentage - 0.5) / stepInBands) * 1e4) / 100),
             toProps: (parsed) =>
-                typeof parsed === 'number' ? toProps({ value, groupPercentage: 0.5 + parsed / 100 }) : undefined,
+                typeof parsed === 'number'
+                    ? toProps({ value, groupPercentage: 0.5 + (parsed / 100) * stepInBands })
+                    : undefined,
         },
     ];
 }

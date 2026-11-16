@@ -27,6 +27,7 @@ import {
     resolveCoordinate,
     snapToBar,
 } from './coordinates';
+import { getGrouping } from './scale';
 
 const numberScale = (domain: number[]) => {
     const scale = new LinearScale();
@@ -226,7 +227,7 @@ describe('annotation coordinates', () => {
             end: { x: 'Apples', y: 4 },
         };
 
-        it('follows the point of a band axis as a percentage from -50 to 50, mapped to its group percentage', () => {
+        it('follows the point of a band axis as a percentage of the step from -50 to 50, mapped to its group percentage', () => {
             const context = createAxesContext(scale, numberScale([0, 50]));
             const fields = getCoordinateFields(datum, context);
 
@@ -247,7 +248,7 @@ describe('annotation coordinates', () => {
             expect(parseCoordinate('abc', 'offset')).toBeUndefined();
         });
 
-        it('rejects an offset beyond its band', () => {
+        it('rejects an offset beyond the midpoints to its neighbours', () => {
             const context = createAxesContext(scale, numberScale([0, 50]));
             const offset = getCoordinateFields(datum, context)[2];
 
@@ -257,20 +258,28 @@ describe('annotation coordinates', () => {
             expect(resolveCoordinate(offset, -51, context)).toBeUndefined();
         });
 
-        it('reaches as far as a point is placed in the gap between spaced bands', () => {
+        it('measures an offset in steps between bands, padding included', () => {
             const spaced = new CategoryScale<string>();
             spaced.domain = ['Apples', 'Pears'];
             spaced.range = [0, 340];
             spaced.paddingInner = 0.3;
             const context = createAxesContext(spaced, numberScale([0, 50]));
-            const offset = getCoordinateFields(datum, context)[2];
+            const fields = getCoordinateFields(datum, context);
+            const offset = fields[2];
 
-            // 50 / (1 - 0.3)
-            expect(resolveCoordinate(offset, -71.4, context)).toBe(-71.4);
-            expect(resolveCoordinate(offset, 71.4, context)).toBe(71.4);
-            expect(resolveCoordinate(offset, 71.43, context)).toBe(71.43);
-            expect(resolveCoordinate(offset, 71.44, context)).toBeUndefined();
-            expect(resolveCoordinate(offset, -71.5, context)).toBeUndefined();
+            // A quarter of the way into the band is a 0.25 - 0.5 = -0.25 band width from its centre, or -0.175 of a step.
+            expect(fields.map((f) => f.kind === 'offset' && f.value).filter(Boolean)).toEqual(['-17.5', '-35']);
+
+            // Half a step from the centre is the midpoint to the neighbouring band: 0.5 / 0.7 band widths.
+            const reach = 0.5 + 0.5 / 0.7;
+            const start = (offsetValue: number) => getGrouping(offset.toProps(offsetValue)?.start?.x).groupPercentage;
+            expect(start(50)).toBeCloseTo(reach, 10);
+            expect(start(-50)).toBeCloseTo(1 - reach, 10);
+
+            expect(resolveCoordinate(offset, 50, context)).toBe(50);
+            expect(resolveCoordinate(offset, -50, context)).toBe(-50);
+            expect(resolveCoordinate(offset, 50.01, context)).toBeUndefined();
+            expect(resolveCoordinate(offset, -51, context)).toBeUndefined();
         });
 
         it('is left out on number axes and where points snap to the band centre', () => {
