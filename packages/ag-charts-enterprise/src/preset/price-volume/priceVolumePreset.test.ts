@@ -718,6 +718,12 @@ describe('priceVolumePreset', () => {
             datum: { open: number; close: number };
         }
 
+        interface VolumeNode {
+            x: number;
+            y: number;
+            width: number;
+        }
+
         const isTickMultiple = (text: string | undefined) => {
             const ticks = Number(text) / TICK_SIZE;
             return Math.abs(ticks - Math.round(ticks)) < 1e-9;
@@ -841,6 +847,30 @@ describe('priceVolumePreset', () => {
                 prices.push(crosshairLabel('y')?.textContent?.trim());
             }
             expect(prices).toEqual(ratios.map((ratio) => roundToTick(top - (top - bottom) * ratio)));
+        });
+
+        it('gives the same price over a volume bar and over the empty space beside it', async () => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ data: getStockData(), tickSize: TICK_SIZE })
+            );
+            await waitForChartStability(chart);
+            const index = deproxy(chart).series.findIndex((s) => s.id === 'volume');
+            const bars = getSeriesNodeData<VolumeNode>(chart, index).filter((node) => node.x > 0);
+            const [bar, neighbour] = bars
+                .slice(1)
+                .map((node, i) => [node, bars[i]] as const)
+                .toSorted(([a, an], [b, bn]) => bn.y - b.y - (an.y - a.y))[0];
+            const rect = getSeriesRect(chart);
+            const y = rect.y + (bar.y + neighbour.y) / 2;
+
+            const prices: Array<string | undefined> = [];
+            for (const node of [bar, neighbour]) {
+                await hoverAction(rect.x + node.x + node.width / 2, y)(deproxy(chart));
+                await waitForChartStability(chart);
+                prices.push(crosshairLabel('y')?.textContent?.trim());
+            }
+            expect(prices[0]).toBeDefined();
+            expect(prices[1]).toBe(prices[0]);
         });
 
         it('leaves the date label unchanged', async () => {

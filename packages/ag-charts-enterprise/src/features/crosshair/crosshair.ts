@@ -440,7 +440,8 @@ export class Crosshair
         this.resolveHighlightSnap();
 
         if (!this.activeHighlight) {
-            this.hideCrosshairs();
+            // A snap interval disregards the highlight, so losing it to another axis leaves the pointer line shown.
+            if (this.snapInterval() == null || !crosshairGroup.visible) this.hideCrosshairs();
         } else if (this.followsPointer()) {
             if (!followedPointer) {
                 this.showPointer();
