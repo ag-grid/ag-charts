@@ -428,12 +428,12 @@ export class Annotations extends AbstractModuleInstance {
                         this.optionsToolbar.updateColorPickerColor(colorType, color, opacity, isMultiColor);
                     };
                 const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => (cancelled: boolean) => {
-                    this.recordActionAfterNextUpdate(
+                    const recorded = this.recordActionAfterNextUpdate(
                         `Change ${datum.type} ${colorType} to ${getDefaultColor(datum, colorType)}`,
                         ['annotations', 'defaults']
                     );
                     this.update();
-                    if (cancelled) this.undoColorPickerSession();
+                    if (cancelled && recorded) this.undoColorPickerSession();
                 };
 
                 const options: LinearSettingsDialogOptions = {
@@ -573,13 +573,13 @@ export class Annotations extends AbstractModuleInstance {
                 this.settingsDialog.hide();
             }),
             optionsToolbar.events.on('saved-color', ({ type, colorPickerType, color, cancelled }) => {
-                this.recordActionAfterNextUpdate(`Change ${type} ${colorPickerType} to ${color}`, [
+                const recorded = this.recordActionAfterNextUpdate(`Change ${type} ${colorPickerType} to ${color}`, [
                     'annotations',
                     'defaults',
                 ]);
                 // Flush the record now, rather than on the next render, so an immediate undo sees it.
                 this.update();
-                if (cancelled) this.undoColorPickerSession();
+                if (cancelled && recorded) this.undoColorPickerSession();
             }),
             optionsToolbar.events.on(
                 'updated-color',
@@ -900,24 +900,29 @@ export class Annotations extends AbstractModuleInstance {
         return { layout: axisLayout, context: axisCtx, bounds, button };
     }
 
-    private recordActionAfterNextUpdate(label: string, types: Array<'annotations' | 'defaults'> = ['annotations']) {
+    /** Returns whether a record was queued. */
+    private recordActionAfterNextUpdate(
+        label: string,
+        types: Array<'annotations' | 'defaults'> = ['annotations']
+    ): boolean {
         const {
             defaults,
             ctx: { historyManager },
             ctx,
         } = this;
         const annotationManager = ctx.annotationManager;
-        if (!annotationManager) return;
+        if (!annotationManager) return false;
 
         // Suppress history records caused by side-effects of restoring a memento (undo/redo) — recording them
         // would truncate the redo stack.
-        if (this.isRestoringMemento) return;
+        if (this.isRestoringMemento) return false;
 
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
             historyManager.record(label, ...originators);
             annotationManager.fireChangedEvent('user-interaction');
         });
+        return true;
     }
 
     // Queued after the picking session's own record, so the undo restores the state from before the picker opened.

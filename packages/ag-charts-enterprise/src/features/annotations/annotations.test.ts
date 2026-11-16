@@ -1306,6 +1306,13 @@ describe('Annotations', () => {
             await press(CANCEL);
             expect(annotation().stroke).toBe('#0000ff');
 
+            // Picking a colour and then the original back leaves no trace, and does not undo the earlier change.
+            await press('button[title="Line Color"]');
+            await pickColor('#00ff00');
+            await pickColor('#0000ff');
+            await press(CANCEL);
+            expect(annotation().stroke).toBe('#0000ff');
+
             // Confirm keeps the colour as a single undo step, and Enter presses the focused button.
             await press('button[title="Line Color"]');
             await pickColor('#00ff00');
