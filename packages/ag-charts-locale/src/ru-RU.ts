@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     dialogInputCoordinatesStart: 'Начало',
     dialogInputCoordinatesEnd: 'Конец',
     dialogInputCoordinatesValue: 'Значение',
-    dialogInputCoordinatesOffset: 'Смещение',
+    dialogInputCoordinatesRowOffset: '${label} Смещение',
     dialogInputCoordinatesHeight: 'Высота',
     dialogInputCoordinatesStartHeight: 'Высота начала',
     dialogInputCoordinatesEndHeight: 'Высота конца',

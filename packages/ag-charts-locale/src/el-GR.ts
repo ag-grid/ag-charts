@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     dialogInputCoordinatesStart: 'Αρχή',
     dialogInputCoordinatesEnd: 'Τέλος',
     dialogInputCoordinatesValue: 'Τιμή',
-    dialogInputCoordinatesOffset: 'Μετατόπιση',
+    dialogInputCoordinatesRowOffset: '${label} Μετατόπιση',
     dialogInputCoordinatesHeight: 'Ύψος',
     dialogInputCoordinatesStartHeight: 'Ύψος αρχής',
     dialogInputCoordinatesEndHeight: 'Ύψος τέλους',

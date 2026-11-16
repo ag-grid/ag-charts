@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     dialogInputCoordinatesStart: 'البداية',
     dialogInputCoordinatesEnd: 'النهاية',
     dialogInputCoordinatesValue: 'القيمة',
-    dialogInputCoordinatesOffset: 'الإزاحة',
+    dialogInputCoordinatesRowOffset: '${label} الإزاحة',
     dialogInputCoordinatesHeight: 'الارتفاع',
     dialogInputCoordinatesStartHeight: 'ارتفاع البداية',
     dialogInputCoordinatesEndHeight: 'ارتفاع النهاية',

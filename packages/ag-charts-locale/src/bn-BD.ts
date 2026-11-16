@@ -180,7 +180,7 @@ export const AG_CHARTS_LOCALE_BN_BD: Record<string, string> = {
     dialogInputCoordinatesStart: 'শুরু',
     dialogInputCoordinatesEnd: 'শেষ',
     dialogInputCoordinatesValue: 'মান',
-    dialogInputCoordinatesOffset: 'অফসেট',
+    dialogInputCoordinatesRowOffset: '${label} অফসেট',
     dialogInputCoordinatesHeight: 'উচ্চতা',
     dialogInputCoordinatesStartHeight: 'শুরুর উচ্চতা',
     dialogInputCoordinatesEndHeight: 'শেষের উচ্চতা',

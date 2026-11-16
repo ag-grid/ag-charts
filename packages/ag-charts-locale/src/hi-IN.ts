@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     dialogInputCoordinatesStart: 'आरंभ',
     dialogInputCoordinatesEnd: 'अंत',
     dialogInputCoordinatesValue: 'मान',
-    dialogInputCoordinatesOffset: 'ऑफ़सेट',
+    dialogInputCoordinatesRowOffset: '${label} ऑफ़सेट',
     dialogInputCoordinatesHeight: 'ऊँचाई',
     dialogInputCoordinatesStartHeight: 'आरंभ ऊँचाई',
     dialogInputCoordinatesEndHeight: 'अंत ऊँचाई',

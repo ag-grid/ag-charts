@@ -84,7 +84,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     dialogInputCoordinatesStart: 'Kezdet',
     dialogInputCoordinatesEnd: 'Vég',
     dialogInputCoordinatesValue: 'Érték',
-    dialogInputCoordinatesOffset: 'Eltolás',
+    dialogInputCoordinatesRowOffset: '${label} Eltolás',
     dialogInputCoordinatesHeight: 'Magasság',
     dialogInputCoordinatesStartHeight: 'Kezdő magasság',
     dialogInputCoordinatesEndHeight: 'Záró magasság',

@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     dialogInputCoordinatesStart: 'Mulai',
     dialogInputCoordinatesEnd: 'Akhir',
     dialogInputCoordinatesValue: 'Nilai',
-    dialogInputCoordinatesOffset: 'Offset',
+    dialogInputCoordinatesRowOffset: '${label} Offset',
     dialogInputCoordinatesHeight: 'Tinggi',
     dialogInputCoordinatesStartHeight: 'Tinggi awal',
     dialogInputCoordinatesEndHeight: 'Tinggi akhir',

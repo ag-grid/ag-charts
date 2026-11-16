@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     dialogInputCoordinatesStart: 'Начало',
     dialogInputCoordinatesEnd: 'Край',
     dialogInputCoordinatesValue: 'Стойност',
-    dialogInputCoordinatesOffset: 'Отместване',
+    dialogInputCoordinatesRowOffset: '${label} Отместване',
     dialogInputCoordinatesHeight: 'Височина',
     dialogInputCoordinatesStartHeight: 'Начална височина',
     dialogInputCoordinatesEndHeight: 'Крайна височина',

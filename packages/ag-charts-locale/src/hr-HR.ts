@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     dialogInputCoordinatesStart: 'Početak',
     dialogInputCoordinatesEnd: 'Kraj',
     dialogInputCoordinatesValue: 'Vrijednost',
-    dialogInputCoordinatesOffset: 'Pomak',
+    dialogInputCoordinatesRowOffset: '${label} Pomak',
     dialogInputCoordinatesHeight: 'Visina',
     dialogInputCoordinatesStartHeight: 'Početna visina',
     dialogInputCoordinatesEndHeight: 'Završna visina',

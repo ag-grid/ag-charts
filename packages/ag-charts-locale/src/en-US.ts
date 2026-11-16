@@ -333,8 +333,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputCoordinatesEnd: 'End',
     // Text for the annotation dialog's single value coordinate label, used by horizontal and vertical lines
     dialogInputCoordinatesValue: 'Value',
-    // Text for the annotation dialog's label of the position of a point within a category, time band or bar, as a percentage
-    dialogInputCoordinatesOffset: 'Offset',
+    // Text for the annotation dialog's label of the position of a point within a category, time band or bar, as a percentage, e.g. 'Start offset'
+    dialogInputCoordinatesRowOffset: '${label} offset',
     // Text for the annotation dialog's channel height label
     dialogInputCoordinatesHeight: 'Height',
     // Text for the annotation dialog's disjoint channel start height label

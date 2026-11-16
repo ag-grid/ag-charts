@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_SL_SI: Record<string, string> = {
     dialogInputCoordinatesStart: 'Začetek',
     dialogInputCoordinatesEnd: 'Konec',
     dialogInputCoordinatesValue: 'Vrednost',
-    dialogInputCoordinatesOffset: 'Zamik',
+    dialogInputCoordinatesRowOffset: '${label} Zamik',
     dialogInputCoordinatesHeight: 'Višina',
     dialogInputCoordinatesStartHeight: 'Začetna višina',
     dialogInputCoordinatesEndHeight: 'Končna višina',

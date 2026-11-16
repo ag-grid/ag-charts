@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     dialogInputCoordinatesStart: 'Start',
     dialogInputCoordinatesEnd: 'Slut',
     dialogInputCoordinatesValue: 'Värde',
-    dialogInputCoordinatesOffset: 'Förskjutning',
+    dialogInputCoordinatesRowOffset: '${label} Förskjutning',
     dialogInputCoordinatesHeight: 'Höjd',
     dialogInputCoordinatesStartHeight: 'Starthöjd',
     dialogInputCoordinatesEndHeight: 'Sluthöjd',

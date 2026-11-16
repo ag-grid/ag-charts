@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     dialogInputCoordinatesStart: 'Başlangıç',
     dialogInputCoordinatesEnd: 'Bitiş',
     dialogInputCoordinatesValue: 'Değer',
-    dialogInputCoordinatesOffset: 'Kaydırma',
+    dialogInputCoordinatesRowOffset: '${label} Kaydırma',
     dialogInputCoordinatesHeight: 'Yükseklik',
     dialogInputCoordinatesStartHeight: 'Başlangıç yüksekliği',
     dialogInputCoordinatesEndHeight: 'Bitiş yüksekliği',

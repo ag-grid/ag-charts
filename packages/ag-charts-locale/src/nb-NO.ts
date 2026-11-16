@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     dialogInputCoordinatesStart: 'Start',
     dialogInputCoordinatesEnd: 'Slutt',
     dialogInputCoordinatesValue: 'Verdi',
-    dialogInputCoordinatesOffset: 'Forskyvning',
+    dialogInputCoordinatesRowOffset: '${label} Forskyvning',
     dialogInputCoordinatesHeight: 'Høyde',
     dialogInputCoordinatesStartHeight: 'Starthøyde',
     dialogInputCoordinatesEndHeight: 'Slutthøyde',

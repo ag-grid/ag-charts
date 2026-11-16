@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_ES_ES: Record<string, string> = {
     dialogInputCoordinatesStart: 'Inicio',
     dialogInputCoordinatesEnd: 'Fin',
     dialogInputCoordinatesValue: 'Valor',
-    dialogInputCoordinatesOffset: 'Desplazamiento',
+    dialogInputCoordinatesRowOffset: '${label} Desplazamiento',
     dialogInputCoordinatesHeight: 'Altura',
     dialogInputCoordinatesStartHeight: 'Altura inicial',
     dialogInputCoordinatesEndHeight: 'Altura final',

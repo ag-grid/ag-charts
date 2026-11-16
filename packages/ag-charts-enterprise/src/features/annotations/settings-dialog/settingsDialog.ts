@@ -374,11 +374,13 @@ export class AnnotationSettingsDialog extends Dialog {
         const axis = localeManager.t(
             initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'
         );
-        const offsetLabel = localeManager.t('dialogInputCoordinatesOffset');
-        const isOffset = initial.kind === 'offset';
-        const ariaLabel = isOffset
-            ? localeManager.t('dialogInputCoordinatesOffsetAltText', { label: `${rowLabel} ${offsetLabel}`, axis })
-            : localeManager.t('dialogInputCoordinatesAltText', { label: rowLabel, axis });
+        const ariaLabel =
+            initial.kind === 'offset'
+                ? localeManager.t('dialogInputCoordinatesOffsetAltText', {
+                      label: localeManager.t('dialogInputCoordinatesRowOffset', { label: rowLabel }),
+                      axis,
+                  })
+                : localeManager.t('dialogInputCoordinatesAltText', { label: rowLabel, axis });
 
         const suggestions = initial.suggestions && new DatalistWidget(initial.suggestions());
 
@@ -422,20 +424,9 @@ export class AnnotationSettingsDialog extends Dialog {
             }
         };
 
-        const label = this.getCoordinateLabel(
-            initial,
-            ariaLabel,
-            localeManager.t('dialogInputCoordinatesOffsetAltText', { label: offsetLabel, axis })
-        );
+        const label = initial.kind === 'offset' || isPointRow(initial.row) ? ariaLabel : rowLabel;
         const widget = this.createLabelledInput(label, input, inline, ...(suggestions ? [suggestions] : []));
         return { widget, refresh };
-    }
-
-    private getCoordinateLabel({ row, kind }: CoordinateField, ariaLabel: string, offsetLabel: string) {
-        if (kind === 'offset') {
-            return offsetLabel;
-        }
-        return isPointRow(row) ? ariaLabel : this.ctx.localeManager.t(COORDINATE_ROW_LABELS[row]);
     }
 
     private createColorPickerInput(

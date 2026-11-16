@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     dialogInputCoordinatesStart: 'Start',
     dialogInputCoordinatesEnd: 'Slut',
     dialogInputCoordinatesValue: 'Værdi',
-    dialogInputCoordinatesOffset: 'Forskydning',
+    dialogInputCoordinatesRowOffset: '${label} Forskydning',
     dialogInputCoordinatesHeight: 'Højde',
     dialogInputCoordinatesStartHeight: 'Starthøjde',
     dialogInputCoordinatesEndHeight: 'Sluthøjde',

@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_LV_LV: Record<string, string> = {
     dialogInputCoordinatesStart: 'Sākums',
     dialogInputCoordinatesEnd: 'Beigas',
     dialogInputCoordinatesValue: 'Vērtība',
-    dialogInputCoordinatesOffset: 'Nobīde',
+    dialogInputCoordinatesRowOffset: '${label} Nobīde',
     dialogInputCoordinatesHeight: 'Augstums',
     dialogInputCoordinatesStartHeight: 'Sākuma augstums',
     dialogInputCoordinatesEndHeight: 'Beigu augstums',

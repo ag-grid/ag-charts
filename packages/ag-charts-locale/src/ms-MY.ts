@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     dialogInputCoordinatesStart: 'Mula',
     dialogInputCoordinatesEnd: 'Tamat',
     dialogInputCoordinatesValue: 'Nilai',
-    dialogInputCoordinatesOffset: 'Ofset',
+    dialogInputCoordinatesRowOffset: '${label} Ofset',
     dialogInputCoordinatesHeight: 'Ketinggian',
     dialogInputCoordinatesStartHeight: 'Ketinggian mula',
     dialogInputCoordinatesEndHeight: 'Ketinggian tamat',

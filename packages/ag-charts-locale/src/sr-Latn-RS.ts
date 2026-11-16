@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_SR_LATN_RS: Record<string, string> = {
     dialogInputCoordinatesStart: 'Početak',
     dialogInputCoordinatesEnd: 'Kraj',
     dialogInputCoordinatesValue: 'Vrednost',
-    dialogInputCoordinatesOffset: 'Pomeraj',
+    dialogInputCoordinatesRowOffset: '${label} Pomeraj',
     dialogInputCoordinatesHeight: 'Visina',
     dialogInputCoordinatesStartHeight: 'Početna visina',
     dialogInputCoordinatesEndHeight: 'Krajnja visina',

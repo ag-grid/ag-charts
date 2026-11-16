@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     dialogInputCoordinatesStart: 'Simula',
     dialogInputCoordinatesEnd: 'Wakas',
     dialogInputCoordinatesValue: 'Halaga',
-    dialogInputCoordinatesOffset: 'Offset',
+    dialogInputCoordinatesRowOffset: '${label} Offset',
     dialogInputCoordinatesHeight: 'Taas',
     dialogInputCoordinatesStartHeight: 'Taas ng simula',
     dialogInputCoordinatesEndHeight: 'Taas ng wakas',

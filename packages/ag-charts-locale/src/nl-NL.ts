@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     dialogInputCoordinatesStart: 'Begin',
     dialogInputCoordinatesEnd: 'Einde',
     dialogInputCoordinatesValue: 'Waarde',
-    dialogInputCoordinatesOffset: 'Verschuiving',
+    dialogInputCoordinatesRowOffset: '${label} Verschuiving',
     dialogInputCoordinatesHeight: 'Hoogte',
     dialogInputCoordinatesStartHeight: 'Beginhoogte',
     dialogInputCoordinatesEndHeight: 'Eindhoogte',

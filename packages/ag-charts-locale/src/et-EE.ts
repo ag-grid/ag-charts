@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     dialogInputCoordinatesStart: 'Algus',
     dialogInputCoordinatesEnd: 'Lõpp',
     dialogInputCoordinatesValue: 'Väärtus',
-    dialogInputCoordinatesOffset: 'Nihe',
+    dialogInputCoordinatesRowOffset: '${label} Nihe',
     dialogInputCoordinatesHeight: 'Kõrgus',
     dialogInputCoordinatesStartHeight: 'Algkõrgus',
     dialogInputCoordinatesEndHeight: 'Lõppkõrgus',

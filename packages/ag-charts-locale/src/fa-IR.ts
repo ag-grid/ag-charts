@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     dialogInputCoordinatesStart: 'شروع',
     dialogInputCoordinatesEnd: 'پایان',
     dialogInputCoordinatesValue: 'مقدار',
-    dialogInputCoordinatesOffset: 'جابه‌جایی',
+    dialogInputCoordinatesRowOffset: '${label} جابه‌جایی',
     dialogInputCoordinatesHeight: 'ارتفاع',
     dialogInputCoordinatesStartHeight: 'ارتفاع شروع',
     dialogInputCoordinatesEndHeight: 'ارتفاع پایان',

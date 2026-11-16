@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     dialogInputCoordinatesStart: 'התחלה',
     dialogInputCoordinatesEnd: 'סיום',
     dialogInputCoordinatesValue: 'ערך',
-    dialogInputCoordinatesOffset: 'היסט',
+    dialogInputCoordinatesRowOffset: '${label} היסט',
     dialogInputCoordinatesHeight: 'גובה',
     dialogInputCoordinatesStartHeight: 'גובה התחלה',
     dialogInputCoordinatesEndHeight: 'גובה סיום',

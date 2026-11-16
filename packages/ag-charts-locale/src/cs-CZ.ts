@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     dialogInputCoordinatesStart: 'Začátek',
     dialogInputCoordinatesEnd: 'Konec',
     dialogInputCoordinatesValue: 'Hodnota',
-    dialogInputCoordinatesOffset: 'Posun',
+    dialogInputCoordinatesRowOffset: '${label} Posun',
     dialogInputCoordinatesHeight: 'Výška',
     dialogInputCoordinatesStartHeight: 'Počáteční výška',
     dialogInputCoordinatesEndHeight: 'Koncová výška',

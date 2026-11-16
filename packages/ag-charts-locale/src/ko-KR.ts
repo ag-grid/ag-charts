@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     dialogInputCoordinatesStart: '시작',
     dialogInputCoordinatesEnd: '끝',
     dialogInputCoordinatesValue: '값',
-    dialogInputCoordinatesOffset: '오프셋',
+    dialogInputCoordinatesRowOffset: '${label} 오프셋',
     dialogInputCoordinatesHeight: '높이',
     dialogInputCoordinatesStartHeight: '시작 높이',
     dialogInputCoordinatesEndHeight: '끝 높이',

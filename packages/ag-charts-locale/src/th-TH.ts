@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     dialogInputCoordinatesStart: 'เริ่มต้น',
     dialogInputCoordinatesEnd: 'สิ้นสุด',
     dialogInputCoordinatesValue: 'ค่า',
-    dialogInputCoordinatesOffset: 'ออฟเซ็ต',
+    dialogInputCoordinatesRowOffset: '${label} ออฟเซ็ต',
     dialogInputCoordinatesHeight: 'ความสูง',
     dialogInputCoordinatesStartHeight: 'ความสูงเริ่มต้น',
     dialogInputCoordinatesEndHeight: 'ความสูงสิ้นสุด',

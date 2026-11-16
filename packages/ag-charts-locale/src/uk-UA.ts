@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     dialogInputCoordinatesStart: 'Початок',
     dialogInputCoordinatesEnd: 'Кінець',
     dialogInputCoordinatesValue: 'Значення',
-    dialogInputCoordinatesOffset: 'Зміщення',
+    dialogInputCoordinatesRowOffset: '${label} Зміщення',
     dialogInputCoordinatesHeight: 'Висота',
     dialogInputCoordinatesStartHeight: 'Висота початку',
     dialogInputCoordinatesEndHeight: 'Висота кінця',

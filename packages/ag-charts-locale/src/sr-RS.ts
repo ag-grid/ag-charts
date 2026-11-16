@@ -178,7 +178,7 @@ export const AG_CHARTS_LOCALE_SR_RS: Record<string, string> = {
     dialogInputCoordinatesStart: 'Почетак',
     dialogInputCoordinatesEnd: 'Крај',
     dialogInputCoordinatesValue: 'Вредност',
-    dialogInputCoordinatesOffset: 'Померај',
+    dialogInputCoordinatesRowOffset: '${label} Померај',
     dialogInputCoordinatesHeight: 'Висина',
     dialogInputCoordinatesStartHeight: 'Почетна висина',
     dialogInputCoordinatesEndHeight: 'Крајња висина',

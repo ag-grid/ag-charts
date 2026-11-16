@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     dialogInputCoordinatesStart: 'Alku',
     dialogInputCoordinatesEnd: 'Loppu',
     dialogInputCoordinatesValue: 'Arvo',
-    dialogInputCoordinatesOffset: 'Siirtymä',
+    dialogInputCoordinatesRowOffset: '${label} Siirtymä',
     dialogInputCoordinatesHeight: 'Korkeus',
     dialogInputCoordinatesStartHeight: 'Alkukorkeus',
     dialogInputCoordinatesEndHeight: 'Loppukorkeus',

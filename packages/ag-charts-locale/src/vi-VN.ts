@@ -83,7 +83,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     dialogInputCoordinatesStart: 'Bắt đầu',
     dialogInputCoordinatesEnd: 'Kết thúc',
     dialogInputCoordinatesValue: 'Giá trị',
-    dialogInputCoordinatesOffset: 'Độ lệch',
+    dialogInputCoordinatesRowOffset: '${label} Độ lệch',
     dialogInputCoordinatesHeight: 'Chiều cao',
     dialogInputCoordinatesStartHeight: 'Chiều cao bắt đầu',
     dialogInputCoordinatesEndHeight: 'Chiều cao kết thúc',
