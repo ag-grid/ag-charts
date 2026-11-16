@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
-import { test } from './fixture';
+import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
@@ -167,6 +167,44 @@ test.describe('axes', () => {
             await page.getByRole('button', { name: 'Off', exact: true }).click();
             await waitForAllChartUpdates(page);
             await expectChartScreenshot(page, canvas, 'axis-label-rotation-irregular-no-collision.png');
+        });
+    });
+
+    test.describe('axis-title-bounds', () => {
+        type BoundingBox = { x: number; y: number; width: number; height: number };
+        const readBoundingBox = async (page: Page, text: string) => {
+            // Get the '.ag-charts-proxy-axis' element with the title matching `text`:
+            // FIXME: Should just call getByText(), but the SVG text orientation is incorrect on left/right axes.
+            const bb: BoundingBox | null = await page.getByText(text).locator('..').locator('..').boundingBox();
+            if (bb == null) return bb;
+            return {
+                x: Math.floor(bb.x),
+                y: Math.floor(bb.y),
+                width: Math.floor(bb.width),
+                height: Math.floor(bb.height),
+            };
+        };
+
+        type T = (page: Page) => Promise<BoundingBox | null>;
+        const leftBounds: T = async (page) => await readBoundingBox(page, 'The Axis On The Left');
+        const rightBounds: T = async (page) => await readBoundingBox(page, 'The Axis On The Right');
+        const bottomBounds: T = async (page) => await readBoundingBox(page, 'The Axis On The Bottom');
+        const expectedLeftBounds: BoundingBox = { x: 36, y: 183, width: 15, height: 122 };
+        const expectedRightBounds: BoundingBox = { x: 748, y: 179, width: 15, height: 131 };
+        const expectedBottomBounds: BoundingBox = { x: 330, y: 503, width: 142, height: 15 };
+
+        test('community', async ({ page }) => {
+            await gotoAxesExample(page, 'axis-title-bounds-community');
+            expect(await leftBounds(page)).toEqual(expectedLeftBounds);
+            expect(await rightBounds(page)).toEqual(expectedRightBounds);
+            expect(await bottomBounds(page)).toEqual(expectedBottomBounds);
+        });
+
+        test('enterprise', async ({ page }) => {
+            await gotoAxesExample(page, 'axis-title-bounds-enterprise');
+            expect(await leftBounds(page)).toEqual(expectedLeftBounds);
+            expect(await rightBounds(page)).toEqual(expectedRightBounds);
+            expect(await bottomBounds(page)).toEqual(expectedBottomBounds);
         });
     });
 });
