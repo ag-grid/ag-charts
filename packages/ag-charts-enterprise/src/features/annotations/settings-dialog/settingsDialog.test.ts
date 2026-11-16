@@ -154,7 +154,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
-    it('lays out the x and y of a point on one row with labels above, and a single value with its label alongside', () => {
+    it('lays out the x and y of a point on one row with labels above, and a single value or offset with its label alongside', () => {
         const yScale = new LinearScale();
         yScale.domain = [0, 50];
         const context = createAxesContext(new CategoryScale(), yScale);
@@ -172,13 +172,13 @@ describe('AnnotationSettingsDialog coordinates', () => {
             [
                 { label: 'Start: X', inline: false },
                 { label: 'Start: Y', inline: false },
-                { label: 'Start offset: X (%)', inline: false },
             ],
+            [{ label: 'Start offset: X (%)', inline: true }],
             [
                 { label: 'End: X', inline: false },
                 { label: 'End: Y', inline: false },
-                { label: 'End offset: X (%)', inline: false },
             ],
+            [{ label: 'End offset: X (%)', inline: true }],
         ]);
         dialog.hide();
 

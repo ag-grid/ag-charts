@@ -344,7 +344,8 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const refreshes: Array<(next: CoordinateField) => void> = [];
         const panel = this.createTabPanel();
-        for (const rowFields of rows.values()) {
+        // A single input has its label alongside, which an offset always is, on a row of its own.
+        const addRow = (rowFields: CoordinateField[]) => {
             const inline = rowFields.length === 1;
             const widgets = rowFields.map((field) => {
                 const { widget, refresh } = this.createCoordinateInput(field, inline, options);
@@ -352,6 +353,12 @@ export class AnnotationSettingsDialog extends Dialog {
                 return widget;
             });
             panel.addChild(this.createInputRow(widgets));
+        };
+        for (const rowFields of rows.values()) {
+            const offsets = rowFields.filter((field) => field.kind === 'offset');
+            const values = rowFields.filter((field) => field.kind !== 'offset');
+            addRow(values);
+            offsets.forEach((offset) => addRow([offset]));
         }
 
         this.refreshCoordinateInputs = () => {
