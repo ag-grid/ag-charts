@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Параллельный канал',
     toolbarAnnotationsDisjointChannel: 'Разрозненный канал',
     toolbarAnnotationsClearAll: 'Очистить всё',
+    toolbarAnnotationsMagnet: 'Магнит',
     toolbarAnnotationsFillColor: 'Цвет заливки',
     toolbarAnnotationsLineColor: 'Цвет линии',
     toolbarAnnotationsLineStyle: 'Стиль линии',

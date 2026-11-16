@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_BS_BA: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Paralelni kanal',
     toolbarAnnotationsDisjointChannel: 'Nepovezani kanal',
     toolbarAnnotationsClearAll: 'Obriši sve',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsFillColor: 'Boja popune',
     toolbarAnnotationsLineColor: 'Boja linije',
     toolbarAnnotationsLineStyle: 'Stil linije',

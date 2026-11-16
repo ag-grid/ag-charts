@@ -164,6 +164,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Nuoli ylös',
     toolbarAnnotationsCallout: 'Huomautus',
     toolbarAnnotationsClearAll: 'Tyhjennä kaikki',
+    toolbarAnnotationsMagnet: 'Magneetti',
     toolbarAnnotationsComment: 'Kommentoi',
     toolbarAnnotationsDatePriceRange: 'Päiväys ja Hinta',
     toolbarAnnotationsDateRange: 'Aikaväli',

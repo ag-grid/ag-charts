@@ -164,6 +164,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Pil Upp',
     toolbarAnnotationsCallout: 'Anmärkning',
     toolbarAnnotationsClearAll: 'Rensa alla',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsComment: 'Kommentar',
     toolbarAnnotationsDatePriceRange: 'Datum och pris',
     toolbarAnnotationsDateRange: 'Datumintervall',

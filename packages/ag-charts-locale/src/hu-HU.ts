@@ -165,6 +165,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Fel nyíl',
     toolbarAnnotationsCallout: 'Kihívás',
     toolbarAnnotationsClearAll: 'Összes törlése',
+    toolbarAnnotationsMagnet: 'Mágnes',
     toolbarAnnotationsComment: 'Megjegyzés',
     toolbarAnnotationsDatePriceRange: 'Dátum és Ár',
     toolbarAnnotationsDateRange: 'Dátumtartomány',

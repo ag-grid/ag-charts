@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Kanal Paralel',
     toolbarAnnotationsDisjointChannel: 'Kanal Terpisah',
     toolbarAnnotationsClearAll: 'Hapus Semua',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsFillColor: 'Warna Isian',
     toolbarAnnotationsLineColor: 'Warna Garis',
     toolbarAnnotationsLineStyle: 'Gaya Garis',

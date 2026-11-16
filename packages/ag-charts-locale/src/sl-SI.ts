@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_SL_SI: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Vzporedni kanal',
     toolbarAnnotationsDisjointChannel: 'Ločeni kanal',
     toolbarAnnotationsClearAll: 'Počisti vse',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsFillColor: 'Barva polnila',
     toolbarAnnotationsLineColor: 'Barva črte',
     toolbarAnnotationsLineStyle: 'Slog črte',

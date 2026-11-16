@@ -164,6 +164,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Стрілка вгору',
     toolbarAnnotationsCallout: 'Виноска',
     toolbarAnnotationsClearAll: 'Очистити все',
+    toolbarAnnotationsMagnet: 'Магніт',
     toolbarAnnotationsComment: 'Коментар',
     toolbarAnnotationsDatePriceRange: 'Дата та ціна',
     toolbarAnnotationsDateRange: 'Діапазон дат',

@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_LV_LV: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Paralēls kanāls',
     toolbarAnnotationsDisjointChannel: 'Nesaistīts kanāls',
     toolbarAnnotationsClearAll: 'Notīrīt visu',
+    toolbarAnnotationsMagnet: 'Magnēts',
     toolbarAnnotationsFillColor: 'Aizpildījuma krāsa',
     toolbarAnnotationsLineColor: 'Līnijas krāsa',
     toolbarAnnotationsLineStyle: 'Līnijas stils',

@@ -164,6 +164,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Стрелка нагоре',
     toolbarAnnotationsCallout: 'Анотация',
     toolbarAnnotationsClearAll: 'Изчисти всичко',
+    toolbarAnnotationsMagnet: 'Магнит',
     toolbarAnnotationsComment: 'Коментар',
     toolbarAnnotationsDatePriceRange: 'Дата и Цена',
     toolbarAnnotationsDateRange: 'Дата диапазон',

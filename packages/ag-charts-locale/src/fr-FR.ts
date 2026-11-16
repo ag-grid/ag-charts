@@ -164,6 +164,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Flèche Haut',
     toolbarAnnotationsCallout: 'Bulles',
     toolbarAnnotationsClearAll: 'Tout Effacer',
+    toolbarAnnotationsMagnet: 'Aimant',
     toolbarAnnotationsComment: 'Commentaire',
     toolbarAnnotationsDatePriceRange: 'Date et prix',
     toolbarAnnotationsDateRange: 'Plage de dates',

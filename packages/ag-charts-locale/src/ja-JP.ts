@@ -164,6 +164,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     toolbarAnnotationsArrowUp: '矢印上',
     toolbarAnnotationsCallout: '図形注釈',
     toolbarAnnotationsClearAll: 'すべてクリア',
+    toolbarAnnotationsMagnet: 'マグネット',
     toolbarAnnotationsComment: 'コメント',
     toolbarAnnotationsDatePriceRange: '「日付と価格」',
     toolbarAnnotationsDateRange: '日付範囲',

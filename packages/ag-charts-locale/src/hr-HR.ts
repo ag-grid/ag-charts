@@ -164,6 +164,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Strelica gore',
     toolbarAnnotationsCallout: 'Poziv',
     toolbarAnnotationsClearAll: 'Očisti sve',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsComment: 'Komentar',
     toolbarAnnotationsDatePriceRange: 'Datum i cijena',
     toolbarAnnotationsDateRange: 'Raspon datuma',

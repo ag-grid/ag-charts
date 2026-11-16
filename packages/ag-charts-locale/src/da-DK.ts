@@ -164,6 +164,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Pil Op',
     toolbarAnnotationsCallout: 'Opkald',
     toolbarAnnotationsClearAll: 'Ryd alle',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsComment: 'Kommentar',
     toolbarAnnotationsDatePriceRange: 'Dato og Pris',
     toolbarAnnotationsDateRange: 'Datointerval',
