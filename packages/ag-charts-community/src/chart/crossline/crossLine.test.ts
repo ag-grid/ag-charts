@@ -3380,8 +3380,7 @@ describe('CrossLine label fitting', () => {
 
         it.each<['x' | 'y', AgCartesianCrossLineLabelOptions, 'width' | 'height']>([
             ['x', { placement: 'inside-top' }, 'width'],
-            ['x', { placement: 'top' }, 'width'],
-            ['y', { placement: 'left', fontSize: 30, minimumFontSize: 8 }, 'height'],
+            ['y', { placement: 'inside', fontSize: 30, minimumFontSize: 8 }, 'height'],
         ])('bounds a %s-axis %o label in %s', async (axisId, label, dimension) => {
             const crossLine = rangeWith({ ...label, truncate: true }, [4, 4.5]);
             chart = deproxy(await createChart(fitChart(crossLine, axisId)));
@@ -3390,12 +3389,16 @@ describe('CrossLine label fitting', () => {
             expect(footprint[dimension]).toBeLessThanOrEqual(band[dimension]);
         });
 
-        it('leaves a label above a horizontal band unbounded in height', async () => {
-            chart = deproxy(await createChart(fitChart(rangeWith({ placement: 'top', truncate: true }, [4, 4.1]))));
+        it.each<['x' | 'y', AgCartesianCrossLineLabelPlacement, 'width' | 'height']>([
+            ['x', 'top', 'width'],
+            ['y', 'left', 'height'],
+            ['y', 'top', 'height'],
+        ])('leaves a %s-axis %s label unbounded in %s', async (axisId, placement, dimension) => {
+            chart = deproxy(await createChart(fitChart(rangeWith({ placement, truncate: true }, [4, 4.1]), axisId)));
 
-            const { band, label, text } = bandAndLabel('y');
+            const { band, label, text } = bandAndLabel(axisId);
             expect(text).toBe(LONG_TEXT);
-            expect(label.height).toBeGreaterThan(band.height);
+            expect(label[dimension]).toBeGreaterThan(band[dimension]);
         });
 
         it('keeps an inside label clear of the band edge it is anchored to', async () => {
@@ -3410,7 +3413,7 @@ describe('CrossLine label fitting', () => {
 
         it('lets an explicit maxWidth replace the band bound, even when wider', async () => {
             chart = deproxy(
-                await createChart(fitChart(rangeWith({ placement: 'top', truncate: true, maxWidth: 400 }), 'x'))
+                await createChart(fitChart(rangeWith({ placement: 'inside-top', truncate: true, maxWidth: 400 }), 'x'))
             );
 
             const { band, label, text } = bandAndLabel('x');
@@ -3468,7 +3471,7 @@ describe('CrossLine label fitting', () => {
         it('keeps a label clipped to its container inside the band', async () => {
             const label = undocumentedLabel({
                 text: `${LONG_TEXT} ${LONG_TEXT} ${LONG_TEXT}`,
-                placement: 'top',
+                placement: 'inside-top',
                 wrapping: 'on-space',
                 overflow: 'clip-text',
             });
@@ -3496,7 +3499,11 @@ describe('CrossLine label fitting', () => {
         it('renders labels bounded by their bands', async () => {
             const xCrossLines: AgCartesianCrossLineOptions[] = [
                 { type: 'range', range: [1, 2], label: { text: LONG_TEXT, placement: 'inside-top', truncate: true } },
-                { type: 'range', range: [3, 4], label: { text: LONG_TEXT, placement: 'top', wrapping: 'on-space' } },
+                {
+                    type: 'range',
+                    range: [3, 4],
+                    label: { text: LONG_TEXT, placement: 'inside-bottom', wrapping: 'on-space' },
+                },
                 {
                     type: 'range',
                     range: [6, 7],
@@ -3507,7 +3514,13 @@ describe('CrossLine label fitting', () => {
                 {
                     type: 'range',
                     range: [5, 8],
-                    label: { text: LONG_TEXT, placement: 'right', rotation: 90, wrapping: 'on-space', truncate: true },
+                    label: {
+                        text: LONG_TEXT,
+                        placement: 'inside-right',
+                        rotation: 90,
+                        wrapping: 'on-space',
+                        truncate: true,
+                    },
                 },
             ];
             chart = deproxy(

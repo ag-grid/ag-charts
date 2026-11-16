@@ -69,7 +69,7 @@ function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: numbe
     return 2 * Math.min(anchorAt - low, high - anchorAt);
 }
 
-/** Room the band leaves along one axis for a label anchored inside it on that axis; unbounded outside it. */
+/** Room the band leaves along one axis for a label anchored inside it. */
 function bandRoom(
     rangeDir: AnchorDirection,
     labelDir: AnchorDirection,
@@ -78,7 +78,6 @@ function bandRoom(
     size: number,
     paddingDiff: number
 ): number {
-    if (labelDir !== rangeDir) return Infinity;
     const anchorAt = start + (size * (rangeDir + 1)) / 2 - paddingDiff / 2;
     return availableExtent(anchorAt, labelDir, pad, start, start + size);
 }
@@ -584,12 +583,13 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     /**
-     * The room the visible band leaves the turned label: both ways inside it, and along the side a label
-     * outside it sits on. An explicit `maxWidth`/`maxHeight` replaces it on the axis that bound lies along.
+     * The room the visible band leaves a turned label placed inside it. An explicit `maxWidth`/`maxHeight`
+     * replaces it on the axis that bound lies along.
      */
     private bandTurnedBounds(fit: Pick<LabelFit, 'maxWidth' | 'maxHeight'>, anchor: Anchor): TurnedBounds | undefined {
         const { labelBounds: band, label } = this;
-        if (this.type !== 'range' || band == null) return;
+        const inside = anchor.labelH === anchor.rangeH && anchor.labelV === anchor.rangeV;
+        if (this.type !== 'range' || band == null || !inside) return;
 
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
         const roomX = bandRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
@@ -789,8 +789,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculatePadding(into: Partial<Record<CrossLineLabelPosition, number>>) {
         this.paddedSide = undefined;
-        // Without a band in view there is nothing to size a band-fitted label from.
-        if (!this.padsForLabel || (this.fitsToBand && this.labelBounds == null)) return;
+        if (!this.padsForLabel) return;
 
         const side = this.labelPaddingSide;
         if (side == null) return;
