@@ -13,7 +13,13 @@ import type { Selection } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
-import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
+import {
+    getInnerRadius,
+    getOuterRadius,
+    getRadii,
+    prepareNightingaleAnimationFunctions,
+    resetNightingaleSelectionFn,
+} from './nightingaleUtil';
 
 export class NightingaleSeries extends RadialColumnSeriesBase<
     Sector<RadialColumnNodeDatum>,
@@ -74,10 +80,9 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
         const { glowRing } = this;
         glowRing.clear();
         // This runs before the sectors are laid out, so the radii come from the datum, as `updateItemPath` takes them.
-        selection.each((sector, datum) => {
-            const { innerRadius, outerRadius } = getRadii(datum);
-            glowRing.add(sector, datum.startAngle, datum.endAngle, innerRadius, outerRadius);
-        });
+        selection.each((sector, datum) =>
+            glowRing.add(sector, datum.startAngle, datum.endAngle, getInnerRadius(datum), getOuterRadius(datum))
+        );
         setSectorGlowEnds(glowRing, true);
     }
 

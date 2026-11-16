@@ -8,6 +8,7 @@ import {
     arcRadialLineIntersectionAngle,
     clockwiseAngle,
     clockwiseAngles,
+    clockwiseSweep,
     isPointInSector,
     radiiScalingFactor,
     sectorBox,
@@ -160,7 +161,8 @@ export class Sector<D = unknown> extends Path<D> {
         const { glowStartGap, glowStartSpan, glowEndGap, glowEndSpan } = this;
         if (glowStartSpan <= 0 && glowEndSpan <= 0) return false;
 
-        const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
+        const startAngle = clockwiseAngle(this.startAngle, 0);
+        const endAngle = startAngle + clockwiseSweep(this.startAngle, this.endAngle);
         const far = this.outerRadius + 2 * (reach + this.strokeWidth) + 2;
         ctx.save();
         // Clips intersect, so cutting away each neighbour's side of its line in turn leaves both cut.
