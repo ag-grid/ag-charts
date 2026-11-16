@@ -66,7 +66,7 @@ import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
-import { getMagnetPositions } from './utils/magnetSeries';
+import { getMagnetPoints } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
@@ -200,21 +200,19 @@ export class Annotations extends AbstractModuleInstance {
         if (sourceEvent != null) this.magnetInverted = sourceEvent.ctrlKey || sourceEvent.metaKey;
     }
 
-    /**
-     * Snaps the vertical position of an offset in the series area to the values of the nearest datum, as the magnet
-     * mode says. The horizontal position is untouched, as it snaps to the nearest datum anyway.
-     */
+    /** Snaps an offset in the series area to a value of the nearest datum, at the datum's position, as the magnet mode says. */
     private readonly magnetOffset = (offset: Point): Point => {
         const mode = resolveMagnetMode(this.magnetEnabled, this.magnetStrength, this.magnetInverted);
-        const { yAxis } = this;
+        const { xAxis, yAxis } = this;
         // The values of a category axis are bands, not positions to snap to.
-        if (mode == null || !yAxis?.context.continuous) return offset;
+        if (mode == null || !xAxis || !yAxis?.context.continuous) return offset;
 
         const seriesIds = yAxis.context.seriesIds();
-        const positions = this.ctx.chartService.series
+        const axes = { x: xAxis.context, y: yAxis.context };
+        const points = this.ctx.chartService.series
             .filter((s) => s.visible && seriesIds.includes(s.id))
-            .flatMap((s) => getMagnetPositions(s, offset, yAxis.context));
-        return applyMagnet(offset, positions, mode, this.magnetRange);
+            .flatMap((s) => getMagnetPoints(s, offset, axes));
+        return applyMagnet(offset, points, mode, this.magnetRange);
     };
 
     private setupStateMachine() {

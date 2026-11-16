@@ -60,11 +60,11 @@ In the above example:
 
 ## Magnet
 
-The magnet snaps the points of a drawing or annotation to the values of the nearest data point, such as the open, high, low and close of a candlestick, or the value of a line series. The cursor stays where it is, and the drawing is placed at the snapped value. Only the vertical position is affected, as drawings already snap to the nearest data point horizontally.
+The magnet snaps the points of a drawing or annotation to the values of the nearest data point, such as the open, high, low and close of a candlestick, or the value of a line series. The cursor stays where it is, and the drawing is placed at the snapped point: the position of the nearest data point, and one of its values.
 
 The magnet is off by default. Set `magnet.enabled` to `true` to turn it on, and `magnet.mode` to set how strongly points snap:
 
-- `'weak'` snaps only when the pointer is within `magnet.range` pixels of a value. The range defaults to `20`. This is the default mode.
+- `'weak'` snaps only when the pointer is within `magnet.range` pixels of a value of a data point. The range defaults to `20`. This is the default mode.
 - `'strong'` always snaps to the nearest value.
 
 The magnet applies when creating a drawing and when dragging its handles, on any cartesian series type.
@@ -73,7 +73,7 @@ The magnet applies when creating a drawing and when dragging its handles, on any
 
 In the above example:
 
-- The magnet is on and weak, with a `range` of `30` pixels. Draw a line, or any other drawing, near a data point, and its points snap to the value of the nearest data point.
+- The magnet is on and weak, with a `range` of `30` pixels. Draw a line, or any other drawing, near a data point, and its points snap to the position and value of the nearest data point.
 - The Weak and Strong buttons set `magnet.mode`. When strong, the points snap from any distance.
 - The magnet button in the toolbar switches the magnet off and on.
 

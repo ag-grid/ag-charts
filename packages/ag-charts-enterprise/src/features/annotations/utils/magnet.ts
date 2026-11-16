@@ -14,20 +14,19 @@ export function resolveMagnetMode(
 }
 
 /**
- * The candidate nearest to `position`, if the mode lets the point snap to it: `'strong'` always does, and `'weak'` only
+ * The point of `candidates` nearest to `point`, if the mode lets it snap there: `'strong'` always does, and `'weak'` only
  * within `range` pixels.
  */
-export function nearestMagnetPosition(
-    position: number,
-    candidates: Iterable<number>,
+export function nearestMagnetPoint(
+    point: Point,
+    candidates: Iterable<Point>,
     mode: AgAnnotationMagnetMode,
     range: PixelSize
-): number | undefined {
-    let nearest: number | undefined;
+): Point | undefined {
+    let nearest: Point | undefined;
     let nearestDistance = Infinity;
     for (const candidate of candidates) {
-        if (!Number.isFinite(candidate)) continue;
-        const distance = Math.abs(candidate - position);
+        const distance = Math.hypot(candidate.x - point.x, candidate.y - point.y);
         if (distance < nearestDistance) {
             nearest = candidate;
             nearestDistance = distance;
@@ -38,18 +37,13 @@ export function nearestMagnetPosition(
     return mode === 'strong' || nearestDistance <= range ? nearest : undefined;
 }
 
-/**
- * Snaps the vertical position of `offset` to the nearest of `positions`. The horizontal position is left alone, as
- * annotation points already snap to the nearest datum along the x-axis.
- */
+/** Snaps `offset` to the nearest of `candidates`, as both its x and y positions are the datum's. */
 export function applyMagnet(
     offset: Point,
-    positions: Iterable<number>,
+    candidates: Iterable<Point>,
     mode: AgAnnotationMagnetMode | undefined,
     range: PixelSize
 ): Point {
     if (mode == null) return offset;
-
-    const y = nearestMagnetPosition(offset.y, positions, mode, range);
-    return y == null ? offset : { x: offset.x, y };
+    return nearestMagnetPoint(offset, candidates, mode, range) ?? offset;
 }

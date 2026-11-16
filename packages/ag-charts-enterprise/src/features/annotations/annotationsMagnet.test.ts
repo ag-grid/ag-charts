@@ -64,19 +64,30 @@ describe('Annotations magnet', () => {
         return { x: canvasX, y: y + height * (1 - (value - min) / (max - min)) + pixelsBelow };
     }
 
-    /** Draws a horizontal line by hovering and clicking at the position, or by dragging from it. */
-    async function drawHorizontalLine(position: { x: number; y: number }, how: 'click' | 'drag', ctrlKey = false) {
-        pressAnnotationToolbarCreate(chart, 'horizontal-line');
+    /** Draws an annotation by hovering and clicking at each position, or for a horizontal line by dragging from it. */
+    async function draw(
+        type: 'horizontal-line' | 'vertical-line' | 'line',
+        positions: Array<{ x: number; y: number }>,
+        how: 'click' | 'drag' = 'click',
+        ctrlKey = false
+    ) {
+        pressAnnotationToolbarCreate(chart, type);
         await waitForChartStability(chart);
 
         if (how === 'drag') {
+            const [position] = positions;
             await dragAction(position, { x: position.x + 20, y: position.y })(chart);
         } else {
-            await hoverAction(position.x, position.y, { ctrlKey })(chart);
-            await clickAction(position.x, position.y, { ctrlKey })(chart);
+            for (const { x, y } of positions) {
+                await hoverAction(x, y, { ctrlKey })(chart);
+                await clickAction(x, y, { ctrlKey })(chart);
+            }
         }
         await waitForChartStability(chart);
     }
+
+    const drawHorizontalLine = (position: { x: number; y: number }, how: 'click' | 'drag', ctrlKey = false) =>
+        draw('horizontal-line', [position], how, ctrlKey);
 
     async function updateMagnet(magnet: AgAnnotationMagnet) {
         await chart.updateDelta({ annotations: { magnet } });
@@ -111,6 +122,40 @@ describe('Annotations magnet', () => {
 
         // The next line, drawn without Ctrl, is not inverted, so it stays where it is clicked: 45.
         await drawHorizontalLine(at(45), 'click');
+
+        await compareAnnotationsSnapshot(chart, ctx);
+    });
+
+    it('snaps the points of a line to the x and y values of the nearest candlestick', async () => {
+        await prepareChart(
+            { enabled: true, mode: 'weak', range: 20 },
+            {
+                data: CANDLESTICKS,
+                series: [
+                    {
+                        type: 'candlestick',
+                        xKey: 'x',
+                        openKey: 'open',
+                        highKey: 'high',
+                        lowKey: 'low',
+                        closeKey: 'close',
+                    },
+                ],
+            }
+        );
+        const day = 24 * 60 * 60 * 1000;
+        const near = (time: number, value: number) => {
+            const { x, y } = canvasPoint(time, value);
+            return { x: x + 8, y: y + 6 };
+        };
+
+        // Both points are 10 pixels from a value, so they snap to the low of the first candlestick and the high of
+        // the last, at their times.
+        await draw('line', [near(FIRST_X, 5), near(LAST_X, 95)]);
+
+        // A vertical line is placed by its x position alone, which snaps to the middle candlestick from 40 days away.
+        await updateMagnet({ enabled: true, mode: 'strong' });
+        await draw('vertical-line', [canvasPoint(X_MID + 40 * day, 100)]);
 
         await compareAnnotationsSnapshot(chart, ctx);
     });
@@ -182,9 +227,9 @@ describe('Annotations magnet', () => {
                 { type: 'candlestick', xKey: 'x', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
             ],
             data: CANDLESTICKS,
-            axes: { y: { type: 'number', min: 0, max: 60, nice: false } },
-            click: 58,
-            range: [0, 60],
+            axes: { y: { type: 'number', min: 0, max: 50, nice: false } },
+            click: 49,
+            range: [0, 50],
         },
         {
             name: 'nothing when the y-axis is a category axis',
@@ -216,19 +261,21 @@ describe('Annotations magnet', () => {
         const x = (time: number) => new Date(time);
         await restoreAnnotations(chart, ctx, [
             { type: 'line', start: { x: x(X_MID), y: 50 }, end: { x: x(LAST_X), y: 30 } },
-            { type: 'parallel-channel', start: { x: x(FIRST_X), y: 70 }, end: { x: x(X_MID), y: 70 }, height: 10 },
+            { type: 'parallel-channel', start: { x: x(FIRST_X), y: 20 }, end: { x: x(X_MID), y: 20 }, height: 10 },
         ]);
 
-        // The end of the line goes towards 80, and the start of the channel towards 30, and they snap to the values of
-        // the datums at their times, 95 and 5.
+        // Each handle is dragged to 40 pixels beside the datum that is nearest to it, so that it snaps back to the x
+        // and y values of that datum: the end of the line to 95, and the start of the channel to 5.
+        const beside = (point: { x: number; y: number }, pixels: number) => ({ x: point.x + pixels, y: point.y });
+
         const lineEnd = canvasPoint(LAST_X, 30);
         await hoverAction(lineEnd.x, lineEnd.y)(chart);
-        await dragAction(lineEnd, canvasPoint(LAST_X, 80))(chart);
+        await dragAction(lineEnd, beside(canvasPoint(LAST_X, 90), -40))(chart);
         await waitForChartStability(chart);
 
-        const channelStart = canvasPoint(FIRST_X, 70);
+        const channelStart = canvasPoint(FIRST_X, 20);
         await hoverAction(channelStart.x, channelStart.y)(chart);
-        await dragAction(channelStart, canvasPoint(FIRST_X, 30))(chart);
+        await dragAction(channelStart, beside(canvasPoint(FIRST_X, 8), 40))(chart);
         await waitForChartStability(chart);
 
         await compareAnnotationsSnapshot(chart, ctx);
