@@ -638,7 +638,7 @@ export class SunburstSeries extends HierarchySeries<
     private updateGlowEnds(angleOffset: number) {
         const rings = new Map<number, SectorGlowEntry[]>();
         this.datumSelection.each((sector, { depth, startAngle, endAngle }) => {
-            if (depth == null || endAngle <= startAngle) return;
+            if (depth == null) return;
 
             const entry = { sector, startAngle: startAngle + angleOffset, endAngle: endAngle + angleOffset };
             const ring = rings.get(depth);
@@ -648,10 +648,7 @@ export class SunburstSeries extends HierarchySeries<
                 ring.push(entry);
             }
         });
-        for (const ring of rings.values()) {
-            ring.sort((a, b) => a.startAngle - b.startAngle);
-            setSectorGlowEnds(ring);
-        }
+        for (const ring of rings.values()) setSectorGlowEnds(ring);
     }
 
     override getLabelData(): PointLabelDatum[] {

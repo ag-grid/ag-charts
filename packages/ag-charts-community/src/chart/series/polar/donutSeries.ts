@@ -1360,9 +1360,7 @@ export class DonutSeries extends PolarSeries<
         if (glowing) {
             // A glow ends where the sector beside it glows too, so every sector is resolved before any is ended.
             const ring: SectorGlowEntry[] = [];
-            this.itemSelection.each((sector, { startAngle, endAngle }) => {
-                if (endAngle > startAngle) ring.push({ sector, startAngle, endAngle });
-            });
+            this.itemSelection.each((sector, { startAngle, endAngle }) => ring.push({ sector, startAngle, endAngle }));
             setSectorGlowEnds(ring);
         }
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));

@@ -100,11 +100,7 @@ export class Sector<D = unknown> extends Path<D> {
     @SceneChangeDetection()
     endInnerCornerRadius: number = 0;
 
-    /**
-     * Against a sector beside this one whose glow merges with this one's, the angle between the two and the angle of that
-     * one. This sector's glow ends on the radial line midway between them, and does not reach into that sector. A `span` of
-     * `0` is no such neighbour, so the glow wraps round that edge.
-     */
+    /** Where a sector beside this one glows too: the angle between them, and its angle and radii. A `span` of `0` is none. */
     @SceneChangeDetection()
     glowStartGap: number = 0;
 
@@ -112,10 +108,22 @@ export class Sector<D = unknown> extends Path<D> {
     glowStartSpan: number = 0;
 
     @SceneChangeDetection()
+    glowStartInner: number = 0;
+
+    @SceneChangeDetection()
+    glowStartOuter: number = 0;
+
+    @SceneChangeDetection()
     glowEndGap: number = 0;
 
     @SceneChangeDetection()
     glowEndSpan: number = 0;
+
+    @SceneChangeDetection()
+    glowEndInner: number = 0;
+
+    @SceneChangeDetection()
+    glowEndOuter: number = 0;
 
     override serialize(): SerializedNodeState {
         return { type: 'sector', props: this.serializeProps(), svgPath: this.serializeSvgPath() };
@@ -149,32 +157,65 @@ export class Sector<D = unknown> extends Path<D> {
 
     protected override clipGlowEnds(ctx: CanvasContext, reach: number): boolean {
         const { glowStartGap, glowStartSpan, glowEndGap, glowEndSpan } = this;
-        const hasStart = glowStartSpan > 0;
-        const hasEnd = glowEndSpan > 0;
-        if (!hasStart && !hasEnd) return false;
+        if (glowStartSpan <= 0 && glowEndSpan <= 0) return false;
 
-        // The glow keeps the whole turn except what the neighbour covers, from its far edge to the line between the two.
-        const full = 2 * Math.PI;
-        const startLine = this.startAngle - glowStartGap / 2;
-        const endLine = this.endAngle + glowEndGap / 2;
-        const from = hasStart ? startLine : endLine - (full - glowEndSpan - glowEndGap / 2);
-        const to = hasEnd ? endLine : startLine + (full - glowStartSpan - glowStartGap / 2);
-        if (to <= from) return false;
-
-        // Past the glow's reach, with the corners of the polygon that stands in for the arc kept clear of it.
-        const steps = Math.ceil((to - from) / (Math.PI / 3));
-        const far = (this.outerRadius + 3 * (reach + this.strokeWidth) + 2) / Math.cos(Math.PI / 6);
-        const { centerX, centerY } = this;
+        const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
+        const far = this.outerRadius + 2 * (reach + this.strokeWidth) + 2;
         ctx.save();
+        // Clips intersect, so cutting away each neighbour's side of its line in turn leaves both cut.
+        if (glowStartSpan > 0) {
+            const line = startAngle - glowStartGap / 2;
+            this.clipOutBeside(
+                ctx,
+                reach,
+                far,
+                line - glowStartSpan - glowStartGap / 2,
+                line,
+                this.glowStartInner,
+                this.glowStartOuter
+            );
+        }
+        if (glowEndSpan > 0) {
+            const line = endAngle + glowEndGap / 2;
+            this.clipOutBeside(
+                ctx,
+                reach,
+                far,
+                line,
+                line + glowEndSpan + glowEndGap / 2,
+                this.glowEndInner,
+                this.glowEndOuter
+            );
+        }
+        return true;
+    }
+
+    private clipOutBeside(
+        ctx: CanvasContext,
+        reach: number,
+        far: number,
+        from: number,
+        to: number,
+        neighbourInner: number,
+        neighbourOuter: number
+    ) {
+        // Past this band a glow has no neighbour's glow to end against, so it wraps round the edge as a free one does.
+        const margin = reach + this.strokeWidth;
+        const inner = Math.max(this.innerRadius, neighbourInner) - margin;
+        // The mitred corner of a dilated sector stands a little further out than its arc does.
+        const outer = Math.hypot(Math.min(this.outerRadius, neighbourOuter) + margin, margin);
+        const { centerX, centerY } = this;
         ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        for (let i = 0; i <= steps; i++) {
-            const angle = from + ((to - from) * i) / steps;
-            ctx.lineTo(centerX + far * Math.cos(angle), centerY + far * Math.sin(angle));
+        ctx.rect(centerX - far, centerY - far, far * 2, far * 2);
+        ctx.moveTo(centerX + outer * Math.cos(from), centerY + outer * Math.sin(from));
+        ctx.arc(centerX, centerY, outer, from, to);
+        if (inner > 0) {
+            ctx.arc(centerX, centerY, inner, to, from, true);
+        } else {
+            ctx.lineTo(centerX, centerY);
         }
         ctx.closePath();
-        ctx.clip();
-        return true;
+        ctx.clip('evenodd');
     }
 
     private normalizedRadii() {
@@ -621,20 +662,29 @@ export interface SectorGlowEntry {
 
 /**
  * Ends the glow of each sector of a ring on the radial line between it and the next sector, where both glow. `ring` holds
- * the sectors drawn in the ring in angular order. Two sectors are beside each other if their angles meet. In a `padded`
- * ring, where the sectors are set apart by a padding, every two in a row are beside each other, as are the last and the
- * first if no more than the widest padding is left between them.
+ * the sectors drawn in the ring, in any order. It is edited in place: a sector with no sweep is left out, and the angles
+ * are unwrapped and sorted. Two sectors are beside each other if their angles meet. In a `padded` ring, where the sectors
+ * are set apart by a padding, every two in a row are beside each other, as are the last and the first if no more than the
+ * widest padding is left between them.
  */
-export function setSectorGlowEnds(ring: readonly SectorGlowEntry[], padded: boolean = false) {
+export function setSectorGlowEnds(ring: SectorGlowEntry[], padded: boolean = false) {
     const full = 2 * Math.PI;
     const delta = 1e-6;
-    for (const { sector } of ring) {
+    let count = 0;
+    for (const entry of ring) {
+        const { sector } = entry;
         sector.glowStartSpan = 0;
         sector.glowEndSpan = 0;
+        const { startAngle, endAngle } = clockwiseAngles(entry.startAngle, entry.endAngle);
+        if (endAngle > startAngle) {
+            entry.startAngle = startAngle;
+            entry.endAngle = endAngle;
+            ring[count++] = entry;
+        }
     }
-
-    const count = ring.length;
+    ring.length = count;
     if (count < 2) return;
+    ring.sort((a, b) => a.startAngle - b.startAngle);
 
     let widest = delta;
     if (padded) {
@@ -651,14 +701,17 @@ export function setSectorGlowEnds(ring: readonly SectorGlowEntry[], padded: bool
         if (!glows(prev) || !glows(next)) continue;
 
         const gap = next.startAngle - prev.endAngle + (i === count - 1 ? full : 0);
-        const prevSpan = prev.endAngle - prev.startAngle;
-        const nextSpan = next.endAngle - next.startAngle;
         const beside = padded && i < count - 1 ? gap >= -delta : gap >= -delta && gap <= widest;
-        if (!beside || !(prevSpan > 0 && nextSpan > 0)) continue;
+        if (!beside) continue;
 
-        prev.sector.glowEndGap = Math.max(gap, 0);
-        prev.sector.glowEndSpan = nextSpan;
-        next.sector.glowStartGap = Math.max(gap, 0);
-        next.sector.glowStartSpan = prevSpan;
+        const { sector: a } = prev;
+        const { sector: b } = next;
+        a.glowEndGap = b.glowStartGap = Math.max(gap, 0);
+        a.glowEndSpan = next.endAngle - next.startAngle;
+        a.glowEndInner = b.innerRadius;
+        a.glowEndOuter = b.outerRadius;
+        b.glowStartSpan = prev.endAngle - prev.startAngle;
+        b.glowStartInner = a.innerRadius;
+        b.glowStartOuter = a.outerRadius;
     }
 }

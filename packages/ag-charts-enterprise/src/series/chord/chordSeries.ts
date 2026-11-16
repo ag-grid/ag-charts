@@ -627,10 +627,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         if (glowing) {
             const ring: SectorGlowEntry[] = [];
-            datumSelection.each((sector, { startAngle, endAngle }) => {
-                if (endAngle > startAngle) ring.push({ sector, startAngle, endAngle });
-            });
-            ring.sort((a, b) => a.startAngle - b.startAngle);
+            datumSelection.each((sector, { startAngle, endAngle }) => ring.push({ sector, startAngle, endAngle }));
             setSectorGlowEnds(ring, true);
         }
     }
