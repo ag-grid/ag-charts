@@ -249,9 +249,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    /** Inputs side by side, such as the x and y of one point. */
-    protected createInputRow(inputs: Widget[]) {
+    /** Inputs side by side, such as the x and y of one point; a row that `follows` another sits close beneath it. */
+    protected createInputRow(inputs: Widget[], follows = false) {
         const row = new ContainerWidget('ag-charts-dialog__input-row');
+        if (follows) {
+            row.addClass('ag-charts-dialog__input-row--follows');
+        }
         for (const input of inputs) {
             row.addChild(input);
         }

@@ -346,19 +346,19 @@ export class AnnotationSettingsDialog extends Dialog {
         const refreshes: Array<(next: CoordinateField) => void> = [];
         const panel = this.createTabPanel();
         // A single value or offset has its label alongside; an offset is on a row of its own, and a height has its label above.
-        const addRow = (rowFields: CoordinateField[]) => {
+        const addRow = (rowFields: CoordinateField[], follows = false) => {
             const inline = rowFields.length === 1 && !isHeightRow(rowFields[0].row);
             const widgets = rowFields.map((field) => {
                 const { widget, refresh } = this.createCoordinateInput(field, inline, options);
                 refreshes.push(refresh);
                 return widget;
             });
-            panel.addChild(this.createInputRow(widgets));
+            panel.addChild(this.createInputRow(widgets, follows));
         };
         for (const rowFields of rows.values()) {
             addRow(rowFields.filter((field) => field.kind !== 'offset'));
             for (const offset of rowFields.filter((field) => field.kind === 'offset')) {
-                addRow([offset]);
+                addRow([offset], true);
             }
         }
 
