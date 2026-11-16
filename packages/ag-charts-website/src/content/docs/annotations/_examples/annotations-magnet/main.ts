@@ -3,13 +3,14 @@ import {
     AgCharts,
     AnimationModule,
     AnnotationsModule,
-    CandlestickSeriesModule,
+    CategoryAxisModule,
     ChartToolbarModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
-    TimeAxisModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -17,38 +18,35 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     AnimationModule,
     AnnotationsModule,
-    CandlestickSeriesModule,
+    CategoryAxisModule,
     ChartToolbarModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
     NumberAxisModule,
-    TimeAxisModule,
 ]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'S&P 500',
+        text: 'Monthly Sales Revenue',
     },
     subtitle: {
-        text: 'Draw a line near a candlestick, with the magnet on',
+        text: 'Draw a line near a data point, with the magnet on',
+    },
+    footnote: {
+        text: '2024, values in $1000s',
     },
     series: [
         {
-            type: 'candlestick',
-            xKey: 'date',
-            xName: 'Date',
-            lowKey: 'low',
-            highKey: 'high',
-            openKey: 'open',
-            closeKey: 'close',
+            type: 'line',
+            xKey: 'month',
+            yKey: 'revenue',
+            interpolation: { type: 'smooth' },
         },
     ],
-    axes: {
-        x: { type: 'time' },
-        y: { type: 'number' },
-    },
     annotations: {
         enabled: true,
         magnet: {
