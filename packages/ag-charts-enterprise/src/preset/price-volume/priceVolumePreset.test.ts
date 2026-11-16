@@ -849,10 +849,17 @@ describe('priceVolumePreset', () => {
             expect(prices).toEqual(ratios.map((ratio) => roundToTick(top - (top - bottom) * ratio)));
         });
 
-        it('gives the same price over a volume bar and over the empty space beside it', async () => {
-            chart = AgCharts.createFinancialChart(
-                prepareFinancialTestOptions({ data: getStockData(), tickSize: TICK_SIZE })
-            );
+        it.each<[string, AgFinancialChartOptions]>([
+            ['with tickSize', { tickSize: TICK_SIZE }],
+            [
+                'with snap off',
+                {
+                    tickSize: TICK_SIZE,
+                    theme: { overrides: { common: { axes: { number: { crosshair: { snap: false } } } } } },
+                },
+            ],
+        ])('gives the same price over a volume bar and over the empty space beside it %s', async (_name, options) => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data: getStockData(), ...options }));
             await waitForChartStability(chart);
             const index = deproxy(chart).series.findIndex((s) => s.id === 'volume');
             const bars = getSeriesNodeData<VolumeNode>(chart, index).filter((node) => node.x > 0);
