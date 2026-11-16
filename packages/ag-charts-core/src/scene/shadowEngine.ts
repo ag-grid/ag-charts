@@ -95,10 +95,7 @@ export function castsCutOnly(node: Node): boolean {
 
 const overlayCuts = new WeakMap<NormalisedDropShadowOptions, NormalisedDropShadowOptions>();
 
-/**
- * The glow, which an item casts itself, marked so that the item also cuts its footprint out of the glow overlay. The copy of a
- * hovered item in the highlight layer, if it is beneath the overlay, casts this: the overlay is cut by the shape it draws.
- */
+/** The glow, marked so that the item that casts it also cuts its footprint out of the glow overlay. */
 export function withOverlayCut(glow: NormalisedDropShadowOptions): NormalisedDropShadowOptions {
     if (glow.cutsOverlay === true) return glow;
 
@@ -678,11 +675,7 @@ interface StrengthPart {
     readonly strength: number | undefined;
 }
 
-/**
- * Splits a key of an overlay into a key per strength its casters cast at, as a key at no one strength draws each silhouette
- * through a canvas of its own. The parts are cut out of each other's glows, as one key is. Whole if one strength, or over
- * {@link MAX_STRENGTH_SPLIT}.
- */
+/** Splits a key of an overlay into a key per strength, as a key at no one strength draws each silhouette on a canvas of its own. */
 function splitByStrength(key: ShadowKey): StrengthPart[] {
     const whole = getUniformSpreadStrength(key);
     const { slot, casters, frames } = key;
@@ -994,11 +987,7 @@ function castPlan(
     return rendered;
 }
 
-/**
- * Casts the glows of an overlay's keys onto `target`, merged on one canvas, each cut by its casters' footprints dilated by its
- * `gap`. The footprints of every key are then cut out of the merge once, so a glow never covers an item that glows. Returns
- * whether every caster drew.
- */
+/** Casts the glows of an overlay's keys merged onto `target`, cut by every key's footprints. Returns whether every caster drew. */
 function castOverlay(
     plans: readonly KeyPlan[],
     scratch: SpreadCanvas,
@@ -1031,12 +1020,12 @@ function castOverlay(
     const region = getGapRegion(keys[0], extent, transform, renderCtx, target, originX, originY);
     if (region == null) return true;
 
-    // A glow that can't have a canvas to be cut on is cast without the cut, rather than not at all.
     const resolution = fitMask(region.width, region.height);
     const width = Math.max(1, Math.floor(region.width * resolution));
     const height = Math.max(1, Math.floor(region.height * resolution));
     const merged = acquireGapCanvas(scene, width, height);
     let rendered = true;
+    // Without a canvas to merge on, each glow is cast on its own, uncut.
     if (merged == null) {
         for (const plan of plans) {
             rendered = drawMask(plan, scratch, transform, renderCtx) && rendered;
@@ -1071,18 +1060,15 @@ function castOverlay(
         let end = first + 1;
         while (end < plans.length && (plans[end].key.split?.from ?? plans[end].key) === source) end++;
 
-        // A glow with a `gap` of its own clears the whole footprint of its casters, dilated by the gap, before it merges. One whose
-        // `gap` was set for the overlay is cut only where an item is painted, along with every other glow, once they have merged.
+        // A glow with a `gap` of its own is cut by its footprints before it merges; the rest are cut once merged.
         const { gap, overlay } = source.shadow;
         const hasGap = gap != null && overlay !== true;
-        // A lone glow is blurred onto the merged canvas itself, and cut there, as there is no other glow to merge it with.
         const direct = lone && hasGap;
         if (hasGap && !direct) cut ??= acquireOwnCutCanvas(scene, width, height);
         // Without a canvas for its own cut, a glow is merged whole, and the cut of every footprint still clears the items.
         let own: SpreadCanvas | undefined;
         if (hasGap) own = direct ? merged : cut;
         const dest = own?.context ?? glows;
-        // A glow reaches no further than its own extent, so only that much of the canvas is blurred onto, cut and merged.
         const reach = getKeyRect(keyExtents?.get(source) ?? extent, region, scaleX, scaleY, width, height);
         const group = plans.slice(first, end);
         first = end;
@@ -1153,8 +1139,7 @@ function castOverlay(
         }
     }
 
-    // A glow with no `gap` is cut only where an item is painted, whereas a `gap` clears the whole footprint. A lone glow with a
-    // `gap` is cut by all of its footprints already, so the cut of the painted ones would only clear what is clear.
+    // A lone glow cut whole by its own `gap` needs no further cut.
     if (!(cutWhole && lone && cuts == null))
         rendered =
             cutOut(merged, { x: 0, y: 0, width, height }, scratch, (ctx, op) => {
@@ -1232,10 +1217,7 @@ function getKeyRect(
     return right > x && bottom > y ? { x, y, width: right - x, height: bottom - y } : undefined;
 }
 
-/**
- * Cuts out of `from` what `draw` draws as solid. Drawn straight onto `from`, each footprint costs a blended fill, so they
- * are stamped on `scratch` if it is big enough, and cut out in one draw. Returns what `draw` returns.
- */
+/** Cuts out of `from` what `draw` draws as solid, stamped on `scratch` first if that fits. Returns what `draw` returns. */
 function cutOut(
     from: SpreadCanvas,
     rect: Extent,

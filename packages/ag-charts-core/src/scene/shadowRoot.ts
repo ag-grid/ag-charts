@@ -100,10 +100,7 @@ function addCut(cuts: SlotKeys | undefined, child: Node, frame: CollectedFrame):
     return cuts;
 }
 
-/**
- * The keys of the frames' casters: those of every shadow, or, for the overlay, those of every glow. A glow of the overlay is
- * cut by the footprint of its casters, see {@link withFootprintCut}.
- */
+/** The keys of the frames' casters: those of every shadow, or, for the overlay, every glow, see {@link withFootprintCut}. */
 function buildKeys(frames: readonly CollectedFrame[], glows: boolean) {
     const keys = new SlotKeys(glows ? 'glow' : 'shadow');
     let cuts: SlotKeys | undefined;
@@ -145,9 +142,8 @@ export function releaseShadowRoot(scene: object | undefined, user: object) {
 }
 
 /**
- * Casts the shadows of the frames beneath what the root draws next. Returns the groups whose casters now draw without a
- * shadow or glow, with whether that includes cutouts, or undefined if the cast failed (in planning), leaving every group to
- * cast its own. With `glows`, the groups are covered even if no shadow is cast, as the overlay casts their glows.
+ * Casts the frames' shadows beneath what the root draws next. Returns the groups whose casters now draw without them, with
+ * whether that includes cutouts, or undefined if the cast failed. With `glows`, groups are covered even if no shadow is cast.
  */
 export function castRootShadows(
     frames: readonly CollectedFrame[],

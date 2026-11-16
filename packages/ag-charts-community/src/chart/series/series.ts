@@ -1382,11 +1382,8 @@ export abstract class Series<
     }
 
     /**
-     * The glow one copy of an item casts: its highlight state's `glow` over `seriesGlow`. The in-place copy of the
-     * hovered item reads as `OtherItem`, so it is told by {@link getRedrawnDatumIndex} and casts none, nor does it cut the
-     * overlay. If the series is not brought to front, the highlight layer's copy of the hovered item lies beneath the overlay, so
-     * that copy cuts it when it glows: the hovered item, if it glows, is clear of the glows of other items over all that it
-     * draws, whatever its highlight style makes of its size. A hovered item that does not glow is covered like any other.
+     * The glow one copy of an item casts: its highlight state's `glow` over `seriesGlow`. The in-place copy of the hovered
+     * item casts none and never cuts the overlay: only the highlight copy does, when it glows and is beneath the overlay.
      */
     protected resolveItemGlow(
         seriesGlow: DeepPartial<AgGlowOptions> | undefined,
@@ -1400,7 +1397,6 @@ export abstract class Series<
 
         if (isHighlight) {
             const glow = this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
-            // The copy draws beneath the overlay if the series is not brought to front, so it cuts the overlay as well.
             return glow == null || this.bringToFront() ? glow : withOverlayCut(glow);
         }
 

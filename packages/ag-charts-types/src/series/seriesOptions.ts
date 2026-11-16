@@ -41,7 +41,8 @@ export interface AgGlowHighlightStyleOptions {
      * other glow (that of an item at rest, of the highlighted series, of `unhighlightedItem` and of `unhighlightedSeries`)
      * is drawn in one layer above the items of every series. The footprint of every item that glows, the hovered item
      * included, is cut out of that layer, so a glow covers the items beside it that do not glow, including the line and
-     * fill of its own series, and no glow covers an item that glows.
+     * fill of its own series, and no glow covers an item that glows. If the highlight style draws the hovered item smaller
+     * than at rest, its at-rest edge outside that shape is covered by the glows of its neighbours.
      *
      * Line, radar line and HLC series glow only on their markers (`marker.glow`), and area, radar area and range area
      * fills are not redrawn when highlighted, so only their markers glow. Cone funnel series do not have this option.

@@ -58,11 +58,7 @@ export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
  */
 const SHADOW_MITER_LIMIT = 2;
 
-/**
- * The same for a glow, for its outer edge and for the footprint that its `gap` cuts out. A limit of 2 bevels under 60°,
- * which flattens the apex of a triangle marker (59.8°, from a height of 0.87) and leaves its other two corners (60.1°)
- * pointed. This one bevels under about 57°, so the apex stays pointed, and the points of a star (52.6°) are bevelled.
- */
+/** The same for a glow's outer edge and `gap` footprint: it bevels under about 57°, so a triangle marker's apex stays pointed. */
 const GLOW_MITER_LIMIT = 2.1;
 
 function getDilationMiterLimit(slot: ShadowSlot): number {
@@ -944,10 +940,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return true;
     }
 
-    /**
-     * Sets how the stroke that dilates the shape by a `spread` is drawn: solid, and capped so that open ends spread too. A
-     * `footprint` is mitred as the outer edge of a glow is, as the join of the item would spike at its sharp vertices.
-     */
+    /** Sets how the stroke that dilates the shape by a `spread` is drawn: solid, capped, and mitred for a `footprint`. */
     private setDilationStyle(
         slot: ShadowSlot,
         ctx: CanvasContext,

@@ -100,8 +100,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      * them, as the markers of an aggregated scatter do, uses `true`, so that they stay one batch.
      *
      * `'shared'` casts the shadows through the nearest {@link shadowRoot} above the group, beneath the items of every group
-     * that does, and batches them itself only if the root can't cast. A `'by-layer'` group casts only its glows through the
-     * root, in its overlay, and batches its shadows by layer itself, unless the root can't cast its glows.
+     * that does, and batches them itself only if the root can't cast. A `'by-layer'` group casts only its glows through the root.
      */
     @SceneChangeDetection()
     batchShadows: boolean | 'by-layer' | 'shared' = false;
@@ -831,8 +830,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** Whether the nearest shadow root covers the group, and if so, whether its cutouts are covered too. */
     private getSharedShadowCover(): ShadowCover | undefined {
-        // A group that shares only its glows is covered where the root holds an overlay, which a glow below it needs. Without one
-        // there is nothing to find, so the walk up the tree is left out, as it is for a group that shares nothing.
+        // A group that shares only its glows is covered only where the root holds an overlay, so without one the walk is skipped.
         if (!this.sharesShadows() && !(this.sharesGlows() && this.getSharedCasterCount() > 0)) return;
 
         for (const node of this.traverseUp()) {
@@ -947,10 +945,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         return this.getSharedCasterCount() > 0 ? this.countGlowCasters() : 0;
     }
 
-    /**
-     * The children that cut their footprint out of the root's overlay, in this group and the visible groups below it. They
-     * are walked to for their cuts, but make no overlay and no cast of the root, so a chart with only these allocates nothing.
-     */
+    /** The children that cut their footprint out of the root's overlay, in this group and the visible groups below it. */
     private getSharedCutCount(): number {
         if (this.sharedCutCount < 0) {
             this.countShadowCasters();
