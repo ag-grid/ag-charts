@@ -46,6 +46,7 @@ export interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeLineStyleWidth: (strokeWidth: number) => void;
     onChangeTextColor: Required<ColorPickerOptions>['onChange'];
     onChangeHideTextColor: Required<ColorPickerOptions>['onChangeHide'];
+    onCancelColor: Required<ColorPickerOptions>['onCancel'];
     onChangeTextFontSize: (fontSize: number) => void;
 }
 
@@ -165,7 +166,8 @@ export class AnnotationSettingsDialog extends Dialog {
             isFibonacciType(datum) ? datum.isMultiColor : false,
             hasMultiColorOption,
             options.onChangeLineColor,
-            options.onChangeHideLineColor
+            options.onChangeHideLineColor,
+            options.onCancelColor
         );
 
         const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, options.onChangeLineStyleWidth);
@@ -181,7 +183,8 @@ export class AnnotationSettingsDialog extends Dialog {
                 false,
                 false,
                 options.onChangeFillColor,
-                options.onChangeHideFillColor
+                options.onChangeHideFillColor,
+                options.onCancelColor
             );
 
             groupOne.addChild(fillColorPicker);
@@ -299,7 +302,8 @@ export class AnnotationSettingsDialog extends Dialog {
             false,
             false,
             options.onChangeTextColor,
-            options.onChangeHideTextColor
+            options.onChangeHideTextColor,
+            options.onCancelColor
         );
 
         const textPosition = datum.text.position === 'inside' ? 'center' : datum.text.position;
@@ -422,7 +426,8 @@ export class AnnotationSettingsDialog extends Dialog {
         isMultiColor: boolean | undefined,
         hasMultiColorOption: boolean,
         onChange: Required<ColorPickerOptions>['onChange'],
-        onChangeHide: Required<ColorPickerOptions>['onChangeHide']
+        onChangeHide: Required<ColorPickerOptions>['onChangeHide'],
+        onCancel: Required<ColorPickerOptions>['onCancel']
     ) {
         const label = colorType === 'fill-color' ? 'dialogInputFillColorPicker' : 'dialogInputColorPicker';
         const altText =
@@ -436,6 +441,7 @@ export class AnnotationSettingsDialog extends Dialog {
             hasMultiColorOption,
             onChange,
             onChangeHide,
+            onCancel,
         });
     }
 

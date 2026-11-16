@@ -1295,6 +1295,19 @@ describe('Annotations', () => {
 
             expect(strokeOf()).toBe('#00ff00');
         });
+
+        it('restores the colour on cancel when the picker was opened from the settings dialog', async () => {
+            await press('.ag-charts-color-picker__cancel-button');
+            await press('button[title="Settings"]');
+
+            await press('.ag-charts-dialog__color-picker-button');
+            await pickColor('#00ff00');
+            expect(strokeOf()).toBe('#00ff00');
+            await press('.ag-charts-color-picker__cancel-button');
+
+            expect(strokeOf()).toBe('#ff0000');
+            expect(body().querySelector('.ag-charts-dialog')).not.toBeNull();
+        });
     });
 
     describe('selected annotation axes', () => {

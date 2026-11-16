@@ -487,6 +487,7 @@ export class Annotations extends AbstractModuleInstance {
                     },
                     onChangeTextColor: onChangeColor('text-color'),
                     onChangeHideTextColor: onChangeHideColor('text-color'),
+                    onCancelColor: () => this.undoColorPickerSession(),
                     onChangeTextFontSize: (fontSize) => {
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
@@ -578,11 +579,7 @@ export class Annotations extends AbstractModuleInstance {
                 ]);
                 this.update();
             }),
-            optionsToolbar.events.on('cancelled-color', () => {
-                // 'saved-color' has just queued the record of this picking session, so undoing once it is written
-                // restores the colour from before the picker opened.
-                this.postUpdateFns.push(() => this.ctx.historyManager.undo());
-            }),
+            optionsToolbar.events.on('cancelled-color', () => this.undoColorPickerSession()),
             optionsToolbar.events.on(
                 'updated-color',
                 ({ type, colorPickerType, colorOpacity, color, opacity, isMultiColor }) => {
@@ -920,6 +917,14 @@ export class Annotations extends AbstractModuleInstance {
             historyManager.record(label, ...originators);
             annotationManager.fireChangedEvent('user-interaction');
         });
+    }
+
+    /**
+     * Cancelling a colour picker closes it first, which queues the record of that picking session. Undoing once it
+     * is written restores the colour from before the picker opened.
+     */
+    private undoColorPickerSession() {
+        this.postUpdateFns.push(() => this.ctx.historyManager.undo());
     }
 
     private setColorAndDefault(

@@ -34,6 +34,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
             onChangeLineStyleWidth: noop,
             onChangeTextColor: noop,
             onChangeHideTextColor: noop,
+            onCancelColor: noop,
             onChangeTextFontSize: noop,
         };
         const datum = { ...lineDatum.create(), start: { x: 'Pears', y: 2 }, end: { x: 'Apples', y: 4 } };

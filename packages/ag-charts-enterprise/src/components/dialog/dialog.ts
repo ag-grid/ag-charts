@@ -76,6 +76,7 @@ interface ColorPickerOptions {
     hasMultiColorOption: boolean;
     onChange: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
     onChangeHide: () => void;
+    onCancel: () => void;
 }
 
 /**
@@ -300,6 +301,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         altText,
         onChange,
         onChangeHide,
+        onCancel,
         isMultiColor,
         hasMultiColorOption,
     }: ColorPickerOptions) {
@@ -331,6 +333,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
                 },
                 onChangeHide,
+                onCancel,
             });
         });
 
