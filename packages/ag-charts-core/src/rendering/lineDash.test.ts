@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { AgLineDashName } from 'ag-charts-types';
 
-import { LINE_DASH_PATTERNS } from './lineDash';
+import { LINE_DASH_PATTERNS, rescaleLineDash } from './lineDash';
 import { setSvgLineDashAttributes } from './svgUtil';
 
 const NAMES = Object.keys(LINE_DASH_PATTERNS) as AgLineDashName[];
@@ -47,5 +47,17 @@ describe('stock line dash patterns', () => {
 
     it('writes the SVG dash array for a pattern with an odd number of lengths repeated', () => {
         expect(svgAttributes([5, 2, 1])).toEqual({ 'stroke-dasharray': '5 2 1 5 2 1', 'stroke-dashoffset': '1' });
+    });
+
+    it('rescales a dash, named or not, in proportion to the width it is drawn at', () => {
+        // `dot` resolved at a strokeWidth of 10, drawn on a 2px line.
+        expect(rescaleLineDash([10, 15], 10, 2)).toEqual([2, 3]);
+        expect(rescaleLineDash([6, 3], 10, 2)).toEqual([1.2, 0.6]);
+        // A missing or invalid width counts as 1.
+        expect(rescaleLineDash([3, 2], undefined, 2)).toEqual([6, 4]);
+        expect(rescaleLineDash([0], 10, 2)).toEqual([0]);
+        expect(rescaleLineDash(undefined, 10, 2)).toBeUndefined();
+        // Drawn at the width it was resolved at.
+        expect(rescaleLineDash([10, 15], 10, 10)).toEqual([10, 15]);
     });
 });
