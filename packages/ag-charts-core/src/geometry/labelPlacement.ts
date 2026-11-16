@@ -514,6 +514,8 @@ export type LabelObstacle =
           readonly overlay?: boolean;
           /** Draw order of the series owning a marker obstacle; unset for external obstacles. */
           readonly seriesOrder?: number;
+          /** Datum whose marker this is; unset for external obstacles, which are matched by geometry. */
+          readonly datum?: PointLabelDatum;
       }
     | {
           readonly kind: 'rect';
@@ -708,6 +710,7 @@ interface PooledCircleObstacle {
     r: number;
     category: ObstacleCategory;
     seriesOrder: number;
+    datum: PointLabelDatum | undefined;
 }
 
 // Mutable placed-label obstacle pooled across passes, mirroring markerPool.
@@ -755,6 +758,8 @@ let candidatePlacement: LabelPlacement | undefined;
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
+// The candidate's datum, matched against the datum stamped on marker obstacles.
+let candidateDatum: PointLabelDatum | undefined;
 // Draw order of the candidate's series, matching the `seriesOrder` stamped on its marker obstacles.
 let candidateSeriesOrder = 0;
 let labelObstacleCount = 0;
@@ -943,6 +948,11 @@ function straddlesForeignShape(o: LabelObstacle): boolean {
     return !boxContains(o.box, x, y, width, height);
 }
 
+function isOwnMarker(o: Extract<LabelObstacle, { kind: 'circle' }>): boolean {
+    if (o.datum != null) return o.datum === candidateDatum;
+    return o.cx === candidateOwnMarkerCx && o.cy === candidateOwnMarkerCy && o.r === candidateOwnMarkerR;
+}
+
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
     if ((o.kind === 'rect' || o.kind === 'orientedRect') && o.suspended === true) return true;
@@ -956,7 +966,7 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     const category = o.category ?? 'shape';
     if (category === 'marker' && o.kind === 'circle') {
         // A label's own marker is never a collision source; the threshold only clears other markers.
-        if (o.cx === candidateOwnMarkerCx && o.cy === candidateOwnMarkerCy && o.r === candidateOwnMarkerR) return true;
+        if (isOwnMarker(o)) return true;
         // An inside label lying wholly on its own marker is drawn over an earlier series' marker beneath it.
         if (
             candidatePlacement === 'inside' &&
@@ -1328,11 +1338,13 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
                     r: 0,
                     category: 'marker',
                     seriesOrder: 0,
+                    datum: undefined,
                 };
                 markerPool.push(obstacle);
             }
             markerCount++;
             obstacle.seriesOrder = seriesOrder;
+            obstacle.datum = d;
             obstacle.cx = cx;
             obstacle.cy = cy;
             obstacle.r = r;
@@ -2666,6 +2678,7 @@ function placeAvoidingLabel(
     candidateAvoid = avoid;
     candidateThreshold = threshold;
     markerCentreOf(d);
+    candidateDatum = d;
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
     candidateOwnMarkerR = markerSizeOf(d) / 2;
@@ -2729,6 +2742,7 @@ function placeFromPositionedCandidates(
     // No compass placement and no own marker on this path (bars): the own-marker gate in
     // obstacleExcluded must stay inert, so no obstacle centre can match.
     candidatePlacement = undefined;
+    candidateDatum = undefined;
     candidateOwnMarkerCx = Number.NaN;
     candidateOwnMarkerCy = Number.NaN;
     candidateOwnMarkerR = -1;
@@ -2745,6 +2759,8 @@ function placeFromPositionedCandidates(
     positionedDatum = d;
     positionedIndex = index;
     candidateLargestFontSize = 0;
+    floorCache.fit = undefined;
+    floorCache.font = undefined;
     positionedBounds = bounds;
     positionedResolve = resolveCandidate;
     positionedBlocked = false;
@@ -3129,10 +3145,9 @@ function fitPositionedCandidateAt(
     if (fitted && (d.neverDrop !== true || hasRealChars(fittedLabel.text))) return true;
     if (d.neverDrop !== true || !fontSearch || fitTo.container == null) return false;
     const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
-    const floorFont = fontWithSize(font, floor);
+    const { floorFit, floorFont } = atFloor(fit, font);
     keptLineContainer.width = fitTo.container.width;
     keptLineContainer.height = Math.max(fitTo.container.height, drawnLineHeight(floorFont));
-    const floorFit = fitAtFloorText(fit, font);
     // Too narrow for even one character: overflow by the least a truncated label can show.
     if (!fitKeptAtFloor(floorFit, floorFont)) {
         keptLineContainer.width = Math.max(keptLineContainer.width, leadCharacterWidth(floorFit.text, floorFont));
@@ -3166,8 +3181,7 @@ function fitOwnShapeAtFloor(
     }
     // A trial above the floor would draw the fallback larger than the floor; the ladder reaches the floor itself.
     if (!fontSearch) return false;
-    const floorFit = fitAtFloorText(fit, font);
-    const floorFont = fontWithSize(font, floor);
+    const { floorFit, floorFont } = atFloor(fit, font);
     if (!fitLabelToCandidate(floorFit, floorFont, undefined, fitTo.container, false, fitTo.shape, fitTo.shapeAlign)) {
         return false;
     }
@@ -3175,9 +3189,26 @@ function fitOwnShapeAtFloor(
     return true;
 }
 
+// The last label's text and font at its floor, shared by its candidates so a fallback allocates once per datum.
+const floorCache: {
+    fit: LabelFitDescriptor | undefined;
+    font: FontOptions | undefined;
+    floorFit: LabelFitDescriptor;
+    floorFont: FontOptions;
+} = { fit: undefined, font: undefined, floorFit: undefined!, floorFont: undefined! };
+
 /** Every segment at its own floor too, so no part of the label grows back as its container shrinks. */
-function fitAtFloorText(fit: LabelFitDescriptor, font: FontOptions): LabelFitDescriptor {
-    return { ...fit, text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text };
+function atFloor(fit: LabelFitDescriptor, font: FontOptions) {
+    if (floorCache.fit !== fit || floorCache.font !== font) {
+        floorCache.fit = fit;
+        floorCache.font = font;
+        floorCache.floorFit = {
+            ...fit,
+            text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text,
+        };
+        floorCache.floorFont = fontWithSize(font, resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize));
+    }
+    return floorCache;
 }
 
 function fitKeptAtFloor(fit: LabelFitDescriptor, floorFont: FontOptions): boolean {

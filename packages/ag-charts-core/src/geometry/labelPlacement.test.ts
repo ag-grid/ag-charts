@@ -371,35 +371,33 @@ describe('placeLabels', () => {
     });
 
     it.each([
-        { neighbourAt: undefined, placed: true },
-        { neighbourAt: 118, placed: false },
-    ])(
-        'keeps the threshold clear of other markers only, neighbour at $neighbourAt: $placed',
-        ({ neighbourAt, placed }) => {
-            const own: PointLabelDatum = {
-                point: { x: 100, y: 100, size: 20 },
-                label: { text: 'T', width: 10, height: 10 },
-                anchor: undefined,
-                placement: 'top',
-                placements: ['top'],
-                gap: 5,
-                alwaysShow: false,
-            };
-            const neighbour: PointLabelDatum = {
-                point: { x: neighbourAt ?? 0, y: 80, size: 20 },
-                label: { text: '', width: 0, height: 0 },
-                anchor: undefined,
-                placement: undefined,
-            };
-            const datums = neighbourAt == null ? [own] : [own, neighbour];
-            const labels = placeLabels(
-                new Map([['s', seriesLabels(datums, { alwaysShow: false, threshold: 6 })]]),
-                bounds,
-                5
-            ).get('s')!;
-            expect(labels.some((l) => l.datum === own)).toBe(placed);
-        }
-    );
+        { case: 'no neighbour', neighbourAt: undefined, placed: true },
+        { case: 'a neighbour within the threshold', neighbourAt: { x: 118, y: 80 }, placed: false },
+        { case: 'a coincident neighbour', neighbourAt: { x: 100, y: 100 }, placed: false },
+    ])('keeps the threshold clear of other markers only, with $case: $placed', ({ neighbourAt, placed }) => {
+        const own: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'T', width: 10, height: 10 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            gap: 5,
+            alwaysShow: false,
+        };
+        const neighbour: PointLabelDatum = {
+            point: { x: neighbourAt?.x ?? 0, y: neighbourAt?.y ?? 0, size: 20 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const datums = neighbourAt == null ? [own] : [own, neighbour];
+        const labels = placeLabels(
+            new Map([['s', seriesLabels(datums, { alwaysShow: false, threshold: 6 })]]),
+            bounds,
+            5
+        ).get('s')!;
+        expect(labels.some((l) => l.datum === own)).toBe(placed);
+    });
 
     it.each([
         { neighbourSeries: 'earlier', placed: true },
