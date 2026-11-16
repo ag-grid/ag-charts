@@ -355,10 +355,10 @@ export class AnnotationSettingsDialog extends Dialog {
             panel.addChild(this.createInputRow(widgets));
         };
         for (const rowFields of rows.values()) {
-            const offsets = rowFields.filter((field) => field.kind === 'offset');
-            const values = rowFields.filter((field) => field.kind !== 'offset');
-            addRow(values);
-            offsets.forEach((offset) => addRow([offset]));
+            addRow(rowFields.filter((field) => field.kind !== 'offset'));
+            for (const offset of rowFields.filter((field) => field.kind === 'offset')) {
+                addRow([offset]);
+            }
         }
 
         this.refreshCoordinateInputs = () => {
