@@ -2,6 +2,56 @@
 version: v1.25.1
 ignore:
   SNYK-JS-UNDICI-22392401:
+    - sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.902Z
+    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.897Z
+    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.890Z
+    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.884Z
+    - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.880Z
+    - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.879Z
+    - vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.810Z
+    - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.805Z
+    - vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.778Z
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.746Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -18,6 +68,56 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T14:29:16.259Z
   SNYK-JS-UNDICI-22370261:
+    - sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.588Z
+    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.583Z
+    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.579Z
+    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.575Z
+    - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.572Z
+    - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.570Z
+    - vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.504Z
+    - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.499Z
+    - vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.472Z
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.444Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -34,6 +134,56 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T14:29:16.255Z
   SNYK-JS-UNDICI-22291127:
+    - sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.310Z
+    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.307Z
+    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.303Z
+    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.300Z
+    - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.293Z
+    - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.292Z
+    - vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.219Z
+    - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.216Z
+    - vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.187Z
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.162Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -50,6 +200,56 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T14:29:16.254Z
   SNYK-JS-UNDICI-22291066:
+    - sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:34.140Z
+    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:34.138Z
+    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:34.135Z
+    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:34.133Z
+    - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:34.131Z
+    - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:34.130Z
+    - vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:34.042Z
+    - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:34.040Z
+    - vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:34.017Z
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:33.993Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -66,6 +266,56 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T14:29:16.252Z
   SNYK-JS-UNDICI-22290988:
+    - sass@1.106.1 > @parcel/watcher@2.4.1 > node-addon-api@7.1.1 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.671Z
+    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.666Z
+    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.661Z
+    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.656Z
+    - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.652Z
+    - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.650Z
+    - vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.581Z
+    - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.578Z
+    - vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.553Z
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.520Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project

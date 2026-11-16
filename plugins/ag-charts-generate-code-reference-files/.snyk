@@ -14,6 +14,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.556Z
   SNYK-JS-BRACEEXPANSION-20244952:
+    - '@nx/devkit@24.0.2 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:52:06.749Z
     - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build
@@ -35,6 +40,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.556Z
   SNYK-JS-BRACEEXPANSION-20244948:
+    - '@nx/devkit@24.0.2 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:51:42.250Z
     - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build

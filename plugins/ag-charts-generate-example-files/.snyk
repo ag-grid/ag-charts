@@ -2,6 +2,11 @@
 version: v1.25.1
 ignore:
   SNYK-JS-UNDICI-22392401:
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:11:05.750Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -13,6 +18,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T14:29:16.304Z
   SNYK-JS-UNDICI-22370261:
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:41.447Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -24,6 +34,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T14:29:16.298Z
   SNYK-JS-UNDICI-22291127:
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:10:09.166Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -35,6 +50,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T14:29:16.295Z
   SNYK-JS-UNDICI-22291066:
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:33.996Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -46,6 +66,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T14:29:16.292Z
   SNYK-JS-UNDICI-22290988:
+    - cheerio@1.2.0 > undici@7.29.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T15:09:05.524Z
     - ag-charts-test@* > *:
         reason: >-
             Local workspace package - its dependencies are scanned and triaged in its own project
@@ -251,6 +276,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.569Z
   SNYK-JS-BRACEEXPANSION-20244952:
+    - '@nx/devkit@24.0.2 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:52:06.753Z
     - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build
@@ -282,6 +312,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.569Z
   SNYK-JS-BRACEEXPANSION-20244948:
+    - '@nx/devkit@24.0.2 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-16T14:51:42.255Z
     - 'glob@8.1.0 > minimatch@5.1.6 > brace-expansion@2.1.4':
         reason: >-
             Used in build & dev - not included in final production build
