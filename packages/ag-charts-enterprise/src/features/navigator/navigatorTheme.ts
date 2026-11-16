@@ -57,14 +57,9 @@ const priceVolumePresetIgnoredMiniChartProperties = [
     'strokeWidth',
 ];
 
-// Not in the shared ignore lists: those drive the options defs, so `series[]` would reject `shadow` and `glow`.
-function omitInheritedShadow(ignoredProperties: readonly string[]) {
-    return [...ignoredProperties, 'shadow', 'glow'];
-}
-
-// Likewise for a bar's `gap`: the mini chart doesn't inherit it, but `miniChart.series[].gap` can still be set.
-function omitInheritedBarGap(ignoredProperties: readonly string[]) {
-    return [...omitInheritedShadow(ignoredProperties), 'gap'];
+// Not in the shared ignore lists: those drive the options defs, so `series[]` would reject `shadow`, `glow` and `gap`.
+function omitInheritedStyling(ignoredProperties: readonly string[]) {
+    return [...ignoredProperties, 'shadow', 'glow', 'gap'];
 }
 
 const miniChartMarkerTheme = {
@@ -125,21 +120,21 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                     {
                         $switch: [
                             typePath,
-                            omitInheritedShadow(commonIgnoredMiniChartProperties),
-                            ['bar', omitInheritedBarGap(barIgnoredMiniChartProperties)],
-                            ['box-plot', omitInheritedShadow(boxPlotIngnoredMiniChartProperties)],
-                            ['bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties)],
-                            ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],
-                            ['histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)],
-                            ['hlc', omitInheritedShadow(hlcIgnoredMiniChartProperties)],
+                            omitInheritedStyling(commonIgnoredMiniChartProperties),
+                            ['bar', omitInheritedStyling(barIgnoredMiniChartProperties)],
+                            ['box-plot', omitInheritedStyling(boxPlotIngnoredMiniChartProperties)],
+                            ['bubble', omitInheritedStyling(bubbleIgnoredMiniChartProperties)],
+                            ['heatmap', omitInheritedStyling(heatmapIgnoredMiniChartProperties)],
+                            ['histogram', omitInheritedStyling(histogramIgnoredMiniChartProperties)],
+                            ['hlc', omitInheritedStyling(hlcIgnoredMiniChartProperties)],
                             // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow` and `glow`.
                             [
                                 'line',
                                 [...lineIgnoredMiniChartProperties, ...priceVolumePresetIgnoredMiniChartProperties],
                             ],
-                            ['range-area', omitInheritedShadow(rangeAreaIgnoredMiniChartProperties)],
-                            ['range-bar', omitInheritedShadow(rangeBarIgnoredMiniChartProperties)],
-                            ['scatter', omitInheritedShadow(scatterIgnoredMiniChartProperties)],
+                            ['range-area', omitInheritedStyling(rangeAreaIgnoredMiniChartProperties)],
+                            ['range-bar', omitInheritedStyling(rangeBarIgnoredMiniChartProperties)],
+                            ['scatter', omitInheritedStyling(scatterIgnoredMiniChartProperties)],
                             ['waterfall', waterfallIgnoredMiniChartProperties],
                         ],
                     },

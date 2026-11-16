@@ -131,7 +131,7 @@ import {
     aggregateBarDataFromDataModel,
     aggregateBarDataFromDataModelPartial,
 } from './barAggregation';
-import { gapEdges } from './barGap';
+import { barGapEdges } from './barGap';
 import {
     checkCrisp,
     collapsedStartingBarPosition,
@@ -147,7 +147,7 @@ import {
 } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { calculateDataDiff } from './diffUtil';
-import { QuadtreePickBBox, findQuadtreeMatch } from './quadtreeUtil';
+import { type GapPickDatum, addGapPickBoxesToQuadtree, pickGapStrip } from './quadtreeUtil';
 import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum {
@@ -309,7 +309,7 @@ interface NodeDatumParams {
     opacity: number;
 }
 
-interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
+interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, GapPickDatum, Readonly<Point> {
     readonly xValue: string | number;
     readonly yValue: string | number;
     readonly cumulativeValue: number;
@@ -323,15 +323,12 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly bottomLeftCornerRadius: boolean;
     readonly featherRatio: number;
     readonly clipBBox: BBox | undefined;
-    /** The segment's span along the value axis before the gap inset; only written, and only read, when `gap > 0`. */
-    readonly pickStart: number;
-    readonly pickLength: number;
-    /** Created on first pick and updated in place, so a data update writes only the two numbers above. */
-    pickBBox: QuadtreePickBBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
     style?: Required<NormalisedBarSeriesStyle> & AgItemShadowStyle;
 }
+
+const drawnBarBounds = (datum: BarNodeDatum) => datum.clipBBox;
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
     phantomNodeData: BarNodeDatum[];
@@ -423,33 +420,18 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BarNodeDatum>) {
-        if (!this.usesGap()) {
+        if (this.usesGap()) {
+            const nodeData = this.contextNodeData?.nodeData ?? [];
+            addGapPickBoxesToQuadtree(quadtree, nodeData, this.nodeDatumContext!.barAlongX, drawnBarBounds);
+        } else {
             super.initQuadTree(quadtree);
-            return;
-        }
-        // The nodes' own bboxes are the drawn segments, which leave the gap unpicked.
-        const barAlongX = this.nodeDatumContext!.barAlongX;
-        for (const datum of this.contextNodeData?.nodeData ?? []) {
-            const { clipBBox, pickStart, pickLength } = datum;
-            if (clipBBox == null || pickLength <= 0 || datum.missing) continue;
-            const pickBBox = (datum.pickBBox ??= new QuadtreePickBBox());
-            if (barAlongX) {
-                pickBBox.setBounds(pickStart, clipBBox.y, pickLength, clipBBox.height);
-            } else {
-                pickBBox.setBounds(clipBBox.x, pickStart, clipBBox.width, pickLength);
-            }
-            quadtree.addValue(pickBBox, datum);
         }
     }
 
     protected override pickNodesExactShape(point: Point): SeriesNodePickMatch[] {
         const picks = super.pickNodesExactShape(point);
         if (picks.length !== 0 || !this.usesGap()) return picks;
-        // The shape test decides inside the drawn segment, so only the gap strips are left to add.
-        const match = findQuadtreeMatch(this, point);
-        if (match?.distance !== 0) return [];
-        const { clipBBox } = match.datum as BarNodeDatum;
-        return clipBBox?.containsPoint(point.x, point.y) === true ? [] : [match];
+        return pickGapStrip(this, point, drawnBarBounds);
     }
 
     override async processData(dataController: DataController) {
@@ -1145,7 +1127,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             mutableNode.pickStart = gapSpan.start;
             mutableNode.pickLength = gapSpan.length;
 
-            const edges = gapEdges(
+            const edges = barGapEdges(
                 params.yStart,
                 params.yEnd,
                 params.yRange,
@@ -2451,7 +2433,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (ctx.halfGap > 0) {
             const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
             const yRange = this.createStackTotalLookup(ctx)?.(datumIndex, isPositive) ?? yEnd;
-            const edges = gapEdges(yStart, yEnd, yRange, currY, yFilterValue == null);
+            const edges = barGapEdges(yStart, yEnd, yRange, currY, yFilterValue == null);
             insetGapSpan(gapSpan, ctx.halfGap, edges, bottomY <= y);
         }
         const { start: alongStart, length: alongLength } = gapSpan;
