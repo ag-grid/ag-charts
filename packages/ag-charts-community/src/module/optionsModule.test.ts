@@ -976,6 +976,46 @@ describe('ChartOptions', () => {
             }
         );
 
+        const SERIES: AgCartesianChartOptions['series'] = [{ type: 'line', xKey: 'x', yKey: 'y' }];
+        const CROSS_LINE_AXES: AgCartesianChartOptions['axes'] = {
+            x: { type: 'category', position: 'bottom', crossLines: [{ type: 'line', value: 'a' }] },
+        };
+
+        const OTHER_ROUTES: Array<[string, string, (lineDash: never) => AgCartesianChartOptions]> = [
+            [
+                'a theme override on an axis position',
+                'axes.x.line.lineDash',
+                (lineDash) => ({
+                    series: SERIES,
+                    axes: { x: { type: 'category', position: 'bottom' } },
+                    theme: { overrides: { common: { axes: { category: { bottom: { line: { lineDash } } } } } } },
+                }),
+            ],
+            [
+                'a theme override on a cross line type',
+                'axes.x.crossLines[0].lineDash',
+                (lineDash) => ({
+                    series: SERIES,
+                    axes: CROSS_LINE_AXES,
+                    theme: { overrides: { common: { axes: { category: { crossLines: { line: { lineDash } } } } } } },
+                }),
+            ],
+            [
+                'a location with no theme default',
+                'legend.item.line.disabledStyle.lineDash',
+                (lineDash) => ({ series: SERIES, legend: { item: { line: { disabledStyle: { lineDash } } } } }),
+            ],
+        ];
+
+        it.each(OTHER_ROUTES)('resolves a stock dash name from %s, and an array unchanged', (_, path, build) => {
+            const named = prepareOptions<AgCartesianChartOptions>(build('dash' as never));
+            expect(optionAt(named, path)).toEqual([3, 2]);
+
+            const array = prepareOptions<AgCartesianChartOptions>(build([7, 3] as never));
+            expect(optionAt(array, path)).toEqual([7, 3]);
+            expect(warnings()).toEqual([]);
+        });
+
         it('scales a stock dash name as if the strokeWidth were 1 when it is unset (1 on an axis line) or zero', () => {
             for (const strokeWidth of [undefined, 0]) {
                 const options = prepareOptions<AgCartesianChartOptions>({

@@ -1,7 +1,6 @@
 import {
     Color,
     Debug,
-    LINE_DASH_PATTERNS,
     ModuleRegistry,
     type PlainObject,
     circularSliceArray,
@@ -13,12 +12,14 @@ import {
     isFunction,
     isGradientFill,
     isImageFill,
+    isLineDashName,
     isNumber,
     isObject,
     isObjectLike,
     isPatternFill,
     isPlainObject,
     isString,
+    scaleLineDashName,
     without,
 } from 'ag-charts-core';
 
@@ -28,6 +29,7 @@ import {
     OVERRIDES_EDGE,
     type OptionsGraphInterface,
     PATH_EDGE,
+    PRUNE_EDGE,
     RESOLVED_TO_BRANCH,
     UNRESOLVABLE_PATH,
     USER_OPTIONS_EDGE,
@@ -1029,10 +1031,6 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     return RESOLVED_TO_BRANCH;
 }
 
-function isLineDashName(value: unknown): value is keyof typeof LINE_DASH_PATTERNS {
-    return isString(value) && Object.hasOwn(LINE_DASH_PATTERNS, value);
-}
-
 /** The default is an array of lengths, which holds no operations, a stock name, or an operation resolving to either. */
 function resolveLineDashDefault(
     graph: OptionsGraphInterface,
@@ -1042,17 +1040,6 @@ function resolveLineDashDefault(
     if (defaultVertex == null) return;
     const value = graph.getVertexValue(defaultVertex);
     return Array.isArray(value) ? [...(value as number[])] : graph.resolveVertexValue(vertex, defaultVertex);
-}
-
-/** The stroke width that a stock dash scales by: any width that is not a positive number counts as 1. */
-function resolveLineDashWidth(graph: OptionsGraphInterface, vertex: VertexInterface, widthVertex?: VertexInterface) {
-    const width = widthVertex == null ? undefined : graph.resolveVertexValue(vertex, widthVertex);
-    return isNumber(width) && Number.isFinite(width) && width > 0 ? width : 1;
-}
-
-/** The stock dash's lengths, which are in multiples of the stroke width, in pixels. */
-function scaleStockLineDash(name: keyof typeof LINE_DASH_PATTERNS, width: number) {
-    return LINE_DASH_PATTERNS[name].map((length) => length * width);
 }
 
 /**
@@ -1068,24 +1055,31 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
+    // The grafted override is the one that applies to this vertex, whatever key (axis position, cross line type) it
+    // was declared under.
     const overrideOption =
-        graph.dangerouslyGetThemeOverride(pathArray) ?? graph.dangerouslyGetThemeOverride(withoutIndices(pathArray));
+        graph.findNeighbourValue(vertex, OVERRIDES_EDGE) ??
+        graph.dangerouslyGetThemeOverride(pathArray) ??
+        graph.dangerouslyGetThemeOverride(withoutIndices(pathArray));
 
-    const width = resolveLineDashWidth(graph, vertex, widthVertex);
+    const width = widthVertex == null ? undefined : graph.resolveVertexValue(vertex, widthVertex);
+
+    // A prune from an earlier resolve outlives it, and would drop the elements of a styler's array over a name.
+    graph.removeEdges(vertex, PRUNE_EDGE);
 
     const winner = userOption ?? overrideOption;
     if (isLineDashName(winner)) {
         graph.prune(vertex, [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE]);
-        return scaleStockLineDash(winner, width);
+        return scaleLineDashName(winner, width);
     }
 
     const resolvedDefault = resolveLineDashDefault(graph, vertex, defaultVertex);
     const defaultDash = isLineDashName(resolvedDefault)
-        ? scaleStockLineDash(resolvedDefault, width)
+        ? scaleLineDashName(resolvedDefault, width)
         : (resolvedDefault as number[] | undefined);
 
     // A user array still merges index by index over a named override, which stands in for the default.
-    const base = isLineDashName(overrideOption) ? scaleStockLineDash(overrideOption, width) : (defaultDash ?? []);
+    const base = isLineDashName(overrideOption) ? scaleLineDashName(overrideOption, width) : (defaultDash ?? []);
 
     // An empty default with nothing to layer over it is the value as it stands: an empty array has no elements to
     // graft, and no default leaves the option unset, so that what the style falls back to still applies.

@@ -65,11 +65,14 @@ describe('named line dash patterns', () => {
                 width2: 90 + i * 4,
                 width4: 80 + i * 4,
                 width6: 70 + i * 4,
+                dot10: 110 + i * 4,
                 array: 60 + i * 4,
                 styler: 50 + i * 4,
+                stylerArray: 40 + i * 4,
                 bar: 20 + i * 4,
             })),
             series: [
+                line('dot10', 'dot at 10', { strokeWidth: 10, lineDash: 'dot' }),
                 ...[1, 2, 4, 6].map((strokeWidth) =>
                     line(`width${strokeWidth}`, `dash-dot at ${strokeWidth}`, { strokeWidth, lineDash: 'dash-dot' })
                 ),
@@ -77,6 +80,11 @@ describe('named line dash patterns', () => {
                 line('styler', 'styler: dot at 5', {
                     strokeWidth: 1,
                     styler: () => ({ strokeWidth: 5, lineDash: 'dot' }),
+                }),
+                line('stylerArray', 'styler: [16, 6] over dash at 6', {
+                    strokeWidth: 6,
+                    lineDash: 'dash',
+                    styler: () => ({ lineDash: [16, 6] }),
                 }),
                 {
                     type: 'bar',
