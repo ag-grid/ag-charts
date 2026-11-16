@@ -222,8 +222,20 @@ export const FILL_GRADIENT_CONIC_SERIES_DEFAULTS: WithThemeParams<RequiredIntern
 export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternColor> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
-    width: { $isUserOption: ['./height', { $path: './height' }, 10] },
-    height: { $isUserOption: ['./width', { $path: './width' }, 10] },
+    width: {
+        $isUserOption: [
+            './height',
+            { $path: './height' },
+            { $switch: [{ $path: './pattern' }, 10, [['polka-dots'], 8], [['waves'], 14]] },
+        ],
+    },
+    height: {
+        $isUserOption: [
+            './width',
+            { $path: './width' },
+            { $switch: [{ $path: './pattern' }, 10, [['polka-dots'], 8]] },
+        ],
+    },
     padding: 2,
     fill: {
         $if: [
@@ -248,6 +260,17 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
             { $path: './pattern' },
             0,
             [['backward-slanted-lines', 'forward-slanted-lines', 'horizontal-lines', 'vertical-lines'], 4],
+            [
+                [
+                    'waves',
+                    'hollow-circles',
+                    'criss-cross',
+                    'zig-zag',
+                    'horizontal-dashed-lines',
+                    'vertical-dashed-lines',
+                ],
+                2,
+            ],
         ],
     },
     backgroundFill: 'none',
@@ -904,13 +927,10 @@ export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelect
 export const LEGEND_CONTAINER_THEME: any = {
     border: {
         enabled: { $isType: [{ $ref: 'legendBorder' }, 'boolean', { $ref: 'legendBorder' }, true] },
-        // `legendBorder: false` keeps the legend's own stroke for a border enabled through the legend options.
-        stroke: themeBorderColor('legendBorder', {
-            off: { $foregroundBackgroundMix: 0.25 },
-            unset: { $ref: 'borderColor' },
-        }),
+        // A border enabled through the legend options still resolves its stroke and width when `legendBorder` is false.
+        stroke: themeBorderColor('legendBorder', { unset: { $ref: 'borderColor' } }),
         strokeOpacity: 1,
-        strokeWidth: themeBorderWidth('legendBorder', { off: 1, unset: { $ref: 'borderWidth' } }),
+        strokeWidth: themeBorderWidth('legendBorder', { off: { $ref: 'borderWidth' }, unset: { $ref: 'borderWidth' } }),
     },
     cornerRadius: { $ref: 'legendBorderRadius' },
     fillOpacity: 1,

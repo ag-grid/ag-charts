@@ -13,21 +13,7 @@ export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
     version: VERSION,
 
     themeTemplate: {
-        enabled: {
-            $if: [
-                {
-                    $or: [
-                        { $eq: [{ $path: '../type' }, 'number'] },
-                        { $eq: [{ $path: '../type' }, 'log'] },
-                        { $eq: [{ $path: '../type' }, 'time'] },
-                        { $eq: [{ $path: '../type' }, 'unit-time'] },
-                        { $eq: [{ $path: '../type' }, 'ordinal-time'] },
-                    ],
-                },
-                true,
-                false,
-            ],
-        },
+        enabled: false,
         stroke: { $ref: 'subtleTextColor' },
         strokeWidth: 1,
         strokeOpacity: 1,

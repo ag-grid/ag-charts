@@ -6,6 +6,7 @@ import {
     type ModuleScope,
     type PlainObject,
     type Resolved,
+    SKIP_JS_BUILTINS,
     type Vertex,
     ambientLog,
     isObject,
@@ -40,6 +41,7 @@ import {
     getPathSafe,
     hasPathSafe,
     hasTemplatePathSafe,
+    isColorOptionPath,
     isListIndex,
     setPathSafe,
 } from './optionsGraphUtils';
@@ -723,7 +725,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved);
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved, vertex);
         }
 
         let value = this.getVertexValue(valueVertex);
@@ -734,7 +736,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             value = getPathSafe(object, this.getPathArray(vertex));
         }
 
-        return this.resolveValueOrCssVariable(value);
+        return this.resolveValueOrCssVariable(value, vertex);
     }
 
     /**
@@ -960,7 +962,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const childPathArray = [...pathArray];
         const pathArrayLength = pathArray.length;
         for (const key of keys) {
-            if (ignorePaths?.has(key)) continue;
+            if (ignorePaths?.has(key) || SKIP_JS_BUILTINS.has(key)) continue;
 
             const childPathVertex = pathVertices?.get(key) ?? this.addVertex(key);
             childPathArray[pathArrayLength] = key;
@@ -1270,7 +1272,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const valueVertex = this.findNeighbour(vertex, edgeValue);
             if (valueVertex == null) continue;
 
-            const value = this.resolveVertexValueInternal(vertex, valueVertex);
+            const value = this.resolveVertexValueInternal(vertex, valueVertex, pathArray);
 
             // Only allow setting values to `undefined` from the highest priority edge
             if (value == null && edgeValue !== highestPriority) continue;
@@ -1320,7 +1322,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         return edgePriority;
     }
 
-    private resolveVertexValueInternal(vertex: Vertex<unknown>, valueVertex: Vertex<unknown>) {
+    private resolveVertexValueInternal(
+        vertex: Vertex<unknown>,
+        valueVertex: Vertex<unknown>,
+        pathArray: Array<string>
+    ) {
         this.resolveVertexDependencies(valueVertex);
 
         const operation = this.findNeighbourValue(valueVertex, OPERATION_EDGE);
@@ -1329,10 +1335,12 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved);
+            return resolved === RESOLVED_TO_BRANCH
+                ? undefined
+                : this.resolveValueOrCssVariable(resolved, vertex, pathArray);
         }
 
-        return this.resolveValueOrCssVariable(this.getVertexValue(valueVertex));
+        return this.resolveValueOrCssVariable(this.getVertexValue(valueVertex), vertex, pathArray);
     }
 
     private resolveVertexAutoEnable(vertex: Vertex<unknown>, object: PlainObject, pathArray: Array<string>) {
@@ -1450,8 +1458,13 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
     }
 
-    private resolveValueOrCssVariable(value: unknown) {
-        if (typeof value === 'string' && Object.hasOwn(this.cssVariables, value)) {
+    /** Substitute a collected CSS variable, but only where the target is a colour option, never in text. */
+    private resolveValueOrCssVariable(value: unknown, vertex: Vertex<unknown>, pathArray?: Array<string>) {
+        if (
+            typeof value === 'string' &&
+            Object.hasOwn(this.cssVariables, value) &&
+            isColorOptionPath(pathArray ?? this.getPathArray(vertex))
+        ) {
             return this.cssVariables[value];
         }
 

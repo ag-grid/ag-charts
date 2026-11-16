@@ -74,4 +74,20 @@ describe('ToolbarButtonWidget', () => {
         expect(elem.children[1]).not.toBe(label);
         expect(elem.children[1].textContent).toBe('Zoom more');
     });
+
+    it.each([
+        ['ariaLabel', { ariaLabel: 'Aria', tooltip: 'Tooltip', label: 'Label' }, 'Aria'],
+        ['tooltip', { tooltip: 'Tooltip', label: 'Label' }, 'Tooltip'],
+        ['label', { label: 'Label' }, 'Label'],
+        ['locale key', { ariaLabel: 'toolbarRange1MonthAria', label: '1M' }, '1 month'],
+    ])('names the button from its %s', (_, options, expected) => {
+        expect(createButton(options).elem.getAttribute('aria-label')).toBe(expected);
+    });
+
+    it('removes the name when no ariaLabel, tooltip or label is set', () => {
+        const { elem, update } = createButton({ icon: 'zoom-in', ariaLabel: 'Zoom in' });
+
+        update({ icon: 'zoom-in' });
+        expect(elem.hasAttribute('aria-label')).toBe(false);
+    });
 });

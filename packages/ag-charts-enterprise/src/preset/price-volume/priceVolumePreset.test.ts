@@ -753,6 +753,36 @@ describe('priceVolumePreset', () => {
             expect(labels.map((l) => l.priceTop)).toEqual(HOVER_YS.map((y) => `${y}px`));
         });
 
+        const CHART_TYPES = [
+            'candlestick',
+            'hollow-candlestick',
+            'ohlc',
+            'line',
+            'step-line',
+            'hlc',
+            'high-low',
+        ] as const;
+
+        it.each(CHART_TYPES.flatMap((chartType) => [true, false].map((volume) => [chartType, volume] as const)))(
+            'shows date and price crosshair labels by default for %s with volume %s',
+            async (chartType, volume) => {
+                const [label] = await hoverLabels({ chartType, volume });
+                expect(label.price).toBeTruthy();
+                expect(label.date).toBeTruthy();
+            }
+        );
+
+        it.each<[string, 'number' | 'ordinal-time', boolean, boolean]>([
+            ['price', 'number', false, true],
+            ['date', 'ordinal-time', true, false],
+        ])('hides the %s label when theme overrides disable that axis crosshair', async (_name, axis, price, date) => {
+            const theme = { overrides: { common: { axes: { [axis]: { crosshair: { enabled: false } } } } } };
+
+            const [label] = await hoverLabels({ theme });
+            expect(label.price != null).toBe(price);
+            expect(label.date != null).toBe(date);
+        });
+
         it('snaps within a zoomed range', async () => {
             const labels = await hoverLabels({
                 tickSize: TICK_SIZE,

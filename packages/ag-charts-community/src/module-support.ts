@@ -262,7 +262,14 @@ export type { ExtraOpts, ApplyFn, FromToFns } from './motion/fromToMotion';
 export { pathMotion } from './motion/pathMotion';
 export { DOMManager } from './dom/domManager';
 export { DOMElementProxy } from './dom/domElementProxy';
-export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
+export { SyncManager } from './chart/interaction/syncManager';
+export type {
+    SyncAxisLike,
+    SyncDerivedDomain,
+    SyncGroupMember,
+    SyncGroupState,
+    SyncStatus,
+} from './chart/interaction/syncManager';
 
 export {
     expandLabelBoxExtent,

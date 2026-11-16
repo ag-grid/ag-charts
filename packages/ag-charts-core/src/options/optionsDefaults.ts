@@ -48,7 +48,7 @@ import {
     color,
     constant,
     defined,
-    isThemeOperator,
+    isThemeOperatorAllowed,
     number,
     numericValue,
     optionsDefs,
@@ -66,7 +66,7 @@ import {
     union,
 } from './validation';
 
-export const themeOperator = isThemeOperator;
+export const themeOperator = isThemeOperatorAllowed;
 
 const themeParams = [
     'accentColor',
@@ -208,13 +208,13 @@ const colorRefMixOnto = attachDescription((value: unknown) => {
 }, 'where a color ref with [onto] or [ontoColor] must also have [mix]');
 const colorRef = and(colorRefDef, colorRefMixOnto);
 
-// `themeOperator` validator is required by the preset modules which perform a validation of the overrides before
-// processing the private operators.
-export const colorOrRef = or(color, themeOperator, colorRef);
-
 // A nested object schema strips unknown keys but still passes, so an operator would reduce to `{}` rather than fail.
 const hasKey = (key: string) => (value: unknown) => !isObject(value) || key in value;
 const colorRefWithRef = and(hasKey('ref'), colorRef);
+
+// `themeOperator` validator is required by the preset modules which perform a validation of the overrides before
+// processing the private operators.
+export const colorOrRef = or(color, themeOperator, colorRefWithRef);
 
 // For `theme.params`, where only the public `ref` form is supported.
 export const colorOrRefNoOperator = or(color, colorRefWithRef);
@@ -297,13 +297,20 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
             'horizontal-lines',
             'forward-slanted-lines',
             'backward-slanted-lines',
+            'vertical-dashed-lines',
+            'horizontal-dashed-lines',
+            'waves',
+            'criss-cross',
+            'zig-zag',
             'circles',
+            'hollow-circles',
             'squares',
             'triangles',
             'diamonds',
             'stars',
             'hearts',
-            'crosses'
+            'crosses',
+            'polka-dots'
         )
     ),
     path: stringLength(2),
@@ -349,13 +356,20 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
             'horizontal-lines',
             'forward-slanted-lines',
             'backward-slanted-lines',
+            'vertical-dashed-lines',
+            'horizontal-dashed-lines',
+            'waves',
+            'criss-cross',
+            'zig-zag',
             'circles',
+            'hollow-circles',
             'squares',
             'triangles',
             'diamonds',
             'stars',
             'hearts',
-            'crosses'
+            'crosses',
+            'polka-dots'
         ),
         path: stringLength(2),
         width: positiveNumber,
@@ -384,7 +398,7 @@ const colorObject = typeUnion<Exclude<AgColorType, AgCssColorOrRef>>(colorObject
 
 // `themeOperator` validator is required by the preset modules which perform a validation of the overrides before
 // processing the private operators.
-export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'), themeOperator, colorRef);
+export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'), themeOperator, colorRefWithRef);
 export const simpleColorUnion = or(color, optionsDefs(colorObject, 'a color object'));
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
@@ -509,9 +523,9 @@ export const lineSegmentation = optionsDefs<AgSeriesSegmentation<AgSeriesLineSeg
 );
 
 export const googleFont = optionsDefs<GoogleFontFamily>({ googleFont: string }, 'google font');
-export const fontFamilyFull = or(string, themeOperator, googleFont, arrayOf(or(string, googleFont)));
-
 const googleFontWithKey = and(hasKey('googleFont'), googleFont);
+export const fontFamilyFull = or(string, themeOperator, googleFontWithKey, arrayOf(or(string, googleFontWithKey)));
+
 export const fontFamilyNoOperator = or(string, googleFontWithKey, arrayOf(or(string, googleFontWithKey)));
 export const fontWeight = or(positiveNumber, union('normal', 'bold', 'bolder', 'lighter'));
 

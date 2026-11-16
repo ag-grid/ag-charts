@@ -183,6 +183,26 @@ describe('Zoom', () => {
         });
     };
 
+    it('names each zoom button from its ariaLabel or tooltip', async () => {
+        await prepareChart({
+            buttons: {
+                enabled: true,
+                visible: 'always',
+                buttons: [
+                    { icon: 'zoom-in', value: 'zoom-in', section: 'scale', ariaLabel: 'Magnify' },
+                    { icon: 'zoom-out', value: 'zoom-out', section: 'scale', tooltip: 'Shrink' },
+                    { icon: 'reset', value: 'reset', section: 'reset' },
+                ],
+            },
+        });
+
+        const names = Array.from(
+            deproxy(chart).ctx.agDocument.body.querySelectorAll('.ag-charts-zoom-buttons .ag-charts-toolbar__button'),
+            (button) => button.getAttribute('aria-label')
+        );
+        expect(names).toEqual(['Magnify', 'Shrink', 'Reset the zoom']);
+    });
+
     describe('tick datums across a data update', () => {
         const rows = (shift = 0, maxX = 20) =>
             Array.from({ length: 11 }, (_, i) => ({ x: (i * maxX) / 10, y: ((i + shift) % 2) * 10 }));

@@ -1,6 +1,5 @@
 import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-community';
 import {
-    CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
@@ -197,11 +196,6 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
                 ],
             },
             fillOpacity: { $path: '../fillOpacity' },
-        },
-    },
-    axes: {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: {
-            crosshair: { enabled: true },
         },
     },
 };
