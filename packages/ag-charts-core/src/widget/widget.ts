@@ -118,15 +118,17 @@ export abstract class Widget<
         return this.elem.offsetHeight;
     }
 
-    destroy(): void {
-        const self: object & { isDestroying?: true } = this;
-        if (self.isDestroying) {
-            return; // block reentrance.
-        }
-        self.isDestroying = true;
-        this.nonReentrantDestruction();
-        delete self['isDestroying'];
-    }
+    public readonly destroy = (() => {
+        let isDestroying = false;
+        return () => {
+            if (isDestroying) {
+                return; // block reentrance.
+            }
+            isDestroying = true;
+            this.nonReentrantDestruction();
+            isDestroying = false;
+        };
+    })();
 
     private nonReentrantDestruction() {
         this.destroyListener?.();
