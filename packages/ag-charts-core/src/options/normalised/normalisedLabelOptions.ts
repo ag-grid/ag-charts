@@ -6,6 +6,7 @@ import type {
     AgChartLabelPlacementStyleOptions,
     AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
+    AgErrorBarSeriesLabelCollisionOptions,
     AgSeriesLabelCollisionOptions,
     BorderOptions,
     ContextDefault,
@@ -28,6 +29,10 @@ export type NormalisedChartLabelStyleOptions = Normalised<
 >;
 
 export type NormalisedChartLabelCollisionOptions = Normalised<AgSeriesLabelCollisionOptions, 'alwaysShow'>;
+export type NormalisedErrorBarSeriesLabelCollisionOptions = Normalised<
+    AgErrorBarSeriesLabelCollisionOptions,
+    'alwaysShow'
+>;
 
 export type NormalisedChartLabelPlacementStyleOptions = Normalised<
     AgChartLabelPlacementStyleOptions,

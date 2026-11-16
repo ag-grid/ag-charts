@@ -254,6 +254,10 @@ export class Annotations extends AbstractModuleInstance {
                 if (previousNode === selectedNode && selectedNode != null) return;
 
                 previousNode?.toggleActive(false);
+                // A reset deselects without naming the previous annotation, so clear every other one.
+                for (const node of annotations.nodes()) {
+                    if (node !== selectedNode) node.toggleSelected(false);
+                }
 
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
@@ -261,6 +265,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
+                    selectedNode.toggleSelected(true);
                     if (!isEphemeralType(selectedDatum)) {
                         optionsToolbar.updateButtons(this.annotationData.at(index!)!);
                         this.postUpdateFns.push(() => {
@@ -283,7 +288,10 @@ export class Annotations extends AbstractModuleInstance {
 
             selectLast: () => {
                 this.pushAnnotationState(InteractionState.AnnotationsSelected);
-                return this.annotationData.length - 1;
+                const index = this.annotationData.length - 1;
+                // A drawn annotation's scene does not exist until the next update, and no `select` reaches it.
+                this.postUpdateFns.push(() => this.annotations.at(index)?.toggleSelected(true));
+                return index;
             },
 
             startInteracting: () => {
@@ -833,18 +841,14 @@ export class Annotations extends AbstractModuleInstance {
                 annotations.each((sceneNode) => {
                     const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = value;
-                    if ('setAxisLabelOpacity' in node) {
-                        node.setAxisLabelOpacity(value);
-                    }
+                    node.setAxisLabelOpacity(value);
                 });
             },
             onStop() {
                 annotations.each((sceneNode) => {
                     const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = to;
-                    if ('setAxisLabelOpacity' in node) {
-                        node.setAxisLabelOpacity(to);
-                    }
+                    node.setAxisLabelOpacity(to);
                 });
             },
         });
@@ -964,15 +968,11 @@ export class Annotations extends AbstractModuleInstance {
                 const node = sceneNode as AnnotationSceneUnion;
                 if (!showAnnotations) {
                     node.visible = false;
-                    if ('setAxisLabelVisible' in node) {
-                        node.setAxisLabelVisible(false);
-                    }
+                    node.setAxisLabelVisible(false);
                     return;
                 }
 
-                if ('setAxisLabelVisible' in node) {
-                    node.setAxisLabelVisible(true);
-                }
+                node.setAxisLabelVisible(true);
                 updateAnnotation(node, datum, context);
             });
 
@@ -998,12 +998,14 @@ export class Annotations extends AbstractModuleInstance {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(xAxis.layout),
+                thickness: xAxis.layout.labelThickness ?? 0,
                 snapToGroup: snap,
             },
             yAxis: {
                 ...yAxis.context,
                 bounds: yAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(yAxis.layout),
+                thickness: yAxis.layout.labelThickness ?? 0,
                 snapToGroup: snap,
             },
         };

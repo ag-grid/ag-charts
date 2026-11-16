@@ -1,11 +1,9 @@
-import { setAttribute } from '../dom/attributeUtil';
 import { isDirectionRtl } from '../dom/domUtil';
 import {
     addEscapeEventListener,
     addMouseCloseListener,
     addOverrideFocusVisibleEventListener,
     addTouchCloseListener,
-    getLastFocus,
     hasNoModifiers,
 } from '../dom/keynavUtil';
 import { createElementId } from '../identity/id';
@@ -13,13 +11,14 @@ import { CleanupRegistry } from '../state/cleanupRegistry';
 import { CollapseMode } from './collapseMode';
 import type { CollapseOpts, ExpandOpts, ExpandableWidget } from './expandableWidget';
 import { MenuItemWidget } from './menuItemWidget';
+import { Opener } from './opener';
 import type { RovingDirection } from './rovingDirection';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import { SeparatorWidget } from './separatorWidget';
 import type { KeyboardWidgetEvent, WidgetEvent } from './widgetEvents';
 
 interface ExpansionScope {
-    lastFocus: HTMLElement | undefined;
+    opener: Opener | undefined;
     expandedSubMenu: MenuWidget | undefined;
     removers: CleanupRegistry;
     abort: () => void;
@@ -124,7 +123,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         if (this.expansionScope != null) return; // already open
 
         this.expansionScope = {
-            lastFocus: getLastFocus(opts.sourceEvent),
+            opener: Opener.fromEvent(opts.sourceEvent),
             expandedSubMenu: undefined,
             abort: () => this.collapse({ mode: CollapseMode.ABORT }),
             close: () => this.collapse({ mode: CollapseMode.CLOSE }),
@@ -132,7 +131,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         };
         const scope = this.expansionScope;
         const buttons = this.children.map((value) => value.getElement());
-        setAttribute(scope.lastFocus, 'aria-expanded', true);
+        scope.opener?.setAriaExpanded(true);
 
         scope.removers.register(
             addMouseCloseListener(this.elem, scope.abort),
@@ -152,13 +151,13 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         const { mode = CollapseMode.CLOSE } = opts ?? {};
 
         if (this.expansionScope === undefined) return;
-        const { lastFocus, removers, expandedSubMenu } = this.expansionScope;
+        const { opener, removers, expandedSubMenu } = this.expansionScope;
         this.expansionScope = undefined; // stop re-entrance
 
         expandedSubMenu?.collapse({ mode: CollapseMode.PARENT_CLOSED });
-        setAttribute(lastFocus, 'aria-expanded', false);
+        opener?.setAriaExpanded(false);
         if (mode === CollapseMode.CLOSE) {
-            lastFocus?.focus({ preventScroll: true });
+            opener?.focus({ preventScroll: true });
         }
         removers.flush();
 

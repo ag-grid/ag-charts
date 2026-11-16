@@ -176,13 +176,20 @@ export type AgPatternName =
     | 'horizontal-lines'
     | 'forward-slanted-lines'
     | 'backward-slanted-lines'
+    | 'vertical-dashed-lines'
+    | 'horizontal-dashed-lines'
+    | 'waves'
+    | 'criss-cross'
+    | 'zig-zag'
     | 'squares'
     | 'circles'
+    | 'hollow-circles'
     | 'triangles'
     | 'diamonds'
     | 'stars'
     | 'hearts'
-    | 'crosses';
+    | 'crosses'
+    | 'polka-dots';
 
 /**
  * Represents options for the strokes in a chart.

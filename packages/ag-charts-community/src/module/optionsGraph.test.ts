@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { PlainObject } from 'ag-charts-core';
 import { expectWarningsCalls, setupMockConsole, testLogger } from 'ag-charts-test';
@@ -21,6 +21,24 @@ function prepareOptions(options: PlainObject) {
 
 describe('OptionsGraph', () => {
     setupMockConsole();
+
+    afterEach(() => {
+        delete (Object.prototype as any).testMarker;
+    });
+
+    it.each(['$merge', '$clone'])('should ignore prototype keys of a user row grafted by %s', (operator) => {
+        const row = JSON.parse('{ "__proto__": { "testMarker": 1 }, "value": 2 }');
+        const userOptions = prepareOptions({
+            title: { [operator]: { $path: '/series/0/data/0' } },
+            series: [{ type: 'line', data: [row] }],
+        });
+        const options = new OptionsGraph({}, userOptions).resolve(testLogger);
+
+        expect(({} as any).testMarker).toBeUndefined();
+        expect(Object.prototype).not.toHaveProperty('testMarker');
+        expect(options.title).toEqual({ value: 2 });
+        expect(Object.keys(options.title)).not.toContain('__proto__');
+    });
 
     it('should merge chart defaults and user options', () => {
         const themeConfig = {

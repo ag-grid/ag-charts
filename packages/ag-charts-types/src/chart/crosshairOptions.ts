@@ -1,4 +1,4 @@
-import type { AgAxisBoundSeries, AgTimeIntervalUnit } from './axisOptions';
+import type { AgAxisBoundSeries, AgTimeInterval, AgTimeIntervalUnit } from './axisOptions';
 import type { Formatter, Renderer } from './callbackOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { ContextDefault, CssColor, Opacity, PixelSize } from './types';
@@ -7,7 +7,11 @@ import type { ContextDefault, CssColor, Opacity, PixelSize } from './types';
 export type AgCrosshairSnapMode = 'all' | 'nearest';
 
 export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, ContextDefault>> {
-    /** Whether to show the crosshair. */
+    /**
+     * Whether to show the crosshair.
+     *
+     * Default: `true` on number, log, time, unit-time and ordinal-time axes when the chart's first series is candlestick, OHLC or HLC, and on the price and date axes of the Financial Charts presets; `false` otherwise.
+     */
     enabled?: boolean;
     /**
      * Whether the crosshair snaps to the highlighted data point. When unset, the crosshair snaps if the highlighted series has a single value on this axis or a `crosshairSnapTo` list, and follows the pointer otherwise.
@@ -25,6 +29,24 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, Context
     lineDashOffset?: PixelSize;
     /** The crosshair label configuration */
     label?: LabelType;
+}
+
+export interface AgNumericAxisCrosshairOptions<
+    LabelType = AgCrosshairLabel<string, ContextDefault>,
+> extends AgCrosshairOptions<LabelType> {
+    /**
+     * Rounds the crosshair to the nearest multiple of this step, in the units of the axis. Turns snapping on when `snap` is unset.
+     */
+    snapInterval?: number;
+}
+
+export interface AgTimeAxisCrosshairOptions<
+    LabelType = AgCrosshairLabel<string, ContextDefault>,
+> extends AgCrosshairOptions<LabelType> {
+    /**
+     * Rounds the crosshair to the nearest interval, aligned the same way as the axis `interval.step`. A unit keyword, an object describing the interval, or a number of milliseconds. Turns snapping on when `snap` is unset.
+     */
+    snapInterval?: AgTimeInterval | AgTimeIntervalUnit | number;
 }
 
 export interface AgCrosshairLabelFormatterParams<TContext> {

@@ -36,6 +36,7 @@ interface State {
     axisAreaWidths: AreaWidthMap;
     clipSeries: boolean;
     overflows: boolean;
+    paddingSettled: boolean;
 }
 
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
@@ -308,10 +309,6 @@ export class CartesianChartType implements ChartTypeInstance {
     }
 
     afterProcessData() {
-        if (this.host.syncStatus === 'init') {
-            this.host.syncStatus = 'domains-calculated';
-        }
-
         this.ctx.eventsHub.emit('update:process-data', { series: { shouldFlipXY: this.shouldFlipXY() } });
     }
 
@@ -321,7 +318,7 @@ export class CartesianChartType implements ChartTypeInstance {
 
     async afterSeriesDomains() {
         for (const axis of this.axes) {
-            const syncedDomain = await this.ctx.syncManager.getSyncedDomain(axis);
+            const syncedDomain = await this.ctx.syncManager?.getSyncedDomain(axis);
 
             if (syncedDomain == null) {
                 this.warnIfUnused(axis);
@@ -492,6 +489,7 @@ export class CartesianChartType implements ChartTypeInstance {
         const totalWidth = (axisAreaWidths.get('left') ?? 0) + (axisAreaWidths.get('right') ?? 0);
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
         const pluginPadding = this.buildAxisPluginPadding(outerSpace);
+        const collectedPadding = { ...pluginPadding };
 
         if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
             // Not enough space for rendering
@@ -541,6 +539,10 @@ export class CartesianChartType implements ChartTypeInstance {
             axisWidths.set(axis.id, Math.ceil(axisWidth));
         }
 
+        // Plugin padding can depend on the axis layout it shrinks, so it is collected again once that has settled.
+        const settledPadding = this.buildAxisPluginPadding(outerSpace);
+        const paddingSettled = directions.every((side) => settledPadding[side] === collectedPadding[side]);
+
         // adjust axis widths for crossAt axes and calculate cross positions
         const crossPositions = this.calculateAxesCrossPositions(axisWidths, seriesRect, crossAtAxes);
 
@@ -589,7 +591,7 @@ export class CartesianChartType implements ChartTypeInstance {
 
         this.applyAxisCrossing(seriesRect, crossPositions);
 
-        return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, overflows };
+        return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, overflows, paddingSettled };
     }
 
     private calculateAxesCrossPositions(
@@ -748,7 +750,7 @@ export class CartesianChartType implements ChartTypeInstance {
         for (const axis of newValue) {
             removed.delete(axis);
         }
-        this.ctx.syncManager.removeAxes(removed);
+        this.ctx.syncManager?.removeAxes(removed);
     }
 
     private sizeAxis(axis: CartesianAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
@@ -873,10 +875,11 @@ export class CartesianChartType implements ChartTypeInstance {
             }
         }
 
-        return { axisAreaWidths, clipSeries: false, overflows: false };
+        return { axisAreaWidths, clipSeries: false, overflows: false, paddingSettled: true };
     }
 
     private isLayoutStable(newState: State, prevState: State) {
+        if (!newState.paddingSettled) return false;
         if (prevState.overflows !== newState.overflows || prevState.clipSeries !== newState.clipSeries) {
             return false;
         }

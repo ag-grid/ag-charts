@@ -211,6 +211,7 @@ export * from './widget/menuItemCellWidget';
 export * from './widget/menuItemWidget';
 export * from './widget/menuWidget';
 export * from './widget/nativeWidget';
+export * from './widget/popoverWidget';
 export * from './widget/radioGroupWidget';
 export * from './widget/rangeInputWidget';
 export * from './widget/rovingDirection';

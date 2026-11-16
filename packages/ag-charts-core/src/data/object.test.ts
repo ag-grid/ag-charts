@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { getPath, mergeDefaults, mergeDefaultsShallowOperations } from './object';
+import { isPlainObject } from './typeGuards';
 
 describe('mergeDefaultsShallowOperations', () => {
     it('replaces an operation rather than merging into its arguments', () => {
@@ -61,5 +62,16 @@ describe('getPath', () => {
     it('returns undefined rather than throwing when an intermediate is missing', () => {
         expect(getPath({ a: {} }, 'a.b.c')).toBeUndefined();
         expect(getPath(undefined, 'a.b')).toBeUndefined();
+    });
+});
+
+describe('isPlainObject', () => {
+    it('accepts object literals', () => {
+        expect(isPlainObject({})).toBe(true);
+        expect(isPlainObject({ a: 1 })).toBe(true);
+    });
+
+    it('rejects Object.prototype', () => {
+        expect(isPlainObject(Object.prototype)).toBe(false);
     });
 });

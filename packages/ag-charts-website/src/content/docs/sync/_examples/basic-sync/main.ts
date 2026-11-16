@@ -56,6 +56,7 @@ const commonOptions: AgChartOptions = {
                 maxSpacing: 180,
             },
             crosshair: {
+                enabled: true,
                 label: {
                     format: '%d %b %Y',
                 },

@@ -39,6 +39,12 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelDatum> {
         this.append([this.background, this.topLine, this.middleLine, this.bottomLine, ...Object.values(this.handles)]);
     }
 
+    /** The four corners. The middle handles only move an edge, so they are not labelled. */
+    protected override getSelectionPoints(): Point[] {
+        const { topLeft, topRight, bottomLeft, bottomRight } = this.handles;
+        return [topLeft, topRight, bottomLeft, bottomRight].map((handle) => handle.getCenter());
+    }
+
     protected override getBottom(datum: ParallelChannelDatum, logger: Logger) {
         return getParallelChannelBottom(datum, logger);
     }

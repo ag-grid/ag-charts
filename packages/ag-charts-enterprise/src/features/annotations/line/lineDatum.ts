@@ -2,14 +2,17 @@ import {
     type ExtendableFields,
     type LineStyleFields,
     type LineTextDatum,
+    type SelectionAxesFields,
     type StrokeFields,
     createLineTextDatum,
+    createSelectionAxesFields,
     defineAnnotationDatum,
 } from '../annotationDatum';
 import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { type StartEndDatum, createStartEndDatum } from '../datum/startEndDatum';
 
-export interface LineTypeDatum extends StartEndDatum, StrokeFields, LineStyleFields, ExtendableFields {
+export interface LineTypeDatum
+    extends StartEndDatum, StrokeFields, LineStyleFields, ExtendableFields, SelectionAxesFields {
     text: LineTextDatum;
 }
 
@@ -22,7 +25,7 @@ export interface ArrowDatum extends LineTypeDatum {
 }
 
 export function createLineTypeDatum(): Omit<LineTypeDatum, 'type'> {
-    return { ...createStartEndDatum(), text: createLineTextDatum() };
+    return { ...createStartEndDatum(), ...createSelectionAxesFields(), text: createLineTextDatum() };
 }
 
 export function getLineDefaultColor(datum: LineTypeDatum, colorPickerType: AnnotationOptionsColorPickerType) {

@@ -435,6 +435,11 @@ export abstract class Series<
         return dataSet.netSize() > 0;
     }
 
+    /** Whether a datum that renders has its x value in `[start, end]`, or `undefined` if the series cannot tell. */
+    hasDataInXRange(_start: number, _end: number): boolean | undefined {
+        return undefined;
+    }
+
     get tooltipEnabled() {
         return this.options.tooltip?.enabled;
     }

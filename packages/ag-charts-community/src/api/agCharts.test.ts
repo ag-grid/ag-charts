@@ -808,6 +808,16 @@ describe('AgCharts', () => {
         });
     });
 
+    it('adds no CSS variable watcher for an incomplete var() value in a title', async () => {
+        chart = await createChart({
+            title: { text: 'var(--x, rgb(1,2,3) junk{} .testMarker{})' },
+            data: [{ x: 'a', y: 1 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        } as AgChartOptions);
+
+        expect(document.querySelectorAll('[data-variable-name]')).toHaveLength(0);
+    });
+
     describe('CSS variables left out of a styler result on a detached container', () => {
         // jsdom cannot validate a `var()` returned from a callback, so the result is handed to the options graph the
         // way the series hand it theirs.

@@ -48,6 +48,37 @@ This default behaviour can be modified by using the crosshair `snap` option. Whe
 
 {% chartExampleRunner title="Crosshair Snap False" name="crosshair-snap" type="generated" /%}
 
+### Snap Interval
+
+Use `snapInterval` on `number`, `log` and `time` axes to round the crosshair to a fixed step, such as a price tick or a time slot. Setting it turns snapping on, unless `snap` is `false`.
+
+{% chartExampleRunner title="Crosshair Snap Interval" name="crosshair-snap-interval" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'time',
+            crosshair: {
+                snapInterval: { unit: 'minute', step: 15 },
+            },
+        },
+        y: {
+            type: 'number',
+            crosshair: {
+                snapInterval: 0.25,
+            },
+        },
+    },
+}
+```
+
+In this example:
+
+- The `y` axis crosshair rounds to the nearest multiple of `0.25`.
+- The `x` axis crosshair rounds to the nearest 15 minutes. On `time` axes, `snapInterval` takes the same values as [`interval.step`](./axes-intervals/).
+- Hover the chart to see the crosshair snap to the nearest point, with both values rounded.
+
 ## Styles
 
 Crosshair styles such as `stroke`, `strokeWidth` and `lineDash` are customisable via `AgCrosshairOptions`.
@@ -222,6 +253,14 @@ See the [Band Highlight API Reference](#reference-AgBandHighlightOptions) for mo
 
 {% tabItem id="AgCrosshairOptions" label="Crosshair" %}
 {% apiReference id="AgCrosshairOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgNumericAxisCrosshairOptions" label="Number and Log Axis Crosshair" %}
+{% apiReference id="AgNumericAxisCrosshairOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgTimeAxisCrosshairOptions" label="Time Axis Crosshair" %}
+{% apiReference id="AgTimeAxisCrosshairOptions" /%}
 {% /tabItem %}
 
 {% tabItem id="AgBandHighlightOptions" label="Band Highlight" %}

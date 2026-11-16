@@ -364,6 +364,30 @@ describe('Ranges', () => {
         });
     });
 
+    it('names each range button from its ariaLabel, tooltip or label', async () => {
+        chart = await createEnterpriseChart({
+            data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            ranges: {
+                enabled: true,
+                buttons: [
+                    { label: 'A', ariaLabel: 'First range', value: [0, 5] },
+                    { label: 'B', tooltip: 'Second range', value: [0, 10] },
+                    { label: 'All', value: [0, 19] },
+                ],
+            },
+        });
+
+        const names = Array.from(
+            deproxy(chart).ctx.agDocument.body.querySelectorAll(
+                '.ag-charts-range-buttons--buttons .ag-charts-toolbar__button'
+            ),
+            (button) => button.getAttribute('aria-label')
+        );
+        expect(names).toEqual(['First range', 'Second range', 'All']);
+    });
+
     describe('theme params', () => {
         const resolvedRanges = async (params: AgChartThemeParams, ranges: AgRangesOptions = {}) => {
             const options: AgCartesianChartOptions = {

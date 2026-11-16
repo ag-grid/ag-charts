@@ -10,7 +10,7 @@ import type { StartEndHandle } from '../scenes/startEndScene';
 import { SNAP_TO_ANGLE, getDragStartState, snapToAngle, translate } from '../utils/coords';
 import { createFibonacciRangesData, getFibonacciCoords } from '../utils/fibonacci';
 import { validateDatumPoint } from '../utils/validation';
-import { convertLine, convertPoint, invertCoords } from '../utils/values';
+import { convertLine, convertPoint, convertPoints, invertCoords } from '../utils/values';
 import type { FibonacciRetracementTrendBasedDatum } from './fibonacciRetracementTrendBasedDatum';
 
 type ActiveHandle = StartEndHandle | 'endRetracement';
@@ -41,6 +41,10 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
     constructor() {
         super();
         this.append([this.endRetracementLine, this.start, this.end, this.endRetracement]);
+    }
+
+    protected override getSelectionPoints(datum: FibonacciRetracementTrendBasedDatum, context: AnnotationContext) {
+        return convertPoints([datum.start, datum.end, datum.endRetracement], context);
     }
 
     public override update(datum: FibonacciRetracementTrendBasedDatum, context: AnnotationContext) {
