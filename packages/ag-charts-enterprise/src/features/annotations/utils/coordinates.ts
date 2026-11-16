@@ -31,16 +31,18 @@ export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 
 
 export type ParsedCoordinate = AgNumericValue | Date | string;
 
-type PointRow = 'start' | 'end' | 'endRetracement';
+export type PointRow = 'start' | 'end' | 'endRetracement';
 
 export function isPointRow(row: CoordinateRow): row is PointRow {
     return row === 'start' || row === 'end' || row === 'endRetracement';
 }
 
 /** A `height` row is a distance along the y axis; the position of a point within its band is the `offset` kind. */
-export type CoordinateRow = PointRow | 'value' | 'height' | 'startHeight' | 'endHeight';
+export type HeightRow = 'height' | 'startHeight' | 'endHeight';
 
-export function isHeightRow(row: CoordinateRow) {
+export type CoordinateRow = PointRow | 'value' | HeightRow;
+
+export function isHeightRow(row: CoordinateRow): row is HeightRow {
     return row === 'height' || row === 'startHeight' || row === 'endHeight';
 }
 

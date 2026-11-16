@@ -24,6 +24,8 @@ import {
     type CoordinateField,
     type CoordinateKind,
     type CoordinateRow,
+    type HeightRow,
+    type PointRow,
     displayCoordinate,
     formatCoordinate,
     getCoordinateFields,
@@ -72,15 +74,55 @@ export interface LinearSettingsDialogTextChangeProps {
     label?: string;
 }
 
-const COORDINATE_ROW_LABELS: Record<CoordinateRow, string> = {
-    start: 'dialogInputCoordinatesStart',
-    end: 'dialogInputCoordinatesEnd',
-    endRetracement: 'dialogInputCoordinatesEndRetracement',
+// Each label is a whole string of its own, as a translation cannot assume the order its parts read in.
+const COORDINATE_LABELS = {
+    start: {
+        x: 'dialogInputCoordinatesStartX',
+        y: 'dialogInputCoordinatesStartY',
+        xOffset: 'dialogInputCoordinatesStartOffsetX',
+        yOffset: 'dialogInputCoordinatesStartOffsetY',
+    },
+    end: {
+        x: 'dialogInputCoordinatesEndX',
+        y: 'dialogInputCoordinatesEndY',
+        xOffset: 'dialogInputCoordinatesEndOffsetX',
+        yOffset: 'dialogInputCoordinatesEndOffsetY',
+    },
+    endRetracement: {
+        x: 'dialogInputCoordinatesEndRetracementX',
+        y: 'dialogInputCoordinatesEndRetracementY',
+        xOffset: 'dialogInputCoordinatesEndRetracementOffsetX',
+        yOffset: 'dialogInputCoordinatesEndRetracementOffsetY',
+    },
+    value: {
+        x: 'dialogInputCoordinatesValueX',
+        y: 'dialogInputCoordinatesValueY',
+        xOffset: 'dialogInputCoordinatesValueOffsetX',
+        yOffset: 'dialogInputCoordinatesValueOffsetY',
+    },
+} as const satisfies Record<Exclude<CoordinateRow, HeightRow>, Record<'x' | 'y' | 'xOffset' | 'yOffset', string>>;
+
+const COORDINATE_HEIGHT_LABELS: Record<HeightRow, string> = {
+    height: 'dialogInputCoordinatesHeightY',
+    startHeight: 'dialogInputCoordinatesStartHeightY',
+    endHeight: 'dialogInputCoordinatesEndHeightY',
+};
+
+/** The label of a row that is named on its own, rather than by the point and axis it positions. */
+const COORDINATE_ROW_LABELS: Record<Exclude<CoordinateRow, PointRow>, string> = {
     value: 'dialogInputCoordinatesValue',
     height: 'dialogInputCoordinatesHeight',
     startHeight: 'dialogInputCoordinatesStartHeight',
     endHeight: 'dialogInputCoordinatesEndHeight',
 };
+
+function getCoordinateLabelKey({ row, axis, kind }: CoordinateField) {
+    if (isHeightRow(row)) {
+        return COORDINATE_HEIGHT_LABELS[row];
+    }
+    const labels = COORDINATE_LABELS[row];
+    return kind === 'offset' ? labels[`${axis}Offset` as const] : labels[axis];
+}
 
 const COORDINATE_INPUT_TYPES = {
     number: 'number',
@@ -378,17 +420,7 @@ export class AnnotationSettingsDialog extends Dialog {
 
     private createCoordinateInput(initial: CoordinateField, inline: boolean, options: LinearSettingsDialogOptions) {
         const { localeManager } = this.ctx;
-        const rowLabel = localeManager.t(COORDINATE_ROW_LABELS[initial.row]);
-        const axis = localeManager.t(
-            initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'
-        );
-        const ariaLabel =
-            initial.kind === 'offset'
-                ? localeManager.t('dialogInputCoordinatesOffsetAltText', {
-                      label: localeManager.t('dialogInputCoordinatesRowOffset', { label: rowLabel }),
-                      axis,
-                  })
-                : localeManager.t('dialogInputCoordinatesAltText', { label: rowLabel, axis });
+        const ariaLabel = localeManager.t(getCoordinateLabelKey(initial));
 
         const suggestions = initial.suggestions && new DatalistWidget(initial.suggestions());
 
@@ -432,7 +464,10 @@ export class AnnotationSettingsDialog extends Dialog {
             }
         };
 
-        const label = initial.kind === 'offset' || isPointRow(initial.row) ? ariaLabel : rowLabel;
+        const label =
+            initial.kind === 'offset' || isPointRow(initial.row)
+                ? ariaLabel
+                : localeManager.t(COORDINATE_ROW_LABELS[initial.row]);
         const widget = this.createLabelledInput(label, input, inline, ...(suggestions ? [suggestions] : []));
         return { widget, refresh };
     }

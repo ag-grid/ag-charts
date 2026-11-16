@@ -8,6 +8,7 @@ import { getAnnotationsModuleContext } from '../../../test/featureAccessors';
 import type { AnnotationContext } from '../annotationTypes';
 import type { LinearDialogDatumType } from '../annotationsSuperTypes';
 import { horizontalLineDatum } from '../cross-line/crossLineDatum';
+import { fibonacciRetracementTrendBasedDatum } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
 import { lineDatum } from '../line/lineDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { ANNOTATIONS_EXAMPLE_OPTIONS, createAnnotationsChart, createAxesContext } from '../test/fixture';
@@ -189,5 +190,29 @@ describe('AnnotationSettingsDialog coordinates', () => {
 
         show(context, { ...parallelChannelDatum.create(), height: 10 });
         expect(layout().at(-1)).toEqual([{ label: 'Height', inline: false }]);
+    });
+
+    it('labels every input of a point on two category axes, so that no label is a missing locale key', () => {
+        show(createAxesContext(new CategoryScale(), new CategoryScale()), {
+            ...fibonacciRetracementTrendBasedDatum.create(),
+            start: { x: 'Pears', y: 'Pears' },
+            end: { x: 'Apples', y: 'Apples' },
+            endRetracement: { x: 'Pears', y: 'Apples' },
+        });
+
+        expect(inputs().map((input) => input.getAttribute('aria-label'))).toEqual([
+            'Start: X',
+            'Start: Y',
+            'Start offset: X (%)',
+            'Start offset: Y (%)',
+            'End: X',
+            'End: Y',
+            'End offset: X (%)',
+            'End offset: Y (%)',
+            'Retracement end: X',
+            'Retracement end: Y',
+            'Retracement end offset: X (%)',
+            'Retracement end offset: Y (%)',
+        ]);
     });
 });
