@@ -1249,9 +1249,13 @@ export class MapMarkerSeries
             // Pass the numbers as strings: the message formatter would reformat a number and drop the 4 decimal places.
             heading = localeManager.t('seriesMapMarkerTooltipCoordinates', {
                 lat: Math.abs(latValue).toFixed(4),
-                latDirection: localeManager.t(latValue >= 0 ? 'seriesMapMarkerTooltipNorth' : 'seriesMapMarkerTooltipSouth'),
+                latDirection: localeManager.t(
+                    latValue >= 0 ? 'seriesMapMarkerTooltipNorth' : 'seriesMapMarkerTooltipSouth'
+                ),
                 lon: Math.abs(lonValue).toFixed(4),
-                lonDirection: localeManager.t(lonValue >= 0 ? 'seriesMapMarkerTooltipEast' : 'seriesMapMarkerTooltipWest'),
+                lonDirection: localeManager.t(
+                    lonValue >= 0 ? 'seriesMapMarkerTooltipEast' : 'seriesMapMarkerTooltipWest'
+                ),
             });
         }
 
