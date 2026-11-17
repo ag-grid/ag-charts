@@ -6,6 +6,7 @@ import type { AgChartOptions } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
+import { BESIDE_COLOURS, BESIDE_GLOW, besideBars } from '../test/glowRender';
 import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { shapesOf } from '../test/shadowFixtures';
 import {
@@ -198,34 +199,9 @@ describe('the labels of a series with a glow', () => {
         chart?.destroy();
     });
 
-    const LABELS = [STROKE, [255, 0, 255, 255]];
-
-    /** Two grouped bars with a label above each, and a glow on one of them that reaches over both labels. */
-    const labelled = (glowing: 0 | 1 | undefined, labels = true): AgChartOptions => ({
-        // Narrow bars, so that the glow of one reaches over the label of the bar beside it.
-        data: ['A', 'B', 'C', 'D'].map((x) => ({ x, a: 6, b: 6 })),
-        animation: { enabled: false },
-        legend: { enabled: false },
-        axes: { y: { type: 'number', min: 0, max: 10 } },
-        series: ['a', 'b'].map((yKey, index) => ({
-            type: 'bar',
-            xKey: 'x',
-            yKey,
-            fill: '#0000ff',
-            fillOpacity: 1,
-            glow: index === glowing ? { ...GLOW, spread: 80 } : undefined,
-            label: {
-                enabled: labels,
-                placement: 'outside-end',
-                color: index === 0 ? '#ff0000' : '#ff00ff',
-                fontSize: 20,
-            },
-        })),
-    });
-
     const labelPixels = async (glowing: 0 | 1 | undefined) => {
-        chart = deproxy(await createChart(labelled(glowing)));
-        const counts = LABELS.map((colour) => countChartPixels(chart, colour));
+        chart = deproxy(await createChart(besideBars(glowing, 'label')));
+        const counts = BESIDE_COLOURS.map((colour) => countChartPixels(chart, colour));
         chart.destroy();
         return counts;
     };
@@ -243,18 +219,18 @@ describe('the labels of a series with a glow', () => {
     );
 
     it('give the glow back where they were, once they are hidden', async () => {
-        chart = deproxy(await createChart(labelled(0, false)));
-        const unlabelled = countChartPixels(chart, GREEN);
+        chart = deproxy(await createChart(besideBars(0, 'label', false)));
+        const unlabelled = countChartPixels(chart, BESIDE_GLOW);
         chart.destroy();
 
-        const instance = await createChart(labelled(0));
+        const instance = await createChart(besideBars(0, 'label'));
         chart = deproxy(instance);
-        const labelledGlow = countChartPixels(chart, GREEN);
-        await instance.update(prepareTestOptions(labelled(0, false)));
+        const labelledGlow = countChartPixels(chart, BESIDE_GLOW);
+        await instance.update(prepareTestOptions(besideBars(0, 'label', false)));
         await waitForChartStability(chart);
 
         expect(labelledGlow).toBeLessThan(unlabelled);
-        expect(countChartPixels(chart, GREEN)).toBe(unlabelled);
+        expect(countChartPixels(chart, BESIDE_GLOW)).toBe(unlabelled);
     });
 });
 

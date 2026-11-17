@@ -7,7 +7,7 @@ import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { expectSamePixels } from '../test/expectSamePixels';
 import { HARD_GAP_GLOW, ROOM, canvasImage, endHover, hoverDatum, hoverSeries } from '../test/glowRender';
-import { sectorJoinPixels } from '../test/sectorGlowJoins';
+import { expectSectorGlowJoins } from '../test/sectorGlowJoins';
 import { getSeriesAt } from '../test/seriesAccessors';
 import { SERIES_SHADOW, shapesOf } from '../test/shadowFixtures';
 import {
@@ -689,17 +689,8 @@ describe('glow refinements', () => {
             });
 
             const sectors = shapesOf(getSeriesAt(chart).contentGroup, Sector);
-            const joins = sectorJoinPixels(chart, sectors, SPREAD);
-
-            expect(joins).toHaveLength(3);
-            for (const { shorter, taller, band, wrap, body } of joins) {
-                // The glow of the shorter sector is cut away only on its neighbour's side of the line, over the whole of its edge.
-                expect(band).toEqual(GLOWS[shorter]);
-                // Past where its glow reaches, the taller sector's glow runs on round its edge, as round a free edge.
-                expect(wrap).toEqual(GLOWS[taller]);
-                // The glow of neither covers the other sector.
-                expect(body).toEqual(GREY);
-            }
+            expect(sectors).toHaveLength(3);
+            expectSectorGlowJoins(chart, sectors, SPREAD, GLOWS, GREY);
         });
     });
 

@@ -1,3 +1,5 @@
+import { expect } from 'vitest';
+
 import { type Sector, Transformable } from 'ag-charts-core';
 
 import { chartPixelAt } from './utils';
@@ -60,4 +62,24 @@ export function sectorJoinPixels(chart: Chart, sectors: Sector[], reach: number)
             body: at(bandRadius, taller),
         };
     });
+}
+
+/**
+ * Expects every join of the ring of `sectors` to show the glow of the shorter sector ending on the line, the glow of the
+ * taller one wrapping round past it, and neither glow over the other sector, which shows `body`.
+ */
+export function expectSectorGlowJoins(
+    chart: Chart,
+    sectors: Sector[],
+    reach: number,
+    glows: number[][],
+    body: number[]
+): void {
+    const joins = sectorJoinPixels(chart, sectors, reach);
+    expect(joins).toHaveLength(sectors.length);
+    for (const join of joins) {
+        expect(join.band).toEqual(glows[join.shorter]);
+        expect(join.wrap).toEqual(glows[join.taller]);
+        expect(join.body).toEqual(body);
+    }
 }

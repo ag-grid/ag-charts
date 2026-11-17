@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
+    BESIDE_COLOURS,
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+    besideBars,
     countChartPixels,
     deproxy,
     hoverDatum,
@@ -78,36 +80,9 @@ describe('the error bars of a series with a glow', () => {
         chart?.destroy();
     });
 
-    const WHISKERS = [
-        [255, 0, 255, 255],
-        [255, 128, 0, 255],
-    ];
-
-    // Narrow bars, so that the glow of one reaches over the error bar of the bar beside it.
-    const options = (glowing: 0 | 1 | undefined): AgChartOptions => ({
-        data: ['A', 'B', 'C', 'D'].map((x) => ({ x, a: 5, aLo: 4, aHi: 8, b: 5, bLo: 4, bHi: 8 })),
-        animation: { enabled: false },
-        legend: { enabled: false },
-        axes: { y: { type: 'number', min: 0, max: 10 } },
-        series: ['a', 'b'].map((yKey, index) => ({
-            type: 'bar',
-            xKey: 'x',
-            yKey,
-            fill: '#0000ff',
-            fillOpacity: 1,
-            glow: index === glowing ? { ...NODE_GLOW, spread: 60 } : undefined,
-            errorBar: {
-                yLowerKey: `${yKey}Lo`,
-                yUpperKey: `${yKey}Hi`,
-                stroke: index === 0 ? '#ff00ff' : '#ff8000',
-                strokeWidth: 4,
-            },
-        })),
-    });
-
     const whiskerPixels = async (glowing: 0 | 1 | undefined) => {
-        chart = await createEnterpriseChart(options(glowing));
-        const counts = WHISKERS.map((colour) => countChartPixels(chart, colour));
+        chart = await createEnterpriseChart(besideBars(glowing, 'errorBar'));
+        const counts = BESIDE_COLOURS.map((colour) => countChartPixels(chart, colour));
         chart.destroy();
         return counts;
     };
