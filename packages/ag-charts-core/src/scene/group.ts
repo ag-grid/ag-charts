@@ -51,6 +51,26 @@ function castsInEitherSlot(node: Node, castOf: typeof getRootShadow): boolean {
     return castOf(node) != null || castOf(node, 'glow') != null;
 }
 
+/** A child that casts a shadow or glow the group batches, or, if `shared`, that its root casts, see {@link getCasterKinds}. */
+const CASTER = 1;
+/** A child whose glow the root casts in its overlay. */
+const GLOW_CASTER = 2;
+/** A child that casts no glow and only cuts its footprint out of the overlay. */
+const CUT_CASTER = 4;
+
+/**
+ * Which of a group's caster counts a visible child adds to, with its glow looked up once. A cutout is counted as a caster
+ * whether or not the group is in a layer, as that is known only when the root gathers its frames.
+ */
+function getCasterKinds(child: Node, shared: boolean, glows: boolean): number {
+    const rootGlow = shared || glows ? getRootShadow(child, 'glow') : undefined;
+    const casts = shared
+        ? rootGlow != null || getRootShadow(child) != null
+        : castsInEitherSlot(child, getBatchedShadow);
+    if (glows && rootGlow != null) return casts ? CASTER | GLOW_CASTER : GLOW_CASTER;
+    return (casts ? CASTER : 0) | (castsCutOnly(child) ? CUT_CASTER : 0);
+}
+
 /** The children that a group has the root cast for: see {@link Group.batchShadows}. Cuts of the overlay are not casts. */
 function rootCasterTotal(shared: boolean, glows: boolean, casters: number, glowCasters: number): number {
     if (shared) return casters;
@@ -537,9 +557,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 counts.nonGroups += childCounts.nonGroups;
                 counts.complexity += childCounts.complexity;
                 if (countCasters && child.visible) {
-                    if (this.castsShadow(child, shared)) casters++;
-                    if (glows && getRootShadow(child, 'glow') != null) glowCasters++;
-                    else if (castsCutOnly(child)) cuts++;
+                    const kinds = getCasterKinds(child, shared, glows);
+                    if ((kinds & CASTER) !== 0) casters++;
+                    if ((kinds & GLOW_CASTER) !== 0) glowCasters++;
+                    if ((kinds & CUT_CASTER) !== 0) cuts++;
                 } else if (ownCuts && child.visible && child instanceof Shape) {
                     cuts++;
                 }
@@ -879,17 +900,6 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
-    /**
-     * Whether the child casts a shadow or glow that the group batches, or, if `shared`, that its root casts.
-     * A cutout is counted whether or not the group is in a layer, as that is known only when the root gathers its frames.
-     * Outside a layer the root casts nothing for the cutout, so a group of only cutouts is gathered as a frame without keys.
-     */
-    private castsShadow(child: Node, shared: boolean): boolean {
-        if (!shared) return castsInEitherSlot(child, getBatchedShadow);
-
-        return castsInEitherSlot(child, getRootShadow);
-    }
-
     /** Renders the children in order, with each run that shares a shadow batched if {@link batchShadows} is on. */
     protected renderChildren(childRenderCtx: RenderContext) {
         const { stats } = childRenderCtx;
@@ -978,9 +988,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                     if (this.inOwnCuts && child instanceof Shape) cuts++;
                     continue;
                 }
-                if (this.castsShadow(child, shared)) casters++;
-                if (glows && getRootShadow(child, 'glow') != null) glowCasters++;
-                else if (castsCutOnly(child)) cuts++;
+                const kinds = getCasterKinds(child, shared, glows);
+                if ((kinds & CASTER) !== 0) casters++;
+                if ((kinds & GLOW_CASTER) !== 0) glowCasters++;
+                if ((kinds & CUT_CASTER) !== 0) cuts++;
             }
             this.shadowCasterCount = casters;
             this.glowCasterCount = glowCasters;

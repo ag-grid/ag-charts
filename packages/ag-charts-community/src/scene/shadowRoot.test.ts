@@ -694,6 +694,11 @@ describe('Shadow root', () => {
             const casting = () => square(280, 40, { fillGlow: GLOW });
             // The same item with no glow.
             const plain = () => square(280, 40);
+            // The pass is named in one warning, which `warnOnce` keeps to one for every frame after the first.
+            const glowOverlayWarnings = () =>
+                vi
+                    .mocked(console.warn)
+                    .mock.calls.filter((args) => args.some((arg) => String(arg).includes('glow overlay')));
 
             it('should drop the glows for the frame, warn once however often it is drawn, and leave the items and shadows as they are', () => {
                 const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
@@ -710,12 +715,23 @@ describe('Shadow root', () => {
                 expect(at(scene, 310, 70)).toEqual(BLACK);
                 expect(isHalfRed(at(scene, 190, 70))).toBe(true);
                 expectNearPixels(pixelsOf(scene), pixelsOf(draw(true, items(plain))));
+                expect(glowOverlayWarnings()).toHaveLength(1);
+            });
 
-                // The pass is named in one warning, which `warnOnce` keeps to one for every frame after the first.
-                const warned = vi
-                    .mocked(console.warn)
-                    .mock.calls.filter((args) => args.some((arg) => String(arg).includes('glow overlay')));
-                expect(warned).toHaveLength(1);
+            // With no shadow, the root pass needs no canvas, so the overlay is the first cast to ask for one.
+            it('should drop the glows and warn once where no canvas can be had for the overlay', () => {
+                const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+                root.appendChild(group('shared', [casting()]));
+                const noContext = vi.spyOn(OffscreenCanvas.prototype, 'getContext').mockReturnValue(null);
+                const scene = newScene(root);
+                scene.render();
+                redraw(scene, root);
+                redraw(scene, root);
+                noContext.mockRestore();
+
+                expect(at(scene, 310, 130)[3]).toBe(0);
+                expect(at(scene, 310, 70)).toEqual(BLACK);
+                expect(glowOverlayWarnings()).toHaveLength(1);
             });
         });
 

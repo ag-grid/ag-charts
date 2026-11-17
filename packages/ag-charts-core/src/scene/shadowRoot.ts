@@ -262,7 +262,10 @@ export function castRootShadows(
     return cover;
 }
 
-/** Casts one overlay of the glows of the frames' casters onto `renderCtx.ctx`. Returns false, having drawn nothing, if it can't. */
+/**
+ * Casts the overlay of the glows of the frames' casters onto `renderCtx.ctx`, then the hovered item's glows above it.
+ * Returns false if either can't be cast, having drawn the overlay alone if only the hovered item's glows can't be.
+ */
 export function castGlowOverlay(
     frames: readonly CollectedFrame[],
     scene: object | undefined,

@@ -1546,7 +1546,12 @@ export function castShadows(
         };
     });
     const scratch = acquireShadowScratch(scene, user, scratchWidth, scratchHeight);
-    if (scratch == null) return false;
+    if (scratch == null) {
+        // The groups have drawn without their glows by now, so the glows are lost for the frame.
+        if (overlay === true)
+            renderCtx.logger.warnOnce('Unable to create a canvas for the glow overlay, so the glows are not drawn');
+        return false;
+    }
 
     let kept: SpreadCanvas | undefined;
     let keyExtents: Map<ShadowKey, Extent> | undefined;
