@@ -1817,8 +1817,8 @@ describe('DonutSeries', () => {
         const paintedRadii = () => {
             const [sector] = sectorNodes();
             return {
-                innerRadius: sector.innerRadius + sector.concentricEdgeInset,
-                outerRadius: sector.outerRadius - sector.concentricEdgeInset,
+                innerRadius: sector.innerRadius + sector.innerEdgeInset,
+                outerRadius: sector.outerRadius - sector.outerEdgeInset,
             };
         };
         const expectCircleToReach = (series: DonutSeries, radius: number) => {
@@ -1862,7 +1862,8 @@ describe('DonutSeries', () => {
                 expect(cutout.endAngle).toBe(sector.endAngle);
                 expect(cutout.innerRadius).toBe(sector.innerRadius);
                 expect(cutout.outerRadius).toBe(sector.outerRadius);
-                expect(cutout.concentricEdgeInset).toBe(sector.concentricEdgeInset);
+                expect(cutout.innerEdgeInset).toBe(sector.innerEdgeInset);
+                expect(cutout.outerEdgeInset).toBe(sector.outerEdgeInset);
                 expect(cutout.radialEdgeInset).toBe(sector.radialEdgeInset);
                 expect(cutout.startOuterCornerRadius).toBe(sector.startOuterCornerRadius);
                 expect(cutout.endOuterCornerRadius).toBe(sector.endOuterCornerRadius);

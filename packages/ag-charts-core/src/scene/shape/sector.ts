@@ -82,7 +82,10 @@ export class Sector<D = unknown> extends Path<D> {
     clipSector: SectorBox | undefined = undefined;
 
     @SceneChangeDetection()
-    concentricEdgeInset: number = 0;
+    innerEdgeInset: number = 0;
+
+    @SceneChangeDetection()
+    outerEdgeInset: number = 0;
 
     @SceneChangeDetection()
     radialEdgeInset: number = 0;
@@ -118,6 +121,11 @@ export class Sector<D = unknown> extends Path<D> {
         this.radialEdgeInset = value;
     }
 
+    set concentricEdgeInset(value: number) {
+        this.innerEdgeInset = value;
+        this.outerEdgeInset = value;
+    }
+
     set cornerRadius(value: number) {
         this.startOuterCornerRadius = value;
         this.endOuterCornerRadius = value;
@@ -130,10 +138,10 @@ export class Sector<D = unknown> extends Path<D> {
     }
 
     private normalizedRadii() {
-        const { concentricEdgeInset } = this;
+        const { innerEdgeInset, outerEdgeInset } = this;
         let { innerRadius, outerRadius } = this;
-        innerRadius = innerRadius > 0 ? innerRadius + concentricEdgeInset : 0;
-        outerRadius = Math.max(outerRadius - concentricEdgeInset, 0);
+        innerRadius = innerRadius > 0 ? innerRadius + innerEdgeInset : 0;
+        outerRadius = Math.max(outerRadius - outerEdgeInset, 0);
         return { innerRadius, outerRadius };
     }
 
@@ -266,7 +274,7 @@ export class Sector<D = unknown> extends Path<D> {
 
     override updatePath(): void {
         const delta = 1e-6;
-        const { path, centerX, centerY, concentricEdgeInset, radialEdgeInset } = this;
+        const { path, centerX, centerY, innerEdgeInset, radialEdgeInset } = this;
         let { startOuterCornerRadius, endOuterCornerRadius, startInnerCornerRadius, endInnerCornerRadius } = this;
         const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
         const { innerRadius, outerRadius } = this.normalizedRadii();
@@ -317,7 +325,7 @@ export class Sector<D = unknown> extends Path<D> {
         ) {
             path.moveTo(centerX + outerRadius * Math.cos(startAngle), centerY + outerRadius * Math.sin(startAngle));
             path.arc(centerX, centerY, outerRadius, startAngle, endAngle);
-            if (innerRadius > concentricEdgeInset) {
+            if (innerRadius > innerEdgeInset) {
                 path.moveTo(centerX + innerRadius * Math.cos(endAngle), centerY + innerRadius * Math.sin(endAngle));
                 path.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
             }
@@ -335,8 +343,8 @@ export class Sector<D = unknown> extends Path<D> {
         const outerAngleExceeded = sweepAngle < 2 * outerAngleOffset;
         if (outerAngleExceeded) return;
 
-        const hasInnerSweep = (clipSector?.innerRadius ?? innerRadius) > concentricEdgeInset;
-        const innerAngleExceeded = innerRadius < concentricEdgeInset || sweepAngle < 2 * innerAngleOffset;
+        const hasInnerSweep = (clipSector?.innerRadius ?? innerRadius) > innerEdgeInset;
+        const innerAngleExceeded = innerRadius < innerEdgeInset || sweepAngle < 2 * innerAngleOffset;
 
         // radiiScalingFactor doesn't find outer radii factors when the corners are larger than the sector radius
         // First, scale everything down so every corner radius individually fits within the sector's radial range
