@@ -12,8 +12,10 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
+import { findSceneNodes } from '../../test/featureAccessors';
 import { hasSelectionAxes } from './annotationDatum';
 import { annotationDatums } from './annotationDatums';
+import { CollidableLine } from './scenes/collidableLineScene';
 import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
     compareAnnotationsSnapshot,
@@ -182,6 +184,112 @@ describe('Annotation datum lifecycle', () => {
             await prepareChart(serialised);
 
             expect(chart.getState().annotations).toEqual(serialised);
+        });
+    });
+
+    // `long-dash-dot-dot` is [7, 2, 1, 2, 1, 2] and `dash` is [3, 2], in multiples of the stroke width. The state keeps
+    // the name, so that the line follows a change of width, and the scene draws it scaled.
+    describe('named line dash', () => {
+        const LINE = { ...MINIMAL_ANNOTATIONS.line, lineDash: 'long-dash-dot-dot', strokeWidth: 3 } as AgAnnotation;
+
+        const stateOf = () => chart.getState().annotations as any[];
+
+        /** The lines the scene draws with a dash, with the solid ones left out. */
+        const drawnLines = () =>
+            findSceneNodes(chart, (node): node is CollidableLine<any> => node instanceof CollidableLine).filter(
+                (line) => !Array.isArray(line.lineDash) || line.lineDash.some((length) => length > 0)
+            );
+        const drawnDashes = () => drawnLines().map((line) => line.lineDash);
+
+        it('keeps the name in the state and draws it scaled by the strokeWidth', async () => {
+            await prepareChart([LINE]);
+
+            expect(stateOf()[0]).toMatchObject({ lineDash: 'long-dash-dot-dot', strokeWidth: 3 });
+            expect(drawnDashes()).toEqual([[21, 6, 3, 6, 3, 6]]);
+            expectWarningsCalls().toBe(0);
+        });
+
+        it('draws an array as it is, whatever the strokeWidth', async () => {
+            await prepareChart([{ ...LINE, lineDash: [6, 4] } as AgAnnotation]);
+
+            expect(stateOf()[0].lineDash).toEqual([6, 4]);
+            expect(drawnDashes()).toEqual([[6, 4]]);
+        });
+
+        it('draws the name rescaled when the strokeWidth changes, and keeps the name', async () => {
+            await prepareChart([LINE]);
+
+            await restore([{ ...LINE, strokeWidth: 5 }]);
+
+            expect(stateOf()[0]).toMatchObject({ lineDash: 'long-dash-dot-dot', strokeWidth: 5 });
+            expect(drawnDashes()).toEqual([[35, 10, 5, 10, 5, 10]]);
+        });
+
+        it('restores a name in the state, scaled by the strokeWidth', async () => {
+            await prepareChart([MINIMAL_ANNOTATIONS.line]);
+
+            await restore([LINE]);
+
+            expect(stateOf()[0].lineDash).toBe('long-dash-dot-dot');
+            expect(drawnDashes()).toEqual([[21, 6, 3, 6, 3, 6]]);
+            expectWarningsCalls().toBe(0);
+        });
+
+        it('scales the middle line of a parallel channel by its own strokeWidth', async () => {
+            await prepareChart([
+                { ...MINIMAL_ANNOTATIONS['parallel-channel'], middle: { lineDash: 'dash', strokeWidth: 2 } },
+            ] as AgAnnotation[]);
+
+            expect(stateOf()[0].middle).toMatchObject({ lineDash: 'dash', strokeWidth: 2 });
+            expect(drawnDashes()).toEqual([[6, 4]]);
+        });
+    });
+
+    // `lineStyle` was replaced by `lineDash`, so state saved with it is migrated when it is restored: a style becomes
+    // the stock dash name that stands for it, and an explicit `lineDash` still wins, as it did.
+    describe('legacy lineStyle', () => {
+        const LINE = { ...MINIMAL_ANNOTATIONS.line, strokeWidth: 2 };
+
+        const stateOf = () => chart.getState().annotations as any[];
+        const drawnLines = () =>
+            findSceneNodes(chart, (node): node is CollidableLine<any> => node instanceof CollidableLine).filter(
+                (line) => !Array.isArray(line.lineDash) || line.lineDash.some((length) => length > 0)
+            );
+
+        it.each([
+            ['solid', 'solid', undefined],
+            ['dashed', 'dash', [6, 4]],
+            ['dotted', 'dot', [2, 3]],
+        ] as const)('migrates a restored %s lineStyle to the %s name', async (lineStyle, name, drawn) => {
+            await prepareChart([MINIMAL_ANNOTATIONS['horizontal-line']]);
+
+            await restore([{ ...LINE, lineStyle }]);
+
+            expect(stateOf()[0]).toMatchObject({ type: 'line', lineDash: name });
+            expect(stateOf()[0]).not.toHaveProperty('lineStyle');
+            expect(drawnLines().map((line) => line.lineDash)).toEqual(drawn ? [drawn] : []);
+            expectWarningsCalls().toBe(0);
+        });
+
+        it('migrates a lineStyle in the initial state', async () => {
+            await prepareChart([{ ...LINE, lineStyle: 'dashed' }] as AgAnnotation[]);
+
+            expect(stateOf()[0].lineDash).toBe('dash');
+            expect(stateOf()[0]).not.toHaveProperty('lineStyle');
+        });
+
+        it('keeps a dotted line round capped', async () => {
+            await prepareChart([{ ...LINE, lineStyle: 'dotted' }] as AgAnnotation[]);
+
+            expect(drawnLines().map((line) => line.lineCap)).toEqual(['round']);
+        });
+
+        it('keeps an explicit lineDash over the lineStyle, and drops the lineStyle', async () => {
+            await prepareChart([{ ...LINE, lineStyle: 'dotted', lineDash: [8, 3] }] as AgAnnotation[]);
+
+            expect(stateOf()[0].lineDash).toEqual([8, 3]);
+            expect(stateOf()[0]).not.toHaveProperty('lineStyle');
+            expect(drawnLines().map((line) => line.lineDash)).toEqual([[8, 3]]);
         });
     });
 
