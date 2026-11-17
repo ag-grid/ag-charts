@@ -60,7 +60,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 // accentColor/backgroundColor mix.
                 fill: { $ref: 'focusColor' },
                 // A name set here is measured by this state's width, else the expander's.
-                lineDash: lineDashThemeDefault(undefined, { $path: ['./strokeWidth', '../strokeWidth'] }),
+                lineDash: lineDashThemeDefault(undefined, { $path: ['./strokeWidth', { $path: '../strokeWidth' }] }),
             },
             text: {
                 color: { $ref: 'subtleTextColor' },

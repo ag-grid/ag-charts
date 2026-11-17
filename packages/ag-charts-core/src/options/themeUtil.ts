@@ -748,6 +748,27 @@ export const UNSET_LINE_DASH_THEME_DEFAULT = lineDashThemeDefault(undefined, {
     $path: ['./strokeWidth', { $path: '/series/$index/strokeWidth' }],
 });
 
+/** The states of a selection, which each fall back to the series' `lineDash` when unset. */
+export const SELECTION_LINE_DASH_STATES = ['selectedItem', 'unselectedItem', 'unselectedSeries'] as const;
+
+/**
+ * `style` with `lineDash` (or `within.lineDash`, e.g. a candlestick's `wick`) defaulted in each of its `states`, so that
+ * a name set there resolves. Use for a highlight or selection that does not already spread {@link withGlowThemeDefaults}.
+ */
+export function withLineDashThemeDefaults<T extends object>(
+    style: T,
+    states: readonly string[],
+    { within, lineDash = UNSET_LINE_DASH_THEME_DEFAULT }: { within?: string; lineDash?: Operation } = {}
+): T {
+    const result: Record<string, any> = { ...(style as Record<string, unknown>) };
+    for (const state of states) {
+        const current = result[state] ?? {};
+        result[state] =
+            within == null ? { ...current, lineDash } : { ...current, [within]: { ...current[within], lineDash } };
+    }
+    return result as T;
+}
+
 /** The highlight states of a series with only item states, and of a treemap group. */
 export const ITEM_GLOW_BUCKETS = ['highlightedItem', 'unhighlightedItem'] as const;
 
