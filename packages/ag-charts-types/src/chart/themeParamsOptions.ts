@@ -1042,6 +1042,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     menuBorderRadius?: PixelSize;
     /**
+     * Padding between the text of series labels and the edge of their box, applied to all four sides. It only has an effect on a label that draws a box, through a background colour or a border. A `label.padding` set in the chart options or in a theme override takes precedence.
+     *
+     * Default: `8`
+     *
+     * @group Series Labels
+     */
+    seriesLabelPadding?: PixelSize;
+    /**
      * Corner radius for tooltips.
      *
      * Default: `borderRadius`

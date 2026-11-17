@@ -394,6 +394,7 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         seriesLabelFontWeight: fontWeight,
         seriesLabelInsideBackgroundColor: colorOrRefNoOperator,
         seriesLabelInsideTextColor: colorOrRefNoOperator,
+        seriesLabelPadding: positiveNumber,
         seriesLabelOutsideBackgroundColor: colorOrRefNoOperator,
         seriesLabelOutsideTextColor: colorOrRefNoOperator,
     },

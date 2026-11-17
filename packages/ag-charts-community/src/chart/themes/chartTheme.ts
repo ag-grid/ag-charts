@@ -291,6 +291,7 @@ export class ChartTheme {
             seriesLabelFontWeight: { $ref: 'fontWeight' },
             seriesLabelInsideBackgroundColor: 'transparent',
             seriesLabelInsideTextColor: { $ref: 'chartBackgroundColor' },
+            seriesLabelPadding: 8,
             seriesLabelOutsideBackgroundColor: 'transparent',
             seriesLabelOutsideTextColor: { $ref: 'textColor' },
         };
