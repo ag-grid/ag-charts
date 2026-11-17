@@ -32,6 +32,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { Shape, Transformable } from 'ag-charts-core';
+import { AG_CHARTS_LOCALE_EN_US, AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 import { classCast } from 'ag-charts-test';
 
 import {
@@ -137,7 +138,7 @@ describe('MapMarkerSeries', () => {
     });
 
     describe('tooltip heading', () => {
-        it('labels negative longitudes W and positive longitudes E', async () => {
+        const getHeadings = async (localeText?: Record<string, string>) => {
             chart = deproxy(
                 await createEnterpriseChart({
                     data: [
@@ -145,14 +146,37 @@ describe('MapMarkerSeries', () => {
                         { lat: -50, lon: 8 },
                     ],
                     series: [{ type: 'map-marker', latitudeKey: 'lat', longitudeKey: 'lon' }],
+                    ...(localeText ? { locale: { localeText } } : {}),
                 })
             );
             const series = getSeriesInstance(chart, MapMarkerSeries);
-            const headings = [0, 1].map((i) => {
+            return [0, 1].map((i) => {
                 const content = series.getTooltipContent(i);
                 return content?.type === 'structured' ? content.heading : undefined;
             });
-            expect(headings).toEqual(['50.0000° N, 8.0000° W', '50.0000° S, 8.0000° E']);
+        };
+
+        it.each([
+            {
+                name: 'labels negative longitudes W and positive longitudes E',
+                localeText: undefined,
+                expected: ['50.0000° N, 8.0000° W', '50.0000° S, 8.0000° E'],
+            },
+            {
+                name: 'translates the hemisphere labels',
+                localeText: AG_CHARTS_LOCALE_FR_FR,
+                expected: ['50.0000° N, 8.0000° O', '50.0000° S, 8.0000° E'],
+            },
+            {
+                name: 'lets a locale put the label before the number',
+                localeText: {
+                    ...AG_CHARTS_LOCALE_EN_US,
+                    seriesMapMarkerTooltipCoordinates: '${latDirection} ${lat}°, ${lonDirection} ${lon}°',
+                },
+                expected: ['N 50.0000°, W 8.0000°', 'S 50.0000°, E 8.0000°'],
+            },
+        ])('$name', async ({ localeText, expected }) => {
+            expect(await getHeadings(localeText)).toEqual(expected);
         });
     });
 
