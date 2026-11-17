@@ -46,11 +46,7 @@ const centreOf = (chart: AgChartInstance, seriesIndex: number, datumIndex: numbe
     return { x: x + width / 2, y: y + height / 2 };
 };
 
-/**
- * Selects a bar as the user would: the pointer moves onto it and clicks it, then off the series area. A click redraws
- * the chart in full (`ChartUpdateType.FULL`, which clears the callback cache), so it runs the itemStyler of each item
- * again, unlike `setSelection`. Waits out the delay of the unhighlight, and fails if a highlight is still active.
- */
+/** Clicks a bar, then moves off the series area and waits out the unhighlight, so that only the selection is drawn. */
 const clickBar = async (chart: AgChartInstance, seriesIndex = 0, datumIndex = 0) => {
     const { x, y } = centreOf(chart, seriesIndex, datumIndex);
     await hoverAction(x, y)(chart);
@@ -87,12 +83,11 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
         expect(differingBytes(await selectedWith(() => STYLE), control)).toBeGreaterThan(0);
     });
 
-    // Pins a known defect: `setSelection` redraws with `ChartUpdateType.PERFORM_LAYOUT`, which keeps the callback cache, so
-    // the itemStyler is not called again and never sees a selection state (a click redraws in full: see the tests below).
-    it.each(['selected-item', 'unselected-item'])(
-        'renders no shadow or glow that an itemStyler returns for %s, as it renders none',
+    // Known defect, no ticket yet: `setSelection` keeps the callback cache, so the itemStyler never sees a selection state.
+    it.fails.each(['selected-item', 'unselected-item'])(
+        'renders the shadow and glow that an itemStyler returns for %s once set with setSelection',
         async (state) => {
-            expectSamePixels(await selected(state), await selected());
+            expect(differingBytes(await selected(state), await selected())).toBeGreaterThan(0);
         }
     );
 
@@ -169,14 +164,17 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
                 expect(seen).toContain('selected-item');
             });
 
-            it('not by setSelection, but by the next change to the highlight', async () => {
-                expect(await statesSeenDuring(() => selectFirst(chart()))).toEqual([]);
-                expect(
-                    await statesSeenDuring(async () => {
-                        await selectFirst(chart());
-                        await endHover(chart());
-                    })
-                ).toContain('selected-item');
+            // Known defect, no ticket yet.
+            it.fails('by setSelection', async () => {
+                expect(await statesSeenDuring(() => selectFirst(chart()))).toContain('selected-item');
+            });
+
+            it('by the next change to the highlight after setSelection', async () => {
+                const seen = await statesSeenDuring(async () => {
+                    await selectFirst(chart());
+                    await endHover(chart());
+                });
+                expect(seen).toContain('selected-item');
             });
         });
 
@@ -186,8 +184,7 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
             await snapshot();
         });
 
-        // The items of a series that has nothing selected are `unselected-item`: `unselected-series` is only handed to
-        // the styling of a series as a whole, so an itemStyler can't branch on it.
+        // An itemStyler is never given `unselected-series`, which only styles a series as a whole.
         it('hands the itemStyler of another series unselected-item, and never unselected-series', async () => {
             const seen = new Set<string | undefined>();
             const series = (yKey: string, itemStyler?: (params: StylerParams) => object) => ({

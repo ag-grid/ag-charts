@@ -2,18 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { expectSamePixels } from './expectSamePixels';
+import { differingBytes, expectSamePixels } from './expectSamePixels';
 import { type GlowPlacement, type GlowSeriesCase, type HighlightStep, glowSeries, glowThemeOptions } from './glowCases';
-import {
-    RENDER_CROP,
-    RENDER_OPTIONS,
-    canvasImage,
-    differingBytes,
-    endHover,
-    hoverDatum,
-    hoverNode,
-    hoverSeries,
-} from './glowRender';
+import { RENDER_CROP, RENDER_OPTIONS, canvasImage, endHover, hoverDatum, hoverNode, hoverSeries } from './glowRender';
 import { HIGHLIGHT_GLOW, HIGHLIGHT_SHADOW, SERIES_GLOW, SERIES_SHADOW } from './shadowFixtures';
 import { compareImageSnapshot, setupMockCanvas, setupMockConsole, waitForChartStability } from './utils';
 
@@ -120,7 +111,8 @@ export function describeGlowSeries(
         const seriesShadowOnly = testCase.seriesShadowOnly === true;
         const noItemStyler = testCase.noItemStyler === true;
         const steps = (testCase.highlightSteps ?? HIGHLIGHT_STATES).filter(
-            ({ onOtherSeries }) => !onOtherSeries || !testCase.singleSeries
+            ({ onOtherSeries, hover }) =>
+                (!onOtherSeries || !testCase.singleSeries) && !(hover === 'series' && testCase.legendHighlightsItems)
         );
         const stylerStates = steps.filter(({ state }) => state !== undefined);
         const bucketStates = steps.filter(({ bucket }) => !testCase.itemHighlightOnly || !bucket.endsWith('Series'));
@@ -128,13 +120,14 @@ export function describeGlowSeries(
         const placement: GlowPlacement = glows ? CAST : { shadow: SERIES_SHADOW };
         const hoveredItem = testCase.hoveredItem ?? HOVERED_ITEM;
 
-        // A series whose shadow an existing test snapshots is not snapshotted again: the matrix names that test.
-        it.skipIf(testCase.shadowSnapshot !== undefined)('renders the series shadow', async () => {
+        // A hoverable series is snapshotted hovered, which draws the series shadow and glow on its other items too, and a
+        // series with a `shadowSnapshot` has its shadow snapshotted by that test.
+        it.skipIf(hoverable || testCase.shadowSnapshot !== undefined)('renders the series shadow', async () => {
             await create([glowSeries(testCase, { shadow: SERIES_SHADOW })], testCase.data, options);
             await snapshot();
         });
 
-        it.skipIf(seriesShadowOnly)('renders the series glow', async () => {
+        it.skipIf(hoverable || seriesShadowOnly)('renders the series glow', async () => {
             await create([glowSeries(testCase, { glow: SERIES_GLOW })], testCase.data, options);
             await snapshot();
         });

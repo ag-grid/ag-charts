@@ -26,7 +26,7 @@ export * from './chart/test/shadowFixtures';
 export * from './chart/test/glowCases';
 export * from './chart/test/glowRender';
 export * from './chart/test/glowRenderSuite';
-export { expectSamePixels } from './chart/test/expectSamePixels';
+export { differingBytes, expectSamePixels } from './chart/test/expectSamePixels';
 export * from './chart/test/prepareOptions';
 export * from './chart/test/syncFixtures';
 export * from './chart/test/glowGapFixtures';

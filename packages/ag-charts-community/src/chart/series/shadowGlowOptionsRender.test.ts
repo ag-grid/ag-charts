@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { expectSamePixels } from '../test/expectSamePixels';
-import { RENDER_OPTIONS, canvasImage, differingBytes, hoverDatum } from '../test/glowRender';
+import { differingBytes, expectSamePixels } from '../test/expectSamePixels';
+import { RENDER_OPTIONS, canvasImage, hoverDatum } from '../test/glowRender';
 import { useGlowCharts } from '../test/glowRenderSuite';
 import { CATEGORY_DATA, SERIES_GLOW, SERIES_SHADOW } from '../test/shadowFixtures';
 import { createChart } from '../test/utils';
@@ -60,7 +60,7 @@ describe('shadow and glow options render', () => {
         describe('the glow gap', () => {
             const glow = (gap?: number) => ({ glow: { ...SERIES_GLOW, gap } });
 
-            it('renders a gap of 0 as it renders no gap', async () => {
+            it('renders a gap of 0 as it renders no gap, on an opaque bar', async () => {
                 expectSamePixels(await draw(glow(0), place, hover), await draw(glow(), place, hover));
             });
 

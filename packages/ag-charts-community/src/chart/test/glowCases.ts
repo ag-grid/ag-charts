@@ -38,10 +38,7 @@ export interface GlowSeriesCase {
     hoverable?: boolean;
     /** The series has a `shadow` and no `glow` where this case places it. */
     seriesShadowOnly?: boolean;
-    /**
-     * An `itemStyler` of this series also reaches the parts of the other placements (the groups and the tiles of a treemap),
-     * so the shadow it returns is not the shadow of this placement alone.
-     */
+    /** An `itemStyler` of this series also styles the parts of the other placements (treemap groups and tiles). */
     stylerCastsOtherParts?: boolean;
     /** The existing test that snapshots the series shadow at rest, where there is one, so that it is not snapshotted twice. */
     shadowSnapshot?: string;
@@ -51,15 +48,14 @@ export interface GlowSeriesCase {
     highlightSteps?: HighlightStep[];
     /** Where the series reads a `highlight` from, given the options that place the rest: the series itself by default. */
     placeHighlight?: (placed: object, highlight: object) => object;
-    /**
-     * A highlight state of the series reaches parts that the `itemStyler` of this placement does not: a sankey or chord
-     * `unhighlightedItem` glow is cast by the links as well as the nodes, a node's styler by the nodes alone.
-     */
+    /** A highlight state of the series reaches parts that this placement's `itemStyler` does not (sankey and chord links). */
     reachesOtherParts?: boolean;
     /** The `highlight` of the series has `highlightedItem` and `unhighlightedItem`, and no states of the series as a whole. */
     itemHighlightOnly?: boolean;
     /** The chart takes no other series beside this one, so no other series is unhighlighted while it is hovered. */
     singleSeries?: boolean;
+    /** The legend of the series highlights one of its items, never the series as a whole, so `highlightedSeries` is not reached. */
+    legendHighlightsItems?: boolean;
     /** The series takes no `itemStyler` where this case places it. */
     noItemStyler?: boolean;
     /** The datum to hover where it is not the first of the series' node data. */
@@ -169,6 +165,7 @@ export const COMMUNITY_GLOW_SERIES: GlowSeriesCase[] = [
         type: 'pie',
         data: CATEGORY_DATA,
         hoverable: true,
+        legendHighlightsItems: true,
         base: { type: 'pie', angleKey: 'value' },
         place: onSeries,
     },
@@ -177,6 +174,7 @@ export const COMMUNITY_GLOW_SERIES: GlowSeriesCase[] = [
         type: 'donut',
         data: CATEGORY_DATA,
         hoverable: true,
+        legendHighlightsItems: true,
         base: { type: 'donut', angleKey: 'value' },
         place: onSeries,
     },

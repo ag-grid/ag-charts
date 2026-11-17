@@ -114,6 +114,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
         singleSeries: true,
         type: 'funnel',
         data: STAGES,
+        legendHighlightsItems: true,
         hoverable: true,
         base: { type: 'funnel', stageKey: 'stage', valueKey: 'value' },
         place: onSeries,
@@ -133,6 +134,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
         singleSeries: true,
         type: 'pyramid',
         data: STAGES,
+        legendHighlightsItems: true,
         hoverable: true,
         base: { type: 'pyramid', stageKey: 'stage', valueKey: 'value' },
         place: onSeries,
@@ -143,6 +145,7 @@ export const ENTERPRISE_GLOW_SERIES: GlowSeriesCase[] = [
         itemHighlightOnly: true,
         type: 'heatmap',
         data: GRID,
+        legendHighlightsItems: true,
         hoverable: true,
         base: { type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' },
         place: onSeries,
@@ -312,10 +315,7 @@ const nodeNamed = (name: string) => (chart: Parameters<NonNullable<GlowSeriesCas
     throw new Error(`No node named ${name}`);
 };
 
-/**
- * Hovering a leaf gives the nodes of its branch `highlighted-branch` and those of the other branch `unhighlighted-branch`,
- * and never `unhighlighted-item`: the `unhighlightedItem` glow is cast on the nodes that are given `highlighted-branch`.
- */
+/** Hovering a leaf gives its branch `highlighted-branch` and the other branch `unhighlighted-branch`, never `unhighlighted-item`. */
 const HIERARCHY_STEPS: HighlightStep[] = [
     { state: 'highlighted-item', bucket: 'highlightedItem', hover: true },
     { bucket: 'unhighlightedItem', hover: true },

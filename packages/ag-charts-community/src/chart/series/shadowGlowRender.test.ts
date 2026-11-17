@@ -1,22 +1,17 @@
 import { describe, it } from 'vitest';
 
 import { COMMUNITY_GLOW_SERIES } from '../test/glowCases';
-import { ALI_GLOW, RENDER_OPTIONS, hoverDatum } from '../test/glowRender';
+import { HARD_GAP_GLOW, HARD_GLOW, RENDER_OPTIONS, hoverDatum } from '../test/glowRender';
 import { HIGHLIGHT_STATES, describeGlowSeries, useGlowCharts } from '../test/glowRenderSuite';
 import { CATEGORY_DATA, ITEM_GLOW, ITEM_SHADOW } from '../test/shadowFixtures';
 import { createChart, hoverLegendItem, waitForChartStability } from '../test/utils';
 
-// Opaque and unblurred, so that the shape of a glow can be read off the render.
-const HARD_GLOW = { enabled: true, fill: '#d0021b', fillOpacity: 1, blur: 0, spread: 12 };
+const RED_GLOW = { ...HARD_GLOW, fill: '#d0021b', spread: 12 };
 
 // The y axis runs above the tallest bar, so that a glow on the top of a bar is not cut at the top of the series area.
 const HEADROOM_AXES = { ...RENDER_OPTIONS, axes: { y: { type: 'number', min: 0, max: 10 } } };
 
-const BARS = [
-    { category: 'A', value: 5, other: 3, third: 4 },
-    { category: 'B', value: 8, other: 6, third: 7 },
-    { category: 'C', value: 3, other: 5, third: 6 },
-];
+const COLUMNS = CATEGORY_DATA.map((datum, i) => ({ ...datum, other: [3, 6, 5][i], third: [4, 7, 6][i] }));
 
 describe('shadow and glow render', () => {
     const charts = useGlowCharts(createChart);
@@ -24,22 +19,17 @@ describe('shadow and glow render', () => {
 
     describeGlowSeries(COMMUNITY_GLOW_SERIES, charts);
 
-    describe('glow gap, with the glow of the design feedback', () => {
-        const GAP_DATA = [
-            { category: 'A', value: 4 },
-            { category: 'B', value: 5 },
-            { category: 'C', value: 3 },
-        ];
+    describe('glow gap, with a hard-edged glow', () => {
         // The glow reaches 40px beyond an item, and a pie fills the series area, so the chart sits 60px inside the crop, on
         // every side, and the bars have headroom.
         const ROOM = { ...RENDER_OPTIONS, padding: { top: 60, left: 60, right: 440, bottom: 350 } };
-        const HEADROOM = { ...ROOM, axes: { y: { type: 'number', min: 0, max: 8 } } };
-        const SHAPES: [string, object, object[], object?][] = [
-            ['a square-cornered bar', { type: 'bar', xKey: 'category', yKey: 'value' }, GAP_DATA, HEADROOM],
+        const HEADROOM = { ...ROOM, axes: { y: { type: 'number', min: 0, max: 12 } } };
+        const SHAPES: [string, object, object[], object][] = [
+            ['a square-cornered bar', { type: 'bar', xKey: 'category', yKey: 'value' }, CATEGORY_DATA, HEADROOM],
             [
                 'a bar with a corner radius',
                 { type: 'bar', xKey: 'category', yKey: 'value', cornerRadius: 12 },
-                GAP_DATA,
+                CATEGORY_DATA,
                 HEADROOM,
             ],
             [
@@ -55,40 +45,36 @@ describe('shadow and glow render', () => {
                     axes: { x: { type: 'number', min: 0, max: 4 }, y: { type: 'number', min: 0, max: 8 } },
                 },
             ],
-            ['a pie sector', { type: 'pie', angleKey: 'value' }, GAP_DATA, ROOM],
-            ['a donut sector', { type: 'donut', angleKey: 'value' }, GAP_DATA, ROOM],
+            ['a pie sector', { type: 'pie', angleKey: 'value' }, CATEGORY_DATA, ROOM],
+            ['a donut sector', { type: 'donut', angleKey: 'value' }, CATEGORY_DATA, ROOM],
         ];
 
         it.each(SHAPES)('renders the glow of the hovered item around %s', async (_name, series, data, options) => {
-            await create([{ ...series, highlight: { highlightedItem: { glow: ALI_GLOW } } }], data, options);
+            await create([{ ...series, highlight: { highlightedItem: { glow: HARD_GAP_GLOW } } }], data, options);
             await hoverDatum(chart(), 0, 1);
-            await snapshot();
-        });
-
-        it.each(SHAPES)('renders the series glow around %s', async (_name, series, data, options) => {
-            await create([{ ...series, glow: ALI_GLOW }], data, options);
             await snapshot();
         });
     });
 
     describe('a glow beside items that do not glow', () => {
-        const GLOWING = { glow: HARD_GLOW };
+        const GLOWING = { glow: RED_GLOW };
+        const BAR = { type: 'bar', xKey: 'category', yKey: 'value' };
+        const DONUT = { type: 'donut', angleKey: 'value' };
 
         it.each([
-            ['a donut with one glowing sector', 'donut'],
-            ['bars with one glowing item', 'bar'],
-        ])('renders %s', async (_name, type) => {
+            ['a donut with one glowing sector', DONUT, RENDER_OPTIONS],
+            ['bars with one glowing item', BAR, HEADROOM_AXES],
+        ])('renders %s', async (_name, series, options) => {
             await create(
                 [
                     {
-                        type,
-                        ...(type === 'bar' ? { xKey: 'category', yKey: 'value' } : { angleKey: 'value' }),
+                        ...series,
                         itemStyler: ({ datum }: { datum: { category: string } }) =>
                             datum.category === 'B' ? GLOWING : {},
                     },
                 ],
-                BARS,
-                type === 'bar' ? HEADROOM_AXES : RENDER_OPTIONS
+                COLUMNS,
+                options
             );
             await snapshot();
         });
@@ -96,11 +82,11 @@ describe('shadow and glow render', () => {
         it('renders bars with one glowing series beside two that do not glow', async () => {
             await create(
                 [
-                    { type: 'bar', xKey: 'category', yKey: 'value', glow: HARD_GLOW },
+                    { type: 'bar', xKey: 'category', yKey: 'value', glow: RED_GLOW },
                     { type: 'bar', xKey: 'category', yKey: 'other' },
                     { type: 'bar', xKey: 'category', yKey: 'third' },
                 ],
-                BARS,
+                COLUMNS,
                 HEADROOM_AXES
             );
             await snapshot();
@@ -117,9 +103,9 @@ describe('shadow and glow render', () => {
                     type: 'bar',
                     xKey: 'category',
                     yKey,
-                    glow: { ...HARD_GLOW, spread: 6, gap },
+                    glow: { ...RED_GLOW, spread: 6, gap },
                 })),
-                BARS,
+                COLUMNS,
                 HEADROOM_AXES
             );
             await snapshot();
@@ -143,7 +129,7 @@ describe('shadow and glow render', () => {
                     yKey,
                     highlight: { [state]: { glow: GLOWS[state] } },
                 })),
-                BARS,
+                COLUMNS,
                 { ...RENDER_OPTIONS, legend: { enabled: true, position: 'bottom' } }
             );
             if (state === 'highlightedSeries') await hoverLegendItem(chart(), 0);
