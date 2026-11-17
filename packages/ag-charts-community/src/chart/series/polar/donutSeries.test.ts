@@ -1883,7 +1883,7 @@ describe('DonutSeries', () => {
             }
         });
 
-        test('aligns the inner circle with the sectors mid-line under a gap', async () => {
+        it('keeps a thin ring at full width under a wide gap, and aligns the inner circle with its mid-line', async () => {
             const gap = 20;
             const series = await createDonut({
                 cornerRadius: 20,
@@ -1893,12 +1893,12 @@ describe('DonutSeries', () => {
             });
 
             const { innerRadius, outerRadius } = paintedRadii();
+            expect(innerRadius).toBe(series.getInnerRadius());
+            expect(outerRadius).toBe(series.getOuterRadius());
+            expect(sectorNodes()[0].radialEdgeInset).toBe(gap / 2);
+
             const midLineRadius = innerRadius + Math.floor((outerRadius - innerRadius) / 2);
             expectCircleToReach(series, midLineRadius);
-            // The band the spacing carves out is thin enough that the sectors would otherwise sit
-            // entirely inside the fill.
-            expect(midLineRadius).toBeLessThan(outerRadius);
-            expect(midLineRadius).toBeGreaterThan(series.getInnerRadius());
         });
 
         test('leaves the inner circle alone when there are no rounded corners', async () => {

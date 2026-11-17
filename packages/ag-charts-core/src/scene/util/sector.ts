@@ -8,6 +8,8 @@ export interface SectorBoundaries {
     endAngle: number;
     innerRadius: number;
     outerRadius: number;
+    /** How far, in pixels, the drawn straight edges sit inside the edges at `startAngle` and `endAngle`. */
+    radialEdgeInset?: number;
 }
 
 export function sectorBox({ startAngle, endAngle, innerRadius, outerRadius }: SectorBoundaries) {
@@ -93,9 +95,22 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
     const endAngle = normalizeAngle180(sector.endAngle);
     const angle = Math.atan2(y, x);
     // Sector can cross axis start
-    return startAngle < endAngle
-        ? angle <= endAngle && angle >= startAngle
-        : (angle <= endAngle && angle >= -Math.PI) || (angle >= startAngle && angle <= Math.PI);
+    const inAngle =
+        startAngle < endAngle
+            ? angle <= endAngle && angle >= startAngle
+            : (angle <= endAngle && angle >= -Math.PI) || (angle >= startAngle && angle <= Math.PI);
+    const inset = sector.radialEdgeInset ?? 0;
+    if (!inAngle || inset <= 0) return inAngle;
+    return isClearOfEdge(x, y, sector.startAngle, inset, 1) && isClearOfEdge(x, y, sector.endAngle, inset, -1);
+}
+
+/** False when the point lies within `inset` of the straight edge at `angle`, on the side `interior` faces. */
+function isClearOfEdge(x: number, y: number, angle: number, inset: number, interior: 1 | -1) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    if (x * cos + y * sin < 0) return true;
+    const across = interior * (y * cos - x * sin);
+    return across < 0 || across >= inset;
 }
 
 /**

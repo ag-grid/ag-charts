@@ -212,9 +212,9 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgStandaloneChartOp
     ],
 };
 
-// A wide `gap` insets each sector's painted edges, so the band has to stop where the
-// sectors' own outer edge does rather than at the requested corner radius.
-export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: AgStandaloneChartOptions = {
+// A thin ring clamps the corner radius, so the band has to stop at the sectors' mid-line rather than at
+// the requested corner radius; a wide `gap` must leave the ring at its full width.
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_GAP: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },

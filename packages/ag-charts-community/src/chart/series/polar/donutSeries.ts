@@ -1206,16 +1206,16 @@ export class DonutSeries extends PolarSeries<
             const { cornerRadius = 0, stroke, strokeWidth = 0 } = datum.sectorFormat;
             if (cornerRadius <= 0) continue;
 
-            // `inset` pulls the sector's painted edges inwards from its radii.
-            const inset = Math.max((this.options.gap + (stroke == null ? 0 : strokeWidth)) / 2, 0);
-            const paintedInnerRadius = datum.innerRadius > 0 ? datum.innerRadius + inset : 0;
-            const paintedOuterRadius = Math.max(datum.outerRadius - inset, 0);
+            const arcInset = this.getArcInset(stroke != null, strokeWidth);
+            const paintedInnerRadius = datum.innerRadius > 0 ? datum.innerRadius + arcInset : 0;
+            const paintedOuterRadius = Math.max(datum.outerRadius - arcInset, 0);
             if (paintedInnerRadius <= 0 || paintedOuterRadius <= paintedInnerRadius) continue;
 
             // Mirrors the clamping `Sector` applies to its own corner radii: half the radial band,
             // and half the chord between the sector's two inner corners.
             const { startAngle, endAngle } = clockwiseAngles(datum.startAngle, datum.endAngle);
-            const sweepAngle = endAngle - startAngle - (2 * inset) / paintedInnerRadius;
+            const sideInset = this.getSideInset(stroke != null, strokeWidth);
+            const sweepAngle = endAngle - startAngle - (2 * sideInset) / paintedInnerRadius;
             const cornerDistance = sweepAngle > 0 ? 2 * paintedInnerRadius * Math.sin(sweepAngle / 2) : 0;
             const radialLength = paintedOuterRadius - paintedInnerRadius;
             const appliedCornerRadius = Math.floor(Math.min(cornerRadius, cornerDistance / 2, radialLength / 2));
@@ -1236,7 +1236,7 @@ export class DonutSeries extends PolarSeries<
     }
 
     // The grown circle reaches under the sectors, which a translucent sector would show through;
-    // erasing each sector's outline leaves only the crescents and spacing strips filled.
+    // erasing each sector's outline leaves only the crescents and gap strips filled.
     private updateInnerCircleCutoutSelection() {
         // Mirrors the predicate Group applies to `renderToOffscreenCanvas`: without that isolation
         // the cutout would erase the chart behind the series along with the circle.
@@ -1250,10 +1250,20 @@ export class DonutSeries extends PolarSeries<
         }
     }
 
-    private applySectorSpacing(sector: Sector, hasStroke: boolean, strokeWidth: number) {
-        const inset = Math.max((this.options.gap + (hasStroke ? strokeWidth : 0)) / 2, 0);
-        sector.inset = inset;
-        sector.lineJoin = this.options.gap >= 0 || inset > 0 ? 'miter' : 'round';
+    // Strokes paint inside the sector, so every edge gives way by half the stroke; only the sides, which
+    // face a neighbouring sector, also give way by half the gap.
+    private getArcInset(hasStroke: boolean, strokeWidth: number) {
+        return hasStroke ? Math.max(strokeWidth / 2, 0) : 0;
+    }
+
+    private getSideInset(hasStroke: boolean, strokeWidth: number) {
+        return Math.max(this.options.gap / 2 + this.getArcInset(hasStroke, strokeWidth), 0);
+    }
+
+    private applyGap(sector: Sector, hasStroke: boolean, strokeWidth: number) {
+        sector.concentricEdgeInset = this.getArcInset(hasStroke, strokeWidth);
+        sector.radialEdgeInset = this.getSideInset(hasStroke, strokeWidth);
+        sector.lineJoin = this.options.gap >= 0 || sector.radialEdgeInset > 0 ? 'miter' : 'round';
     }
 
     private applySelectedOffset(sector: Sector, datumIndex: number) {
@@ -1351,7 +1361,7 @@ export class DonutSeries extends PolarSeries<
                 legendItemValues,
                 format.glow
             );
-            this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
+            this.applyGap(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
         };
 
@@ -1377,7 +1387,7 @@ export class DonutSeries extends PolarSeries<
             sector.drawingMode = 'cutout';
             sector.cornerRadius = format.cornerRadius;
 
-            this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
+            this.applyGap(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
         });
 
@@ -2247,7 +2257,13 @@ export class DonutSeries extends PolarSeries<
                 const holeExtent = outerRadius * Math.SQRT2;
                 fitTarget = { container: { width: holeExtent, height: holeExtent } };
             } else if (policy != null) {
-                const sector = { startAngle, endAngle, innerRadius, outerRadius };
+                const sector = {
+                    startAngle,
+                    endAngle,
+                    innerRadius,
+                    outerRadius,
+                    radialEdgeInset: this.options.gap / 2,
+                };
                 const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, this.centerX, this.centerY);
                 fitPolicy = { ...policy, boxed: labelHasBox(font) };
                 fitTarget = { place };
@@ -2372,7 +2388,13 @@ export class DonutSeries extends PolarSeries<
                 text.setBoxing(style);
 
                 // A shape-fitted label overhangs its own block box by design, so each line answers for itself.
-                const sectorBounds = { startAngle, endAngle, innerRadius, outerRadius };
+                const sectorBounds = {
+                    startAngle,
+                    endAngle,
+                    innerRadius,
+                    outerRadius,
+                    radialEdgeInset: this.options.gap / 2,
+                };
                 text.visible = text.getLineBoxes().every((box) => isBoxInSector(box, sectorBounds));
             });
 

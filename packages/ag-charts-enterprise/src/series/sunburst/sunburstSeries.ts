@@ -96,6 +96,8 @@ interface SunburstLabelRing {
     readonly sweep: number;
     readonly theta: number;
     readonly radiusScale: number;
+    /** How far, in pixels, the drawn straight edges sit inside the edges at the sector's angles. */
+    readonly edgeInset: number;
     /** The depth-0 sector of a sunburst with no hole, which reaches the centre. */
     readonly wedge: boolean;
     /** A sole depth-0 node filling the whole disc. */
@@ -128,6 +130,16 @@ function heightBoundRegion(padding: number, widthFor: (height: number) => number
     };
 }
 
+/** How far along the bisector the drawn straight edges of a sector narrower than half a turn are `width` apart. */
+function edgeSpanRadius({ sweep, edgeInset }: SunburstLabelRing, width: number) {
+    return (width + (2 * edgeInset) / Math.cos(sweep * 0.5)) / (2 * Math.tan(sweep * 0.5));
+}
+
+/** How far apart the drawn straight edges of a sector narrower than half a turn are at `radius`. */
+function edgeSpanAt({ sweep, edgeInset }: SunburstLabelRing, radius: number) {
+    return 2 * (radius * Math.tan(sweep * 0.5) - edgeInset / Math.cos(sweep * 0.5));
+}
+
 /** How far from the centre a sector's labels are drawn, for a stack of the given size. */
 function sectorLabelRadius(
     ring: SunburstLabelRing,
@@ -136,7 +148,7 @@ function sectorLabelRadius(
     height: number,
     padding: number
 ): number {
-    const { innerRadius, outerRadius, sweep, radiusScale, wedge } = ring;
+    const { innerRadius, outerRadius, radiusScale, wedge } = ring;
     switch (labelPlacement) {
         case LabelPlacement.CenterCircle:
             return 0;
@@ -149,7 +161,7 @@ function sectorLabelRadius(
         }
         case LabelPlacement.Perpendicular: {
             if (!wedge) return (innerRadius + outerRadius) * 0.5;
-            const minimumRadius = height / (2 * Math.tan(sweep * 0.5)) + width * 0.5;
+            const minimumRadius = edgeSpanRadius(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
             return (minimumRadius + maximumRadius) * 0.5;
         }
@@ -163,6 +175,14 @@ function naturalStackHeight(blocks: readonly LabelStackBlock[], spacing: number)
         height += measureLabelText(fit.text, fit.font).height + padding.top + padding.bottom;
     }
     return height;
+}
+
+/** A child with no size has no sweep, so it leaves its parent's outer edge without a neighbour. */
+function hasOuterNeighbour(node: SunburstNode) {
+    for (const child of node.children) {
+        if (child.sumSize > 0) return true;
+    }
+    return false;
 }
 
 function setAngleData(node: SunburstNode, startAngle = 0, angleScale = (2 * Math.PI) / node.sumSize) {
@@ -407,7 +427,7 @@ export class SunburstSeries extends HierarchySeries<
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
 
-        const baseInset = gap * 0.5;
+        const halfGap = gap * 0.5;
         const radius = Math.min(width, height) / 2;
         // No hole unless one of the inner-radius options is explicitly set - the short-circuit keeps an
         // unconfigured sunburst identical to before.
@@ -517,14 +537,15 @@ export class SunburstSeries extends HierarchySeries<
             // zero-height annulus only yields non-finite geometry.
             if (radiusScale <= 0) return;
 
-            const innerRadius = hole + depth * radiusScale + baseInset;
-            const outerRadius = hole + (depth + 1) * radiusScale - baseInset;
+            const innerRadius = hole + depth * radiusScale + (depth > 0 ? halfGap : 0);
+            const outerRadius = hole + (depth + 1) * radiusScale - (hasOuterNeighbour(node) ? halfGap : 0);
             node.ring = {
                 innerRadius,
                 outerRadius,
                 sweep: endAngle - startAngle,
                 theta: angleOffset + (startAngle + endAngle) / 2,
                 radiusScale,
+                edgeInset: halfGap,
                 // With a hole carved, depth 0 is a genuine annulus rather than a disc, so the
                 // centre-circle and wedge-from-centre label forms no longer apply to it.
                 wedge: depth === 0 && hole === 0,
@@ -555,7 +576,7 @@ export class SunburstSeries extends HierarchySeries<
             const glow = this.getNodeGlow(nodeDatum, highlighted, highlightedNode, style.glow);
 
             const fill = style.fill;
-            const strokeWidth = style.strokeWidth;
+            const strokeInset = style.stroke == null ? 0 : style.strokeWidth * 0.5;
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
@@ -578,7 +599,9 @@ export class SunburstSeries extends HierarchySeries<
             sector.outerRadius = hole + (depth + 1) * radiusScale;
             sector.startAngle = startAngle + angleOffset;
             sector.endAngle = endAngle + angleOffset;
-            sector.inset = baseInset + strokeWidth * 0.5;
+            sector.innerEdgeInset = strokeInset + (depth > 0 ? halfGap : 0);
+            sector.outerEdgeInset = strokeInset + (hasOuterNeighbour(nodeDatum) ? halfGap : 0);
+            sector.radialEdgeInset = strokeInset + halfGap;
             sector.cornerRadius = cornerRadius;
         };
 
@@ -678,12 +701,12 @@ export class SunburstSeries extends HierarchySeries<
             return [this.sectorLabelCandidate(ring, LabelPlacement.CenterCircle, shape)];
         }
 
-        const straightEdges = sweep < Math.PI ? 2 * innerRadius * Math.tan(sweep * 0.5) : Infinity;
+        const straightEdges = sweep < Math.PI ? edgeSpanAt(ring, innerRadius) : Infinity;
         const parallelWidth = (height: number) => Math.min(2 * chordAt(innerRadius + height), straightEdges);
         let perpendicularWidth: ((height: number) => number) | undefined;
         if (wedge) {
             perpendicularWidth = (height) => {
-                const apex = sweep < Math.PI ? height / (2 * Math.tan(sweep * 0.5)) : 0;
+                const apex = sweep < Math.PI ? edgeSpanRadius(ring, height) : 0;
                 return chordAt(height * 0.5) - apex;
             };
         } else if (normalizeAngle360(sweep) < Math.PI / 4) {
