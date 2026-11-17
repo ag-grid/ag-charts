@@ -110,26 +110,6 @@ describe('named line dash patterns', () => {
         await compareImageSnapshot(chart, ctx);
     });
 
-    it('should scale a named dash in the legend disabled style by the width the legend line is drawn at (1 for a 1px series, 2 for a 6px one)', async () => {
-        const series = (yKey: string, strokeWidth: number): AgLineSeriesOptions => ({
-            type: 'line',
-            xKey: 'month',
-            yKey,
-            strokeWidth,
-            lineDash: 'dash-dot',
-            marker: { enabled: false },
-            visible: false,
-        });
-
-        chart = await createChart({
-            data: MONTHS.map((month, i) => ({ month, thin: 10 + i, thick: 20 + i })),
-            series: [series('thin', 1), series('thick', 6)],
-            legend: { item: { line: { length: 60, disabledStyle: { lineDash: 'dot', opacity: 1 } } } },
-            axes: { x: { type: 'category' }, y: { type: 'number' } },
-        } satisfies AgCartesianChartOptions);
-        await compareImageSnapshot(chart, ctx);
-    });
-
     it('should give a styler the resolved array of lengths, never a name', () => {
         expectTypeOf<AgLineSeriesStylerParams<unknown, unknown>['lineDash']>().toEqualTypeOf<number[]>();
         expectTypeOf<AgBarSeriesStylerParams<unknown, unknown>['lineDash']>().toEqualTypeOf<number[]>();

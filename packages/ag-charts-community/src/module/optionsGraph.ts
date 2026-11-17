@@ -9,12 +9,10 @@ import {
     SKIP_JS_BUILTINS,
     type Vertex,
     ambientLog,
-    isLineDashName,
     isObject,
     isObjectLike,
     isPlainObject,
     pick,
-    scaleLineDashName,
     simpleMemorize,
     without,
 } from 'ag-charts-core';
@@ -29,7 +27,6 @@ import {
     CHILDREN_SOURCE_EDGE,
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,
-    NAMED_DASH_PRUNE_EDGES,
     OPERATION_EDGE,
     OPERATION_VALUE_EDGE,
     OVERRIDES_EDGE,
@@ -1254,34 +1251,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             }
         }
 
-        const isNamedDash = this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
+        this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
         this.resolveVertexAutoEnable(vertex, object, pathArray);
-        this.resolveVertexChildren(vertex, object, isNamedDash ? NAMED_DASH_PRUNE_EDGES : prune);
-    }
-
-    /**
-     * The legend draws a toggled-off item's line at a width of its own, which no option here holds, so it scales a
-     * dash name there itself.
-     */
-    private static isLegendDisabledLineDash(pathArray: Array<string>) {
-        return pathArray.length === 5 && pathArray.slice(0, 4).join('.') === 'legend.item.line.disabledStyle';
-    }
-
-    /**
-     * The dash name at an option that has no `$applyLineDash` theme default to convert it, scaled by the sibling
-     * `strokeWidth`, as that operation would.
-     */
-    private resolveNamedLineDash(pathArray: Array<string>, name: string) {
-        if (!isLineDashName(name)) return name;
-
-        const parent = this.findVertexAtPath(pathArray.slice(0, -1));
-        const widthVertex = parent && this.findNeighbourWithValue(parent, 'strokeWidth', PATH_EDGE);
-        for (const edgeValue of this.edgePriority) {
-            const valueVertex = widthVertex && this.findNeighbour(widthVertex, edgeValue);
-            const width = valueVertex && this.resolveVertexValueInternal(widthVertex, valueVertex);
-            if (width != null) return scaleLineDashName(name, width);
-        }
-        return scaleLineDashName(name, undefined);
+        this.resolveVertexChildren(vertex, object, prune);
     }
 
     private resolveVertexInEdgePriority(
@@ -1289,7 +1261,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         object: PlainObject,
         pathArray: Array<string>,
         prune?: unknown
-    ): boolean {
+    ) {
         const pathLeaf = pathArray.at(-1)!;
         const children = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
         const edgePriority = this.getEdgePriority(vertex, pathLeaf);
@@ -1316,13 +1288,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             if (pathArray.length === 0) {
                 if (value == null) continue;
                 this.resolved = value;
-            } else if (
-                pathLeaf === 'lineDash' &&
-                isLineDashName(value) &&
-                !OptionsGraph.isLegendDisabledLineDash(pathArray)
-            ) {
-                setPathSafe(object, pathArray, this.resolveNamedLineDash(pathArray, value));
-                return true;
             } else {
                 // TODO: breaks toBe of context values
                 // Clone object values to prevent nodes from affecting other nodes
@@ -1331,7 +1296,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             }
             break;
         }
-        return false;
     }
 
     private getEdgePriority(vertex: Vertex<unknown, unknown>, pathLeaf: string) {

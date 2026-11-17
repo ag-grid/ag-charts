@@ -26,17 +26,15 @@ import {
     deepClone,
     expandLegendPosition,
     isImageFill,
-    isLineDashName,
     isPatternFill,
     isTextTruncated,
     objectsEqual,
     rescaleLineDash,
-    scaleLineDashName,
     toPlainText,
     toTextString,
     truncateLine,
 } from 'ag-charts-core';
-import type { AgChartLegendContextMenuEvent, AgLineDashName, AgMarkerShapeFn, PixelSize } from 'ag-charts-types';
+import type { AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-types';
 
 import type { ActiveLoadMementoEvent, HighlightNodeDatum } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -835,11 +833,6 @@ export class Legend {
         };
     }
 
-    /** A dash name in the disabled style is scaled by the width the line is drawn at, and an array is in pixels. */
-    private getLineDash(override: PixelSize[] | AgLineDashName | undefined, drawnStrokeWidth: number) {
-        return isLineDashName(override) ? scaleLineDashName(override, drawnStrokeWidth) : override;
-    }
-
     private getLineStyles(datum: LegendSymbolOptions, enabled: boolean) {
         const { stroke, strokeOpacity = 1, strokeWidth, lineDash } = datum.line ?? {};
 
@@ -853,9 +846,7 @@ export class Legend {
             stroke: overrides?.stroke ?? stroke,
             strokeOpacity: overrides?.strokeOpacity ?? strokeOpacity,
             strokeWidth: drawnStrokeWidth,
-            lineDash:
-                this.getLineDash(overrides?.lineDash, drawnStrokeWidth) ??
-                rescaleLineDash(lineDash, strokeWidth ?? 1, drawnStrokeWidth),
+            lineDash: overrides?.lineDash ?? rescaleLineDash(lineDash, strokeWidth ?? 1, drawnStrokeWidth),
             lineDashOffset: overrides?.lineDashOffset,
             opacity: enabled ? 1 : this.disabledOpacities().line,
         };

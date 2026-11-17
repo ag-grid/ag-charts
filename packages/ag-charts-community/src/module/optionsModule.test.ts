@@ -1011,18 +1011,18 @@ describe('ChartOptions', () => {
             expect(warnings()).toEqual([]);
         });
 
-        it('leaves a stock dash name in the legend disabled style for the legend to scale, and an array unchanged', () => {
-            const build = (lineDash: unknown) => ({
-                series: SERIES,
-                legend: { item: { line: { disabledStyle: { lineDash } } } },
-            });
-            const path = 'legend.item.line.disabledStyle.lineDash';
+        it('scales a stock dash name in the legend disabled style by the legend line strokeWidth, else 2', () => {
+            const resolve = (line: object) =>
+                optionAt(
+                    prepareOptions<AgCartesianChartOptions>({
+                        series: SERIES,
+                        legend: { item: { line: { ...line, disabledStyle: { lineDash: 'dash' as never } } } },
+                    }),
+                    'legend.item.line.disabledStyle.lineDash'
+                );
 
-            const named = prepareOptions<AgCartesianChartOptions>(build('dash') as never);
-            expect(optionAt(named, path)).toBe('dash');
-
-            const array = prepareOptions<AgCartesianChartOptions>(build([7, 3]) as never);
-            expect(optionAt(array, path)).toEqual([7, 3]);
+            expect(resolve({})).toEqual([6, 4]);
+            expect(resolve({ strokeWidth: 3 })).toEqual([9, 6]);
             expect(warnings()).toEqual([]);
         });
 

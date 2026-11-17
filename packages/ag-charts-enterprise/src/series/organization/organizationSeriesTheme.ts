@@ -5,6 +5,7 @@ import {
     FONT_SIZE_RATIO,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
+    UNSET_LINE_DASH_THEME_DEFAULT,
     lineDashThemeDefault,
     themeLineHeight,
     undocumentedThemeOptions,
@@ -58,6 +59,8 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 // Background-only, matching the default toolbar and range button hover background — an
                 // accentColor/backgroundColor mix.
                 fill: { $ref: 'focusColor' },
+                // A name set here is measured by this state's width, else the expander's.
+                lineDash: lineDashThemeDefault(undefined, { $path: ['./strokeWidth', '../strokeWidth'] }),
             },
             text: {
                 color: { $ref: 'subtleTextColor' },
@@ -76,6 +79,10 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
             highlightedItem: {
                 stroke: { $ref: 'accentColor' },
                 strokeWidth: 2,
+                lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
+            },
+            unhighlightedItem: {
+                lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
             },
         },
         selection: SERIES_SELECTION_THEME,
