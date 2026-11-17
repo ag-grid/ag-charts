@@ -410,13 +410,14 @@ describe('annotation coordinates', () => {
     describe('ordinal time axis', () => {
         const bars = [new Date(2024, 0, 1), new Date(2024, 0, 2), new Date(2024, 0, 4)];
 
-        it('snaps a date to the nearest bar and keeps one beyond the first or last bar as typed', () => {
+        it('snaps a date to the nearest bar, including one beyond the first or last bar, and has none to snap to without bars', () => {
             expect(snapToBar(new Date(2024, 0, 2, 11), bars)).toEqual(bars[1]);
             expect(snapToBar(new Date(2024, 0, 2, 23), bars)).toEqual(bars[1]);
             expect(snapToBar(new Date(2024, 0, 3, 6), bars)).toEqual(bars[2]);
             expect(snapToBar(new Date(2024, 0, 1), bars)).toEqual(bars[0]);
-            expect(snapToBar(new Date(2023, 11, 31), bars)).toEqual(new Date(2023, 11, 31));
-            expect(snapToBar(new Date(2024, 0, 4, 1), bars)).toEqual(new Date(2024, 0, 4, 1));
+            expect(snapToBar(new Date(2023, 11, 31), bars)).toEqual(bars[0]);
+            expect(snapToBar(new Date(2024, 0, 4, 1), bars)).toEqual(bars[2]);
+            expect(snapToBar(new Date(2024, 0, 2), [])).toBeUndefined();
         });
 
         it('snaps the typed date, keeps the group percentage of the point being edited and rejects a number', () => {

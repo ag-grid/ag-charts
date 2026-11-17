@@ -142,26 +142,21 @@ export function parseCoordinate(text: string, kind: CoordinateKind): ParsedCoord
 }
 
 /**
- * The bar nearest to a date. A date before the first bar or after the last is kept as typed, as data loaded later may
- * extend the axis to it.
+ * The bar nearest to a date, as an ordinal time axis cannot place a date between or beyond its bars; `undefined` where
+ * the axis has none.
  */
-export function snapToBar(date: Date, bars: readonly Date[]): Date {
+export function snapToBar(date: Date, bars: readonly Date[]): Date | undefined {
     const target = date.getTime();
-    let nearest = date;
+    let nearest: Date | undefined;
     let nearestDistance = Infinity;
-    let first = Infinity;
-    let last = -Infinity;
     for (const bar of bars) {
-        const time = bar.getTime();
-        first = Math.min(first, time);
-        last = Math.max(last, time);
-        const distance = Math.abs(time - target);
+        const distance = Math.abs(bar.getTime() - target);
         if (distance < nearestDistance) {
             nearest = bar;
             nearestDistance = distance;
         }
     }
-    return target < first || target > last ? date : nearest;
+    return nearest;
 }
 
 /** The start of the band holding a date, or `undefined` when the axis has no interval to band by. */
@@ -173,9 +168,9 @@ export function floorToBand(date: Date, scale: UnitTimeScale): Date | undefined 
 /**
  * The value to apply for a parsed one, or `undefined` to reject it. A value must be one its axis can place, as an
  * annotation at a position the axis cannot convert is not drawn and cannot be selected again: a category must be one
- * of the axis's, and a log axis takes only the sign of its domain. A value is not bound to the domain otherwise, as
- * data loaded later can change it: a time band axis puts a date on a bar or band. A height is a distance, so it is not
- * bound to the axis, but an offset is bound to its band.
+ * of the axis's, a log axis takes only the sign of its domain, and an ordinal time axis puts a date on its nearest
+ * bar. A value is not bound to the domain otherwise, as data loaded later can change it, and a time band axis puts a
+ * date on its band. A height is a distance, so it is not bound to the axis, but an offset is bound to its band.
  */
 export function resolveCoordinate(
     field: CoordinateField,
