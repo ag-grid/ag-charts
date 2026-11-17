@@ -227,9 +227,13 @@ export interface LineDashOptions {
 }
 
 /**
- * `T` as a callback receives it: a `lineDash` name has already been resolved to its array of lengths in pixels.
+ * The `lineDash` that a callback receives: a stock pattern name has already been resolved to its array of lengths in
+ * pixels.
  */
-export type WithResolvedLineDash<T> = { [K in keyof T]: K extends 'lineDash' ? Exclude<T[K], AgLineDashName> : T[K] };
+export interface ResolvedLineDash {
+    /** An array specifying the length in pixels of alternating dashes and gaps. */
+    lineDash: PixelSize[];
+}
 
 /**
  * Represents font styling options.

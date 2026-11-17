@@ -29,8 +29,8 @@ import type {
     AgBaseCartesianSeriesAxisOptions,
     AgColorScale,
     FillOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from './commonOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
@@ -60,7 +60,8 @@ export type AgScatterSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
 > &
     ContextCallbackParams<TContext> &
     AgScatterSeriesOptionsKeys<TDatum> &
-    Required<WithResolvedLineDash<AgSeriesMarkerStyle>>;
+    Required<Omit<AgSeriesMarkerStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
     extends

@@ -32,8 +32,8 @@ import type {
     AgBaseCartesianSeriesAxisOptions,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from './commonOptions';
 
 export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
@@ -77,7 +77,8 @@ export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        Required<WithResolvedLineDash<AgSeriesMarkerStyle>> {
+        Required<Omit<AgSeriesMarkerStyle, 'lineDash'>>,
+        ResolvedLineDash {
     /** The type of datum. This can be `high` or `low`. */
     itemType: AgRangeAreaSeriesItemType;
 }

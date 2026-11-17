@@ -9,7 +9,7 @@ import type {
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, Opacity } from '../../chart/types';
-import type { LineDashOptions, StrokeOptions, WithResolvedLineDash } from '../cartesian/commonOptions';
+import type { LineDashOptions, ResolvedLineDash, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseSeriesOptions,
@@ -92,7 +92,8 @@ export type AgRadarSeriesStylerParams<TDatum, TContext, TStyle extends AgRadarSe
 > &
     ContextCallbackParams<TContext> &
     AgRadialSeriesOptionsKeys<TDatum> &
-    Required<WithResolvedLineDash<TStyle>>;
+    Required<Omit<TStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgRadarSeriesStyle extends StrokeOptions, LineDashOptions {
     /** Configuration for the markers used in the series. */

@@ -10,7 +10,7 @@ import type { AgItemShadowStyle } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
-import type { FillOptions, LineDashOptions, StrokeOptions, WithResolvedLineDash } from '../cartesian/commonOptions';
+import type { FillOptions, LineDashOptions, ResolvedLineDash, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions, AgMultiSeriesHighlightOptions } from '../seriesOptions';
 
 export interface AgBaseRadialSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -63,7 +63,8 @@ export interface AgRadialSeriesStylerParams<TDatum, TContext>
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgRadialSeriesOptionsKeys<TDatum>,
-        Required<WithResolvedLineDash<AgRadialSeriesStyle>> {
+        Required<Omit<AgRadialSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {
     /** An ID to be used to group stacked items. */
     stackGroup?: string;
 }
@@ -74,7 +75,8 @@ export type AgRadialSeriesItemStylerParams<TDatum = DatumDefault, TContext = Con
 > &
     ContextCallbackParams<TContext> &
     AgRadialSeriesOptionsKeys<TDatum> &
-    Required<WithResolvedLineDash<AgRadialSeriesStyle>>;
+    Required<Omit<AgRadialSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgRadialSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */

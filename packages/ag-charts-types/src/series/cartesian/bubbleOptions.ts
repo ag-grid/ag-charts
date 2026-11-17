@@ -28,8 +28,8 @@ import type {
     AgBaseCartesianSeriesAxisOptions,
     AgColorScale,
     FillOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from './commonOptions';
 
 export interface AgBubbleSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
@@ -91,7 +91,8 @@ export type BubbleSeriesItemStylerParams<TDatum = DatumDefault, TContext = Conte
 > &
     ContextCallbackParams<TContext> &
     AgBubbleSeriesOptionsKeys<TDatum> &
-    Required<WithResolvedLineDash<AgBubbleSeriesStyle>>;
+    Required<Omit<AgBubbleSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export type AgBubbleSeriesItemStylerParams<TDatum, TContext> = BubbleSeriesItemStylerParams<TDatum, TContext>;
 

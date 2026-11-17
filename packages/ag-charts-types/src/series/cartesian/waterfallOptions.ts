@@ -36,8 +36,8 @@ import type {
     AgBaseCartesianSeriesAxisOptions,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from './commonOptions';
 
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
@@ -60,7 +60,8 @@ export type AgWaterfallSeriesItemStylerParams<
     ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesItemParams &
-    Required<WithResolvedLineDash<AgWaterfallSeriesStyle>>;
+    Required<Omit<AgWaterfallSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export type AgWaterfallSeriesLabelFormatterParams<TDatum = DatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesOptionsNames &

@@ -33,8 +33,8 @@ import type {
 import type {
     AgBaseCartesianSeriesAxisOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from './commonOptions';
 
 export interface AgLineSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
@@ -109,7 +109,8 @@ export interface AgLineSeriesStylerParams<TDatum, TContext>
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         Required<StrokeOptions>,
-        Required<WithResolvedLineDash<LineDashOptions>> {
+        Required<Omit<LineDashOptions, 'lineDash'>>,
+        ResolvedLineDash {
     /** Current series styling options on markers. */
     marker?: AgSeriesMarkerStyle;
 }
@@ -123,7 +124,8 @@ export interface AgLineSeriesMarkerItemStylerParams<TDatum = DatumDefault, TCont
     extends
         AgLineSeriesOptionsKeys<TDatum>,
         ContextCallbackParams<TContext>,
-        Required<WithResolvedLineDash<AgSeriesMarkerStyle>> {
+        Required<Omit<AgSeriesMarkerStyle, 'lineDash'>>,
+        ResolvedLineDash {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */

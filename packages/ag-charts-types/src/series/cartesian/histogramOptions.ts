@@ -30,8 +30,8 @@ import type {
     AgBaseCartesianSeriesAxisOptions,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from './commonOptions';
 
 /**
@@ -111,14 +111,16 @@ export interface AgHistogramSeriesItemStylerParams<TDatum = DatumDefault, TConte
         ContextCallbackParams<TContext>,
         AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesBinParams<TDatum>,
-        Required<WithResolvedLineDash<AgHistogramSeriesStyle>> {}
+        Required<Omit<AgHistogramSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {}
 
 export interface AgHistogramSeriesStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgHistogramSeriesOptionsKeys<TDatum>,
-        Required<WithResolvedLineDash<AgHistogramSeriesStyle>> {}
+        Required<Omit<AgHistogramSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {}
 
 export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'>, AgHistogramSeriesStyle {

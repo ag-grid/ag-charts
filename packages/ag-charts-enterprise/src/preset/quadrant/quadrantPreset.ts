@@ -1,3 +1,4 @@
+import type { ResolveLineDash } from 'ag-charts-core';
 import {
     type CartesianAxisDirection,
     Logger,
@@ -31,7 +32,6 @@ import type {
     AgSeriesMarkerStyle,
     ContextDefault,
     DatumDefault,
-    WithResolvedLineDash,
 } from 'ag-charts-types';
 
 type Region = keyof Omit<NonNullable<AgQuadrantChartOptions['regions']>, 'label'>;
@@ -311,7 +311,7 @@ export function createQuadrant(
                 ...options.itemStyler({
                     ...params,
                     // The region style was resolved against the theme, so a `lineDash` name is already its array.
-                    ...(result as WithResolvedLineDash<AgSeriesMarkerStyle>),
+                    ...(result as ResolveLineDash<AgSeriesMarkerStyle>),
                     region: regionName,
                 }),
             };

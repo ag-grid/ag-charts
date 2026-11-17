@@ -1,6 +1,13 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { BoxBounds, Node, Normalised, PickNodeDatumResult, RequireOptional } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    Node,
+    Normalised,
+    PickNodeDatumResult,
+    RequireOptional,
+    ResolveLineDash,
+} from 'ag-charts-core';
 import {
     BBox,
     Group,
@@ -18,7 +25,6 @@ import type {
     CssColor,
     HighlightState,
     SelectionState,
-    WithResolvedLineDash,
 } from 'ag-charts-types';
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum &
@@ -126,7 +132,7 @@ function getItemStylerParams(
 
     return {
         // A `lineDash` name was resolved to its array by the theme before it reaches here.
-        ...(style as Required<WithResolvedLineDash<AgErrorBarThemeableOptions>>),
+        ...(style as Required<ResolveLineDash<AgErrorBarThemeableOptions>>),
         datum: datum.datum,
         seriesId: datum.series.id,
         xKey: datum.xKey,

@@ -11,8 +11,8 @@ import type {
     AgColorType,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -57,14 +57,16 @@ export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = ContextDe
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys<TDatum>,
-        Required<WithResolvedLineDash<AgSankeySeriesLinkStyle>> {}
+        Required<Omit<AgSankeySeriesLinkStyle, 'lineDash'>>,
+        ResolvedLineDash {}
 
 export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys<TDatum>,
-        Required<WithResolvedLineDash<AgSankeySeriesNodeStyle>> {
+        Required<Omit<AgSankeySeriesNodeStyle, 'lineDash'>>,
+        ResolvedLineDash {
     /** Label of the node. */
     label: string | undefined;
     /** Size of the node. */

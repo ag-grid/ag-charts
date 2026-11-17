@@ -20,11 +20,11 @@ import type {
     AgColorType,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
     TextOptions,
     TextOrSegments,
     Toggleable,
-    WithResolvedLineDash,
 } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -57,7 +57,8 @@ export type AgDonutSeriesItemStylerParams<TDatum = DatumDefault, TContext = Cont
 > &
     ContextCallbackParams<TContext> &
     AgDonutSeriesOptionsKeys<TDatum> &
-    Required<WithResolvedLineDash<AgDonutSeriesStyle>>;
+    Required<Omit<AgDonutSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgDonutSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each sector. */

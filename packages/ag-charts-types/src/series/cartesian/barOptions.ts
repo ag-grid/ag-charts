@@ -29,8 +29,8 @@ import type {
     AgBaseCartesianSeriesAxisOptions,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from './commonOptions';
 
 export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
@@ -61,7 +61,8 @@ export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgBarSeriesOptionsKeys<TDatum>,
-        Required<WithResolvedLineDash<AgBarSeriesStyle>> {
+        Required<Omit<AgBarSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {
     readonly stackGroup?: string;
     /** The x value of the datum. */
     xValue: any;
@@ -82,7 +83,8 @@ export interface AgBarSeriesStylerParams<TDatum, TContext>
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgBarSeriesOptionsKeys<TDatum>,
-        Required<WithResolvedLineDash<AgBarSeriesStyle>> {
+        Required<Omit<AgBarSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {
     readonly stackGroup?: string;
 }
 

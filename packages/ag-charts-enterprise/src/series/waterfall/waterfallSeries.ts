@@ -59,8 +59,8 @@ import {
     withoutCasts,
     zeroLike,
 } from 'ag-charts-core';
-import type { BBox, Path, Selection, Text } from 'ag-charts-core';
-import type { AgNumericValue, WithResolvedLineDash } from 'ag-charts-types';
+import type { BBox, Path, ResolveLineDash, Selection, Text } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 /** Post-theme/styler-resolution waterfall style: colour refs are already resolved to concrete colours. */
 type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, FillStrokeMorph>;
@@ -141,14 +141,14 @@ export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDa
     readonly crisp: boolean;
     readonly clipBBox?: BBox;
     readonly opacity?: number;
-    style?: Required<WithResolvedLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle;
+    style?: Required<ResolveLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle;
 }
 
 interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
     pointData?: WaterfallNodePointDatum[];
     styles: Record<
         AgWaterfallSeriesItemType,
-        _ModuleSupport.SeriesNodeStyleContext<Required<WithResolvedLineDash<AgWaterfallSeriesStyle>>>
+        _ModuleSupport.SeriesNodeStyleContext<Required<ResolveLineDash<AgWaterfallSeriesStyle>>>
     >;
 }
 
@@ -996,7 +996,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     private itemStyle(
         itemType: AgWaterfallSeriesItemType
-    ): Required<WithResolvedLineDash<AgWaterfallSeriesStyle>> & { opacity: number } {
+    ): Required<ResolveLineDash<AgWaterfallSeriesStyle>> & { opacity: number } {
         const { fillOpacity, strokeWidth, strokeOpacity, fill, stroke, lineDash, lineDashOffset, cornerRadius } =
             this.getItemConfig(itemType);
         return {
@@ -1033,7 +1033,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         highlightState?: _ModuleSupport.HighlightState,
         itemType: AgWaterfallSeriesItemType = 'total',
         selectionState?: _ModuleSupport.SelectionState
-    ): Required<WithResolvedLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle {
+    ): Required<ResolveLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle {
         const { datumIndex = 0, datum, totalValue } = nodeDatum ?? {};
 
         const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
@@ -1045,7 +1045,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const { itemStyler } = item;
 
-        let style: Required<WithResolvedLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle = baseStyle;
+        let style: Required<ResolveLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
             const itemId = getItemId(nodeDatum, this.data);
@@ -1082,7 +1082,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         itemId: string | number,
         totalValue: AgNumericValue | undefined,
         isHighlight: boolean,
-        style: Required<WithResolvedLineDash<AgWaterfallSeriesStyle>>
+        style: Required<ResolveLineDash<AgWaterfallSeriesStyle>>
     ) {
         const { id: seriesId, options } = this;
         const { xKey, yKey } = options;
@@ -1124,7 +1124,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // No itemStyler: style is a pure function of (itemType, highlightState, selectionState).
             const styleByState = new Map<
                 string,
-                Required<WithResolvedLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle
+                Required<ResolveLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle
             >();
             const thisSeries = this;
 

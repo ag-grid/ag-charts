@@ -17,8 +17,8 @@ import type {
     AgColorScale,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -43,7 +43,8 @@ export type AgMapMarkerSeriesItemStylerParams<TDatum = DatumDefault, TContext = 
 > &
     ContextCallbackParams<TContext> &
     AgMapMarkerSeriesOptionsKeys<TDatum> &
-    Required<WithResolvedLineDash<AgMapMarkerSeriesStyle>>;
+    Required<Omit<AgMapMarkerSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgMapMarkerSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the id value. */

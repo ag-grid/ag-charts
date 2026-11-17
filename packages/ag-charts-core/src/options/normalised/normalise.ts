@@ -4,7 +4,7 @@ import type { AgLineDashName } from 'ag-charts-types';
 type Require<T, K extends keyof T> = T & { [P in K]-?: NonNullable<T[P]> };
 
 /** A theme resolves a named `lineDash` to its array of lengths, so only the array form remains. */
-type ResolveLineDash<T> = 'lineDash' extends keyof T
+export type ResolveLineDash<T> = 'lineDash' extends keyof T
     ? { [K in keyof T]: K extends 'lineDash' ? Exclude<T[K], AgLineDashName> : T[K] }
     : T;
 

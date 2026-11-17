@@ -21,8 +21,8 @@ import type {
     AgBaseCartesianSeriesAxisOptions,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from './commonOptions';
 
 interface BoxPlotOptionsKeys<TDatum = DatumDefault> {
@@ -77,7 +77,8 @@ export type AgBoxPlotSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
 > &
     ContextCallbackParams<TContext> &
     BoxPlotOptionsKeys<TDatum> &
-    Required<WithResolvedLineDash<AgBoxPlotSeriesStyle>>;
+    Required<Omit<AgBoxPlotSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
     extends
@@ -86,11 +87,12 @@ export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
         BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNamesNoKey,
         Required<BoxPlotOptionsNames>,
-        Required<WithResolvedLineDash<AgBoxPlotSeriesStyle>> {
+        Required<Omit<AgBoxPlotSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {
     /** Options to style chart's caps */
     cap: Required<AgBoxPlotCapOptions>;
     /** Options to style chart's whiskers */
-    whisker: Required<WithResolvedLineDash<AgBoxPlotWhiskerOptions>>;
+    whisker: Required<Omit<AgBoxPlotWhiskerOptions, 'lineDash'>> & ResolvedLineDash;
 }
 
 export interface AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>

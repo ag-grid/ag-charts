@@ -13,8 +13,8 @@ import type {
     AgColorType,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
-    WithResolvedLineDash,
 } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -54,7 +54,8 @@ export interface AgPyramidSeriesItemStylerParams<TDatum, TContext = ContextDefau
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgPyramidSeriesOptionsKeys<TDatum>,
-        Required<WithResolvedLineDash<AgPyramidSeriesStyle>> {}
+        Required<Omit<AgPyramidSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {}
 
 export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
