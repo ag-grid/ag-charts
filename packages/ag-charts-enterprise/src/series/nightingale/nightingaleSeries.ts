@@ -2,10 +2,11 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     type DynamicContext,
     type NormalisedNightingaleSeriesOwnOptions,
-    PolarZIndexMap,
     Sector,
     SectorBox,
     SectorGlowRing,
+    SeriesContentZIndexMap,
+    SeriesZIndexMap,
     polarSectorObstacles,
     setSectorGlowEnds,
 } from 'ag-charts-core';
@@ -38,9 +39,9 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
         super.setZIndex(zIndex);
 
         // Ensures highlights always appear on top
-        this.contentGroup.zIndex = [0, PolarZIndexMap.FOREGROUND, zIndex];
-        this.highlightGroup.zIndex = [0, PolarZIndexMap.HIGHLIGHT, zIndex];
-        this.labelGroup.zIndex = [0, PolarZIndexMap.LABEL, zIndex];
+        this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, 0, SeriesContentZIndexMap.FOREGROUND, zIndex];
+        this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, 0, SeriesContentZIndexMap.HIGHLIGHT, zIndex];
+        this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, 0, SeriesContentZIndexMap.LABEL, zIndex];
 
         return true;
     }

@@ -23,8 +23,7 @@ import {
     Group,
     ModuleType,
     Mutex,
-    SeriesContentZIndexMap,
-    SeriesZIndexMap,
+    SERIES_GLOW_OVERLAY_Z_INDEX,
     TranslatableGroup,
     ZIndexMap,
     callWithContext,
@@ -151,8 +150,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         name: `${this.id}-series-root`,
         zIndex: ZIndexMap.SERIES_LAYER,
         shadowRoot: true,
-        // The overlay of every glow but the hovered item's, above every series' items.
-        glowOverlayZIndex: [SeriesZIndexMap.ANY_CONTENT, Number.MAX_VALUE, SeriesContentZIndexMap.HIGHLIGHT],
+        glowOverlayZIndex: SERIES_GLOW_OVERLAY_Z_INDEX,
     });
     readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,

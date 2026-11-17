@@ -71,6 +71,10 @@ export interface ShadowKey {
     readonly clips?: readonly ShadowRegion[];
     /** For a key that a cast split from another by strength, see {@link splitByStrength}: that key, and every key split from it. */
     readonly split?: { readonly from: ShadowKey; readonly parts: readonly ShadowKey[] };
+    /** The series of the casters of a glow key whose glows are cut by its own shapes, see {@link ownCuts}. */
+    readonly owner?: object;
+    /** The keys of the shapes, such as labels and error bars, that cut their footprint out of this glow alone. */
+    ownCuts?: readonly ShadowKey[];
 }
 
 /** The options that a node casts in a slot through a shadow root, which a cutout may, or undefined if it casts none. */
@@ -88,23 +92,12 @@ export const CUT_ONLY_GLOW: NormalisedDropShadowOptions = {
     cutOnly: true,
 };
 
-/** Whether a node cuts its footprint out of the glow overlay of a shadow root, see {@link CUT_ONLY_GLOW}, and {@link withOverlayCut}. */
+/** The marker of a shape that cuts its footprint out of the glows of its own series alone, see {@link ShadowKey.ownCuts}. */
+export const OWN_CUT_GLOW: NormalisedDropShadowOptions = { ...CUT_ONLY_GLOW, ownCut: true };
+
+/** Whether a node cuts its footprint out of the glow overlay of a shadow root, see {@link CUT_ONLY_GLOW}. */
 export function castsCutOnly(node: Node): boolean {
     return node instanceof Shape && node.cutsGlowOverlay();
-}
-
-const overlayCuts = new WeakMap<NormalisedDropShadowOptions, NormalisedDropShadowOptions>();
-
-/** The glow, marked so that the item that casts it also cuts its footprint out of the glow overlay. */
-export function withOverlayCut(glow: NormalisedDropShadowOptions): NormalisedDropShadowOptions {
-    if (glow.cutsOverlay === true) return glow;
-
-    let cut = overlayCuts.get(glow);
-    if (cut == null) {
-        cut = { ...glow, cutsOverlay: true };
-        overlayCuts.set(glow, cut);
-    }
-    return cut;
 }
 
 /** The options that a node casts in a slot through the engine, or undefined if it casts none. */
@@ -1060,21 +1053,23 @@ function castOverlay(
         let end = first + 1;
         while (end < plans.length && (plans[end].key.split?.from ?? plans[end].key) === source) end++;
 
-        // A glow with a `gap` of its own is cut by its footprints before it merges; the rest are cut once merged.
+        // A glow with a `gap` of its own, or cut by its series' own labels and error bars, is cut before it merges; the rest once merged.
         const { gap, overlay } = source.shadow;
         const hasGap = gap != null && overlay !== true;
+        const ownCuts = source.ownCuts;
+        const cutAlone = hasGap || ownCuts != null;
         const direct = lone && hasGap;
-        if (hasGap && !direct) cut ??= acquireOwnCutCanvas(scene, width, height);
+        if (cutAlone && !direct) cut ??= acquireOwnCutCanvas(scene, width, height);
         // Without a canvas for its own cut, a glow is merged whole, and the cut of every footprint still clears the items.
         let own: SpreadCanvas | undefined;
-        if (hasGap) own = direct ? merged : cut;
+        if (cutAlone) own = direct ? merged : cut;
         const dest = own?.context ?? glows;
         const reach = getKeyRect(keyExtents?.get(source) ?? extent, region, scaleX, scaleY, width, height);
         const group = plans.slice(first, end);
         first = end;
         if (reach == null) continue;
 
-        cutWhole &&= own != null;
+        cutWhole &&= own != null && hasGap;
         if (own != null) {
             own.context.setTransform(1, 0, 0, 1, 0, 0);
             own.context.clearRect(reach.x, reach.y, reach.width, reach.height);
@@ -1098,19 +1093,38 @@ function castOverlay(
         rendered =
             cutOut(own, reach, scratch, (ctx, op) => {
                 let drew = true;
-                for (const plan of group) {
-                    drew =
-                        eraseFootprints(
-                            plan.key,
-                            ctx,
-                            transform,
-                            renderCtx,
-                            region,
-                            resolutionOfHole,
-                            gap ?? 0,
-                            false,
-                            op
-                        ) && drew;
+                if (hasGap) {
+                    for (const plan of group) {
+                        drew =
+                            eraseFootprints(
+                                plan.key,
+                                ctx,
+                                transform,
+                                renderCtx,
+                                region,
+                                resolutionOfHole,
+                                gap ?? 0,
+                                false,
+                                op
+                            ) && drew;
+                    }
+                }
+                if (ownCuts != null) {
+                    for (const key of ownCuts) {
+                        drew =
+                            eraseFootprints(
+                                key,
+                                ctx,
+                                transform,
+                                renderCtx,
+                                region,
+                                resolutionOfHole,
+                                0,
+                                true,
+                                op,
+                                true
+                            ) && drew;
+                    }
                 }
                 return drew;
             }) && rendered;
@@ -1484,8 +1498,10 @@ export function castShadows(
     let cuts: ShadowKey[] | undefined;
     for (const key of keys) {
         if (key.shadow.cutOnly === true) {
-            cuts ??= [];
-            cuts.push(key);
+            if (key.shadow.ownCut !== true) {
+                cuts ??= [];
+                cuts.push(key);
+            }
             continue;
         }
 

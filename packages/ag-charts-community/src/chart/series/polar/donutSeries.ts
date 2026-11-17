@@ -286,7 +286,9 @@ export class DonutSeries extends PolarSeries<
         () => this.nodeFactory(),
         false
     );
-    private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
+    private readonly calloutLabelGroup = this.contentGroup.appendChild(
+        new Group({ name: 'pieCalloutLabels', cutsOwnGlows: true })
+    );
     private readonly calloutLabelSelection = Selection.select<Group<PieDonutNodeDatum>>(this.calloutLabelGroup, Group);
 
     // When every datum sums to 0 these rings stand in for the empty series.
@@ -294,7 +296,7 @@ export class DonutSeries extends PolarSeries<
     readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Marker({ shape: 'circle' }));
     readonly zerosumInnerRing = this.zerosumRingsGroup.appendChild(new Marker({ shape: 'circle' }));
 
-    readonly innerLabelsGroup = this.contentGroup.appendChild(new Group({ name: 'innerLabels' }));
+    readonly innerLabelsGroup = this.contentGroup.appendChild(new Group({ name: 'innerLabels', cutsOwnGlows: true }));
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
     readonly innerLabelsSelection = Selection.select<Text<NormalisedDonutInnerLabelOptions>>(
         this.innerLabelsGroup,

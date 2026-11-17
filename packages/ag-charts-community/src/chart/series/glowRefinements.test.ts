@@ -6,7 +6,7 @@ import type { AgGlowOptions } from 'ag-charts-types';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { expectSamePixels } from '../test/expectSamePixels';
-import { HARD_GAP_GLOW, ROOM, canvasImage, hoverDatum } from '../test/glowRender';
+import { HARD_GAP_GLOW, ROOM, canvasImage, endHover, hoverDatum, hoverSeries } from '../test/glowRender';
 import { sectorJoinPixels } from '../test/sectorGlowJoins';
 import { getSeriesAt } from '../test/seriesAccessors';
 import { SERIES_SHADOW, shapesOf } from '../test/shadowFixtures';
@@ -247,6 +247,20 @@ describe('glow refinements', () => {
                 expect(pixel(glowing === 0 ? glows.x + glows.width - 3 : glows.x + 3, bottom)).toEqual(
                     glowing === 0 ? BLUE : GREEN
                 );
+            });
+        });
+
+        describe.each(PLACEMENTS)('with the glowing bar hovered, not brought to front, from %s', (_name, placement) => {
+            it.each([0, 1] as const)('still covers the bar beside it, with bar %s glowing', async (glowing) => {
+                const series = bars(glowing, placement).map((bar) => ({ ...bar, highlight: { bringToFront: false } }));
+                await create({ ...HEADROOM, series });
+                const [first, second] = [barBounds(0), barBounds(1)];
+                const bottom = Math.min(first.y + first.height, second.y + second.height) - 6;
+                const near = glowing === 0 ? second.x + 3 : first.x + first.width - 3;
+                expect(pixel(near, bottom)).toEqual(RED);
+
+                await hoverDatum(chart, glowing);
+                expect(pixel(near, bottom)).toEqual(RED);
             });
         });
 
@@ -733,23 +747,43 @@ describe('glow refinements', () => {
             expectSamePixels(hovered, canvasImage(chart));
         });
 
+        it('gathers nothing for a hovered item that is not brought to front, with an itemStyler that returns no glow', async () => {
+            const gathered = vi.spyOn(Group.prototype, 'gatherShadowChildren');
+            try {
+                const series = {
+                    ...SERIES,
+                    shadow: undefined,
+                    itemStyler: () => ({}),
+                    highlight: { bringToFront: false },
+                };
+                await create({ data: DATA, series: [series] });
+                await hoverDatum(chart, 0, 0);
+                await hoverDatum(chart, 0, 1);
+                expect(gathered).not.toHaveBeenCalled();
+            } finally {
+                gathered.mockRestore();
+            }
+        });
+
         it.each([
-            ['an itemStyler that returns no glow', { itemStyler: () => ({}) }],
-            ['a glow of the highlighted item alone', { highlight: { highlightedItem: { glow: hard() } } }],
+            [false, true],
+            [true, false],
         ])(
-            'gathers nothing for the cut of a hovered item that is not brought to front, with %s',
-            async (_name, glow) => {
+            'with a glow of the highlighted item alone and bringToFront %s, gathers it while hovered: %s',
+            async (bringToFront, whileHovered) => {
                 const gathered = vi.spyOn(Group.prototype, 'gatherShadowChildren');
                 try {
-                    const series = {
-                        ...SERIES,
-                        shadow: undefined,
-                        ...glow,
-                        highlight: { ...(glow as any).highlight, bringToFront: false },
-                    };
-                    await create({ data: DATA, series: [series] });
+                    const highlight = { bringToFront, highlightedItem: { glow: hard() } };
+                    await create({ data: DATA, series: [{ ...SERIES, shadow: undefined, highlight }] });
+                    expect(gathered).not.toHaveBeenCalled();
+
                     await hoverDatum(chart, 0, 0);
-                    await hoverDatum(chart, 0, 1);
+                    expect(gathered.mock.calls.length > 0).toBe(whileHovered);
+
+                    await endHover(chart);
+                    gathered.mockClear();
+                    await hoverSeries(chart, 0);
+                    await endHover(chart);
                     expect(gathered).not.toHaveBeenCalled();
                 } finally {
                     gathered.mockRestore();

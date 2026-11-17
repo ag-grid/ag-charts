@@ -11,6 +11,7 @@ import { Node, PointerEvents } from './node';
 import { type CollectedFrame, ShadowCollector } from './shadowCollector';
 import { renderChildrenWithShadowBatches, renderChildrenWithSuppressedShadows } from './shadowCompositor';
 import { castsCutOnly, getBatchedShadow, getRootShadow, releaseShadowScratch } from './shadowEngine';
+import { shadowPass } from './shadowPass';
 import type { ShadowCover } from './shadowRoot';
 import { castGlowOverlay, castRootShadows, releaseShadowRoot } from './shadowRoot';
 import { type CanvasContext, Shape } from './shape/shape';
@@ -108,6 +109,23 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     /** Whether the group casts the shadows of the groups below it that share them, before any of them draws. */
     readonly shadowRoot: boolean;
 
+    /** The series that the glows cast below this group belong to, see {@link cutsOwnGlows}. */
+    glowOwner: object | undefined = undefined;
+
+    /** Whether the shapes of the group cut their footprint out of the glows of their {@link glowOwner} alone. */
+    @SceneChangeDetection()
+    cutsOwnGlows: boolean = false;
+
+    /** Whether the groups at or below this one hold the hovered item, whose glows the root casts above its overlay. */
+    @SceneChangeDetection()
+    castsHoveredGlows: boolean = false;
+
+    /** Whether this group or one above it {@link castsHoveredGlows}, which {@link preRender} sets before the group's counts. */
+    private inHoveredLayer = false;
+
+    /** Whether this group or one above it {@link cutsOwnGlows}, which {@link preRender} sets before the group's counts. */
+    private inOwnCuts = false;
+
     /**
      * On a shadow root, the groups whose shadows its last cast drew, which draw without them. Each maps to whether the cover
      * includes the group's cutouts, which it does only for a group inside a layer of its own.
@@ -172,6 +190,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         readonly renderToOffscreenCanvas?: boolean;
         readonly optimizeForInfrequentRedraws?: boolean;
         readonly batchShadows?: boolean | 'by-layer' | 'shared';
+        readonly cutsOwnGlows?: boolean;
+        readonly castsHoveredGlows?: boolean;
         readonly shadowRoot?: boolean;
         readonly glowOverlayZIndex?: ZIndex;
     }) {
@@ -180,6 +200,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
         this.optimizeForInfrequentRedraws = opts?.optimizeForInfrequentRedraws === true;
         this.batchShadows = opts?.batchShadows ?? false;
+        this.cutsOwnGlows = opts?.cutsOwnGlows === true;
+        this.castsHoveredGlows = opts?.castsHoveredGlows === true;
         this.shadowRoot = opts?.shadowRoot === true;
         this.glowOverlayZIndex = opts?.shadowRoot === true ? opts.glowOverlayZIndex : undefined;
     }
@@ -498,7 +520,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         if (this.dirty) {
             counts = super.preRender(renderCtx, 0);
 
+            const parent = this.parentNode;
+            this.inHoveredLayer = this.castsHoveredGlows || (parent instanceof Group && parent.inHoveredLayer);
             const countCasters = this.batchShadows !== false;
+            this.inOwnCuts = this.cutsOwnGlows || (parent instanceof Group && parent.inOwnCuts);
+            const ownCuts = this.inOwnCuts;
             const shared = this.sharesShadows();
             const glows = this.sharesGlows();
             let casters = 0;
@@ -514,6 +540,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                     if (this.castsShadow(child, shared)) casters++;
                     if (glows && getRootShadow(child, 'glow') != null) glowCasters++;
                     else if (castsCutOnly(child)) cuts++;
+                } else if (ownCuts && child.visible && child instanceof Shape) {
+                    cuts++;
                 }
                 // Only a group has groups in its counts, so a datum is not tested.
                 if (childCounts.groups > 0 && child.visible && child instanceof Group) {
@@ -784,7 +812,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** Whether the group casts its glows through the overlay of the nearest shadow root, with its shadows batched or not. */
     private sharesGlows(): boolean {
-        return this.batchShadows === 'shared' || this.batchShadows === 'by-layer';
+        return (
+            this.batchShadows === 'shared' ||
+            this.batchShadows === 'by-layer' ||
+            (this.batchShadows === true && this.inHoveredLayer)
+        );
     }
 
     /** Pushes the clips that the group draws its children into, in device pixels. A group that clips them overrides it. */
@@ -794,7 +826,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** Records the groups at or below this one that cast through the root, without rendering. */
     override gatherShadows(collector: ShadowCollector): void {
-        const { alpha } = collector;
+        const { alpha, owner } = collector;
+        if (this.glowOwner != null) collector.owner = this.glowOwner;
         const clipCount = collector.clips.length;
         // A layer applies the opacity of its group to what it draws, and again as it is composited.
         const layered = this.layer != null && this.useOffscreenCanvas;
@@ -810,6 +843,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         } finally {
             if (layered) collector.layers--;
             collector.alpha = alpha;
+            collector.owner = owner;
             collector.clips.length = clipCount;
         }
     }
@@ -819,7 +853,14 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
         // A group with no caster or cut below it is not visited, so the root costs the groups that cast through it.
         if (this.countRootCasters() + this.cutCasterCount > 0)
-            collector.addFrame(this, this.shadowVersion, !this.sharesShadows(), !this.sharesGlows());
+            collector.addFrame(
+                this,
+                this.shadowVersion,
+                !this.sharesShadows(),
+                !this.sharesGlows(),
+                this.inOwnCuts,
+                this.inHoveredLayer
+            );
 
         for (const child of this.getChildGroups()) {
             if (child.visible && child.getSharedCasterCount() + child.getSharedCutCount() > 0) {
@@ -856,7 +897,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         const covered = this.getSharedShadowCover();
         if (covered === 'glow') {
             // The root casts the glows in its overlay, and the group batches its shadows by layer without them.
-            renderChildrenWithShadowBatches(this.children(), this.scene, this, childRenderCtx, 'layer', true);
+            const previous = shadowPass.hoveredGlowsCast;
+            shadowPass.hoveredGlowsCast = this.inHoveredLayer;
+            try {
+                renderChildrenWithShadowBatches(this.children(), this.scene, this, childRenderCtx, 'layer', true);
+            } finally {
+                shadowPass.hoveredGlowsCast = previous;
+            }
             return;
         }
         if (covered != null) {
@@ -923,9 +970,14 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             let casters = 0;
             let glowCasters = 0;
             let cuts = 0;
+            const countCasters = this.batchShadows !== false;
             for (const child of this.children()) {
                 if (!child.visible) continue;
 
+                if (!countCasters) {
+                    if (this.inOwnCuts && child instanceof Shape) cuts++;
+                    continue;
+                }
                 if (this.castsShadow(child, shared)) casters++;
                 if (glows && getRootShadow(child, 'glow') != null) glowCasters++;
                 else if (castsCutOnly(child)) cuts++;

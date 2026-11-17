@@ -92,8 +92,8 @@ export type NormalisedDropShadowOptions = Normalised<
     gap?: PixelSize;
     /** A glow that casts nothing, which only cuts the footprint of its item out of the glow overlay. */
     cutOnly?: true;
-    /** A glow that is cast beneath its item, where the item also cuts its footprint out of the glow overlay. */
-    cutsOverlay?: true;
+    /** With `cutOnly`, cuts the footprint out of the glows of its own series alone. */
+    ownCut?: true;
 };
 
 /** A shadow with the `fill` that it casts in. */

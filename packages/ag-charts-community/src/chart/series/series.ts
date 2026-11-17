@@ -37,6 +37,7 @@ import {
     Group,
     LRUCache,
     PointerEvents,
+    SERIES_GLOW_OVERLAY_Z_INDEX,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
     Transformable,
@@ -44,6 +45,7 @@ import {
     boxCollides,
     boxContains,
     callWithContext,
+    compareZIndex,
     createId,
     datumKeyName,
     glowToShadow,
@@ -55,7 +57,6 @@ import {
     mergeGlow,
     nearestSquared,
     resolveLabelAvoidance,
-    withOverlayCut,
     without,
 } from 'ag-charts-core';
 import type {
@@ -343,6 +344,7 @@ export abstract class Series<
         new Group<TLabel>({
             name: `${this.internalId}-highlight-label`,
             zIndex: SeriesContentZIndexMap.LABEL,
+            cutsOwnGlows: true,
         })
     );
 
@@ -580,6 +582,11 @@ export abstract class Series<
     }
 
     attachSeries(seriesContentNode: Group, seriesNode: Group, _annotationNode: Group | undefined) {
+        // Set here, as a subclass may replace a group after the constructor. Labels and error bars cut their own series' glows alone.
+        for (const group of [this.contentGroup, this.highlightGroup, this.labelGroup, this.annotationGroup]) {
+            group.glowOwner = this;
+        }
+        this.labelGroup.cutsOwnGlows = true;
         seriesContentNode.appendChild(this.contentGroup);
         seriesNode.appendChild(this.highlightGroup);
         seriesNode.appendChild(this.labelGroup);
@@ -602,6 +609,9 @@ export abstract class Series<
         this.declarationOrder = index;
         this._broughtToFront = bringToFront;
         this.setZIndex(bringToFront ? Number.MAX_VALUE : index);
+        // A hovered item drawn beneath the glow overlay has its glow cast above it.
+        this.highlightGroup.castsHoveredGlows =
+            compareZIndex(this.highlightGroup.zIndex, SERIES_GLOW_OVERLAY_Z_INDEX) < 0;
 
         this.events.emit('grouping-changed', new SeriesGroupingChangedEvent(this, this.seriesGrouping));
 
@@ -1383,7 +1393,7 @@ export abstract class Series<
 
     /**
      * The glow one copy of an item casts: its highlight state's `glow` over `seriesGlow`. The in-place copy of the hovered
-     * item casts none and never cuts the overlay: only the highlight copy does, when it glows and is beneath the overlay.
+     * item casts none: the highlight copy casts it, above the overlay, and cuts its footprint out of every glow.
      */
     protected resolveItemGlow(
         seriesGlow: DeepPartial<AgGlowOptions> | undefined,
@@ -1396,8 +1406,7 @@ export abstract class Series<
         if (itemGlow == null && !this.hasAnyGlow()) return;
 
         if (isHighlight) {
-            const glow = this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
-            return glow == null || this.bringToFront() ? glow : withOverlayCut(glow);
+            return this.castGlow(seriesGlow, HighlightState.Item, itemGlow);
         }
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();

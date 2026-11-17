@@ -596,10 +596,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return cast.resolved;
     }
 
-    /** Whether the shape cuts its footprint out of the glow overlay of the shadow root, with or without casting a glow of its own. */
+    /** Whether the shape casts no glow, and only cuts its footprint out of the glow overlay of the shadow root. */
     cutsGlowOverlay(): boolean {
-        const glow = this.__fillGlow;
-        return glow?.cutOnly === true || (glow?.enabled === true && glow.cutsOverlay === true);
+        return this.__fillGlow?.cutOnly === true;
     }
 
     /**
@@ -686,7 +685,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * as the engine's would be erased inside its footprint; every other shape's glow is cast by the batch or root alone.
      */
     private castsOwnShadow(slot: ShadowSlot): boolean {
-        if (slot === 'glow' && (this.__fillGlow == null || this.__drawingMode !== 'cutout')) return false;
+        if (
+            slot === 'glow' &&
+            (this.__fillGlow == null || this.__drawingMode !== 'cutout' || shadowPass.hoveredGlowsCast)
+        ) {
+            return false;
+        }
 
         return shadowPass.state === 'none' && this.getCastShadow(slot) != null;
     }
@@ -711,13 +715,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
-        const shadow = this.getSlot(slot);
-        if (shadow?.enabled !== true) return;
-
+        // A label or error bar that cuts its series' glows has no glow of its own, but still has a footprint.
         if (shadowPass.erase != null) {
             this.eraseFootprint(slot, ctx, path, shadowPass.erase, shadowPass.erasePainted);
             return;
         }
+
+        const shadow = this.getSlot(slot);
+        if (shadow?.enabled !== true) return;
 
         const spread = getShadowSpread(shadow);
         const drawsFill = this.castsShadowFromFill(slot);
@@ -1022,10 +1027,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
         const hasStroke = stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
         const drawsStroke = hasStroke && (!painted || this.hasCastableStroke());
-        const drawsFill = path != null && this.__shadowMode !== 'stroke' && (!painted || this.hasCastableFill());
+        const drawsFill =
+            (path != null || this.fillsWithoutPath()) &&
+            this.__shadowMode !== 'stroke' &&
+            (!painted || this.hasCastableFill());
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = shadowPass.eraseOp;
         this.drawSpreadSilhouette(slot, ctx, path, gap, drawsFill, drawsStroke, true);
+    }
+
+    /** Whether {@link executeFill} paints the fill without a `Path2D`, as text does with its glyphs. */
+    protected fillsWithoutPath(): boolean {
+        return false;
     }
 
     /** True when the shape paints a stroke, which {@link renderStroke} skips otherwise. */

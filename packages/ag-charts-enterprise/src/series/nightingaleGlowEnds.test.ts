@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     ROOM,
+    countChartPixels,
     deproxy,
     getSeriesAt,
+    hoverDatum,
     sectorJoinPixels,
     setupMockCanvas,
     setupMockConsole,
@@ -79,5 +81,54 @@ describe('the glow ends of the sectors of a nightingale', () => {
             expect(wrap).toEqual(glows[taller]);
             expect(body).toEqual(GREY);
         }
+    });
+});
+
+describe('the hovered sector of a nightingale with a glow', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: ReturnType<typeof deproxy>;
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const hoveredPixels = async (glow: object | undefined) => {
+        chart = deproxy(
+            await createEnterpriseChart({
+                ...ROOM,
+                data: [
+                    { quarter: 'Q1', value: 6 },
+                    { quarter: 'Q2', value: 6 },
+                    { quarter: 'Q3', value: 6 },
+                ],
+                series: [
+                    {
+                        type: 'nightingale',
+                        angleKey: 'quarter',
+                        radiusKey: 'value',
+                        fill: '#808080',
+                        fillOpacity: 1,
+                        strokeWidth: 0,
+                        glow,
+                        highlight: {
+                            highlightedItem: { fill: '#0000ff', fillOpacity: 1, strokeWidth: 0 },
+                            unhighlightedItem: { opacity: 1 },
+                        },
+                    },
+                ],
+            } as any)
+        );
+        await hoverDatum(chart, 0, 1);
+        const count = countChartPixels(chart, BLUE);
+        chart.destroy();
+        return count;
+    };
+
+    it('is not covered by the glows of the sectors beside it', async () => {
+        const bare = await hoveredPixels(undefined);
+
+        expect(bare).toBeGreaterThan(0);
+        expect(await hoveredPixels({ enabled: true, fill: '#00ff00', fillOpacity: 1, blur: 0, spread: 20 })).toBe(bare);
     });
 });

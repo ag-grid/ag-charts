@@ -25,6 +25,12 @@ export interface CollectedFrame extends ShadowFrame {
     readonly glowsOnly: boolean;
     /** Whether the root casts nothing for the group, which casts its own glows, and only cuts its items out of the overlay. */
     readonly cutsOnly: boolean;
+    /** The series of the group, see {@link Group.glowOwner}. */
+    readonly owner: object | undefined;
+    /** Whether the shapes of the group cut their footprint out of the glows of {@link owner} alone. */
+    readonly ownCuts: boolean;
+    /** Whether the group holds the hovered item, whose glows are cast above the overlay, see {@link Group.castsHoveredGlows}. */
+    readonly hovered: boolean;
 }
 
 /** What the collector reads of the context that the shadow root draws into. */
@@ -49,6 +55,8 @@ export class ShadowCollector {
     readonly frames: CollectedFrame[] = [];
     /** How many of the groups being gathered draw into a layer of their own. */
     layers = 0;
+    /** The series of the group being gathered. */
+    owner: object | undefined = undefined;
 
     constructor(
         readonly ctx: CollectorContext,
@@ -57,7 +65,14 @@ export class ShadowCollector {
         this.alpha = alpha;
     }
 
-    addFrame(source: object, version: number, glowsOnly: boolean = false, cutsOnly: boolean = false) {
+    addFrame(
+        source: object,
+        version: number,
+        glowsOnly: boolean = false,
+        cutsOnly: boolean = false,
+        ownCuts: boolean = false,
+        hovered: boolean = false
+    ) {
         const { a, b, c, d, e, f } = this.ctx.getTransform();
         this.frames.push({
             source,
@@ -68,6 +83,9 @@ export class ShadowCollector {
             layered: this.layers > 0,
             glowsOnly,
             cutsOnly,
+            owner: this.owner,
+            ownCuts,
+            hovered,
         });
     }
 

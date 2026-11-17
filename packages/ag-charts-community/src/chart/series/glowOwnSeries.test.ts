@@ -15,6 +15,7 @@ import {
     createChart,
     deproxy,
     hoverLegendItem,
+    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -184,5 +185,116 @@ describe('a highlight glow of the sectors of a donut', () => {
         expect(withGlow.inner).toEqual(without.inner);
         expect(without.outside).not.toEqual(GREEN);
         expect(withGlow.outside).toEqual(GREEN);
+    });
+});
+
+describe('the labels of a series with a glow', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const LABELS = [STROKE, [255, 0, 255, 255]];
+
+    /** Two grouped bars with a label above each, and a glow on one of them that reaches over both labels. */
+    const labelled = (glowing: 0 | 1 | undefined, labels = true): AgChartOptions => ({
+        // Narrow bars, so that the glow of one reaches over the label of the bar beside it.
+        data: ['A', 'B', 'C', 'D'].map((x) => ({ x, a: 6, b: 6 })),
+        animation: { enabled: false },
+        legend: { enabled: false },
+        axes: { y: { type: 'number', min: 0, max: 10 } },
+        series: ['a', 'b'].map((yKey, index) => ({
+            type: 'bar',
+            xKey: 'x',
+            yKey,
+            fill: '#0000ff',
+            fillOpacity: 1,
+            glow: index === glowing ? { ...GLOW, spread: 80 } : undefined,
+            label: {
+                enabled: labels,
+                placement: 'outside-end',
+                color: index === 0 ? '#ff0000' : '#ff00ff',
+                fontSize: 20,
+            },
+        })),
+    });
+
+    const labelPixels = async (glowing: 0 | 1 | undefined) => {
+        chart = deproxy(await createChart(labelled(glowing)));
+        const counts = LABELS.map((colour) => countChartPixels(chart, colour));
+        chart.destroy();
+        return counts;
+    };
+
+    it.each([0, 1] as const)(
+        'are covered by the glow of the series beside them alone, with series %s glowing',
+        async (glowing) => {
+            const bare = await labelPixels(undefined);
+            const glowed = await labelPixels(glowing);
+
+            expect(bare.every((count) => count > 0)).toBe(true);
+            expect(glowed[glowing]).toBe(bare[glowing]);
+            expect(glowed[1 - glowing]).toBeLessThan(bare[1 - glowing]);
+        }
+    );
+
+    it('give the glow back where they were, once they are hidden', async () => {
+        chart = deproxy(await createChart(labelled(0, false)));
+        const unlabelled = countChartPixels(chart, GREEN);
+        chart.destroy();
+
+        const instance = await createChart(labelled(0));
+        chart = deproxy(instance);
+        const labelledGlow = countChartPixels(chart, GREEN);
+        await instance.update(prepareTestOptions(labelled(0, false)));
+        await waitForChartStability(chart);
+
+        expect(labelledGlow).toBeLessThan(unlabelled);
+        expect(countChartPixels(chart, GREEN)).toBe(unlabelled);
+    });
+});
+
+describe('the glow of the middle of three donut rings', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    it('covers the rings inside and outside it alike, whatever their order', async () => {
+        const RINGS: [number, number, string][] = [
+            [1, 0.8, '#ff0000'],
+            [0.8, 0.6, '#808080'],
+            [0.6, 0.4, '#0000ff'],
+        ];
+        chart = deproxy(
+            await createChart({
+                data: [{ value: 1 }],
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: RINGS.map(([outerRadiusRatio, innerRadiusRatio, fill], index) => ({
+                    type: 'donut',
+                    angleKey: 'value',
+                    outerRadiusRatio,
+                    innerRadiusRatio,
+                    fills: [fill],
+                    strokeWidth: 0,
+                    glow: index === 1 ? { ...GLOW, spread: 10 } : undefined,
+                })),
+            } as AgChartOptions)
+        );
+
+        const [outer, , inner] = [0, 1, 2].map((index) => shapesOf(getSeriesAt(chart, index).contentGroup, Sector)[0]);
+        const centre = Transformable.toCanvas(outer).computeCenter();
+        // 5px into each ring from the edge it shares with the glowing ring, at the top.
+        expect(chartPixelAt(chart, centre.x, centre.y - outer.innerRadius - 5)).toEqual(GREEN);
+        expect(chartPixelAt(chart, centre.x, centre.y - inner.outerRadius + 5)).toEqual(GREEN);
+        expect(chartPixelAt(chart, centre.x, centre.y - outer.innerRadius - 15)).toEqual(STROKE);
+        expect(chartPixelAt(chart, centre.x, centre.y - inner.outerRadius + 15)).toEqual([0, 0, 255, 255]);
     });
 });

@@ -223,7 +223,7 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
     }
 
     constructor() {
-        super();
+        super({ cutsOwnGlows: true });
         this.whiskerPath = new Path();
         this.capsPath = new Path();
         this.bboxes = new HierarchicalBBox([]);
