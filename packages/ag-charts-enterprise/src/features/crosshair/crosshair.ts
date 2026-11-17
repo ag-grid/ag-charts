@@ -676,32 +676,34 @@ export class Crosshair
         label.setLabelHtml(html);
 
         const axisPosition = this.axisCtx.position;
-        let padding = this.axisLayout.label.spacing + this.axisLayout.tickSize;
+        const spacing = this.axisLayout.label.spacing + this.axisLayout.tickSize;
 
         // `crossAt` moves the axis line off its `position` edge; the offset is zero unless the label follows it.
         const crossOffset = this.axisLayout.crosshairOffset ?? { x: 0, y: 0 };
 
-        // CSS translate percentages avoid synchronous dimension reads.
+        // Cancels the label's own padding so its text, not its box, sits `spacing` from the line; `min` stops a small
+        // `spacing` pulling the box over the line. CSS keeps this free of synchronous style reads.
+        const pullBack = (padding: 'vertical' | 'horizontal') =>
+            `min(var(--ag-charts-crosshair-label-${padding}-padding), ${spacing}px)`;
+
         if (this.axisCtx.direction === ChartAxisDirection.X) {
-            // Cancels the label's own padding so its text, not its box, sits `spacing` from the line; the
-            // clamp keeps a small `spacing` from pulling the box over the line.
-            padding = Math.max(padding - 4, 0);
             const isBottom = axisPosition === 'bottom';
             const lineY = (isBottom ? bounds.y + bounds.height : bounds.y) + crossOffset.y;
             label.show({
                 x,
-                y: isBottom ? lineY + padding : lineY - padding,
+                y: isBottom ? lineY + spacing : lineY - spacing,
                 translateX: '-50%',
-                translateY: isBottom ? '0' : '-100%',
+                translateY: isBottom ? `calc(${pullBack('vertical')} * -1)` : `calc(-100% + ${pullBack('vertical')})`,
             });
         } else {
-            padding = Math.max(padding - 8, 0);
             const isRight = axisPosition === 'right';
             const lineX = (isRight ? bounds.x + bounds.width : bounds.x) + crossOffset.x;
             label.show({
-                x: isRight ? lineX + padding : lineX - padding,
+                x: isRight ? lineX + spacing : lineX - spacing,
                 y,
-                translateX: isRight ? '0' : '-100%',
+                translateX: isRight
+                    ? `calc(${pullBack('horizontal')} * -1)`
+                    : `calc(-100% + ${pullBack('horizontal')})`,
                 translateY: '-50%',
             });
         }

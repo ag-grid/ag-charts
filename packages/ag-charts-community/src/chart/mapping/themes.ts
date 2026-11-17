@@ -340,7 +340,9 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         dragHandleColor: colorOrRefNoOperator,
 
         crosshairLabelBackgroundColor: colorOrRefNoOperator,
+        crosshairLabelHorizontalPadding: positiveNumber,
         crosshairLabelTextColor: colorOrRefNoOperator,
+        crosshairLabelVerticalPadding: positiveNumber,
 
         legendBorder: or(boolean, themeParamBorder),
         legendBorderRadius: positiveNumber,
@@ -392,9 +394,9 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         seriesLabelFontSize: number,
         seriesLabelLineHeight: positiveNumberNonZero,
         seriesLabelFontWeight: fontWeight,
+        seriesLabelPadding: positiveNumber,
         seriesLabelInsideBackgroundColor: colorOrRefNoOperator,
         seriesLabelInsideTextColor: colorOrRefNoOperator,
-        seriesLabelPadding: positiveNumber,
         seriesLabelOutsideBackgroundColor: colorOrRefNoOperator,
         seriesLabelOutsideTextColor: colorOrRefNoOperator,
     },
