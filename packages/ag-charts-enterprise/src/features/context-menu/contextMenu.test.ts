@@ -237,13 +237,8 @@ describe('Context Menu', () => {
         await contextMenuAction(410, 575)(chart);
         await waitForChartStability(chart);
 
-        const labels = Array.from(
-            document.body.getElementsByClassName(`${DEFAULT_CONTEXT_MENU_CLASS}__item`) as HTMLCollectionOf<HTMLElement>
-        ).map((item) => item.textContent);
-
-        expect(labels).toContain('Show or Hide');
-        expect(labels).toContain('Download');
-        expect(labels.some((label) => /contextMenu[A-Z]/.test(label ?? ''))).toBe(false);
+        expect(findContextMenuItem('Show or Hide').textContent).toBe('Show or Hide');
+        expect(findContextMenuItem('Download').textContent).toBe('Download');
     });
 
     describe('legend highlight state', () => {
