@@ -1431,6 +1431,10 @@ export abstract class Axis<
             scaleInvert: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) => {
                 const { allowNull } = this;
+                label ??=
+                    source === 'crosshair'
+                        ? this.getModuleMap().getModule<AxisFormattableLabel<any, any>>('crosshair')
+                        : undefined;
                 return this.formatDatum(
                     undefined,
                     value,

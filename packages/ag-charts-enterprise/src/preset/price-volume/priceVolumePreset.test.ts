@@ -738,6 +738,12 @@ describe('priceVolumePreset', () => {
             datum: { open: number; close: number };
         }
 
+        interface VolumeNode {
+            x: number;
+            y: number;
+            width: number;
+        }
+
         const isTickMultiple = (text: string | undefined) => {
             const ticks = Number(text) / TICK_SIZE;
             return Math.abs(ticks - Math.round(ticks)) < 1e-9;
@@ -754,6 +760,7 @@ describe('priceVolumePreset', () => {
             const labels = await hoverLabels({ ...options, tickSize: TICK_SIZE });
             const prices = labels.map((l) => l.price);
             expect(prices.every((price) => price != null && isTickMultiple(price))).toBe(true);
+            expect(new Set(prices).size).toBeGreaterThan(1);
             expect(labels.map((l) => l.priceTop)).not.toEqual(HOVER_YS.map((y) => `${y}px`));
         });
 
@@ -838,7 +845,7 @@ describe('priceVolumePreset', () => {
             expect(isTickMultiple(String(value))).toBe(snapped);
         });
 
-        it('snaps to the candle value nearest the pointer, rounded to tickSize', async () => {
+        it('rounds the pointer price inside a candle rather than snapping to its values', async () => {
             chart = AgCharts.createFinancialChart(
                 prepareFinancialTestOptions({ data: getStockData(), chartType: 'candlestick', tickSize: TICK_SIZE })
             );
@@ -849,15 +856,48 @@ describe('priceVolumePreset', () => {
                 .toSorted((a, b) => b.height - a.height)[0];
             const rect = getSeriesRect(chart);
             const roundToTick = (value: number) => (Math.round(value / TICK_SIZE) * TICK_SIZE).toFixed(2);
-            const { open, close } = candle.datum;
+            const top = Math.max(candle.datum.open, candle.datum.close);
+            const bottom = Math.min(candle.datum.open, candle.datum.close);
+            const ratios = [0.3, 0.7];
 
             const prices: Array<string | undefined> = [];
-            for (const ratio of [0.1, 0.9]) {
+            for (const ratio of ratios) {
                 await hoverAction(rect.x + candle.centerX, rect.y + candle.y + candle.height * ratio)(deproxy(chart));
                 await waitForChartStability(chart);
                 prices.push(crosshairLabel('y')?.textContent?.trim());
             }
-            expect(prices).toEqual([roundToTick(Math.max(open, close)), roundToTick(Math.min(open, close))]);
+            expect(prices).toEqual(ratios.map((ratio) => roundToTick(top - (top - bottom) * ratio)));
+        });
+
+        it.each<[string, AgFinancialChartOptions]>([
+            ['with tickSize', { tickSize: TICK_SIZE }],
+            [
+                'with snap off',
+                {
+                    tickSize: TICK_SIZE,
+                    theme: { overrides: { common: { axes: { number: { crosshair: { snap: false } } } } } },
+                },
+            ],
+        ])('gives the same price over a volume bar and over the empty space beside it %s', async (_name, options) => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data: getStockData(), ...options }));
+            await waitForChartStability(chart);
+            const index = deproxy(chart).series.findIndex((s) => s.id === 'volume');
+            const bars = getSeriesNodeData<VolumeNode>(chart, index).filter((node) => node.x > 0);
+            const [bar, neighbour] = bars
+                .slice(1)
+                .map((node, i) => [node, bars[i]] as const)
+                .toSorted(([a, an], [b, bn]) => bn.y - b.y - (an.y - a.y))[0];
+            const rect = getSeriesRect(chart);
+            const y = rect.y + (bar.y + neighbour.y) / 2;
+
+            const prices: Array<string | undefined> = [];
+            for (const node of [bar, neighbour]) {
+                await hoverAction(rect.x + node.x + node.width / 2, y)(deproxy(chart));
+                await waitForChartStability(chart);
+                prices.push(crosshairLabel('y')?.textContent?.trim());
+            }
+            expect(prices[0]).toBeDefined();
+            expect(prices[1]).toBe(prices[0]);
         });
 
         it('leaves the date label unchanged', async () => {

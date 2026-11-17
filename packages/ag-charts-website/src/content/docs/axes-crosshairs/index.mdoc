@@ -50,7 +50,7 @@ This default behaviour can be modified by using the crosshair `snap` option. Whe
 
 ### Snap Interval
 
-Use `snapInterval` on `number`, `log` and `time` axes to round the crosshair to a fixed step, such as a price tick or a time slot. Setting it turns snapping on, unless `snap` is `false`.
+Use `snapInterval` on `number`, `log` and `time` axes to round the pointer position to a fixed step, such as a price tick or a time slot. The crosshair then follows the pointer in those steps instead of snapping to the highlighted item. Setting it turns snapping on, unless `snap` is `false`.
 
 {% chartExampleRunner title="Crosshair Snap Interval" name="crosshair-snap-interval" type="generated" /%}
 
@@ -77,7 +77,7 @@ In this example:
 
 - The `y` axis crosshair rounds to the nearest multiple of `0.25`.
 - The `x` axis crosshair rounds to the nearest 15 minutes. On `time` axes, `snapInterval` takes the same values as [`interval.step`](./axes-intervals/).
-- Hover the chart to see the crosshair snap to the nearest point, with both values rounded.
+- Hover the chart to see both crosshairs follow the pointer in steps, whichever item is highlighted.
 
 ## Styles
 

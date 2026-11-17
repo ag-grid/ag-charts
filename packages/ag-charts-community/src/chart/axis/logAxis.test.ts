@@ -1,11 +1,23 @@
 import { afterEach, describe, it } from 'vitest';
 
-import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
+import type {
+    AgBaseChartOptions,
+    AgCartesianAxisType,
+    AgCartesianChartOptions,
+    AgChartInstance,
+} from 'ag-charts-types';
 
 import type { Chart } from '../chart';
 import { compareAxisSnapshots, mixinDerivedCases } from '../test/axisTestCases';
 import * as axesExamples from '../test/examples-axes';
-import { cartesianChartAssertions, createChart, deproxy, setupMockCanvas, setupMockConsole } from '../test/utils';
+import {
+    cartesianChartAssertions,
+    compareImageSnapshot,
+    createChart,
+    deproxy,
+    setupMockCanvas,
+    setupMockConsole,
+} from '../test/utils';
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
@@ -69,6 +81,23 @@ describe('Log Axis Examples', () => {
             }
         });
     }
+});
+
+describe('Log Axis values outside the domain', () => {
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    it('draws values below min outside the series area', async () => {
+        chart = await createChart(axesExamples.LOG_AXIS_VALUES_BELOW_MIN_EXAMPLE);
+        await compareImageSnapshot(chart, ctx);
+    });
 });
 
 describe('Log Axis interval property handling', () => {

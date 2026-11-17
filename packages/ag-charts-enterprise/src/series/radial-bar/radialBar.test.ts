@@ -819,6 +819,38 @@ describe('RadialBarSeries', () => {
                 restoreCssVarColorSupport();
             }
         });
+
+        it.each([
+            ['an itemStyler fill', {}, { itemStyler: () => ({ fill: 'var(--my-color)' }) }],
+            ['a series fill', {}, { fill: 'var(--my-color)' }],
+            ['a palette fill', { theme: { palette: { fills: ['var(--my-color)'] } } }, {}],
+        ])(
+            'resolves %s sharing its CSS variable with a title, leaving the title literal (AG-19346)',
+            async (_name, chartOptions, seriesOptions) => {
+                const container = document.createElement('div');
+                const restoreCssVarColorSupport = mockCssVarColorSupport(container, { '--my-color': 'rgb(0, 128, 0)' });
+                try {
+                    const options: AgChartOptions = {
+                        ...chartOptions,
+                        title: { text: 'var(--my-color)' },
+                        data: [{ quarter: `Q1'22`, revenue: 4.35 }],
+                        series: [{ type: 'radial-bar', radiusKey: 'quarter', angleKey: 'revenue', ...seriesOptions }],
+                    };
+                    // Bespoke: the chart is created in a custom container, which the factory does not accept.
+                    prepareEnterpriseTestOptions(options, container);
+
+                    chart = AgCharts.create(options);
+                    await waitForChartStability(chart);
+
+                    const [sector] = getSeriesInstance(chart, RadialBarSeries).getItemNodes();
+
+                    expect(sector.fill).toBe('rgb(0, 128, 0)');
+                    expect(deproxy(chart).chartOptions.processedOptions.title?.text).toBe('var(--my-color)');
+                } finally {
+                    restoreCssVarColorSupport();
+                }
+            }
+        );
     });
 
     describe('AG-15743 legendItemName', () => {
