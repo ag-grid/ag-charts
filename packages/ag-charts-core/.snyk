@@ -2,6 +2,36 @@
 version: v1.25.1
 
 ignore:
+    SNYK-JS-UNDICI-22392401:
+        - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-11-16T15:11:05.797Z
+    SNYK-JS-UNDICI-22370261:
+        - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-11-16T15:10:41.492Z
+    SNYK-JS-UNDICI-22291127:
+        - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-11-16T15:10:09.207Z
+    SNYK-JS-UNDICI-22291066:
+        - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-11-16T15:09:34.034Z
+    SNYK-JS-UNDICI-22290988:
+        - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-11-16T15:09:05.572Z
     SNYK-JS-PICOMATCH-21248802:
         - 'vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
               reason: >-

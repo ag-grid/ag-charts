@@ -6,6 +6,7 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    prepareProcessedOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -1086,5 +1087,21 @@ describe('Background Regions theme overrides', () => {
         chart = await createEnterpriseChart(options);
 
         expect(deproxy(chart).chartOptions.processedOptions.seriesArea ?? {}).not.toHaveProperty('backgroundRegions');
+    });
+});
+
+describe('Background Region theme operators', () => {
+    setupMockConsole();
+
+    it('does not interpret a private theme operator in a region range', () => {
+        const { processedOptions } = prepareProcessedOptions({
+            title: { text: 'secret-title' },
+            data: [{ x: 'a', y: 1 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            seriesArea: { backgroundRegions: [{ xRange: { start: { $path: '/title/text' } } }] },
+        });
+
+        expect(JSON.stringify(processedOptions.seriesArea)).not.toContain('secret-title');
+        expectWarningsCalls().toEqual([[expect.stringContaining('Theme operators are only supported in themes')]]);
     });
 });
