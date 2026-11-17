@@ -66,6 +66,8 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] til ${max}[percent0to2dp]',
+    colorPickerCancel: 'Avbryt',
+    colorPickerConfirm: 'Bekreft',
     contextMenuDownload: 'Last ned',
     contextMenuPanToCursor: 'Panorer til dette punktet',
     contextMenuResetZoom: 'Tilbakestill zoom',

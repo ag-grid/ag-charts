@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     toolbarZoomPanStart: 'Geser ke awal',
     toolbarZoomPanEnd: 'Geser ke akhir',
     toolbarZoomReset: 'Atur ulang perbesaran',
+    colorPickerCancel: 'Batal',
+    colorPickerConfirm: 'Konfirmasi',
     contextMenuDownload: 'Unduh',
     contextMenuToggleSeriesVisibility: 'Alihkan Visibilitas',
     contextMenuToggleOtherSeries: 'Alihkan Seri Lain',

@@ -66,6 +66,8 @@ export const AG_CHARTS_LOCALE_PT_BR: Record<string, string> = {
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] a ${max}[percent0to2dp]',
+    colorPickerCancel: 'Cancelar',
+    colorPickerConfirm: 'Confirmar',
     contextMenuDownload: 'Baixar',
     contextMenuPanToCursor: 'Mover para aqui',
     contextMenuResetZoom: 'Redefinir zoom',

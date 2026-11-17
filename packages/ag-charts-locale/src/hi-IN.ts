@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     toolbarZoomPanStart: 'आरंभ में पैन करें',
     toolbarZoomPanEnd: 'अंत में पैन करें',
     toolbarZoomReset: 'ज़ूम रीसेट करें',
+    colorPickerCancel: 'रद्द करें',
+    colorPickerConfirm: 'पुष्टि करें',
     contextMenuDownload: 'डाउनलोड करें',
     contextMenuToggleSeriesVisibility: 'दृश्यता टॉगल करें',
     contextMenuToggleOtherSeries: 'अन्य शृंखला टॉगल करें',

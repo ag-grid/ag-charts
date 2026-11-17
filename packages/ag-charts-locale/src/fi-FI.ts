@@ -66,6 +66,8 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] - ${max}[percent0to2dp]',
+    colorPickerCancel: 'Peruuta',
+    colorPickerConfirm: 'Vahvista',
     contextMenuDownload: 'Lataa',
     contextMenuPanToCursor: 'Siirry tähän',
     contextMenuResetZoom: 'Nollaa zoom',

@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_SR_RS: Record<string, string> = {
     toolbarZoomPanStart: 'Помери на почетак',
     toolbarZoomPanEnd: 'Помери на крај',
     toolbarZoomReset: 'Ресетуј зум',
+    colorPickerCancel: 'Откажи',
+    colorPickerConfirm: 'Потврди',
     contextMenuDownload: 'Преузми',
     contextMenuToggleSeriesVisibility: 'Укључи/искључи видљивост',
     contextMenuToggleOtherSeries: 'Укључи/искључи остале серије',

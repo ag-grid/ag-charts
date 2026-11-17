@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     toolbarZoomPanStart: 'เลื่อนไปจุดเริ่มต้น',
     toolbarZoomPanEnd: 'เลื่อนไปจุดสิ้นสุด',
     toolbarZoomReset: 'รีเซ็ตการซูม',
+    colorPickerCancel: 'ยกเลิก',
+    colorPickerConfirm: 'ยืนยัน',
     contextMenuDownload: 'ดาวน์โหลด',
     contextMenuToggleSeriesVisibility: 'สลับการแสดงผล',
     contextMenuToggleOtherSeries: 'สลับชุดข้อมูลอื่น',

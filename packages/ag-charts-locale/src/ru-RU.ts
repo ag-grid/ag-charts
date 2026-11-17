@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     toolbarZoomPanStart: 'Перейти к началу',
     toolbarZoomPanEnd: 'Перейти к концу',
     toolbarZoomReset: 'Сбросить масштаб',
+    colorPickerCancel: 'Отмена',
+    colorPickerConfirm: 'Подтвердить',
     contextMenuDownload: 'Скачать',
     contextMenuToggleSeriesVisibility: 'Переключить видимость',
     contextMenuToggleOtherSeries: 'Переключить другие серии',

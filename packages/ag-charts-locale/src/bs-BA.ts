@@ -161,6 +161,8 @@ export const AG_CHARTS_LOCALE_BS_BA: Record<string, string> = {
     toolbarZoomPanStart: 'Pomjeri na početak',
     toolbarZoomPanEnd: 'Pomjeri na kraj',
     toolbarZoomReset: 'Resetuj zumiranje',
+    colorPickerCancel: 'Otkaži',
+    colorPickerConfirm: 'Potvrdi',
     contextMenuDownload: 'Preuzmi',
     contextMenuToggleSeriesVisibility: 'Promijeni vidljivost',
     contextMenuToggleOtherSeries: 'Promijeni ostale serije',

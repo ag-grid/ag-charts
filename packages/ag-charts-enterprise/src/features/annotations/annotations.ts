@@ -427,13 +427,11 @@ export class Annotations extends AbstractModuleInstance {
                         this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity, isMultiColor);
                         this.optionsToolbar.updateColorPickerColor(colorType, color, opacity, isMultiColor);
                     };
-                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () => {
-                    this.recordActionAfterNextUpdate(
+                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => (cancelled: boolean) =>
+                    this.endColorPickerSession(
                         `Change ${datum.type} ${colorType} to ${getDefaultColor(datum, colorType)}`,
-                        ['annotations', 'defaults']
+                        cancelled
                     );
-                    this.update();
-                };
 
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,
@@ -571,11 +569,8 @@ export class Annotations extends AbstractModuleInstance {
             optionsToolbar.events.on('hid-overlays', () => {
                 this.settingsDialog.hide();
             }),
-            optionsToolbar.events.on('saved-color', ({ type, colorPickerType, color }) => {
-                this.recordActionAfterNextUpdate(`Change ${type} ${colorPickerType} to ${color}`, [
-                    'annotations',
-                    'defaults',
-                ]);
+            optionsToolbar.events.on('saved-color', ({ type, colorPickerType, color, cancelled }) => {
+                this.endColorPickerSession(`Change ${type} ${colorPickerType} to ${color}`, cancelled);
             }),
             optionsToolbar.events.on(
                 'updated-color',
@@ -914,6 +909,17 @@ export class Annotations extends AbstractModuleInstance {
             historyManager.record(label, ...originators);
             annotationManager.fireChangedEvent('user-interaction');
         });
+    }
+
+    private endColorPickerSession(label: string, cancelled: boolean) {
+        const { defaults, ctx } = this;
+        if (cancelled) {
+            if (ctx.annotationManager) ctx.historyManager.revert(defaults, ctx.annotationManager);
+            return;
+        }
+
+        this.recordActionAfterNextUpdate(label, ['annotations', 'defaults']);
+        this.update();
     }
 
     private setColorAndDefault(
