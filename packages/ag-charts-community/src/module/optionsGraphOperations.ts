@@ -1081,11 +1081,12 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
         : (resolvedDefault as number[] | undefined);
 
     // A user array still merges by index over a named or operator override, which stands in for the default.
-    const overrideBase = isLineDashName(overrideOption)
-        ? scaleLineDashName(overrideOption, width)
-        : overrideIsOperation && Array.isArray(overrideOption)
-          ? overrideOption
-          : undefined;
+    let overrideBase: number[] | undefined;
+    if (isLineDashName(overrideOption)) {
+        overrideBase = scaleLineDashName(overrideOption, width);
+    } else if (overrideIsOperation && Array.isArray(overrideOption)) {
+        overrideBase = overrideOption;
+    }
     const base = overrideBase ?? defaultDash ?? [];
 
     // Nothing to layer: keep the default as it stands, so that an unset option still falls back.

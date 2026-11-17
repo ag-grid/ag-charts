@@ -1014,7 +1014,7 @@ describe('ChartOptions', () => {
             const resolve = (lineDash: unknown, seriesDash?: number[]) =>
                 optionAt(
                     prepareOptions<AgCartesianChartOptions>({
-                        series: [{ ...SERIES![0], lineDash: seriesDash } as never],
+                        series: [{ ...SERIES[0], lineDash: seriesDash } as never],
                         theme: { overrides: { line: { series: { lineDash } } } } as never,
                     }),
                     'series[0].lineDash'
