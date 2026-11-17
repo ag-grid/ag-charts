@@ -27,7 +27,8 @@ export type AgMarkerShape =
  * A stock dash pattern, applied by name wherever `lineDash` is accepted.
  *
  * Each name stands for dash and gap lengths in multiples of the line's `strokeWidth` (1 if unset), so `'dot'` is `[1, 1.5]`
- * at a `strokeWidth` of 1 and `[2, 3]` at 2. An array of lengths is in pixels and is never scaled.
+ * at a `strokeWidth` of 1 and `[2, 3]` at 2. An array of lengths is in pixels and is not scaled by the `strokeWidth`,
+ * although legend and tooltip markers, which are drawn at most 2 pixels wide, scale any dash to match.
  *
  * - `'solid'`: `[0]`
  * - `'dot'`: `[1, 1.5]`

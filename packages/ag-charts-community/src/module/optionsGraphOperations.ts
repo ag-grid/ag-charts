@@ -27,6 +27,7 @@ import {
 import {
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,
+    OPERATION_EDGE,
     OVERRIDES_EDGE,
     type OptionsGraphInterface,
     PATH_EDGE,
@@ -1035,7 +1036,6 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     return RESOLVED_TO_BRANCH;
 }
 
-/** The default dash: an array of lengths, a stock name, or an operation resolving to either. */
 function resolveLineDashDefault(
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
@@ -1047,21 +1047,22 @@ function resolveLineDashDefault(
 }
 
 /**
- * Resolves a named `lineDash` to its array of lengths, scaled by the stroke width. A name replaces the whole array, so
- * lower priority arrays are pruned rather than merged by index. An array is in pixels and is never scaled.
- *
- * The values are the default dash, then the stroke width to scale a name by (e.g. `{ $path: './strokeWidth' }`).
+ * Resolves a named `lineDash` to its array, scaled by the stroke width (the second value, e.g. `./strokeWidth`). A name
+ * replaces lower priority arrays rather than merging by index; an array is in pixels and never scaled.
  */
 function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [defaultVertex, widthVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
-    // The override that applies to this vertex, whatever key (axis position, cross line type) it was declared under.
-    const overrideOption =
-        graph.findNeighbourValue(vertex, OVERRIDES_EDGE) ??
-        graph.dangerouslyGetThemeOverride(pathArray) ??
-        graph.dangerouslyGetThemeOverride(withoutIndices(pathArray));
+    const overrideVertex = graph.findNeighbour(vertex, OVERRIDES_EDGE) as VertexInterface | undefined;
+    const overrideIsOperation =
+        overrideVertex != null && graph.findNeighbourValue(overrideVertex, OPERATION_EDGE) != null;
+    const overrideOption = overrideIsOperation
+        ? graph.resolveVertexValue(vertex, overrideVertex)
+        : (graph.findNeighbourValue(vertex, OVERRIDES_EDGE) ??
+          graph.dangerouslyGetThemeOverride(pathArray) ??
+          graph.dangerouslyGetThemeOverride(withoutIndices(pathArray)));
 
     const width = widthVertex == null ? undefined : graph.resolveVertexValue(vertex, widthVertex);
 
@@ -1079,8 +1080,13 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
         ? scaleLineDashName(resolvedDefault, width)
         : (resolvedDefault as number[] | undefined);
 
-    // A user array still merges by index over a named override, which stands in for the default.
-    const base = isLineDashName(overrideOption) ? scaleLineDashName(overrideOption, width) : (defaultDash ?? []);
+    // A user array still merges by index over a named or operator override, which stands in for the default.
+    const overrideBase = isLineDashName(overrideOption)
+        ? scaleLineDashName(overrideOption, width)
+        : overrideIsOperation && Array.isArray(overrideOption)
+          ? overrideOption
+          : undefined;
+    const base = overrideBase ?? defaultDash ?? [];
 
     // Nothing to layer: keep the default as it stands, so that an unset option still falls back.
     if (base.length === 0 && userOption == null && overrideOption == null) return defaultDash;
