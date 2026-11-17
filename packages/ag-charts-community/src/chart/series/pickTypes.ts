@@ -18,7 +18,7 @@ export enum SeriesNodeDatumSentinel {
     CULLED = 1,
 }
 
-export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
+export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event' | 'magnet';
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;

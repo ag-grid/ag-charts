@@ -1068,11 +1068,12 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     protected override pickNodeMainAxisFirst(
         point: Point,
-        requireCategoryAxis: boolean
+        requireCategoryAxis: boolean,
+        pickOutsideMinorAxis: boolean
     ): SeriesNodePickMatch | undefined {
         const { x, y } = point;
         const { axes, _contextNodeData: contextNodeData } = this;
-        const { pickOutsideVisibleMinorAxis } = this.options;
+        const pickOutsideVisibleMinorAxis = pickOutsideMinorAxis || this.options.pickOutsideVisibleMinorAxis;
         if (!contextNodeData) return;
 
         const xAxis = axes[ChartAxisDirection.X];

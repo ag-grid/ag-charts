@@ -11,7 +11,7 @@ type Datum = _ModuleSupport.SeriesNodeDatum & Partial<_ModuleSupport.ErrorBoundS
  * left out.
  */
 export function getMagnetPoints(series: Series, point: Point, axes: { x: Axis; y: Axis }): Point[] {
-    const datum: Datum | undefined = series.pickNodes(point, 'highlight')?.picks[0]?.datum;
+    const datum: Datum | undefined = series.pickNodes(point, 'magnet')?.picks[0]?.datum;
     if (datum == null || datum.missing === true) return [];
 
     const x = datum.midPoint?.x ?? point.x;

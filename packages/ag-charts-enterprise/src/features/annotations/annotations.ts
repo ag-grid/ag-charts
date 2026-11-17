@@ -1089,6 +1089,9 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context || event.device === 'keyboard') return;
 
+        // The states finish an endpoint from the last hover, so it is refreshed to the click's own point and modifiers.
+        if (!state.isIdle()) this.onHover(event);
+
         const shiftKey = event.sourceEvent.shiftKey;
         this.trackMagnetModifier(event.sourceEvent);
         const offset = Vec2.from(event);

@@ -160,6 +160,40 @@ describe('Annotations magnet', () => {
         await compareAnnotationsSnapshot(chart, ctx);
     });
 
+    it('commits the end of a line with the Ctrl state of the click, not of the last hover', async () => {
+        await prepareChart(
+            { enabled: true, mode: 'strong' },
+            {
+                data: CANDLESTICKS,
+                series: [
+                    {
+                        type: 'candlestick',
+                        xKey: 'x',
+                        openKey: 'open',
+                        highKey: 'high',
+                        lowKey: 'low',
+                        closeKey: 'close',
+                    },
+                ],
+            }
+        );
+        const start = canvasPoint(FIRST_X, 5);
+        const end = canvasPoint(X_MID + 60 * 24 * 60 * 60 * 1000, 50);
+
+        pressAnnotationToolbarCreate(chart, 'line');
+        await waitForChartStability(chart);
+        await hoverAction(start.x, start.y)(chart);
+        await clickAction(start.x, start.y)(chart);
+
+        // The hover snaps the end to the nearest candlestick, then Ctrl is pressed without the pointer moving, so the
+        // click inverts the magnet and the end stays where it is clicked.
+        await hoverAction(end.x, end.y)(chart);
+        await clickAction(end.x, end.y, { ctrlKey: true })(chart);
+        await waitForChartStability(chart);
+
+        await compareAnnotationsSnapshot(chart, ctx);
+    });
+
     const BAND = [{ x: new Date(X_MID), a: 30, b: 25 }];
     it.each([
         {
@@ -230,6 +264,16 @@ describe('Annotations magnet', () => {
             axes: { y: { type: 'number', min: 0, max: 50, nice: false } },
             click: 49,
             range: [0, 50],
+        },
+        {
+            name: 'the visible value of a candlestick whose midpoint is beyond the y-axis',
+            series: [
+                { type: 'candlestick', xKey: 'x', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
+            ],
+            data: CANDLESTICKS,
+            axes: { y: { type: 'number', min: 0, max: 30, nice: false } },
+            click: 29,
+            range: [0, 30],
         },
         {
             name: 'nothing when the y-axis is a category axis',
