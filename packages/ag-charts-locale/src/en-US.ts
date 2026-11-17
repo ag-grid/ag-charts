@@ -169,6 +169,16 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     seriesHistogramTooltipCount: '${yName} (count)',
     // Text for sum label in Histogram Series tooltip
     seriesHistogramTooltipMean: '${yName} (mean)',
+    // Heading for the Map Marker Series tooltip when there is no idKey: the latitude and longitude with their hemisphere labels
+    seriesMapMarkerTooltipCoordinates: '${lat}° ${latDirection}, ${lon}° ${lonDirection}',
+    // Hemisphere label in the Map Marker Series tooltip heading for a latitude of zero or above
+    seriesMapMarkerTooltipNorth: 'N',
+    // Hemisphere label in the Map Marker Series tooltip heading for a negative latitude
+    seriesMapMarkerTooltipSouth: 'S',
+    // Hemisphere label in the Map Marker Series tooltip heading for a longitude of zero or above
+    seriesMapMarkerTooltipEast: 'E',
+    // Hemisphere label in the Map Marker Series tooltip heading for a negative longitude
+    seriesMapMarkerTooltipWest: 'W',
     // Text for the series type toolbar's chart type button
     toolbarSeriesTypeDropdown: 'Chart Type',
     // Text for the series type toolbar's OHLC chart type button
