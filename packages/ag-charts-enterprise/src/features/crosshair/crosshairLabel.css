@@ -21,6 +21,11 @@
     color: var(--ag-charts-crosshair-label-text-color);
 }
 
+/* Padding would otherwise draw an empty label as a bare box. */
+.ag-charts-crosshair-label-content:has(> span:empty) {
+    display: none;
+}
+
 .ag-charts-crosshair-label--hidden {
     visibility: hidden !important;
 }
