@@ -1,33 +1,53 @@
-import type { AgAnnotationLineStyleType, PixelSize } from 'ag-charts-community';
-import { type BBox, type Bounds4, type Point, type ShapeLineCap, Vec2 } from 'ag-charts-core';
+import type { PixelSize } from 'ag-charts-community';
+import {
+    type BBox,
+    type Bounds4,
+    type Point,
+    type ShapeLineCap,
+    Vec2,
+    isLineDashName,
+    scaleLineDashName,
+} from 'ag-charts-core';
+import type { AgLineDashName } from 'ag-charts-types';
 
-export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
-    return lineDash ? 'dashed' : (lineStyle ?? 'solid');
+import type { AnnotationLineStyleType } from '../annotationTypes';
+
+/** The stock dash name that stands for each of the line styles the toolbar and settings dialog offer. */
+const LINE_STYLE_DASH_NAMES: Record<AnnotationLineStyleType, AgLineDashName> = {
+    solid: 'solid',
+    dashed: 'dash',
+    dotted: 'dot',
+};
+
+export function getLineDashName(lineStyle: AnnotationLineStyleType) {
+    return LINE_STYLE_DASH_NAMES[lineStyle];
 }
 
-export function getComputedLineDash(strokeWidth: number, styleType: AgAnnotationLineStyleType): PixelSize[] {
-    switch (styleType) {
-        case 'solid':
-            return [];
-        case 'dashed':
-            return [strokeWidth * 4, strokeWidth * 2];
-        case 'dotted':
-            return [0, strokeWidth * 2];
-    }
+/** The line style that a `lineDash` shows as in the toolbar and settings dialog: any other dash counts as dashed. */
+export function getLineStyle(lineDash?: PixelSize[] | AgLineDashName): AnnotationLineStyleType {
+    if (lineDash == null || lineDash === 'solid') return 'solid';
+    return lineDash === 'dot' ? 'dotted' : 'dashed';
 }
 
 export interface LineStyleSource {
-    lineDash?: PixelSize[];
-    lineStyle?: AgAnnotationLineStyleType;
+    lineDash?: PixelSize[] | AgLineDashName;
     strokeWidth?: number;
 }
 
-export function getLineDash({ lineDash, lineStyle, strokeWidth }: LineStyleSource): PixelSize[] {
-    return lineDash ?? getComputedLineDash(strokeWidth ?? 1, getLineStyle(lineDash, lineStyle));
+/**
+ * The dash to draw. A stock name is measured in multiples of the stroke width and an array in pixels. The annotation
+ * keeps the name, rather than its array, so that the dash follows a change of width.
+ */
+export function resolveLineDash(lineDash: PixelSize[] | AgLineDashName | undefined, strokeWidth: number | undefined) {
+    return isLineDashName(lineDash) ? scaleLineDashName(lineDash, strokeWidth) : (lineDash ?? []);
 }
 
-export function getLineCap({ lineDash, lineStyle }: LineStyleSource): ShapeLineCap | undefined {
-    return getLineStyle(lineDash, lineStyle) === 'dotted' ? 'round' : undefined;
+export function getLineDash({ lineDash, strokeWidth }: LineStyleSource): PixelSize[] {
+    return resolveLineDash(lineDash, strokeWidth);
+}
+
+export function getLineCap({ lineDash }: LineStyleSource): ShapeLineCap | undefined {
+    return lineDash === 'dot' ? 'round' : undefined;
 }
 
 /**

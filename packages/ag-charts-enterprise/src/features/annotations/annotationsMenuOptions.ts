@@ -1,8 +1,8 @@
-import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type { Scale } from 'ag-charts-core';
 import { BandScale, LogScale } from 'ag-charts-core';
 
-import { AnnotationType } from './annotationTypes';
+import { type AnnotationLineStyleType, AnnotationType } from './annotationTypes';
 
 export enum AnnotationOptions {
     Delete = 'delete',
@@ -107,7 +107,7 @@ export const LINE_STROKE_WIDTH_ITEMS: _ModuleSupport.MenuItem<number>[] = [
     { strokeWidth: 8, label: '8', value: 8 },
 ];
 
-export const LINE_STYLE_TYPE_ITEMS: _ModuleSupport.MenuItem<AgAnnotationLineStyleType>[] = [
+export const LINE_STYLE_TYPE_ITEMS: _ModuleSupport.MenuItem<AnnotationLineStyleType>[] = [
     { icon: 'line-style-solid', altText: 'iconAltTextLineStyleSolid', value: 'solid' },
     { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dashed' },
     { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dotted' },

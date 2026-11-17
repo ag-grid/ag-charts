@@ -2,7 +2,6 @@ import {
     type AgAnnotation,
     type AgAnnotationFollow,
     type AgAnnotationFollowName,
-    type AgAnnotationLineStyleType,
     type AgAnnotationsEventSource,
     type Direction,
     _ModuleSupport,
@@ -40,6 +39,7 @@ import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
 import type {
     AnnotationContext,
+    AnnotationLineStyleType,
     AnnotationOptionsColorPickerType,
     DataPoint,
     HasFontSizeAnnotationType,
@@ -67,6 +67,7 @@ import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } fro
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
+import { getLineDashName } from './utils/line';
 import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
@@ -996,8 +997,8 @@ export class Annotations extends AbstractModuleInstance {
         this.recordActionAfterNextUpdate(`Change ${datumType} font size to ${fontSize}`, ['annotations', 'defaults']);
     }
 
-    private setLineStyleTypeAndDefault(datumType: HasLineStyleAnnotationType, styleType: AgAnnotationLineStyleType) {
-        this.state.transition('lineStyle', { type: styleType });
+    private setLineStyleTypeAndDefault(datumType: HasLineStyleAnnotationType, styleType: AnnotationLineStyleType) {
+        this.state.transition('lineStyle', { lineDash: getLineDashName(styleType) });
         this.defaults.setDefaultLineStyleType(datumType, styleType);
         this.recordActionAfterNextUpdate(`Change ${datumType} line style to ${styleType}`, ['annotations', 'defaults']);
     }

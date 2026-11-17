@@ -88,7 +88,7 @@ const RICH_ANNOTATIONS = [
     },
     {
         ...MINIMAL_ANNOTATIONS['horizontal-line'],
-        lineStyle: 'dotted',
+        lineDash: 'dot',
         axisLabel: { enabled: true, fill: 'orange' },
         text: { label: 'Level', position: 'center' },
     },
@@ -206,7 +206,7 @@ describe('Annotation datum lifecycle', () => {
 
             expect(stateOf()[0]).toMatchObject({ lineDash: 'long-dash-dot-dot', strokeWidth: 3 });
             expect(drawnDashes()).toEqual([[21, 6, 3, 6, 3, 6]]);
-            expectWarningsCalls().toBe(0);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('draws an array as it is, whatever the strokeWidth', async () => {
@@ -232,7 +232,7 @@ describe('Annotation datum lifecycle', () => {
 
             expect(stateOf()[0].lineDash).toBe('long-dash-dot-dot');
             expect(drawnDashes()).toEqual([[21, 6, 3, 6, 3, 6]]);
-            expectWarningsCalls().toBe(0);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('scales the middle line of a parallel channel by its own strokeWidth', async () => {
@@ -248,6 +248,8 @@ describe('Annotation datum lifecycle', () => {
     // `lineStyle` was replaced by `lineDash`, so state saved with it is migrated when it is restored: a style becomes
     // the stock dash name that stands for it, and an explicit `lineDash` still wins, as it did.
     describe('legacy lineStyle', () => {
+        // Saved state predates the type change, so it is not typed as the options are.
+        const legacy = (annotation: object) => annotation as unknown as AgAnnotation;
         const LINE = { ...MINIMAL_ANNOTATIONS.line, strokeWidth: 2 };
 
         const stateOf = () => chart.getState().annotations as any[];
@@ -263,29 +265,29 @@ describe('Annotation datum lifecycle', () => {
         ] as const)('migrates a restored %s lineStyle to the %s name', async (lineStyle, name, drawn) => {
             await prepareChart([MINIMAL_ANNOTATIONS['horizontal-line']]);
 
-            await restore([{ ...LINE, lineStyle }]);
+            await restore([legacy({ ...LINE, lineStyle })]);
 
             expect(stateOf()[0]).toMatchObject({ type: 'line', lineDash: name });
             expect(stateOf()[0]).not.toHaveProperty('lineStyle');
             expect(drawnLines().map((line) => line.lineDash)).toEqual(drawn ? [drawn] : []);
-            expectWarningsCalls().toBe(0);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('migrates a lineStyle in the initial state', async () => {
-            await prepareChart([{ ...LINE, lineStyle: 'dashed' }] as AgAnnotation[]);
+            await prepareChart([legacy({ ...LINE, lineStyle: 'dashed' })]);
 
             expect(stateOf()[0].lineDash).toBe('dash');
             expect(stateOf()[0]).not.toHaveProperty('lineStyle');
         });
 
         it('keeps a dotted line round capped', async () => {
-            await prepareChart([{ ...LINE, lineStyle: 'dotted' }] as AgAnnotation[]);
+            await prepareChart([legacy({ ...LINE, lineStyle: 'dotted' })]);
 
             expect(drawnLines().map((line) => line.lineCap)).toEqual(['round']);
         });
 
         it('keeps an explicit lineDash over the lineStyle, and drops the lineStyle', async () => {
-            await prepareChart([{ ...LINE, lineStyle: 'dotted', lineDash: [8, 3] }] as AgAnnotation[]);
+            await prepareChart([legacy({ ...LINE, lineStyle: 'dotted', lineDash: [8, 3] })]);
 
             expect(stateOf()[0].lineDash).toEqual([8, 3]);
             expect(stateOf()[0]).not.toHaveProperty('lineStyle');
@@ -319,12 +321,12 @@ describe('Annotation datum lifecycle', () => {
 
         it('resets fields absent from the restored state to their defaults', async () => {
             await prepareChart([MINIMAL_ANNOTATIONS.line]);
-            await restore([{ ...MINIMAL_ANNOTATIONS.line, locked: true, lineStyle: 'dashed', text: { label: 'Set' } }]);
+            await restore([{ ...MINIMAL_ANNOTATIONS.line, locked: true, lineDash: 'dash', text: { label: 'Set' } }]);
             await restore([MINIMAL_ANNOTATIONS.line]);
 
             const [line] = chart.getState().annotations as AgLineAnnotation[];
             expect(line.locked).toBeUndefined();
-            expect(line.lineStyle).toBeUndefined();
+            expect(line.lineDash).toBeUndefined();
             expect(line.text?.label).toBe('');
         });
 
@@ -422,17 +424,15 @@ describe('Annotation datum lifecycle', () => {
             await pick('Line Style', menuRowByValue('dashed'));
 
             const [annotation] = chart.getState().annotations;
-            expect(annotation).toMatchObject({ type: 'horizontal-line', lineStyle: 'dashed' });
-            expect(annotation.lineDash).toBeUndefined();
+            expect(annotation).toMatchObject({ type: 'horizontal-line', lineDash: 'dash' });
         });
 
-        it('drops a custom line dash when a line style is picked from the toolbar', async () => {
+        it('replaces a custom line dash when a line style is picked from the toolbar', async () => {
             await selectHorizontalLine({ ...MINIMAL_ANNOTATIONS['horizontal-line'], lineDash: [10, 2] });
             await pick('Line Style', menuRowByValue('dotted'));
 
             const [annotation] = chart.getState().annotations;
-            expect(annotation).toMatchObject({ type: 'horizontal-line', lineStyle: 'dotted' });
-            expect(annotation.lineDash).toBeUndefined();
+            expect(annotation).toMatchObject({ type: 'horizontal-line', lineDash: 'dot' });
         });
 
         it('serialises a stroke width picked from the toolbar', async () => {
@@ -727,12 +727,12 @@ describe('Annotation datum lifecycle', () => {
         ] as const;
 
         it.each(STYLED_TYPES)('renders a dashed %s annotation', async (type) => {
-            await prepareChart([{ ...MINIMAL_ANNOTATIONS[type], lineStyle: 'dashed', strokeWidth: 3 }]);
+            await prepareChart([{ ...MINIMAL_ANNOTATIONS[type], lineDash: 'dash', strokeWidth: 3 }]);
             await compare();
         });
 
         it.each(STYLED_TYPES)('renders a dotted %s annotation', async (type) => {
-            await prepareChart([{ ...MINIMAL_ANNOTATIONS[type], lineStyle: 'dotted', strokeWidth: 3 }]);
+            await prepareChart([{ ...MINIMAL_ANNOTATIONS[type], lineDash: 'dot', strokeWidth: 3 }]);
             await compare();
         });
     });
