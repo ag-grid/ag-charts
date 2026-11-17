@@ -6,6 +6,7 @@ import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgChartInstance,
+    AgCrossLineLayer,
     AgCrossLineListeners,
     AgPolarAxisShape,
     AgPolarChartOptions,
@@ -71,6 +72,63 @@ describe('PolarCrossLine', () => {
                 await compare(chart, ctx);
             }
         );
+    });
+});
+
+describe('PolarCrossLine layer', () => {
+    setupMockConsole();
+
+    let chart: AgChartInstance | undefined;
+    const ctx = setupMockCanvas();
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const layerOptions = (layer: AgCrossLineLayer): AgPolarChartOptions => ({
+        data: [
+            { q: 'Q1', v: 6 },
+            { q: 'Q2', v: 8 },
+            { q: 'Q3', v: 7 },
+            { q: 'Q4', v: 9 },
+        ],
+        series: [{ type: 'radar-area', angleKey: 'q', radiusKey: 'v', fill: 'steelblue', fillOpacity: 1 }],
+        axes: {
+            angle: {
+                type: 'angle-category',
+                crossLines: [
+                    {
+                        type: 'line',
+                        value: 'Q2',
+                        stroke: 'red',
+                        strokeWidth: 8,
+                        layer,
+                        label: { text: 'Angle line', fontSize: 20 },
+                    },
+                ],
+            },
+            radius: {
+                type: 'radius-number',
+                min: 0,
+                max: 10,
+                crossLines: [
+                    {
+                        type: 'range',
+                        range: [2, 4],
+                        fill: 'orange',
+                        fillOpacity: 0.9,
+                        layer,
+                        label: { text: 'Radius range', fontSize: 20 },
+                    },
+                ],
+            },
+        },
+    });
+
+    it.each(['front', 'split', 'back'] as const)('draws angle and radius cross lines with layer %s', async (layer) => {
+        chart = await createEnterpriseChart(layerOptions(layer));
+        await compare(chart, ctx);
     });
 });
 
@@ -486,12 +544,12 @@ describe('PolarCrossLine listeners', () => {
         expect(listener.mock.calls.map(([event]) => event.crossLineId)).toEqual(['angle-line', 'radius-band']);
     });
 
-    it('a marker on a cross line wins the click over the cross line', async () => {
+    const clickMarkerUnderLine = async (layer: AgCrossLineLayer | undefined) => {
         const crossLineClick = vi.fn();
         const seriesNodeClick = vi.fn();
         chart = deproxy(
             await createEnterpriseChart(
-                polarOptions('polygon', [{ type: 'line', value: 'Q2', id: 'q2-line' }], [], {
+                polarOptions('polygon', [{ type: 'line', value: 'Q2', id: 'q2-line', layer }], [], {
                     listeners: { crossLineClick, seriesNodeClick },
                 })
             )
@@ -504,17 +562,39 @@ describe('PolarCrossLine listeners', () => {
         const { canvasX, canvasY } = Transformable.toCanvasPoint(markers[1].parentNode!, x, y);
 
         await clickAction(canvasX, canvasY)(chart);
+        return { crossLineClick, seriesNodeClick };
+    };
 
-        expect(seriesNodeClick).toHaveBeenCalledWith(
+    it.each(['split', 'back'] as const)(
+        'a marker on a %s cross line wins the click over the cross line',
+        async (layer) => {
+            const { crossLineClick, seriesNodeClick } = await clickMarkerUnderLine(layer);
+
+            expect(seriesNodeClick).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: 'seriesNodeClick',
+                    datum: { q: 'Q2', v: 4 },
+                    allMatchedParams: expect.arrayContaining([
+                        expect.objectContaining({ type: 'crossLineClick', crossLineId: 'q2-line' }),
+                    ]),
+                })
+            );
+            expect(crossLineClick).not.toHaveBeenCalled();
+        }
+    );
+
+    it('a front cross line wins the click over the marker beneath it', async () => {
+        const { crossLineClick, seriesNodeClick } = await clickMarkerUnderLine(undefined);
+
+        expect(crossLineClick).toHaveBeenCalledWith(
             expect.objectContaining({
-                type: 'seriesNodeClick',
-                datum: { q: 'Q2', v: 4 },
+                crossLineId: 'q2-line',
                 allMatchedParams: expect.arrayContaining([
-                    expect.objectContaining({ type: 'crossLineClick', crossLineId: 'q2-line' }),
+                    expect.objectContaining({ type: 'seriesNodeClick', datum: { q: 'Q2', v: 4 } }),
                 ]),
             })
         );
-        expect(crossLineClick).not.toHaveBeenCalled();
+        expect(seriesNodeClick).not.toHaveBeenCalled();
     });
 
     it('AC6: with no cross-line listener the click falls through to the chart `click` listener', async () => {

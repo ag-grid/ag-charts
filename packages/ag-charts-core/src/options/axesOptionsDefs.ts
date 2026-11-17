@@ -109,6 +109,7 @@ export const crossLineCommonStyleOptionsDefs: OptionsDefs<
     enabled: boolean,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    layer: union('front', 'back', 'split'),
 };
 
 const crossLineListenersOptionsDefs: OptionsDefs<AgCrossLineListeners<unknown>> = {

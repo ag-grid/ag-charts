@@ -36,7 +36,7 @@ import type {
     PositionedLabelCandidate,
     Scale,
 } from 'ag-charts-core';
-import type { AgCartesianAxisPosition, AgCrossLineListeners } from 'ag-charts-types';
+import type { AgCartesianAxisPosition, AgCrossLineLayer, AgCrossLineListeners } from 'ag-charts-types';
 
 import { rangeAlignment } from '../rangeAlignment';
 import { type Anchor, type AnchorDirection, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
@@ -100,6 +100,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     id?: string;
     enabled?: boolean;
     type!: CrossLineType;
+    layer: AgCrossLineLayer = 'front';
     range?: [unknown, unknown];
     value?: unknown;
     fill: string = DEFAULT_RANGE_FILL;
@@ -150,11 +151,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions) {
-        const { id, enabled, type, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, listeners } =
+        const { id, enabled, type, layer, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, listeners } =
             options;
         this.id = id;
         this.enabled = enabled;
         this.type = type;
+        this.layer = layer;
         this.range = options.type === 'range' ? options.range : undefined;
         this.value = options.type === 'line' ? options.value : undefined;
         this.fill = fill ?? DEFAULT_RANGE_FILL;

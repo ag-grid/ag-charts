@@ -1,4 +1,4 @@
-import type { AgCrossLineListeners, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type { AgCrossLineLayer, AgCrossLineListeners, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { BoxBounds } from '../geometry/boxBounds';
 import type { PointLabelDatum, PositionedLabelCandidate } from '../geometry/labelPlacement';
@@ -110,6 +110,8 @@ export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {
     id?: string;
     label: LabelType;
     labelGroup: Group;
+    /** Where the cross line and its label draw relative to the series. */
+    layer: AgCrossLineLayer;
     /** User-supplied pointer listeners, when the cross line's options set any. */
     listeners?: AgCrossLineListeners<unknown>;
     lineDash?: number[];

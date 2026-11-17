@@ -1063,6 +1063,38 @@ describe('Zoom', () => {
             await compare(); // this should be a zoomed-in snapshot
         });
 
+        it('should not zoom out when a front cross line takes a double-click from a node', async () => {
+            const crossLineDoubleClick = vi.fn();
+            const seriesNodeDoubleClick = vi.fn();
+            await prepareChart({}, undefined, {
+                data: Array.from({ length: 8 }, (_, i) => ({ x: `c${i}`, y: 50 })),
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeDoubleClick } }],
+                // Bars fill their bands, so any point near the x axis is on a bar and inside the cross line.
+                axes: {
+                    x: { type: 'category', paddingInner: 0, paddingOuter: 0, groupPaddingInner: 0 },
+                    y: {
+                        type: 'number',
+                        crossLines: [
+                            {
+                                type: 'range',
+                                range: [0, 10],
+                                layer: 'front',
+                                listeners: { doubleClick: crossLineDoubleClick },
+                            },
+                        ],
+                    },
+                },
+                zoom: { enabled: true, axes: 'x' },
+            });
+            await scrollAction(cx, cy, -1)(chart);
+            const before = chart.getState().zoom;
+            const { y, height } = deproxy(chart).seriesRect!;
+            await doubleClickAction(cx, y + height - 10)(chart);
+            expect(crossLineDoubleClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(0);
+            expect(chart.getState().zoom).toEqual(before);
+        });
+
         it('should not fire zoom listeners for a sub-tolerance zoom change', async () => {
             let zoomCount: number = 0;
             await prepareChart(
