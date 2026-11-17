@@ -183,7 +183,7 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS: AgStandaloneChartOptions =
             angleKey: 'share',
             innerRadiusRatio: 0.9,
             cornerRadius: 20,
-            sectorSpacing: 1,
+            gap: 1,
             innerCircle: {
                 fill: '#c9fdc9',
             },
@@ -204,7 +204,7 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgStandaloneChartOp
             angleKey: 'share',
             innerRadiusRatio: 0.7,
             cornerRadius: 30,
-            sectorSpacing: 3,
+            gap: 3,
             innerCircle: {
                 fill: '#c9fdc9',
             },
@@ -212,7 +212,7 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgStandaloneChartOp
     ],
 };
 
-// A wide `sectorSpacing` insets each sector's painted edges, so the band has to stop where the
+// A wide `gap` insets each sector's painted edges, so the band has to stop where the
 // sectors' own outer edge does rather than at the requested corner radius.
 export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: AgStandaloneChartOptions = {
     title: {
@@ -225,7 +225,7 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: AgStandaloneC
             angleKey: 'share',
             innerRadiusRatio: 0.9,
             cornerRadius: 20,
-            sectorSpacing: 20,
+            gap: 20,
             innerCircle: {
                 fill: '#c9fdc9',
             },
@@ -246,7 +246,7 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: AgStandaloneCh
             angleKey: 'share',
             innerRadiusRatio: 0.7,
             cornerRadius: 30,
-            sectorSpacing: 1,
+            gap: 1,
             fillOpacity: 0.4,
             innerCircle: {
                 fill: '#c9fdc9',

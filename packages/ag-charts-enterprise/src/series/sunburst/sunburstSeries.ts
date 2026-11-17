@@ -389,7 +389,7 @@ export class SunburstSeries extends HierarchySeries<
 
         const { width, height } = chart.seriesRect!;
         const {
-            sectorSpacing,
+            gap,
             cornerRadius,
             shadow,
             childrenKey,
@@ -407,7 +407,7 @@ export class SunburstSeries extends HierarchySeries<
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
 
-        const baseInset = sectorSpacing * 0.5;
+        const baseInset = gap * 0.5;
         const radius = Math.min(width, height) / 2;
         // No hole unless one of the inner-radius options is explicitly set - the short-circuit keeps an
         // unconfigured sunburst identical to before.

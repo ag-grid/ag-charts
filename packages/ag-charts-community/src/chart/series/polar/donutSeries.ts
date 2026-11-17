@@ -1207,7 +1207,7 @@ export class DonutSeries extends PolarSeries<
             if (cornerRadius <= 0) continue;
 
             // `inset` pulls the sector's painted edges inwards from its radii.
-            const inset = Math.max((this.options.sectorSpacing + (stroke == null ? 0 : strokeWidth)) / 2, 0);
+            const inset = Math.max((this.options.gap + (stroke == null ? 0 : strokeWidth)) / 2, 0);
             const paintedInnerRadius = datum.innerRadius > 0 ? datum.innerRadius + inset : 0;
             const paintedOuterRadius = Math.max(datum.outerRadius - inset, 0);
             if (paintedInnerRadius <= 0 || paintedOuterRadius <= paintedInnerRadius) continue;
@@ -1251,9 +1251,9 @@ export class DonutSeries extends PolarSeries<
     }
 
     private applySectorSpacing(sector: Sector, hasStroke: boolean, strokeWidth: number) {
-        const inset = Math.max((this.options.sectorSpacing + (hasStroke ? strokeWidth : 0)) / 2, 0);
+        const inset = Math.max((this.options.gap + (hasStroke ? strokeWidth : 0)) / 2, 0);
         sector.inset = inset;
-        sector.lineJoin = this.options.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
+        sector.lineJoin = this.options.gap >= 0 || inset > 0 ? 'miter' : 'round';
     }
 
     private applySelectedOffset(sector: Sector, datumIndex: number) {

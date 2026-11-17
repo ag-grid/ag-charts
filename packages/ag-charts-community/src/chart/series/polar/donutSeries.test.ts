@@ -1872,22 +1872,22 @@ describe('DonutSeries', () => {
             }
         });
 
-        test('carries the sector spacing inset into the cutouts', async () => {
-            const sectorSpacing = 6;
-            const series = await createDonut({ cornerRadius: 20, sectorSpacing, innerCircle: { fill: '#c9fdc9' } });
+        test('carries the gap inset into the cutouts', async () => {
+            const gap = 6;
+            const series = await createDonut({ cornerRadius: 20, gap, innerCircle: { fill: '#c9fdc9' } });
 
             const sectors = sectorNodes();
-            expect(sectors[0].radialEdgeInset).toBeCloseTo(sectorSpacing / 2, 5);
+            expect(sectors[0].radialEdgeInset).toBeCloseTo(gap / 2, 5);
             for (const [index, cutout] of series.innerCircleCutoutSelection.nodes().entries()) {
                 expect(cutout.radialEdgeInset).toBe(sectors[index].radialEdgeInset);
             }
         });
 
-        test('aligns the inner circle with the sectors mid-line under sector spacing', async () => {
-            const sectorSpacing = 20;
+        test('aligns the inner circle with the sectors mid-line under a gap', async () => {
+            const gap = 20;
             const series = await createDonut({
                 cornerRadius: 20,
-                sectorSpacing,
+                gap,
                 innerRadiusRatio: 0.9,
                 innerCircle: { fill: '#c9fdc9' },
             });

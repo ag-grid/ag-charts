@@ -74,7 +74,7 @@ type DonutRequiredKeys =
     | 'rotation'
     | 'outerRadiusOffset'
     | 'outerRadiusRatio'
-    | 'sectorSpacing'
+    | 'gap'
     | 'hideZeroValueSectorsInLegend'
     | 'title'
     | 'calloutLabel'
