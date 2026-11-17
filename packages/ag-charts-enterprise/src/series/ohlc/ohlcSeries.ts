@@ -2,6 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type {
     FillStrokeMorph,
     Normalised,
+    NormalisedLineDash,
     NormalisedOhlcSeriesOwnOptions,
     Selection,
     ShapeColor,
@@ -12,7 +13,7 @@ import { OhlcNode } from './ohlcNode';
 import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from './ohlcSeriesBase';
 
 /** Post-resolution style: colour refs are resolved to concrete colours before reaching the scene node. */
-type NormalisedOhlcStyle = Normalised<NonNullable<OhlcNodeDatum['style']>, never, FillStrokeMorph>;
+type NormalisedOhlcStyle = Normalised<NonNullable<OhlcNodeDatum['style']>, never, FillStrokeMorph & NormalisedLineDash>;
 
 /**
  * Consolidated type interface for OhlcSeries.

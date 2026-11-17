@@ -27,6 +27,7 @@ import {
     writePlacedPolarLabels,
     zeroLike,
 } from 'ag-charts-core';
+import type { NormalisedLineDash } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
@@ -54,7 +55,7 @@ const {
     getItemStyles,
 } = _ModuleSupport;
 
-type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph>;
+type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
 export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly label?: PolarLabelDatum;

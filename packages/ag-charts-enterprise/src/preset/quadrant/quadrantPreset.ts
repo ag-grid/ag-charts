@@ -1,4 +1,4 @@
-import type { ResolveLineDash } from 'ag-charts-core';
+import type { Normalised, NormalisedLineDash } from 'ag-charts-core';
 import {
     type CartesianAxisDirection,
     Logger,
@@ -311,7 +311,7 @@ export function createQuadrant(
                 ...options.itemStyler({
                     ...params,
                     // The region style was resolved against the theme, so a `lineDash` name is already its array.
-                    ...(result as ResolveLineDash<AgSeriesMarkerStyle>),
+                    ...(result as Normalised<AgSeriesMarkerStyle, never, NormalisedLineDash>),
                     region: regionName,
                 }),
             };

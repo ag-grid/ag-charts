@@ -1,11 +1,12 @@
 import type { AgErrorBarOptions, CssColor, ErrorBarCapOptions } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
+import type { NormalisedLineDash } from './normalisedCommonOptions';
 
 export type NormalisedErrorBarCapOptions = Normalised<ErrorBarCapOptions, 'lengthRatio', { stroke?: CssColor }>;
 
 export type NormalisedErrorBarOptions = Normalised<
     AgErrorBarOptions<unknown, unknown>,
     'visible' | 'offsetLabels' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'cap',
-    { stroke?: CssColor; cap?: NormalisedErrorBarCapOptions }
+    { stroke?: CssColor; cap?: NormalisedErrorBarCapOptions } & NormalisedLineDash
 >;

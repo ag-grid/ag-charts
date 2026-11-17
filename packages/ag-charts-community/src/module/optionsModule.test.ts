@@ -962,8 +962,7 @@ describe('ChartOptions', () => {
             ],
         ];
 
-        // `long-dash-dot-dot` is [7, 2, 1, 2, 1, 2] in multiples of the stroke width. How a name renders is covered by
-        // the image snapshots in `chart/lineDash.test.ts`.
+        // `long-dash-dot-dot` is [7, 2, 1, 2, 1, 2] in multiples of the stroke width. Rendering: `chart/lineDash.test.ts`.
         it.each(LOCATIONS)(
             'resolves a stock dash name on a %s, scaled by its strokeWidth, and not an array',
             (_, path, build) => {

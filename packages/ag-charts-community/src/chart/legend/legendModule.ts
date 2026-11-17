@@ -71,8 +71,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                 marker: { size: { $ref: 'legendMarkerSize' }, padding: { $applyPadding: 8 } },
                 line: {
                     length: 25,
-                    // A name in the disabled style is measured by the width the line is drawn at: the `strokeWidth` set
-                    // here, else 2, the most a legend line is drawn at (see `Legend.getLineStyles`).
+                    // A name scales by the width the legend line is drawn at: this `strokeWidth`, else 2.
                     disabledStyle: { lineDash: lineDashThemeDefault(undefined, { $path: ['../strokeWidth', 2] }) },
                 },
                 showSeriesStroke: true,

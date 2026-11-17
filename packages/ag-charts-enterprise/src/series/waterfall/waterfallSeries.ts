@@ -59,11 +59,11 @@ import {
     withoutCasts,
     zeroLike,
 } from 'ag-charts-core';
-import type { BBox, Path, ResolveLineDash, Selection, Text } from 'ag-charts-core';
+import type { BBox, NormalisedLineDash, Path, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 /** Post-theme/styler-resolution waterfall style: colour refs are already resolved to concrete colours. */
-type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, FillStrokeMorph>;
+type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
 const {
     adjustLabelPlacement,
@@ -141,14 +141,14 @@ export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDa
     readonly crisp: boolean;
     readonly clipBBox?: BBox;
     readonly opacity?: number;
-    style?: Required<ResolveLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle;
+    style?: Required<Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash>> & AgItemShadowStyle;
 }
 
 interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
     pointData?: WaterfallNodePointDatum[];
     styles: Record<
         AgWaterfallSeriesItemType,
-        _ModuleSupport.SeriesNodeStyleContext<Required<ResolveLineDash<AgWaterfallSeriesStyle>>>
+        _ModuleSupport.SeriesNodeStyleContext<Required<Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash>>>
     >;
 }
 
@@ -996,7 +996,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     private itemStyle(
         itemType: AgWaterfallSeriesItemType
-    ): Required<ResolveLineDash<AgWaterfallSeriesStyle>> & { opacity: number } {
+    ): Required<Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash>> & { opacity: number } {
         const { fillOpacity, strokeWidth, strokeOpacity, fill, stroke, lineDash, lineDashOffset, cornerRadius } =
             this.getItemConfig(itemType);
         return {
@@ -1033,7 +1033,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         highlightState?: _ModuleSupport.HighlightState,
         itemType: AgWaterfallSeriesItemType = 'total',
         selectionState?: _ModuleSupport.SelectionState
-    ): Required<ResolveLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle {
+    ): Required<Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash>> & AgItemShadowStyle {
         const { datumIndex = 0, datum, totalValue } = nodeDatum ?? {};
 
         const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
@@ -1045,7 +1045,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const { itemStyler } = item;
 
-        let style: Required<ResolveLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle = baseStyle;
+        let style: Required<Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash>> & AgItemShadowStyle =
+            baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
             const itemId = getItemId(nodeDatum, this.data);
@@ -1082,7 +1083,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         itemId: string | number,
         totalValue: AgNumericValue | undefined,
         isHighlight: boolean,
-        style: Required<ResolveLineDash<AgWaterfallSeriesStyle>>
+        style: Required<Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash>>
     ) {
         const { id: seriesId, options } = this;
         const { xKey, yKey } = options;
@@ -1124,7 +1125,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // No itemStyler: style is a pure function of (itemType, highlightState, selectionState).
             const styleByState = new Map<
                 string,
-                Required<ResolveLineDash<AgWaterfallSeriesStyle>> & AgItemShadowStyle
+                Required<Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash>> & AgItemShadowStyle
             >();
             const thisSeries = this;
 

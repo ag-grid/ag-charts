@@ -669,13 +669,10 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
 /** Interaction defaults for series whose public options omit `showInLegend`. */
 export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickRange: 'exact' } as const;
 
-/** The stroke width that a stock dash name scales by when set at the same level as the `lineDash`. */
+/** The `strokeWidth` beside the `lineDash`, by which a stock dash name scales. */
 const SIBLING_STROKE_WIDTH = { $path: './strokeWidth' } as const;
 
-/**
- * The `lineDash` theme default: a `defaultDash` in pixels (or a stock name), and the `strokeWidth` that a stock dash
- * name set by the user or a theme override scales by, which is that of the `lineDash`'s own style unless given.
- */
+/** The `lineDash` theme default: the `defaultDash`, and the `strokeWidth` that a stock dash name scales by. */
 export function lineDashThemeDefault(
     defaultDash: AgLineDashName | number[] | Operation | undefined,
     strokeWidth: Operation = SIBLING_STROKE_WIDTH
@@ -690,7 +687,7 @@ export const STROKE_STYLE_THEME_DEFAULTS = {
     lineDashOffset: 0,
 };
 
-/** The resolved value of {@link STROKE_STYLE_THEME_DEFAULTS}, for code that builds a style outside the theme. */
+/** {@link STROKE_STYLE_THEME_DEFAULTS} resolved, for styles built outside the theme. */
 export const SOLID_STROKE_STYLE = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
 
 /** Font size, family and weight taken from the theme params; most text theme blocks spread this. */
@@ -746,11 +743,7 @@ export const GLOW_THEME_DEFAULTS = {
     spread: 4,
 } as const;
 
-/**
- * The `lineDash` default of a style that falls back to another when unset, such as a highlight bucket: it leaves the
- * option unset, and exists only so that a stock dash name set by the user or a theme override resolves to its array,
- * scaled by the bucket's `strokeWidth` or else the series'.
- */
+/** The `lineDash` default of a style that falls back to the series' when unset, such as a highlight bucket. */
 export const UNSET_LINE_DASH_THEME_DEFAULT = lineDashThemeDefault(undefined, {
     $path: ['./strokeWidth', { $path: '/series/$index/strokeWidth' }],
 });

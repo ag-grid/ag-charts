@@ -16,7 +16,8 @@ import type {
     CallbackParamRules,
     DynamicContext,
     InternalAgColorType,
-    ResolveLineDash,
+    Normalised,
+    NormalisedLineDash,
     Resolved,
 } from 'ag-charts-core';
 import { mergeDefaults } from 'ag-charts-core';
@@ -157,7 +158,7 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
     series: S,
     nodeDatum: D,
     isHighlight: boolean,
-    style: Required<ResolveLineDash<AgRadialSeriesStyle>> & { opacity: number }
+    style: Required<Normalised<AgRadialSeriesStyle, never, NormalisedLineDash>> & { opacity: number }
 ) {
     const { id: seriesId, options } = series;
     const { angleKey, radiusKey } = options;

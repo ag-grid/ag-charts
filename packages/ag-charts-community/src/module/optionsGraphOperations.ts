@@ -1035,7 +1035,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     return RESOLVED_TO_BRANCH;
 }
 
-/** The default is an array of lengths, which holds no operations, a stock name, or an operation resolving to either. */
+/** The default dash: an array of lengths, a stock name, or an operation resolving to either. */
 function resolveLineDashDefault(
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
@@ -1047,20 +1047,17 @@ function resolveLineDashDefault(
 }
 
 /**
- * Resolves a named `lineDash` (e.g. `'dash-dot'`) to its array of lengths, scaled by the stroke width. A name replaces
- * the whole array, so the elements of any array at a lower priority are pruned rather than merged index by index over
- * it, which is how arrays are layered. An array is in pixels and is never scaled.
+ * Resolves a named `lineDash` to its array of lengths, scaled by the stroke width. A name replaces the whole array, so
+ * lower priority arrays are pruned rather than merged by index. An array is in pixels and is never scaled.
  *
- * The values are the default, then the stroke width to scale a name by (e.g. `{ $path: './strokeWidth' }`). The
- * default is a name, an array, an operation resolving to either, or `undefined` for none.
+ * The values are the default dash, then the stroke width to scale a name by (e.g. `{ $path: './strokeWidth' }`).
  */
 function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [defaultVertex, widthVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
-    // The grafted override is the one that applies to this vertex, whatever key (axis position, cross line type) it
-    // was declared under.
+    // The override that applies to this vertex, whatever key (axis position, cross line type) it was declared under.
     const overrideOption =
         graph.findNeighbourValue(vertex, OVERRIDES_EDGE) ??
         graph.dangerouslyGetThemeOverride(pathArray) ??
@@ -1068,7 +1065,7 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
 
     const width = widthVertex == null ? undefined : graph.resolveVertexValue(vertex, widthVertex);
 
-    // A prune from an earlier resolve outlives it, and would drop the elements of a styler's array over a name.
+    // A prune from an earlier resolve would otherwise drop the elements of a styler's array over a name.
     graph.removeEdges(vertex, PRUNE_EDGE);
 
     const winner = userOption ?? overrideOption;
@@ -1082,15 +1079,13 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
         ? scaleLineDashName(resolvedDefault, width)
         : (resolvedDefault as number[] | undefined);
 
-    // A user array still merges index by index over a named override, which stands in for the default.
+    // A user array still merges by index over a named override, which stands in for the default.
     const base = isLineDashName(overrideOption) ? scaleLineDashName(overrideOption, width) : (defaultDash ?? []);
 
-    // An empty default with nothing to layer over it is the value as it stands: an empty array has no elements to
-    // graft, and no default leaves the option unset, so that what the style falls back to still applies.
+    // Nothing to layer: keep the default as it stands, so that an unset option still falls back.
     if (base.length === 0 && userOption == null && overrideOption == null) return defaultDash;
 
-    // On the defaults edge, so that during a styler's partial resolution the base cannot clobber the partial's values,
-    // which graft to the user partial edge by default.
+    // On the defaults edge, so the base cannot clobber a styler's partial values during its resolution.
     graph.graftObject(vertex, base, undefined, DEFAULTS_EDGE);
     return RESOLVED_TO_BRANCH;
 }

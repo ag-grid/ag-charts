@@ -17,11 +17,12 @@ import type {
     FillStrokeMorph,
     NormalisedColorType,
     NormalisedDropShadowOptions,
+    NormalisedLineDash,
     NormalisedTextOrSegments,
 } from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions } from './normalisedLabelOptions';
 
-export type NormalisedDonutSeriesStyle = Normalised<AgDonutSeriesStyle, never, FillStrokeMorph>;
+export type NormalisedDonutSeriesStyle = Normalised<AgDonutSeriesStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
 export type NormalisedDonutSeriesTooltipRendererParams<T> = Normalised<
     AgDonutSeriesTooltipRendererParams<T>,
@@ -97,7 +98,7 @@ export type NormalisedDonutSeriesOwnOptions = Normalised<
         innerCircle?: NormalisedDonutInnerCircleOptions;
         shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgDonutSeriesItemStylerParams<unknown, unknown>, AgDonutSeriesStyle>;
-    }
+    } & NormalisedLineDash
 > & {
     /** Undocumented: `angleKey` column the sectors are filtered against (cross-filtering). */
     angleFilterKey?: string;
