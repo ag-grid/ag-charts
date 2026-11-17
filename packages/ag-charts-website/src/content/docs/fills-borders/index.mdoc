@@ -66,7 +66,7 @@ The names are `'solid'`, `'dot'`, `'dash'`, `'dash-dot'`, `'long-dash'`, `'long-
 
 A custom pattern is still given as an array of lengths in pixels, for example `lineDash: [8, 2, 2, 2]`, and is not scaled by the `strokeWidth`. The `lineDashOffset` is in pixels too.
 
-Legend items and tooltip markers are drawn with the same dash as the series. Their lines are at most `2` pixels wide, so the dash, named or an array, is scaled down in proportion to match and a `'dot'` stays a dot.
+Legend items and tooltip markers are drawn with the same dash as the series. Their lines are at most `2` pixels wide, so the dash, named or an array, is scaled in proportion to match and a `'dot'` stays a dot.
 
 A name takes the `strokeWidth` set alongside it, so a [Styler](./stylers/) that returns both a `strokeWidth` and a `lineDash` name scales the name by that width. A highlight or selection style that changes only the `strokeWidth` keeps the dash lengths of the series, as it sets no `lineDash` of its own.
 
