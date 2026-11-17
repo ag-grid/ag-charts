@@ -7,7 +7,13 @@ import type {
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, PixelSize } from '../../chart/types';
-import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type {
+    AgColorScale,
+    FillOptions,
+    LineDashOptions,
+    StrokeOptions,
+    WithResolvedLineDash,
+} from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
@@ -33,7 +39,7 @@ export type AgMapShapeSeriesItemStylerParams<TDatum = DatumDefault, TContext = C
 > &
     ContextCallbackParams<TContext> &
     AgMapShapeSeriesOptionsKeys<TDatum> &
-    Required<AgMapShapeSeriesStyle>;
+    Required<WithResolvedLineDash<AgMapShapeSeriesStyle>>;
 
 export interface AgMapShapeSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the id value. */

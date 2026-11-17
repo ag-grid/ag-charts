@@ -16,7 +16,7 @@ import type {
     AgGlowHighlightOptions,
     AgHighlightStyleOptions,
 } from '../seriesOptions';
-import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions, WithResolvedLineDash } from './commonOptions';
 
 export interface AgFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends
@@ -43,7 +43,7 @@ export interface AgFunnelSeriesItemStylerParams<TDatum = DatumDefault, TContext 
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgFunnelSeriesOptionsKeys<TDatum>,
-        Required<AgFunnelSeriesStyle> {}
+        Required<WithResolvedLineDash<AgFunnelSeriesStyle>> {}
 
 export interface AgFunnelSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 

@@ -31,6 +31,7 @@ import type {
     AgSeriesMarkerStyle,
     ContextDefault,
     DatumDefault,
+    WithResolvedLineDash,
 } from 'ag-charts-types';
 
 type Region = keyof Omit<NonNullable<AgQuadrantChartOptions['regions']>, 'label'>;
@@ -305,7 +306,15 @@ export function createQuadrant(
 
         // Compose the user's itemStyler within the region's itemStyler.
         if (options.itemStyler) {
-            result = { ...result, ...options.itemStyler({ ...params, ...result, region: regionName }) };
+            result = {
+                ...result,
+                ...options.itemStyler({
+                    ...params,
+                    // The region style was resolved against the theme, so a `lineDash` name is already its array.
+                    ...(result as WithResolvedLineDash<AgSeriesMarkerStyle>),
+                    region: regionName,
+                }),
+            };
         }
 
         return result;

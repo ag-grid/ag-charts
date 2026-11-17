@@ -1,7 +1,14 @@
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expectTypeOf, it } from 'vitest';
 
 import { LINE_DASH_PATTERNS } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartInstance, AgLineDashName, AgLineSeriesOptions } from 'ag-charts-types';
+import type {
+    AgBarSeriesStylerParams,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgLineDashName,
+    AgLineSeriesOptions,
+    AgLineSeriesStylerParams,
+} from 'ag-charts-types';
 
 import { compareImageSnapshot, createChart, setupMockCanvas, setupMockConsole } from './test/utils';
 
@@ -101,5 +108,11 @@ describe('named line dash patterns', () => {
             axes: { x: { type: 'category' }, y: { type: 'number' } },
         } satisfies AgCartesianChartOptions);
         await compareImageSnapshot(chart, ctx);
+    });
+
+    it('should give a styler the resolved array of lengths, never a name', () => {
+        expectTypeOf<AgLineSeriesStylerParams<unknown, unknown>['lineDash']>().toEqualTypeOf<number[]>();
+        expectTypeOf<AgBarSeriesStylerParams<unknown, unknown>['lineDash']>().toEqualTypeOf<number[]>();
+        expectTypeOf<AgLineSeriesOptions['lineDash']>().toEqualTypeOf<number[] | AgLineDashName | undefined>();
     });
 });

@@ -19,7 +19,13 @@ import type {
     AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    FillOptions,
+    LineDashOptions,
+    StrokeOptions,
+    WithResolvedLineDash,
+} from './commonOptions';
 
 /** The part of an HLC datum an item represents: its high, low or close value. */
 export type AgHlcSeriesItemType = 'high' | 'low' | 'close';
@@ -86,7 +92,7 @@ export interface AgHlcSeriesItemStylerParams<TDatum, TContext>
         AgHlcSeriesOptionsKeys<TDatum>,
         DatumItemCallbackParams<AgHlcSeriesItemType, TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        Required<AgSeriesMarkerStyle> {
+        Required<WithResolvedLineDash<AgSeriesMarkerStyle>> {
     /** The value the marker represents. This can be `high`, `low` or `close`. */
     itemType: AgHlcSeriesItemType;
 }

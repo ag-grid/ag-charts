@@ -26,7 +26,13 @@ import type {
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    FillOptions,
+    LineDashOptions,
+    StrokeOptions,
+    WithResolvedLineDash,
+} from './commonOptions';
 
 export type AgAreaSeriesLabelFormatterParams<TDatum = DatumDefault> = AgAreaSeriesOptionsKeys<TDatum> &
     AgAreaSeriesOptionsNames;
@@ -89,7 +95,7 @@ export interface AgAreaSeriesStylerParams<TDatum, TContext>
         ContextCallbackParams<TContext>,
         Required<StrokeOptions>,
         Required<FillOptions>,
-        Required<LineDashOptions> {
+        Required<WithResolvedLineDash<LineDashOptions>> {
     /** Current series styling options on markers. */
     marker?: AgSeriesMarkerStyle;
 }
@@ -100,7 +106,10 @@ export interface AgAreaSeriesStylerResult extends StrokeOptions, FillOptions, Li
 }
 
 export interface AgAreaSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgAreaSeriesOptionsKeys<TDatum>, ContextCallbackParams<TContext>, Required<AgSeriesMarkerStyle> {
+    extends
+        AgAreaSeriesOptionsKeys<TDatum>,
+        ContextCallbackParams<TContext>,
+        Required<WithResolvedLineDash<AgSeriesMarkerStyle>> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */

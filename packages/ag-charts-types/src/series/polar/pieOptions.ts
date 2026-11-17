@@ -23,6 +23,7 @@ import type {
     StrokeOptions,
     TextOptions,
     Toggleable,
+    WithResolvedLineDash,
 } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -55,7 +56,7 @@ export type AgPieSeriesItemStylerParams<TDatum = DatumDefault, TContext = Contex
 > &
     ContextCallbackParams<TContext> &
     AgPieSeriesOptionsKeys<TDatum> &
-    Required<AgPieSeriesStyle>;
+    Required<WithResolvedLineDash<AgPieSeriesStyle>>;
 
 export interface AgPieSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each sector. */

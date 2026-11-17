@@ -227,6 +227,11 @@ export interface LineDashOptions {
 }
 
 /**
+ * `T` as a callback receives it: a `lineDash` name has already been resolved to its array of lengths in pixels.
+ */
+export type WithResolvedLineDash<T> = { [K in keyof T]: K extends 'lineDash' ? Exclude<T[K], AgLineDashName> : T[K] };
+
+/**
  * Represents font styling options.
  */
 export interface FontOptions {

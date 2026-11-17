@@ -28,7 +28,13 @@ import type {
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    FillOptions,
+    LineDashOptions,
+    StrokeOptions,
+    WithResolvedLineDash,
+} from './commonOptions';
 
 export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
     extends
@@ -71,7 +77,7 @@ export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        Required<AgSeriesMarkerStyle> {
+        Required<WithResolvedLineDash<AgSeriesMarkerStyle>> {
     /** The type of datum. This can be `high` or `low`. */
     itemType: AgRangeAreaSeriesItemType;
 }

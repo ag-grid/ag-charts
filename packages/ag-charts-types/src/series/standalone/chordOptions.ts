@@ -3,7 +3,13 @@ import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../.
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
-import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type {
+    AgColorType,
+    FillOptions,
+    LineDashOptions,
+    StrokeOptions,
+    WithResolvedLineDash,
+} from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
@@ -47,14 +53,14 @@ export interface AgChordSeriesLinkItemStylerParams<TDatum, TContext = ContextDef
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys<TDatum>,
-        Required<AgChordSeriesLinkStyle> {}
+        Required<WithResolvedLineDash<AgChordSeriesLinkStyle>> {}
 
 export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys<TDatum>,
-        Required<AgChordSeriesNodeStyle> {
+        Required<WithResolvedLineDash<AgChordSeriesNodeStyle>> {
     /** Label of the node. */
     label: string | undefined;
     /** Size of the node. */

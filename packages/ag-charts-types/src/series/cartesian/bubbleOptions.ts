@@ -24,7 +24,13 @@ import type {
     AgMarkerHighlightStyleOptions,
     AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
-import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    AgColorScale,
+    FillOptions,
+    StrokeOptions,
+    WithResolvedLineDash,
+} from './commonOptions';
 
 export interface AgBubbleSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends
@@ -85,7 +91,7 @@ export type BubbleSeriesItemStylerParams<TDatum = DatumDefault, TContext = Conte
 > &
     ContextCallbackParams<TContext> &
     AgBubbleSeriesOptionsKeys<TDatum> &
-    Required<AgBubbleSeriesStyle>;
+    Required<WithResolvedLineDash<AgBubbleSeriesStyle>>;
 
 export type AgBubbleSeriesItemStylerParams<TDatum, TContext> = BubbleSeriesItemStylerParams<TDatum, TContext>;
 

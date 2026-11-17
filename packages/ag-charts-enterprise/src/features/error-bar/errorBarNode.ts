@@ -18,6 +18,7 @@ import type {
     CssColor,
     HighlightState,
     SelectionState,
+    WithResolvedLineDash,
 } from 'ag-charts-types';
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum &
@@ -124,7 +125,8 @@ function getItemStylerParams(
     const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
 
     return {
-        ...(style as Required<AgErrorBarThemeableOptions>),
+        // A `lineDash` name was resolved to its array by the theme before it reaches here.
+        ...(style as Required<WithResolvedLineDash<AgErrorBarThemeableOptions>>),
         datum: datum.datum,
         seriesId: datum.series.id,
         xKey: datum.xKey,

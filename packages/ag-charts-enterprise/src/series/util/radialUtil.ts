@@ -8,6 +8,7 @@ import type {
     PixelSize,
     SelectionState as SelectionStateString,
     Styler,
+    WithResolvedLineDash,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type {
@@ -156,7 +157,7 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
     series: S,
     nodeDatum: D,
     isHighlight: boolean,
-    style: Required<AgRadialSeriesStyle> & { opacity: number }
+    style: Required<WithResolvedLineDash<AgRadialSeriesStyle>> & { opacity: number }
 ) {
     const { id: seriesId, options } = series;
     const { angleKey, radiusKey } = options;

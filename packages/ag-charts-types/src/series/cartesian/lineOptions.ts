@@ -30,7 +30,12 @@ import type {
     AgCartesianSeriesTooltipRendererParams,
     AgErrorBoundSeriesTooltipRendererParams,
 } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    LineDashOptions,
+    StrokeOptions,
+    WithResolvedLineDash,
+} from './commonOptions';
 
 export interface AgLineSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends
@@ -104,7 +109,7 @@ export interface AgLineSeriesStylerParams<TDatum, TContext>
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         Required<StrokeOptions>,
-        Required<LineDashOptions> {
+        Required<WithResolvedLineDash<LineDashOptions>> {
     /** Current series styling options on markers. */
     marker?: AgSeriesMarkerStyle;
 }
@@ -115,7 +120,10 @@ export interface AgLineSeriesStylerResult extends StrokeOptions, LineDashOptions
 }
 
 export interface AgLineSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgLineSeriesOptionsKeys<TDatum>, ContextCallbackParams<TContext>, Required<AgSeriesMarkerStyle> {
+    extends
+        AgLineSeriesOptionsKeys<TDatum>,
+        ContextCallbackParams<TContext>,
+        Required<WithResolvedLineDash<AgSeriesMarkerStyle>> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */

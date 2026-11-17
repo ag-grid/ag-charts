@@ -30,7 +30,7 @@ import {
     zeroLike,
 } from 'ag-charts-core';
 import type { BBox, GradientParams, PlacedLabel, Selection } from 'ag-charts-core';
-import type { AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgNumericValue, CssColor, WithResolvedLineDash } from 'ag-charts-types';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -72,14 +72,14 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly clipSector: SectorBox;
     readonly reversed: boolean;
     readonly index: number;
-    style?: Required<AgRadialSeriesStyle> & AgItemShadowStyle;
+    style?: Required<WithResolvedLineDash<AgRadialSeriesStyle>> & AgItemShadowStyle;
 }
 
 export interface RadialBarSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
     RadialBarNodeDatum,
     RadialBarNodeDatum
 > {
-    styles: _ModuleSupport.SeriesNodeStyleContext<Required<AgRadialSeriesStyle>>;
+    styles: _ModuleSupport.SeriesNodeStyleContext<Required<WithResolvedLineDash<AgRadialSeriesStyle>>>;
 }
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
