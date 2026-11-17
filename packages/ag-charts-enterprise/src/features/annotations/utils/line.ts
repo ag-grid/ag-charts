@@ -26,9 +26,15 @@ export interface LineStyleSource {
 /**
  * The dash to draw. A stock name is measured in multiples of the stroke width and an array in pixels. The annotation
  * keeps the name, rather than its array, so that the dash follows a change of width.
+ *
+ * A `dot` is drawn with round caps (see `getLineCap`), which extend every dash by the line width. It is therefore drawn
+ * as a zero-length dash over the stock pattern's whole period, giving round dots at the same spacing as the stock dot.
  */
 export function resolveLineDash(lineDash: PixelSize[] | AgLineDashName | undefined, strokeWidth: number | undefined) {
-    return isLineDashName(lineDash) ? scaleLineDashName(lineDash, strokeWidth) : (lineDash ?? []);
+    if (!isLineDashName(lineDash)) return lineDash ?? [];
+
+    const dash = scaleLineDashName(lineDash, strokeWidth);
+    return lineDash === 'dot' ? [0, dash.reduce((sum, length) => sum + length, 0)] : dash;
 }
 
 export function getLineDash({ lineDash, strokeWidth }: LineStyleSource): PixelSize[] {

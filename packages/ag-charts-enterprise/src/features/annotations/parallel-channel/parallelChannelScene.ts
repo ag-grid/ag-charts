@@ -185,6 +185,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelDatum> {
 
         middleLine.setProperties({
             ...middlePoints,
+            lineCap: getLineCap({ lineDash: datum.middle.lineDash ?? datum.lineDash }),
             // The middle line keeps its own width, so a name there is scaled by that.
             lineDash:
                 datum.middle.lineDash == null

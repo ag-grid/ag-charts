@@ -244,6 +244,27 @@ describe('Annotation datum lifecycle', () => {
             expect(stateOf()[0].middle).toMatchObject({ lineDash: 'dash', strokeWidth: 2 });
             expect(drawnDashes()).toEqual([[6, 4]]);
         });
+
+        // Round caps lengthen each dash by the line width, so a dot is a zero-length dash over the stock dot's period
+        // of 2.5 widths: round dots at the stock spacing, rather than elongated dashes with tiny gaps.
+        it('draws a dot as round dots at the stock dot spacing', async () => {
+            await prepareChart([{ ...LINE, lineDash: 'dot' }] as AgAnnotation[]);
+
+            expect(stateOf()[0].lineDash).toBe('dot');
+            expect(drawnLines().map(({ lineDash, lineCap }) => ({ lineDash, lineCap }))).toEqual([
+                { lineDash: [0, 7.5], lineCap: 'round' },
+            ]);
+        });
+
+        it('draws a dot on the middle line of a parallel channel as round dots', async () => {
+            await prepareChart([
+                { ...MINIMAL_ANNOTATIONS['parallel-channel'], middle: { lineDash: 'dot', strokeWidth: 2 } },
+            ] as AgAnnotation[]);
+
+            expect(drawnLines().map(({ lineDash, lineCap }) => ({ lineDash, lineCap }))).toEqual([
+                { lineDash: [0, 5], lineCap: 'round' },
+            ]);
+        });
     });
 
     // `lineStyle` was replaced by `lineDash`, so state saved with it is migrated when it is restored: a style becomes
@@ -256,7 +277,7 @@ describe('Annotation datum lifecycle', () => {
         it.each([
             ['solid', 'solid', undefined],
             ['dashed', 'dash', [6, 4]],
-            ['dotted', 'dot', [2, 3]],
+            ['dotted', 'dot', [0, 5]],
         ] as const)('migrates a restored %s lineStyle to the %s name', async (lineStyle, name, drawn) => {
             await prepareChart([MINIMAL_ANNOTATIONS['horizontal-line']]);
 
