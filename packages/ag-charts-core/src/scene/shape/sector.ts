@@ -661,6 +661,8 @@ interface SectorGlowEntry {
     endAngle: number;
     innerRadius: number;
     outerRadius: number;
+    centerX: number;
+    centerY: number;
     /** The glow ends worked out for the sector, which are assigned to it once, so an unchanged ring marks nothing dirty. */
     startGap: number;
     startSpan: number;
@@ -698,7 +700,7 @@ export class SectorGlowRing {
         const { pool, entries } = this;
         let entry = pool[entries.length];
         if (entry == null) {
-            entry = { sector, startAngle, endAngle, innerRadius, outerRadius, ...NO_GLOW_ENDS };
+            entry = { sector, startAngle, endAngle, innerRadius, outerRadius, centerX: 0, centerY: 0, ...NO_GLOW_ENDS };
             pool[entries.length] = entry;
         }
         entry.sector = sector;
@@ -706,6 +708,8 @@ export class SectorGlowRing {
         entry.endAngle = endAngle;
         entry.innerRadius = innerRadius;
         entry.outerRadius = outerRadius;
+        entry.centerX = sector.centerX;
+        entry.centerY = sector.centerY;
         entries.push(entry);
     }
 
@@ -787,7 +791,7 @@ function findGlowEnds(entries: SectorGlowEntry[], padded: boolean, full: number,
 
         const gap = next.startAngle - prev.endAngle + (i === count - 1 ? full : 0);
         const beside = padded && i < count - 1 ? gap >= -delta : gap >= -delta && gap <= widest;
-        if (!beside) continue;
+        if (!beside || !sameCentre(prev, next, delta)) continue;
 
         prev.endGap = next.startGap = Math.max(gap, 0);
         prev.endSpan = next.endAngle - next.startAngle;
@@ -797,6 +801,11 @@ function findGlowEnds(entries: SectorGlowEntry[], padded: boolean, full: number,
         next.startInner = prev.innerRadius;
         next.startOuter = prev.outerRadius;
     }
+}
+
+/** Sectors moved apart, as a selected sector is by `selectedOffset`, are not beside each other, so their glows wrap round. */
+function sameCentre(a: SectorGlowEntry, b: SectorGlowEntry, delta: number) {
+    return Math.abs(a.centerX - b.centerX) <= delta && Math.abs(a.centerY - b.centerY) <= delta;
 }
 
 /** Assigns the glow ends worked out for a sector. A span of `0` is none, so the rest of that end is left as it was. */
