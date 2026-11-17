@@ -179,6 +179,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'اوپر کی طرف تیر',
     toolbarAnnotationsCallout: 'کال آؤٹ',
     toolbarAnnotationsClearAll: 'سب صاف کریں',
+    toolbarAnnotationsMagnet: 'مقناطیس',
     toolbarAnnotationsComment: 'تبصرہ',
     toolbarAnnotationsDatePriceRange: 'تاریخ اور قیمت',
     toolbarAnnotationsDateRange: 'تاریخ کی حد',

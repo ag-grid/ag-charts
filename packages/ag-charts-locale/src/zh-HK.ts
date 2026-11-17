@@ -179,6 +179,7 @@ export const AG_CHARTS_LOCALE_ZH_HK: Record<string, string> = {
     toolbarAnnotationsArrowUp: '上箭頭',
     toolbarAnnotationsCallout: '標注',
     toolbarAnnotationsClearAll: '清除全部',
+    toolbarAnnotationsMagnet: '磁吸',
     toolbarAnnotationsComment: '評論',
     toolbarAnnotationsDatePriceRange: '日期和價格',
     toolbarAnnotationsDateRange: '日期範圍',

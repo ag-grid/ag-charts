@@ -12,6 +12,7 @@ import type {
 
 import {
     DEFAULT_FIBONACCI_STROKES,
+    MAGNET_THEME,
     MEASURER_STATISTICS_THEME,
     QUICK_MEASURER_DIVIDER_THEME,
     selectionAxes,
@@ -206,4 +207,5 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     axesButtons: {
         enabled: true,
     },
+    magnet: { ...MAGNET_THEME },
 };

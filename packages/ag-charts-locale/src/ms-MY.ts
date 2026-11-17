@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Saluran Selari',
     toolbarAnnotationsDisjointChannel: 'Saluran Terpisah',
     toolbarAnnotationsClearAll: 'Kosongkan Semua',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsFillColor: 'Warna Isian',
     toolbarAnnotationsLineColor: 'Warna Garisan',
     toolbarAnnotationsLineStyle: 'Gaya Garisan',

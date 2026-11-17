@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'समानांतर चैनल',
     toolbarAnnotationsDisjointChannel: 'असंयुक्त चैनल',
     toolbarAnnotationsClearAll: 'सभी साफ़ करें',
+    toolbarAnnotationsMagnet: 'चुंबक',
     toolbarAnnotationsFillColor: 'भरण रंग',
     toolbarAnnotationsLineColor: 'रेखा रंग',
     toolbarAnnotationsLineStyle: 'रेखा शैली',

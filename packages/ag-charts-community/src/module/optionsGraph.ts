@@ -239,6 +239,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         'axesButtons',
         'data',
         'enabled',
+        'magnet',
         'optionsToolbar',
         'snap',
         'toolbar',

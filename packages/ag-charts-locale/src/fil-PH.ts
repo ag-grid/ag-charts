@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Parallel na Daluyan',
     toolbarAnnotationsDisjointChannel: 'Hiwalay na Daluyan',
     toolbarAnnotationsClearAll: 'Burahin Lahat',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsFillColor: 'Kulay ng Pagpuno',
     toolbarAnnotationsLineColor: 'Kulay ng Linya',
     toolbarAnnotationsLineStyle: 'Estilo ng Linya',

@@ -179,6 +179,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Săgeată în sus',
     toolbarAnnotationsCallout: 'Anotare',
     toolbarAnnotationsClearAll: 'Șterge tot',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsComment: 'Comentariu',
     toolbarAnnotationsDatePriceRange: 'Dată și Preț',
     toolbarAnnotationsDateRange: 'Interval de date',

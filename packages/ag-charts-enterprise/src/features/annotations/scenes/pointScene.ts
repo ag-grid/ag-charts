@@ -3,7 +3,7 @@ import { type BBox, type Point, Vec2 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { PointDatum } from '../datum/pointDatum';
-import { getDragStartState, translate } from '../utils/coords';
+import { getDragStartState, magnetTranslation, translate } from '../utils/coords';
 import { isWriteable } from '../utils/datum';
 import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
@@ -43,7 +43,8 @@ export abstract class PointScene<Datum extends PointDatum> extends AnnotationSce
         const { dragState } = this;
         if (!isWriteable(datum) || !dragState) return;
 
-        const { point } = translate({ point: dragState.handle }, Vec2.sub(target, dragState.offset), context);
+        const translation = magnetTranslation(dragState.handle, Vec2.sub(target, dragState.offset), context);
+        const { point } = translate({ point: dragState.handle }, translation, context);
         datum.x = point.x;
         datum.y = point.y;
     }

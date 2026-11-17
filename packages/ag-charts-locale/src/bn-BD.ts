@@ -115,6 +115,7 @@ export const AG_CHARTS_LOCALE_BN_BD: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'সমান্তরাল চ্যানেল',
     toolbarAnnotationsDisjointChannel: 'বিচ্ছিন্ন চ্যানেল',
     toolbarAnnotationsClearAll: 'সব মুছুন',
+    toolbarAnnotationsMagnet: 'চুম্বক',
     toolbarAnnotationsFillColor: 'ফিল রঙ',
     toolbarAnnotationsLineColor: 'লাইন রঙ',
     toolbarAnnotationsLineStyle: 'লাইন স্টাইল',

@@ -67,6 +67,11 @@ const toolbarButtons: AgAnnotationsToolbarButton[] = [
         value: 'measurer-menu',
     },
     {
+        icon: 'magnet',
+        tooltip: 'toolbarAnnotationsMagnet',
+        value: 'magnet',
+    },
+    {
         icon: 'delete',
         tooltip: 'toolbarAnnotationsClearAll',
         value: 'clear',

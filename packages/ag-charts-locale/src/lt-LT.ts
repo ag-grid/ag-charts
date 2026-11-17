@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_LT_LT: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Lygiagretus kanalas',
     toolbarAnnotationsDisjointChannel: 'Atskirtas kanalas',
     toolbarAnnotationsClearAll: 'Išvalyti viską',
+    toolbarAnnotationsMagnet: 'Magnetas',
     toolbarAnnotationsFillColor: 'Užpildo spalva',
     toolbarAnnotationsLineColor: 'Linijos spalva',
     toolbarAnnotationsLineStyle: 'Linijos stilius',

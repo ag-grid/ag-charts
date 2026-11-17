@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'ช่องขนาน',
     toolbarAnnotationsDisjointChannel: 'ช่องแยก',
     toolbarAnnotationsClearAll: 'ล้างทั้งหมด',
+    toolbarAnnotationsMagnet: 'แม่เหล็ก',
     toolbarAnnotationsFillColor: 'สีพื้น',
     toolbarAnnotationsLineColor: 'สีเส้น',
     toolbarAnnotationsLineStyle: 'รูปแบบเส้น',

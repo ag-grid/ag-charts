@@ -179,6 +179,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Yukarı Ok',
     toolbarAnnotationsCallout: 'Balon',
     toolbarAnnotationsClearAll: 'Hepsini Temizle',
+    toolbarAnnotationsMagnet: 'Mıknatıs',
     toolbarAnnotationsComment: 'Yorum',
     toolbarAnnotationsDatePriceRange: 'Tarih ve Fiyat',
     toolbarAnnotationsDateRange: 'Tarih Aralığı',

@@ -179,6 +179,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'חץ למעלה',
     toolbarAnnotationsCallout: 'הערה',
     toolbarAnnotationsClearAll: 'נקה הכל',
+    toolbarAnnotationsMagnet: 'מגנט',
     toolbarAnnotationsComment: 'תגובה',
     toolbarAnnotationsDatePriceRange: 'תאריך ומחיר',
     toolbarAnnotationsDateRange: 'טווח תאריכים',

@@ -5,7 +5,7 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
-import { SNAP_TO_ANGLE, translate } from '../utils/coords';
+import { SNAP_TO_ANGLE, magnetTranslation, translate } from '../utils/coords';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateChannelText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
@@ -92,7 +92,9 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelDatum> {
             angle: SNAP_TO_ANGLE,
         };
 
-        const points = translate(vectors, offset, context, {
+        const magnetised = snapping ? offset : magnetTranslation(vectors[activeHandle], offset, context);
+
+        const points = translate(vectors, magnetised, context, {
             overflowContinuous: this.overflowContinuous,
             translateVectors,
             invertYVectors,

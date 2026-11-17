@@ -179,6 +179,7 @@ export const AG_CHARTS_LOCALE_ES_ES: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Flecha Arriba',
     toolbarAnnotationsCallout: 'Anotación',
     toolbarAnnotationsClearAll: 'Borrar todo',
+    toolbarAnnotationsMagnet: 'Imán',
     toolbarAnnotationsComment: 'Comentario',
     toolbarAnnotationsDatePriceRange: 'Fecha y Precio',
     toolbarAnnotationsDateRange: 'Rango de fechas',

@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Paralleelkanal',
     toolbarAnnotationsDisjointChannel: 'Eraldiseisev kanal',
     toolbarAnnotationsClearAll: 'Tühjenda kõik',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsFillColor: 'Täitevärv',
     toolbarAnnotationsLineColor: 'Joone värv',
     toolbarAnnotationsLineStyle: 'Joone stiil',

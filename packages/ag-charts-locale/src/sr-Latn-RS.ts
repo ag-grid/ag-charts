@@ -113,6 +113,7 @@ export const AG_CHARTS_LOCALE_SR_LATN_RS: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Paralelni kanal',
     toolbarAnnotationsDisjointChannel: 'Razdvojeni kanal',
     toolbarAnnotationsClearAll: 'Obriši sve',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsFillColor: 'Boja popune',
     toolbarAnnotationsLineColor: 'Boja linije',
     toolbarAnnotationsLineStyle: 'Stil linije',

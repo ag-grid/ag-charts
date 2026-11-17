@@ -179,6 +179,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Pil opp',
     toolbarAnnotationsCallout: 'Notat',
     toolbarAnnotationsClearAll: 'Fjern alt',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsComment: 'Kommenter',
     toolbarAnnotationsDatePriceRange: 'Dato og pris',
     toolbarAnnotationsDateRange: 'Datoområde',

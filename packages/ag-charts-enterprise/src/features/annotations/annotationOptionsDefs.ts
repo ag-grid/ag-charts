@@ -241,6 +241,11 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
         axes: union('x', 'y', 'xy'),
         ...undocumentedDefs({ snap: boolean, snapInterval: positiveNumberNonZero }),
     },
+    magnet: {
+        enabled: boolean,
+        mode: union('weak', 'strong'),
+        range: positiveNumber,
+    },
     toolbar: {
         enabled: boolean,
         padding: positiveNumber,
@@ -265,6 +270,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
                     'comment',
                     'callout',
                     'note',
+                    'magnet',
                     'clear'
                 ),
             },

@@ -179,6 +179,7 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Pfeil nach oben',
     toolbarAnnotationsCallout: 'Hinweis',
     toolbarAnnotationsClearAll: 'Alles löschen',
+    toolbarAnnotationsMagnet: 'Magnet',
     toolbarAnnotationsComment: 'Kommentar',
     toolbarAnnotationsDatePriceRange: 'Datum und Preis',
     toolbarAnnotationsDateRange: 'Datumsbereich',

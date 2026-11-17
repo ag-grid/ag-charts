@@ -1611,7 +1611,8 @@ export abstract class Series<
         );
 
         const { x, y } = point;
-        const key = JSON.stringify({ x, y, maxDistance, selectedPickModes });
+        const pickOutsideMinorAxis = intent === 'magnet';
+        const key = JSON.stringify({ x, y, maxDistance, selectedPickModes, pickOutsideMinorAxis });
         if (this._pickNodeCache.has(key)) {
             return this._pickNodeCache.get(key);
         }
@@ -1641,7 +1642,7 @@ export abstract class Series<
                     const closest =
                         pickModeAxis == null
                             ? undefined
-                            : this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category');
+                            : this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category', pickOutsideMinorAxis);
                     if (closest != null) picks = [closest];
                     break;
                 }
@@ -1704,7 +1705,11 @@ export abstract class Series<
         }
     }
 
-    protected pickNodeMainAxisFirst(_point: Point, _requireCategoryAxis: boolean): SeriesNodePickMatch | undefined {
+    protected pickNodeMainAxisFirst(
+        _point: Point,
+        _requireCategoryAxis: boolean,
+        _pickOutsideMinorAxis: boolean
+    ): SeriesNodePickMatch | undefined {
         // Override point for subclasses - but if this is invoked, the subclass specified it wants
         // to use this feature.
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
