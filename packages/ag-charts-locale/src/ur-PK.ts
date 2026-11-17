@@ -174,7 +174,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     seriesHistogramTooltipFrequency: 'تعدد',
     seriesHistogramTooltipMean: '${yName} (اوسط)',
     seriesHistogramTooltipSum: '${yName} (مجموعہ)',
-    seriesMapMarkerTooltipCoordinates: '${lat}° ${latDirection}, ${lon}° ${lonDirection}',
+    seriesMapMarkerTooltipCoordinates: '${lat}° ${latDirection}، ${lon}° ${lonDirection}',
     seriesMapMarkerTooltipNorth: 'ش',
     seriesMapMarkerTooltipSouth: 'ج',
     seriesMapMarkerTooltipEast: 'مش',

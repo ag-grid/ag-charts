@@ -156,11 +156,12 @@ describe('MapMarkerSeries', () => {
             });
         };
 
-        it('labels negative longitudes W and positive longitudes E', async () => {
-            expect(await getHeadings()).toEqual(['50.0000° N, 8.0000° W', '50.0000° S, 8.0000° E']);
-        });
-
         it.each([
+            {
+                name: 'labels negative longitudes W and positive longitudes E',
+                localeText: undefined,
+                expected: ['50.0000° N, 8.0000° W', '50.0000° S, 8.0000° E'],
+            },
             {
                 name: 'translates the hemisphere labels',
                 localeText: AG_CHARTS_LOCALE_FR_FR,
