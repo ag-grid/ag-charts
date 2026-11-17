@@ -2204,4 +2204,36 @@ describe('SunburstSeries', () => {
             });
         });
     });
+
+    describe('AG-18209 gap', () => {
+        it('separates neighbouring levels only, leaving the outermost arcs in place', async () => {
+            const gap = 8;
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: [
+                        { name: 'Branch', children: [{ name: 'Leaf', size: 10 }] },
+                        { name: 'Root leaf', size: 6 },
+                        { name: 'Tiny parent', size: 5, children: [{ name: 'Tiny child', size: 0.0001 }] },
+                        { name: 'Zero parent', size: 5, children: [{ name: 'Zero child', size: 0 }] },
+                    ],
+                    series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', gap, strokeWidth: 0 }],
+                    animation: { enabled: false },
+                })
+            );
+
+            const sectors = getSeriesSelectionNodes<Sector<{ datum?: { name: string } }>>(chart, 'datumSelection');
+            const sector = (name: string) => sectors.find((s) => s.datum?.datum?.name === name)!;
+            const insets = (name: string) => [sector(name).innerEdgeInset, sector(name).outerEdgeInset];
+
+            expect(insets('Branch')).toEqual([0, gap / 2]);
+            expect(insets('Leaf')).toEqual([gap / 2, 0]);
+            expect(insets('Root leaf')).toEqual([0, 0]);
+            expect(insets('Tiny parent')).toEqual([0, gap / 2]);
+            expect(sector('Tiny child').path.isEmpty()).toBe(true);
+            expect(insets('Zero parent')).toEqual([0, 0]);
+            for (const s of sectors.filter((node) => node.visible)) {
+                expect(s.radialEdgeInset).toBe(gap / 2);
+            }
+        });
+    });
 });

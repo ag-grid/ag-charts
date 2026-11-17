@@ -1781,6 +1781,108 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('AG-18209 gap', () => {
+        const sectorFor = (datumIndex: number) =>
+            getSeriesSelectionNodes<Sector<{ datumIndex: number }>>(chart, 'itemSelection').find(
+                (sector) => sector.datum?.datumIndex === datumIndex
+            )!;
+
+        const createDonuts = async (data: object[], ...series: Partial<AgDonutSeriesOptions>[]) => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data,
+                    series: series.map(
+                        (s) =>
+                            ({ type: 'donut', angleKey: 'value', legendItemKey: 'name', ...s }) as AgDonutSeriesOptions
+                    ),
+                })
+            );
+        };
+
+        it('separates the sides only, leaving touching donuts at their full ring width', async () => {
+            const data = [
+                { name: 'a', value: 1 },
+                { name: 'b', value: 2 },
+                { name: 'c', value: 3 },
+            ];
+            const ring = { gap: 10, stroke: 'white', strokeWidth: 4 };
+            await createDonuts(
+                data,
+                { ...ring, innerRadiusRatio: 0.5, outerRadiusRatio: 0.75 },
+                { ...ring, innerRadiusRatio: 0.75 }
+            );
+
+            for (const seriesIndex of [0, 1]) {
+                for (const sector of getSeriesSelectionNodes<Sector>(chart, 'itemSelection', seriesIndex)) {
+                    expect(sector.innerEdgeInset).toBe(2);
+                    expect(sector.outerEdgeInset).toBe(2);
+                    expect(sector.radialEdgeInset).toBe(7);
+                }
+            }
+        });
+
+        it('does not draw a sector narrower than the gap, but keeps its neighbours inset and its pick area', async () => {
+            const gap = 20;
+            const clicked: string[] = [];
+            await createDonuts(
+                [
+                    { name: 'a', value: 50 },
+                    { name: 'tiny', value: 0.01 },
+                    { name: 'b', value: 50 },
+                ],
+                { gap, strokeWidth: 0, listeners: { seriesNodeClick: (event) => clicked.push(event.datum.name) } }
+            );
+
+            const [before, tiny, after] = [0, 1, 2].map(sectorFor);
+            expect(tiny.path.isEmpty()).toBe(true);
+            expect(before.path.isEmpty()).toBe(false);
+            expect(after.path.isEmpty()).toBe(false);
+            expect(before.radialEdgeInset).toBe(gap / 2);
+            expect(after.radialEdgeInset).toBe(gap / 2);
+
+            const angle = (tiny.startAngle + tiny.endAngle) / 2;
+            const radius = (tiny.innerRadius + tiny.outerRadius) / 2;
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(
+                tiny,
+                tiny.centerX + radius * Math.cos(angle),
+                tiny.centerY + radius * Math.sin(angle)
+            );
+            await clickAction(canvasX, canvasY)(chart);
+            expect(clicked).toEqual(['tiny']);
+        });
+
+        it('closes up to a single gap around a zero-value sector', async () => {
+            await createDonuts(
+                [
+                    { name: 'a', value: 1 },
+                    { name: 'zero', value: 0 },
+                    { name: 'b', value: 1 },
+                ],
+                { gap: 10 }
+            );
+
+            expect(sectorFor(0).endAngle).toBeCloseTo(sectorFor(2).startAngle, 10);
+        });
+
+        it('closes up to a single gap when a legend item is hidden', async () => {
+            await createDonuts(
+                [
+                    { name: 'a', value: 1 },
+                    { name: 'hidden', value: 1 },
+                    { name: 'b', value: 1 },
+                ],
+                { gap: 10 }
+            );
+
+            const legendItem = [...iterLegendMarkerLabels(chart)].find(({ text }) => text === 'hidden')!;
+            await clickAction(legendItem.x, legendItem.y)(chart);
+            await waitForChartStability(chart);
+
+            expect(sectorFor(0).endAngle).toBeCloseTo(sectorFor(2).startAngle, 10);
+        });
+    });
+
     describe('inner circle with rounded corners', () => {
         const data = [
             { asset: 'Stocks', amount: 30 },
