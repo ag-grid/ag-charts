@@ -204,8 +204,6 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
             type: 'ohlc',
             ...common,
             ...keys,
-            crosshairSnapTo: ['open', 'high', 'low', 'close'],
-            crosshairSnapMode: 'nearest',
         } satisfies AgOhlcSeriesOptions,
     ];
 }
@@ -229,8 +227,6 @@ function createPriceSeriesHLC(common: PriceSeriesCommon, { xKey, highKey, lowKey
             highKey,
             lowKey,
             closeKey,
-            crosshairSnapTo: ['high', 'low', 'close'],
-            crosshairSnapMode: 'nearest',
         } satisfies AgHlcSeriesOptions,
     ];
 }
@@ -244,8 +240,6 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
             yHighKey: highKey,
             yLowKey: lowKey,
             tooltip: { range: 'nearest' },
-            crosshairSnapTo: ['yLow', 'yHigh'],
-            crosshairSnapMode: 'nearest',
         } satisfies AgRangeBarSeriesOptions,
     ];
 }
@@ -256,8 +250,6 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
             type: 'candlestick',
             ...common,
             ...keys,
-            crosshairSnapTo: ['open', 'high', 'low', 'close'],
-            crosshairSnapMode: 'nearest',
         } satisfies AgCandlestickSeriesOptions,
     ];
 }

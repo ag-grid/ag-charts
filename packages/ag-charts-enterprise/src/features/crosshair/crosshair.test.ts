@@ -1762,23 +1762,35 @@ describe('Crosshair', () => {
             };
 
             it.each(['number', 'log'] as const)(
-                'rounds a highlighted datum on a %s axis with no snap setting',
+                'rounds the pointer rather than the highlighted datum on a %s axis with no snap setting',
                 async (type) => {
                     chart = await createEnterpriseChart(roundedLine({ snapInterval: 25 }, type));
-                    await hoverDatum('B', 137);
-                    expectLineAt('left', 125);
+                    await hoverDatum('B', 105);
+                    expectLineAt('left', 100);
                 }
             );
 
             it.each<[string, boolean | undefined]>([
                 ['no snap setting', undefined],
                 ['snap true', true],
-            ])('rounds the crosshairSnapTo close of a candle with %s', async (_name, snap) => {
+            ])('rounds the pointer rather than the crosshairSnapTo close of a candle with %s', async (_name, snap) => {
                 chart = await createEnterpriseChart(
                     candleOptions([candlestick({ crosshairSnapTo: ['close'] })], candleAxes({ snap, snapInterval: 25 }))
                 );
                 await hoverDatum(CANDLES[1].date, 120);
-                expectLineAt('left', 100);
+                expectLineAt('left', 125);
+            });
+
+            it('never rounds to a value outside the log axis domain', async () => {
+                chart = await createEnterpriseChart({
+                    ...roundedLine({ snapInterval: 10 }, 'log'),
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'log', position: 'left', min: 1, crosshair: { snapInterval: 10 } },
+                    },
+                });
+                await hoverDatum('B', 3);
+                expectLineAt('left', 10);
             });
 
             it('rounds the pointer over an empty area', async () => {
@@ -1794,8 +1806,8 @@ describe('Crosshair', () => {
                     ...roundedLine({}),
                     theme: { overrides: { common: { axes: { number: { crosshair: { snapInterval: 25 } } } } } },
                 });
-                await hoverDatum('B', 137);
-                expectLineAt('left', 125);
+                await hoverDatum('B', 105);
+                expectLineAt('left', 100);
             });
 
             it('follows the pointer without rounding with snap false', async () => {
@@ -1841,19 +1853,6 @@ describe('Crosshair', () => {
                 });
                 await hoverDatum(date, 8);
                 expectLineAt('bottom', expected);
-            });
-
-            it('draws one line for values that round to the same tick', async () => {
-                chart = await createEnterpriseChart(
-                    candleOptions([candlestick()], candleAxes({ snap: true, snapInterval: 15 }))
-                );
-                await hoverDatum(CANDLES[1].date, 120);
-                const byPosition = (a: number, b: number) => a - b;
-                const positions = getCrosshairLines(chart, 'left').map(({ position }) => position);
-                expect(positions.toSorted(byPosition)).toEqual(
-                    [90, 105, 135].map((value) => axisPositionOf('left', value)).toSorted(byPosition)
-                );
-                expect(visibleLabelCount('left')).toBe(3);
             });
 
             it('formats the rounded value with the axis crosshair label format', async () => {

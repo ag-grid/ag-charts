@@ -35,7 +35,7 @@ export interface AgNumericAxisCrosshairOptions<
     LabelType = AgCrosshairLabel<string, ContextDefault>,
 > extends AgCrosshairOptions<LabelType> {
     /**
-     * Rounds the crosshair to the nearest multiple of this step, in the units of the axis. Turns snapping on when `snap` is unset.
+     * Rounds the pointer position to the nearest multiple of this step, in the units of the axis, instead of snapping to the highlighted item. Turns snapping on when `snap` is unset.
      */
     snapInterval?: number;
 }
@@ -44,7 +44,7 @@ export interface AgTimeAxisCrosshairOptions<
     LabelType = AgCrosshairLabel<string, ContextDefault>,
 > extends AgCrosshairOptions<LabelType> {
     /**
-     * Rounds the crosshair to the nearest interval, aligned the same way as the axis `interval.step`. A unit keyword, an object describing the interval, or a number of milliseconds. Turns snapping on when `snap` is unset.
+     * Rounds the pointer position to the nearest interval, aligned the same way as the axis `interval.step`, instead of snapping to the highlighted item. A unit keyword, an object describing the interval, or a number of milliseconds. Turns snapping on when `snap` is unset.
      */
     snapInterval?: AgTimeInterval | AgTimeIntervalUnit | number;
 }
