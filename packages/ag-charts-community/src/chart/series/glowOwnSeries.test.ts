@@ -176,13 +176,14 @@ describe('a highlight glow of the sectors of a donut', () => {
         };
     };
 
-    it('does not cover the inner circle of its own series, and shows beside the ring', async () => {
+    // The inner circle lies beneath the glow overlay, and only labels and error bars cut a series' own glow.
+    it('covers the inner circle of its own series, and shows beside the ring', async () => {
         const without = await hoverRing(undefined);
         chart.destroy();
         const withGlow = await hoverRing(GLOW);
 
         expect(without.inner).toEqual(STROKE);
-        expect(withGlow.inner).toEqual(without.inner);
+        expect(withGlow.inner).toEqual(GREEN);
         expect(without.outside).not.toEqual(GREEN);
         expect(withGlow.outside).toEqual(GREEN);
     });
