@@ -5,8 +5,6 @@
     "sourceCommit": "91357426308dfceff313fc6276c442b318963d72",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",
-    "vendored": [
-        "web-analytics/topology.ts"
-    ],
+    "vendored": ["web-analytics/topology.ts"],
     "dist": "dist"
 }
