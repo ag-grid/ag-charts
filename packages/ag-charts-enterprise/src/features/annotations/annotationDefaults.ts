@@ -18,7 +18,6 @@ import {
 } from './annotationTypes';
 import type { AnnotationDatum } from './annotationsSuperTypes';
 import { hasLineStyle, hasLineText } from './utils/has';
-import { getLineDashName } from './utils/line';
 import { setColor, setFontSize, setLineStyle, setLineTextPosition } from './utils/styles';
 import { isFibonacciType } from './utils/types';
 
@@ -163,12 +162,11 @@ export class AnnotationDefaults implements MementoOriginator<DefaultsMemento> {
     }
 
     setDefaultLineStyleType(type: HasLineStyleAnnotationType, lineStyleType: AnnotationLineStyleType | undefined) {
-        const lineDash = lineStyleType != null ? getLineDashName(lineStyleType) : undefined;
         const defaultStyle = this.lineStyles.get(type);
         if (defaultStyle) {
-            defaultStyle.lineDash = lineDash;
+            defaultStyle.lineDash = lineStyleType;
         } else {
-            this.lineStyles.set(type, { lineDash });
+            this.lineStyles.set(type, { lineDash: lineStyleType });
         }
     }
 

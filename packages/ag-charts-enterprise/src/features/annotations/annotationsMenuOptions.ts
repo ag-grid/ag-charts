@@ -109,8 +109,8 @@ export const LINE_STROKE_WIDTH_ITEMS: _ModuleSupport.MenuItem<number>[] = [
 
 export const LINE_STYLE_TYPE_ITEMS: _ModuleSupport.MenuItem<AnnotationLineStyleType>[] = [
     { icon: 'line-style-solid', altText: 'iconAltTextLineStyleSolid', value: 'solid' },
-    { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dashed' },
-    { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dotted' },
+    { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dash' },
+    { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dot' },
 ];
 
 export const TEXT_SIZE_ITEMS: _ModuleSupport.MenuItem<number>[] = [

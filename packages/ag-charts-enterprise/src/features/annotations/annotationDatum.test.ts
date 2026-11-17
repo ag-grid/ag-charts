@@ -125,6 +125,14 @@ const withoutPositions = (annotation: object) =>
 describe('Annotation datum lifecycle', () => {
     setupMockConsole();
     let chart: any;
+
+    const stateOf = () => chart.getState().annotations as any[];
+
+    /** The lines the scene draws with a dash, with the solid ones left out. */
+    const drawnLines = () =>
+        findSceneNodes(chart, (node): node is CollidableLine<any> => node instanceof CollidableLine).filter(
+            (line) => !Array.isArray(line.lineDash) || line.lineDash.some((length) => length > 0)
+        );
     const ctx = setupMockCanvas();
 
     async function prepareChart(annotations: AgAnnotation[], baseOptions = ANNOTATIONS_EXAMPLE_OPTIONS) {
@@ -192,13 +200,6 @@ describe('Annotation datum lifecycle', () => {
     describe('named line dash', () => {
         const LINE = { ...MINIMAL_ANNOTATIONS.line, lineDash: 'long-dash-dot-dot', strokeWidth: 3 } as AgAnnotation;
 
-        const stateOf = () => chart.getState().annotations as any[];
-
-        /** The lines the scene draws with a dash, with the solid ones left out. */
-        const drawnLines = () =>
-            findSceneNodes(chart, (node): node is CollidableLine<any> => node instanceof CollidableLine).filter(
-                (line) => !Array.isArray(line.lineDash) || line.lineDash.some((length) => length > 0)
-            );
         const drawnDashes = () => drawnLines().map((line) => line.lineDash);
 
         it('keeps the name in the state and draws it scaled by the strokeWidth', async () => {
@@ -251,12 +252,6 @@ describe('Annotation datum lifecycle', () => {
         // Saved state predates the type change, so it is not typed as the options are.
         const legacy = (annotation: object) => annotation as unknown as AgAnnotation;
         const LINE = { ...MINIMAL_ANNOTATIONS.line, strokeWidth: 2 };
-
-        const stateOf = () => chart.getState().annotations as any[];
-        const drawnLines = () =>
-            findSceneNodes(chart, (node): node is CollidableLine<any> => node instanceof CollidableLine).filter(
-                (line) => !Array.isArray(line.lineDash) || line.lineDash.some((length) => length > 0)
-            );
 
         it.each([
             ['solid', 'solid', undefined],
@@ -421,7 +416,7 @@ describe('Annotation datum lifecycle', () => {
 
         it('serialises a line style picked from the toolbar', async () => {
             await selectHorizontalLine();
-            await pick('Line Style', menuRowByValue('dashed'));
+            await pick('Line Style', menuRowByValue('dash'));
 
             const [annotation] = chart.getState().annotations;
             expect(annotation).toMatchObject({ type: 'horizontal-line', lineDash: 'dash' });
@@ -429,7 +424,7 @@ describe('Annotation datum lifecycle', () => {
 
         it('replaces a custom line dash when a line style is picked from the toolbar', async () => {
             await selectHorizontalLine({ ...MINIMAL_ANNOTATIONS['horizontal-line'], lineDash: [10, 2] });
-            await pick('Line Style', menuRowByValue('dotted'));
+            await pick('Line Style', menuRowByValue('dot'));
 
             const [annotation] = chart.getState().annotations;
             expect(annotation).toMatchObject({ type: 'horizontal-line', lineDash: 'dot' });

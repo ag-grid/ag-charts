@@ -12,21 +12,10 @@ import type { AgLineDashName } from 'ag-charts-types';
 
 import type { AnnotationLineStyleType } from '../annotationTypes';
 
-/** The stock dash name that stands for each of the line styles the toolbar and settings dialog offer. */
-const LINE_STYLE_DASH_NAMES: Record<AnnotationLineStyleType, AgLineDashName> = {
-    solid: 'solid',
-    dashed: 'dash',
-    dotted: 'dot',
-};
-
-export function getLineDashName(lineStyle: AnnotationLineStyleType) {
-    return LINE_STYLE_DASH_NAMES[lineStyle];
-}
-
-/** The line style that a `lineDash` shows as in the toolbar and settings dialog: any other dash counts as dashed. */
+/** The line style that a `lineDash` shows as in the toolbar and settings dialog: any other dash counts as `dash`. */
 export function getLineStyle(lineDash?: PixelSize[] | AgLineDashName): AnnotationLineStyleType {
     if (lineDash == null || lineDash === 'solid') return 'solid';
-    return lineDash === 'dot' ? 'dotted' : 'dashed';
+    return lineDash === 'dot' ? 'dot' : 'dash';
 }
 
 export interface LineStyleSource {

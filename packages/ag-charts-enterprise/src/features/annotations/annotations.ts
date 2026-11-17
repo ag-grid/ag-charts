@@ -67,7 +67,6 @@ import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } fro
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
-import { getLineDashName } from './utils/line';
 import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
@@ -998,7 +997,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private setLineStyleTypeAndDefault(datumType: HasLineStyleAnnotationType, styleType: AnnotationLineStyleType) {
-        this.state.transition('lineStyle', { lineDash: getLineDashName(styleType) });
+        this.state.transition('lineStyle', { lineDash: styleType });
         this.defaults.setDefaultLineStyleType(datumType, styleType);
         this.recordActionAfterNextUpdate(`Change ${datumType} line style to ${styleType}`, ['annotations', 'defaults']);
     }

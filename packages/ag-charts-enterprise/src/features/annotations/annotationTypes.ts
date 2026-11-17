@@ -1,7 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import type { BBox, Logger, Point } from 'ag-charts-core';
-import type { AgLineDashName } from 'ag-charts-types';
-import type { AgAnnotationFollow, AgNumericValue } from 'ag-charts-types';
+import type { AgAnnotationFollow, AgLineDashName, AgNumericValue } from 'ag-charts-types';
 
 import type { PointType } from './utils/scale';
 
@@ -142,7 +141,7 @@ export interface FibonacciAnnotationToolbarOptionsType {
 }
 
 /** The line styles the toolbar and settings dialog offer, each standing for a stock dash name. */
-export type AnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';
+export type AnnotationLineStyleType = 'solid' | 'dash' | 'dot';
 
 export interface AnnotationLineStyle {
     lineDash?: AgLineDashName;

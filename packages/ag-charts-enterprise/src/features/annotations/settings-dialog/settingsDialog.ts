@@ -540,8 +540,8 @@ export class AnnotationSettingsDialog extends Dialog {
             label: 'dialogInputLineStyle',
             options: [
                 { icon: 'line-style-solid', altText: 'iconAltTextLineStyleSolid', value: 'solid' },
-                { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dashed' },
-                { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dotted' },
+                { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dash' },
+                { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dot' },
             ],
             value: lineStyle,
             onChange,
