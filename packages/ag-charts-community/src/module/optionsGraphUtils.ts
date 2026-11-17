@@ -72,6 +72,9 @@ export const OVERRIDES_EDGE = 'override';
 export const USER_OPTIONS_EDGE = 'user';
 export const USER_PARTIAL_OPTIONS_EDGE = 'userPartial';
 
+// A dash name replaces the whole array, so the elements of an array at any of these edges are not merged over it.
+export const NAMED_DASH_PRUNE_EDGES = [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE];
+
 // The edge that connects an option key, whose value is an operation, to its operation.
 export const OPERATION_EDGE = 'operation';
 export const OPERATION_VALUE_EDGE = 'operationValue';

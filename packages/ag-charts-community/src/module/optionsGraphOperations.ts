@@ -26,6 +26,7 @@ import {
 import {
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,
+    NAMED_DASH_PRUNE_EDGES,
     OVERRIDES_EDGE,
     type OptionsGraphInterface,
     PATH_EDGE,
@@ -33,7 +34,6 @@ import {
     RESOLVED_TO_BRANCH,
     UNRESOLVABLE_PATH,
     USER_OPTIONS_EDGE,
-    USER_PARTIAL_OPTIONS_EDGE,
     type VertexInterface,
     getPathLastIndex,
     getPathSafe,
@@ -1069,7 +1069,7 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
 
     const winner = userOption ?? overrideOption;
     if (isLineDashName(winner)) {
-        graph.prune(vertex, [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE]);
+        graph.prune(vertex, NAMED_DASH_PRUNE_EDGES);
         return scaleLineDashName(winner, width);
     }
 

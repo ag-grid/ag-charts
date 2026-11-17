@@ -29,6 +29,7 @@ import {
     CHILDREN_SOURCE_EDGE,
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,
+    NAMED_DASH_PRUNE_EDGES,
     OPERATION_EDGE,
     OPERATION_VALUE_EDGE,
     OVERRIDES_EDGE,
@@ -1255,16 +1256,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         const isNamedDash = this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
         this.resolveVertexAutoEnable(vertex, object, pathArray);
-        this.resolveVertexChildren(vertex, object, isNamedDash ? OptionsGraph.NAMED_DASH_PRUNE : prune);
+        this.resolveVertexChildren(vertex, object, isNamedDash ? NAMED_DASH_PRUNE_EDGES : prune);
     }
-
-    // A dash name replaces the whole array, so the elements of an array at any other edge are not merged over it.
-    private static readonly NAMED_DASH_PRUNE = [
-        DEFAULTS_EDGE,
-        OVERRIDES_EDGE,
-        USER_OPTIONS_EDGE,
-        USER_PARTIAL_OPTIONS_EDGE,
-    ];
 
     /**
      * The dash name at an option that has no `$applyLineDash` theme default to convert it, scaled by the sibling
