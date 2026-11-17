@@ -26,6 +26,7 @@ import { getLegendItemNodes, getSeriesSelectionNodes } from '../../test/seriesAc
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    chartPixelAt,
     clickAction,
     compareImageSnapshot,
     createChart,
@@ -1822,6 +1823,37 @@ describe('DonutSeries', () => {
             }
         });
 
+        it('paints the same gap whatever the stroke width', async () => {
+            const gap = 10;
+            const paintedGap = async (strokeWidth: number) => {
+                chart?.destroy();
+                await createDonuts(
+                    [
+                        { name: 'a', value: 1 },
+                        { name: 'b', value: 1 },
+                    ],
+                    { gap, strokeWidth, fills: ['#ff0000', '#0000ff'], strokes: ['#00ff00', '#00ff00'] }
+                );
+                const sector = sectorFor(0);
+                const { canvasX, canvasY } = Transformable.toCanvasPoint(
+                    sector,
+                    sector.centerX,
+                    sector.centerY - (sector.innerRadius + sector.outerRadius) / 2
+                );
+                const background = chartPixelAt(chart, 1, 1);
+                let count = 0;
+                for (let x = canvasX - 3 * gap; x <= canvasX + 3 * gap; x++) {
+                    if (chartPixelAt(chart, x, canvasY).every((channel, i) => channel === background[i])) count++;
+                }
+                return count;
+            };
+
+            const withoutStroke = await paintedGap(0);
+            const withStroke = await paintedGap(6);
+            expect(Math.abs(withoutStroke - gap)).toBeLessThanOrEqual(1);
+            expect(withStroke).toBe(withoutStroke);
+        });
+
         it('does not draw a sector narrower than the gap, but keeps its neighbours inset and its pick area', async () => {
             const gap = 20;
             const clicked: string[] = [];
@@ -1852,34 +1884,27 @@ describe('DonutSeries', () => {
             expect(clicked).toEqual(['tiny']);
         });
 
-        it('closes up to a single gap around a zero-value sector', async () => {
+        it.each([
+            { absent: 'a zero-value sector', value: 0, hideInLegend: false },
+            { absent: 'a sector hidden in the legend', value: 1, hideInLegend: true },
+        ])('closes up to a single gap around $absent', async ({ value, hideInLegend }) => {
+            const gap = 10;
             await createDonuts(
                 [
                     { name: 'a', value: 1 },
-                    { name: 'zero', value: 0 },
+                    { name: 'absent', value },
                     { name: 'b', value: 1 },
                 ],
-                { gap: 10 }
+                { gap, strokeWidth: 0 }
             );
+            if (hideInLegend) {
+                const legendItem = [...iterLegendMarkerLabels(chart)].find(({ text }) => text === 'absent')!;
+                await clickAction(legendItem.x, legendItem.y)(chart);
+                await waitForChartStability(chart);
+            }
 
             expect(sectorFor(0).endAngle).toBeCloseTo(sectorFor(2).startAngle, 10);
-        });
-
-        it('closes up to a single gap when a legend item is hidden', async () => {
-            await createDonuts(
-                [
-                    { name: 'a', value: 1 },
-                    { name: 'hidden', value: 1 },
-                    { name: 'b', value: 1 },
-                ],
-                { gap: 10 }
-            );
-
-            const legendItem = [...iterLegendMarkerLabels(chart)].find(({ text }) => text === 'hidden')!;
-            await clickAction(legendItem.x, legendItem.y)(chart);
-            await waitForChartStability(chart);
-
-            expect(sectorFor(0).endAngle).toBeCloseTo(sectorFor(2).startAngle, 10);
+            expect(sectorFor(0).radialEdgeInset + sectorFor(2).radialEdgeInset).toBe(gap);
         });
     });
 
