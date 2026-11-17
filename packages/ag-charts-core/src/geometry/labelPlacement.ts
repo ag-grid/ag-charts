@@ -505,6 +505,8 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
     readonly candidate?: PositionedLabelCandidate;
     /** How the datum's {@link PointLabelDatum.stack} was fitted to the chosen candidate. */
     readonly stack?: FittedLabelStack;
+    /** The chosen candidate was slid off its own box to clear an obstacle. */
+    readonly nudged?: boolean;
 }
 
 /**
@@ -733,6 +735,8 @@ interface PooledLabelObstacle {
     suspended: boolean;
     seriesOrder: number;
     poolIndex: number;
+    /** Where {@link placed} sits in its series' result array. */
+    resultSlot: number;
 }
 
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
@@ -1539,7 +1543,7 @@ function placeAll(
                 labels.push(placed);
                 if (useIndex && d.obstacle !== false) {
                     // Every placed label is a fixed obstacle for the labels resolved after it.
-                    insertLabelObstacle(placed);
+                    insertLabelObstacle(placed, labels.length - 1);
                 }
             }
         }
@@ -1560,7 +1564,7 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 }
 
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper, which it returns. */
-function insertLabelObstacle(placed: PlacedLabel): PooledLabelObstacle {
+function insertLabelObstacle(placed: PlacedLabel, resultSlot: number): PooledLabelObstacle {
     const box = labelObstacleBox(placed);
     const { labelGroup, outranks } = placed.datum;
     let obstacle = labelObstaclePool[labelObstacleCount];
@@ -1576,6 +1580,7 @@ function insertLabelObstacle(placed: PlacedLabel): PooledLabelObstacle {
             suspended: false,
             seriesOrder: candidateSeriesOrder,
             poolIndex: labelObstacleCount,
+            resultSlot,
         };
         labelObstaclePool.push(obstacle);
     } else {
@@ -1585,6 +1590,7 @@ function insertLabelObstacle(placed: PlacedLabel): PooledLabelObstacle {
         obstacle.placed = placed;
         obstacle.suspended = false;
         obstacle.seriesOrder = candidateSeriesOrder;
+        obstacle.resultSlot = resultSlot;
     }
     labelObstacleCount++;
     const { rotation } = placed;
@@ -1622,7 +1628,7 @@ function collectSwapBlocker(o: LabelObstacle): boolean | void {
 /** How far a label landed from its first-choice candidate; a dropped label costs the most. */
 function displacementCost(placed: PlacedLabel | undefined, first: BoxBounds): number {
     if (placed == null) return Infinity;
-    if (placed.candidate != null && boxesEqual(placed.candidate.box, first)) return 0;
+    if (placed.nudged !== true && placed.candidate != null && boxesEqual(placed.candidate.box, first)) return 0;
     const box = labelObstacleBox(placed);
     return Math.hypot(
         box.x + box.width / 2 - (first.x + first.width / 2),
@@ -1697,7 +1703,7 @@ function swapForFirstChoice(
         blocker.suspended = false;
         return placed;
     }
-    const swappedObstacle = insertLabelObstacle(swapped);
+    const swappedObstacle = insertLabelObstacle(swapped, labels.length);
     const moved = place(held.datum, held.index);
     swappedObstacle.suspended = true;
     if (
@@ -1705,8 +1711,8 @@ function swapForFirstChoice(
         !placedUncleared &&
         swapImproves(held, placed, moved, swapped, heldFirstBox, firstBox, cost + heldCost)
     ) {
-        labels[labels.indexOf(held)] = moved;
-        insertLabelObstacle(moved);
+        labels[blocker.resultSlot] = moved;
+        insertLabelObstacle(moved, blocker.resultSlot);
         return swapped;
     }
     blocker.suspended = false;
@@ -2896,8 +2902,10 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         // An overflowing stack ranks with the overflowing candidates, below any that fit truncated.
         const placeable = contained && !overflowing;
         let clear = placeable && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
+        let nudged = false;
         if (placeable && !clear && nudgeCandidate(c.slideAxis, region, inflate)) {
             clear = true;
+            nudged = true;
             offsetX += candidateBox.x - x;
             offsetY += candidateBox.y - y;
             ({ x, y } = candidateBox);
@@ -2905,7 +2913,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         if (clear) {
             if (dropped === 0) {
                 candidateOriented = false;
-                placedAtFirstChoice = ci === 0;
+                placedAtFirstChoice = ci === 0 && !nudged;
                 return {
                     index: positionedIndex,
                     text,
@@ -2921,6 +2929,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
                     candidate: c,
                     fontSize: candidateFontSize,
                     stack: candidateStack,
+                    nudged,
                 };
             }
             if (recordBest) {
