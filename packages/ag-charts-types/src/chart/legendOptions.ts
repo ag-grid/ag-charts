@@ -99,7 +99,7 @@ export interface AgChartLegendLineDisabledStyle {
     stroke?: AgCssColorOrRef;
     /** Opacity of the line stroke. */
     strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered: a stock pattern name, or an array in which every number specifies the length in pixels of alternating dashes and gaps. */
+    /** Defines how the line stroke is rendered: a stock pattern name, scaled by the width the legend line is drawn at, or an array in which every number specifies the length in pixels of alternating dashes and gaps. */
     lineDash?: PixelSize[] | AgLineDashName;
     /** The initial offset in pixels of the dash pattern. */
     lineDashOffset?: PixelSize;

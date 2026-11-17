@@ -1260,6 +1260,14 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     }
 
     /**
+     * The legend draws a toggled-off item's line at a width of its own, which no option here holds, so it scales a
+     * dash name there itself.
+     */
+    private static isLegendDisabledLineDash(pathArray: Array<string>) {
+        return pathArray.length === 5 && pathArray.slice(0, 4).join('.') === 'legend.item.line.disabledStyle';
+    }
+
+    /**
      * The dash name at an option that has no `$applyLineDash` theme default to convert it, scaled by the sibling
      * `strokeWidth`, as that operation would.
      */
@@ -1308,7 +1316,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             if (pathArray.length === 0) {
                 if (value == null) continue;
                 this.resolved = value;
-            } else if (pathLeaf === 'lineDash' && isLineDashName(value)) {
+            } else if (
+                pathLeaf === 'lineDash' &&
+                isLineDashName(value) &&
+                !OptionsGraph.isLegendDisabledLineDash(pathArray)
+            ) {
                 setPathSafe(object, pathArray, this.resolveNamedLineDash(pathArray, value));
                 return true;
             } else {

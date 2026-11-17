@@ -1000,11 +1000,6 @@ describe('ChartOptions', () => {
                     theme: { overrides: { common: { axes: { category: { crossLines: { line: { lineDash } } } } } } },
                 }),
             ],
-            [
-                'a location with no theme default',
-                'legend.item.line.disabledStyle.lineDash',
-                (lineDash) => ({ series: SERIES, legend: { item: { line: { disabledStyle: { lineDash } } } } }),
-            ],
         ];
 
         it.each(OTHER_ROUTES)('resolves a stock dash name from %s, and an array unchanged', (_, path, build) => {
@@ -1012,6 +1007,21 @@ describe('ChartOptions', () => {
             expect(optionAt(named, path)).toEqual([3, 2]);
 
             const array = prepareOptions<AgCartesianChartOptions>(build([7, 3] as never));
+            expect(optionAt(array, path)).toEqual([7, 3]);
+            expect(warnings()).toEqual([]);
+        });
+
+        it('leaves a stock dash name in the legend disabled style for the legend to scale, and an array unchanged', () => {
+            const build = (lineDash: unknown) => ({
+                series: SERIES,
+                legend: { item: { line: { disabledStyle: { lineDash } } } },
+            });
+            const path = 'legend.item.line.disabledStyle.lineDash';
+
+            const named = prepareOptions<AgCartesianChartOptions>(build('dash') as never);
+            expect(optionAt(named, path)).toBe('dash');
+
+            const array = prepareOptions<AgCartesianChartOptions>(build([7, 3]) as never);
             expect(optionAt(array, path)).toEqual([7, 3]);
             expect(warnings()).toEqual([]);
         });
