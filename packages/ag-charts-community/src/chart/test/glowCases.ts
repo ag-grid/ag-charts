@@ -54,7 +54,7 @@ export interface GlowSeriesCase {
     itemHighlightOnly?: boolean;
     /** The chart takes no other series beside this one, so no other series is unhighlighted while it is hovered. */
     singleSeries?: boolean;
-    /** The legend of the series highlights one of its items, never the series as a whole, so `highlightedSeries` is not reached. */
+    /** The legend highlights one item, never the series as a whole: `highlightedSeries` is read by an item hover, and no styler is given its state. */
     legendHighlightsItems?: boolean;
     /** The series takes no `itemStyler` where this case places it. */
     noItemStyler?: boolean;

@@ -110,10 +110,14 @@ export function describeGlowSeries(
         const hoverable = testCase.hoverable === true;
         const seriesShadowOnly = testCase.seriesShadowOnly === true;
         const noItemStyler = testCase.noItemStyler === true;
-        const steps = (testCase.highlightSteps ?? HIGHLIGHT_STATES).filter(
-            ({ onOtherSeries, hover }) =>
-                (!onOtherSeries || !testCase.singleSeries) && !(hover === 'series' && testCase.legendHighlightsItems)
-        );
+        // Where the legend highlights an item, the series bucket is read through an item hover, and no styler is given its state.
+        const itemHover = (step: HighlightStep): HighlightStep =>
+            step.hover === 'series' && testCase.legendHighlightsItems
+                ? { ...step, state: undefined, hover: true }
+                : step;
+        const steps = (testCase.highlightSteps ?? HIGHLIGHT_STATES)
+            .filter(({ onOtherSeries }) => !onOtherSeries || !testCase.singleSeries)
+            .map(itemHover);
         const stylerStates = steps.filter(({ state }) => state !== undefined);
         const bucketStates = steps.filter(({ bucket }) => !testCase.itemHighlightOnly || !bucket.endsWith('Series'));
         const glows = !seriesShadowOnly;
