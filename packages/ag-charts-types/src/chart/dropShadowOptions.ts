@@ -28,9 +28,7 @@ export interface AgDropShadowOptions {
     /** The radius of the shadow's blur, given in pixels. */
     blur?: PixelSize;
     /**
-     * How far, in pixels, the shadow grows beyond the shape that casts it, before the blur is applied. The shape's corners
-     * are kept, except that vertices under about 57° are bevelled. Negative values are not supported: they are ignored
-     * with a warning.
+     * How far, in pixels, the shadow grows beyond the shape that casts it, before the blur is applied.
      *
      * Default: `0`
      */
@@ -69,29 +67,14 @@ export interface AgGlowOptions {
      */
     spread?: PixelSize;
     /**
-     * How far, in pixels, the glow starts from the item. Set `gap` to keep the item clear of the glow: unset, the glow of the
-     * hovered item is cast like a shadow, so it shows through an item that is translucent, whereas from the glow of an item that
-     * is not hovered the footprint of every item that glows is cut out. At `0` the item's own footprint is cut out of the glow,
-     * and larger values move where the glow starts outwards, keeping the corners of the item's shape, except that vertices
-     * under about 57° are bevelled. Negative values are not supported: they are ignored with a warning.
+     * How far, in pixels, the glow starts from the item.
      *
      * Default: unset
      */
     gap?: PixelSize;
 }
 
-/**
- * What an `itemStyler` can return beyond the style of an item: the `shadow` and `glow` that the item casts. Each is merged,
- * field by field, over what the item would cast otherwise, so it takes precedence over the series, the highlight state and
- * the theme. A `glow` with no `enabled` turns the glow on, so `glow: {}` is enough, and `enabled: false` turns off what
- * the item would cast for this item alone. An item can cast both, and a `shadow` or `glow` that is invalid is
- * ignored with a warning, leaving what the item would cast otherwise.
- *
- * Neither is available in the params of a styler: branch on `highlightState` to cast one only in a state.
- *
- * Note: each distinct `blur` costs one blur per item whenever the chart is drawn again, so an item styler that
- * returns a different `blur` per item is slower than one that returns a shared value.
- */
+/** What an `itemStyler` can return beyond the style of an item: the `shadow` and `glow` that the item casts. */
 export interface AgItemShadowStyle {
     /** The `shadow` of this item, merged over the `shadow` that it would cast. Setting it without `enabled` turns it on. */
     shadow?: Omit<AgDropShadowOptions, 'color'>;

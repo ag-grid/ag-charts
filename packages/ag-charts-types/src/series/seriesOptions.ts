@@ -23,33 +23,9 @@ export interface AgMultiSeriesHighlightOptions<
 export interface AgGlowHighlightStyleOptions {
     /**
      * Configuration for the glow around the item while this highlight state applies. It is merged, field by field, over
-     * the `glow` of the series (`marker.glow` for the series that glow on their markers), so a state only needs to set
-     * what differs. A state with no `glow` has the glow of the series, on or off, and a state's `glow` with no `enabled`
-     * turns it on. Where the series has a `glow` on more than one part (sankey and chord nodes and links, waterfall items,
-     * HLC and range area markers), a state with no `glow` leaves each part its own, and a state's `glow` applies to every part.
+     * the `glow` of the series.
      *
-     * Where a state has more than one `glow` to fall back to, the first applies: `highlightedItem` falls back to
-     * `highlightedSeries`, then to the `glow` of the series. `unhighlightedItem` also falls back to `highlightedSeries`,
-     * as its items are in the highlighted series, and `unhighlightedSeries` to the `glow` of the series.
-     *
-     * Treemap and sunburst don't support a series-level `glow` yet. Their `highlightedBranch` and `unhighlightedBranch`
-     * states take the place of the series states, treemap groups have only the item states, and the `glow` of a state
-     * replaces the `shadow` of the item while it applies, rather than being cast alongside it.
-     *
-     * The glow of the hovered item (`highlightedItem`) is drawn centred on the item, with the item drawn over its own
-     * glow. It sits above every series when `bringToFront` is on, and keeps its series' stacking order otherwise. Every
-     * other glow (that of an item at rest, of the highlighted series, of `unhighlightedItem` and of `unhighlightedSeries`)
-     * is drawn in one layer above the items of every series. The footprint of every item that glows, the hovered item
-     * included, is cut out of that layer, so a glow covers the items beside it that do not glow, including the line and
-     * fill of its own series, and no glow covers an item that glows. If the highlight style draws the hovered item smaller
-     * than at rest, its at-rest edge outside that shape is covered by the glows of its neighbours.
-     * Where two sectors of a ring (pie, donut, sunburst, chord and nightingale series) glow beside each other, each glow ends on
-     * the radial line between them.
-     *
-     * Line, radar line and HLC series glow only on their markers (`marker.glow`), and area, radar area and range area
-     * fills are not redrawn when highlighted, so only their markers glow. Cone funnel series do not have this option.
-     *
-     * Default: the `glow` of the series (none on treemap and sunburst)
+     * Default: the `glow` of the series
      */
     glow?: AgGlowOptions;
 }
@@ -57,16 +33,7 @@ export interface AgGlowHighlightStyleOptions {
 /** Highlight style options for the highlighted item of a series whose items can cast a `shadow`. */
 export interface AgShadowHighlightStyleOptions {
     /**
-     * Configuration for the shadow of the highlighted item, which replaces the `shadow` of the series (`marker.shadow` for
-     * the series that cast a shadow from their markers, `node.shadow` or `link.shadow` on a sankey or chord series, by the
-     * part that is highlighted) while the item is highlighted. It is merged, field by field, over that `shadow`, so only
-     * what differs needs setting, but a `fill` without a `fillOpacity` is opaque. Setting a `shadow` without `enabled`
-     * turns it on, so `shadow: {}` is enough, and `shadow: { enabled: false }` removes the shadow of the series from the
-     * highlighted item.
-     *
-     * With `highlight.mode: 'shared'`, the items that share the highlighted category cast it too. The shadow is drawn at
-     * the same depth as the `shadow` of the series, behind every series. It is not available on `highlightedSeries`,
-     * `unhighlightedItem` or `unhighlightedSeries`, and is ignored where an item cannot cast a shadow.
+     * Configuration for the shadow of the highlighted item. It is merged, field by field, over the `shadow` of the series.
      *
      * Default: the `shadow` of the series
      */
