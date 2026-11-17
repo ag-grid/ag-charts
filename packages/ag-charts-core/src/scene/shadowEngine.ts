@@ -1037,21 +1037,24 @@ function castOverlay(
     const scaleX = width / region.width;
     const scaleY = height / region.height;
     const resolutionOfHole = { x: scaleX, y: scaleY };
+    // Cuts the footprint of a key, where its items are painted, out of what `ctx` holds.
+    const eraseKey = (key: ShadowKey, ctx: Ctx, op: GlobalCompositeOperation) =>
+        eraseFootprints(key, ctx, transform, renderCtx, region, resolutionOfHole, 0, true, op, true);
     glows.setTransform(1, 0, 0, 1, 0, 0);
     glows.clearRect(0, 0, width, height);
 
     let cut: SpreadCanvas | undefined;
     const sources = new Set<ShadowKey>();
-    for (const { key } of plans) sources.add(key.split?.from ?? key);
+    for (const { key } of plans) sources.add(sourceOf(key));
     const lone = sources.size === 1;
     // Whether every glow was cut by the footprint of its own casters, dilated by its `gap`, before it merged.
     let cutWhole = true;
     let directKey: ShadowKey | undefined;
     for (let first = 0; first < plans.length;) {
         // The parts that a key was split into by strength cast one glow, so they share a canvas, and one cut.
-        const source = plans[first].key.split?.from ?? plans[first].key;
+        const source = sourceOf(plans[first].key);
         let end = first + 1;
-        while (end < plans.length && (plans[end].key.split?.from ?? plans[end].key) === source) end++;
+        while (end < plans.length && sourceOf(plans[end].key) === source) end++;
 
         // A glow with a `gap` of its own, or cut by its series' own labels and error bars, is cut before it merges; the rest once merged.
         const { gap, overlay } = source.shadow;
@@ -1109,23 +1112,7 @@ function castOverlay(
                             ) && drew;
                     }
                 }
-                if (ownCuts != null) {
-                    for (const key of ownCuts) {
-                        drew =
-                            eraseFootprints(
-                                key,
-                                ctx,
-                                transform,
-                                renderCtx,
-                                region,
-                                resolutionOfHole,
-                                0,
-                                true,
-                                op,
-                                true
-                            ) && drew;
-                    }
-                }
+                for (const key of ownCuts ?? []) drew = eraseKey(key, ctx, op) && drew;
                 return drew;
             }) && rendered;
         if (direct) {
@@ -1158,38 +1145,8 @@ function castOverlay(
         rendered =
             cutOut(merged, { x: 0, y: 0, width, height }, scratch, (ctx, op) => {
                 let drew = true;
-                for (const plan of plans) {
-                    drew =
-                        eraseFootprints(
-                            plan.key,
-                            ctx,
-                            transform,
-                            renderCtx,
-                            region,
-                            resolutionOfHole,
-                            0,
-                            true,
-                            op,
-                            true
-                        ) && drew;
-                }
-                if (cuts != null) {
-                    for (const key of cuts) {
-                        drew =
-                            eraseFootprints(
-                                key,
-                                ctx,
-                                transform,
-                                renderCtx,
-                                region,
-                                resolutionOfHole,
-                                0,
-                                true,
-                                op,
-                                true
-                            ) && drew;
-                    }
-                }
+                for (const plan of plans) drew = eraseKey(plan.key, ctx, op) && drew;
+                for (const key of cuts ?? []) drew = eraseKey(key, ctx, op) && drew;
                 return drew;
             }) && rendered;
 
@@ -1213,6 +1170,11 @@ function castOverlay(
         target.restore();
     }
     return rendered;
+}
+
+/** The key that a part split off by strength came from, or the key itself. */
+function sourceOf(key: ShadowKey): ShadowKey {
+    return key.split?.from ?? key;
 }
 
 /** The part of the merged canvas, at the layer's resolution, that the glow of a key can reach, or undefined if none of it. */
