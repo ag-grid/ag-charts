@@ -3502,6 +3502,36 @@ describe('CrossLine label fitting', () => {
                 {
                     type: 'range',
                     range: [3, 4],
+                    label: { text: LONG_TEXT, placement: 'top', wrapping: 'on-space' },
+                },
+                {
+                    type: 'range',
+                    range: [6, 7],
+                    label: { text: LONG_TEXT, placement: 'inside', rotation: 90, truncate: true, fill: 'lightyellow' },
+                },
+            ];
+            const yCrossLines: AgCartesianCrossLineOptions[] = [
+                {
+                    type: 'range',
+                    range: [5, 8],
+                    label: { text: LONG_TEXT, placement: 'right', rotation: 90, wrapping: 'on-space', truncate: true },
+                },
+            ];
+            chart = deproxy(
+                await createChart(
+                    fitChart(xCrossLines[0], 'x', { x: { crossLines: xCrossLines }, y: { crossLines: yCrossLines } })
+                )
+            );
+
+            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders inside labels bounded by their bands', async () => {
+            const xCrossLines: AgCartesianCrossLineOptions[] = [
+                { type: 'range', range: [1, 2], label: { text: LONG_TEXT, placement: 'inside-top', truncate: true } },
+                {
+                    type: 'range',
+                    range: [3, 4],
                     label: { text: LONG_TEXT, placement: 'inside-bottom', wrapping: 'on-space' },
                 },
                 {
