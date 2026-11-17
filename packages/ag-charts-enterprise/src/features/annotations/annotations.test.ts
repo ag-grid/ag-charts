@@ -6,6 +6,7 @@ import {
     deproxy,
     expectErrorsCalls,
     expectWarningsCalls,
+    findAxis,
     getAxisLayoutState,
     getSeriesRect,
     hoverAction,
@@ -17,8 +18,8 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, type Node, Text } from 'ag-charts-core';
-import type { AgHorizontalLineAnnotation } from 'ag-charts-types';
+import { BandScale, Group, type Node, Text } from 'ag-charts-core';
+import type { AgAnnotationValue, AgHorizontalLineAnnotation } from 'ag-charts-types';
 
 import {
     findSceneNodes,
@@ -1210,6 +1211,125 @@ describe('Annotations', () => {
     });
 
     describe('settings dialog coordinates', () => {
+        const getBandScale = () => {
+            const { scale } = findAxis(chart, 'bottom');
+            if (!BandScale.is(scale)) {
+                throw new Error('Expected the x axis to have a band scale');
+            }
+            return scale;
+        };
+
+        // Selects the vertical line through the centre of the band of `at`, and opens its settings.
+        async function openVerticalLineCoordinates(
+            options: AgCartesianChartOptions,
+            value: AgAnnotationValue,
+            at: string | Date
+        ) {
+            await prepareChart({ annotations: [{ type: 'vertical-line', value }] }, options);
+            const scale = getBandScale();
+            const { x, y, height } = getSeriesRect(chart);
+            const lineX = x + scale.convert(at) + scale.bandwidth / 2;
+            await hoverAction(lineX, y + height / 2)(chart);
+            await clickAction(lineX, y + height / 2)(chart);
+            await waitForChartStability(chart);
+
+            const { body } = deproxy(chart).ctx.agDocument;
+            body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
+            await waitForChartStability(chart);
+            return body;
+        }
+
+        async function commitInput(body: HTMLElement, label: string, value: string) {
+            const input = body.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!;
+            input.value = value;
+            // A date-time input commits on blur, the others on change.
+            input.dispatchEvent(new Event(input.type === 'datetime-local' ? 'blur' : 'change'));
+            await waitForChartStability(chart);
+        }
+
+        describe('on a category axis', () => {
+            const categoryOptions: AgCartesianChartOptions = {
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                data: [
+                    { category: 'Q1', value: 50 },
+                    { category: 'Q2', value: 70 },
+                    { category: 'Q3', value: 60 },
+                ],
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom', paddingInner: 0.3 },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+            const openAtQ2 = () =>
+                openVerticalLineCoordinates(categoryOptions, { value: 'Q2', groupPercentage: 0.5 }, 'Q2');
+
+            it('places an offset of 50 at the midpoint between the band and the next, padding included', async () => {
+                const body = await openAtQ2();
+
+                await commitInput(body, 'Value offset: X (%)', '50');
+
+                const [{ value }] = chart.getState().annotations as Array<{
+                    value: { value: string; groupPercentage: number };
+                }>;
+                const scale = getBandScale();
+                const centres = (category: string) => scale.convert(category) + scale.bandwidth / 2;
+                expect(value.value).toBe('Q2');
+                expect(scale.convert('Q2') + value.groupPercentage * scale.bandwidth).toBeCloseTo(
+                    (centres('Q2') + centres('Q3')) / 2
+                );
+            });
+
+            it('keeps the annotation where it is for a category the axis does not have, and moves it to one it does', async () => {
+                const body = await openAtQ2();
+
+                await commitInput(body, 'Value: X', 'Q9');
+                expect(chart.getState().annotations).toMatchObject([{ value: { value: 'Q2' } }]);
+                expect(body.querySelector<HTMLInputElement>('input[aria-label="Value: X"]')!.value).toBe('Q2');
+
+                await commitInput(body, 'Value: X', 'Q3');
+                expect(chart.getState().annotations).toMatchObject([{ value: { value: 'Q3' } }]);
+            });
+        });
+
+        describe('on an ordinal time axis', () => {
+            const bar = (day: number) => new Date(Date.UTC(2024, 0, day));
+            const ordinalOptions: AgCartesianChartOptions = {
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                data: [
+                    { date: bar(2), value: 50 },
+                    { date: bar(3), value: 70 },
+                    { date: bar(5), value: 60 },
+                ],
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                axes: {
+                    x: { type: 'ordinal-time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            it('snaps a date before the first bar or after the last onto that bar, which the axis can place', async () => {
+                const body = await openVerticalLineCoordinates(
+                    ordinalOptions,
+                    { value: { __type: 'date', value: bar(3).toISOString() }, groupPercentage: 0.5 },
+                    bar(3)
+                );
+                const typed = (date: Date) => {
+                    const pad = (n: number) => String(n).padStart(2, '0');
+                    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T00:00:00`;
+                };
+                const stateDate = () =>
+                    (chart.getState().annotations as Array<{ value: { value: { value: string } } }>)[0].value.value
+                        .value;
+
+                await commitInput(body, 'Value: X', typed(bar(1)));
+                expect(stateDate()).toBe(bar(2).toISOString());
+
+                await commitInput(body, 'Value: X', typed(bar(9)));
+                expect(stateDate()).toBe(bar(5).toISOString());
+            });
+        });
+
         it('edits the selected annotation and follows an undo', async () => {
             await prepareChart({ annotations: [{ type: 'horizontal-line', value: 50 }] });
             const { x, y, width, height } = getSeriesRect(chart);
@@ -1221,7 +1341,7 @@ describe('Annotations', () => {
             body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
             await waitForChartStability(chart);
 
-            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value Y"]')!;
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
             input.value = '60';
             input.dispatchEvent(new Event('change'));
             await waitForChartStability(chart);
@@ -1636,7 +1756,7 @@ describe('Annotations', () => {
             body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
             await waitForChartStability(chart);
 
-            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value Y"]')!;
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
             input.value = value;
             input.dispatchEvent(new Event('change'));
             await waitForChartStability(chart);

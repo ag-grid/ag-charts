@@ -860,6 +860,19 @@ describe('Crosshair', () => {
             await waitForChartStability(chart);
         };
 
+        it('formats a value handed to the axis as the crosshair label does, by format or formatter', async () => {
+            const formatted = async (label: NonNullable<AgNumericAxisCrosshairOptions['label']>) => {
+                chart = await createEnterpriseChart(
+                    labelOptions({}, { type: 'number', position: 'left', crosshair: { ...CROSSHAIR_OPTIONS, label } })
+                );
+                return findAxis(chart, 'left').createAxisContext().formatScaleValue(123.456, 'crosshair');
+            };
+
+            expect(await formatted({ format: '.2f' })).toBe('123.46');
+            chart.destroy();
+            expect(await formatted({ formatter: ({ value }) => `~${value}` })).toBe('~123.456');
+        });
+
         it('renders markup characters in category values as text', async () => {
             await hoverMarkupCategory(labelOptions());
 
