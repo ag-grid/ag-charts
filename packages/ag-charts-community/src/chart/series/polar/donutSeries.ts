@@ -37,6 +37,7 @@ import {
     Text,
     TranslatableGroup,
     type WrapOptions,
+    addSectorDatum,
     boxCrossesSegment,
     boxOverlapsSector,
     canRenderTextOffscreen,
@@ -64,7 +65,6 @@ import {
     sectorBox,
     sectorEdges,
     sectorLabelPlacer,
-    setSectorGlowEnds,
     toNumber,
     toPlainText,
     toRadians,
@@ -1363,12 +1363,7 @@ export class DonutSeries extends PolarSeries<
         });
         if (glowing) {
             // A glow ends where the sector beside it glows too, so every sector is resolved before any is ended.
-            const { glowRing } = this;
-            glowRing.clear();
-            this.itemSelection.each((sector, datum) =>
-                glowRing.add(sector, datum.startAngle, datum.endAngle, datum.innerRadius, datum.outerRadius)
-            );
-            setSectorGlowEnds(glowRing);
+            this.glowRing.endGlows(this.itemSelection, addSectorDatum);
         }
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
 

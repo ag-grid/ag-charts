@@ -12,6 +12,7 @@ import {
     type RequireOptional,
     Sector,
     SectorGlowRing,
+    addSectorDatum,
     angleBetween,
     cachedTextMeasurer,
     evaluateBezier,
@@ -21,7 +22,6 @@ import {
     mergeDefaults,
     normalizeAngle360,
     resolveLabelFit,
-    setSectorGlowEnds,
     toDegrees,
     toPlainText,
     wrapText,
@@ -106,9 +106,9 @@ export class ChordSeries extends FlowProportionSeries<
     ChordLink<ChordLinkDatum>
 > {
     static override readonly className = 'ChordSeries';
+    static readonly type = 'chord' as const;
 
     private readonly glowRing = new SectorGlowRing();
-    static readonly type = 'chord' as const;
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -628,12 +628,7 @@ export class ChordSeries extends FlowProportionSeries<
         });
 
         if (glowing) {
-            const { glowRing } = this;
-            glowRing.clear();
-            datumSelection.each((sector, datum) =>
-                glowRing.add(sector, datum.startAngle, datum.endAngle, datum.innerRadius, datum.outerRadius)
-            );
-            setSectorGlowEnds(glowRing, true);
+            this.glowRing.endGlows(datumSelection, addSectorDatum, true);
         }
     }
 

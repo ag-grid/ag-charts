@@ -8,7 +8,6 @@ import {
     SeriesContentZIndexMap,
     SeriesZIndexMap,
     polarSectorObstacles,
-    setSectorGlowEnds,
 } from 'ag-charts-core';
 import type { Selection } from 'ag-charts-core';
 
@@ -78,13 +77,13 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
     protected override updateGlowEnds(selection: Selection<RadialColumnNodeDatum, Sector<RadialColumnNodeDatum>>) {
         if (!selection.nodes().some((node) => node.fillGlow?.enabled === true)) return;
 
-        const { glowRing } = this;
-        glowRing.clear();
         // This runs before the sectors are laid out, so the radii come from the datum, as `updateItemPath` takes them.
-        selection.each((sector, datum) =>
-            glowRing.add(sector, datum.startAngle, datum.endAngle, getInnerRadius(datum), getOuterRadius(datum))
+        this.glowRing.endGlows(
+            selection,
+            (ring, sector, datum) =>
+                ring.add(sector, datum.startAngle, datum.endAngle, getInnerRadius(datum), getOuterRadius(datum)),
+            true
         );
-        setSectorGlowEnds(glowRing, true);
     }
 
     getLabelObstacles() {
