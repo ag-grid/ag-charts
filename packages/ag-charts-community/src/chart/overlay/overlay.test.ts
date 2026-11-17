@@ -168,7 +168,10 @@ describe('Overlay', () => {
             expect(overlayEl).toBeFalsy();
         });
 
-        it('no visible series', async () => {
+        it.each([
+            ['without localeText', undefined],
+            ['with a partial localeText', { localeText: { overlayNoData: 'Nothing here' } }],
+        ])('no visible series %s', async (_name, locale) => {
             chart = deproxy(
                 await createChart({
                     data: [
@@ -180,24 +183,7 @@ describe('Overlay', () => {
                         { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
                         { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
                     ],
-                })
-            );
-            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
-            expect(overlayEl?.innerText).toEqual('No visible series');
-        });
-
-        it('no visible series with a partial localeText', async () => {
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { x: 'a', y1: 2, y2: 1 },
-                        { x: 'b', y1: 3, y2: 1 },
-                    ],
-                    series: [
-                        { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
-                        { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
-                    ],
-                    locale: { localeText: { overlayNoData: 'Nothing here' } },
+                    locale,
                 })
             );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
