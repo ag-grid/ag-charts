@@ -1245,7 +1245,7 @@ export class MapMarkerSeries
         } else if (latitudeKey != null && longitudeKey != null) {
             const latValue = dataModel.resolveColumnById(this, `latValue`, processedData, 'number')[datumIndex];
             const lonValue = dataModel.resolveColumnById(this, `lonValue`, processedData, 'number')[datumIndex];
-            heading = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
+            heading = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'E' : 'W'}`;
         }
 
         const format = this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);
