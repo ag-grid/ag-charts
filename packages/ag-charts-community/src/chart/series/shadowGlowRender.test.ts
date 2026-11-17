@@ -128,11 +128,11 @@ describe('shadow and glow render', () => {
                         angleKey: 'value',
                         sectorSpacing: 12,
                         itemStyler: ({ datum }: { datum: { category: string } }) => ({
-                            glow: { ...HARD_GLOW, fill: FILLS[datum.category] },
+                            glow: { ...RED_GLOW, fill: FILLS[datum.category] },
                         }),
                     },
                 ],
-                BARS,
+                CATEGORY_DATA,
                 ROOM
             );
             await snapshot();

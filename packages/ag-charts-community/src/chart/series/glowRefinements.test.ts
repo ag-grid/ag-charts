@@ -6,7 +6,7 @@ import type { AgGlowOptions } from 'ag-charts-types';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { expectSamePixels } from '../test/expectSamePixels';
-import { ALI_GLOW, ROOM, canvasImage, hoverDatum } from '../test/glowRender';
+import { HARD_GAP_GLOW, ROOM, canvasImage, hoverDatum } from '../test/glowRender';
 import { sectorJoinPixels } from '../test/sectorGlowJoins';
 import { getSeriesAt } from '../test/seriesAccessors';
 import { SERIES_SHADOW, shapesOf } from '../test/shadowFixtures';
@@ -69,7 +69,7 @@ describe('glow refinements', () => {
 
     describe('the inner edge of a glow gap', () => {
         // The glow of the design feedback, in red, as a glow with no fill takes the fill of its item.
-        const GLOW = hard(ALI_GLOW);
+        const GLOW = hard(HARD_GAP_GLOW);
         const { gap = 0, spread = 0 } = GLOW;
         const HEADROOM = { axes: { y: { type: 'number', min: 0, max: 8 } } };
 
