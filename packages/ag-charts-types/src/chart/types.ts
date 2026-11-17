@@ -26,16 +26,20 @@ export type AgMarkerShape =
 /**
  * A stock dash pattern, applied by name wherever `lineDash` is accepted.
  *
+ * Each name stands for dash and gap lengths in multiples of the line's `strokeWidth`, so that a dot is as long as the
+ * line is wide. At a `strokeWidth` of 2 `'dot'` is `[2, 3]`; at a `strokeWidth` of 1 it is `[1, 1.5]`. A line that has no
+ * `strokeWidth` is drawn as 1 wide. An array of lengths is in pixels and is never scaled.
+ *
  * - `'solid'`: `[0]`
- * - `'dot'`: `[2, 3]`
- * - `'dash'`: `[6, 4]`
- * - `'dash-dot'`: `[6, 3, 2, 3]`
- * - `'long-dash'`: `[14, 4]`
- * - `'long-dash-dot'`: `[14, 3, 2, 3]`
- * - `'long-dash-dot-dot'`: `[14, 4, 2, 4, 2, 4]`
- * - `'dash-dot-dot'`: `[6, 3, 2, 3, 2, 3]`
- * - `'dash-long-dash'`: `[6, 4, 14, 4]`
- * - `'long-dash-dash-dash'`: `[14, 3, 6, 3, 6, 3]`
+ * - `'dot'`: `[1, 1.5]`
+ * - `'dash'`: `[3, 2]`
+ * - `'dash-dot'`: `[3, 1.5, 1, 1.5]`
+ * - `'long-dash'`: `[7, 2]`
+ * - `'long-dash-dot'`: `[7, 1.5, 1, 1.5]`
+ * - `'long-dash-dot-dot'`: `[7, 2, 1, 2, 1, 2]`
+ * - `'dash-dot-dot'`: `[3, 1.5, 1, 1.5, 1, 1.5]`
+ * - `'dash-long-dash'`: `[3, 2, 7, 2]`
+ * - `'long-dash-dash-dash'`: `[7, 1.5, 3, 1.5, 3, 1.5]`
  */
 export type AgLineDashName =
     | 'solid'
