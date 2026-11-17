@@ -229,6 +229,23 @@ describe('Context Menu', () => {
         });
     });
 
+    it('falls back to English for menu items omitted from a partial localeText', async () => {
+        chart = await createEnterpriseChart({
+            ...chartOptions(),
+            locale: { localeText: { contextMenuToggleSeriesVisibility: 'Show or Hide' } },
+        });
+        await contextMenuAction(410, 575)(chart);
+        await waitForChartStability(chart);
+
+        const labels = Array.from(
+            document.body.getElementsByClassName(`${DEFAULT_CONTEXT_MENU_CLASS}__item`) as HTMLCollectionOf<HTMLElement>
+        ).map((item) => item.textContent);
+
+        expect(labels).toContain('Show or Hide');
+        expect(labels).toContain('Download');
+        expect(labels.some((label) => /contextMenu[A-Z]/.test(label ?? ''))).toBe(false);
+    });
+
     describe('legend highlight state', () => {
         it('clears highlight when opening menu', async () => {
             chart = await createEnterpriseChart(chartOptions());

@@ -186,6 +186,24 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('No visible series');
         });
 
+        it('no visible series with a partial localeText', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { x: 'a', y1: 2, y2: 1 },
+                        { x: 'b', y1: 3, y2: 1 },
+                    ],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
+                        { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
+                    ],
+                    locale: { localeText: { overlayNoData: 'Nothing here' } },
+                })
+            );
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No visible series');
+        });
+
         it('neither data nor visible series', async () => {
             chart = deproxy(
                 await createChart({
