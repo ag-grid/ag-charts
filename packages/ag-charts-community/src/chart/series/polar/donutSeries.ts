@@ -52,6 +52,7 @@ import {
     isGradientFill,
     isStringFillArray,
     jsonDiff,
+    labelFitPolicy,
     mergeDefaults,
     modulus,
     normalizeAngle180,
@@ -2224,9 +2225,7 @@ export class DonutSeries extends PolarSeries<
         if (!sectorLabel.enabled) return;
 
         const { positionOffset, positionRatio } = sectorLabel;
-        // Fitting only engages when the user opts into wrapping/truncation; otherwise the sector text renders in
-        // full and hides if it overruns the wedge.
-        const policy = resolveLabelFit(sectorLabel, false);
+        const policy = labelFitPolicy(sectorLabel);
         // The wedge holds the drawn box, not the glyphs, so the region owes the box its own extent.
         const boxPadding = expandLabelBoxExtent(sectorLabel);
         const innerRadius = this.radiusScale.convert(0);
@@ -2241,12 +2240,12 @@ export class DonutSeries extends PolarSeries<
             const x = centred ? 0 : datum.midCos * labelRadius;
             const y = centred ? 0 : datum.midSin * labelRadius;
             let fitPolicy = policy;
-            let fitTarget: PolarFitTarget | undefined;
-            if (policy != null && centred) {
+            let fitTarget: PolarFitTarget;
+            if (centred) {
                 // A centred single-sector label fits the square inscribed in the pie, like the inner label.
                 const holeExtent = outerRadius * Math.SQRT2;
                 fitTarget = { container: { width: holeExtent, height: holeExtent } };
-            } else if (policy != null) {
+            } else {
                 const sector = { startAngle, endAngle, innerRadius, outerRadius };
                 const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, this.centerX, this.centerY);
                 fitPolicy = { ...policy, boxed: labelHasBox(font) };
@@ -2261,16 +2260,13 @@ export class DonutSeries extends PolarSeries<
                 textBaseline: 'middle',
             };
             sectorLabels.set(datum.datumIndex, label);
-            const fit =
-                fitPolicy == null
-                    ? undefined
-                    : (text: NormalisedTextOrSegments) => ({
-                          text,
-                          policy: fitPolicy,
-                          font,
-                          boxPadding,
-                          boundByRegion: true,
-                      });
+            const fit = (text: NormalisedTextOrSegments) => ({
+                text,
+                policy: fitPolicy,
+                font,
+                boxPadding,
+                boundByRegion: true,
+            });
             this.pushLabel(data, label, { font, boxPadding, fit }, fitTarget);
         }
     }

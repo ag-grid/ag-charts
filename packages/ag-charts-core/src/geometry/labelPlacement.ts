@@ -86,6 +86,14 @@ export function resolveLabelFit(
     hideOnOverflow = false,
     defaultToTruncate = false
 ): LabelFit | undefined {
+    const policy = labelFitPolicy(fit, hideOnOverflow, defaultToTruncate);
+    const { overflowStrategy, wrapping, minimumFontSize } = policy;
+    if (overflowStrategy == null && wrapping == null && minimumFontSize == null) return undefined;
+    return policy;
+}
+
+/** The {@link resolveLabelFit} policy for a label that is always fitted, whether or not it opted in. */
+export function labelFitPolicy(fit: LabelFitOptions, hideOnOverflow = false, defaultToTruncate = false): LabelFit {
     const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = fit;
     let overflowStrategy: OverflowStrategy | undefined;
     if (truncate || defaultToTruncate) {
@@ -93,7 +101,6 @@ export function resolveLabelFit(
     } else if (hideOnOverflow) {
         overflowStrategy = 'hide';
     }
-    if (overflowStrategy == null && wrapping == null && minimumFontSize == null) return undefined;
     return { maxWidth, maxHeight, wrapping, overflowStrategy, minimumFontSize };
 }
 
