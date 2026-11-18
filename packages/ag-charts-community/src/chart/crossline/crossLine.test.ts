@@ -3275,8 +3275,15 @@ describe('CrossLine label fitting', () => {
         expect(into.left).toBeLessThanOrEqual(80 + 10);
     });
 
-    it('neither pads the chart nor collides for a label erased by a maxHeight below one line', async () => {
+    it('keeps a label whole at a maxHeight below one line', async () => {
         chart = deproxy(await createChart(fitChart(lineWith({ placement: 'left', maxHeight: 4 }))));
+
+        expect(renderedLabel().text).toBe(LONG_TEXT);
+    });
+
+    it('neither pads the chart nor collides for a label erased by a maxHeight below one line', async () => {
+        const label = { placement: 'left', maxHeight: 4, collision: { alwaysShow: false } } as const;
+        chart = deproxy(await createChart(fitChart(lineWith(label))));
 
         const rendered = renderedLabel();
         const into: Partial<Record<CrossLineLabelPosition, number>> = {};
@@ -3375,6 +3382,23 @@ describe('CrossLine label fitting', () => {
             const { band, label, text } = bandAndLabel('x');
             expect(text).not.toBe(LONG_TEXT);
             expect(label.width).toBeLessThanOrEqual(band.width);
+        });
+
+        it.each([
+            [{}, 14],
+            [{ minimumFontSize: 6 }, 6],
+        ])('keeps a label whole in a band too short for one line, given %o', async (label, fontSize) => {
+            const crossLine = rangeWith({ placement: 'inside', fontSize: 14, ...label }, [4, 4.05]);
+            chart = deproxy(await createChart(fitChart(crossLine, 'y')));
+
+            expect(renderedLabel('y')).toMatchObject({ text: LONG_TEXT, fontSize });
+        });
+
+        it('hides a label in a band too short for one line when alwaysShow is false', async () => {
+            const crossLine = rangeWith({ placement: 'inside', collision: { alwaysShow: false } }, [4, 4.05]);
+            chart = deproxy(await createChart(fitChart(crossLine, 'y')));
+
+            expect(renderedLabel('y').text).toBe('');
         });
 
         it('renders the label whole past the band with wrapping and truncation off', async () => {

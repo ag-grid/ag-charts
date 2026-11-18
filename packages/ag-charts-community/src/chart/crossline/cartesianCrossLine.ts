@@ -563,9 +563,11 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         if (this.fitted?.measurer !== measurer || this.fitted.key !== key) {
             const text = label.text ?? '';
             const fitted = fitLabelTextAutoSize(text, fit, label);
+            // A kept label with no room for any text renders whole at its smallest size, as series labels do.
+            const whole = fitted.text === '' && this.keepsLabel;
             this.fitted = {
-                text: typeof fitted.text === 'string' ? fitted.text : text,
-                fontSize: fitted.fontSize ?? label.fontSize,
+                text: typeof fitted.text === 'string' && !whole ? fitted.text : text,
+                fontSize: whole ? (label.minimumFontSize ?? label.fontSize) : (fitted.fontSize ?? label.fontSize),
                 measurer,
                 key,
             };
@@ -612,7 +614,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return { rotation, width, height };
     }
 
-    /** False once the fit has erased the text, as a `maxHeight` below one line does. */
+    /** False once the fit has erased the text of a label that `collision.alwaysShow: false` lets hide. */
     private hasFittedText(anchor: Anchor = this.anchor): boolean {
         const { label } = this;
         if (label.enabled === false || label.text == null || label.text === '') return false;
