@@ -789,7 +789,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculatePadding(into: Partial<Record<CrossLineLabelPosition, number>>) {
         this.paddedSide = undefined;
-        if (!this.padsForLabel) return;
+        if (!this.padsForLabel || (this.fitsToBand && this.labelBounds == null)) return;
 
         const side = this.labelPaddingSide;
         if (side == null) return;
