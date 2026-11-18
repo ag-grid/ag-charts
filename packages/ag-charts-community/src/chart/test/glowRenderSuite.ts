@@ -249,7 +249,11 @@ export function describeGlowSeries(
             async () => {
                 const series = await render(testCase, { glow: SERIES_GLOW });
                 expect(differingBytes(series, await render(testCase, {}))).toBeGreaterThan(0);
-                const styled = await render(testCase, { itemStyler: () => ({ glow: SERIES_GLOW }) });
+                const { stylerGlowOnly } = testCase;
+                const styled = await render(testCase, {
+                    itemStyler: (params: { datum?: unknown }) =>
+                        stylerGlowOnly == null || stylerGlowOnly(params) ? { glow: SERIES_GLOW } : {},
+                });
                 if (testCase.stylerGlowCastsOtherParts) expect(differingBytes(styled, series)).toBeGreaterThan(0);
                 else expectSamePixels(styled, series);
             }

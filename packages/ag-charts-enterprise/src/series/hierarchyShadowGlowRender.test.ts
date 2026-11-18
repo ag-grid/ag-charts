@@ -129,13 +129,6 @@ describe('shadow and glow render (hierarchy series)', () => {
             await snapshot();
         });
 
-        it.each(HIERARCHY_GLOW_SERIES)('draws the series glow of the $name that is not hovered', async (testCase) => {
-            const rest = await render(testCase, {}, { hover: true });
-            expect(
-                differingBytes(await render(testCase, { glow: SERIES_GLOW }, { hover: true }), rest)
-            ).toBeGreaterThan(0);
-        });
-
         it('glows the tiles of a treemap and not its groups, as an itemStyler that returns a glow for the tiles does', async () => {
             const leaves = ['A1', 'A2', 'B1', 'B2'];
             const series = await render(treemap, { glow: SERIES_GLOW });
@@ -162,7 +155,8 @@ describe('shadow and glow render (hierarchy series)', () => {
                 expect(await hoveredPixel({ glow: RED }, GLOW)).toEqual(await hoveredPixel({}, GLOW));
             });
 
-            // The control: without a glow of its own, the hovered node is covered by that of the node beside it.
+            // The control: without a glow of its own, the hovered node is covered by that of the node beside it. The glow of the hovered
+            // node is the same in both renders, so only the series glow of the node that is not hovered differs.
             it('is covered by it where the hovered node does not glow', async () => {
                 const off = { ...GLOW, enabled: false };
 

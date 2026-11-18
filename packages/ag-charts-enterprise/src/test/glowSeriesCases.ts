@@ -360,6 +360,7 @@ export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
         ...HIERARCHY,
         name: 'treemap tile',
         stylerCastsOtherParts: true,
+        // The itemStyler glows the groups too, which `tile.glow` does not: the pixels differ.
         stylerGlowCastsOtherParts: true,
         type: 'treemap',
         shadowSnapshot: 'series/treemap/treemapSeries.test.ts',
@@ -376,6 +377,8 @@ export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
         shadowSnapshot: 'series/treemap/treemapSeries.test.ts',
         highlightSteps: GROUP_STEPS,
         stylerCastsOtherParts: true,
+        // The itemStyler glows the groups only, so that its glow is compared with `group.glow` and not with the tiles' glows as well.
+        stylerGlowOnly: ({ datum }) => datum?.children != null,
         hoverDatum: nodeNamed('A'),
         base: { type: 'treemap', ...HIERARCHY_KEYS },
         place: ({ shadow, glow, itemStyler }) => ({ group: { shadow, glow }, itemStyler }),
