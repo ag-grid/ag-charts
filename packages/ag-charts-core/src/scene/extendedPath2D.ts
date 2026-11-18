@@ -451,6 +451,79 @@ export class ExtendedPath2D {
         this.closedPath = false;
     }
 
+    /**
+     * Strokes `reach` further along each end of every open subpath of straight lines, in line with the segment at that end, with
+     * the width and cap the context has. A dilation that draws butt caps uses it to end `reach` past the ends, as it does at the
+     * sides. Subpaths that are closed, curved or without length have no such end and are skipped.
+     */
+    strokeOpenLineEnds(
+        ctx: Pick<CanvasRenderingContext2D, 'beginPath' | 'moveTo' | 'lineTo' | 'stroke'>,
+        reach: number
+    ) {
+        const { commands, params, commandsLength } = this;
+        let began = false;
+        // The first and last segments of the subpath being read, and whether it is still a plain open run of lines.
+        let x0 = 0;
+        let y0 = 0;
+        let x1 = 0;
+        let y1 = 0;
+        let px = 0;
+        let py = 0;
+        let x = 0;
+        let y = 0;
+        let lines = 0;
+        let plain = false;
+
+        const extend = (fromX: number, fromY: number, toX: number, toY: number) => {
+            const length = Math.hypot(toX - fromX, toY - fromY);
+            if (!Number.isFinite(length) || length <= 0) return;
+            if (!began) {
+                ctx.beginPath();
+                began = true;
+            }
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX + ((toX - fromX) / length) * reach, toY + ((toY - fromY) / length) * reach);
+        };
+        const flush = () => {
+            if (!plain || lines === 0) return;
+            extend(x1, y1, x0, y0);
+            extend(px, py, x, y);
+        };
+
+        let pi = 0;
+        for (let ci = 0; ci < commandsLength; ci++) {
+            switch (commands[ci]) {
+                case Command.Move:
+                    flush();
+                    x0 = x = params[pi++];
+                    y0 = y = params[pi++];
+                    lines = 0;
+                    plain = true;
+                    break;
+                case Command.Line:
+                    if (lines === 0) {
+                        x1 = params[pi];
+                        y1 = params[pi + 1];
+                    }
+                    px = x;
+                    py = y;
+                    x = params[pi++];
+                    y = params[pi++];
+                    lines++;
+                    break;
+                case Command.Curve:
+                    pi += 6;
+                    plain = false;
+                    break;
+                case Command.ClosePath:
+                    plain = false;
+                    break;
+            }
+        }
+        flush();
+        if (began) ctx.stroke();
+    }
+
     isPointInPath(x: number, y: number): boolean {
         const commands = this.commands;
         const params = this.params;
