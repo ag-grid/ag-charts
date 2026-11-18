@@ -949,7 +949,7 @@ describe('priceVolumePreset', () => {
         });
     });
 
-    describe('lastPriceLine (AG-16273)', () => {
+    describe('lastPriceLine', () => {
         const rows = getStockData();
         const data = rows.slice(0, 40);
 
