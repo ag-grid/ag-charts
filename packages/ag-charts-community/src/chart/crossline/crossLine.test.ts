@@ -3394,6 +3394,21 @@ describe('CrossLine label fitting', () => {
             expect(renderedLabel('y')).toMatchObject({ text: LONG_TEXT, fontSize });
         });
 
+        it.each([
+            [{}, 14],
+            [{ minimumFontSize: 6 }, 6],
+        ])(
+            'keeps a label to one line within maxWidth in a band too short for one line, given %o',
+            async (label, fontSize) => {
+                const crossLine = rangeWith({ placement: 'inside', fontSize: 14, maxWidth: 40, ...label }, [4, 4.05]);
+                chart = deproxy(await createChart(fitChart(crossLine, 'y')));
+
+                const rendered = renderedLabel('y');
+                expect(rendered).toMatchObject({ text: expect.stringMatching(/^A[^\n]*…$/), fontSize });
+                expect(rendered.width).toBeLessThanOrEqual(40);
+            }
+        );
+
         it('hides a label in a band too short for one line when alwaysShow is false', async () => {
             const crossLine = rangeWith({ placement: 'inside', collision: { alwaysShow: false } }, [4, 4.05]);
             chart = deproxy(await createChart(fitChart(crossLine, 'y')));
@@ -3513,6 +3528,7 @@ describe('CrossLine label fitting', () => {
 
             const { band, label: footprint, text } = bandAndLabel('x');
             const { containerBox } = renderedLabel('x').crossLine;
+            expect(text).toMatch(/^A.*…$/);
             expect(text).not.toContain('\n');
             expect(footprint.width).toBeLessThanOrEqual(band.width + 0.5);
             expect(footprint.height).toBeLessThanOrEqual(containerBox?.height ?? 0);

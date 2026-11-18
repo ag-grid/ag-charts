@@ -13,6 +13,7 @@ import {
     clampArray,
     createId,
     crossLineHitTolerance,
+    drawnLineHeight,
     findMinMax,
     fitLabelText,
     fitLabelTextAutoSize,
@@ -88,7 +89,7 @@ export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions
 };
 
 type NodeData = [number, number];
-/** `rotated` is the band bound the text was fitted to, absent once the label is kept whole past it. */
+/** `rotated` is the band bound the text was fitted to, if any. */
 type FittedLabel = { text: string; fontSize: number; rotated?: TurnedBounds };
 type FitCache = FittedLabel & { measurer: TextMeasurer; key: string };
 
@@ -565,19 +566,43 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         if (this.fitted?.measurer !== measurer || this.fitted.key !== key) {
             const text = label.text ?? '';
             const fitted = fitLabelTextAutoSize(text, fit, label);
-            // A kept label with no room for any text renders whole at its smallest size, as series labels do.
-            const whole = fitted.text === '' && this.keepsLabel;
-            this.fitted = {
-                text: typeof fitted.text === 'string' && !whole ? fitted.text : text,
-                fontSize: whole
-                    ? resolveMinimumFontSize(label.minimumFontSize, label.fontSize)
-                    : (fitted.fontSize ?? label.fontSize),
-                rotated: whole ? undefined : fit?.rotated,
-                measurer,
-                key,
-            };
+            const kept =
+                fit != null && fitted.text === '' && this.keepsLabel
+                    ? this.keptLabel(text, fit)
+                    : {
+                          text: typeof fitted.text === 'string' ? fitted.text : text,
+                          fontSize: fitted.fontSize ?? label.fontSize,
+                          rotated: fit?.rotated,
+                      };
+            this.fitted = { ...kept, measurer, key };
         }
         return this.fitted;
+    }
+
+    /**
+     * A kept label with no room for a line, as the label engine keeps series labels: at its smallest size,
+     * one line within the band's width, then within its own bounds only, then whole.
+     */
+    private keptLabel(text: string, fit: LabelFit): FittedLabel {
+        const { label } = this;
+        const fontSize = resolveMinimumFontSize(label.minimumFontSize, label.fontSize);
+        const font = fontWithSize(label, fontSize);
+        const { rotated, ...policy } = fit;
+        let oneLine: TurnedBounds | undefined;
+        if (rotated != null) {
+            const line = drawnLineHeight(font);
+            const angle = toRadians(rotated.rotation);
+            oneLine = {
+                rotation: rotated.rotation,
+                width: Math.max(rotated.width, line * Math.abs(Math.sin(angle))),
+                height: Math.max(rotated.height, line * Math.abs(Math.cos(angle))),
+            };
+        }
+        for (const bound of oneLine == null ? [undefined] : [oneLine, undefined]) {
+            const fitted = fitLabelText(text, { ...policy, rotated: bound }, font);
+            if (typeof fitted === 'string' && fitted !== '') return { text: fitted, fontSize, rotated: bound };
+        }
+        return { text, fontSize };
     }
 
     private get fitsToBand(): boolean {
