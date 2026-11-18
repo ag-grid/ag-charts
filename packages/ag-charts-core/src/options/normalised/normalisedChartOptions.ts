@@ -11,6 +11,7 @@ import type {
     AgDataSourceOptions,
     AgFlashOnUpdateOptions,
     AgInitialFocus,
+    AgLastPriceLineOptions,
     AgNavigatorMiniChartOptions,
     AgNavigatorOptions,
     AgRangesButton,
@@ -84,6 +85,12 @@ export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
     data?: unknown[];
     xKey?: string;
     volumeKey?: string;
+    lastPriceLine?: AgLastPriceLineOptions & {
+        enabled: boolean;
+        /** The series whose last datum the line is drawn at. */
+        seriesId: string;
+        closeKey: string;
+    };
 };
 
 export type NormalisedNavigatorMiniChartOptions = Omit<AgNavigatorMiniChartOptions, 'padding'> & {

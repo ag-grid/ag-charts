@@ -949,6 +949,61 @@ describe('priceVolumePreset', () => {
         });
     });
 
+    describe('lastPriceLine (AG-16273)', () => {
+        const rows = getStockData();
+        const data = rows.slice(0, 40);
+
+        it.each<[string, AgFinancialChartOptions]>([
+            ['true', { lastPriceLine: true }],
+            [
+                'styled',
+                { lastPriceLine: { stroke: 'red', strokeWidth: 3, lineStyle: 'dashed', axisLabel: { fill: 'red' } } },
+            ],
+            ['without the toolbar', { lastPriceLine: true, toolbar: false }],
+            ['at the close of a line chart', { lastPriceLine: true, chartType: 'line' }],
+            ['at the close of a high-low chart', { lastPriceLine: true, chartType: 'high-low' }],
+            [
+                'hidden when the close is out of the visible range',
+                { lastPriceLine: true, initialState: { zoom: { ratioX: { start: 0, end: 0.3 } } } },
+            ],
+        ])('draws a line at the last close when %s', async (_name, options) => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data, ...options }));
+            await compare();
+        });
+
+        // The baseline differs from the one for `true`, which is drawn from the first 40 rows, only by the line's position.
+        it('moves the line when the data is updated', async () => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data, lastPriceLine: true }));
+            await waitForChartStability(chart);
+
+            await chart.updateDelta({ data: rows.slice(0, 41) });
+            await compare();
+        });
+
+        it('is neither annotation state nor an annotation the user can clear', async () => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data, lastPriceLine: true }));
+            await waitForChartStability(chart);
+
+            expect(chart.getState().annotations ?? []).toEqual([]);
+        });
+
+        it.each<[string, AgFinancialChartOptions]>([
+            ['is not set', {}],
+            ['is false', { lastPriceLine: false }],
+            ['is disabled', { lastPriceLine: { enabled: false } }],
+        ])('is not enabled when it %s', (_name, options) => {
+            const { annotations } = priceVolume(
+                { data, ...options },
+                undefined,
+                () => ({}) as ChartTheme,
+                undefined,
+                testLogger
+            ) as { annotations?: { lastPriceLine?: unknown } };
+
+            expect(annotations?.lastPriceLine).toBeUndefined();
+        });
+    });
+
     describe('toolbar button theme override (AG-17364)', () => {
         const userButtons: AgAnnotationsToolbarButton[] = [
             { icon: 'trend-line-drawing', tooltip: 'toolbarAnnotationsLineAnnotations', value: 'line-menu' },

@@ -1,7 +1,8 @@
+import type { AgAnnotationAxisLabel, LineOptions } from '../../chart/annotationsOptions';
 import type { AgSelectionClickMode, AgSelectionStyleOptions } from '../../chart/selectionOptions';
 import type { AgLineDashName, CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { AgBarSeriesStyle } from '../../series/cartesian/barOptions';
-import type { TextOptions, Toggleable } from '../../series/cartesian/commonOptions';
+import type { StrokeOptions, TextOptions, Toggleable } from '../../series/cartesian/commonOptions';
 
 export type AgPriceVolumeChartType =
     'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'hlc' | 'high-low';
@@ -52,6 +53,13 @@ export interface AgPriceVolumePreset {
      * Default: `true`
      */
     volume?: boolean;
+    /** Whether to show a horizontal line, with an axis label, at the close of the last bar of the price series. The line moves when the data is updated, and cannot be selected or dragged.
+     *
+     * Pass `true` to enable it, or an object to enable it and style the line and its axis label. It is hidden while the close is outside the visible range.
+     *
+     * Default: `false`
+     */
+    lastPriceLine?: boolean | AgLastPriceLineOptions;
     /** Configuration for a Volume Profile, showing the traded volume at each price level as horizontal bars against the price axis. */
     volumeProfile?: AgVolumeProfileOptions;
     /** The height of each Volume Profile price level, in price units.
@@ -83,6 +91,12 @@ export interface AgPriceVolumePreset {
      * Default: `false`
      */
     sync?: boolean;
+}
+
+/** Styling for the line that marks the close of the last bar. These are the line and axis label options of the horizontal-line annotation. */
+export interface AgLastPriceLineOptions extends Toggleable, StrokeOptions, LineOptions {
+    /** Configuration for the axis label showing the close of the last bar. */
+    axisLabel?: AgAnnotationAxisLabel;
 }
 
 export interface AgVolumeProfileOptions extends Toggleable {

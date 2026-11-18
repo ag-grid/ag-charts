@@ -39,6 +39,7 @@ import type {
     AgCrossLineAnnotationStyles,
     AgDisjointChannelAnnotationStyles,
     AgFibonacciAnnotationStyles,
+    AgLastPriceLineOptions,
     AgLineAnnotationStyles,
     AgLineAnnotationTextStyles,
     AgMeasurerAnnotationStatistics,
@@ -134,6 +135,14 @@ export const annotationLineStyleDefs: OptionsDefs<AgLineAnnotationStyles> = {
     handle: annotationHandleStylesDefs,
     text: annotationLineTextDefs,
     ...selectionAxesDefs,
+    ...annotationLineOptionsDef,
+    ...strokeOptionsDef,
+};
+
+/** The options of the price preset's `lastPriceLine`. */
+export const lastPriceLineStyleDefs: OptionsDefs<AgLastPriceLineOptions> = {
+    enabled: boolean,
+    axisLabel: annotationAxisLabelOptionsDef,
     ...annotationLineOptionsDef,
     ...strokeOptionsDef,
 };
@@ -312,6 +321,8 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
         xKey: string,
         volumeKey: string,
         snap: boolean,
+        // Set by the price preset from its `lastPriceLine`, which draws a line at the close of the last bar of a series.
+        lastPriceLine: { ...lastPriceLineStyleDefs, seriesId: string, closeKey: string },
     }),
 };
 
