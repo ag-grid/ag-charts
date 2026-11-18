@@ -12,11 +12,19 @@ import {
 
 const { motion } = _ModuleSupport;
 
+export function getInnerRadius({ negative, stackInnerRadius, stackOuterRadius }: RadialColumnNodeDatum) {
+    return negative ? stackOuterRadius : stackInnerRadius;
+}
+
+export function getOuterRadius({ negative, stackInnerRadius, stackOuterRadius }: RadialColumnNodeDatum) {
+    return negative ? stackInnerRadius : stackOuterRadius;
+}
+
 export function getRadii(datum: RadialColumnNodeDatum) {
-    const { negative, innerRadius, outerRadius, stackInnerRadius, stackOuterRadius } = datum;
+    const { negative, innerRadius, outerRadius } = datum;
     return {
-        innerRadius: negative ? stackOuterRadius : stackInnerRadius,
-        outerRadius: negative ? stackInnerRadius : stackOuterRadius,
+        innerRadius: getInnerRadius(datum),
+        outerRadius: getOuterRadius(datum),
         clipInnerRadius: negative ? outerRadius : innerRadius,
         clipOuterRadius: negative ? innerRadius : outerRadius,
     };

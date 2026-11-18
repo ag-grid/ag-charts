@@ -39,7 +39,23 @@ export const shadowPass: {
      * then draw the geometry of the item, whatever its paint, and the pass erases it from the glow that was blurred.
      */
     erase: number | undefined;
-} = { state: 'none', slot: 'shadow', opaque: false, tinted: false, resolution: { x: 1, y: 1 }, erase: undefined };
+    /** During a pass that erases footprints, whether an item with no fill has the footprint of its stroke alone. */
+    erasePainted: boolean;
+    /** During a pass that erases footprints, how they are drawn: `destination-out` onto a glow, or solid onto a canvas to cut it. */
+    eraseOp: GlobalCompositeOperation;
+    /** While a group of the hovered item draws, whose glows the shadow root casts, so that a cutout casts none of its own. */
+    hoveredGlowsCast: boolean;
+} = {
+    state: 'none',
+    slot: 'shadow',
+    opaque: false,
+    tinted: false,
+    resolution: { x: 1, y: 1 },
+    erase: undefined,
+    erasePainted: false,
+    eraseOp: 'destination-out',
+    hoveredGlowsCast: false,
+};
 
 /** How far a shadow's silhouette is dilated: its `spread`, moved outwards by its glow's `gap`, which is then cut out. */
 export function getShadowSpread(shadow: { spread?: number; gap?: number }): number {

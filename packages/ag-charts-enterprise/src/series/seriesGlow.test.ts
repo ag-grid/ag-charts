@@ -127,7 +127,9 @@ describe('series-level glow (enterprise series)', () => {
 
     /** The shapes that cast in the glow slot, in the content and in the highlight layer. */
     const glowing = (group: 'contentGroup' | 'highlightGroup' = 'contentGroup') =>
-        collectShapes(getSeriesAt(chart)[group]).filter((shape) => shape.visible && shape.fillGlow?.enabled === true);
+        collectShapes(getSeriesAt(chart)[group]).filter(
+            (shape) => shape.visible && shape.getCastShadow('glow') != null
+        );
 
     /** A highlight glow that shows against any series, drawn only where the hovered item's own copy casts it. */
     const HIGHLIGHT_GLOW = { fill: '#00cc00', fillOpacity: 1, blur: 2, spread: 8 };

@@ -1,15 +1,5 @@
 import type { ChartAnimationPhase, DynamicContext, Node } from 'ag-charts-core';
-import {
-    BBox,
-    ChartAxisDirection,
-    Group,
-    Path,
-    PointerEvents,
-    PolarZIndexMap,
-    Selection,
-    StateMachine,
-    Text,
-} from 'ag-charts-core';
+import { BBox, ChartAxisDirection, Group, Path, PointerEvents, Selection, StateMachine, Text } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -200,14 +190,6 @@ export abstract class PolarSeries<
         const { angleKeyAxis, radiusKeyAxis } = this.options;
         if (direction === ChartAxisDirection.Angle) return angleKeyAxis ?? 'angle';
         if (direction === ChartAxisDirection.Radius) return radiusKeyAxis ?? 'radius';
-    }
-
-    override setZIndex(zIndex: number) {
-        super.setZIndex(zIndex);
-
-        this.contentGroup.zIndex = [zIndex, PolarZIndexMap.FOREGROUND];
-        this.highlightGroup.zIndex = [zIndex, PolarZIndexMap.HIGHLIGHT];
-        this.labelGroup.zIndex = [zIndex, PolarZIndexMap.LABEL];
     }
 
     override resetAnimation(phase: ChartAnimationPhase): void {
