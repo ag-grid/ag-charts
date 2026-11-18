@@ -934,7 +934,7 @@ describe('Crosshair', () => {
                 )
             ).map(({ style }) => `${style.left} ${style.top} (${style.translate})`);
 
-        const hoverWithAxes = async (axes: AgCartesianAxesOptions) => {
+        const hoverWithAxes = async (axes: AgCartesianAxesOptions, theme?: AgCartesianChartOptions['theme']) => {
             const options: AgCartesianChartOptions = {
                 data: [
                     { x: -10, y: -8 },
@@ -943,6 +943,7 @@ describe('Crosshair', () => {
                 ],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes,
+                theme,
             };
             chart = await createEnterpriseChart(options);
             await hoverAction(480, 250)(chart);
@@ -959,14 +960,33 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 562px (-50% 0)",
+                "480px 566px (-50% calc(min(var(--ag-charts-crosshair-label-vertical-padding), 11px) * -1))",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "46px 250px (-100% -50%)",
+                "38px 250px (calc(-100% + min(var(--ag-charts-crosshair-label-horizontal-padding), 11px)) -50%)",
               ]
             `);
+        });
+
+        // The label's padding is its only padding: the stylesheet reads these variables and the placement above
+        // cancels them, so the theme parameters are what a theme author changes.
+        it.each([
+            ['by default', undefined, { horizontal: '8px', vertical: '4px' }],
+            [
+                'from the theme parameters',
+                { params: { crosshairLabelHorizontalPadding: 12, crosshairLabelVerticalPadding: 6 } },
+                { horizontal: '12px', vertical: '6px' },
+            ],
+        ] as const)('should size the label padding %s', async (_name, theme, expected) => {
+            await hoverWithAxes(axesAt(), theme);
+
+            const wrapper = document.querySelector<HTMLElement>('.ag-charts-wrapper')!;
+            expect({
+                horizontal: wrapper.style.getPropertyValue('--ag-charts-crosshair-label-horizontal-padding'),
+                vertical: wrapper.style.getPropertyValue('--ag-charts-crosshair-label-vertical-padding'),
+            }).toEqual(expected);
         });
 
         it('should hold a label at the axis line when label spacing is smaller than its own padding', async () => {
@@ -975,12 +995,12 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 562px (-50% 0)",
+                "480px 566px (-50% calc(min(var(--ag-charts-crosshair-label-vertical-padding), 6px) * -1))",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "44px 250px (-100% -50%)",
+                "38px 250px (calc(-100% + min(var(--ag-charts-crosshair-label-horizontal-padding), 6px)) -50%)",
               ]
             `);
         });
@@ -1008,12 +1028,12 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 562px (-50% 0)",
+                "480px 566px (-50% calc(min(var(--ag-charts-crosshair-label-vertical-padding), 11px) * -1))",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "46px 250px (-100% -50%)",
+                "38px 250px (calc(-100% + min(var(--ag-charts-crosshair-label-horizontal-padding), 11px)) -50%)",
               ]
             `);
         });

@@ -510,7 +510,7 @@ const LABEL_BOXING_BORDER_DEFAULTS: WithThemeParams<Pick<LabelBoxOptions, 'borde
 export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     ...labelBoxingFillDefaults(),
     ...LABEL_BOXING_BORDER_DEFAULTS,
-    padding: 8,
+    padding: { $ref: 'seriesLabelPadding' },
     cornerRadius: { $ref: 'seriesLabelBorderRadius' },
 };
 
@@ -543,6 +543,7 @@ export const PLACED_LABEL_BOXING_DEFAULTS = (placement: SeriesLabelPlacement): W
 export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     ...labelBoxingFillDefaults(),
     ...LABEL_BOXING_BORDER_DEFAULTS,
+    padding: { $ref: 'seriesLabelPadding' },
     cornerRadius: { $ref: 'seriesLabelBorderRadius' },
 };
 

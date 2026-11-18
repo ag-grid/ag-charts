@@ -615,6 +615,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
                 (key.endsWith('Size') ||
                     key.endsWith('Radius') ||
                     key.endsWith('Width') ||
+                    key.endsWith('Padding') ||
                     key.endsWith('Thickness') ||
                     numericKeys?.includes(key))
             ) {
