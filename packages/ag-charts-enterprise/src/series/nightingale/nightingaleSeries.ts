@@ -2,15 +2,24 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     type DynamicContext,
     type NormalisedNightingaleSeriesOwnOptions,
-    PolarZIndexMap,
     Sector,
     SectorBox,
+    SectorGlowRing,
+    SeriesContentZIndexMap,
+    SeriesZIndexMap,
     polarSectorObstacles,
 } from 'ag-charts-core';
+import type { Selection } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
-import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
+import {
+    getInnerRadius,
+    getOuterRadius,
+    getRadii,
+    prepareNightingaleAnimationFunctions,
+    resetNightingaleSelectionFn,
+} from './nightingaleUtil';
 
 export class NightingaleSeries extends RadialColumnSeriesBase<
     Sector<RadialColumnNodeDatum>,
@@ -19,6 +28,8 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
     static override readonly className = 'NightingaleSeries';
     static readonly type = 'nightingale' as const;
 
+    private readonly glowRing = new SectorGlowRing();
+
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
     }
@@ -26,10 +37,12 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
     override setZIndex(zIndex: number): boolean {
         super.setZIndex(zIndex);
 
-        // Ensures highlights always appear on top
-        this.contentGroup.zIndex = [0, PolarZIndexMap.FOREGROUND, zIndex];
-        this.highlightGroup.zIndex = [0, PolarZIndexMap.HIGHLIGHT, zIndex];
-        this.labelGroup.zIndex = [0, PolarZIndexMap.LABEL, zIndex];
+        // Ensures highlights always appear on top. A series brought to front also lifts them to the level of the glow overlay,
+        // where the extra `zIndex` places them above it, so that no other series' glow covers them.
+        const level = zIndex === Number.MAX_VALUE ? zIndex : 0;
+        this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, 0, SeriesContentZIndexMap.FOREGROUND, zIndex];
+        this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, level, SeriesContentZIndexMap.HIGHLIGHT, zIndex];
+        this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, level, SeriesContentZIndexMap.LABEL, zIndex];
 
         return true;
     }
@@ -61,6 +74,21 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
             node.endAngle = endAngle;
             node.clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
         }
+    }
+
+    protected override updateGlowEnds(selection: Selection<RadialColumnNodeDatum, Sector<RadialColumnNodeDatum>>) {
+        if (!selection.nodes().some((node) => node.fillGlow?.enabled === true)) {
+            this.glowRing.release();
+            return;
+        }
+
+        // This runs before the sectors are laid out, so the radii come from the datum, as `updateItemPath` takes them.
+        this.glowRing.endGlows(
+            selection,
+            (ring, sector, datum) =>
+                ring.add(sector, datum.startAngle, datum.endAngle, getInnerRadius(datum), getOuterRadius(datum)),
+            true
+        );
     }
 
     getLabelObstacles() {

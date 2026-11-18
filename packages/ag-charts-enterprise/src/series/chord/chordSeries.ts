@@ -11,6 +11,8 @@ import {
     type PointLabelDatum,
     type RequireOptional,
     Sector,
+    SectorGlowRing,
+    addSectorDatum,
     angleBetween,
     cachedTextMeasurer,
     evaluateBezier,
@@ -105,6 +107,8 @@ export class ChordSeries extends FlowProportionSeries<
 > {
     static override readonly className = 'ChordSeries';
     static readonly type = 'chord' as const;
+
+    private readonly glowRing = new SectorGlowRing();
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -576,10 +580,6 @@ export class ChordSeries extends FlowProportionSeries<
         } satisfies CallbackParamRules<AgChordSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
-    protected override castsHighlightGlowInGroup() {
-        return false;
-    }
-
     protected override getSeriesGlows() {
         const { node, link } = this.options;
         return [node.glow, link.glow];
@@ -596,6 +596,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { shadow, glow } = this.options.node;
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
+        let glowing = false;
         datumSelection.each((sector, datum) => {
             const { datumIndex } = datum;
             const style = this.getNodeStyle(datum, datumIndex, isHighlight);
@@ -623,7 +624,14 @@ export class ChordSeries extends FlowProportionSeries<
             sector.endAngle = datum.endAngle;
             sector.inset = sector.strokeWidth / 2;
             sector.cornerRadius = style.cornerRadius;
+            glowing ||= !isHighlight && sector.fillGlow?.enabled === true;
         });
+
+        if (glowing) {
+            this.glowRing.endGlows(datumSelection, addSectorDatum, true);
+        } else {
+            this.glowRing.release();
+        }
     }
 
     protected updateLinkSelection(opts: {

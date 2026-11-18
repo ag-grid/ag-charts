@@ -171,7 +171,7 @@ Exercise:
 Exercise:
 
 - Initial load and hover redraw time of bar and scatter series whose `itemStyler` returns a `shadow` and a `glow`.
-- 1,000 items are timed with no `itemStyler`, with one that returns neither, and with one that returns the same `shadow` and `glow` for every item.
+- 1,000 items are timed with no `itemStyler`, with one that returns neither, with one that returns the same `shadow` and `glow` for every item, and with one that returns a `glow` for one item in ten, so that the glows lie beside items that have none.
 - 100 items are timed with no `itemStyler`, with the same `shadow` and `glow` for every item, and with a different `blur` for each item, which costs a blur for each item and so takes far longer.
 
 {% chartExampleRunner title="Item Styler Shadow and Glow" name="item-styler-shadow-glow" type="generated" initialLoadDeferred=true /%}
@@ -199,6 +199,12 @@ Exercises the organization series at 1K and 10K nodes, with every director's rep
 Exercises the cross-series label placement pass: clustered bubble labels that cascade through their fallback placements, and bar labels that cascade and shrink. Each series runs with labels off, at a single placement, and with the full cascade, so the cost of placement is separated from the cost of drawing the labels. The highlight case measures the cached-solve path a hover takes.
 
 {% chartExampleRunner title="Series Label Collision" name="series-labels-collision" type="generated" initialLoadDeferred=true /%}
+
+## Pie and Donut Labels
+
+Exercises pie and donut sector labels at 50 and 500 sectors: initial load and a data update, each with sector labels off, on without fit options, and on with wrapping and truncation. Callout labels stay off, so the sector label pass is measured on its own.
+
+{% chartExampleRunner title="Pie and Donut Labels" name="pie-donut-labels" type="generated" initialLoadDeferred=true /%}
 
 ## High-Frequency Data Updates
 

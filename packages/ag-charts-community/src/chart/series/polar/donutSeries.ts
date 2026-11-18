@@ -31,11 +31,13 @@ import {
     PolarZIndexMap,
     type RequireOptional,
     Sector,
+    SectorGlowRing,
     Selection,
     SpatialIndex,
     Text,
     TranslatableGroup,
     type WrapOptions,
+    addSectorDatum,
     boxCrossesSegment,
     boxOverlapsSector,
     canRenderTextOffscreen,
@@ -257,6 +259,8 @@ export class DonutSeries extends PolarSeries<
     static override readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
 
+    private readonly glowRing = new SectorGlowRing();
+
     private phantomNodeData: PieDonutNodeDatum[] | undefined = undefined;
     private get calloutNodeData() {
         return this.phantomNodeData ?? this.nodeData;
@@ -283,7 +287,9 @@ export class DonutSeries extends PolarSeries<
         () => this.nodeFactory(),
         false
     );
-    private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
+    private readonly calloutLabelGroup = this.contentGroup.appendChild(
+        new Group({ name: 'pieCalloutLabels', cutsOwnGlows: true })
+    );
     private readonly calloutLabelSelection = Selection.select<Group<PieDonutNodeDatum>>(this.calloutLabelGroup, Group);
 
     // When every datum sums to 0 these rings stand in for the empty series.
@@ -291,7 +297,7 @@ export class DonutSeries extends PolarSeries<
     readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Marker({ shape: 'circle' }));
     readonly zerosumInnerRing = this.zerosumRingsGroup.appendChild(new Marker({ shape: 'circle' }));
 
-    readonly innerLabelsGroup = this.contentGroup.appendChild(new Group({ name: 'innerLabels' }));
+    readonly innerLabelsGroup = this.contentGroup.appendChild(new Group({ name: 'innerLabels', cutsOwnGlows: true }));
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
     readonly innerLabelsSelection = Selection.select<Text<NormalisedDonutInnerLabelOptions>>(
         this.innerLabelsGroup,
@@ -365,11 +371,6 @@ export class DonutSeries extends PolarSeries<
         this.phantomHighlightGroup.opacity = 0.2;
 
         this.innerLabelsGroup.pointerEvents = PointerEvents.None;
-    }
-
-    // The inner circle sits in a group drawn before the sectors, so the root casts the highlight glows, beneath every series.
-    protected override castsHighlightGlowInGroup() {
-        return false;
     }
 
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
@@ -1356,7 +1357,17 @@ export class DonutSeries extends PolarSeries<
             this.applySelectedOffset(sector, datum.datumIndex);
         };
 
-        this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+        let glowing = false;
+        this.itemSelection.each((node, datum, index) => {
+            updateSectorFn(node, datum, index, false, 'overlay');
+            glowing ||= node.fillGlow?.enabled === true;
+        });
+        if (glowing) {
+            // A glow ends where the sector beside it glows too, so every sector is resolved before any is ended.
+            this.glowRing.endGlows(this.itemSelection, addSectorDatum);
+        } else {
+            this.glowRing.release();
+        }
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
 
         this.innerCircleCutoutSelection.each((sector, datum) => {

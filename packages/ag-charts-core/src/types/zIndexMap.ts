@@ -36,6 +36,13 @@ export enum SeriesContentZIndexMap {
     LABEL,
 }
 
+/** Where the series area casts the overlay of every glow but the hovered item's, above every series' items. */
+export const SERIES_GLOW_OVERLAY_Z_INDEX: readonly number[] = [
+    SeriesZIndexMap.ANY_CONTENT,
+    Number.MAX_VALUE,
+    SeriesContentZIndexMap.HIGHLIGHT,
+];
+
 export enum PolarZIndexMap {
     BACKGROUND,
     FOREGROUND,
