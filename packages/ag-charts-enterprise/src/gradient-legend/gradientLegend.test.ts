@@ -243,6 +243,11 @@ describe('GradientLegend', () => {
     });
 
     describe('gradient.preferredLength default', () => {
+        // Narrow structural view of the legend's gradient bar, avoiding `any` when reading its laid-out size.
+        type GradientBarAccessor = {
+            gradientRectSelection: { at(index: number): { width: number; height: number } | undefined };
+        };
+
         async function getBarSize(gradientLegend: AgChartOptions['gradientLegend']) {
             chart = await createEnterpriseChart({
                 width: 1000,
@@ -251,8 +256,8 @@ describe('GradientLegend', () => {
                 series: [{ type: 'heatmap', xKey: 'year', yKey: 'person', colorKey: 'spending' }],
                 gradientLegend,
             });
-            const module: any = deproxy(chart).modulesManager.getModule('gradientLegend');
-            const { width, height } = module.gradientRectSelection.at(0);
+            const module = deproxy(chart).modulesManager.getModule('gradientLegend') as unknown as GradientBarAccessor;
+            const { width, height } = module.gradientRectSelection.at(0)!;
             return { width, height };
         }
 
