@@ -14,7 +14,6 @@ import type {
 } from 'ag-charts-core';
 import {
     type BoxBounds,
-    CUT_ONLY_GLOW,
     ColorScale,
     type Point,
     PointerEvents,
@@ -684,16 +683,13 @@ export abstract class HierarchySeries<
 
     /**
      * The glow on one copy of a node, in `fillGlow`, cast in the root's overlay, where every glowing node is cut out of the
-     * glows of its neighbours. The hovered in-place copy cuts it only if the highlight copy glows.
+     * glows of its neighbours. The hovered in-place copy has none, as the highlight copy above it casts and cuts it.
      */
     protected resolveNodeGlow(
         glow: NormalisedDropShadowOptions | undefined,
-        isHighlight: boolean,
-        hoveredInPlace: boolean,
-        hoveredGlows: boolean
+        hoveredInPlace: boolean
     ): NormalisedDropShadowOptions | undefined {
-        if (isHighlight || !hoveredInPlace) return glow;
-        return hoveredGlows ? CUT_ONLY_GLOW : undefined;
+        return hoveredInPlace ? undefined : glow;
     }
 
     public override getHighlightStateString(

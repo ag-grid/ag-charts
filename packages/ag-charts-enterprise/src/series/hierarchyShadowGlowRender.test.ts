@@ -187,6 +187,41 @@ describe('shadow and glow render (hierarchy series)', () => {
         });
     });
 
+    // Where two sectors glow, each glow ends on the line in the middle of the gap between them, so no pixel of the gap has both.
+    describe('the glow of a sunburst sector that is hovered, beside one that glows, with a gap between them', () => {
+        const FAINT = { ...GLOW, fillOpacity: 0.4 };
+
+        /** The pixel of the gap between the sectors of A and B that is on the side of B, in the ring of A, B and their glows. */
+        const insideGapOnTheSideOfB = () => {
+            const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
+            const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
+            const ring = sectors.filter(({ innerRadius }) => innerRadius === innerRing);
+            const a = ring.find((sector) => sector.startAngle === Math.min(...ring.map((other) => other.startAngle)))!;
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(a, a.centerX, a.centerY);
+            const radius = (a.innerRadius + a.outerRadius) / 2;
+            const angle = a.endAngle + 1 / radius;
+            return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
+        };
+
+        const gapPixel = async (hover: boolean) => {
+            const series = {
+                ...glowSeries(sunburst, { glow: FAINT }, { highlightedItem: { glow: FAINT } }),
+                sectorSpacing: 8,
+            };
+            await create([series], sunburst.data, RENDER_OPTIONS);
+            if (hover) await hoverNode(chart(), nodeNamed('A')(chart()));
+            return chartPixelAt(chart(), ...insideGapOnTheSideOfB());
+        };
+
+        // A glow of one sector over that of the other would add 0.4 of opacity to the pixel, a drop of 20 in each colour channel.
+        it('does not double the glow in the gap', async () => {
+            const [rest] = await gapPixel(false);
+
+            expect(rest).toBeLessThan(255);
+            expect(Math.abs((await gapPixel(true))[0] - rest)).toBeLessThan(10);
+        });
+    });
+
     describe('the glow of a tile that is not hovered', () => {
         const pixelBelow = async (name: string, ...glowingNames: string[]) => {
             await create([glowSeries(treemap, glowing(...glowingNames))], treemap.data, RENDER_OPTIONS);

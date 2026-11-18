@@ -572,12 +572,7 @@ export class SunburstSeries extends HierarchySeries<
                 highlighted,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
-            sector.fillGlow = this.resolveNodeGlow(
-                glow,
-                highlighted,
-                hoveredInPlace,
-                hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null
-            );
+            sector.fillGlow = this.resolveNodeGlow(glow, hoveredInPlace);
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
@@ -643,15 +638,26 @@ export class SunburstSeries extends HierarchySeries<
     private updateGlowEnds(angleOffset: number) {
         const { glowRings } = this;
         for (const ring of glowRings.values()) ring.clear();
-        this.datumSelection.each((sector, { depth, startAngle, endAngle }) => {
+        // The hovered sector glows through its highlight copy, as its in-place one only cuts, so the copy takes its place.
+        const [highlighted] = this.highlightSelection.nodes();
+        this.datumSelection.each((inPlace, { depth, datumIndex, startAngle, endAngle }) => {
             if (depth == null) return;
+
+            const sector =
+                highlighted?.fillGlow != null && highlighted.datum?.datumIndex === datumIndex ? highlighted : inPlace;
 
             let ring = glowRings.get(depth);
             if (ring == null) {
                 ring = new SectorGlowRing();
                 glowRings.set(depth, ring);
             }
-            ring.add(sector, startAngle + angleOffset, endAngle + angleOffset, sector.innerRadius, sector.outerRadius);
+            ring.add(
+                sector,
+                startAngle + angleOffset,
+                endAngle + angleOffset,
+                inPlace.innerRadius,
+                inPlace.outerRadius
+            );
         });
         for (const ring of glowRings.values()) setSectorGlowEnds(ring);
     }
