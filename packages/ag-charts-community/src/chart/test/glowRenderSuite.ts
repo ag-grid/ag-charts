@@ -254,8 +254,7 @@ export function describeGlowSeries(
                     itemStyler: (params: { datum?: unknown }) =>
                         stylerGlowOnly == null || stylerGlowOnly(params) ? { glow: SERIES_GLOW } : {},
                 });
-                if (testCase.stylerGlowCastsOtherParts) expect(differingBytes(styled, series)).toBeGreaterThan(0);
-                else expectSamePixels(styled, series);
+                expectSamePixels(styled, series);
             }
         );
     });

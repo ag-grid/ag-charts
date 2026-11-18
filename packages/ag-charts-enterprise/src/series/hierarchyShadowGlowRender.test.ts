@@ -5,6 +5,7 @@ import {
     RENDER_OPTIONS,
     SERIES_GLOW,
     SERIES_SHADOW,
+    canvasImage,
     chartPixelAt,
     describeGlowSeries,
     differingBytes,
@@ -119,6 +120,32 @@ describe('shadow and glow render (hierarchy series)', () => {
         );
     });
 
+    // The highlight bucket and the series both set a field of the glow: the node casts both, as a bucket that sets every field does.
+    describe.each(HIERARCHY_GLOW_SERIES)(
+        'the glow of the highlight states of $name, over its series glow',
+        (testCase) => {
+            const GREEN = '#00aa00';
+            const hovered = (glow: object, bucketGlow: object, bucket: string) =>
+                render(testCase, { glow }, { highlight: { [bucket]: { glow: bucketGlow } }, hover: true });
+
+            it.each(testCase.highlightSteps!)(
+                'casts the field of $bucket and the other fields of the series glow',
+                async ({ bucket }) => {
+                    const cascaded = await hovered(SERIES_GLOW, { fill: GREEN }, bucket);
+
+                    expectSamePixels(cascaded, await hovered(SERIES_GLOW, { ...SERIES_GLOW, fill: GREEN }, bucket));
+                    // The glow of the bucket shows, and its fill is its own.
+                    expect(
+                        differingBytes(cascaded, await hovered(SERIES_GLOW, { fill: GREEN, enabled: false }, bucket))
+                    ).toBeGreaterThan(0);
+                    expect(
+                        differingBytes(cascaded, await hovered(SERIES_GLOW, { fill: '#0000aa' }, bucket))
+                    ).toBeGreaterThan(0);
+                }
+            );
+        }
+    );
+
     describe('the series glow of a hovered tile, group or sector', () => {
         // The series glow is the one that the hovered node and the nodes beside it all cast: the highlight glow is its own.
         const SERIES = { shadow: SERIES_SHADOW, glow: SERIES_GLOW };
@@ -127,18 +154,6 @@ describe('shadow and glow render (hierarchy series)', () => {
             await create([glowSeries(testCase, SERIES, { highlightedItem: testCase.hoveredItem })], testCase.data);
             await hoverNode(chart(), testCase.hoverDatum!(chart()));
             await snapshot();
-        });
-
-        it('glows the tiles of a treemap and not its groups, as an itemStyler that returns a glow for the tiles does', async () => {
-            const leaves = ['A1', 'A2', 'B1', 'B2'];
-            const series = await render(treemap, { glow: SERIES_GLOW });
-            const styled = await render(treemap, {
-                itemStyler: ({ datum }: { datum?: { name?: string } }) =>
-                    leaves.includes(datum?.name ?? '') ? { glow: SERIES_GLOW } : {},
-            });
-
-            expect(differingBytes(series, await render(treemap, {}))).toBeGreaterThan(0);
-            expectSamePixels(styled, series);
         });
 
         // With the series glow set every node glows, so the glow of the sibling reaches the hovered one: it must stay beneath its fill.
@@ -278,6 +293,43 @@ describe('shadow and glow render (hierarchy series)', () => {
             });
         });
 
+        // The overlay cuts every glowing node out of the glow of the hovered one, whatever its depth.
+        describe('inside a parent that glows', () => {
+            const own = { highlightedItem: { glow: GLOW } };
+            const off = { highlightedItem: { glow: { ...GLOW, enabled: false } } };
+            /** The pixel 3px to the left of the tile `name`, in the fill of its group. */
+            const leftOf = (name: string) => {
+                const { x, y, height } = nodeNamed(name)(chart()).bbox!;
+                return [x + padding.left - 3, y + padding.top + height / 2] as const;
+            };
+
+            it.each([
+                ['a tile in its group in a treemap', treemap, 'A1', 'A', () => leftOf('A1')],
+                ['a sector in its parent ring in a sunburst', sunburst, 'A1', 'A', insideRing],
+            ])(
+                'keeps the glow of %s beneath the fill of the parent',
+                async (_name, testCase, hovered, parent, pixelOf) => {
+                    const hover = [hovered];
+
+                    expect(await hoveredPixel(testCase, { hover, glows: [parent], highlight: own }, pixelOf)).toEqual(
+                        await hoveredPixel(testCase, { hover, glows: [parent], highlight: off }, pixelOf)
+                    );
+                }
+            );
+
+            // The control: with a parent that does not glow, the glow of the hovered node shows over its fill.
+            it.each([
+                ['a tile in its group in a treemap', treemap, 'A1', () => leftOf('A1')],
+                ['a sector in its parent ring in a sunburst', sunburst, 'A1', insideRing],
+            ])('shows the glow of %s over a parent that does not glow', async (_name, testCase, hovered, pixelOf) => {
+                const hover = [hovered];
+
+                expect(await hoveredPixel(testCase, { hover, glows: [], highlight: own }, pixelOf)).not.toEqual(
+                    await hoveredPixel(testCase, { hover, glows: [], highlight: off }, pixelOf)
+                );
+            });
+        });
+
         // Through its itemStyler, the hovered node glows at rest too, and so is not covered when it is not hovered.
         describe('through the highlightedItem state, once the hover has moved to another node', () => {
             const highlight = WAYS[1].highlight;
@@ -290,6 +342,27 @@ describe('shadow and glow render (hierarchy series)', () => {
 
                 expect(await hoveredPixel(testCase, { hover, glows: ['A1'], highlight }, pixelOf)).not.toEqual(alone);
             });
+        });
+    });
+
+    // A series glow casts without a highlight glow of its own: its highlight is off, or the hovered node is of another part.
+    describe('the series glow with no highlight glow to cast it', () => {
+        /** The chart with `hover` hovered, and the series glow of `placement`, as it is drawn. */
+        const hoveredImage = async (testCase: typeof treemap, placement: object, hover: string, highlight?: object) => {
+            await create([glowSeries(testCase, placement, highlight)], testCase.data, RENDER_OPTIONS);
+            await hoverNode(chart(), nodeNamed(hover)(chart()));
+            return canvasImage(chart());
+        };
+
+        it.each([
+            ['a sunburst', sunburst, 'B', { enabled: false }],
+            ['the groups of a treemap', treemapGroup, 'A', { enabled: false }],
+            ['the tiles of a treemap, with their highlight off,', treemap, 'A1', { enabled: false }],
+            ['the tiles of a treemap, with a group hovered,', treemap, 'B', undefined],
+        ])('casts the glow of %s', async (_name, testCase, hover, highlight) => {
+            const withGlow = await hoveredImage(testCase, { glow: GLOW }, hover, highlight);
+
+            expect(differingBytes(withGlow, await hoveredImage(testCase, {}, hover, highlight))).toBeGreaterThan(0);
         });
     });
 

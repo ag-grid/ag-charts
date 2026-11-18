@@ -61,7 +61,7 @@ const COUNTED: Record<string, Partial<SeriesCase>> = {
     'sankey links': { count: FLOW_DATA.length, hoverable: false },
     'chord nodes': { count: 4, hoverable: false },
     'chord links': { count: FLOW_DATA.length, hoverable: false },
-    // A hierarchy casts the glow of a hovered item beneath its highlight copy, which hierarchyShadowGlowRender.test.ts covers.
+    // A hierarchy is hovered by node, not datum: hierarchyShadowGlowRender.test.ts covers its highlight copy and the cascade of the glow into its buckets.
     'treemap tile': { hoverable: false },
     'treemap group': { hoverable: false },
     sunburst: { hoverable: false },

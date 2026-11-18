@@ -336,8 +336,6 @@ const HIERARCHY = {
     data: HIERARCHY_SHADOW_DATA[0].children,
     hoverable: true,
     hoveredItem: { glow: HIGHLIGHT_GLOW },
-    // The snapshot of the hovered item keeps the baseline of a hierarchy that has a series shadow only: hierarchyShadowGlowRender.test.ts
-    // snapshots a hover with the series glow set.
     hoveredPlacement: { shadow: SERIES_SHADOW },
 };
 const HIERARCHY_KEYS = { labelKey: 'name', sizeKey: 'size' };
@@ -360,8 +358,8 @@ export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
         ...HIERARCHY,
         name: 'treemap tile',
         stylerCastsOtherParts: true,
-        // The itemStyler glows the groups too, which `tile.glow` does not: the pixels differ.
-        stylerGlowCastsOtherParts: true,
+        // The itemStyler glows the tiles only, so that its glow is compared with `tile.glow` and not with the groups' glows as well.
+        stylerGlowOnly: ({ datum }) => datum?.children == null,
         type: 'treemap',
         shadowSnapshot: 'series/treemap/treemapSeries.test.ts',
         highlightSteps: HIERARCHY_STEPS,
