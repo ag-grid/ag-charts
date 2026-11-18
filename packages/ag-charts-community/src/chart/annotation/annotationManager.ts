@@ -118,13 +118,18 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
 
 // `lineStyle` was replaced by `lineDash`, whose stock names stand for the same three styles. An explicit `lineDash`
 // took priority over it, so it still does.
-const LINE_STYLE_DASH_NAMES: Record<string, string> = { solid: 'solid', dashed: 'dash', dotted: 'dot' };
+const LINE_STYLE_DASH_NAMES = new Map([
+    ['solid', 'solid'],
+    ['dashed', 'dash'],
+    ['dotted', 'dot'],
+]);
 
-function migrateLineStyle<T>(annotation: T): T {
+/** Migrates state saved by an older version. It runs before theme defaults are merged, so they cannot pass for a saved `lineDash`. */
+export function migrateLineStyle<T>(annotation: T): T {
     if (!isObject(annotation) || !('lineStyle' in annotation)) return annotation;
 
     const { lineStyle, ...rest } = annotation as Record<string, unknown>;
-    const lineDash = isString(lineStyle) ? LINE_STYLE_DASH_NAMES[lineStyle] : undefined;
+    const lineDash = isString(lineStyle) ? LINE_STYLE_DASH_NAMES.get(lineStyle) : undefined;
     return (rest.lineDash == null && lineDash != null ? { ...rest, lineDash } : rest) as T;
 }
 

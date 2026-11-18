@@ -48,8 +48,11 @@ describe('AnnotationManager', () => {
             ]);
         });
 
-        it('drops a lineStyle that has no matching name', () => {
+        it('drops a lineStyle that has no matching name, including a name inherited from Object', () => {
             expect(restore({ type: 'line', lineStyle: 'wavy' })).toEqual([{ type: 'line' }]);
+            expect(restore({ type: 'line', lineStyle: 'constructor' })).toEqual([{ type: 'line' }]);
+            expect(restore({ type: 'line', lineStyle: 'toString' })).toEqual([{ type: 'line' }]);
+            expect(warn).not.toHaveBeenCalled();
             expect(restore({ type: 'line', lineStyle: 3 })).toEqual([{ type: 'line' }]);
         });
 

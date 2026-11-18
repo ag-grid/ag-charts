@@ -292,6 +292,16 @@ describe('Annotation datum lifecycle', () => {
             expect(stateOf()[0].lineDash).toBe('dash');
             expect(stateOf()[0]).not.toHaveProperty('lineStyle');
         });
+
+        it('migrates a lineStyle in the initial state before the annotation styles are merged in', async () => {
+            await prepareChart([legacy({ ...LINE, lineStyle: 'dotted' })], {
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                theme: { overrides: { common: { annotations: { line: { lineDash: [8, 3] } } } } },
+            } as typeof ANNOTATIONS_EXAMPLE_OPTIONS);
+
+            expect(stateOf()[0].lineDash).toBe('dot');
+            expect(stateOf()[0]).not.toHaveProperty('lineStyle');
+        });
     });
 
     describe('restoring state', () => {
