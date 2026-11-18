@@ -266,6 +266,15 @@ describe('series that cast their shadows through the shadow root', () => {
 
             expect(batching('sectorGroup')).toBe('by-layer');
         });
+
+        it('should keep the rings of the highlighted copy of a sunburst layered too', async () => {
+            await create({
+                data: HIERARCHY_SHADOW_DATA,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size' }],
+            } as AgChartOptions);
+
+            expect(batching('highlightSectorGroup')).toBe('by-layer');
+        });
     });
 
     describe('layering beneath every series', () => {
