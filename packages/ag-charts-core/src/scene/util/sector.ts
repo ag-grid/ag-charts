@@ -78,19 +78,45 @@ function edgeCrossesBox(box: BoxBounds, angle: number, radius: number) {
 }
 
 export function isPointInSector(x: number, y: number, sector: SectorBoundaries) {
-    const radius = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+    if (sector.startAngle === sector.endAngle) return false;
     const { innerRadius, outerRadius } = sector;
+    return isPointInNormalisedSector(
+        x,
+        y,
+        Math.min(innerRadius, outerRadius),
+        Math.max(innerRadius, outerRadius),
+        normalizeAngle180(sector.startAngle),
+        normalizeAngle180(sector.endAngle)
+    );
+}
 
-    if (
-        sector.startAngle === sector.endAngle ||
-        radius < Math.min(innerRadius, outerRadius) ||
-        radius > Math.max(innerRadius, outerRadius)
-    ) {
-        return false;
-    }
-
+/**
+ * {@link isPointInSector} with the sector's radii and angles resolved once, for a caller testing many points
+ * against one sector.
+ */
+export function sectorPointTest(sector: SectorBoundaries): (x: number, y: number) => boolean {
+    if (sector.startAngle === sector.endAngle) return () => false;
+    const { innerRadius, outerRadius } = sector;
+    const minRadius = Math.min(innerRadius, outerRadius);
+    const maxRadius = Math.max(innerRadius, outerRadius);
     const startAngle = normalizeAngle180(sector.startAngle);
     const endAngle = normalizeAngle180(sector.endAngle);
+    return function isPointInPreparedSector(x, y) {
+        return isPointInNormalisedSector(x, y, minRadius, maxRadius, startAngle, endAngle);
+    };
+}
+
+function isPointInNormalisedSector(
+    x: number,
+    y: number,
+    minRadius: number,
+    maxRadius: number,
+    startAngle: number,
+    endAngle: number
+) {
+    const radius = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+    if (radius < minRadius || radius > maxRadius) return false;
+
     const angle = Math.atan2(y, x);
     // Sector can cross axis start
     return startAngle < endAngle

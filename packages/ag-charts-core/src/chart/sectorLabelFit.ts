@@ -1,13 +1,13 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
-import { insetFitRegion, probedFitRegion, regionTextCapacity } from '../geometry/fitRegion';
+import { type FitRegion, insetFitRegion, probedFitRegion, regionTextCapacity } from '../geometry/fitRegion';
 import type { LabelFitDescriptor, PlacedFit } from '../geometry/labelPlacement';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
 import { BBox } from '../scene/bbox';
 import { Text, type TextBoxingProperties } from '../scene/shape/text';
-import { type SectorBoundaries, isBoxInSector, isPointInSector } from '../scene/util/sector';
+import { type SectorBoundaries, isBoxInSector, isPointInSector, sectorPointTest } from '../scene/util/sector';
 import {
     type LabelFit,
     drawnLineHeight,
@@ -104,7 +104,7 @@ export function fitSectorLabelRect(
             return centred;
         }
     }
-    const contains = (x: number, y: number) => isPointInSector(x, y, sector);
+    const contains = sectorPointTest(sector);
     const limit = Math.abs(sector.outerRadius) * 2;
     // Furthest an edge through corners A and B can slide along (dirX, dirY) while both corners stay in the wedge.
     const reach = (ax: number, ay: number, bx: number, by: number, dirX: number, dirY: number) =>
@@ -155,9 +155,10 @@ function sectorBands(anchor: Point, inset: SectorBoundaries, height: number) {
     const outer = inset.outerRadius;
     const halfHeight = height / 2;
     const limit = outer * 2;
+    const inInset = sectorPointTest(inset);
     // Furthest the bisector-seed on line `y` can slide along `dir` (±1 in x) while staying in the wedge.
     const edge = (seedX: number, y: number, dir: -1 | 1) =>
-        seedX + dir * furthestInside(limit, (t) => isPointInSector(seedX + dir * t, y, inset));
+        seedX + dir * furthestInside(limit, (t) => inInset(seedX + dir * t, y));
     // Seed each line from the point where the bisector ray crosses it, guaranteed inside where the ray reaches.
     const seedAt = (y: number) => (Math.abs(midSin) > 1e-3 ? (y * midCos) / midSin : anchor.x);
 
@@ -170,7 +171,7 @@ function sectorBands(anchor: Point, inset: SectorBoundaries, height: number) {
         let fits = true;
         for (const y of [centerY - halfHeight, centerY + halfHeight]) {
             const seedX = seedAt(y);
-            if (!isPointInSector(seedX, y, inset)) {
+            if (!inInset(seedX, y)) {
                 fits = false;
                 break;
             }
@@ -328,15 +329,25 @@ function fitSectorLabelToWedge(
     padding: Required<PaddingOptions>,
     layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
 ): PlacedSectorLabel {
+    const inSector = sectorPointTest(sector);
+    // A retry that only adds clearance keeps the line height and block, so it reuses their rect and region.
+    const probed = new Map<string, { rect: SectorLabelRect; region: FitRegion }>();
+    const probe = (lineHeight: number, block: BlockSize | undefined) => {
+        const key = `${lineHeight},${block?.width},${block?.height}`;
+        let entry = probed.get(key);
+        if (entry == null) {
+            const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
+            const anchorAt = { x: rect.centerX, y: rect.centerY };
+            entry = { rect, region: probedFitRegion(anchorAt, inSector, Math.abs(sector.outerRadius) * 2) };
+            probed.set(key, entry);
+        }
+        return entry;
+    };
     const place = (sized: FontOptions, atFloor: boolean, inset: number, block: BlockSize | undefined) => {
         const lineHeight = drawnLineHeight(sized);
-        const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
+        const { rect, region: wedgeRegion } = probe(lineHeight, block);
         const region = insetFitRegion(
-            probedFitRegion(
-                { x: rect.centerX, y: rect.centerY },
-                (x, y) => isPointInSector(x, y, sector),
-                Math.abs(sector.outerRadius) * 2
-            ),
+            wedgeRegion,
             Math.max(padding.left, padding.right) + inset,
             Math.max(padding.top, padding.bottom) + inset
         );
