@@ -2236,27 +2236,60 @@ describe('SunburstSeries', () => {
         });
 
         it('fits wedge labels between the drawn straight edges, not the full sector', async () => {
-            const count = 30;
-            const sweep = (2 * Math.PI) / count;
-            const labelRadius = async (sectorGap: number) => {
-                chart?.destroy();
-                chart = deproxy(
-                    await createEnterpriseChart({
-                        data: Array.from({ length: count }, (_, i) => ({ name: `N${i}`, size: 1 })),
-                        series: [
-                            { type: 'sunburst', labelKey: 'name', sizeKey: 'size', gap: sectorGap, strokeWidth: 0 },
-                        ],
-                        animation: { enabled: false },
-                    })
-                );
-                const wedge = getHierarchyRootNode(chart)!.children[0] as { label?: { radius: number } };
-                return wedge.label!.radius;
-            };
+            const wideGap = 16;
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: Array.from({ length: 30 }, (_, i) => ({
+                        name: `N${i} has a label too long for its wedge`,
+                        size: 1,
+                    })),
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            sizeKey: 'size',
+                            gap: wideGap,
+                            padding: 0,
+                            strokeWidth: 0,
+                        },
+                    ],
+                    animation: { enabled: false },
+                })
+            );
+            const isFirst = (node: { datum?: { datum?: { name: string } } }) =>
+                node.datum?.datum?.name.startsWith('N0 ') === true;
+            const wedge = getSeriesSelectionNodes<Sector<{ datum?: { name: string } }>>(chart, 'datumSelection').find(
+                isFirst
+            )!;
+            const group = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection').find(
+                isFirst
+            )!;
+            const text = Selection.selectByClass(group, TransformableText).find((node) => node.tag === 0)!;
+            expect(text.visible).toBe(true);
 
-            // Each straight edge gives way by gap / 2, so text across the wedge must sit further out
-            // for its edges to be far enough apart.
-            const shift = (await labelRadius(gap)) - (await labelRadius(0));
-            expect(shift).toBeCloseTo(gap / (4 * Math.sin(sweep / 2)), 6);
+            const toCanvas = (x: number, y: number) => Transformable.toCanvasPoint(wedge, x, y);
+            const centre = toCanvas(wedge.centerX, wedge.centerY);
+            const edge = (angle: number) => {
+                const { canvasX, canvasY } = toCanvas(wedge.centerX + Math.cos(angle), wedge.centerY + Math.sin(angle));
+                return { x: canvasX - centre.canvasX, y: canvasY - centre.canvasY };
+            };
+            const start = edge(wedge.startAngle);
+            const end = edge(wedge.endAngle);
+            const { x, y, width, height } = text.computeBBoxWithoutTransforms()!;
+            const corners = [
+                [x, y],
+                [x + width, y],
+                [x, y + height],
+                [x + width, y + height],
+            ].map(([cx, cy]) => Transformable.toCanvasPoint(text, cx, cy));
+
+            // Distance from each straight edge, measured square to it, positive on the inside of the wedge.
+            for (const { canvasX, canvasY } of corners) {
+                const dx = canvasX - centre.canvasX;
+                const dy = canvasY - centre.canvasY;
+                expect(start.x * dy - start.y * dx).toBeGreaterThanOrEqual(wideGap / 2 - 1e-6);
+                expect(end.y * dx - end.x * dy).toBeGreaterThanOrEqual(wideGap / 2 - 1e-6);
+            }
         });
 
         it('gives no side gap to a sector that fills its ring alone', async () => {

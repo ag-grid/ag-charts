@@ -106,7 +106,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     /** Configuration for the labels at the centre of the series. Has no effect unless `innerRadiusRatio` or `innerRadiusSize` is set. */
     innerLabels?: AgSunburstInnerLabelThemeOptions;
     /**
-     * The gap, in pixels, between neighbouring sectors, both within a ring and between a sector and its children in the next ring out. The edge of the hole and the outer edge of a sector with no children stay where they are.
+     * The gap, in pixels, between neighbouring sectors, both within a ring and between one ring and the next. The edge of the hole and the outer edge of the outermost ring stay where they are.
      *
      * __Note:__ A sector that is narrower than its share of the gap is not drawn.
      */

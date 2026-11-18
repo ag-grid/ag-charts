@@ -1788,6 +1788,18 @@ describe('DonutSeries', () => {
                 (sector) => sector.datum?.datumIndex === datumIndex
             )!;
 
+        /** The background pixels across the gap at the top of the series, `distance` above its centre. */
+        const paintedGapAbove = (distance: number, gap: number) => {
+            const sector = sectorFor(0);
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY - distance);
+            const background = chartPixelAt(chart, 1, 1);
+            let count = 0;
+            for (let x = canvasX - 3 * gap; x <= canvasX + 3 * gap; x++) {
+                if (chartPixelAt(chart, x, canvasY).every((channel, i) => channel === background[i])) count++;
+            }
+            return count;
+        };
+
         const createDonuts = async (data: object[], ...series: Partial<AgDonutSeriesOptions>[]) => {
             chart = deproxy(
                 await createChart({
@@ -1834,18 +1846,8 @@ describe('DonutSeries', () => {
                     ],
                     { gap, strokeWidth, fills: ['#ff0000', '#0000ff'], strokes: ['#00ff00', '#00ff00'] }
                 );
-                const sector = sectorFor(0);
-                const { canvasX, canvasY } = Transformable.toCanvasPoint(
-                    sector,
-                    sector.centerX,
-                    sector.centerY - (sector.innerRadius + sector.outerRadius) / 2
-                );
-                const background = chartPixelAt(chart, 1, 1);
-                let count = 0;
-                for (let x = canvasX - 3 * gap; x <= canvasX + 3 * gap; x++) {
-                    if (chartPixelAt(chart, x, canvasY).every((channel, i) => channel === background[i])) count++;
-                }
-                return count;
+                const { innerRadius, outerRadius } = sectorFor(0);
+                return paintedGapAbove((innerRadius + outerRadius) / 2, gap);
             };
 
             const withoutStroke = await paintedGap(0);
@@ -1854,27 +1856,33 @@ describe('DonutSeries', () => {
             expect(withStroke).toBe(withoutStroke);
         });
 
-        it('keeps the full gap near the centre of a pie without a stroke', async () => {
-            const gap = 10;
+        it.each([
+            { shape: 'halves', values: [1, 1] },
+            { shape: 'a quarter and three quarters', values: [1, 3] },
+        ])('keeps the full gap near the centre of a pie without a stroke ($shape)', async ({ values }) => {
+            const gap = 20;
             chart = deproxy(
                 await createChart({
                     ...options,
-                    data: [
-                        { name: 'a', value: 1 },
-                        { name: 'b', value: 1 },
-                    ],
+                    data: values.map((value, i) => ({ name: `n${i}`, value })),
                     series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name', gap, strokeWidth: 0 }],
                 })
             );
-            const sector = sectorFor(0);
-            const { canvasX, canvasY } = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY - 3 * gap);
-            const background = chartPixelAt(chart, 1, 1);
-            let count = 0;
-            for (let x = canvasX - 3 * gap; x <= canvasX + 3 * gap; x++) {
-                if (chartPixelAt(chart, x, canvasY).every((channel, i) => channel === background[i])) count++;
-            }
 
-            expect(Math.abs(count - gap)).toBeLessThanOrEqual(1);
+            expect(Math.abs(paintedGapAbove(1.5 * gap, gap) - gap)).toBeLessThanOrEqual(1);
+        });
+
+        it('keeps the full gap beside a small hole', async () => {
+            const gap = 30;
+            await createDonuts(
+                [
+                    { name: 'a', value: 1 },
+                    { name: 'b', value: 1 },
+                ],
+                { gap, strokeWidth: 0, innerRadiusRatio: 0.1 }
+            );
+
+            expect(Math.abs(paintedGapAbove(sectorFor(0).innerRadius + 2, gap) - gap)).toBeLessThanOrEqual(1);
         });
 
         it('does not draw a sector narrower than the gap, but keeps its neighbours inset and its pick area', async () => {
