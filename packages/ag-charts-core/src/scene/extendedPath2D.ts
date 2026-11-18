@@ -452,14 +452,16 @@ export class ExtendedPath2D {
     }
 
     /**
-     * Strokes `reach` further along each end of every open subpath of straight lines, in line with the segment at that end, with
-     * the width and cap the context has. A dilation that draws butt caps uses it to end `reach` past the ends, as it does at the
-     * sides. Subpaths that are closed, curved or without length have no such end and are skipped.
+     * Strokes `reach` further along each end of every open subpath of straight lines, with the width and cap the context has,
+     * so that a butt-capped dilation ends `reach` past the ends as it does at the sides. Closed, curved and zero-length
+     * subpaths have no such end and are skipped.
      */
     strokeOpenLineEnds(
         ctx: Pick<CanvasRenderingContext2D, 'beginPath' | 'moveTo' | 'lineTo' | 'stroke'>,
         reach: number
     ) {
+        if (reach <= 0) return;
+
         const { commands, params, commandsLength } = this;
         let began = false;
         // The first and last segments of the subpath being read, and whether it is still a plain open run of lines.
@@ -474,27 +476,16 @@ export class ExtendedPath2D {
         let lines = 0;
         let plain = false;
 
-        const extend = (fromX: number, fromY: number, toX: number, toY: number) => {
-            const length = Math.hypot(toX - fromX, toY - fromY);
-            if (!Number.isFinite(length) || length <= 0) return;
-            if (!began) {
-                ctx.beginPath();
-                began = true;
-            }
-            ctx.moveTo(toX, toY);
-            ctx.lineTo(toX + ((toX - fromX) / length) * reach, toY + ((toY - fromY) / length) * reach);
-        };
-        const flush = () => {
-            if (!plain || lines === 0) return;
-            extend(x1, y1, x0, y0);
-            extend(px, py, x, y);
-        };
-
         let pi = 0;
-        for (let ci = 0; ci < commandsLength; ci++) {
-            switch (commands[ci]) {
+        // The final pass, with no command, ends the last subpath as a move would.
+        for (let ci = 0; ci <= commandsLength; ci++) {
+            switch (ci < commandsLength ? commands[ci] : Command.Move) {
                 case Command.Move:
-                    flush();
+                    if (plain && lines > 0) {
+                        began = extendLineEnd(ctx, x1, y1, x0, y0, reach, began);
+                        began = extendLineEnd(ctx, px, py, x, y, reach, began);
+                    }
+                    if (ci === commandsLength) break;
                     x0 = x = params[pi++];
                     y0 = y = params[pi++];
                     lines = 0;
@@ -520,7 +511,6 @@ export class ExtendedPath2D {
                     break;
             }
         }
-        flush();
         if (began) ctx.stroke();
     }
 
@@ -781,6 +771,24 @@ export class ExtendedPath2D {
 }
 
 /** Whether the horizontal ray running left from (x, y) crosses the edge, under the half-open rule. */
+/** Draws a line of `reach` past `to`, in line with the segment from `from`. Returns whether the context has begun a path. */
+function extendLineEnd(
+    ctx: Pick<CanvasRenderingContext2D, 'beginPath' | 'moveTo' | 'lineTo'>,
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+    reach: number,
+    began: boolean
+): boolean {
+    const length = Math.hypot(toX - fromX, toY - fromY);
+    if (!Number.isFinite(length) || length <= 0) return began;
+    if (!began) ctx.beginPath();
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(toX + ((toX - fromX) / length) * reach, toY + ((toY - fromY) / length) * reach);
+    return true;
+}
+
 function rayCrossesLine(x0: number, y0: number, x1: number, y1: number, x: number, y: number): number {
     if (y0 > y === y1 > y) {
         return 0;

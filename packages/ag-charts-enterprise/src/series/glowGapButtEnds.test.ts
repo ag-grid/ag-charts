@@ -15,10 +15,7 @@ import { boxPlot, candlestick } from '../test/glowGapItems';
 
 const { x: CENTRE_X, y: CENTRE_Y } = GLOW_CENTRE;
 
-/**
- * A wick or a whisker has butt caps, so a glow's gap is the gap past its end: the cut ends `gap` past it, however thick the wick
- * is. The ends of the items below are probed in the line that the wick runs along, past the end, one pixel at a time.
- */
+/** A wick or whisker has butt caps, so the cut ends `gap` past its end however thick it is. Ends are probed along the wick's line. */
 interface End {
     build: (gap?: number) => Shape;
     /** Whether the wick runs along the y axis, and the other coordinate of the line along it. */
@@ -113,7 +110,7 @@ describe('glow gap past the butt ends of wicks and whiskers', () => {
                     expect(pastEnd(pixelAt, 5 + 10 + 4)).toEqual(CLEAR);
                 });
 
-                it('should cast the glow of a wick past the end as it did, with no gap', () => {
+                it('should cast the glow of a wick past the end with no gap', () => {
                     const { pixelAt } = draw(route, build());
 
                     // The glow is cut nowhere past the end, apart from the footprint that a root cuts out of every glow, which

@@ -86,9 +86,11 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
     }
 
     protected override strokeButtEnds(ctx: CanvasContext, reach: number) {
+        if (reach <= 0) return;
+
         const { drawnX1: x1, drawnY1: y1, drawnX2: x2, drawnY2: y2 } = this;
         const length = Math.hypot(x2 - x1, y2 - y1);
-        // A butt cap on a line with no length draws nothing, so there is no end to reach past.
+        // A butt cap on a line with no length draws nothing, so it has no end to reach past.
         if (!Number.isFinite(length) || length <= 0) return;
 
         const dx = ((x2 - x1) / length) * reach;

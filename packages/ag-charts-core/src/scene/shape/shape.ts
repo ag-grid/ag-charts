@@ -52,10 +52,7 @@ import { type ShadowSlot, dilatesShadow, getShadowSpread, shadowPass } from '../
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
-/**
- * The miter limit of the stroke that dilates a shape with no stroke of its own for a `spread` or `gap`: it bevels vertices
- * under about 57°, so a triangle marker's apex stays pointed. A `gap` adds a round join, so no point is cut further than it.
- */
+/** The miter limit of a dilation that doesn't follow the item's own join: it bevels vertices under about 57°. */
 const DILATION_MITER_LIMIT = 2.1;
 
 /** The alpha of a plain colour, which a shadow cast from an opaque copy of the shape has to follow. */
@@ -939,9 +936,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * Sets how the stroke that dilates the shape by a `spread` is drawn: solid, capped, and joined as the item's own stroke is
-     * if it `followsStroke`, otherwise mitred, up to a limit that keeps the apex of a triangle pointed. A stroke that `cutsGap`
-     * ends a butt cap as the item does, when {@link strokeButtEnds} can draw the gap past it.
+     * Sets the stroke that dilates the shape by `spread`: joined as the item's own stroke if it `followsStroke`, and, when it
+     * `cutsGap`, butt-capped where {@link strokeButtEnds} can draw the gap past a butt end.
      */
     private setDilationStyle(
         slot: ShadowSlot,
@@ -954,10 +950,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const lineCap = this.__lineCap;
         const buttCap = lineCap == null || lineCap === 'butt';
         let dilationCap: ShapeLineCap = buttCap ? 'square' : lineCap;
-        if (cutsGap && drawsStroke) {
-            // The cut is as far past the end of the item's stroke as its own cap leaves it.
-            if (buttCap && this.hasButtEnds()) dilationCap = 'butt';
-        } else if (this.getShadowMode(slot) === 'fill') {
+        if (cutsGap && buttCap && this.hasButtEnds()) {
+            dilationCap = 'butt';
+        } else if (!(cutsGap && drawsStroke) && this.getShadowMode(slot) === 'fill') {
             dilationCap = 'round';
         }
         ctx.lineCap = dilationCap;
@@ -976,10 +971,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * Draws the shape, dilated by `spread`, opaque and in one solid colour: its fill, its stroke widened by the spread (or
      * the fill's outline stroked by it) and its extras. Where those overlap they only cover each other.
      *
-     * Where a glow has a `gap`, its silhouette and the `footprint` that is cut from it keep the same distance from the item
-     * as the item's outline. A stroked item's outline has its own join and miter limit, so both are dilated with them, and the
-     * cut follows a spike as the stroke paints it. A shape with no stroke is dilated by a mitre, so that a square corner stays
-     * square, and by a round join, so that a point sharper than the mitre limit allows is still a `spread` clear.
+     * With a `gap`, a stroked item is dilated with its own join and miter limit, and an unstroked one by a mitre and a round
+     * join, so that corners stay square and sharp points are still `gap` clear.
      */
     private drawSpreadSilhouette(
         slot: ShadowSlot,
@@ -996,7 +989,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
             ctx.fillStyle = tint;
             ctx.strokeStyle = tint;
-            // A footprint that only covers what an item paints, for a glow with no gap, is cut as it always was.
             const cutsGap = footprint && !painted;
             const gapped = cutsGap || (!footprint && this.getSlot(slot)?.gap != null);
             const followsStroke = (drawsStroke && !(footprint && painted)) || (gapped && this.hasStrokeOutline());
@@ -1012,7 +1004,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 } finally {
                     this.shadowStrokeGrowth = 0;
                 }
-                // The stroke of a butt cap ends where the item's does, so the `gap` past it is drawn on.
+                // A butt-capped stroke ends where the item's does, so draw the `gap` past it.
                 if (cutsGap && ctx.lineCap === 'butt') this.strokeButtEnds(ctx, spread);
                 // The capped mitre leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
                 if (footprint && painted) this.executeOwnStroke(ctx, path);

@@ -179,8 +179,7 @@ describe('glow refinements', () => {
                 throw new Error('The star is not drawn');
             };
 
-            // What a pixel is: the star (blue), the glow (red), or neither, which is where the gap is cut and beyond the glow.
-            // A pixel on an edge that a curve crosses is a blend of two, so it is read by the colour it is nearest.
+            // A pixel is the star (blue), the glow (red), or neither (the gap, or beyond the glow). A blended edge pixel reads as its nearest colour.
             const classOf = ([red, green, blue]: number[]) => {
                 if (blue > 128 && red < 128 && green < 128) return 'star';
                 if (red > 128 && green < 128 && blue < 128) return 'glow';
@@ -214,9 +213,7 @@ describe('glow refinements', () => {
                     await createStar(placement, hover, stroke);
                     expect(pixel(axisX, tipY + 3)).toEqual(BLUE);
 
-                    // Going up each column over the point, and a little to either side of it, there is the star, then the gap,
-                    // and then the glow all the way up to its end, which a spike's mitre reaches further than a gap and a spread:
-                    // the spike of the stroke does not break through it.
+                    // Going up each column over the point there is the star, the gap, then the glow to its end: the spike doesn't break through.
                     for (const dx of [-5, -3, 0, 3, 5]) {
                         const runs = runsUp(axisX + dx, tipY + 20, tipY - 4 * (gap + spread));
                         expect(runs.map((run) => run.class).join(), `the column ${dx} from the axis`).toBe(
@@ -237,8 +234,7 @@ describe('glow refinements', () => {
                     const { axisX, tipY } = pointOfStar();
                     await createStar(placement, hover, UNSTROKED);
 
-                    // Each column over the point, and a little to either side of it: the glow begins no further than a gap
-                    // from the point, and, straight over the point, no nearer than that, as the round join of the cut is a gap clear.
+                    // The glow begins no further than a gap from the point and, straight over it, no nearer.
                     for (const dx of [-12, -8, -4, 0, 4, 8, 12]) {
                         let y = tipY;
                         while (pixel(axisX + dx, y).toString() !== RED.toString() && y > tipY - gap - spread) y--;
