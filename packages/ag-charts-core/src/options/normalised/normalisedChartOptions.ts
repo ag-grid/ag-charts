@@ -27,9 +27,11 @@ import type {
     FontWeight,
 } from 'ag-charts-types';
 
+import type { Normalised } from './normalise';
 import type { NormalisedChartCaptionOptions } from './normalisedChartCaptionOptions';
 import type {
     NormalisedBorderOptions,
+    NormalisedLineDash,
     NormalisedPaddingOptions,
     NormalisedTextOrSegments,
 } from './normalisedCommonOptions';
@@ -108,12 +110,12 @@ export type NormalisedRangesOptions = Omit<AgRangesOptions, 'dropdown' | 'button
     dropdown: NormalisedRangesDropdown;
 };
 
-export type NormalisedScrollbarTrackStyle = AgScrollbarTrackStyle & {
+export type NormalisedScrollbarTrackStyle = Normalised<AgScrollbarTrackStyle> & {
     cornerRadius: number;
     opacity: number;
 };
 
-export type NormalisedScrollbarThumbStyle = AgScrollbarThumbStyle & {
+export type NormalisedScrollbarThumbStyle = Normalised<AgScrollbarThumbStyle, never, NormalisedLineDash> & {
     cornerRadius: number;
     opacity: number;
     minSize: number;

@@ -1,10 +1,11 @@
 import type { InternalAgColorType } from 'ag-charts-core';
-import { Group, Line } from 'ag-charts-core';
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import { Group, Line, rescaleLineDash } from 'ag-charts-core';
+import type { AgSeriesMarkerStyle, PixelSize } from 'ag-charts-types';
 
 import { Marker } from '../marker/marker';
 
-export interface LegendMarker extends Omit<AgSeriesMarkerStyle, 'stroke'> {
+export interface LegendMarker extends Omit<AgSeriesMarkerStyle, 'stroke' | 'lineDash'> {
+    lineDash?: PixelSize[];
     fill?: InternalAgColorType;
     stroke?: InternalAgColorType;
     enabled?: boolean;
@@ -42,7 +43,7 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         line.stroke = stroke;
         line.strokeOpacity = strokeOpacity;
         line.strokeWidth = lineStrokeWidth;
-        line.lineDash = lineDash;
+        line.lineDash = rescaleLineDash(lineDash, symbol.line.strokeWidth, lineStrokeWidth) ?? lineDash;
         group.append(line);
     }
 
@@ -56,7 +57,7 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         marker.stroke = stroke;
         marker.strokeOpacity = strokeOpacity ?? 1;
         marker.strokeWidth = markerStrokeWidth;
-        marker.lineDash = lineDash;
+        marker.lineDash = rescaleLineDash(lineDash, symbol.marker.strokeWidth ?? 1, markerStrokeWidth) ?? lineDash;
         marker.lineDashOffset = lineDashOffset ?? 0;
 
         const anchor = Marker.anchor(shape);

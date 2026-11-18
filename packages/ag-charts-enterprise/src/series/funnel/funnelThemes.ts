@@ -9,13 +9,16 @@ import {
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
+    SELECTION_LINE_DASH_STATES,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
     themeLineHeight,
+    undocumentedThemeOptions,
     withGlowThemeDefaults,
+    withLineDashThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -126,6 +129,7 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
                 ITEM_GLOW_BUCKETS
             ),
         },
+        ...undocumentedThemeOptions({ selection: withLineDashThemeDefaults({}, SELECTION_LINE_DASH_STATES) }),
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {

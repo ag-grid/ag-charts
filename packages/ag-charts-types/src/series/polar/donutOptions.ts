@@ -20,6 +20,7 @@ import type {
     AgColorType,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
     TextOptions,
     TextOrSegments,
@@ -56,7 +57,8 @@ export type AgDonutSeriesItemStylerParams<TDatum = DatumDefault, TContext = Cont
 > &
     ContextCallbackParams<TContext> &
     AgDonutSeriesOptionsKeys<TDatum> &
-    Required<AgDonutSeriesStyle>;
+    Required<Omit<AgDonutSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgDonutSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each sector. */

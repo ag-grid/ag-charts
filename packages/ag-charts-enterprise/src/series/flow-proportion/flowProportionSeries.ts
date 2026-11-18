@@ -17,6 +17,7 @@ import type {
     Node,
     Normalised,
     NormalisedFlowProportionSeriesKeys,
+    NormalisedLineDash,
     Path,
     Point,
     Text,
@@ -45,7 +46,7 @@ type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 's
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
 
 // Fill/stroke colour refs are resolved to concrete colours before reaching scene nodes and legend markers.
-type NormalisedNodeStyle = Normalised<NodeStyle, never, FillStrokeMorph>;
+type NormalisedNodeStyle = Normalised<NodeStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
 export interface FlowProportionLinkDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,

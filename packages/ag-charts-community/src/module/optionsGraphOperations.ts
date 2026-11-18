@@ -12,6 +12,7 @@ import {
     isFunction,
     isGradientFill,
     isImageFill,
+    isLineDashName,
     isNumber,
     isObject,
     isObjectLike,
@@ -19,18 +20,22 @@ import {
     isPlainObject,
     isString,
     isThemeOriginOperator,
+    scaleLineDashName,
     without,
 } from 'ag-charts-core';
 
 import {
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,
+    OPERATION_EDGE,
     OVERRIDES_EDGE,
     type OptionsGraphInterface,
     PATH_EDGE,
+    PRUNE_EDGE,
     RESOLVED_TO_BRANCH,
     UNRESOLVABLE_PATH,
     USER_OPTIONS_EDGE,
+    USER_PARTIAL_OPTIONS_EDGE,
     type VertexInterface,
     getPathLastIndex,
     getPathSafe,
@@ -940,6 +945,7 @@ function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, va
 enum TransformOperation {
     Apply = '$apply',
     ApplyCycle = '$applyCycle',
+    ApplyLineDash = '$applyLineDash',
     ApplyPadding = '$applyPadding',
     ApplySwitch = '$applySwitch',
     ApplyTheme = '$applyTheme',
@@ -958,6 +964,7 @@ enum TransformOperation {
 const transformOperations: Record<TransformOperation, OperationFns> = {
     $apply: applyOperation,
     $applyCycle: applyCycleOperation,
+    $applyLineDash: applyLineDashOperation,
     $applyPadding: applyPaddingOperation,
     $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
@@ -1026,6 +1033,67 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         }
     }
 
+    return RESOLVED_TO_BRANCH;
+}
+
+function resolveLineDashDefault(
+    graph: OptionsGraphInterface,
+    vertex: VertexInterface,
+    defaultVertex?: VertexInterface
+) {
+    if (defaultVertex == null) return;
+    const value = graph.getVertexValue(defaultVertex);
+    return Array.isArray(value) ? [...(value as number[])] : graph.resolveVertexValue(vertex, defaultVertex);
+}
+
+/**
+ * Resolves a named `lineDash` to its array, scaled by the stroke width (the second value, e.g. `./strokeWidth`). A name
+ * replaces lower priority arrays rather than merging by index; an array is in pixels and never scaled.
+ */
+function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [defaultVertex, widthVertex] = values;
+
+    const pathArray = graph.getPathArray(vertex);
+    const userOption = graph.dangerouslyGetUserOption(pathArray);
+    const overrideVertex = graph.findNeighbour(vertex, OVERRIDES_EDGE) as VertexInterface | undefined;
+    const overrideIsOperation =
+        overrideVertex != null && graph.findNeighbourValue(overrideVertex, OPERATION_EDGE) != null;
+    const overrideOption = overrideIsOperation
+        ? graph.resolveVertexValue(vertex, overrideVertex)
+        : (graph.findNeighbourValue(vertex, OVERRIDES_EDGE) ??
+          graph.dangerouslyGetThemeOverride(pathArray) ??
+          graph.dangerouslyGetThemeOverride(withoutIndices(pathArray)));
+
+    const width = widthVertex == null ? undefined : graph.resolveVertexValue(vertex, widthVertex);
+
+    // A prune from an earlier resolve would otherwise drop the elements of a styler's array over a name.
+    graph.removeEdges(vertex, PRUNE_EDGE);
+
+    const winner = userOption ?? overrideOption;
+    if (isLineDashName(winner)) {
+        graph.prune(vertex, [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE]);
+        return scaleLineDashName(winner, width);
+    }
+
+    const resolvedDefault = resolveLineDashDefault(graph, vertex, defaultVertex);
+    const defaultDash = isLineDashName(resolvedDefault)
+        ? scaleLineDashName(resolvedDefault, width)
+        : (resolvedDefault as number[] | undefined);
+
+    // A user array still merges by index over a named or operator override, which stands in for the default.
+    let overrideBase: number[] | undefined;
+    if (isLineDashName(overrideOption)) {
+        overrideBase = scaleLineDashName(overrideOption, width);
+    } else if (overrideIsOperation && Array.isArray(overrideOption)) {
+        overrideBase = overrideOption;
+    }
+    const base = overrideBase ?? defaultDash ?? [];
+
+    // Nothing to layer: keep the default as it stands, so that an unset option still falls back.
+    if (base.length === 0 && userOption == null && overrideOption == null) return defaultDash;
+
+    // On the defaults edge, so the base cannot clobber a styler's partial values during its resolution.
+    graph.graftObject(vertex, base, undefined, DEFAULTS_EDGE);
     return RESOLVED_TO_BRANCH;
 }
 

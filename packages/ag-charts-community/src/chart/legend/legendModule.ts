@@ -3,6 +3,7 @@ import {
     LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
     legendOptionsDefs,
+    lineDashThemeDefault,
     themeLineHeight,
 } from 'ag-charts-core';
 import type { AgChartLegendOptions } from 'ag-charts-types';
@@ -68,7 +69,11 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                     },
                 },
                 marker: { size: { $ref: 'legendMarkerSize' }, padding: { $applyPadding: 8 } },
-                line: { length: 25 },
+                line: {
+                    length: 25,
+                    // A name scales by the width the legend line is drawn at: this `strokeWidth`, else 2.
+                    disabledStyle: { lineDash: lineDashThemeDefault(undefined, { $path: ['../strokeWidth', 2] }) },
+                },
                 showSeriesStroke: true,
                 label: {
                     color: { $ref: 'legendLabelColor' },

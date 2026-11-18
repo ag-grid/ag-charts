@@ -29,7 +29,7 @@ import {
     writePlacedPolarLabels,
     zeroLike,
 } from 'ag-charts-core';
-import type { BBox, GradientParams, PlacedLabel, Selection } from 'ag-charts-core';
+import type { BBox, GradientParams, NormalisedLineDash, PlacedLabel, Selection } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
@@ -59,7 +59,7 @@ const {
     getItemStyles,
 } = _ModuleSupport;
 
-type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph>;
+type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
 interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly label?: PolarLabelDatum;
@@ -72,14 +72,14 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly clipSector: SectorBox;
     readonly reversed: boolean;
     readonly index: number;
-    style?: Required<AgRadialSeriesStyle> & AgItemShadowStyle;
+    style?: Required<Normalised<AgRadialSeriesStyle, never, NormalisedLineDash>> & AgItemShadowStyle;
 }
 
 export interface RadialBarSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
     RadialBarNodeDatum,
     RadialBarNodeDatum
 > {
-    styles: _ModuleSupport.SeriesNodeStyleContext<Required<AgRadialSeriesStyle>>;
+    styles: _ModuleSupport.SeriesNodeStyleContext<Required<Normalised<AgRadialSeriesStyle, never, NormalisedLineDash>>>;
 }
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<

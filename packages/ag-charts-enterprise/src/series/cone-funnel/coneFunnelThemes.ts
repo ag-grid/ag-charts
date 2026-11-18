@@ -3,16 +3,20 @@ import {
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
     GLOW_THEME_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     NEAREST_TOOLTIP_THEME,
     SAFE_FILLS_OPERATION,
+    SELECTION_LINE_DASH_STATES,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
     themeLineHeight,
+    undocumentedThemeOptions,
+    withLineDashThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -67,11 +71,17 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         tooltip: NEAREST_TOOLTIP_THEME,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
-            highlightedItem: {
-                stroke: `rgba(0, 0, 0, 0.4)`,
-                strokeWidth: 2,
-            },
+            ...withLineDashThemeDefaults(
+                {
+                    highlightedItem: {
+                        stroke: `rgba(0, 0, 0, 0.4)`,
+                        strokeWidth: 2,
+                    },
+                },
+                ITEM_GLOW_BUCKETS
+            ),
         },
+        ...undocumentedThemeOptions({ selection: withLineDashThemeDefaults({}, SELECTION_LINE_DASH_STATES) }),
     },
     seriesArea: {
         padding: {

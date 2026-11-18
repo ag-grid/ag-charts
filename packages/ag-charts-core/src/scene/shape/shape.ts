@@ -1,11 +1,4 @@
-import type {
-    AgDrawingMode,
-    AgImageFill,
-    AgPatternColor,
-    CssColor,
-    LineDashOptions,
-    StrokeOptions,
-} from 'ag-charts-types';
+import type { AgDrawingMode, AgImageFill, AgPatternColor, CssColor, StrokeOptions } from 'ag-charts-types';
 
 import { clamp } from '../../data/numbers';
 import { objectsEqual } from '../../data/object';
@@ -28,6 +21,7 @@ import {
     SceneObjectChangeDetection,
     TRIPLE_EQ,
 } from '../../rendering/changeDetectable';
+import type { ResolvedLineDashOptions } from '../../rendering/lineDash';
 import type { AlignedInterval } from '../../rendering/pixel';
 import { align, alignCentre, centreSnapApplies, deviceDimension } from '../../rendering/pixel';
 import { parseSvg } from '../../rendering/svg';
@@ -245,7 +239,7 @@ export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { col
 
 export type ShapeColor = CssColor | ShapeGradientColor | AgPatternColor | AgImageFill;
 
-type SvgAttributes = StrokeOptions & LineDashOptions;
+type SvgAttributes = StrokeOptions & ResolvedLineDashOptions;
 
 export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     @DeclaredSceneChangeDetection()

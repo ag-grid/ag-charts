@@ -1,6 +1,6 @@
 import type { AgColorType } from '../series/cartesian/commonOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
-import type { Opacity, PixelSize } from './types';
+import type { AgLineDashName, Opacity, PixelSize } from './types';
 
 export interface AgBandHighlightOptions {
     /** Whether to show the band highlight. */
@@ -11,8 +11,8 @@ export interface AgBandHighlightOptions {
     strokeWidth?: PixelSize;
     /** The opacity of the stroke for the lines. */
     strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
+    /** Defines how the line stroke is rendered. Either a stock pattern name, or an array in which every number specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
+    lineDash?: PixelSize[] | AgLineDashName;
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
     /** The colour to use for the fill of the band. A colour string, or an object for a gradient, pattern, or image fill. */

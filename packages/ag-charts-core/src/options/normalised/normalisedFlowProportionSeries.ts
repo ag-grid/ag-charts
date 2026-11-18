@@ -31,6 +31,7 @@ import type {
     FillStrokeMorph,
     NormalisedColorType,
     NormalisedDropShadowOptions,
+    NormalisedLineDash,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
@@ -77,7 +78,11 @@ export interface NormalisedFlowProportionSeriesKeys
 
 type FlowStyleRequiredKeys = 'fillOpacity' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset';
 
-export type NormalisedSankeySeriesNodeStyle = Normalised<AgSankeySeriesNodeStyle, never, FillStrokeMorph>;
+export type NormalisedSankeySeriesNodeStyle = Normalised<
+    AgSankeySeriesNodeStyle,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
 
 export type NormalisedSankeySeriesLabelOptions = NormalisedSeriesLabelOptions<AgSankeySeriesLabelFormatterParams> & {
     spacing: number;
@@ -94,7 +99,7 @@ export type NormalisedSankeySeriesLinkOptions = Normalised<
         stroke?: CssColor;
         shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<unknown>, AgSankeySeriesLinkStyle>;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedSankeySeriesNodeOptions = Normalised<
@@ -113,7 +118,7 @@ export type NormalisedSankeySeriesNodeOptions = Normalised<
         stroke?: CssColor;
         shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<unknown>, AgSankeySeriesNodeStyle>;
-    }
+    } & NormalisedLineDash
 >;
 
 /** Sankey options the series owns, before the common series keys are layered on. */
@@ -136,7 +141,11 @@ export type NormalisedSankeySeriesOwnOptions = Normalised<
         defaultPatternFills: CssColor[];
     };
 
-export type NormalisedChordSeriesNodeStyle = Normalised<AgChordSeriesNodeStyle, never, FillStrokeMorph>;
+export type NormalisedChordSeriesNodeStyle = Normalised<
+    AgChordSeriesNodeStyle,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
 
 export type NormalisedChordSeriesLinkStyle = Normalised<AgChordSeriesLinkStyle, never, FillStrokeMorph>;
 
@@ -166,7 +175,7 @@ export type NormalisedChordSeriesNodeOptions = Normalised<
         stroke?: CssColor;
         shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
-    }
+    } & NormalisedLineDash
 >;
 
 /** Chord options the series owns, before the common series keys are layered on. */

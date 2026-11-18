@@ -32,7 +32,7 @@ import {
     type PositionedLabelCandidate,
     Rect,
     type ResolvedTextAlign,
-    STROKE_STYLE_THEME_DEFAULTS,
+    SOLID_STROKE_STYLE,
     type SizedPoint,
     arraysEqual,
     configureColorScale,
@@ -1404,7 +1404,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                           fillOpacity: 1,
                           stroke: undefined,
                           strokeWidth: 0,
-                          ...STROKE_STYLE_THEME_DEFAULTS,
+                          ...SOLID_STROKE_STYLE,
                       },
                   };
 

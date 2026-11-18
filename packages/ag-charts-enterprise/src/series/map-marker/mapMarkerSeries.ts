@@ -879,7 +879,7 @@ export class MapMarkerSeries
             }
         }
         // fill/stroke refs are resolved during theme-merge before reaching here.
-        return style as Required<NormalisedMapMarkerSeriesStyle> & AgItemShadowStyle;
+        return style;
     }
 
     private makeLabelFormatterParams() {

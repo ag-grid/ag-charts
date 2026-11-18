@@ -13,7 +13,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedDropShadowOptions, NormalisedLineDash } from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions } from './normalisedLabelOptions';
 
 export type NormalisedRadialSeriesLabelOptions =
@@ -49,7 +49,7 @@ interface RadialOverrides {
 export type NormalisedRadialBarSeriesOwnOptions = Normalised<
     AgRadialBarSeriesOptions,
     RadialRequiredKeys | 'shadow',
-    RadialOverrides & { shadow: NormalisedDropShadowOptions }
+    RadialOverrides & { shadow: NormalisedDropShadowOptions } & NormalisedLineDash
 > &
     RadialAxisKeys;
 
@@ -57,20 +57,20 @@ export type NormalisedRadialBarSeriesOwnOptions = Normalised<
 export type NormalisedRadialColumnSeriesBaseOwnOptions = Normalised<
     AgBaseRadialColumnSeriesOptions,
     RadialRequiredKeys,
-    RadialOverrides
+    RadialOverrides & NormalisedLineDash
 > &
     RadialAxisKeys & { shadow: NormalisedDropShadowOptions; glow?: AgGlowOptions };
 
 export type NormalisedRadialColumnSeriesOwnOptions = Normalised<
     AgRadialColumnSeriesOptions,
     RadialRequiredKeys | 'columnWidthRatio' | 'maxColumnWidthRatio' | 'shadow',
-    RadialOverrides & { shadow: NormalisedDropShadowOptions }
+    RadialOverrides & { shadow: NormalisedDropShadowOptions } & NormalisedLineDash
 > &
     RadialAxisKeys;
 
 export type NormalisedNightingaleSeriesOwnOptions = Normalised<
     AgNightingaleSeriesOptions,
     RadialRequiredKeys | 'shadow',
-    RadialOverrides & { shadow: NormalisedDropShadowOptions }
+    RadialOverrides & { shadow: NormalisedDropShadowOptions } & NormalisedLineDash
 > &
     RadialAxisKeys;

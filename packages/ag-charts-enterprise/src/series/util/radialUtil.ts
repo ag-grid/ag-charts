@@ -5,6 +5,7 @@ import type {
     AgRadialSeriesStyle,
     AgRadialSeriesStylerParams,
     HighlightState as HighlightStateString,
+    PixelSize,
     SelectionState as SelectionStateString,
     Styler,
 } from 'ag-charts-community';
@@ -15,6 +16,8 @@ import type {
     CallbackParamRules,
     DynamicContext,
     InternalAgColorType,
+    Normalised,
+    NormalisedLineDash,
     Resolved,
 } from 'ag-charts-core';
 import { mergeDefaults } from 'ag-charts-core';
@@ -23,8 +26,10 @@ const { createDatumId, toHighlightString, toSelectionString } = _ModuleSupport;
 
 type BaseNodeDatum = _ModuleSupport.DataModelSeriesNodeDatum;
 
-export interface RadialSeriesStyleResult extends Required<Omit<AgRadialSeriesStyle, 'fill'>>, AgItemShadowStyle {
+export interface RadialSeriesStyleResult
+    extends Required<Omit<AgRadialSeriesStyle, 'fill' | 'lineDash'>>, AgItemShadowStyle {
     fill: InternalAgColorType;
+    lineDash: PixelSize[];
     opacity: 1;
 }
 
@@ -153,7 +158,7 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
     series: S,
     nodeDatum: D,
     isHighlight: boolean,
-    style: Required<AgRadialSeriesStyle> & { opacity: number }
+    style: Required<Normalised<AgRadialSeriesStyle, never, NormalisedLineDash>> & { opacity: number }
 ) {
     const { id: seriesId, options } = series;
     const { angleKey, radiusKey } = options;
