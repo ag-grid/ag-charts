@@ -52,7 +52,10 @@ import { type ShadowSlot, dilatesShadow, getShadowSpread, shadowPass } from '../
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
-/** The miter limit of the stroke that dilates a shape for a `spread` or `gap`: it bevels vertices under about 57°, so a triangle marker's apex stays pointed. */
+/**
+ * The miter limit of the stroke that dilates a shape with no stroke of its own for a `spread` or `gap`: it bevels vertices
+ * under about 57°, so a triangle marker's apex stays pointed. A `gap` adds a round join, so no point is cut further than it.
+ */
 const DILATION_MITER_LIMIT = 2.1;
 
 /** The alpha of a plain colour, which a shadow cast from an opaque copy of the shape has to follow. */
@@ -746,7 +749,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 // Without a Path2D there is no silhouette to dilate, so the stroke itself is drawn wider.
                 const globalAlpha = ctx.globalAlpha;
                 this.applyStrokeAndAlpha(ctx, bboxOverride);
-                this.setDilationStyle(slot, ctx, spread, true);
+                this.setDilationStyle(slot, ctx, spread, true, true);
                 this.shadowStrokeGrowth = spread * 2;
                 try {
                     this.executeStroke(ctx, path);
@@ -935,27 +938,48 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return true;
     }
 
-    /** Sets how the stroke that dilates the shape by a `spread` is drawn: solid, capped, and mitred for a `footprint`. */
+    /**
+     * Sets how the stroke that dilates the shape by a `spread` is drawn: solid, capped, and joined as the item's own stroke is
+     * if it `followsStroke`, otherwise mitred, up to a limit that keeps the apex of a triangle pointed. A stroke that `cutsGap`
+     * ends a butt cap as the item does, when {@link strokeButtEnds} can draw the gap past it.
+     */
     private setDilationStyle(
         slot: ShadowSlot,
         ctx: CanvasContext,
         spread: number,
         drawsStroke: boolean,
-        footprint: boolean = false
+        followsStroke: boolean,
+        cutsGap: boolean = false
     ) {
         const lineCap = this.__lineCap;
-        let dilationCap: ShapeLineCap = lineCap == null || lineCap === 'butt' ? 'square' : lineCap;
-        if (this.getShadowMode(slot) === 'fill') dilationCap = 'round';
+        const buttCap = lineCap == null || lineCap === 'butt';
+        let dilationCap: ShapeLineCap = buttCap ? 'square' : lineCap;
+        if (cutsGap && drawsStroke) {
+            // The cut is as far past the end of the item's stroke as its own cap leaves it.
+            if (buttCap && this.hasButtEnds()) dilationCap = 'butt';
+        } else if (this.getShadowMode(slot) === 'fill') {
+            dilationCap = 'round';
+        }
         ctx.lineCap = dilationCap;
-        const ownJoin = drawsStroke && !footprint;
-        ctx.lineJoin = ownJoin ? (this.__lineJoin ?? 'miter') : 'miter';
-        ctx.miterLimit = ownJoin ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
+        ctx.lineJoin = followsStroke ? (this.__lineJoin ?? 'miter') : 'miter';
+        ctx.miterLimit = followsStroke ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
         ctx.lineWidth = (drawsStroke ? this.__strokeWidth : 0) + spread * 2;
+    }
+
+    /** Whether the item has a stroke whose outline, with its own join, miter limit and cap, a glow's `gap` is kept clear of. */
+    private hasStrokeOutline(): boolean {
+        const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
+        return stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
     }
 
     /**
      * Draws the shape, dilated by `spread`, opaque and in one solid colour: its fill, its stroke widened by the spread (or
      * the fill's outline stroked by it) and its extras. Where those overlap they only cover each other.
+     *
+     * Where a glow has a `gap`, its silhouette and the `footprint` that is cut from it keep the same distance from the item
+     * as the item's outline. A stroked item's outline has its own join and miter limit, so both are dilated with them, and the
+     * cut follows a spike as the stroke paints it. A shape with no stroke is dilated by a mitre, so that a square corner stays
+     * square, and by a round join, so that a point sharper than the mitre limit allows is still a `spread` clear.
      */
     private drawSpreadSilhouette(
         slot: ShadowSlot,
@@ -964,14 +988,19 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         spread: number,
         drawsFill: boolean,
         drawsStroke: boolean,
-        footprint: boolean = false
+        footprint: boolean = false,
+        painted: boolean = false
     ) {
         const clipped = slot === 'glow' && this.clipGlowEnds(ctx, spread);
         try {
             const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
             ctx.fillStyle = tint;
             ctx.strokeStyle = tint;
-            this.setDilationStyle(slot, ctx, spread, drawsStroke, footprint);
+            // A footprint that only covers what an item paints, for a glow with no gap, is cut as it always was.
+            const cutsGap = footprint && !painted;
+            const gapped = cutsGap || (!footprint && this.getSlot(slot)?.gap != null);
+            const followsStroke = (drawsStroke && !(footprint && painted)) || (gapped && this.hasStrokeOutline());
+            this.setDilationStyle(slot, ctx, spread, drawsStroke, followsStroke, cutsGap);
 
             if (drawsFill) {
                 this.executeFill(ctx, path);
@@ -983,10 +1012,16 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 } finally {
                     this.shadowStrokeGrowth = 0;
                 }
+                // The stroke of a butt cap ends where the item's does, so the `gap` past it is drawn on.
+                if (cutsGap && ctx.lineCap === 'butt') this.strokeButtEnds(ctx, spread);
                 // The capped mitre leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
-                if (footprint) this.executeOwnStroke(ctx, path);
+                if (footprint && painted) this.executeOwnStroke(ctx, path);
             } else if (drawsFill && spread > 0 && path != null) {
                 this.dilateFill(ctx, path);
+                if (gapped && !followsStroke) {
+                    ctx.lineJoin = 'round';
+                    this.dilateFill(ctx, path);
+                }
             }
             // A set gap casts the extras at any dilation, as the real paint of an ungapped glow does. A footprint has them always.
             const shadow = this.getSlot(slot);
@@ -1014,6 +1049,19 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.executeStroke(ctx, path);
     }
 
+    /** Whether {@link strokeButtEnds} draws the ends of the item's stroke, which only a shape that knows where its open ends are can. */
+    protected hasButtEnds(): boolean {
+        return false;
+    }
+
+    /**
+     * Strokes `reach` further along each open end of the item, with the width and butt cap that the context has, so that the
+     * dilation of a stroke with butt caps ends `reach` past them, as its sides are `reach` clear, instead of a half-stroke further.
+     */
+    protected strokeButtEnds(_ctx: CanvasContext, _reach: number) {
+        // Nothing to do by default.
+    }
+
     /** Erases the geometry of the item, dilated by a glow's `gap`, or, if `painted`, only what it paints. A `Line` has no fill. */
     private eraseFootprint(
         slot: ShadowSlot,
@@ -1024,16 +1072,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     ) {
         if (ctx.globalAlpha <= 0 || (this.__opacity ?? 1) <= 0) return;
 
-        const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
-        const hasStroke = stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
-        const drawsStroke = hasStroke && (!painted || this.hasCastableStroke());
+        const drawsStroke = this.hasStrokeOutline() && (!painted || this.hasCastableStroke());
         const drawsFill =
             (path != null || this.fillsWithoutPath()) &&
             this.__shadowMode !== 'stroke' &&
             (!painted || this.hasCastableFill());
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = shadowPass.eraseOp;
-        this.drawSpreadSilhouette(slot, ctx, path, gap, drawsFill, drawsStroke, true);
+        this.drawSpreadSilhouette(slot, ctx, path, gap, drawsFill, drawsStroke, true, painted);
     }
 
     /** Whether {@link executeFill} paints the fill without a `Path2D`, as text does with its glyphs. */
@@ -1072,9 +1118,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private getShadowStrokeReach(slot: ShadowSlot, spread: number): number {
         const fillOnly = this.getShadowMode(slot) === 'fill';
         const halfStroke = (fillOnly ? 0 : this.getSilhouetteStrokeWidth() / 2) + spread;
+        // A glow's gap dilates the fill of a stroked item with the join of its stroke.
+        const ownJoin = !fillOnly || (this.getSlot(slot)?.gap != null && this.hasStrokeOutline());
         // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
-        const miterLimit = fillOnly ? DILATION_MITER_LIMIT : (this.__miterLimit ?? 10);
-        const joinReach = fillOnly || (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * miterLimit : halfStroke;
+        const miterLimit = ownJoin ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
+        const joinReach = !ownJoin || (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * miterLimit : halfStroke;
         // A square cap reaches a half-stroke along the diagonal. A spread dilation caps its open strokes too.
         const squareCap = spread > 0 || (!fillOnly && this.__lineCap === 'square');
         return squareCap ? Math.max(joinReach, halfStroke * Math.SQRT2) : joinReach;

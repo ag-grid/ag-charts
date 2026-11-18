@@ -231,20 +231,18 @@ describe('glow gap', () => {
                 return y;
             };
 
-            it('should cut the point no further than a gap past it, and leave the glow around it unbroken', () => {
+            it('should cut the point as the stroke paints it, and leave the glow around it unbroken', () => {
                 const gap = 3;
                 const { pixelAt } = draw(route, star({}, { ...redGlow(gap), spread: 4, blur: 8 }));
                 const tip = tipOf(pixelAt);
                 const alphaAt = (dx: number, distance: number) => pixelAt(CENTRE_X + dx, tip - distance)[3];
 
-                // The join of the cut is the join of the outer edge, which bevels at a point as sharp as this, so the glow
-                // may come nearer the point than the gap, but is never cut away past it.
-                expect(alphaAt(0, gap + 1)).toBeGreaterThan(40);
-                expect(alphaAt(0, gap + 3)).toBeGreaterThan(40);
-                // The band is closed round the point: there is glow at every distance above it, and beside it.
-                for (let distance = 1; distance <= gap + 3; distance++) {
-                    for (const dx of [-3, 0, 3]) expect(alphaAt(dx, distance)).toBeGreaterThan(0);
-                }
+                // The cut has the join and miter limit of the stroke, so it follows the point the stroke paints: nothing is
+                // lit within a gap of it, and the glow of the band that the cut leaves is there beyond.
+                for (let distance = 0; distance <= gap; distance++) expect(alphaAt(0, distance)).toBe(0);
+                expect(alphaAt(0, 3 * gap)).toBeGreaterThan(40);
+                // The band is closed round the point: it is not broken over the point, or beside it.
+                for (const dx of [-3, 0, 3]) expect(alphaAt(dx, 3 * gap + 2)).toBeGreaterThan(0);
             });
 
             it('should cut the whole point of a translucent star out of the glow with a gap of 0', () => {

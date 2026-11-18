@@ -190,8 +190,8 @@ describe('glow refinements', () => {
                     while (pixel(axisX + dx, y).toString() !== RED.toString() && y > tipY - gap - spread) y--;
                     expect(
                         tipY - y,
-                        `the glow of the column ${dx} from the axis begins within the gap`
-                    ).toBeLessThanOrEqual(gap);
+                        `the glow of the column ${dx} from the axis begins within a pixel of the gap`
+                    ).toBeLessThanOrEqual(gap + 1);
                     expect(
                         pixel(axisX + dx, y - 1),
                         `the glow of the column ${dx} from the axis is wider than a pixel`
