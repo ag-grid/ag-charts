@@ -127,9 +127,7 @@ describe('highlight glow on every hierarchy bucket', () => {
             const { inPlace, highlighted } = await hover(series('highlightedItem', HIGHLIGHT_GLOW));
 
             expect(cast(highlighted)).toEqual(['hovered']);
-            expect(highlighted.find(({ shape }) => shape.fillGlow?.enabled)?.shape.fillGlow).toMatchObject(
-                GLOW_SHADOW
-            );
+            expect(highlighted.find(({ shape }) => shape.fillGlow?.enabled)?.shape.fillGlow).toMatchObject(GLOW_SHADOW);
             expect(cast(inPlace)).toEqual([]);
         });
 

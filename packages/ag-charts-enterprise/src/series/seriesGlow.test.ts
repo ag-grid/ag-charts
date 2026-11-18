@@ -26,14 +26,7 @@ import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
 import { ENTERPRISE_GLOW_SERIES, HIERARCHY_GLOW_SERIES, RANGE, STAGES } from '../test/glowSeriesCases';
-import {
-    FLOW_DATA,
-    OHLC_DATA,
-    SHADOW,
-    WATERFALL_DATA,
-    collectShapes,
-    createEnterpriseChart,
-} from '../test/utils';
+import { FLOW_DATA, OHLC_DATA, SHADOW, WATERFALL_DATA, collectShapes, createEnterpriseChart } from '../test/utils';
 import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
 
 type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;

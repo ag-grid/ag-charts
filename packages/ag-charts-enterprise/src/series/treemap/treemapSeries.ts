@@ -587,7 +587,11 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     ) {
         if (!isLeaf) {
             // A series-level glow, or one from an item styler, casts whether or not the group highlight is on.
-            if (!this.options.group.highlight.enabled && itemGlow == null && this.options.group.glow?.enabled !== true) {
+            if (
+                !this.options.group.highlight.enabled &&
+                itemGlow == null &&
+                this.options.group.glow?.enabled !== true
+            ) {
                 return;
             }
 

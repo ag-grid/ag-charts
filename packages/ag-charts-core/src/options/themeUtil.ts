@@ -794,7 +794,10 @@ export function withFollowedGlowThemeDefaults<T extends object>(
 ): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
     for (const bucket of buckets) {
-        result[bucket] = { ...(result[bucket] as object | undefined), glow: { enabled: { $path: `${seriesGlowPath}/enabled` } } };
+        result[bucket] = {
+            ...(result[bucket] as object | undefined),
+            glow: { enabled: { $path: `${seriesGlowPath}/enabled` } },
+        };
     }
     return result as T;
 }
