@@ -237,14 +237,20 @@ describe('Annotation datum lifecycle', () => {
             expectWarningsCalls().toEqual([]);
         });
 
-        it('scales the middle line of a parallel channel by its own strokeWidth', async () => {
-            await prepareChart([
-                { ...MINIMAL_ANNOTATIONS['parallel-channel'], middle: { lineDash: 'dash', strokeWidth: 2 } },
-            ] as AgAnnotation[]);
+        it.each([
+            ['dash', [6, 4], undefined],
+            ['dot', [0, 5], 'round'],
+        ] as const)(
+            'scales a %s on the middle line of a parallel channel by its own strokeWidth',
+            async (lineDash, dash, lineCap) => {
+                await prepareChart([
+                    { ...MINIMAL_ANNOTATIONS['parallel-channel'], middle: { lineDash, strokeWidth: 2 } },
+                ] as AgAnnotation[]);
 
-            expect(stateOf()[0].middle).toMatchObject({ lineDash: 'dash', strokeWidth: 2 });
-            expect(drawnDashes()).toEqual([[6, 4]]);
-        });
+                expect(stateOf()[0].middle).toMatchObject({ lineDash, strokeWidth: 2 });
+                expect(drawnLines().map((line) => [line.lineDash, line.lineCap])).toEqual([[dash, lineCap]]);
+            }
+        );
 
         // Round caps lengthen each dash by the line width, so a dot is a zero-length dash over the stock dot's period
         // of 2.5 widths: round dots at the stock spacing, rather than elongated dashes with tiny gaps.
@@ -256,20 +262,10 @@ describe('Annotation datum lifecycle', () => {
                 { lineDash: [0, 7.5], lineCap: 'round' },
             ]);
         });
-
-        it('draws a dot on the middle line of a parallel channel as round dots', async () => {
-            await prepareChart([
-                { ...MINIMAL_ANNOTATIONS['parallel-channel'], middle: { lineDash: 'dot', strokeWidth: 2 } },
-            ] as AgAnnotation[]);
-
-            expect(drawnLines().map(({ lineDash, lineCap }) => ({ lineDash, lineCap }))).toEqual([
-                { lineDash: [0, 5], lineCap: 'round' },
-            ]);
-        });
     });
 
     // `lineStyle` was replaced by `lineDash`, so state saved with it is migrated when it is restored: a style becomes
-    // the stock dash name that stands for it, and an explicit `lineDash` still wins, as it did.
+    // the stock dash name that stands for it. The precedence rules are unit tested in `annotationManager.test.ts`.
     describe('legacy lineStyle', () => {
         // Saved state predates the type change, so it is not typed as the options are.
         const legacy = (annotation: object) => annotation as unknown as AgAnnotation;
@@ -295,20 +291,6 @@ describe('Annotation datum lifecycle', () => {
 
             expect(stateOf()[0].lineDash).toBe('dash');
             expect(stateOf()[0]).not.toHaveProperty('lineStyle');
-        });
-
-        it('keeps a dotted line round capped', async () => {
-            await prepareChart([legacy({ ...LINE, lineStyle: 'dotted' })]);
-
-            expect(drawnLines().map((line) => line.lineCap)).toEqual(['round']);
-        });
-
-        it('keeps an explicit lineDash over the lineStyle, and drops the lineStyle', async () => {
-            await prepareChart([legacy({ ...LINE, lineStyle: 'dotted', lineDash: [8, 3] })]);
-
-            expect(stateOf()[0].lineDash).toEqual([8, 3]);
-            expect(stateOf()[0]).not.toHaveProperty('lineStyle');
-            expect(drawnLines().map((line) => line.lineDash)).toEqual([[8, 3]]);
         });
     });
 

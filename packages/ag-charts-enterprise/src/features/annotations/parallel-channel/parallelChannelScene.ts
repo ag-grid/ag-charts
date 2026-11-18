@@ -183,18 +183,18 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelDatum> {
             context
         );
 
+        // The middle line is drawn at its own width, so a name is scaled by that.
+        const middleLineDash = datum.middle.lineDash ?? datum.lineDash;
+        const middleStrokeWidth = datum.middle.strokeWidth ?? strokeWidth;
+
         middleLine.setProperties({
             ...middlePoints,
-            lineCap: getLineCap({ lineDash: datum.middle.lineDash ?? datum.lineDash }),
-            // The middle line keeps its own width, so a name there is scaled by that.
-            lineDash:
-                datum.middle.lineDash == null
-                    ? lineDash
-                    : resolveLineDash(datum.middle.lineDash, datum.middle.strokeWidth ?? strokeWidth ?? 1),
+            lineCap: getLineCap({ lineDash: middleLineDash }),
+            lineDash: resolveLineDash(middleLineDash, middleStrokeWidth),
             lineDashOffset: datum.middle.lineDashOffset ?? lineDashOffset,
             stroke: datum.middle.stroke ?? stroke,
             strokeOpacity: datum.middle.strokeOpacity ?? strokeOpacity,
-            strokeWidth: datum.middle.strokeWidth ?? strokeWidth,
+            strokeWidth: middleStrokeWidth,
             visible: datum.middle.visible ?? true,
         });
     }
