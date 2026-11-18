@@ -374,6 +374,17 @@ describe('wrapLines', () => {
             expect(result).toEqual(['Ab', 'Cd', 'Ef']);
         });
 
+        it('fills the last line kept under maxHeight with the text wrapped below it', () => {
+            // 'Information' leaves 50px of the 160px line, which 'Tech' and the ellipsis fill.
+            const result = wrapLines('Information Technology', { font, maxWidth: 160, maxHeight: 20 });
+            expect(result).toEqual([`Information Tec${E}`]);
+        });
+
+        it('does not pull text across an explicit line break into the last line kept', () => {
+            const result = wrapLines('Information\nTechnology', { font, maxWidth: 160, maxHeight: 20 });
+            expect(result).toEqual([`Information${E}`]);
+        });
+
         it('should wrap at word boundary when line exceeds maxWidth', () => {
             // 'Hello World' = 110px, maxWidth = 60px → wraps between words
             const result = wrapLines('Hello World', { font, maxWidth: 60 });

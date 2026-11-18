@@ -23,7 +23,7 @@ import {
     rotatedLabelInset,
     sectorLabelContainer,
 } from './barLabelGeometry';
-import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import { type BoxBounds, boxCollides, boxContains, boxesEqual } from './boxBounds';
 import type { FitRegion } from './fitRegion';
 import {
     type CandidateLabelStyle,
@@ -369,6 +369,37 @@ describe('placeLabels', () => {
         const withNeighbour = placeLabels(new Map([['s', seriesLabels([own, neighbour])]]), bounds, 5).get('s')!;
         expect(withNeighbour.some((l) => l.datum === own)).toBe(false);
     });
+
+    it.each([
+        { neighbourSeries: 'earlier', placed: true },
+        { neighbourSeries: 'later', placed: false },
+    ])(
+        'ignores an $neighbourSeries series marker under an inside label wholly on its own: $placed',
+        ({ neighbourSeries, placed }) => {
+            const own: PointLabelDatum = {
+                point: { x: 100, y: 100, size: 20 },
+                label: { text: 'I', width: 16, height: 10 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: ['inside'],
+                gap: 0,
+                alwaysShow: false,
+            };
+            const neighbour: PointLabelDatum = {
+                point: { x: 108, y: 100, size: 20 },
+                label: { text: 'N', width: 1, height: 1 },
+                anchor: undefined,
+                placement: 'bottom',
+            };
+            const ownEntry: [string, SeriesLabels] = ['own', seriesLabels([own])];
+            const neighbourEntry: [string, SeriesLabels] = ['neighbour', seriesLabels([neighbour])];
+            const data = new Map(
+                neighbourSeries === 'earlier' ? [neighbourEntry, ownEntry] : [ownEntry, neighbourEntry]
+            );
+            const labels = placeLabels(data, bounds, 5).get('own')!;
+            expect(labels.some((l) => l.datum === own)).toBe(placed);
+        }
+    );
 
     it('drops an avoiding label when no candidate placement fits', () => {
         // A large marker covers every candidate position; the avoiding label has nowhere to go.
@@ -1484,10 +1515,12 @@ describe('bar label placement helpers', () => {
             expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);
         });
 
-        it('skips zero-area rects', () => {
+        it('skips zero-area and non-finite rects', () => {
             const result = rectLabelObstacles([
                 { x: 0, y: 0, width: 0, height: 10 },
                 { x: 0, y: 0, width: 10, height: 0 },
+                { x: 0, y: Number.NaN, width: 10, height: Number.NaN },
+                { x: Number.NaN, y: 0, width: 10, height: 10 },
                 { x: 0, y: 0, width: 10, height: 10 },
             ]);
             expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);
@@ -1749,6 +1782,27 @@ describe('placeLabels positioned candidates', () => {
         const { placed } = place([bigOverflow, smallOverflow]);
         expect(placed).toHaveLength(1);
         expect(placed[0].candidate).toBe(smallOverflow);
+    });
+
+    it('keeps a contained but colliding candidate ahead of one that overflows its region (neverDrop)', () => {
+        const overflowing: BarCandidate = {
+            box: { x: 0, y: 0, width: 30, height: 10 },
+            region: { x: 0, y: 0, width: 28, height: 200 },
+            anchor: anchorOf(15, 5),
+            placement: 'inside-center',
+        };
+        const buried: BarCandidate = {
+            box: { x: 100, y: 100, width: 20, height: 10 },
+            region: bounds,
+            anchor: anchorOf(110, 105),
+            placement: 'outside-end',
+        };
+        const obstacles: LabelObstacle[] = [
+            { kind: 'rect', box: { x: 95, y: 95, width: 30, height: 20 }, category: 'label' },
+        ];
+        const { placed } = place([overflowing, buried], obstacles);
+        expect(placed).toHaveLength(1);
+        expect(placed[0].candidate).toBe(buried);
     });
 
     it('ranks a fallback spilling out of its visibleRegion below one that only overflows its region (neverDrop)', () => {
@@ -2079,6 +2133,17 @@ describe('placeLabels sole positioned candidate', () => {
 
         expect(place()).toEqual([]);
         expect(place(true)).toMatchObject([{ x: 190, y: -5 }]);
+    });
+
+    it('keeps a droppable box that exactly fills its region at an offset that rounds badly', () => {
+        const region = { x: 10, y: 243.79875896039962, width: 100, height: 13.798828125 };
+        const label: PointLabelDatum = {
+            ...movableLabel(),
+            positionedCandidates: [{ box: { x: 10, y: region.y, width: 50, height: region.height }, region }],
+        };
+        const placed = placeLabels(new Map([['s', seriesLabels([label], { alwaysShow: false })]]), bounds, 5);
+
+        expect(placed.get('s')).toMatchObject([{ y: region.y }]);
     });
 });
 
@@ -3390,17 +3455,21 @@ describe('placeLabels positioned shrink ladder', () => {
     });
 });
 
-// Brute-force reference for the positioned-candidate path (bar family): the engine owns only the
-// generic containment/obstacle/flush/least-overflow logic there, so it can be restated directly.
-// Deliberately covers the no-fit case only — a datum without `fit` skips every shrink and re-fit
-// branch, leaving the candidate cascade itself as the thing under test.
-function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
+// Brute-force reference for the bar-family candidate cascade, for droppable labels without `fit` only:
+// the shrink, re-fit and never-drop fallback ranking are pinned by explicit cases instead.
+function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum, box: BoxBounds): boolean {
     const category = o.category ?? 'shape';
     const { ownBox } = d;
+    const straddlesForeignShape =
+        o.kind === 'rect' &&
+        category === 'shape' &&
+        !boxesEqual(o.box, ownBox) &&
+        !boxContains(o.box, box.x, box.y, box.width, box.height);
     if (
         ownBox != null &&
         !(d.ownBoxLabelsCollide === true && category === 'label') &&
-        boxCollides(o.box, ownBox.x, ownBox.y, ownBox.width, ownBox.height)
+        boxCollides(o.box, ownBox.x, ownBox.y, ownBox.width, ownBox.height) &&
+        !straddlesForeignShape
     ) {
         return true;
     }
@@ -3411,15 +3480,6 @@ function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
 function clampAxisOracle(pos: number, size: number, min: number, extent: number): number {
     if (size > extent) return pos;
     return Math.min(Math.max(pos, min), min + extent - size);
-}
-
-function regionOverflowOracle(region: BoxBounds, x: number, y: number, w: number, h: number): number {
-    return (
-        Math.max(0, region.x - x) +
-        Math.max(0, x + w - (region.x + region.width)) +
-        Math.max(0, region.y - y) +
-        Math.max(0, y + h - (region.y + region.height))
-    );
 }
 
 function orderKeepFirstOracle(data: Map<string, SeriesLabels>): [string, SeriesLabels][] {
@@ -3443,7 +3503,6 @@ function placePositionedLabelsOracle(
             if (d.label.text === '') continue;
             const { width, height } = d.label;
             let winner: { x: number; y: number } | undefined;
-            let best: { x: number; y: number; overflow: number } | undefined;
             for (const c of d.positionedCandidates ?? []) {
                 if (c.hidden === true) continue;
                 const region = c.region ?? bounds;
@@ -3455,20 +3514,17 @@ function placePositionedLabelsOracle(
                 }
                 const contained = boxContains(region, x, y, cw, ch);
                 const blocked = obstacles.some(
-                    (o) => !obstacleExcludedOracle(o, d) && boxCollides(o.box, x, y, cw, ch)
+                    (o) =>
+                        !obstacleExcludedOracle(o, d, { x, y, width: cw, height: ch }) &&
+                        boxCollides(o.box, x, y, cw, ch)
                 );
                 if (contained && !blocked) {
                     winner = { x, y };
                     break;
                 }
-                if (d.neverDrop === true) {
-                    const overflow = regionOverflowOracle(region, x, y, cw, ch);
-                    if (best == null || overflow < best.overflow) best = { x, y, overflow };
-                }
             }
-            const chosen = winner ?? best;
-            if (chosen == null) continue;
-            const placed = { index, text: d.label.text, x: chosen.x, y: chosen.y, width, height, datum: d };
+            if (winner == null) continue;
+            const placed = { index, text: d.label.text, x: winner.x, y: winner.y, width, height, datum: d };
             labels.push(placed);
             obstacles.push({ kind: 'rect', box: placed, category: 'label' });
         }
@@ -3512,7 +3568,6 @@ function makePositionedFixture(seriesCount: number, perSeries: number, bounds: B
                 { box: { x: cx, y: ownBox.y - height - 2, width, height } },
             ];
             if (next() < 0.25) candidates[1] = { ...candidates[1], hidden: true };
-            const alwaysShow = next() < 0.5;
             datums.push(
                 buildBarPositionedLabelDatum(
                     `s${s}-${i}`,
@@ -3521,7 +3576,7 @@ function makePositionedFixture(seriesCount: number, perSeries: number, bounds: B
                     candidates,
                     {} as BarLabelTarget,
                     ownBox,
-                    alwaysShow,
+                    false,
                     { marker: true, label: true, shape: true },
                     0,
                     next() < 0.3
@@ -3551,6 +3606,36 @@ describe('placeLabels (positioned candidates)', () => {
         // Parity is only worth asserting over a fixture that exercises both outcomes.
         expect(placedCount).toBeGreaterThan(0);
         expect(droppedCount).toBeGreaterThan(0);
+    });
+
+    it.each([
+        ['falls through when it straddles the edge of another bar overlapping its own', 160, 202],
+        ['stays on its own bar when it lies wholly inside another bar overlapping it', 100, 150],
+    ])('a bar label %s', (_, foreignTop, expectedY) => {
+        const ownBox = { x: 0, y: 100, width: 50, height: 100 };
+        const label = buildBarPositionedLabelDatum(
+            'label',
+            30,
+            16,
+            [
+                { box: { x: 10, y: 150, width: 30, height: 16 }, region: ownBox },
+                { box: { x: 10, y: 202, width: 30, height: 16 } },
+            ],
+            {} as BarLabelTarget,
+            ownBox,
+            false,
+            { marker: true, label: true, shape: true },
+            0
+        );
+        const foreignBar: LabelObstacle = {
+            kind: 'rect',
+            category: 'shape',
+            box: { x: 0, y: foreignTop, width: 50, height: 200 - foreignTop },
+        };
+
+        const [labels] = placeLabels(new Map([['s', seriesLabels([label])]]), bounds, 5, [foreignBar]).values();
+
+        expect(labels.map(({ y }) => y)).toEqual([expectedY]);
     });
 
     it('matches the brute-force oracle with cross-series obstacles', () => {

@@ -28,7 +28,7 @@ import {
 import type { Point, SizedPoint } from '../types/scene';
 import type { FontOptions } from '../types/text';
 import { LineSplitter } from '../types/text';
-import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import { type BoxBounds, boxCollides, boxContains, boxesEqual } from './boxBounds';
 import type { FitRegion } from './fitRegion';
 import { type FittedLabelStack, type LabelStack, fitLabelStack } from './labelStack';
 import {
@@ -85,6 +85,14 @@ export function resolveLabelFit(
     hideOnOverflow = false,
     defaultToTruncate = false
 ): LabelFit | undefined {
+    const policy = labelFitPolicy(fit, hideOnOverflow, defaultToTruncate);
+    const { overflowStrategy, wrapping, minimumFontSize } = policy;
+    if (overflowStrategy == null && wrapping == null && minimumFontSize == null) return undefined;
+    return policy;
+}
+
+/** The {@link resolveLabelFit} policy for a label that is always fitted, whether or not it opted in. */
+export function labelFitPolicy(fit: LabelFitOptions, hideOnOverflow = false, defaultToTruncate = false): LabelFit {
     const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = fit;
     let overflowStrategy: OverflowStrategy | undefined;
     if (truncate || defaultToTruncate) {
@@ -92,7 +100,6 @@ export function resolveLabelFit(
     } else if (hideOnOverflow) {
         overflowStrategy = 'hide';
     }
-    if (overflowStrategy == null && wrapping == null && minimumFontSize == null) return undefined;
     return { maxWidth, maxHeight, wrapping, overflowStrategy, minimumFontSize };
 }
 
@@ -517,6 +524,8 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          /** Draw order of the series owning a marker obstacle; unset for external obstacles. */
+          readonly seriesOrder?: number;
       }
     | {
           readonly kind: 'rect';
@@ -550,6 +559,14 @@ export type LabelObstacle =
 
 /** External obstacles, or a function producing them so a solve that never queries the index skips gathering. */
 export type LabelObstacles = readonly LabelObstacle[] | (() => readonly LabelObstacle[]);
+
+/** True when every corner of `box` lies within the circle; a non-positive radius contains nothing. */
+function boxWithinCircle(box: BoxBounds, cx: number, cy: number, r: number): boolean {
+    if (r <= 0) return false;
+    const dx = Math.max(Math.abs(box.x - cx), Math.abs(box.x + box.width - cx));
+    const dy = Math.max(Math.abs(box.y - cy), Math.abs(box.y + box.height - cy));
+    return dx * dx + dy * dy <= r * r;
+}
 
 function circleOverlapsBox(cx: number, cy: number, r: number, x: number, y: number, w: number, h: number): boolean {
     if (r <= 0) {
@@ -692,6 +709,7 @@ interface PooledCircleObstacle {
     cy: number;
     r: number;
     category: ObstacleCategory;
+    seriesOrder: number;
 }
 
 // Mutable placed-label obstacle pooled across passes, mirroring markerPool.
@@ -735,6 +753,8 @@ let candidatePlacement: LabelPlacement | undefined;
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
+// Draw order of the candidate's series, matching the `seriesOrder` stamped on its marker obstacles.
+let candidateSeriesOrder = 0;
 // The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so an
 // inside label never collides with the shape it sits on. `undefined` disables the gate.
 let candidateOwnBox: BoxBounds | undefined;
@@ -809,7 +829,7 @@ function candidateFontAt(font: FontOptions): FontOptions {
 }
 // Per-datum inputs to `cascadeCandidates`, refilled by `placeAvoidingLabel` before it runs. Held here
 // rather than passed so the cascade can be re-run without allocating a closure or an argument list.
-let cascadeDatum: PointLabelDatum;
+let cascadeDatum: PointLabelDatum | undefined;
 let cascadeIndex = 0;
 let cascadePlacements: readonly LabelPlacement[] | undefined;
 let cascadeOrientations: AgChartLabelOrientation[] | undefined;
@@ -913,6 +933,13 @@ function worstObstacleOverlap(o: LabelObstacle): void {
     }
 }
 
+/** A label lying across the edge of another bar that overlaps its own reads as belonging to neither. */
+function straddlesForeignShape(o: LabelObstacle): boolean {
+    if (o.kind !== 'rect' || (o.category ?? 'shape') !== 'shape' || boxesEqual(o.box, candidateOwnBox)) return false;
+    const { x, y, width, height } = candidateBox;
+    return !boxContains(o.box, x, y, width, height);
+}
+
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
     if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
@@ -925,13 +952,14 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     const category = o.category ?? 'shape';
     // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
     // directional labels fall through to the circle test, which measures their real clearance.
+    // Nor with an earlier series' marker while it lies wholly on its own, which is drawn over that overlap.
     if (
         candidatePlacement === 'inside' &&
         category === 'marker' &&
         o.kind === 'circle' &&
-        o.cx === candidateOwnMarkerCx &&
-        o.cy === candidateOwnMarkerCy &&
-        o.r === candidateOwnMarkerR
+        ((o.cx === candidateOwnMarkerCx && o.cy === candidateOwnMarkerCy && o.r === candidateOwnMarkerR) ||
+            ((o.seriesOrder ?? Infinity) < candidateSeriesOrder &&
+                boxWithinCircle(candidateBox, candidateOwnMarkerCx, candidateOwnMarkerCy, candidateOwnMarkerR)))
     ) {
         return true;
     }
@@ -942,7 +970,8 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         candidateOwnBox != null &&
         !isOverlayCategory(category) &&
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
-        boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
+        boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height) &&
+        !straddlesForeignShape(o)
     ) {
         return true;
     }
@@ -1276,7 +1305,9 @@ function markerCentreOf(d: PointLabelDatum) {
 /** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
 function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     let markerCount = 0;
+    let seriesOrder = 0;
     for (const { datums } of data.values()) {
+        seriesOrder++;
         for (const d of datums) {
             const size = markerSizeOf(d);
             if (size <= 0) continue;
@@ -1292,10 +1323,12 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
                     cy: 0,
                     r: 0,
                     category: 'marker',
+                    seriesOrder: 0,
                 };
                 markerPool.push(obstacle);
             }
             markerCount++;
+            obstacle.seriesOrder = seriesOrder;
             obstacle.cx = cx;
             obstacle.cy = cy;
             obstacle.r = r;
@@ -1328,9 +1361,9 @@ function seriesHides(entry: SeriesLabels): boolean {
  * precedence does not depend on declaration order. Single pass — `seriesHides` (an O(datums) scan) is
  * evaluated once per series rather than once per partition.
  */
-function orderKeepFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels][] {
-    const keep: [string, SeriesLabels][] = [];
-    const drop: [string, SeriesLabels][] = [];
+function orderKeepFirst<T extends SeriesLabels>(data: Map<string, T>): [string, T][] {
+    const keep: [string, T][] = [];
+    const drop: [string, T][] = [];
     for (const entry of data.entries()) {
         (seriesHides(entry[1]) ? drop : keep).push(entry);
     }
@@ -1413,9 +1446,10 @@ export function placeLabels(
 
     // Larger markers claim their placement first, so smaller ones steer clear of them.
     const placementData = new Map(
-        Array.from(data.entries(), ([k, entry]) => [
+        Array.from(data.entries(), ([k, entry], index) => [
             k,
             {
+                order: index + 1,
                 datums: entry.datums.toSorted((a, b) => markerSizeOf(b) - markerSizeOf(a)),
                 defaults: entry.defaults,
                 resolveCandidateStyle: entry.resolveCandidateStyle,
@@ -1431,31 +1465,68 @@ export function placeLabels(
         buildObstacleIndex(placementData, obstacles, bounds);
     }
 
-    let labelObstacleCount = 0;
-    for (const [seriesId, { datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
-        placementData
-    )) {
-        const labels: PlacedLabel[] = [];
-        if (datums[0]?.label == null) continue;
-        for (let index = 0, ln = datums.length; index < ln; index++) {
-            const d = datums[index];
-            // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
-            // they neither occupy a placement nor act as obstacles against labels that do have text.
-            if (d.label.text === '') continue;
-            const placed = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
-            if (placed != null) {
-                labels.push(placed);
-                if (useIndex && d.obstacle !== false) {
-                    // Every placed label is a fixed obstacle for the labels resolved after it.
-                    labelObstacleCount = insertLabelObstacle(placed, labelObstacleCount);
+    try {
+        let labelObstacleCount = 0;
+        for (const [seriesId, { order, datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
+            placementData
+        )) {
+            const labels: PlacedLabel[] = [];
+            if (datums[0]?.label == null) continue;
+            candidateSeriesOrder = order;
+            for (let index = 0, ln = datums.length; index < ln; index++) {
+                const d = datums[index];
+                // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
+                // they neither occupy a placement nor act as obstacles against labels that do have text.
+                if (d.label.text === '') continue;
+                const placed = tryPlaceLabel(
+                    d,
+                    defaults,
+                    index,
+                    padding,
+                    bounds,
+                    resolveCandidateStyle,
+                    resolveCandidate
+                );
+                if (placed != null) {
+                    labels.push(placed);
+                    if (useIndex && d.obstacle !== false) {
+                        // Every placed label is a fixed obstacle for the labels resolved after it.
+                        labelObstacleCount = insertLabelObstacle(placed, labelObstacleCount);
+                    }
                 }
             }
-        }
 
-        result.set(seriesId, labels);
+            result.set(seriesId, labels);
+        }
+    } finally {
+        if (useIndex) obstacleIndex.clear();
+        releaseSolveReferences();
     }
 
     return result;
+}
+
+/** Drops the scratch state's hold on the last solve's datums, candidates and series callbacks. */
+function releaseSolveReferences() {
+    cascadeDatum = undefined;
+    cascadePlacements = undefined;
+    cascadeOrientations = undefined;
+    cascadeStyle = undefined;
+    cascadeFitSource = undefined;
+    cascadeMeasurer = undefined;
+    cascadeFitRegion = undefined;
+    positionedDatum = undefined;
+    positionedResolve = undefined;
+    positionedFitSource = undefined;
+    candidateAvoid = undefined;
+    candidateOwnBox = undefined;
+    candidateLabelGroup = undefined;
+    candidateStack = undefined;
+    bestChoice.candidate = undefined;
+    bestChoice.stack = undefined;
+    keptChoiceBackup.candidate = undefined;
+    keptChoiceBackup.stack = undefined;
+    for (const t of trialFits) t.shape = undefined;
 }
 
 /**
@@ -1471,13 +1542,12 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
-    const box = labelObstacleBox(placed);
     const { labelGroup, outranks } = placed.datum;
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
         obstacle = {
             kind: 'rect',
-            box,
+            box: { x: 0, y: 0, width: 0, height: 0 },
             rect: { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 },
             category: 'label',
             labelGroup,
@@ -1485,10 +1555,16 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
         };
         labelObstaclePool.push(obstacle);
     } else {
-        obstacle.box = box;
         obstacle.labelGroup = labelGroup;
         obstacle.outranks = outranks;
     }
+    // Copied, not referenced: the pool outlives the solve and must not keep the label or its datum.
+    const { box } = obstacle;
+    const { x, y, width, height } = labelObstacleBox(placed);
+    box.x = x;
+    box.y = y;
+    box.width = width;
+    box.height = height;
     const { rotation } = placed;
     if (rotation != null && collidesByRotatedRect(placed.candidate, rotation)) {
         obstacle.kind = 'orientedRect';
@@ -2306,7 +2382,7 @@ function endFloorFallback() {
  * recorded against {@link bestChoice} instead, leaving `undefined` for the caller to resolve.
  */
 function cascadeCandidates(): PlacedLabel | undefined {
-    const d = cascadeDatum;
+    const d = cascadeDatum!;
     const candidateCount = cascadePlacements?.length ?? 1;
     const orientationCount = cascadeOrientations?.length ?? 1;
     // A trial can only win outright, so it records nothing, except the floor trial of a kept label.
@@ -2525,7 +2601,7 @@ function placeAvoidingLabel(
 }
 
 // Per-datum inputs to `positionedCandidatesPass`, so the font ladder can re-run it without allocating.
-let positionedDatum: PointLabelDatum;
+let positionedDatum: PointLabelDatum | undefined;
 let positionedIndex = 0;
 let positionedBounds: BoxBounds;
 let positionedResolve: PositionedCandidateResolver | undefined;
@@ -2594,7 +2670,7 @@ function placeFromPositionedCandidates(
 
 /** One pass of {@link placeFromPositionedCandidates}; a trial records nothing except at a kept label's floor. */
 function positionedCandidatesPass(): PlacedLabel | undefined {
-    const d = positionedDatum;
+    const d = positionedDatum!;
     const candidates = d.positionedCandidates!;
     const { fit } = d;
     const threshold = candidateThreshold;
@@ -3086,7 +3162,8 @@ function singleOrientationOf(d: PointLabelDatum): AgChartLabelOrientation | unde
 /** Slides a `size`-long span starting at `pos` flush inside `[min, min+extent]`; unchanged when it is too big to fit. */
 function clampAxis(pos: number, size: number, min: number, extent: number): number {
     if (size > extent) return pos;
-    return Math.min(Math.max(pos, min), min + extent - size);
+    // `min + extent - size` can round below `min` when the box exactly fills the extent.
+    return Math.min(Math.max(pos, min), Math.max(min, min + extent - size));
 }
 
 /** Total px a `w`×`h` box at `(x, y)` extends beyond `region` across all four sides; `0` when contained. */

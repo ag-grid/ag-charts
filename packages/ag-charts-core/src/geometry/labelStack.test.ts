@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { ContentSegment } from 'ag-charts-types';
 
+import type { FitRegion } from './fitRegion';
 import { type LabelStack, type LabelStackBlock, fitLabelStack } from './labelStack';
 
 // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. Every character is 10px
@@ -61,5 +62,42 @@ describe('fitLabelStack', () => {
         const fitted = fitLabelStack(stack(block(segments)), { width: 40, height: 100 });
         const kept = fitted?.blocks[0]?.text;
         expect(Array.isArray(kept) && kept.some((segment) => segment.type === 'image')).toBe(true);
+    });
+
+    it('truncates wrapped text to the lines a shape holds', () => {
+        const wrapped: LabelStackBlock = {
+            fit: {
+                text: 'Information Technology',
+                policy: { overflowStrategy: 'ellipsis', wrapping: 'on-space' },
+                font: FONT,
+            },
+        };
+        const oneLineOnly: FitRegion = {
+            spanAt: (top, bottom) => (bottom - top <= 20 ? [-80, 80] : [0, 0]),
+            extentAbove: 100,
+            extentBelow: 100,
+        };
+        const fitted = fitLabelStack(stack(wrapped), undefined, oneLineOnly);
+        expect(fitted?.blocks[0]?.text).toBe('Information Tec…');
+    });
+
+    it('keeps the wider single line when narrowing to fit wrapped lines would truncate more', () => {
+        const wrapped: LabelStackBlock = {
+            fit: {
+                text: 'Information Technology Services',
+                policy: { overflowStrategy: 'ellipsis', wrapping: 'on-space' },
+                font: FONT,
+            },
+        };
+        const narrowsWithHeight: FitRegion = {
+            spanAt: (top, bottom) => {
+                if (bottom - top <= 20) return [-80, 80];
+                return bottom - top <= 60 ? [-30, 30] : [0, 0];
+            },
+            extentAbove: 100,
+            extentBelow: 100,
+        };
+        const fitted = fitLabelStack(stack(wrapped), undefined, narrowsWithHeight);
+        expect(fitted?.blocks[0]?.text).toBe('Information Tec…');
     });
 });

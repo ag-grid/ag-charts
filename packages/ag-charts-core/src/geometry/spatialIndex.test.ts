@@ -58,12 +58,15 @@ describe('SpatialIndex', () => {
         expect(found).toBe(bruteForceCollides([stored], straddling));
     });
 
-    it('reuses backing storage across resets without leaking stale refs', () => {
+    it.each([
+        ['a reset', (index: SpatialIndex<string>) => index.reset(bounds, 30)],
+        ['a clear', (index: SpatialIndex<string>) => index.clear()],
+    ])('holds no stale refs after %s', (_, empty) => {
         const index = new SpatialIndex<string>();
         index.reset(bounds, 30);
         index.insert({ x: 0, y: 0, width: 10, height: 10 }, 'first');
 
-        index.reset(bounds, 30);
+        empty(index);
         const visited: string[] = [];
         index.query({ x: 0, y: 0, width: 10, height: 10 }, (ref) => {
             visited.push(ref);
@@ -84,6 +87,16 @@ describe('SpatialIndex', () => {
         const miss = { x: 1500, y: 1500, width: 5, height: 5 };
         expect(index.query(hit, (ref) => boxCollides(ref, hit.x, hit.y, hit.width, hit.height))).toBe(true);
         expect(index.query(miss, (ref) => boxCollides(ref, miss.x, miss.y, miss.width, miss.height))).toBe(false);
+    });
+
+    it('stays usable at a larger grid after a reset with a NaN cell size', () => {
+        const index = new SpatialIndex<BoxBounds>();
+        index.reset({ x: 0, y: 0, width: 100, height: 100 }, Number.NaN);
+        index.reset(bounds, 10);
+
+        const corner = { x: 700, y: 550, width: 5, height: 5 };
+        index.insert(corner, corner);
+        expect(index.query(corner, () => true)).toBe(true);
     });
 
     it('stops early when the visitor returns true', () => {
