@@ -77,6 +77,19 @@ describe('shadow and glow render (hierarchy series)', () => {
         return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
     };
 
+    /** The pixel that `pixelOf` gives with `hovered` hovered, the series `placement` set and the glow of the highlighted item state. */
+    const pixelWhileHovering = async (
+        testCase: typeof treemap,
+        hovered: string,
+        pixelOf: () => readonly [number, number],
+        placement: object,
+        glow: object
+    ) => {
+        await create([glowSeries(testCase, placement, { highlightedItem: { glow } })], testCase.data, RENDER_OPTIONS);
+        await hoverNode(chart(), nodeNamed(hovered)(chart()));
+        return chartPixelAt(chart(), ...pixelOf());
+    };
+
     // The glow of `highlightedItem` is the hovered-item snapshot of the suite: one snapshot for each of the other states.
     describe.each(HIERARCHY_GLOW_SERIES)('$name', (testCase) => {
         const otherSteps = testCase.highlightSteps!.filter(({ bucket }) => bucket !== 'highlightedItem');
@@ -142,17 +155,8 @@ describe('shadow and glow render (hierarchy series)', () => {
             ['a sector of a sunburst', sunburst, 'A', insideSectorEdge],
         ])('%s that is hovered', (_name, testCase, hovered, pixelOf) => {
             const RED = { ...GLOW, fill: '#ff0000' };
-
-            /** The pixel just inside the hovered node, with the series `placement` and the glow of its highlighted item state. */
-            const hoveredPixel = async (placement: object, glow: object) => {
-                await create(
-                    [glowSeries(testCase, placement, { highlightedItem: { glow } })],
-                    testCase.data,
-                    RENDER_OPTIONS
-                );
-                await hoverNode(chart(), nodeNamed(hovered)(chart()));
-                return chartPixelAt(chart(), ...pixelOf());
-            };
+            const hoveredPixel = (placement: object, glow: object) =>
+                pixelWhileHovering(testCase, hovered, pixelOf, placement, glow);
 
             it('is not covered by the series glow of the node beside it', async () => {
                 expect(await hoveredPixel({ glow: RED }, GLOW)).toEqual(await hoveredPixel({}, GLOW));
@@ -164,6 +168,28 @@ describe('shadow and glow render (hierarchy series)', () => {
 
                 expect(await hoveredPixel({ glow: RED }, off)).not.toEqual(await hoveredPixel({}, off));
             });
+        });
+    });
+
+    // The glow of the hovered node must not be drawn over the fill of a node at its depth that glows too: the pixel is the one
+    // just inside that node, on the edge that it shares with the hovered node.
+    describe.each([
+        ['a tile of a treemap', treemap, 'A1', () => insideTopOf('A2')],
+        ['a group of a treemap', treemapGroup, 'A', () => insideEdgeOf('B')],
+        ['a sector of a sunburst', sunburst, 'B', insideSectorEdge],
+    ])('the glow of %s that is hovered', (_name, testCase, hovered, pixelOf) => {
+        const RED = { ...GLOW, fill: '#ff0000' };
+        const off = { ...GLOW, enabled: false };
+        const besidePixel = (placement: object, glow: object) =>
+            pixelWhileHovering(testCase, hovered, pixelOf, placement, glow);
+
+        it('stays beneath the fill of the node beside it that glows', async () => {
+            expect(await besidePixel({ glow: RED }, GLOW)).toEqual(await besidePixel({ glow: RED }, off));
+        });
+
+        // The control: over a node that does not glow, the glow of the hovered node shows.
+        it('shows over the node beside it that does not glow', async () => {
+            expect(await besidePixel({}, GLOW)).not.toEqual(await besidePixel({}, off));
         });
     });
 
