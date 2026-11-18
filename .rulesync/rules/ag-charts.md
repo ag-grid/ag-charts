@@ -22,6 +22,7 @@ Build dependency chain: `ag-charts-types` → `ag-charts-core` → `ag-charts-co
 -   **Language conventions:** UK/British English for documentation text, comments, and JSDocs; US English for API option names.
 -   **Terminology:** never use "plot" or "plot area" — in prose, comments, identifiers and test-case names. Say "chart", or "series area" for the region bounded by the axes, matching the `seriesArea` option.
 -   **Module ownership:** a module owns the option location its type implies or, if it declares `contributes`, exactly the locations listed there (re-declare the implied location to keep it); validation, missing-module reports, theme defaults and the generated module tables derive from that. Invoke the `/module-definitions` skill before adding or moving a module.
+-   **Public docs:** do not write or edit public docs (prose in `packages/ag-charts-website/src/content/docs/**/*.mdoc`, or JSDoc descriptions in `ag-charts-types`) unless a human has asked for that change; a bot or AI review finding counts only when a human endorses it. Otherwise list each page or property and what it needs to say, and propose a docs sub-task for the docs owner. Docs examples, JSDoc `Default:` lines kept matching the runtime default, structural tags (`@deprecated`, `@private`), `*-e2e`/`*-test` pages and example references that a rename or deletion breaks are normal work.
 
 ## Pre-Commit Requirements
 
