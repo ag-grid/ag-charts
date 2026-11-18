@@ -310,12 +310,13 @@ describe('glow gap', () => {
                 expectRingOverPoint(pixelAt, THICK_GAP, THICK_SPREAD);
 
                 // Over the point, the rows with nothing in them between the point and the glow are the gap, within a pixel.
-                let y = CENTRE_Y;
-                while (bare(CENTRE_X, y)[3] > 0) y--;
-                const tip = y + 1;
-                let cut = 0;
-                for (y = tip - 1; classOf(pixelAt(CENTRE_X, y)) !== 'glow'; y--) cut++;
-                expect(Math.abs(cut - THICK_GAP)).toBeLessThanOrEqual(1);
+                const firstRowUp = (pixels: Pixels, found: (pixel: number[]) => boolean) => {
+                    for (let y = CENTRE_Y; y >= WINDOW.top; y--) if (found(pixels(CENTRE_X, y))) return y;
+                    throw new Error('No pixel over the point matches');
+                };
+                const tip = firstRowUp(bare, (pixel) => pixel[3] === 0) + 1;
+                const glowRow = firstRowUp(pixelAt, (pixel) => classOf(pixel) === 'glow');
+                expect(Math.abs(tip - 1 - glowRow - THICK_GAP)).toBeLessThanOrEqual(1);
             });
 
             it('should cut the whole point of a translucent star out of the glow with a gap of 0', () => {
