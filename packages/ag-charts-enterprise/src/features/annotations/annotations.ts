@@ -786,7 +786,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private onRestoreAnnotations(event: { annotations: Array<AgAnnotation>; source: AgAnnotationsEventSource }) {
-        if (!(this.opts.enabled ?? true)) return;
+        if (!(this.opts.enabled ?? true) || this.opts.lastPriceLine?.only) return;
 
         const { annotations, source } = event;
         const canPatchInPlace =
@@ -1006,7 +1006,10 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!seriesRect || !context) return;
 
-        annotationManager?.updateData(annotationData.map(serialiseAnnotation) as AgAnnotation[]);
+        // The state is left as restored while the module only draws the last price line, as it is while disabled.
+        if (!this.opts.lastPriceLine?.only) {
+            annotationManager?.updateData(annotationData.map(serialiseAnnotation) as AgAnnotation[]);
+        }
 
         const showAnnotations = this.showAnnotations();
         this.toolbar.refreshButtonsEnabled(showAnnotations);
@@ -1056,6 +1059,7 @@ export class Annotations extends AbstractModuleInstance {
     private createLastPriceLineDatum(
         {
             enabled: _enabled,
+            only: _only,
             seriesId: _seriesId,
             closeKey: _closeKey,
             ...styles

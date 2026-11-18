@@ -90,6 +90,8 @@ export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
         /** The series whose last datum the line is drawn at. */
         seriesId: string;
         closeKey: string;
+        /** Whether the line is all that is drawn, so annotations are neither restored nor drawn. */
+        only?: boolean;
     };
 };
 

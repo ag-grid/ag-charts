@@ -959,7 +959,14 @@ describe('priceVolumePreset', () => {
                 'styled',
                 { lastPriceLine: { stroke: 'red', strokeWidth: 3, lineStyle: 'dashed', axisLabel: { fill: 'red' } } },
             ],
-            ['without the toolbar', { lastPriceLine: true, toolbar: false }],
+            [
+                'without the toolbar, which also hides annotations',
+                {
+                    lastPriceLine: true,
+                    toolbar: false,
+                    initialState: { annotations: [{ type: 'horizontal-line', value: 130 }] },
+                },
+            ],
             ['at the close of a line chart', { lastPriceLine: true, chartType: 'line' }],
             ['at the close of a high-low chart', { lastPriceLine: true, chartType: 'high-low' }],
             [

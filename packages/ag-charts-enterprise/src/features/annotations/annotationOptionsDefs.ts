@@ -322,7 +322,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
         volumeKey: string,
         snap: boolean,
         // Set by the price preset from its `lastPriceLine`, which draws a line at the close of the last bar of a series.
-        lastPriceLine: { ...lastPriceLineStyleDefs, seriesId: string, closeKey: string },
+        lastPriceLine: { ...lastPriceLineStyleDefs, seriesId: string, closeKey: string, only: boolean },
     }),
 };
 

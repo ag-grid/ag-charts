@@ -345,11 +345,15 @@ function createVolumeAxis(volume: boolean): Record<string, AgInsetNumberAxisOpti
     };
 }
 
-function createLastPriceLineOptions(lastPriceLine: boolean | AgLastPriceLineOptions, { closeKey }: PriceSeriesKeys) {
+function createLastPriceLineOptions(
+    lastPriceLine: boolean | AgLastPriceLineOptions,
+    { closeKey }: PriceSeriesKeys,
+    toolbar: boolean
+) {
     const styles = lastPriceLine === true ? {} : lastPriceLine;
     if (styles === false || styles.enabled === false) return;
 
-    return { ...styles, enabled: true, seriesId: PRICE_SERIES_ID, closeKey };
+    return { ...styles, enabled: true, seriesId: PRICE_SERIES_ID, closeKey, only: !toolbar };
 }
 
 function createAnnotationsOptions(
@@ -361,11 +365,11 @@ function createAnnotationsOptions(
     volumeKey: string | undefined
 ) {
     const buttons = themeOverrides?.common?.annotations?.toolbar?.buttons ?? toolbarButtons;
-    const lastPriceLineOptions = createLastPriceLineOptions(lastPriceLine, keys);
+    const lastPriceLineOptions = createLastPriceLineOptions(lastPriceLine, keys, toolbar);
 
     return {
         annotations: {
-            // The last price line is drawn by the annotations module, which then runs without the toolbar
+            // The last price line is drawn by the annotations module, which then draws no annotations without the toolbar
             enabled: toolbar || lastPriceLineOptions != null,
             ...(toolbar ? {} : { axesButtons: { enabled: false } }),
             optionsToolbar: {
