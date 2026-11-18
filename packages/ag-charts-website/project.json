@@ -324,6 +324,34 @@
         }
       }
     },
+    "validate-generated-examples": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "^build:types",
+        "generate-examples",
+        "ag-charts-react:build:types",
+        "ag-charts-vue3:build:types",
+        "ag-charts-angular:build"
+      ],
+      "inputs": [
+        "{projectRoot}/scripts/validate-generated-examples.ts",
+        "{projectRoot}/tsconfig.examples.json",
+        "{projectRoot}/src/components/example-runner/components/stripOutExampleGeneratorCode.ts",
+        "{projectRoot}/src/components/example-runner/constants.ts",
+        "{workspaceRoot}/external/ag-website-shared/src/utils/extraCodeSnippets.ts",
+        {
+          "dependentTasksOutputFiles": "**/contents.json",
+          "transitive": true
+        },
+        "tsDeclarations"
+      ],
+      "outputs": [],
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "tsx ./scripts/validate-generated-examples.ts"
+      }
+    },
     "update-algolia": {
       "command": "node update-algolia.js",
       "options": {

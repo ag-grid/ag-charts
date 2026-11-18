@@ -9,9 +9,7 @@ export interface BindingImport {
     namedImport: string;
     imports: string[];
     // Set when the import must be emitted as `import type { ... }`. Parsed imports leave this
-    // undefined (their type-only-ness is not tracked); it is set explicitly when a type-only
-    // import dropped by sucrase is restored for a TypeScript-output framework (see
-    // `mergeDroppedTypedImports`).
+    // undefined: their type-only-ness is not tracked.
     isTypeOnly?: boolean;
 }
 
@@ -328,11 +326,121 @@ export function extractTypeInfoForVariable(srcFile: ts.SourceFile, varName: stri
     return { typeStr, typeParts };
 }
 
+export const DEFAULT_OPTIONS_TYPE = 'AgChartOptions';
+
+/** The declared type of a chart's options variable, or `AgChartOptions` where the example declares none. */
+export function getPropertyOptionsType(property: { typeInfo?: { typeStr?: string } }): string {
+    return property.typeInfo?.typeStr ?? DEFAULT_OPTIONS_TYPE;
+}
+
+/** Whether any chart's options variable is typed with the `AgChartOptions` fallback. */
+export function usesDefaultOptionsType(bindings: {
+    chartProperties?: Record<string, string>;
+    properties: { name: string; typeInfo?: { typeStr?: string } }[];
+}): boolean {
+    const chartVariables = Object.values(bindings.chartProperties ?? {});
+    return bindings.properties.some((p) => chartVariables.includes(p.name) && !p.typeInfo?.typeStr);
+}
+
+// String, template and comment literals, whose contents are never code.
+const LITERALS_AND_COMMENTS = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`|\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
+
+/**
+ * Rewrites reads of the chart options variables named in `names` (e.g. `options.series` in a callback, or
+ * `...options1` in a second chart's options) to the framework's own reference to them, such as `this.options`.
+ * Member accesses (`other.options`), property keys and shorthand declarations are left alone, as are string, template and comment contents.
+ */
+export function replaceOptionsReferences(code: string, names: string[], toReference: (name: string) => string): string {
+    if (names.length === 0) {
+        return code;
+    }
+
+    const regex = new RegExp(`(?<![\\w$])(?<!(?<!\\.\\.)\\.)(${names.join('|')})\\b`, 'g');
+    const replaceSegment = (segment: string) =>
+        segment.replace(regex, (match, name: string, offset: number) => {
+            const before = segment.slice(0, offset);
+            const after = segment.slice(offset + match.length);
+            // `{ options: x }` and `{ options }` declare a key, whereas `{ ...options }` and `[options]` read the variable.
+            const isKey = /[{,]\s*$/.test(before) && /^\s*[:,}]/.test(after);
+            return isKey ? match : toReference(name);
+        });
+
+    let result = '';
+    let lastIndex = 0;
+    for (const match of code.matchAll(LITERALS_AND_COMMENTS)) {
+        const start = match.index ?? 0;
+        result += replaceSegment(code.slice(lastIndex, start)) + match[0];
+        lastIndex = start + match[0].length;
+    }
+    return result + replaceSegment(code.slice(lastIndex));
+}
+
+/**
+ * The other charts' options variables that a chart's options read (`{ ...options1 }`), dependencies first.
+ * Each chart becomes its own component in the Angular and Vue variants, so a component has to declare these
+ * itself.
+ */
+export function getReferencedOptions(bindings: any, property: { name: string; value: string }): any[] {
+    const all: any[] = bindings.properties.filter((p: any) =>
+        Object.values(bindings.chartProperties ?? {}).includes(p.name)
+    );
+    const ordered: any[] = [];
+    const visit = (current: { name: string; value: string }) => {
+        const others = all.filter((p) => p.name !== current.name);
+        const referenced = new Set<string>();
+        replaceOptionsReferences(
+            current.value,
+            others.map((p) => p.name),
+            (name) => {
+                referenced.add(name);
+                return name;
+            }
+        );
+        for (const dependency of others.filter((p) => referenced.has(p.name))) {
+            if (!ordered.includes(dependency)) {
+                visit(dependency);
+                ordered.push(dependency);
+            }
+        }
+    };
+    visit(property);
+    return ordered;
+}
+
+// Types that need no import: the DOM and TypeScript's own globals, and the generic parameters charts use.
+const NON_IMPORTED_TYPES = new Set([
+    'HTMLElement',
+    'Function',
+    'TData',
+    'TContext',
+    'TValue',
+    // TypeScript utility and built-in types
+    'Array',
+    'ReadonlyArray',
+    'Partial',
+    'Required',
+    'Readonly',
+    'Record',
+    'Pick',
+    'Omit',
+    'Exclude',
+    'Extract',
+    'NonNullable',
+    'Parameters',
+    'ConstructorParameters',
+    'ReturnType',
+    'InstanceType',
+    'Awaited',
+    'Promise',
+    'Map',
+    'Set',
+]);
+
 export function getTypes(node: ts.Node) {
     let typesToInclude = [];
     if (ts.isIdentifier(node)) {
         const typeName = node.getText();
-        if (!['HTMLElement', 'Function', 'Partial', 'TData', 'TContext', 'TValue'].includes(typeName)) {
+        if (!NON_IMPORTED_TYPES.has(typeName)) {
             typesToInclude.push(typeName);
         }
     }
@@ -620,6 +728,27 @@ export function getPropertyInterfaces(properties) {
     return [...new Set(propTypesUsed)];
 }
 
+/** The name an import specifier brings into scope: `type Foo` and `Foo` both bind `Foo`. */
+export function getImportedName(specifier: string): string {
+    return specifier.replace(/^type\s+/, '');
+}
+
+/**
+ * Make sure `name` is imported from `module` (quoted, as in `bindings.imports`), unless some import
+ * of the example already brings it into scope.
+ */
+export function ensureNamedImport(bindingImports: BindingImport[], module: string, name: string) {
+    if (bindingImports.some((i) => i.imports.some((specifier) => getImportedName(specifier) === name))) {
+        return;
+    }
+    const existing = bindingImports.find((i) => i.module === module && !i.isNamespaced);
+    if (existing) {
+        existing.imports = [...existing.imports, name];
+    } else {
+        bindingImports.push({ module, isNamespaced: false, namedImport: undefined, imports: [name] });
+    }
+}
+
 /**
  *  Add the imports from the parsed file
  * We ignore any component files as those imports are generated for each framework.
@@ -733,7 +862,11 @@ export function addGenericInterfaceImport(imports: string[], tData: string, bind
 export type ChartAPI = 'financial' | 'gauge' | 'quadrant' | 'sparkline' | 'vanilla' | 'volume-profile';
 
 export function chartApi(bindings: any): ChartAPI {
-    const typeStr = bindings.optionsTypeInfo?.typeStr;
+    // An example's charts need not be called `options`, so fall back to its first chart's declared type.
+    const firstChart = bindings.properties?.find(
+        (p: any) => p.name === Object.values(bindings.chartProperties ?? {})[0]
+    );
+    const typeStr = bindings.optionsTypeInfo?.typeStr ?? firstChart?.typeInfo?.typeStr;
     if (typeStr === 'AgFinancialChartOptions') {
         return 'financial';
     } else if (

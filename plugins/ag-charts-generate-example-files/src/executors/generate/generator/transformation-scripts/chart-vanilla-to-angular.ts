@@ -2,10 +2,16 @@ import { convertTemplate, getImport } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
 import {
     type ChartAPI,
+    DEFAULT_OPTIONS_TYPE,
     addBindingImports,
     chartApi,
     convertFunctionToProperty,
+    getImportedName,
+    getPropertyOptionsType,
+    getReferencedOptions,
     isInstanceMethod,
+    replaceOptionsReferences,
+    usesDefaultOptionsType,
 } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 
@@ -80,7 +86,11 @@ function prefixInstanceMethodCalls(code: string, methodNames: string[]): string 
     return result;
 }
 
-function getImports(bindings, componentFileNames: string[], { typeParts }): string[] {
+function getImports(bindings, componentFileNames: string[]): string[] {
+    // The types of every chart's options, which `getComponentMetadata` declares its properties with
+    const typeParts: string[] = bindings.properties.flatMap((p) => p.typeInfo?.typeParts ?? []);
+    if (usesDefaultOptionsType(bindings)) typeParts.push(DEFAULT_OPTIONS_TYPE);
+
     const {
         chartSettings: { enterprise = false },
     } = bindings;
@@ -92,11 +102,11 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
     }));
     // Skip type parts already imported by the example (e.g. from 'ag-charts-types') to avoid duplicate imports.
-    const alreadyImported = new Set(bImports.flatMap((i) => i.imports));
+    const alreadyImported = new Set(bImports.flatMap((i) => i.imports.map(getImportedName)));
     bImports.push({
         module: enterprise ? `'ag-charts-enterprise'` : `'ag-charts-community'`,
         isNamespaced: false,
-        imports: typeParts.filter((imp) => !declaredTypeNames.includes(imp) && !alreadyImported.has(imp)),
+        imports: [...new Set(typeParts)].filter((imp) => !declaredTypeNames.includes(imp) && !alreadyImported.has(imp)),
     });
 
     const imports = [`import { Component${bindings.usesChartApi ? ', ViewChild' : ''} } from '@angular/core';`];
@@ -122,9 +132,23 @@ function getComponentMetadata(bindings: any, property: any, methodNames: string[
 
     if (!isInstanceMethod(bindings.instanceMethods, property)) {
         propertyAttributes.push(`[options]="${property.name}"`);
-        propertyVars.push(`public ${property.name};`);
+        propertyVars.push(`public ${property.name}: ${getPropertyOptionsType(property)};`);
         // Callbacks inside the options literal may call instance methods, so prefix those calls too.
-        propertyAssignments.push(`this.${property.name} = ${prefixInstanceMethodCalls(property.value, methodNames)};`);
+        // Callbacks and spreads inside the literal may also read the chart options variables. Its own is a
+        // class member, and any other chart's is declared locally, as that chart is a separate component.
+        const toValue = (p: any) =>
+            replaceOptionsReferences(
+                prefixInstanceMethodCalls(p.value, methodNames),
+                [p.name],
+                (name) => `this.${name}`
+            );
+        for (const dependency of getReferencedOptions(bindings, property)) {
+            propertyAssignments.push(
+                `const ${dependency.name}: ${getPropertyOptionsType(dependency)} = ${toValue(dependency)};`
+            );
+        }
+        const value = toValue(property);
+        propertyAssignments.push(`this.${property.name} = ${value};`);
     }
 
     const modules = bindings.chartModules[property.name];
@@ -217,10 +241,9 @@ export async function vanillaToAngular(
     componentFileNames: string[],
     suppressOptionsClone: boolean
 ): Promise<string> {
-    const { properties, declarations, optionsTypeInfo } = bindings;
+    const { properties, declarations } = bindings;
     const type = components[chartApi(bindings)];
-    const opsTypeInfo = optionsTypeInfo;
-    const imports = getImports(bindings, componentFileNames, opsTypeInfo);
+    const imports = getImports(bindings, componentFileNames);
     const placeholders = Object.keys(bindings.placeholders);
 
     let indexFile: string;

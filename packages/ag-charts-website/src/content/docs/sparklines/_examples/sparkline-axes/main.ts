@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import { AgCharts, AgSparklineOptions, LegendModule } from 'ag-charts-community';
 import { LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
 

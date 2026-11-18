@@ -650,10 +650,12 @@ jobs:
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
                   free_disk_space: false
 
-            - name: nx run-many -t validate-examples
+            # validate-generated-examples type-checks the framework variants the generator writes, which
+            # validate-examples (the examples' source) does not see.
+            - name: nx run-many -t validate-examples,validate-generated-examples
               id: validate
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --exclude all
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples,validate-generated-examples --exclude all
 
     pr_preview:
         runs-on: ubuntu-24.04

@@ -1,5 +1,14 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { type ChartAPI, addBindingImports, chartApi, convertFunctionToConstPropertyTs } from './parser-utils';
+import {
+    type ChartAPI,
+    addBindingImports,
+    chartApi,
+    convertFunctionToConstPropertyTs,
+    getImportedName,
+    getPropertyOptionsType,
+    getReferencedOptions,
+    replaceOptionsReferences,
+} from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 import { convertTemplate, getImport, indentTemplate } from './vue-utils';
 
@@ -34,10 +43,16 @@ function processFunction(code: string, suppressOptionsClone: boolean): string {
 function getImports(componentFileNames: string[], bindings): string[] {
     const type = components[chartApi(bindings)];
     const imports = [
-        "import { createApp, defineComponent, ref } from 'vue';",
+        "import { createApp, defineComponent, ref, type Ref } from 'vue';",
         `import { ${type} } from 'ag-charts-vue3';`,
-        "import type { AgChartOptions } from 'ag-charts-types';",
     ];
+    // The example may already import `AgChartOptions`, and importing it twice is a duplicate identifier.
+    const importsAgChartOptions = bindings.imports.some((i) =>
+        i.imports.some((specifier: string) => getImportedName(specifier) === 'AgChartOptions')
+    );
+    if (!importsAgChartOptions) {
+        imports.push("import type { AgChartOptions } from 'ag-charts-types';");
+    }
 
     const chartImports = bindings.imports.map((i) => ({
         ...i,
@@ -65,14 +80,21 @@ function getPropertyBindings(bindings: any, id: string, property: any) {
     const propertyAttributes = [];
     const propertyNames = [];
 
-    const optionsType = bindings.optionsTypeInfo?.typeStr ?? 'AgChartOptions';
     propertyNames.push(property.name);
-    propertyVars.push(
-        `const ${property.name} = ref${property.name === 'options' ? `<${optionsType}>` : ''}(${property.value});`
-    );
+    const optionsNames = Object.values<string>(bindings.chartProperties ?? {});
+    // `ref<T>` unwraps `T` deeply, to a type the chart's own methods (`updateDelta`) don't accept, so keep it as `T`.
+    const declare = (p: any) => {
+        const type = getPropertyOptionsType(p);
+        const value = replaceOptionsReferences(p.value, optionsNames, (name) => `${name}.value`);
+        return `const ${p.name} = ref<${type}>(${value}) as Ref<${type}>;`;
+    };
+    // Each chart is its own component, so one whose options read another chart's declares that chart's options too.
+    const dependencies = getReferencedOptions(bindings, property).map(declare);
+    propertyVars.push(...dependencies, declare(property));
     if (bindings.usesChartApi) {
         propertyNames.push('agCharts');
-        propertyVars.push(`const agCharts = ref(null);`);
+        // Typed as the component, so that `chart` is an `AgChartInstance` and callbacks on it are contextually typed.
+        propertyVars.push(`const agCharts = ref<InstanceType<typeof ${components[chartApi(bindings)]}>>();`);
     }
     propertyAttributes.push(`:options="${property.name}"`);
     const modules = bindings.chartModules[property.name];
@@ -167,7 +189,7 @@ ${bindings.declarations.length > 0 ? '\n' + bindings.declarations.join('\n') + '
                 components: {
                     '${tag}': ${type}
                 },
-                setup(props) {
+                setup() {
                     ${propertyVars.join(`;
                     `)}
 
@@ -218,7 +240,7 @@ ${bindings.declarations.length > 0 ? '\n' + bindings.declarations.join('\n') + '
                 components: {
                     '${tag}': ${type}
                 },
-                setup(props) {
+                setup() {
                     ${propertyVars.join(`
                     `)}
 
@@ -251,18 +273,18 @@ ${bindings.declarations.length > 0 ? '\n' + bindings.declarations.join('\n') + '
     }
 
     if (bindings.usesChartApi) {
-        mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(agCharts.value.chart$3');
-        mainFile = mainFile.replace(/chart.(\w*)\(/g, 'agCharts.value.chart.$1(');
+        mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(agCharts.value!.chart!$3');
+        mainFile = mainFile.replace(/chart.(\w*)\(/g, 'agCharts.value!.chart!.$1(');
         mainFile = mainFile.replace(
             /this.\$refs.agCharts.chart.(\w*)\(options/g,
-            'agCharts.value.chart.$1(options.value'
+            'agCharts.value!.chart!.$1(options.value'
         );
         // Split multi-variable declarations containing 'chart' to avoid breaking syntax
         mainFile = mainFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
         // Replace `chart` references but not in variable declarations or strings
         mainFile = mainFile.replace(
             /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g,
-            (match) => (match === 'chart' ? 'agCharts.value.chart' : match)
+            (match) => (match === 'chart' ? 'agCharts.value!.chart!' : match)
         );
     }
 
