@@ -672,23 +672,19 @@ export abstract class HierarchySeries<
         ]);
     }
 
-    /**
-     * The shadow on one copy of a node, in `fillShadow`: the highlight copy casts its `glow` there, beneath itself, and the
-     * in-place copies cast their shadow, as their glow is cast in the root's overlay, see {@link resolveNodeGlow}.
-     */
+    /** The shadow on one copy of a node, in `fillShadow`: the highlight copy casts none, as its glow is cast in the root's overlay. */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,
-        glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
         itemShadow?: AgItemShadowStyle['shadow']
     ): NormalisedDropShadowOptions | undefined {
-        if (isHighlight) return glow;
+        if (isHighlight) return;
         return itemShadow == null ? shadow : this.mergeItemShadow(shadow, itemShadow);
     }
 
     /**
-     * The glow on one copy of a node, in `fillGlow`, cast in the root's overlay. The highlight copy has none there, and the
-     * hovered in-place copy cuts it only if the highlight copy glows.
+     * The glow on one copy of a node, in `fillGlow`, cast in the root's overlay, where every glowing node is cut out of the
+     * glows of its neighbours. The hovered in-place copy cuts it only if the highlight copy glows.
      */
     protected resolveNodeGlow(
         glow: NormalisedDropShadowOptions | undefined,
@@ -696,8 +692,7 @@ export abstract class HierarchySeries<
         hoveredInPlace: boolean,
         hoveredGlows: boolean
     ): NormalisedDropShadowOptions | undefined {
-        if (isHighlight) return;
-        if (!hoveredInPlace) return glow;
+        if (isHighlight || !hoveredInPlace) return glow;
         return hoveredGlows ? CUT_ONLY_GLOW : undefined;
     }
 

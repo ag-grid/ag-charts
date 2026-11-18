@@ -61,8 +61,6 @@ interface SeriesCase {
     /** The exact shape class that casts the shadow, so labels, lines and subclasses like sankey links are left out. */
     kind: abstract new (...args: never[]) => Shape;
     chartOptions?: object;
-    /** The series has no series-level `glow` yet, so a highlight bucket's glow replaces the shadow, in the shadow slot. */
-    glowInShadowSlot?: boolean;
     /** The in-place and highlight-layer shapes, for series that keep both copies of an item in one group. */
     layers?: (chart: AgChartInstance) => { inPlace: Shape[]; highlighted: Shape[] };
     /** How many copies of the hovered item the highlight layer draws; range-area lights both its low and high marker. */
@@ -308,7 +306,6 @@ const SERIES: SeriesCase[] = [
     {
         // Tile and group highlights live under `tile.highlight` and `group.highlight`, not the series' `highlight`.
         name: 'treemap tiles',
-        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Rect,
         hover: FIRST_LEAF,
@@ -324,7 +321,6 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'treemap groups',
-        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Rect,
         hover: FIRST_GROUP,
@@ -339,7 +335,6 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'sunburst',
-        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Sector,
         hover: FIRST_LEAF,
@@ -552,10 +547,8 @@ describe('highlight glow (enterprise series)', () => {
     const casts = (shape: Shape) => shape.fillShadow?.enabled === true || shape.fillGlow?.enabled === true;
 
     /** The options a shape of the case casts its glow with, and the shadow they are cast as. */
-    const castOptionsOf = (shape: Shape, testCase: SeriesCase) =>
-        testCase.glowInShadowSlot ? shape.fillShadow : shape.fillGlow;
-    const castGlowOf = (shape: Shape, testCase: SeriesCase) =>
-        shape.getCastShadow(testCase.glowInShadowSlot ? 'shadow' : 'glow');
+    const castOptionsOf = (shape: Shape) => shape.fillGlow;
+    const castGlowOf = (shape: Shape) => shape.getCastShadow('glow');
 
     /** The visible in-place and highlight-layer shapes of the case's shape kind. */
     const layersOf = (testCase: SeriesCase) => {
@@ -781,7 +774,7 @@ describe('highlight glow (enterprise series)', () => {
                     highlightedItem: { glow: { enabled: true } },
                 });
                 expect(highlighted).toHaveLength(1);
-                expect(sameColour(castGlowOf(highlighted[0], testCase)?.fill, expected)).toBe(true);
+                expect(sameColour(castGlowOf(highlighted[0])?.fill, expected)).toBe(true);
                 chart.destroy();
             }
         });
@@ -836,7 +829,7 @@ describe('highlight glow (enterprise series)', () => {
 
                 expect(highlighted.length).toBeGreaterThan(0);
                 expect(highlighted.filter(casts)).toHaveLength(copies);
-                expect(castOptionsOf(highlighted.find(casts)!, testCase)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                expect(castOptionsOf(highlighted.find(casts)!)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
             }
         );
 
@@ -869,11 +862,11 @@ describe('highlight glow (enterprise series)', () => {
                 highlightedItem: { glow: { enabled: true } },
             });
 
-            const shapes = highlighted.filter((shape) => castGlowOf(shape, testCase) != null);
+            const shapes = highlighted.filter((shape) => castGlowOf(shape) != null);
             expect(shapes.length).toBeGreaterThan(0);
             for (const shape of shapes) {
-                expect(castGlowOf(shape, testCase)).toMatchObject({ enabled: true, fillOpacity: 0.4 });
-                expect(sameColour(castGlowOf(shape, testCase)?.fill, PAINT)).toBe(true);
+                expect(castGlowOf(shape)).toMatchObject({ enabled: true, fillOpacity: 0.4 });
+                expect(sameColour(castGlowOf(shape)?.fill, PAINT)).toBe(true);
             }
         });
 
@@ -883,9 +876,9 @@ describe('highlight glow (enterprise series)', () => {
                 highlightedItem: { ...style, glow: { enabled: true } },
             });
 
-            const shapes = highlighted.filter((shape) => castGlowOf(shape, testCase) != null);
+            const shapes = highlighted.filter((shape) => castGlowOf(shape) != null);
             expect(shapes.length).toBeGreaterThan(0);
-            for (const shape of shapes) expect(sameColour(castGlowOf(shape, testCase)?.fill, 'orange')).toBe(true);
+            for (const shape of shapes) expect(sameColour(castGlowOf(shape)?.fill, 'orange')).toBe(true);
         });
 
         it('casts its own fill and fillOpacity, and not that of the item, when it sets them', async () => {
@@ -896,7 +889,7 @@ describe('highlight glow (enterprise series)', () => {
             const shapes = highlighted.filter(casts);
             expect(shapes.length).toBeGreaterThan(0);
             for (const shape of shapes) {
-                expect(castGlowOf(shape, testCase)).toMatchObject({ fill: '#123456', fillOpacity: 0.7 });
+                expect(castGlowOf(shape)).toMatchObject({ fill: '#123456', fillOpacity: 0.7 });
             }
         });
 
@@ -911,8 +904,8 @@ describe('highlight glow (enterprise series)', () => {
                 .filter((message) => message.includes('glow.color'));
             expect(messages.length).toBeGreaterThan(0);
             for (const shape of highlighted.filter(casts)) {
-                expect(castOptionsOf(shape, testCase)).not.toHaveProperty('color');
-                expect(castGlowOf(shape, testCase)?.fill).not.toBe('#ff00ff');
+                expect(castOptionsOf(shape)).not.toHaveProperty('color');
+                expect(castGlowOf(shape)?.fill).not.toBe('#ff00ff');
             }
             vi.mocked(console.warn).mockClear();
         });
@@ -933,7 +926,7 @@ describe('highlight glow (enterprise series)', () => {
                 highlightedItem: { glow: { enabled: true } },
             });
 
-            expect(castOptionsOf(highlighted.find(casts)!, testCase)).toMatchObject({
+            expect(castOptionsOf(highlighted.find(casts)!)).toMatchObject({
                 ...defaults,
                 enabled: true,
                 xOffset: 0,
@@ -966,8 +959,8 @@ describe('highlight glow (enterprise series)', () => {
                 // ... and the highlight copy casts the glow alone, never merged with the base shadow.
                 expect(highlighted.filter(casts)).toHaveLength(copies);
                 for (const shape of highlighted.filter(casts)) {
-                    expect(castOptionsOf(shape, testCase)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
-                    expect(castOptionsOf(shape, testCase)?.fill).not.toBe(SHADOW.fill);
+                    expect(castOptionsOf(shape)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                    expect(castOptionsOf(shape)?.fill).not.toBe(SHADOW.fill);
                 }
             }
         );
@@ -993,7 +986,7 @@ describe('highlight glow (enterprise series)', () => {
 
             const moved = layersOf(testCase);
             expect(moved.highlighted.filter(casts)).toHaveLength(copies);
-            expect(castOptionsOf(moved.highlighted.find(casts)!, testCase)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+            expect(castOptionsOf(moved.highlighted.find(casts)!)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
 
             raiseHighlight();
             await waitForChartStability(chart);

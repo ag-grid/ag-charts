@@ -815,7 +815,6 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(node, isLeaf, true) : undefined;
             rect.fillShadow = this.resolveNodeShadow(
                 (isLeaf ? tile : group).shadow,
-                glow,
                 isHighlight,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );

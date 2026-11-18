@@ -569,7 +569,6 @@ export class SunburstSeries extends HierarchySeries<
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(nodeDatum, true) : undefined;
             sector.fillShadow = this.resolveNodeShadow(
                 shadow,
-                glow,
                 highlighted,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
