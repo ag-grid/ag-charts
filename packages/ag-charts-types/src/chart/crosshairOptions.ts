@@ -73,7 +73,7 @@ export interface AgBaseCrosshairLabel<TContext = ContextDefault> {
     yOffset?: PixelSize;
     /** Function used to render crosshair labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4`. The result is displayed as text. */
     formatter?: Formatter<AgCrosshairLabelFormatterParams<TContext>>;
-    /** Function used to create the content for the label. A returned string, or the `text` of a returned object, is inserted as HTML, so escape any values derived from chart data. */
+    /** Function used to create the content for the label. A returned string, or the `text` of a returned object, is inserted as HTML, so escape any values derived from chart data. The label is positioned allowing for the theme's `crosshairLabelVerticalPadding` and `crosshairLabelHorizontalPadding`, but only markup with the `ag-charts-crosshair-label-content` class is given that padding. */
     renderer?: Renderer<AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult>;
 }
 

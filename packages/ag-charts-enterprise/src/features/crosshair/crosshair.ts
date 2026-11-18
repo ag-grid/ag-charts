@@ -683,8 +683,8 @@ export class Crosshair
 
         // Cancels the label's own padding so its text, not its box, sits `spacing` from the line; `min` stops a small
         // `spacing` pulling the box over the line. CSS keeps this free of synchronous style reads.
-        const pullBack = (padding: 'vertical' | 'horizontal') =>
-            `min(var(--ag-charts-crosshair-label-${padding}-padding), ${spacing}px)`;
+        const pullBack = (axis: 'vertical' | 'horizontal') =>
+            `min(var(--ag-charts-crosshair-label-${axis}-padding), ${spacing}px)`;
 
         if (this.axisCtx.direction === ChartAxisDirection.X) {
             const isBottom = axisPosition === 'bottom';
