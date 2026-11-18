@@ -628,6 +628,37 @@ describe('glow refinements', () => {
             expect(pixel(short.x + 3, short.y + 20)).toEqual(GREEN);
         });
 
+        it.each([
+            ['the series glow', (glow: AgGlowOptions) => ({ glow })],
+            ['the glow an itemStyler returns', (glow: AgGlowOptions) => ({ itemStyler: () => ({ glow }) })],
+        ])('keeps the ring of a gap clear of the glow of the series beside it, from %s', async (_name, placement) => {
+            const RING = 6;
+            await create({
+                axes: { y: { type: 'number', min: 0, max: 8, gridLine: { enabled: false } } },
+                data: [{ category: 'A', value: 6, other: 6 }],
+                series: ['value', 'other'].map((yKey, index) => ({
+                    type: 'bar',
+                    xKey: 'category',
+                    yKey,
+                    fill: '#0000ff',
+                    fillOpacity: 1,
+                    ...placement(hard({ spread: 30, gap: RING, fill: index === 0 ? '#ff0000' : '#008000' })),
+                })),
+            });
+            const [left, right] = [barBounds(0), barBounds(1)];
+            const y = left.y + 20;
+            // The bars are 10px apart: 3px from the left bar is 7px from the right one, and the other way about.
+            const inRingOfLeft = left.x + left.width + 3;
+            const inRingOfRight = right.x - 3;
+
+            expect(inRingOfRight - inRingOfLeft).toBe(4);
+            expect(pixel(inRingOfLeft, y)).toEqual(WHITE);
+            expect(pixel(inRingOfRight, y)).toEqual(WHITE);
+            // Past the ring, a glow starts.
+            expect(pixel(left.x - RING - 4, y)).toEqual(RED);
+            expect(pixel(right.x + right.width + RING + 4, y)).toEqual(GREEN);
+        });
+
         it('draws the shadow of a series beneath the items and the glow of another', async () => {
             const SHADOW = { enabled: true, fill: '#000000', fillOpacity: 1, blur: 0, xOffset: 12, yOffset: 0 };
             const createPair = (shadow: object, glow?: AgGlowOptions) =>

@@ -1040,6 +1040,13 @@ function castOverlay(
     // Cuts the footprint of a key, where its items are painted, out of what `ctx` holds.
     const eraseKey = (key: ShadowKey, ctx: Ctx, op: GlobalCompositeOperation) =>
         eraseFootprints(key, ctx, transform, renderCtx, region, resolutionOfHole, 0, true, op, true);
+    // Cuts the ring of a key's own `gap`, which no glow of the overlay enters, or else its footprint.
+    const eraseRing = (key: ShadowKey, ctx: Ctx, op: GlobalCompositeOperation) => {
+        const { gap, overlay } = key.shadow;
+        return gap == null || overlay === true
+            ? eraseKey(key, ctx, op)
+            : eraseFootprints(key, ctx, transform, renderCtx, region, resolutionOfHole, gap, false, op, true);
+    };
     glows.setTransform(1, 0, 0, 1, 0, 0);
     glows.clearRect(0, 0, width, height);
 
@@ -1145,8 +1152,8 @@ function castOverlay(
         rendered =
             cutOut(merged, { x: 0, y: 0, width, height }, scratch, (ctx, op) => {
                 let drew = true;
-                for (const plan of plans) drew = eraseKey(plan.key, ctx, op) && drew;
-                for (const key of cuts ?? []) drew = eraseKey(key, ctx, op) && drew;
+                for (const plan of plans) drew = eraseRing(plan.key, ctx, op) && drew;
+                for (const key of cuts ?? []) drew = eraseRing(key, ctx, op) && drew;
                 return drew;
             }) && rendered;
 
