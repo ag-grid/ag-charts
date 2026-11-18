@@ -1,12 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { CheckboxWidget } from './checkboxWidget';
-
-function pressKey(checkbox: CheckboxWidget, init: KeyboardEventInit) {
-    const event = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init });
-    checkbox.getElement().dispatchEvent(event);
-    return event;
-}
+import { pressKey } from './test/openerFixtures';
 
 describe('CheckboxWidget', () => {
     afterEach(() => {
@@ -30,7 +25,7 @@ describe('CheckboxWidget', () => {
         const changes: boolean[] = [];
         checkbox.addListener('change', () => changes.push(checkbox.checked));
 
-        const event = pressKey(checkbox, { key: 'Enter', code: 'Enter' });
+        const event = pressKey(checkbox, 'Enter', { code: 'Enter' });
 
         expect(event.defaultPrevented).toBe(true);
         expect(changes).toEqual([true]);
@@ -40,10 +35,10 @@ describe('CheckboxWidget', () => {
         const checkbox = new CheckboxWidget();
         document.body.append(checkbox.getElement());
 
-        pressKey(checkbox, { key: ' ', code: 'Space' });
+        pressKey(checkbox, ' ', { code: 'Space' });
         expect(checkbox.checked).toBe(true);
 
-        const shifted = pressKey(checkbox, { key: ' ', code: 'Space', shiftKey: true });
+        const shifted = pressKey(checkbox, ' ', { code: 'Space', shiftKey: true });
         expect(shifted.defaultPrevented).toBe(false);
         expect(checkbox.checked).toBe(true);
     });

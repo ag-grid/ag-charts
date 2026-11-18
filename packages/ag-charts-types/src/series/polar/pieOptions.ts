@@ -20,6 +20,7 @@ import type {
     AgColorType,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
     TextOptions,
     Toggleable,
@@ -55,7 +56,8 @@ export type AgPieSeriesItemStylerParams<TDatum = DatumDefault, TContext = Contex
 > &
     ContextCallbackParams<TContext> &
     AgPieSeriesOptionsKeys<TDatum> &
-    Required<AgPieSeriesStyle>;
+    Required<Omit<AgPieSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgPieSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each sector. */

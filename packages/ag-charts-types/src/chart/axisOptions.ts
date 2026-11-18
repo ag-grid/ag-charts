@@ -3,6 +3,7 @@ import type { RichFormatter, Styler } from './callbackOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
+    AgLineDashName,
     AnyFormatterSource,
     ContextDefault,
     CssColor,
@@ -189,8 +190,8 @@ export interface AgAxisLineOptions {
     strokeWidth?: PixelSize;
     /** The opacity of the axis line. */
     strokeOpacity?: Opacity;
-    /** Defines how the axis line should be rendered as a series of dashes and gaps. */
-    lineDash?: PixelSize[];
+    /** Defines how the axis line should be rendered as a series of dashes and gaps: a stock pattern name, or an array of lengths in pixels. */
+    lineDash?: PixelSize[] | AgLineDashName;
 }
 
 export interface AgAxisGridLineOptions {
@@ -334,8 +335,8 @@ export interface AgAxisGridStyle {
     stroke?: CssColor;
     /** The width of the grid line in pixels. */
     strokeWidth?: PixelSize;
-    /** Defines how the grid lines are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
+    /** Defines how the grid lines are rendered. Either a stock pattern name, or an array in which every number specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
+    lineDash?: PixelSize[] | AgLineDashName;
 }
 
 export type AgTimeIntervalUnit = 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'month' | 'year';

@@ -2,6 +2,7 @@ import { type AgLinearGaugePreset, VERSION } from 'ag-charts-community';
 import {
     FONT_SIZE,
     FONT_THEME_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     SAFE_RANGE2_OPERATION,
@@ -11,8 +12,10 @@ import {
     SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    lineDashThemeDefault,
     themeLineHeight,
     undocumentedThemeOptions,
+    withLineDashThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -82,7 +85,18 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             ...SERIES_TOOLTIP_THEME,
             range: { $path: ['/tooltip/range', 10] },
         },
-        highlight: { enabled: true },
+        ...undocumentedThemeOptions({
+            targets: {
+                $apply: [
+                    {
+                        lineDash: lineDashThemeDefault(undefined, {
+                            $path: ['./strokeWidth', { $path: '/series/$index/defaultTarget/strokeWidth' }],
+                        }),
+                    },
+                ],
+            },
+        }),
+        highlight: withLineDashThemeDefaults({ enabled: true }, ITEM_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
         ...undocumentedThemeOptions({
             defaultColorRange: {
@@ -113,6 +127,7 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
                 },
             },
             defaultScale: {
+                lineDash: lineDashThemeDefault(undefined),
                 label: {
                     ...FONT_THEME_DEFAULTS,
                     color: { $ref: 'textColor' },

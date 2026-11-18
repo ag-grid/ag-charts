@@ -1,15 +1,18 @@
 import { type AgMapLineSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_STROKE_FILL_OPERATION,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     themeLineHeight,
     undocumentedThemeOptions,
+    withLineDashThemeDefaults,
 } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
@@ -51,7 +54,10 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                 collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             },
             tooltip: SERIES_TOOLTIP_THEME,
-            highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
+            highlight: withLineDashThemeDefaults(applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE), [
+                ...ITEM_GLOW_BUCKETS,
+                ...SERIES_GLOW_BUCKETS,
+            ]),
             selection: SERIES_SELECTION_THEME,
         },
         tooltip: {

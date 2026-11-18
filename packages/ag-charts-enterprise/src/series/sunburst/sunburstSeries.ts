@@ -23,7 +23,7 @@ import {
     PointerEvents,
     type PositionedLabelCandidate,
     type RequireOptional,
-    STROKE_STYLE_THEME_DEFAULTS,
+    SOLID_STROKE_STYLE,
     ScalableGroup,
     Sector,
     Selection,
@@ -1043,7 +1043,7 @@ export class SunburstSeries extends HierarchySeries<
             fillOpacity: 1,
             stroke: undefined,
             strokeWidth: 0,
-            ...STROKE_STYLE_THEME_DEFAULTS,
+            ...SOLID_STROKE_STYLE,
         };
 
         if (isGradientFill(markerStyle.fill)) {

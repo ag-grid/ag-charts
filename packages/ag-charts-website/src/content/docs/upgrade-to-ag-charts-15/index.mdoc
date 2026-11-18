@@ -109,6 +109,25 @@ The following APIs have been deprecated since version 14 and have now been remov
 - `AllCartesianModule`, `AllCartesianAxesModule`, `AllCartesianSeriesModule`, `AllPolarModule`, `AllGaugeModule` and `AllMapSeriesModule` have been removed. Use `AllCommunityModule` / `AllEnterpriseModule`, or register the individual modules instead.
 - `AxisInteractionModule` is no longer exported. The Enterprise axis modules already include it.
 
+### Options
+
+- Organization series `verticalSpacing` has been removed. Use `depthSpacing` instead.
+- Heatmap series `textAlign` and `verticalAlign` have been removed. Use `label.textAlign` and `label.verticalAlign` instead.
+- Cone Funnel series `label.placement` values `'before'`, `'middle'` and `'after'` have been removed. Use `'start-center'`, `'middle-center'` and `'end-center'` instead.
+- The `overflowStrategy` label option has been removed from Heatmap, Treemap, Sunburst, Linear Gauge, Radial Gauge, Map Shape and Organization series. Use `truncate` instead: `'ellipsis'` becomes `truncate: true` and `'hide'` becomes `truncate: false`.
+- Treemap series `tile.textAlign` and `tile.verticalAlign` have been removed. Use the same options on `tile.label` and `tile.secondaryLabel` instead.
+- Treemap series `group.textAlign` has been removed. Use `group.label.textAlign` instead.
+- Navigator `mask` has been removed. Use `track` instead.
+- Cross-line `label.position` has been removed. Use `label.placement` instead.
+- Axis `line.width` has been removed. Use `line.strokeWidth` instead.
+- Linear Gauge `label.avoidCollisions` has been removed. Use `label.collision.alwaysShow` instead, which has the opposite sense: `avoidCollisions: false` becomes `collision.alwaysShow: true`.
+
+### Types
+
+- The `AgConeFunnelSeriesLabelPlacementAlias` type has been removed. Use `AgConeFunnelSeriesLabelPlacement` instead.
+- The `AgNavigatorMaskOptions` type has been removed. Use `AgNavigatorTrackOptions` instead.
+- The `time` import has been removed. Use an `AgTimeInterval` object instead.
+
 {% /expandingSection %}
 
 ## Deprecations

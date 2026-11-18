@@ -74,6 +74,9 @@ export type NormalisedColorType = CssColor | InternalAgGradientColor | InternalA
 export type NormalisedFillOptions = Normalised<FillOptions, never, { fill?: NormalisedColorType }>;
 export type NormalisedStrokeOptions = Normalised<StrokeOptions, never, { stroke?: CssColor }>;
 
+/** The theme resolves a named `lineDash` to its array of lengths, so only the array form remains. */
+export type NormalisedLineDash = { lineDash?: PixelSize[] };
+
 /**
  * Only a glow's `fill` may be unset; the theme has folded the deprecated `color` into `fill`. `glow` marks the shadow
  * that a highlight `glow` makes, which surrounds an item with no visible fill by its stroke.

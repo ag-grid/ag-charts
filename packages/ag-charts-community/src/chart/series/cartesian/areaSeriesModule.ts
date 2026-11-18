@@ -70,7 +70,6 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
-            padding: 8,
             collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),

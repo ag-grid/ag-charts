@@ -36,6 +36,7 @@ import {
     getFilteredValueExceedUnfiltered,
     getSeriesLabelObstacles,
     getVisibleLabelTextNodes,
+    withUndocumentedChartOptions,
     withUndocumentedOptions,
 } from '../../test/communitySeriesAccessors';
 import {
@@ -59,6 +60,7 @@ import {
     type SceneGeometrySample,
     axisReflowSpec,
     cartesianChartAssertions,
+    chartPixelAt,
     clickAction,
     compareImageSnapshot,
     createChart,
@@ -5362,5 +5364,43 @@ describe('BarSeries redraw with identical data', () => {
         const actual = getRectXs(c);
         expect(actual).toHaveLength(expected.length);
         expect(actual.some((x, i) => Math.abs(x - expected[i]) > 1e-3)).toBe(true);
+    });
+});
+
+describe('BarSeries dense bars on a time axis', () => {
+    const DPR = 2;
+    setupMockCanvas({ width: 800 * DPR, height: 600 * DPR });
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    it('renders with no gap columns between neighbouring bars', async () => {
+        const BAR_COLOUR = [37, 99, 235, 255];
+        const isBar = (pixel: number[]) => pixel.every((value, index) => value === BAR_COLOUR[index]);
+        const HALF_HOUR = 30 * 60 * 1000;
+        const options: AgCartesianChartOptions = {
+            data: Array.from({ length: 336 }, (_, index) => ({
+                time: new Date(Date.UTC(2026, 9, 23) + index * HALF_HOUR),
+                count: 40 + ((index * 7) % 20),
+            })),
+            series: [{ type: 'bar', xKey: 'time', yKey: 'count', fill: '#2563eb', strokeWidth: 0 }],
+            axes: { x: { type: 'time' }, y: { type: 'number' } },
+            animation: { enabled: false },
+        };
+        chart = await createChart(withUndocumentedChartOptions(options, { overrideDevicePixelRatio: DPR }));
+
+        const { seriesRect } = deproxy(chart);
+        expect(seriesRect).toBeDefined();
+        const rowY = (seriesRect!.y + seriesRect!.height * 0.95) * DPR;
+        const row = Array.from({ length: Math.round(seriesRect!.width * DPR) }, (_, index) =>
+            chartPixelAt(chart!, seriesRect!.x * DPR + index, rowY)
+        );
+        const barSpan = row.slice(row.findIndex(isBar), row.findLastIndex(isBar) + 1);
+        expect(barSpan.length).toBeGreaterThan(seriesRect!.width);
+        expect(barSpan.filter((pixel) => !isBar(pixel))).toHaveLength(0);
     });
 });

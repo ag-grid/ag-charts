@@ -9,12 +9,15 @@ import {
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
+    SELECTION_LINE_DASH_STATES,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
     themeLineHeight,
+    undocumentedThemeOptions,
     withGlowThemeDefaults,
+    withLineDashThemeDefaults,
 } from 'ag-charts-core';
 import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -156,7 +159,6 @@ const seriesLabelTheme = {
     fontFamily: { $ref: 'seriesLabelFontFamily' as const },
     formatter: undefined,
     spacing: 8,
-    padding: 8,
     collision: BAR_LABEL_COLLISION_THEME,
     insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
     outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
@@ -183,6 +185,7 @@ export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
         highlight: withGlowThemeDefaults(SINGLE_SERIES_HIGHLIGHT_STYLE, ITEM_GLOW_BUCKETS, {
             glow: ['positive', 'negative', 'total'].map((item) => `/series/$index/item/${item}/glow`),
         }),
+        ...undocumentedThemeOptions({ selection: withLineDashThemeDefaults({}, SELECTION_LINE_DASH_STATES) }),
     },
     legend: {
         enabled: true,

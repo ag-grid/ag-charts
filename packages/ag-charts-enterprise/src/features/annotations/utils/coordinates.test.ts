@@ -5,6 +5,7 @@ import {
     CategoryScale,
     GroupedCategoryScale,
     LinearScale,
+    LogScale,
     OrdinalTimeScale,
     TimeScale,
     UnitTimeScale,
@@ -18,6 +19,7 @@ import { lineDatum } from '../line/lineDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { createAxesContext } from '../test/fixture';
 import {
+    displayCoordinate,
     floorToBand,
     formatCoordinate,
     getCoordinateFields,
@@ -26,6 +28,7 @@ import {
     resolveCoordinate,
     snapToBar,
 } from './coordinates';
+import { getGrouping } from './scale';
 
 const numberScale = (domain: number[]) => {
     const scale = new LinearScale();
@@ -168,32 +171,32 @@ describe('annotation coordinates', () => {
             expect(getCoordinateFields(horizontal, context)[0].toProps(5)).toEqual({ value: 5 });
         });
 
-        it('adds the heights of a channel as offsets, only where the y axis is numeric', () => {
+        it('adds the heights of a channel, only where the y axis is numeric', () => {
             const parallel = { ...parallelChannelDatum.create(), height: 12 };
             const disjoint = { ...disjointChannelDatum.create(), startHeight: 3, endHeight: 6 };
-            const offsets = (datum: typeof parallel | typeof disjoint, axes = context) =>
-                getCoordinateFields(datum, axes).filter((f) => f.row.toLowerCase().endsWith('offset'));
+            const heights = (datum: typeof parallel | typeof disjoint, axes = context) =>
+                getCoordinateFields(datum, axes).filter((f) => f.row.toLowerCase().endsWith('height'));
 
-            const [offset] = offsets(parallel);
-            expect(offset.value).toBe('12');
-            expect(offset.toProps(8)).toEqual({ height: 8 });
-            expect(offset.toProps(9007199254740993n)).toEqual({ height: 9007199254740993n });
-            expect(offset.toProps('text')).toBeUndefined();
+            const [height] = heights(parallel);
+            expect(height.value).toBe('12');
+            expect(height.toProps(8)).toEqual({ height: 8 });
+            expect(height.toProps(9007199254740993n)).toEqual({ height: 9007199254740993n });
+            expect(height.toProps('text')).toBeUndefined();
 
-            const both = offsets(disjoint);
+            const both = heights(disjoint);
             expect(both.map((f) => [f.row, f.value])).toEqual([
-                ['startOffset', '3'],
-                ['endOffset', '6'],
+                ['startHeight', '3'],
+                ['endHeight', '6'],
             ]);
             expect(both[1].toProps(1)).toEqual({ endHeight: 1 });
 
             const timeY = timeScale([new Date(2024, 0, 1), new Date(2024, 0, 31)]);
-            expect(offsets(parallel, createAxesContext(numberScale([0, 100]), timeY))).toEqual([]);
+            expect(heights(parallel, createAxesContext(numberScale([0, 100]), timeY))).toEqual([]);
         });
     });
 
     describe('resolveCoordinate', () => {
-        it('holds a point to the domain of its own axis, a bigint like a number, but not an offset', () => {
+        it('takes a number or time beyond the domain of its axis, a bigint like a number, and a height of any size', () => {
             const context = createAxesContext(numberScale([0, 100]), numberScale([0, 50]));
             const datum = { ...lineDatum.create(), start: { x: 1, y: 2 }, end: { x: 3, y: 4 } };
             const [startX, startY] = getCoordinateFields(datum, context);
@@ -201,14 +204,133 @@ describe('annotation coordinates', () => {
             expect(resolveCoordinate(startX, 100, context)).toBe(100);
             expect(resolveCoordinate(startY, 0, context)).toBe(0);
             expect(resolveCoordinate(startX, 100n, context)).toBe(100n);
-            expect(resolveCoordinate(startX, 101, context)).toBeUndefined();
-            expect(resolveCoordinate(startX, 101n, context)).toBeUndefined();
-            expect(resolveCoordinate(startY, 51, context)).toBeUndefined();
-            expect(resolveCoordinate(startY, -1, context)).toBeUndefined();
+            expect(resolveCoordinate(startX, 101, context)).toBe(101);
+            expect(resolveCoordinate(startX, 101n, context)).toBe(101n);
+            expect(resolveCoordinate(startY, -1, context)).toBe(-1);
+
+            const timeContext = createAxesContext(timeScale([DAY, DAY]), timeScale([DAY, DAY]));
+            const [timeX] = getCoordinateFields(datum, timeContext);
+            const before = new Date(2000, 0, 1);
+            expect(resolveCoordinate(timeX, before, timeContext)).toBe(before);
 
             const channel = { ...parallelChannelDatum.create(), height: 1 };
-            const offset = getCoordinateFields(channel, context).find((f) => f.row === 'offset')!;
-            expect(resolveCoordinate(offset, 500, context)).toBe(500);
+            const height = getCoordinateFields(channel, context).find((f) => f.row === 'height')!;
+            expect(resolveCoordinate(height, 500, context)).toBe(500);
+        });
+
+        it('takes only values of the sign of the domain of a log axis, which cannot place any other', () => {
+            const logScale = (domain: number[]) => {
+                const scale = new LogScale();
+                scale.domain = domain;
+                return scale;
+            };
+            const datum = { ...lineDatum.create(), start: { x: 1, y: 2 }, end: { x: 3, y: 4 } };
+
+            const positive = createAxesContext(numberScale([0, 100]), logScale([1, 1000]));
+            const [, positiveY] = getCoordinateFields(datum, positive);
+            expect(resolveCoordinate(positiveY, 5000, positive)).toBe(5000);
+            expect(resolveCoordinate(positiveY, 0.01, positive)).toBe(0.01);
+            expect(resolveCoordinate(positiveY, 0, positive)).toBeUndefined();
+            expect(resolveCoordinate(positiveY, -5, positive)).toBeUndefined();
+            expect(resolveCoordinate(positiveY, -5n, positive)).toBeUndefined();
+
+            const negative = createAxesContext(numberScale([0, 100]), logScale([-1000, -1]));
+            const [, negativeY] = getCoordinateFields(datum, negative);
+            expect(resolveCoordinate(negativeY, -5, negative)).toBe(-5);
+            expect(resolveCoordinate(negativeY, 0, negative)).toBeUndefined();
+            expect(resolveCoordinate(negativeY, 5, negative)).toBeUndefined();
+        });
+    });
+
+    describe('offset within a band', () => {
+        const spacedReach = 0.5 + 0.5 / 0.7;
+        const categories = (paddingInner: number) => {
+            const scale = new CategoryScale<string>();
+            scale.domain = ['Apples', 'Pears', 'Plums'];
+            scale.range = [0, 300];
+            scale.paddingInner = paddingInner;
+            return scale;
+        };
+
+        // A band's group percentage runs from its start and a point's from itself; an offset is a share of the step.
+        it.each([
+            { name: 'bands', paddingInner: 0, groups: [0.25, 0], shown: ['-25', '-50'], reach: [0, 1] },
+            {
+                name: 'padded bands',
+                paddingInner: 0.3,
+                groups: [0.25, 0],
+                shown: ['-17.5', '-35'],
+                reach: [1 - spacedReach, spacedReach],
+            },
+            {
+                name: 'bands with no width',
+                paddingInner: 1,
+                groups: [0.08, -0.08],
+                shown: ['8', '-8'],
+                reach: [-0.5, 0.5],
+            },
+        ])('maps an offset on $name to a group percentage and holds it to half a step either way', (row) => {
+            const context = createAxesContext(categories(row.paddingInner), numberScale([0, 50]));
+            const datum = {
+                ...lineDatum.create(),
+                start: { x: { value: 'Pears', groupPercentage: row.groups[0] }, y: 2 },
+                end: { x: { value: 'Plums', groupPercentage: row.groups[1] }, y: 4 },
+            };
+            const fields = getCoordinateFields(datum, context);
+            const offsets = fields.filter((f) => f.kind === 'offset');
+            const groupAt = (offset: number) => getGrouping(offsets[0].toProps(offset)?.start?.x).groupPercentage;
+
+            expect(fields.map((f) => [f.row, f.axis, f.kind])).toEqual([
+                ['start', 'x', 'category'],
+                ['start', 'y', 'number'],
+                ['start', 'x', 'offset'],
+                ['end', 'x', 'category'],
+                ['end', 'y', 'number'],
+                ['end', 'x', 'offset'],
+            ]);
+            expect(offsets.map((f) => f.value)).toEqual(row.shown);
+            expect(groupAt(-50)).toBeCloseTo(row.reach[0], 10);
+            expect(groupAt(50)).toBeCloseTo(row.reach[1], 10);
+            expect(offsets[0].toProps('text')).toBeUndefined();
+
+            expect(resolveCoordinate(offsets[0], 50, context)).toBe(50);
+            expect(resolveCoordinate(offsets[0], -50, context)).toBe(-50);
+            expect(resolveCoordinate(offsets[0], 50.01, context)).toBeUndefined();
+            expect(resolveCoordinate(offsets[0], -51, context)).toBeUndefined();
+        });
+
+        it('is left out on number axes and where points snap to the band centre', () => {
+            const datum = { ...lineDatum.create(), start: { x: 'Pears', y: 2 }, end: { x: 'Apples', y: 4 } };
+            const numbers = createAxesContext(numberScale([0, 100]), numberScale([0, 50]));
+            expect(getCoordinateFields(datum, numbers).some((f) => f.kind === 'offset')).toBe(false);
+
+            const base = createAxesContext(categories(0), numberScale([0, 50]));
+            const snapping = { ...base, xAxis: { ...base.xAxis, snapToGroup: true } };
+            expect(getCoordinateFields(datum, snapping).some((f) => f.kind === 'offset')).toBe(false);
+        });
+    });
+
+    describe('decimals of a number', () => {
+        const datum = { ...lineDatum.create(), start: { x: 1, y: 4366.2765 }, end: { x: 2, y: 20 } };
+        const digitsOf = (format: (value: unknown) => string) =>
+            getCoordinateFields(datum, createAxesContext(numberScale([0, 100]), numberScale([0, 5000]), format))
+                .filter((f) => f.axis === 'y')
+                .map((f) => f.fractionDigits);
+
+        it('follow a plain number in the crosshair label, and only round the text shown', () => {
+            expect(digitsOf((value) => Number(value).toFixed(2))).toEqual([2, 2]);
+            expect(digitsOf((value) => `US$ ${Number(value).toLocaleString('en-US')}`)).toEqual([3, 0]);
+            expect(digitsOf(() => '1,234.5')).toEqual([1, 1]);
+
+            // Not a plain number, or not saying which separator is the decimal.
+            for (const text of ['Q3 2024', '1.5e+3', '12,5', '1.234,5']) {
+                expect(digitsOf(() => text)).toEqual([undefined, undefined]);
+            }
+
+            expect(displayCoordinate('4366.2765', 2)).toBe('4366.28');
+            expect(displayCoordinate('4366.2765', undefined)).toBe('4366.2765');
+            expect(displayCoordinate('20', 2)).toBe('20');
+            expect(displayCoordinate('9007199254740993', 2)).toBe('9007199254740993');
         });
     });
 
@@ -229,7 +351,8 @@ describe('annotation coordinates', () => {
             expect(startX.value).toBe('Pears');
             expect(startX.suggestions?.()).toEqual(['Apples', 'Pears', '7']);
             expect(parseCoordinate('', 'category')).toBeUndefined();
-            expect(resolveCoordinate(startX, 'apples', context)).toBeUndefined();
+            expect(resolveCoordinate(startX, 'Bananas', context)).toBeUndefined();
+            expect(resolveCoordinate(startX, '2025', context)).toBeUndefined();
 
             const resolved = resolveCoordinate(startX, '7', context);
 
@@ -255,12 +378,12 @@ describe('annotation coordinates', () => {
         scale.domain = [new Date(2024, 0, 2, 15), new Date(2024, 0, 4, 9)];
         scale.interval = 'day';
 
-        it('floors a date to the band holding it and rejects one before the first band or after the last', () => {
+        it('floors a date to the band holding it, including one beyond the first or last band', () => {
             expect(floorToBand(new Date(2024, 0, 3, 23, 59), scale)).toEqual(new Date(2024, 0, 3));
             expect(floorToBand(new Date(2024, 0, 2, 1), scale)).toEqual(new Date(2024, 0, 2));
             expect(floorToBand(new Date(2024, 0, 4, 23, 59), scale)).toEqual(new Date(2024, 0, 4));
-            expect(floorToBand(new Date(2024, 0, 1, 23, 59), scale)).toBeUndefined();
-            expect(floorToBand(new Date(2024, 0, 5), scale)).toBeUndefined();
+            expect(floorToBand(new Date(2024, 0, 1, 23, 59), scale)).toEqual(new Date(2024, 0, 1));
+            expect(floorToBand(new Date(2024, 0, 5, 7), scale)).toEqual(new Date(2024, 0, 5));
         });
 
         it('keeps the group percentage of the point being edited', () => {
@@ -287,13 +410,14 @@ describe('annotation coordinates', () => {
     describe('ordinal time axis', () => {
         const bars = [new Date(2024, 0, 1), new Date(2024, 0, 2), new Date(2024, 0, 4)];
 
-        it('snaps a date to the nearest bar and rejects one beyond the first or last bar', () => {
+        it('snaps a date to the nearest bar, including one beyond the first or last bar, and has none to snap to without bars', () => {
             expect(snapToBar(new Date(2024, 0, 2, 11), bars)).toEqual(bars[1]);
             expect(snapToBar(new Date(2024, 0, 2, 23), bars)).toEqual(bars[1]);
             expect(snapToBar(new Date(2024, 0, 3, 6), bars)).toEqual(bars[2]);
             expect(snapToBar(new Date(2024, 0, 1), bars)).toEqual(bars[0]);
-            expect(snapToBar(new Date(2023, 11, 31), bars)).toBeUndefined();
-            expect(snapToBar(new Date(2024, 0, 4, 1), bars)).toBeUndefined();
+            expect(snapToBar(new Date(2023, 11, 31), bars)).toEqual(bars[0]);
+            expect(snapToBar(new Date(2024, 0, 4, 1), bars)).toEqual(bars[2]);
+            expect(snapToBar(new Date(2024, 0, 2), [])).toBeUndefined();
         });
 
         it('snaps the typed date, keeps the group percentage of the point being edited and rejects a number', () => {

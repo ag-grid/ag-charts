@@ -1,7 +1,7 @@
 import type { AgAxisBoundSeries, AgTimeInterval, AgTimeIntervalUnit } from './axisOptions';
 import type { Formatter, Renderer } from './callbackOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
-import type { ContextDefault, CssColor, Opacity, PixelSize } from './types';
+import type { AgLineDashName, ContextDefault, CssColor, Opacity, PixelSize } from './types';
 
 /** Whether the crosshair snaps to every value in `crosshairSnapTo`, or only the one nearest the pointer. */
 export type AgCrosshairSnapMode = 'all' | 'nearest';
@@ -23,8 +23,8 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, Context
     strokeWidth?: PixelSize;
     /** The opacity of the stroke for the lines. */
     strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
+    /** Defines how the line stroke is rendered. Either a stock pattern name, or an array in which every number specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
+    lineDash?: PixelSize[] | AgLineDashName;
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
     /** The crosshair label configuration */
@@ -35,7 +35,7 @@ export interface AgNumericAxisCrosshairOptions<
     LabelType = AgCrosshairLabel<string, ContextDefault>,
 > extends AgCrosshairOptions<LabelType> {
     /**
-     * Rounds the crosshair to the nearest multiple of this step, in the units of the axis. Turns snapping on when `snap` is unset.
+     * Rounds the pointer position to the nearest multiple of this step, in the units of the axis, instead of snapping to the highlighted item. Turns snapping on when `snap` is unset.
      */
     snapInterval?: number;
 }
@@ -44,7 +44,7 @@ export interface AgTimeAxisCrosshairOptions<
     LabelType = AgCrosshairLabel<string, ContextDefault>,
 > extends AgCrosshairOptions<LabelType> {
     /**
-     * Rounds the crosshair to the nearest interval, aligned the same way as the axis `interval.step`. A unit keyword, an object describing the interval, or a number of milliseconds. Turns snapping on when `snap` is unset.
+     * Rounds the pointer position to the nearest interval, aligned the same way as the axis `interval.step`, instead of snapping to the highlighted item. A unit keyword, an object describing the interval, or a number of milliseconds. Turns snapping on when `snap` is unset.
      */
     snapInterval?: AgTimeInterval | AgTimeIntervalUnit | number;
 }
@@ -73,7 +73,7 @@ export interface AgBaseCrosshairLabel<TContext = ContextDefault> {
     yOffset?: PixelSize;
     /** Function used to render crosshair labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4`. The result is displayed as text. */
     formatter?: Formatter<AgCrosshairLabelFormatterParams<TContext>>;
-    /** Function used to create the content for the label. A returned string, or the `text` of a returned object, is inserted as HTML, so escape any values derived from chart data. */
+    /** Function used to create the content for the label. A returned string, or the `text` of a returned object, is inserted as HTML, so escape any values derived from chart data. Only markup with the `ag-charts-crosshair-label-content` class gets the theme's crosshair label padding, though all labels are offset from the axis line by it. */
     renderer?: Renderer<AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult>;
 }
 

@@ -2,17 +2,22 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
-    CATEGORY_DATA,
-    HISTOGRAM_DATA,
+    COMMUNITY_GLOW_SERIES,
+    type GlowSeriesCase,
     SERIES_GLOW,
     THEME_GLOW,
     XY_DATA,
+    canvasImage,
     deproxy,
+    differingBytes,
     expectWarningsCalls,
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
     getSeriesNodeData,
+    glowSeries,
     glowShadow,
+    hoverDatum,
+    hoverNode,
     setupMockCanvas,
     setupMockConsole,
     uncastGlows,
@@ -21,6 +26,7 @@ import {
 import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
+import { ENTERPRISE_GLOW_SERIES, RANGE, STAGES } from '../test/glowSeriesCases';
 import {
     FLOW_DATA,
     HIERARCHY_SHADOW_DATA,
@@ -31,38 +37,9 @@ import {
     createEnterpriseChart,
 } from '../test/utils';
 import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
-import { ukData } from './map-test/ukData';
-import ukTopology from './map-test/ukTopology.json';
 
 type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
 type AnySeriesOptions = NonNullable<AgChartOptions['series']>[number];
-
-const STAGES = [
-    { stage: 'Visits', value: 100 },
-    { stage: 'Sign-ups', value: 60 },
-    { stage: 'Paid', value: 20 },
-];
-const GRID = [
-    { x: 'a', y: 'p', value: 1 },
-    { x: 'b', y: 'p', value: 3 },
-    { x: 'a', y: 'q', value: 2 },
-    { x: 'b', y: 'q', value: 5 },
-];
-const POLAR = [
-    { quarter: 'Q1', value: 5, low: 2 },
-    { quarter: 'Q2', value: 8, low: 3 },
-    { quarter: 'Q3', value: 3, low: 1 },
-];
-const RANGE = [
-    { x: 'Q1', low: 2, high: 5 },
-    { x: 'Q2', low: 3, high: 8 },
-    { x: 'Q3', low: 1, high: 3 },
-];
-const OHLC_KEYS = { xKey: 'x', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' };
-const BOX_PLOT = [
-    { x: 'Q1', min: 3, q1: 4, median: 5, q3: 6, max: 7 },
-    { x: 'Q2', min: 4, q1: 5, median: 6, q3: 7, max: 8 },
-];
 
 interface SeriesCase {
     name: string;
@@ -80,288 +57,48 @@ interface SeriesCase {
     copies?: number;
 }
 
+/** What a series is counted by, beyond the options and data it shares with the render suite. */
+const COUNTED: Record<string, Partial<SeriesCase>> = {
+    'cone funnel': { count: STAGES.length - 1, noShadow: true },
+    'hlc markers': { copies: 3 },
+    // The area fill has no glow, so the markers are all that glow: one for each end of each range, and a hovered range
+    // moves both of its markers to the highlight layer.
+    'range-area markers': { copies: 2, count: RANGE.length * 2 },
+    'area markers': { count: XY_DATA.length },
+    // The nodes and links of a flow series are hovered through the parts below.
+    'sankey nodes': { count: 4, hoverable: false },
+    'sankey links': { count: FLOW_DATA.length, hoverable: false },
+    'chord nodes': { count: 4, hoverable: false },
+    'chord links': { count: FLOW_DATA.length, hoverable: false },
+};
+
+/** The community series that are also run through an enterprise chart. */
+const COMMUNITY_SERIES = new Set(['bubble', 'histogram', 'area markers', 'pie', 'donut']);
+
+const fromCase = (testCase: GlowSeriesCase, extra: Partial<SeriesCase> = {}): SeriesCase => ({
+    name: testCase.name,
+    data: testCase.data,
+    chartOptions: testCase.chartOptions,
+    hoverable: testCase.hoverable,
+    series: (glow, shadow) => glowSeries(testCase, { glow, shadow }),
+    ...extra,
+});
+
+const WATERFALL = ENTERPRISE_GLOW_SERIES.find(({ name }) => name === 'waterfall')!;
+
 const SERIES: SeriesCase[] = [
-    {
-        name: 'bubble',
-        data: XY_DATA,
-        hoverable: true,
-        series: (glow, shadow) => ({ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size', glow, shadow }),
-    },
-    {
-        name: 'histogram',
-        data: HISTOGRAM_DATA,
-        series: (glow, shadow) => ({ type: 'histogram', xKey: 'x', glow, shadow }),
-    },
-    {
-        name: 'range-bar',
-        data: RANGE,
-        hoverable: true,
-        series: (glow, shadow) => ({
-            type: 'range-bar',
-            xKey: 'x',
-            yLowKey: 'low',
-            yHighKey: 'high',
-            glow,
-            shadow,
-        }),
-    },
-    {
-        name: 'box-plot',
-        data: BOX_PLOT,
-        hoverable: true,
-        series: (glow, shadow) => ({
-            type: 'box-plot',
-            xKey: 'x',
-            minKey: 'min',
-            q1Key: 'q1',
-            medianKey: 'median',
-            q3Key: 'q3',
-            maxKey: 'max',
-            glow,
-            shadow,
-        }),
-    },
-    {
-        name: 'candlestick',
-        data: OHLC_DATA,
-        hoverable: true,
-        series: (glow, shadow) => ({ type: 'candlestick', ...OHLC_KEYS, glow, shadow }),
-    },
-    {
-        name: 'ohlc',
-        data: OHLC_DATA,
-        hoverable: true,
-        series: (glow, shadow) => ({ type: 'ohlc', ...OHLC_KEYS, glow, shadow }),
-    },
-    {
-        name: 'hlc markers',
-        data: OHLC_DATA,
-        hoverable: true,
-        copies: 3,
-        series: (glow, shadow) => ({
-            type: 'hlc',
-            xKey: 'x',
-            highKey: 'high',
-            lowKey: 'low',
-            closeKey: 'close',
-            marker: { enabled: true, glow, shadow },
-        }),
-    },
-    {
-        name: 'funnel',
-        hoverable: true,
-        data: STAGES,
-        series: (glow, shadow) => ({ type: 'funnel', stageKey: 'stage', valueKey: 'value', glow, shadow }),
-    },
-    {
-        name: 'cone funnel connectors',
-        data: STAGES,
-        count: STAGES.length - 1,
-        noShadow: true,
-        series: (glow) => ({ type: 'cone-funnel', stageKey: 'stage', valueKey: 'value', glow }),
-    },
-    {
-        name: 'heatmap',
-        hoverable: true,
-        data: GRID,
-        series: (glow, shadow) => ({
-            type: 'heatmap',
-            xKey: 'x',
-            yKey: 'y',
-            colorKey: 'value',
-            glow,
-            shadow,
-        }),
-    },
-    {
-        name: 'pyramid',
-        hoverable: true,
-        data: STAGES,
-        series: (glow, shadow) => ({ type: 'pyramid', stageKey: 'stage', valueKey: 'value', glow, shadow }),
-    },
-    {
-        name: 'radial-column',
-        hoverable: true,
-        data: POLAR,
-        series: (glow, shadow) => ({
-            type: 'radial-column',
-            angleKey: 'quarter',
-            radiusKey: 'value',
-            glow,
-            shadow,
-        }),
-    },
-    {
-        name: 'radial-bar',
-        hoverable: true,
-        data: POLAR,
-        series: (glow, shadow) => ({ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter', glow, shadow }),
-    },
-    {
-        name: 'nightingale',
-        hoverable: true,
-        data: POLAR,
-        series: (glow, shadow) => ({ type: 'nightingale', angleKey: 'quarter', radiusKey: 'value', glow, shadow }),
-    },
-    {
-        name: 'radar-line markers',
-        hoverable: true,
-        data: POLAR,
-        series: (glow, shadow) => ({
-            type: 'radar-line',
-            angleKey: 'quarter',
-            radiusKey: 'value',
-            marker: { enabled: true, glow, shadow },
-        }),
-    },
-    {
-        name: 'radar-area markers',
-        hoverable: true,
-        data: POLAR,
-        series: (glow, shadow) => ({
-            type: 'radar-area',
-            angleKey: 'quarter',
-            radiusKey: 'value',
-            marker: { enabled: true, glow, shadow },
-        }),
-    },
-    {
-        // The area fill has no glow, so the markers are all that glow: one for each end of each range, and a hovered
-        // range moves both of its markers to the highlight layer.
-        name: 'range-area markers',
-        hoverable: true,
-        copies: 2,
-        data: RANGE,
-        count: RANGE.length * 2,
-        series: (glow, shadow) => ({
-            type: 'range-area',
-            xKey: 'x',
-            yLowKey: 'low',
-            yHighKey: 'high',
-            marker: { enabled: true, glow, shadow },
-        }),
-    },
-    {
-        name: 'area markers',
-        hoverable: true,
-        data: XY_DATA,
-        count: XY_DATA.length,
-        series: (glow, shadow) => ({
-            type: 'area',
-            xKey: 'x',
-            yKey: 'y',
-            marker: { enabled: true, glow, shadow },
-        }),
-    },
-    {
-        name: 'pie',
-        hoverable: true,
-        data: CATEGORY_DATA,
-        series: (glow, shadow) => ({ type: 'pie', angleKey: 'value', glow, shadow }),
-    },
-    {
-        name: 'donut',
-        hoverable: true,
-        data: CATEGORY_DATA,
-        series: (glow, shadow) => ({ type: 'donut', angleKey: 'value', glow, shadow }),
-    },
-    {
-        name: 'waterfall positive',
-        data: WATERFALL_DATA,
-        count: 2,
-        series: (glow, shadow) => ({
-            type: 'waterfall',
-            xKey: 'x',
-            yKey: 'y',
-            item: { positive: { glow, shadow } },
-        }),
-    },
-    {
-        name: 'waterfall negative',
-        data: WATERFALL_DATA,
-        count: 1,
-        series: (glow, shadow) => ({
-            type: 'waterfall',
-            xKey: 'x',
-            yKey: 'y',
-            item: { negative: { glow, shadow } },
-        }),
-    },
-    {
-        name: 'waterfall total',
-        data: [...WATERFALL_DATA, { x: 'Total', y: 12 }],
-        count: 1,
-        series: (glow, shadow) => ({
-            type: 'waterfall',
-            xKey: 'x',
-            yKey: 'y',
-            item: { total: { glow, shadow } },
-            totals: [{ totalType: 'subtotal', index: 3, axisLabel: 'Total' }],
-        }),
-    },
-    {
-        name: 'sankey nodes',
-        data: FLOW_DATA,
-        count: 4,
-        series: (glow, shadow) => ({
-            type: 'sankey',
-            fromKey: 'from',
-            toKey: 'to',
-            sizeKey: 'size',
-            node: { glow, shadow },
-        }),
-    },
-    {
-        name: 'sankey links',
-        data: FLOW_DATA,
-        count: FLOW_DATA.length,
-        series: (glow, shadow) => ({
-            type: 'sankey',
-            fromKey: 'from',
-            toKey: 'to',
-            sizeKey: 'size',
-            link: { glow, shadow },
-        }),
-    },
-    {
-        name: 'chord nodes',
-        data: FLOW_DATA,
-        count: 4,
-        series: (glow, shadow) => ({
-            type: 'chord',
-            fromKey: 'from',
-            toKey: 'to',
-            sizeKey: 'size',
-            node: { glow, shadow },
-        }),
-    },
-    {
-        name: 'chord links',
-        data: FLOW_DATA,
-        count: FLOW_DATA.length,
-        series: (glow, shadow) => ({
-            type: 'chord',
-            fromKey: 'from',
-            toKey: 'to',
-            sizeKey: 'size',
-            link: { glow, shadow },
-        }),
-    },
-    {
-        name: 'map-shape',
-        hoverable: true,
-        data: ukData,
-        chartOptions: { topology: ukTopology },
-        series: (glow, shadow) => ({ type: 'map-shape', idKey: 'name', glow, shadow }),
-    },
-    {
-        name: 'map-marker',
-        hoverable: true,
-        data: ukData,
-        chartOptions: { topology: ukTopology },
-        series: (glow, shadow) => ({ type: 'map-marker', idKey: 'name', glow, shadow }),
-    },
-];
+    ...COMMUNITY_GLOW_SERIES.filter(({ name }) => COMMUNITY_SERIES.has(name)),
+    ...ENTERPRISE_GLOW_SERIES.filter((testCase) => testCase !== WATERFALL && !testCase.seriesShadowOnly),
+]
+    .map((testCase) => fromCase(testCase, COUNTED[testCase.name]))
+    .concat(
+        Object.entries({ positive: 3, negative: 1, total: 1 }).map(([kind, count]) =>
+            fromCase(
+                { ...WATERFALL, place: ({ glow, shadow }) => ({ item: { [kind]: { glow, shadow } } }) },
+                { name: `waterfall ${kind}`, count, hoverable: false }
+            )
+        )
+    );
 
 /** Series with no `highlightedSeries` or `unhighlightedSeries`. */
 const NO_SERIES_STATES = new Set(['funnel', 'pyramid']);
@@ -391,18 +128,6 @@ describe('series-level glow (enterprise series)', () => {
     /** The shapes that cast in the glow slot, in the content and in the highlight layer. */
     const glowing = (group: 'contentGroup' | 'highlightGroup' = 'contentGroup') =>
         collectShapes(getSeriesAt(chart)[group]).filter((shape) => shape.visible && shape.fillGlow?.enabled === true);
-
-    const canvasPixels = () => {
-        const { scene } = deproxy(chart).ctx;
-        return scene.canvas.context.getImageData(0, 0, scene.canvas.width, scene.canvas.height).data;
-    };
-
-    /** How many bytes of two renders differ. */
-    const differing = (a: ArrayLike<number>, b: ArrayLike<number>) => {
-        let count = 0;
-        for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) count++;
-        return count;
-    };
 
     /** A highlight glow that shows against any series, drawn only where the hovered item's own copy casts it. */
     const HIGHLIGHT_GLOW = { fill: '#00cc00', fillOpacity: 1, blur: 2, spread: 8 };
@@ -471,9 +196,7 @@ describe('series-level glow (enterprise series)', () => {
         const copies = testCase.copies ?? 1;
         const hover = async (glow: object | undefined, highlight: object) => {
             await create(testCase, glow, undefined, highlight);
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
-            await waitForChartStability(chart);
+            await hoverDatum(chart);
         };
 
         it('casts the highlight copy from highlightedItem over the series glow, field by field', async () => {
@@ -504,12 +227,12 @@ describe('series-level glow (enterprise series)', () => {
         it('draws the glow of the highlight copy', async () => {
             const render = async (enabled: boolean) => {
                 await hover(undefined, { highlightedItem: { glow: { ...HIGHLIGHT_GLOW, enabled } } });
-                const pixels = Array.from(canvasPixels());
+                const pixels = canvasImage(chart);
                 chart.destroy();
                 return pixels;
             };
 
-            expect(differing(await render(true), await render(false))).toBeGreaterThan(0);
+            expect(differingBytes(await render(true), await render(false))).toBeGreaterThan(0);
         });
 
         it('keeps the series glow on the items that are not hovered, and takes it off the hovered one in place', async () => {
@@ -517,9 +240,7 @@ describe('series-level glow (enterprise series)', () => {
             const before = glowing().length;
             expect(before).toBeGreaterThan(copies);
 
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
-            await waitForChartStability(chart);
+            await hoverDatum(chart);
 
             const inPlace = glowing();
             expect(inPlace).toHaveLength(before - copies);
@@ -538,9 +259,7 @@ describe('series-level glow (enterprise series)', () => {
             ['a series glow', SERIES_GLOW],
         ])('casts the shadow in place and none from the highlight copy with %s', async (_name, glow) => {
             await create(hlc, glow, SHADOW);
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
-            await waitForChartStability(chart);
+            await hoverDatum(chart);
 
             const series = getSeriesAt(chart);
             const copies = collectShapes(series.highlightGroup).filter((shape) => shape.visible);
@@ -673,12 +392,7 @@ describe('series-level glow (enterprise series)', () => {
                 );
 
             const atRest = parts();
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(
-                id,
-                testCase.hovered?.(chart) ?? getSeriesNodeData<HighlightNodeDatum>(chart)[0]
-            );
-            await waitForChartStability(chart);
+            await hoverNode(chart, testCase.hovered?.(chart) ?? getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
             return { atRest, hovered: parts() };
         };
 
@@ -792,9 +506,7 @@ describe('series-level glow (enterprise series)', () => {
                 ],
             } as AgChartOptions);
             await waitForChartStability(chart);
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, testCase.hovered(chart));
-            await waitForChartStability(chart);
+            await hoverNode(chart, testCase.hovered(chart));
 
             const { contentGroup, highlightGroup } = getSeriesAt(chart);
             expect(glowShapes('highlightGroup').length).toBeGreaterThan(0);
@@ -816,15 +528,13 @@ describe('series-level glow (enterprise series)', () => {
                     ],
                 } as AgChartOptions);
                 await waitForChartStability(chart);
-                const { ctx, id } = deproxy(chart);
-                ctx.highlightManager.updateHighlight(id, testCase.hovered(chart));
-                await waitForChartStability(chart);
-                const pixels = Array.from(canvasPixels());
+                await hoverNode(chart, testCase.hovered(chart));
+                const pixels = canvasImage(chart);
                 chart.destroy();
                 return pixels;
             };
 
-            expect(differing(await render(true), await render(false))).toBeGreaterThan(0);
+            expect(differingBytes(await render(true), await render(false))).toBeGreaterThan(0);
         });
 
         it('casts the highlight copy from highlightedItem and the other items from unhighlightedItem, over the series glow', async () => {
@@ -843,9 +553,7 @@ describe('series-level glow (enterprise series)', () => {
             const before = glowShapes('contentGroup').length;
             expect(before).toBeGreaterThan(1);
 
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, testCase.hovered(chart));
-            await waitForChartStability(chart);
+            await hoverNode(chart, testCase.hovered(chart));
 
             // A flow also redraws the nodes and links that the hovered part connects to, but their in-place copies
             // cast their glow already, so the highlight layer holds the hovered copy alone.
@@ -917,9 +625,7 @@ describe('series-level glow (enterprise series)', () => {
                 series: [testCase.series(highlight)],
             } as AgChartOptions);
             await waitForChartStability(chart);
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, testCase.hovered(chart));
-            await waitForChartStability(chart);
+            await hoverNode(chart, testCase.hovered(chart));
             return collectShapes(getSeriesAt(chart).highlightGroup).filter(
                 (shape) => shape.visible && shape.fillGlow?.enabled === true
             );

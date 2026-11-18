@@ -93,7 +93,7 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
         this[activeHandle].toggleDragging(true);
         const point = snapping
             ? this.snapToAngle(datum, target, context)
-            : invertCoords(this[activeHandle].drag(target).point, context);
+            : invertCoords(context.magnet(this[activeHandle].drag(target).point), context);
 
         if (!point || !validateDatumPoint(context, point)) return;
 

@@ -21,7 +21,7 @@ import type {
 import type { RequireOptional } from '../../types/global';
 import type { BivariantCallback, Normalised } from './normalise';
 import type { NormalisedCartesianSeriesOptionsCommon } from './normalisedCartesianSeries';
-import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedDropShadowOptions, NormalisedLineDash } from './normalisedCommonOptions';
 import type { NormalisedPlacedSeriesLabelOptions } from './normalisedLabelOptions';
 import type { NormalisedSeriesMarkerStylerParams } from './normalisedSeriesMarkerOptions';
 import type { NormalisedSeriesOptions } from './normalisedSeriesOptions';
@@ -73,7 +73,7 @@ export type NormalisedBubbleSeriesOwnOptions = Normalised<
     BubbleScatterOverrides<AgBubbleSeriesOptionsKeys> & {
         label: NormalisedPlacedSeriesLabelOptions<AgBubbleSeriesLabelFormatterParams>;
         styler?: Styler<AgBubbleSeriesStylerParams<unknown, unknown>, AgBubbleSeriesStylerResult>;
-    }
+    } & NormalisedLineDash
 > & {
     /** Cross-filtering only; unsupported and unrelated to the data selection API. */
     selectedKey?: string;
@@ -89,7 +89,7 @@ export type NormalisedScatterSeriesOwnOptions = Normalised<
     BubbleScatterOverrides<AgScatterSeriesOptionsKeys> & {
         label: NormalisedPlacedSeriesLabelOptions<AgScatterSeriesLabelFormatterParams>;
         styler?: Styler<AgScatterSeriesStylerParams<unknown, unknown>, AgScatterSeriesStylerResult>;
-    }
+    } & NormalisedLineDash
 > & {
     /** Cross-filtering only; unsupported and unrelated to the data selection API. */
     selectedKey?: string;

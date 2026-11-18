@@ -33,6 +33,7 @@ import {
     toNumber,
     withoutCasts,
 } from 'ag-charts-core';
+import type { NormalisedLineDash } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import {
@@ -73,7 +74,11 @@ const {
 interface OhlcCandleStickSeriesStyle extends AgCandlestickSeriesItemOptions, AgOhlcSeriesItemOptions {}
 
 /** Post-resolution style: colour refs are resolved to concrete colours before reaching the scene node. */
-type NormalisedOhlcCandleStickSeriesStyle = Normalised<OhlcCandleStickSeriesStyle, never, FillStrokeMorph>;
+type NormalisedOhlcCandleStickSeriesStyle = Normalised<
+    OhlcCandleStickSeriesStyle,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
 
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly itemId?: never;

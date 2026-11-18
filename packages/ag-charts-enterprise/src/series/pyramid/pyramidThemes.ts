@@ -6,12 +6,15 @@ import {
     LABEL_BOXING_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
+    SELECTION_LINE_DASH_STATES,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
     themeLineHeight,
+    undocumentedThemeOptions,
     withGlowThemeDefaults,
+    withLineDashThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -39,7 +42,6 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
-            padding: 8,
             spacing: 8,
             collision: {
                 threshold: 4,
@@ -72,5 +74,6 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
                 ITEM_GLOW_BUCKETS
             ),
         },
+        ...undocumentedThemeOptions({ selection: withLineDashThemeDefaults({}, SELECTION_LINE_DASH_STATES) }),
     },
 };

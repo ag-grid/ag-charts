@@ -2,6 +2,7 @@ import { type AgRadialGaugePreset, VERSION } from 'ag-charts-community';
 import {
     FONT_SIZE_RATIO,
     FONT_THEME_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
@@ -10,8 +11,10 @@ import {
     SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    lineDashThemeDefault,
     themeLineHeight,
     undocumentedThemeOptions,
+    withLineDashThemeDefaults,
 } from 'ag-charts-core';
 
 import { GaugePresetModule } from '../../preset/gauge/gaugePresetModule';
@@ -120,7 +123,18 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 ...SERIES_TOOLTIP_THEME,
                 range: { $path: ['/tooltip/range', 10] },
             },
-            highlight: { enabled: true },
+            ...undocumentedThemeOptions({
+                targets: {
+                    $apply: [
+                        {
+                            lineDash: lineDashThemeDefault(undefined, {
+                                $path: ['./strokeWidth', { $path: '/series/$index/defaultTarget/strokeWidth' }],
+                            }),
+                        },
+                    ],
+                },
+            }),
+            highlight: withLineDashThemeDefaults({ enabled: true }, ITEM_GLOW_BUCKETS),
             selection: SERIES_SELECTION_THEME,
             ...undocumentedThemeOptions({
                 defaultColorRange: {
@@ -133,6 +147,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 defaultTarget: {
                     fill: { $ref: 'foregroundColor' },
                     stroke: { $ref: 'foregroundColor' },
+                    lineDash: lineDashThemeDefault(undefined),
                     size: 10,
                     shape: 'triangle',
                     placement: 'outside',

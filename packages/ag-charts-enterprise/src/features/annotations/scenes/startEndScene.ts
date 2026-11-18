@@ -1,17 +1,21 @@
 import type { AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
-import type { BBox, FillStrokeMorph, Normalised } from 'ag-charts-core';
+import type { BBox, FillStrokeMorph, Normalised, NormalisedLineDash } from 'ag-charts-core';
 import { type Bounds4, type BoxBounds, type Point, Vec2, Vec4, entries } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { StartEndDatum } from '../datum/startEndDatum';
-import { SNAP_TO_ANGLE, translate } from '../utils/coords';
+import { SNAP_TO_ANGLE, magnetTranslation, translate } from '../utils/coords';
 import { convertLine, convertPoint } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
 
 export type StartEndHandle = 'start' | 'end';
 
-type NormalisedAnnotationHandleStyles = Normalised<AgAnnotationHandleStyles, never, FillStrokeMorph>;
+type NormalisedAnnotationHandleStyles = Normalised<
+    AgAnnotationHandleStyles,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
 
 export abstract class StartEndScene<Datum extends StartEndDatum> extends LinearScene<Datum> {
     override activeHandle?: StartEndHandle;
@@ -68,9 +72,10 @@ export abstract class StartEndScene<Datum extends StartEndDatum> extends LinearS
             ? { vectors: { [activeHandle]: convertPoint(datum[snapHandle], context) }, angle: SNAP_TO_ANGLE }
             : undefined;
 
+        const translation = Vec2.sub(target, dragState.offset);
         const { [activeHandle]: point } = translate(
             { [activeHandle]: dragState[activeHandle] },
-            Vec2.sub(target, dragState.offset),
+            snapping ? translation : magnetTranslation(dragState[activeHandle], translation, context),
             context,
             { overflowContinuous: 0, snap }
         );

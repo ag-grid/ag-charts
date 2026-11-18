@@ -28,7 +28,12 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { FillStrokeMorph, NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
+import type {
+    FillStrokeMorph,
+    NormalisedColorType,
+    NormalisedDropShadowOptions,
+    NormalisedLineDash,
+} from './normalisedCommonOptions';
 import type {
     NormalisedChartLabelPlacementStyleOptions,
     NormalisedPlacedSeriesLabelOptions,
@@ -37,14 +42,18 @@ import type {
 import type { NormalisedSeriesMarkerOptions, NormalisedSeriesMarkerStyle } from './normalisedSeriesMarkerOptions';
 import type { NormalisedSeriesOptions } from './normalisedSeriesOptions';
 
-export type NormalisedBarSeriesStyle = Normalised<AgBarSeriesStyle, never, FillStrokeMorph>;
+export type NormalisedBarSeriesStyle = Normalised<AgBarSeriesStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
-export type NormalisedHistogramSeriesStyle = Normalised<AgHistogramSeriesStyle, never, FillStrokeMorph>;
+export type NormalisedHistogramSeriesStyle = Normalised<
+    AgHistogramSeriesStyle,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
 
 export type NormalisedLineSeriesStylerResult = Normalised<
     AgLineSeriesStylerResult,
     never,
-    { stroke?: CssColor; marker?: NormalisedSeriesMarkerStyle }
+    { stroke?: CssColor; marker?: NormalisedSeriesMarkerStyle } & NormalisedLineDash
 >;
 
 export type NormalisedSeriesSegmentation = Normalised<
@@ -53,7 +62,11 @@ export type NormalisedSeriesSegmentation = Normalised<
     { segments?: NormalisedSeriesShapeSegmentOptions[] }
 >;
 
-export type NormalisedSeriesShapeSegmentOptions = Normalised<AgSeriesShapeSegmentOptions, never, FillStrokeMorph>;
+export type NormalisedSeriesShapeSegmentOptions = Normalised<
+    AgSeriesShapeSegmentOptions,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
 
 /** Per-type interpolation options; the theme defaults `tension` and `position` for their own type. */
 export type NormalisedInterpolationOptions =
@@ -97,7 +110,7 @@ export type NormalisedLineSeriesOwnOptions = Normalised<
         label: NormalisedPlacedSeriesLabelOptions<AgLineSeriesLabelFormatterParams>;
         styler?: Styler<AgLineSeriesStylerParams<unknown, unknown>, AgLineSeriesStylerResult>;
         segmentation: NormalisedSeriesSegmentation;
-    }
+    } & NormalisedLineDash
 > & {
     /** Cross-filtering only; unsupported and unrelated to the data selection API. */
     selectedKey?: string;
@@ -136,7 +149,7 @@ export type NormalisedAreaSeriesOwnOptions = Normalised<
         label: NormalisedPlacedSeriesLabelOptions<AgAreaSeriesLabelFormatterParams>;
         styler?: Styler<AgAreaSeriesStylerParams<unknown, unknown>, AgAreaSeriesStylerResult>;
         segmentation: NormalisedSeriesSegmentation;
-    }
+    } & NormalisedLineDash
 > & {
     /** Cross-filtering only; unsupported and unrelated to the data selection API. */
     selectedKey?: string;
@@ -184,7 +197,7 @@ export type NormalisedBarSeriesOwnOptions = Normalised<
         styler?: Styler<AgBarSeriesStylerParams<unknown, unknown>, AgBarSeriesStyle>;
         itemStyler?: Styler<AgBarSeriesItemStylerParams<unknown, unknown>, AgBarSeriesStyle>;
         segmentation: NormalisedSeriesSegmentation;
-    }
+    } & NormalisedLineDash
 > & {
     /** Undocumented: `yKey` column the bars are filtered against (cross-filtering). */
     yFilterKey?: string;
@@ -225,7 +238,7 @@ export type NormalisedHistogramSeriesOwnOptions = Normalised<
         label: NormalisedBarSeriesLabelOptions<AgHistogramSeriesLabelFormatterParams, AgHistogramSeriesLabelPlacement>;
         styler?: Styler<AgHistogramSeriesStylerParams<unknown, unknown>, AgHistogramSeriesStyle>;
         itemStyler?: Styler<AgHistogramSeriesItemStylerParams<unknown, unknown>, AgHistogramSeriesStyle>;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedHistogramSeriesOptions = NormalisedSeriesOptions<NormalisedHistogramSeriesOwnOptions> &

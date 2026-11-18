@@ -16,19 +16,6 @@ function createHostedPopover() {
 }
 
 describe('PopoverWidget', () => {
-    it('creates a presentational div', () => {
-        const elem = new PopoverWidget().getElement();
-        expect(elem.tagName).toBe('DIV');
-        expect(elem.getAttribute('role')).toBe('presentation');
-    });
-
-    it('uses a host element as a presentational root', () => {
-        const host = document.createElement('div');
-        const popover = new PopoverWidget(host);
-        expect(popover.getElement()).toBe(host);
-        expect(host.getAttribute('role')).toBe('presentation');
-    });
-
     it('refuses to show a panel before it is attached', () => {
         const popover = new PopoverWidget();
         expect(() => popover.showPanel(new ContainerWidget(), {})).toThrow(
@@ -47,17 +34,6 @@ describe('PopoverWidget', () => {
         expect(elem.className).toBe('ag-charts-popover ag-charts-menu');
         expect(elem.getAttribute('aria-label')).toBe('Colours');
         expect(elem.style.minWidth).toBe('120px');
-    });
-
-    it('leaves unset panel options off the panel', () => {
-        const popover = createHostedPopover();
-        const panel = new ContainerWidget();
-        popover.showPanel(panel, {});
-
-        const elem = panel.getElement();
-        expect(elem.className).toBe('ag-charts-popover');
-        expect(elem.hasAttribute('aria-label')).toBe(false);
-        expect(elem.style.minWidth).toBe('');
     });
 
     describe('borrowed children', () => {

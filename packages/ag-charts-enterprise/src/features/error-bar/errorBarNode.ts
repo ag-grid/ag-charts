@@ -1,6 +1,13 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { BoxBounds, Node, Normalised, PickNodeDatumResult, RequireOptional } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    Node,
+    Normalised,
+    NormalisedLineDash,
+    PickNodeDatumResult,
+    RequireOptional,
+} from 'ag-charts-core';
 import {
     BBox,
     Group,
@@ -24,11 +31,15 @@ export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum &
     _ModuleSupport.ErrorBoundSeriesNodeDatum & { yKey: string };
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 // Resolved render-time shape: refs are resolved to concrete colours during theme-merge before reaching scene nodes.
-type NormalisedErrorBarStylingOptions = Normalised<ErrorBarStylingOptions, never, { stroke?: CssColor }>;
+type NormalisedErrorBarStylingOptions = Normalised<
+    ErrorBarStylingOptions,
+    never,
+    { stroke?: CssColor } & NormalisedLineDash
+>;
 type NormalisedErrorBarCapStyle = Normalised<
     NonNullable<AgErrorBarThemeableOptions['cap']>,
     never,
-    { stroke?: CssColor }
+    { stroke?: CssColor } & NormalisedLineDash
 >;
 export type NormalisedErrorBarStyles = {
     whiskerStyle: NormalisedErrorBarStylingOptions;
@@ -124,7 +135,8 @@ function getItemStylerParams(
     const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
 
     return {
-        ...(style as Required<AgErrorBarThemeableOptions>),
+        // A `lineDash` name was resolved to its array by the theme before it reaches here.
+        ...(style as Required<Normalised<AgErrorBarThemeableOptions, never, NormalisedLineDash>>),
         datum: datum.datum,
         seriesId: datum.series.id,
         xKey: datum.xKey,

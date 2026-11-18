@@ -1,5 +1,5 @@
 import type { AgSelectionClickMode, AgSelectionStyleOptions } from '../../chart/selectionOptions';
-import type { CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
+import type { AgLineDashName, CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { AgBarSeriesStyle } from '../../series/cartesian/barOptions';
 import type { TextOptions, Toggleable } from '../../series/cartesian/commonOptions';
 
@@ -158,8 +158,8 @@ export interface AgVolumeProfileSelectedBandOptions {
      * Default: `0`
      */
     strokeWidth?: PixelSize;
-    /** An array specifying the length in pixels of alternating dashes and gaps in the band's outline. */
-    lineDash?: PixelSize[];
+    /** The dash pattern of the band's outline: a stock pattern name, or an array specifying the length in pixels of alternating dashes and gaps. */
+    lineDash?: PixelSize[] | AgLineDashName;
 }
 
 export interface AgVolumeProfileTotalSegmentOptions extends Toggleable {

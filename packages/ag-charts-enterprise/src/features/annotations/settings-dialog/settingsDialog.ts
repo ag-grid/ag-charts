@@ -1,5 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { DatalistWidget, type DynamicContext, EventEmitter, type Widget } from 'ag-charts-core';
+import { DatalistWidget, type DynamicContext, EventEmitter } from 'ag-charts-core';
 import type { AgAnnotationFollowName } from 'ag-charts-types';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
@@ -24,8 +24,13 @@ import {
     type CoordinateField,
     type CoordinateKind,
     type CoordinateRow,
+    type HeightRow,
+    type PointRow,
+    displayCoordinate,
     formatCoordinate,
     getCoordinateFields,
+    isHeightRow,
+    isPointRow,
     parseCoordinate,
     resolveCoordinate,
 } from '../utils/coordinates';
@@ -69,15 +74,55 @@ export interface LinearSettingsDialogTextChangeProps {
     label?: string;
 }
 
-const COORDINATE_ROW_LABELS: Record<CoordinateRow, string> = {
-    start: 'dialogInputCoordinatesStart',
-    end: 'dialogInputCoordinatesEnd',
-    endRetracement: 'dialogInputCoordinatesEndRetracement',
-    value: 'dialogInputCoordinatesValue',
-    offset: 'dialogInputCoordinatesOffset',
-    startOffset: 'dialogInputCoordinatesStartOffset',
-    endOffset: 'dialogInputCoordinatesEndOffset',
+// Each label is a whole string of its own, as a translation cannot assume the order its parts read in.
+const COORDINATE_LABELS = {
+    start: {
+        x: 'dialogInputCoordinatesStartX',
+        y: 'dialogInputCoordinatesStartY',
+        xOffset: 'dialogInputCoordinatesStartOffsetX',
+        yOffset: 'dialogInputCoordinatesStartOffsetY',
+    },
+    end: {
+        x: 'dialogInputCoordinatesEndX',
+        y: 'dialogInputCoordinatesEndY',
+        xOffset: 'dialogInputCoordinatesEndOffsetX',
+        yOffset: 'dialogInputCoordinatesEndOffsetY',
+    },
+    endRetracement: {
+        x: 'dialogInputCoordinatesEndRetracementX',
+        y: 'dialogInputCoordinatesEndRetracementY',
+        xOffset: 'dialogInputCoordinatesEndRetracementOffsetX',
+        yOffset: 'dialogInputCoordinatesEndRetracementOffsetY',
+    },
+    value: {
+        x: 'dialogInputCoordinatesValueX',
+        y: 'dialogInputCoordinatesValueY',
+        xOffset: 'dialogInputCoordinatesValueOffsetX',
+        yOffset: 'dialogInputCoordinatesValueOffsetY',
+    },
+} as const satisfies Record<Exclude<CoordinateRow, HeightRow>, Record<'x' | 'y' | 'xOffset' | 'yOffset', string>>;
+
+const COORDINATE_HEIGHT_LABELS: Record<HeightRow, string> = {
+    height: 'dialogInputCoordinatesHeightY',
+    startHeight: 'dialogInputCoordinatesStartHeightY',
+    endHeight: 'dialogInputCoordinatesEndHeightY',
 };
+
+/** The label of a row that is named on its own, rather than by the point and axis it positions. */
+const COORDINATE_ROW_LABELS: Record<Exclude<CoordinateRow, PointRow>, string> = {
+    value: 'dialogInputCoordinatesValue',
+    height: 'dialogInputCoordinatesHeight',
+    startHeight: 'dialogInputCoordinatesStartHeight',
+    endHeight: 'dialogInputCoordinatesEndHeight',
+};
+
+function getCoordinateLabelKey({ row, axis, kind }: CoordinateField) {
+    if (isHeightRow(row)) {
+        return COORDINATE_HEIGHT_LABELS[row];
+    }
+    const labels = COORDINATE_LABELS[row];
+    return kind === 'offset' ? labels[`${axis}Offset` as const] : labels[axis];
+}
 
 const COORDINATE_INPUT_TYPES = {
     number: 'number',
@@ -85,6 +130,7 @@ const COORDINATE_INPUT_TYPES = {
     'ordinal-time': 'datetime-local',
     'unit-time': 'datetime-local',
     category: 'text',
+    offset: 'number',
 } as const satisfies Record<CoordinateKind, string>;
 
 interface EventMap {
@@ -332,43 +378,45 @@ export class AnnotationSettingsDialog extends Dialog {
             return;
         }
 
-        const rows = new Map<CoordinateRow, Widget[]>();
-        const refreshes: Array<(next: CoordinateField) => void> = [];
+        const rows = new Map<CoordinateRow, CoordinateField[]>();
         for (const field of fields) {
-            const { widgets, refresh } = this.createCoordinateInput(field, options);
-            refreshes.push(refresh);
-            const row = rows.get(field.row);
-            if (row) {
-                row.push(...widgets);
-            } else {
-                rows.set(field.row, widgets);
+            const rowFields = rows.get(field.row) ?? [];
+            rowFields.push(field);
+            rows.set(field.row, rowFields);
+        }
+
+        const refreshes = new Map<string, (next: CoordinateField) => void>();
+        const panel = this.createTabPanel();
+        // A single value or offset has its label alongside; an offset is on a row of its own, and a height has its label above.
+        const addRow = (rowFields: CoordinateField[], follows = false) => {
+            const inline = rowFields.length === 1 && !isHeightRow(rowFields[0].row);
+            const widgets = rowFields.map((field) => {
+                const { widget, refresh } = this.createCoordinateInput(field, inline, options);
+                refreshes.set(getCoordinateLabelKey(field), refresh);
+                return widget;
+            });
+            panel.addChild(this.createInputRow(widgets, follows));
+        };
+        for (const rowFields of rows.values()) {
+            addRow(rowFields.filter((field) => field.kind !== 'offset'));
+            for (const offset of rowFields.filter((field) => field.kind === 'offset')) {
+                addRow([offset], true);
             }
         }
 
         this.refreshCoordinateInputs = () => {
             const current = options.getContext();
-            const next = current && getCoordinateFields(datum, current);
-            if (next?.length !== refreshes.length) {
-                return;
-            }
-            for (const [index, refresh] of refreshes.entries()) {
-                refresh(next[index]);
+            for (const field of current ? getCoordinateFields(datum, current) : []) {
+                refreshes.get(getCoordinateLabelKey(field))?.(field);
             }
         };
 
-        const panel = this.createTabPanel();
-        for (const [row, inputs] of rows) {
-            panel.addChild(this.createInputRow(COORDINATE_ROW_LABELS[row], inputs));
-        }
         return panel;
     }
 
-    private createCoordinateInput(initial: CoordinateField, options: LinearSettingsDialogOptions) {
+    private createCoordinateInput(initial: CoordinateField, inline: boolean, options: LinearSettingsDialogOptions) {
         const { localeManager } = this.ctx;
-        const ariaLabel = localeManager.t('dialogInputCoordinatesAltText', {
-            label: localeManager.t(COORDINATE_ROW_LABELS[initial.row]),
-            axis: localeManager.t(initial.axis === 'x' ? 'dialogInputCoordinatesAxisX' : 'dialogInputCoordinatesAxisY'),
-        });
+        const ariaLabel = localeManager.t(getCoordinateLabelKey(initial));
 
         const suggestions = initial.suggestions && new DatalistWidget(initial.suggestions());
 
@@ -377,7 +425,7 @@ export class AnnotationSettingsDialog extends Dialog {
         const input = this.createInput({
             ariaLabel,
             type: COORDINATE_INPUT_TYPES[field.kind],
-            value: field.value,
+            value: displayCoordinate(field.value, field.fractionDigits),
             step: field.step,
             list: suggestions?.id,
             onChange: (text) => {
@@ -386,13 +434,13 @@ export class AnnotationSettingsDialog extends Dialog {
                 const resolved = parsed == null || !context ? undefined : resolveCoordinate(field, parsed, context);
                 const props = resolved == null ? undefined : field.toProps(resolved);
                 if (resolved == null || props == null) {
-                    input.value = committed;
+                    input.value = displayCoordinate(committed, field.fractionDigits);
                     return;
                 }
 
                 // A value that resolves to the one already set, such as a date snapped to the same bar, is not a change.
                 const formatted = formatCoordinate(resolved, field.kind);
-                input.value = formatted;
+                input.value = displayCoordinate(formatted, field.fractionDigits);
                 if (formatted !== committed) {
                     committed = formatted;
                     options.onChangeCoordinates(props);
@@ -408,11 +456,16 @@ export class AnnotationSettingsDialog extends Dialog {
                 input.setStep(next.step);
             }
             if (!input.isFocused()) {
-                input.value = committed;
+                input.value = displayCoordinate(committed, field.fractionDigits);
             }
         };
 
-        return { widgets: suggestions ? [input, suggestions] : [input], refresh };
+        const label =
+            initial.kind === 'offset' || isPointRow(initial.row)
+                ? ariaLabel
+                : localeManager.t(COORDINATE_ROW_LABELS[initial.row]);
+        const widget = this.createLabelledInput(label, input, inline, ...(suggestions ? [suggestions] : []));
+        return { widget, refresh };
     }
 
     private createColorPickerInput(

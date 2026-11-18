@@ -10,18 +10,20 @@ import {
     SizeMonitor,
     StateTracker,
     type StrictHTMLElement,
+    attachListener,
     createElement,
     createId,
     createPerWindowRegistry,
     createStyleElement,
     entries,
+    getAttribute,
+    hasNoModifiers,
     isDirectionRtl,
     isDocumentFragment,
     isNode,
     isObject,
     kebabCase,
     setAttribute,
-    stopPageScrolling,
     strictObjectKeys,
 } from 'ag-charts-core';
 import type { AgChartAllThemeParams } from 'ag-charts-types';
@@ -87,6 +89,18 @@ type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, StrictHTMLElement>;
 };
+
+const ARROW_KEYS = new Set(['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp']);
+
+function stopPageScrolling(element: HTMLElement) {
+    return attachListener(element, 'keydown', (event: KeyboardEvent) => {
+        if (event.defaultPrevented) return;
+        const shouldPrevent = getAttribute(event.target, 'data-preventdefault', true);
+        if (shouldPrevent && hasNoModifiers(event) && ARROW_KEYS.has(event.key)) {
+            event.preventDefault();
+        }
+    });
+}
 
 const NULL_DOMRECT: DOMRect = {
     x: 0,
@@ -601,6 +615,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
                 (key.endsWith('Size') ||
                     key.endsWith('Radius') ||
                     key.endsWith('Width') ||
+                    key.endsWith('Padding') ||
                     key.endsWith('Thickness') ||
                     numericKeys?.includes(key))
             ) {

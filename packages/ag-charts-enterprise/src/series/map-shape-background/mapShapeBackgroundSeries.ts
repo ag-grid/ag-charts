@@ -6,6 +6,7 @@ import type {
     FillStrokeMorph,
     Geometry,
     Normalised,
+    NormalisedLineDash,
     NormalisedMapShapeBackgroundSeriesOwnOptions,
 } from 'ag-charts-core';
 import { Group, PointerEvents, Selection } from 'ag-charts-core';
@@ -20,7 +21,11 @@ import type { ITopology } from '../map-util/topologyTypes';
 
 const { createDatumId } = _ModuleSupport;
 
-type NormalisedMapShapeBackgroundStyle = Normalised<AgMapShapeBackgroundThemeableOptions, never, FillStrokeMorph>;
+type NormalisedMapShapeBackgroundStyle = Normalised<
+    AgMapShapeBackgroundThemeableOptions,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
 
 export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;

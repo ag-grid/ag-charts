@@ -1,5 +1,3 @@
-import type { LineDashOptions } from 'ag-charts-types';
-
 import { getPath2D } from '../../dom/globalsProxy';
 import { type Logger } from '../../logging/logger';
 import {
@@ -7,6 +5,7 @@ import {
     type NormalisedStrokeOptions,
 } from '../../options/normalised/normalisedCommonOptions';
 import { SceneRefChangeDetection } from '../../rendering/changeDetectable';
+import type { ResolvedLineDashOptions } from '../../rendering/lineDash';
 import { shadowPass } from '../shadowPass';
 import { Path } from './path';
 
@@ -17,7 +16,7 @@ export interface ClipRect {
     y1: number;
 }
 
-export interface Segment extends NormalisedStrokeOptions, NormalisedFillOptions, LineDashOptions {
+export interface Segment extends NormalisedStrokeOptions, NormalisedFillOptions, ResolvedLineDashOptions {
     clipRect: ClipRect;
 }
 

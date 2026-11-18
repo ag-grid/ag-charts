@@ -2,7 +2,7 @@ import type { Listener } from './callbackOptions';
 import type { AgCrossLineClickEvent, AgCrossLineDoubleClickEvent } from './eventOptions';
 import type { AgChartLabelStyleOptions } from './labelOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
-import type { AxisValue, ContextDefault, FontFamilyFull, Opacity, PixelSize } from './types';
+import type { AgLineDashName, AxisValue, ContextDefault, FontFamilyFull, Opacity, PixelSize } from './types';
 
 /** Cross Line listeners. */
 export interface AgCrossLineListeners<TContext = ContextDefault> {
@@ -23,8 +23,8 @@ export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOption
     strokeWidth?: PixelSize;
     /** The opacity of the stroke for the lines. */
     strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
-    lineDash?: PixelSize[];
+    /** Defines how the line stroke is rendered. Either a stock pattern name, or an array in which every number specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
+    lineDash?: PixelSize[] | AgLineDashName;
     /** Configuration for the Cross Line label. */
     label?: LabelType;
     /** A map of event names to listeners. */

@@ -57,7 +57,7 @@ import {
     upsertNodeDatum,
     withoutCasts,
 } from 'ag-charts-core';
-import type { BBox, Selection, Text } from 'ag-charts-core';
+import type { BBox, NormalisedLineDash, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import {
@@ -141,7 +141,7 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
 
 type RangeBarItemId = `${string}-${string}`;
 
-type NormalisedRangeBarSeriesStyle = Normalised<AgRangeBarSeriesStyle, never, FillStrokeMorph>;
+type NormalisedRangeBarSeriesStyle = Normalised<AgRangeBarSeriesStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
 /**
  * Shared context for creating/updating RangeBarNodeDatum instances.
