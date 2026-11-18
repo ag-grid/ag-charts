@@ -614,13 +614,13 @@ export abstract class HierarchySeries<
         return (style as TStyle | null) ?? undefined;
     }
 
-    /** The merged `glow` of the highlight styles of a node. */
+    /** The merged `glow` of the highlight styles of a node, over the `seriesGlow` of its part of the series. */
     protected getHierarchyHighlightGlow<TStyle extends { glow?: DeepPartial<AgGlowOptions> }>(
         highlightState: HierarchyHighlightState,
-        highlight: HierarchyHighlightBuckets<TStyle>
+        highlight: HierarchyHighlightBuckets<TStyle>,
+        seriesGlow: DeepPartial<AgGlowOptions> | undefined
     ): DeepPartial<AgGlowOptions> | undefined {
-        const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
-        return style && mergeGlow(style);
+        return mergeGlow(this.getHierarchyHighlightBuckets(highlightState, highlight), { glow: seriesGlow });
     }
 
     private getHierarchyHighlightBuckets<TStyle extends object>(
@@ -673,21 +673,17 @@ export abstract class HierarchySeries<
     }
 
     /**
-     * The shadow on one copy of a node, in `fillShadow`: the highlight copy casts its `glow` as one, and a node that glows
-     * has none unless it is hovered in place, see {@link resolveNodeGlow}.
+     * The shadow on one copy of a node, in `fillShadow`: the highlight copy casts its `glow` there, beneath itself, and the
+     * in-place copies cast their shadow, as their glow is cast in the root's overlay, see {@link resolveNodeGlow}.
      */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,
         glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
-        highlightedNode: TNodeClass | undefined,
-        nodeDatum: Pick<TNodeClass, 'datumIndex'>,
         itemShadow?: AgItemShadowStyle['shadow']
     ): NormalisedDropShadowOptions | undefined {
-        if (itemShadow != null) shadow = this.mergeItemShadow(shadow, itemShadow);
         if (isHighlight) return glow;
-        if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
-        return glow == null ? shadow : undefined;
+        return itemShadow == null ? shadow : this.mergeItemShadow(shadow, itemShadow);
     }
 
     /**

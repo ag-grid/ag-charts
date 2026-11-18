@@ -10,7 +10,6 @@ import {
     canvasImage,
     deproxy,
     differingBytes,
-    expectWarningsCalls,
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
     getSeriesNodeData,
@@ -26,10 +25,9 @@ import {
 import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
-import { ENTERPRISE_GLOW_SERIES, RANGE, STAGES } from '../test/glowSeriesCases';
+import { ENTERPRISE_GLOW_SERIES, HIERARCHY_GLOW_SERIES, RANGE, STAGES } from '../test/glowSeriesCases';
 import {
     FLOW_DATA,
-    HIERARCHY_SHADOW_DATA,
     OHLC_DATA,
     SHADOW,
     WATERFALL_DATA,
@@ -70,6 +68,10 @@ const COUNTED: Record<string, Partial<SeriesCase>> = {
     'sankey links': { count: FLOW_DATA.length, hoverable: false },
     'chord nodes': { count: 4, hoverable: false },
     'chord links': { count: FLOW_DATA.length, hoverable: false },
+    // A hierarchy casts the glow of a hovered item beneath its highlight copy, which hierarchyShadowGlowRender.test.ts covers.
+    'treemap tile': { hoverable: false },
+    'treemap group': { hoverable: false },
+    sunburst: { hoverable: false },
 };
 
 /** The community series that are also run through an enterprise chart. */
@@ -89,6 +91,7 @@ const WATERFALL = ENTERPRISE_GLOW_SERIES.find(({ name }) => name === 'waterfall'
 const SERIES: SeriesCase[] = [
     ...COMMUNITY_GLOW_SERIES.filter(({ name }) => COMMUNITY_SERIES.has(name)),
     ...ENTERPRISE_GLOW_SERIES.filter((testCase) => testCase !== WATERFALL && !testCase.seriesShadowOnly),
+    ...HIERARCHY_GLOW_SERIES,
 ]
     .map((testCase) => fromCase(testCase, COUNTED[testCase.name]))
     .concat(
@@ -755,29 +758,5 @@ describe('series-level glow (enterprise series)', () => {
                 });
             }
         );
-    });
-
-    // Treemap and sunburst take their glow from the highlight buckets alone, until they support a series-level one.
-    describe.each([
-        { name: 'treemap tile', series: { tile: { glow: {} } }, key: 'tile.glow' },
-        { name: 'treemap group', series: { group: { glow: {} } }, key: 'group.glow' },
-        { name: 'sunburst', series: { glow: {} }, key: 'glow' },
-    ] as const)('$name', ({ name, series, key }) => {
-        it('drops a series-level glow with a warning, and casts none', async () => {
-            const type = name.split(' ')[0];
-            chart = await createEnterpriseChart({
-                data: HIERARCHY_SHADOW_DATA,
-                animation: { enabled: false },
-                legend: { enabled: false },
-                series: [{ type, labelKey: 'name', sizeKey: 'size', ...series }],
-            } as AgChartOptions);
-            await waitForChartStability(chart);
-
-            expectWarningsCalls().toEqual([[`AG Charts - Unknown option \`series[0].${key}\`, ignoring.`]]);
-            expect(collectShapes(getSeriesAt(chart).contentGroup).filter((shape) => shape.fillGlow != null)).toEqual(
-                []
-            );
-            expect(uncastGlows(getSeriesAt(chart).contentGroup)).toEqual([]);
-        });
     });
 });

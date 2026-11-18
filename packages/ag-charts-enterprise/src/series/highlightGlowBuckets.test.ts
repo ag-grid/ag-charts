@@ -171,16 +171,12 @@ describe('highlight glow on every hierarchy bucket', () => {
             for (const { shape } of rest) expect(shape.fillGlow).toBe(first.shape.fillGlow);
         });
 
-        it('lets the glow replace the base shadow of an item in that state, and keeps the shadow elsewhere', async () => {
+        it('casts the glow of an item in that state beside its base shadow, which every item keeps', async () => {
             const { inPlace, highlighted } = await hover(series('unhighlightedBranch', HIGHLIGHT_GLOW, SHADOW));
 
             for (const { shape, role } of inPlace) {
-                if (role === 'otherBranch') {
-                    expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
-                    expect(shape.fillShadow?.enabled).not.toBe(true);
-                } else {
-                    expect(shape.fillShadow).toMatchObject(SHADOW);
-                }
+                expect(shape.fillShadow).toMatchObject(SHADOW);
+                if (role === 'otherBranch') expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
             }
             // The hovered leaf's highlight copy casts no shadow when no glow is set for it.
             expect(cast(highlighted, 'highlighted')).toEqual([]);
@@ -192,10 +188,10 @@ describe('highlight glow on every hierarchy bucket', () => {
             const hoveredInPlace = inPlace.find(({ role }) => role === 'hovered')!;
             expect(hoveredInPlace.shape.fillShadow).toMatchObject(SHADOW);
             expect(highlighted.find(({ role }) => role === 'hovered')!.shape.fillShadow).toMatchObject(GLOW_SHADOW);
-            // The other leaves of the branch have the glow in place of their shadow.
+            // The other leaves of the branch have the glow beside their shadow.
             for (const { shape } of inPlace.filter(({ role }) => role === 'sameBranch')) {
                 expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
-                expect(shape.fillShadow?.enabled).not.toBe(true);
+                expect(shape.fillShadow).toMatchObject(SHADOW);
             }
         });
 
@@ -330,16 +326,12 @@ describe('highlight glow on treemap groups', () => {
         }
     });
 
-    it('lets unhighlightedItem.glow replace the base shadow of the sibling groups only', async () => {
+    it('casts unhighlightedItem.glow of the sibling groups beside their base shadow', async () => {
         const { inPlace } = await hoverGroupA({ unhighlightedItem: { glow: HIGHLIGHT_GLOW } }, SHADOW);
 
         for (const shape of inPlace) {
-            if (shape.datum?.datum?.name === 'A') {
-                expect(shape.fillShadow).toMatchObject(SHADOW);
-            } else {
-                expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
-                expect(shape.fillShadow?.enabled).not.toBe(true);
-            }
+            expect(shape.fillShadow).toMatchObject(SHADOW);
+            if (shape.datum?.datum?.name !== 'A') expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
         }
     });
 });

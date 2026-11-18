@@ -351,7 +351,7 @@ export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
         highlightSteps: HIERARCHY_STEPS,
         hoverDatum: nodeNamed('A1'),
         base: { type: 'sunburst', ...HIERARCHY_KEYS },
-        place: ({ shadow, itemStyler }) => ({ shadow, itemStyler }),
+        place: ({ shadow, glow, itemStyler }) => ({ shadow, glow, itemStyler }),
         placeHighlight: withHighlight(),
     },
     {
@@ -363,7 +363,7 @@ export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
         highlightSteps: HIERARCHY_STEPS,
         hoverDatum: nodeNamed('A1'),
         base: { type: 'treemap', ...HIERARCHY_KEYS },
-        place: ({ shadow, itemStyler }) => ({ tile: { shadow }, itemStyler }),
+        place: ({ shadow, glow, itemStyler }) => ({ tile: { shadow, glow }, itemStyler }),
         placeHighlight: withHighlight('tile'),
     },
     {
@@ -375,7 +375,7 @@ export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
         stylerCastsOtherParts: true,
         hoverDatum: nodeNamed('A'),
         base: { type: 'treemap', ...HIERARCHY_KEYS },
-        place: ({ shadow, itemStyler }) => ({ group: { shadow }, itemStyler }),
+        place: ({ shadow, glow, itemStyler }) => ({ group: { shadow, glow }, itemStyler }),
         placeHighlight: withHighlight('group'),
     },
 ];

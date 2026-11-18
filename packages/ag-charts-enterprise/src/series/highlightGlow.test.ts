@@ -1433,6 +1433,27 @@ describe('highlight glow (enterprise series)', () => {
                 buckets: ITEM_BUCKETS,
                 highlight: (options) => options.highlight,
             },
+            {
+                name: 'treemap tile',
+                glow: (options) => [options.tile.glow],
+                series: HIERARCHY({ type: 'treemap' }),
+                buckets: BRANCH_ONLY_BUCKETS,
+                highlight: (options) => options.tile.highlight,
+            },
+            {
+                name: 'treemap group',
+                glow: (options) => [options.group.glow],
+                series: HIERARCHY({ type: 'treemap' }),
+                buckets: ITEM_BUCKETS,
+                highlight: (options) => options.group.highlight,
+            },
+            {
+                name: 'sunburst',
+                glow: (options) => [options.glow],
+                series: HIERARCHY({ type: 'sunburst' }),
+                buckets: BRANCH_ONLY_BUCKETS,
+                highlight: (options) => options.highlight,
+            },
         ];
 
         describe.each(CASES)('$name', ({ series, data, buckets, glow: glowOf, highlight: highlightOf, perPart }) => {
@@ -1456,37 +1477,6 @@ describe('highlight glow (enterprise series)', () => {
                     if (perPart) expect(styles[bucket]?.glow?.enabled).toBeUndefined();
                     else expect(styles[bucket].glow).toEqual({ enabled: false });
                 }
-            });
-        });
-
-        // Treemap and sunburst have no series-level glow yet: the branch buckets hold the glow theme defaults themselves.
-        describe.each([
-            {
-                name: 'treemap tile',
-                series: HIERARCHY({ type: 'treemap' }),
-                defaulted: BRANCH_ONLY_BUCKETS,
-                highlight: (options: any) => options.tile.highlight,
-            },
-            {
-                name: 'treemap group',
-                series: HIERARCHY({ type: 'treemap' }),
-                defaulted: ITEM_BUCKETS,
-                highlight: (options: any) => options.group.highlight,
-            },
-            {
-                name: 'sunburst',
-                series: HIERARCHY({ type: 'sunburst' }),
-                defaulted: BRANCH_ONLY_BUCKETS,
-                highlight: (options: any) => options.highlight,
-            },
-        ])('$name', ({ series, defaulted, highlight: highlightOf }) => {
-            it.each([
-                ['light', 'ag-default', LIGHT_GLOW],
-                ['dark', 'ag-default-dark', DARK_GLOW],
-            ])('puts the %s glow theme defaults, with the glow off, on the buckets', async (_, theme, expected) => {
-                const styles = highlightOf(await resolvedOptions(theme, series));
-
-                for (const bucket of defaulted) expect(styles[bucket].glow).toEqual(expected);
             });
         });
 

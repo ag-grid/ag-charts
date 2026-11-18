@@ -4,6 +4,7 @@ import {
     BRANCH_GLOW_BUCKETS,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
@@ -13,7 +14,7 @@ import {
     cycledFillThemeTemplate,
     themeLineHeight,
     undocumentedThemeOptions,
-    withDisabledGlowThemeDefaults,
+    withFollowedGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -80,7 +81,8 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         },
         sectorSpacing: 2,
         padding: 3,
-        highlight: withDisabledGlowThemeDefaults(
+        glow: GLOW_THEME_DEFAULTS,
+        highlight: withFollowedGlowThemeDefaults(
             {
                 enabled: { $circular: { $path: '/highlight/enabled' } },
                 unhighlightedItem: {
@@ -92,7 +94,8 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
                     strokeOpacity: 0.2,
                 },
             },
-            BRANCH_GLOW_BUCKETS
+            BRANCH_GLOW_BUCKETS,
+            '/series/$index/glow'
         ),
         selection: SERIES_SELECTION_THEME,
         ...undocumentedThemeOptions({ childrenKey: 'children' }),

@@ -28,6 +28,7 @@ import {
     required,
     selectionOptionsDef,
     seriesLabelOptionsDefs,
+    glowOptionsDefs,
     shadowOptionsDefs,
     string,
     strokeOptionsDef,
@@ -61,6 +62,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         padding: positiveNumber,
         cornerRadius: positiveNumber,
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         fills: arrayOf(colorUnion),
         interactive: boolean,
         highlight: {
@@ -85,6 +87,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         padding: positiveNumber,
         cornerRadius: positiveNumber,
         shadow: shadowOptionsDefs,
+        glow: glowOptionsDefs,
         label: {
             ...autoSizedLabelOptionsDefs,
             collision: collisionOptionsDef,

@@ -112,10 +112,8 @@ interface TreemapLabelCandidate extends PositionedLabelCandidate {
 /** The highlight cache slots (see `HierarchySeries.getHierarchyGlow`), as tiles and groups resolve a state to different options. */
 const TILE_SLOT = 0;
 const GROUP_SLOT = 1;
-/** Where a tile that casts no highlight glow of its own keeps the merges of an item styler's `glow`. */
-const STYLER_ONLY_TILE_SLOT = 2;
-
-const noGlow = () => undefined;
+/** Where a tile that casts no highlight glow of its own keeps its series-level glow, and the merges of an item styler's `glow`. */
+const SERIES_ONLY_TILE_SLOT = 2;
 
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -569,10 +567,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     }
 
     private readonly resolveTileGlow = (highlightState: HierarchyHighlightState) =>
-        this.getHierarchyHighlightGlow(highlightState, this.options.tile.highlight);
+        this.getHierarchyHighlightGlow(highlightState, this.options.tile.highlight, this.options.tile.glow);
 
     private readonly resolveGroupGlow = (highlightState: HierarchyHighlightState) =>
         this.getGroupHighlightGlow(highlightState);
+
+    private readonly resolveSeriesOnlyTileGlow = () => this.options.tile.glow;
 
     /**
      * The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. Tile
@@ -586,18 +586,24 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         itemGlow?: AgGlowOptions
     ) {
         if (!isLeaf) {
-            // A glow from an item styler casts whether or not the group highlight is on, over the highlight state's.
-            if (!this.options.group.highlight.enabled && itemGlow == null) return;
+            // A series-level glow, or one from an item styler, casts whether or not the group highlight is on.
+            if (!this.options.group.highlight.enabled && itemGlow == null && this.options.group.glow?.enabled !== true) {
+                return;
+            }
 
             const groupState = this.getGroupHighlightState(isHighlight, highlightedNode, node);
             return this.getHierarchyGlow(GROUP_SLOT, groupState, this.resolveGroupGlow, itemGlow);
         }
 
         // With a group highlighted, a tile inherits only the group's opacities (see `getTileHighlightStyle`), and it has
-        // no highlight glow with its tile highlight off. A glow from an item styler is then merged over the theme's alone.
+        // no highlight glow with its tile highlight off: it casts its series-level glow, under any glow from an item styler.
         if (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0) {
-            if (itemGlow == null) return;
-            return this.getHierarchyGlow(STYLER_ONLY_TILE_SLOT, HierarchyHighlightState.None, noGlow, itemGlow);
+            return this.getHierarchyGlow(
+                SERIES_ONLY_TILE_SLOT,
+                HierarchyHighlightState.None,
+                this.resolveSeriesOnlyTileGlow,
+                itemGlow
+            );
         }
 
         const tileState = this.getHierarchyHighlightState(isHighlight, highlightedNode, node);
@@ -811,8 +817,6 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 (isLeaf ? tile : group).shadow,
                 glow,
                 isHighlight,
-                highlightedNode,
-                node,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
             rect.fillGlow = this.resolveNodeGlow(
@@ -1241,7 +1245,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     }
 
     private getGroupHighlightGlow(highlightState: HierarchyHighlightState) {
-        return mergeGlow(this.getGroupHighlightBucket(highlightState));
+        return mergeGlow(this.getGroupHighlightBucket(highlightState), { glow: this.options.group.glow });
     }
 
     public override isSelectionEnabled(): boolean {

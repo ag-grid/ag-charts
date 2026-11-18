@@ -215,7 +215,9 @@ export class SunburstSeries extends HierarchySeries<
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>({ batchShadows: 'by-layer' }));
-    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
+    private readonly highlightSectorGroup = this.scalingGroup.appendChild(
+        new Group<SunburstNode>({ batchShadows: 'by-layer' })
+    );
     // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
     // is painted over. Inside `scalingGroup`, so it takes the series' entry animation.
     private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
@@ -330,7 +332,7 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     private readonly resolveGlow = (highlightState: HierarchyHighlightState) =>
-        this.getHierarchyHighlightGlow(highlightState, this.options.highlight);
+        this.getHierarchyHighlightGlow(highlightState, this.options.highlight, this.options.glow);
 
     /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
     private getNodeGlow(
@@ -339,8 +341,8 @@ export class SunburstSeries extends HierarchySeries<
         highlightedNode: SunburstNode | undefined,
         itemGlow?: AgGlowOptions
     ) {
-        // A glow from an item styler casts whether or not the highlight is on, over the highlight state's.
-        if (!this.options.highlight.enabled && itemGlow == null) return;
+        // A series-level glow, or one from an item styler, casts whether or not the highlight is on.
+        if (!this.options.highlight.enabled && itemGlow == null && this.options.glow?.enabled !== true) return;
 
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
         return this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow, itemGlow);
@@ -569,8 +571,6 @@ export class SunburstSeries extends HierarchySeries<
                 shadow,
                 glow,
                 highlighted,
-                highlightedNode,
-                nodeDatum,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
             sector.fillGlow = this.resolveNodeGlow(
