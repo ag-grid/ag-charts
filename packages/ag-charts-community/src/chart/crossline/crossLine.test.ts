@@ -3547,6 +3547,35 @@ describe('CrossLine label fitting', () => {
             expect(footprint.width).toBeLessThanOrEqual(crossLine.containerBox?.width ?? 0);
         });
 
+        it('keeps an oblique label to its first character in a band too short for one line', async () => {
+            const crossLine = rangeWith(
+                { text: CONTAINER_OVERFLOWING_TEXT, placement: 'inside', rotation: 45 },
+                [4, 4.05]
+            );
+            chart = deproxy(await createChart(fitChart(crossLine, 'y')));
+
+            const { band, label, text } = bandAndLabel('y');
+            expect(text).toBe('A…');
+            expect(label.width).toBeLessThanOrEqual(band.width);
+        });
+
+        it.each([
+            ['its first character', true, 'A…'],
+            ['nothing', false, ''],
+        ])(
+            'shows %s of a label in a band narrower than an ellipsis when alwaysShow is %s',
+            async (_, alwaysShow, text) => {
+                const label: AgCartesianCrossLineLabelOptions = {
+                    placement: 'inside',
+                    wrapping: 'never',
+                    collision: { alwaysShow },
+                };
+                chart = deproxy(await createChart(fitChart(rangeWith(label, [4, 4.05]), 'x')));
+
+                expect(renderedLabel('x').text).toBe(text);
+            }
+        );
+
         it('fits each placement to its own bound', async () => {
             const label: AgCartesianCrossLineLabelOptions = {
                 placement: ['inside', 'top'],

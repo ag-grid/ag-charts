@@ -18,11 +18,14 @@ import {
     fitLabelText,
     fitLabelTextAutoSize,
     fontWithSize,
+    hasRealChars,
+    leadCharacterWidth,
     resolveLabelAvoidance,
     resolveLabelFit,
     resolveMinimumFontSize,
     resolvePadding,
     toRadians,
+    turnedBoundsHolding,
     validateCrossLineValue,
 } from 'ag-charts-core';
 import type {
@@ -567,7 +570,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             const text = label.text ?? '';
             const fitted = fitLabelTextAutoSize(text, fit, label);
             const kept =
-                fit != null && fitted.text === '' && this.keepsLabel
+                fit != null && this.keepsLabel && hasRealChars(text) && !hasRealChars(fitted.text)
                     ? this.keptLabel(text, fit)
                     : {
                           text: typeof fitted.text === 'string' ? fitted.text : text,
@@ -580,29 +583,21 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     /**
-     * A kept label with no room for a line, as the label engine keeps series labels: at its smallest size,
-     * one line within the band's width, then within its own bounds only, then whole.
+     * A kept label left without a character, kept as the label engine keeps series labels: at its smallest size
+     * in the band grown to hold its first character and an ellipsis, then within its own bounds only, then whole.
      */
     private keptLabel(text: string, fit: LabelFit): FittedLabel {
         const { label } = this;
         const fontSize = resolveMinimumFontSize(label.minimumFontSize, label.fontSize);
         const font = fontWithSize(label, fontSize);
         const { rotated, ...policy } = fit;
-        let oneLine: TurnedBounds | undefined;
         if (rotated != null) {
-            const line = drawnLineHeight(font);
-            const angle = toRadians(rotated.rotation);
-            oneLine = {
-                rotation: rotated.rotation,
-                width: Math.max(rotated.width, line * Math.abs(Math.sin(angle))),
-                height: Math.max(rotated.height, line * Math.abs(Math.cos(angle))),
-            };
-        }
-        for (const bound of oneLine == null ? [undefined] : [oneLine, undefined]) {
+            const bound = turnedBoundsHolding(rotated, leadCharacterWidth(text, font), drawnLineHeight(font));
             const fitted = fitLabelText(text, { ...policy, rotated: bound }, font);
-            if (typeof fitted === 'string' && fitted !== '') return { text: fitted, fontSize, rotated: bound };
+            if (typeof fitted === 'string' && hasRealChars(fitted)) return { text: fitted, fontSize, rotated: bound };
         }
-        return { text, fontSize };
+        const own = fitLabelText(text, policy, font);
+        return { text: typeof own === 'string' && own !== '' ? own : text, fontSize };
     }
 
     private get fitsToBand(): boolean {
@@ -611,7 +606,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     private boundByBand(fit: LabelFit, anchor: Anchor): LabelFit {
         const rotated = this.bandTurnedBounds(fit, anchor);
-        return rotated == null ? fit : { ...fit, rotated };
+        return rotated == null ? fit : { ...fit, rotated, hideOverflowingEllipsis: true };
     }
 
     /**
