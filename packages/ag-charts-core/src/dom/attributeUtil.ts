@@ -52,7 +52,6 @@ export type BaseAttributeTypeMap = {
     'aria-valuemin': number;
     'aria-valuetext': string;
     'data-focus-override': boolean;
-    'data-focus-visible-override': boolean;
     'data-preventdefault': boolean;
     class: string;
     contenteditable: 'plaintext-only';
@@ -98,7 +97,6 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'aria-valuemin': numberParser,
     'aria-valuetext': stringParser,
     'data-focus-override': booleanParser,
-    'data-focus-visible-override': booleanParser,
     'data-preventdefault': booleanParser,
     class: stringParser,
     contenteditable: stringParser<'plaintext-only'>,
