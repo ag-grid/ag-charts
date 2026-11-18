@@ -202,6 +202,7 @@ function fitStackAtSizes(
         shape,
         shapeAlign
     );
+    if (narrowed != null && !narrowed.overflows && narrowed.dropped === 0) return narrowed;
     // Narrowing can truncate more than holding the stack to its estimated height on the wider line.
     const held = withinShape(
         fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, Math.min(maxHeight, estimate)),

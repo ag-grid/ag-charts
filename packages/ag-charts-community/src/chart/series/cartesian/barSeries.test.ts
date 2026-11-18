@@ -2313,6 +2313,19 @@ describe('BarSeries', () => {
             chart = await createChart(options);
             await compare();
         });
+
+        it.each([
+            ['shorter bar first', [16, 17]],
+            ['taller bar first', [17, 16]],
+        ])('gives the taller of two overlapping bars its first-choice slot (%s)', async (_, values) => {
+            chart = await createChart({
+                data: [{ x: 'a', y: 64 }, ...values.map((y) => ({ x: 'b', y }))],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { placement: ['outside-end', 'inside-end'] } }],
+            });
+            const labelY = (text: string) => getVisibleLabelTextNodes(chart).find((node) => node.text === text)!.y;
+
+            expect(labelY('17')).toBeLessThan(labelY('16'));
+        });
     });
 
     describe('item styler', () => {

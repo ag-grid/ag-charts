@@ -736,6 +736,8 @@ interface PooledLabelObstacle {
     poolIndex: number;
     /** Where {@link placed} sits in its series' result array. */
     resultSlot: number;
+    /** The resolved box of the label's first-choice candidate, unset when that candidate is hidden. */
+    firstChoice: BoxBounds | undefined;
 }
 
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
@@ -1498,14 +1500,15 @@ export function placeLabels(
             // they neither occupy a placement nor act as obstacles against labels that do have text.
             if (d.label.text === '') continue;
             let placed = place(d, index);
+            const firstChoice = positionedFirstChoice;
             if (useIndex && d.obstacle !== false) {
-                placed = swapForFirstChoice(d, index, placed, labels, place, resolveCandidate);
+                placed = swapForFirstChoice(d, index, placed, firstChoice, labels, place);
             }
             if (placed != null) {
                 labels.push(placed);
                 if (useIndex && d.obstacle !== false) {
                     // Every placed label is a fixed obstacle for the labels resolved after it.
-                    insertLabelObstacle(placed, labels.length - 1);
+                    insertLabelObstacle(placed, labels.length - 1, firstChoice);
                 }
             }
         }
@@ -1528,7 +1531,11 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 }
 
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper, which it returns. */
-function insertLabelObstacle(placed: PlacedLabel, resultSlot: number): PooledLabelObstacle {
+function insertLabelObstacle(
+    placed: PlacedLabel,
+    resultSlot: number,
+    firstChoice: BoxBounds | undefined
+): PooledLabelObstacle {
     const box = labelObstacleBox(placed);
     const { labelGroup, outranks } = placed.datum;
     let obstacle = labelObstaclePool[labelObstacleCount];
@@ -1545,6 +1552,7 @@ function insertLabelObstacle(placed: PlacedLabel, resultSlot: number): PooledLab
             seriesOrder: candidateSeriesOrder,
             poolIndex: labelObstacleCount,
             resultSlot,
+            firstChoice,
         };
         labelObstaclePool.push(obstacle);
     } else {
@@ -1555,6 +1563,7 @@ function insertLabelObstacle(placed: PlacedLabel, resultSlot: number): PooledLab
         obstacle.suspended = false;
         obstacle.seriesOrder = candidateSeriesOrder;
         obstacle.resultSlot = resultSlot;
+        obstacle.firstChoice = firstChoice;
     }
     labelObstacleCount++;
     const { rotation } = placed;
@@ -1573,6 +1582,10 @@ function insertLabelObstacle(placed: PlacedLabel, resultSlot: number): PooledLab
 // The last `tryPlaceLabel` kept its label without clearing every obstacle, so a swap cannot rely on it.
 let placedUncleared = false;
 let placedAtFirstChoice = false;
+// The resolved box of the last `tryPlaceLabel` datum's first positioned candidate, unset when hidden or absent.
+let positionedFirstChoice: BoxBounds | undefined;
+// Only an obstacle can be traded out of the way: a first choice that never collided failed to fit, swap or not.
+let firstChoiceCollided = false;
 let swapFirstBox: BoxBounds = candidateBox;
 let swapBlockerIndex = -1;
 let swapBlockerCount = 0;
@@ -1636,13 +1649,11 @@ function swapForFirstChoice(
     d: PointLabelDatum,
     index: number,
     placed: PlacedLabel | undefined,
+    firstBox: BoxBounds | undefined,
     labels: PlacedLabel[],
-    place: (datum: PointLabelDatum, index: number) => PlacedLabel | undefined,
-    resolveCandidate: PositionedCandidateResolver | undefined
+    place: (datum: PointLabelDatum, index: number) => PlacedLabel | undefined
 ): PlacedLabel | undefined {
-    const first = d.positionedCandidates?.[0];
-    if (placedAtFirstChoice || first == null || first.hidden === true) return placed;
-    const firstBox = (resolveCandidate?.(d, first) ?? first).box;
+    if (placedAtFirstChoice || !firstChoiceCollided || firstBox == null) return placed;
     const cost = displacementCost(placed, firstBox);
     if (cost === 0) return placed;
 
@@ -1656,9 +1667,8 @@ function swapForFirstChoice(
 
     const held = blocker.placed;
     // A kept label outranks a droppable one, so only labels under the same policy trade slots.
-    if (held.datum.neverDrop !== d.neverDrop) return placed;
-    const heldFirst = held.datum.positionedCandidates![0];
-    const heldFirstBox = (resolveCandidate?.(held.datum, heldFirst) ?? heldFirst).box;
+    const heldFirstBox = blocker.firstChoice;
+    if (held.datum.neverDrop !== d.neverDrop || heldFirstBox == null) return placed;
     const heldCost = displacementCost(held, heldFirstBox);
 
     blocker.suspended = true;
@@ -1667,7 +1677,7 @@ function swapForFirstChoice(
         blocker.suspended = false;
         return placed;
     }
-    const swappedObstacle = insertLabelObstacle(swapped, labels.length);
+    const swappedObstacle = insertLabelObstacle(swapped, labels.length, firstBox);
     const moved = place(held.datum, held.index);
     swappedObstacle.suspended = true;
     if (
@@ -1676,7 +1686,7 @@ function swapForFirstChoice(
         swapImproves(held, placed, moved, swapped, heldFirstBox, firstBox, cost + heldCost)
     ) {
         labels[blocker.resultSlot] = moved;
-        insertLabelObstacle(moved, blocker.resultSlot);
+        insertLabelObstacle(moved, blocker.resultSlot, heldFirstBox);
         return swapped;
     }
     blocker.suspended = false;
@@ -2280,6 +2290,8 @@ function tryPlaceLabel(
     const threshold = d.threshold ?? defaults?.threshold ?? 0;
     placedUncleared = false;
     placedAtFirstChoice = false;
+    positionedFirstChoice = undefined;
+    firstChoiceCollided = false;
 
     // Sole-candidate keep-forever: one placement, kept on overflow, never dropped. The obstacle query
     // could only ever return this same placement, so skip it and take the placement unconditionally.
@@ -2327,6 +2339,7 @@ function tryPlaceLabel(
 
 function placeSolePositioned(d: PointLabelDatum, index: number): PlacedLabel {
     const candidate = d.positionedCandidates![0];
+    positionedFirstChoice = candidate.box;
     const { width, height } = candidate.size ?? d.label;
     return {
         index,
@@ -2794,6 +2807,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         // Resolved here rather than when the list was built: the styler runs for the candidates the
         // cascade reaches and no others, so a fallback the label never needed never invokes it.
         const c = positionedResolve == null ? candidates[ci] : positionedResolve(d, candidates[ci]);
+        if (ci === 0 && !trial) positionedFirstChoice = c.hidden === true ? undefined : c.box;
         // A candidate the styler disabled is skipped, so a label disabled at every candidate is dropped.
         if (c.hidden === true) continue;
         if (trial && (fit == null || c.fitTo == null)) continue;
@@ -2862,6 +2876,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         // An overflowing stack ranks with the overflowing candidates, below any that fit truncated.
         const placeable = contained && !overflowing;
         let clear = placeable && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
+        if (ci === 0 && placeable && !clear) firstChoiceCollided = true;
         let nudged = false;
         if (placeable && !clear && nudgeCandidate(c.slideAxis, region, inflate)) {
             clear = true;
