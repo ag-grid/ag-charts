@@ -1,18 +1,21 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
-    BESIDE_COLOURS,
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     besideBars,
     countChartPixels,
     deproxy,
+    expectGlowCoversPartsBeside,
+    getSeriesAt,
     hoverDatum,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Group, SERIES_GLOW_OVERLAY_Z_INDEX, compareZIndex } from 'ag-charts-core';
 
+import { ErrorBarGroup, ErrorBarNode } from '../features/error-bar/errorBarNode';
 import { getFlowNodeData } from '../test/enterpriseSeriesAccessors';
 import { FLOW_DATA, createEnterpriseChart } from '../test/utils';
 
@@ -80,24 +83,52 @@ describe('the error bars of a series with a glow', () => {
         chart?.destroy();
     });
 
-    const whiskerPixels = async (glowing: 0 | 1 | undefined) => {
-        chart = await createEnterpriseChart(besideBars(glowing, 'errorBar'));
-        const counts = BESIDE_COLOURS.map((colour) => countChartPixels(chart, colour));
-        chart.destroy();
-        return counts;
-    };
-
     it.each([0, 1] as const)(
         'are covered by the glow of the series beside them alone, with series %s glowing',
-        async (glowing) => {
-            const bare = await whiskerPixels(undefined);
-            const glowed = await whiskerPixels(glowing);
-
-            expect(bare.every((count) => count > 0)).toBe(true);
-            expect(glowed[glowing]).toBe(bare[glowing]);
-            expect(glowed[1 - glowing]).toBeLessThan(bare[1 - glowing]);
-        }
+        (glowing) => expectGlowCoversPartsBeside(glowing, 'errorBar', (options) => createEnterpriseChart(options))
     );
+
+    describe('as the shadow root gathers them', () => {
+        // The groups of error bars that the root visits while the chart is made.
+        const visits = async (series: (index: number) => object) => {
+            const options = besideBars(0, 'errorBar') as { data: object[]; series: object[] };
+            options.data = Array.from({ length: 40 }, (_, i) => ({
+                x: `X${i}`,
+                a: 5,
+                aLo: 4,
+                aHi: 8,
+                b: 5,
+                bLo: 4,
+                bHi: 8,
+            }));
+            options.series = options.series.map((base, index) => ({ ...base, ...series(index) }));
+            const gather = vi.spyOn(Group.prototype, 'gatherShadows');
+            try {
+                chart = await createEnterpriseChart(options as AgChartOptions);
+                const visited = gather.mock.contexts;
+                return {
+                    series: visited.filter((node) => node instanceof ErrorBarGroup).length,
+                    bars: visited.filter((node) => node instanceof ErrorBarNode).length,
+                };
+            } finally {
+                gather.mockRestore();
+                chart?.destroy();
+            }
+        };
+
+        it('are visited as one group for the series, and not as one for each bar', async () => {
+            const { series, bars } = await visits(() => ({}));
+
+            expect(series).toBeGreaterThan(0);
+            expect(bars).toBe(0);
+        });
+
+        it('are not visited in a chart that casts a shadow and no glow', async () => {
+            const shadow = { enabled: true, fill: '#000000', blur: 4, xOffset: 4, yOffset: 4 };
+
+            expect(await visits(() => ({ glow: undefined, shadow }))).toEqual({ series: 0, bars: 0 });
+        });
+    });
 });
 
 describe('the error bars of a hovered series that is not brought to front', () => {
@@ -219,5 +250,34 @@ describe('the labels of a series with a glow', () => {
 
         expect(bare).toBeGreaterThan(0);
         expect(await labelPixels(name, { ...NODE_GLOW, spread: 30 })).toBe(bare);
+    });
+});
+
+describe('the highlights and labels of a hovered nightingale series', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    const zIndexes = async (bringToFront: boolean) => {
+        const chart = await createEnterpriseChart({
+            data: [{ q: 'Q1', a: 3, b: 2 }],
+            animation: { enabled: false },
+            series: ['a', 'b'].map((radiusKey) => ({
+                type: 'nightingale',
+                angleKey: 'q',
+                radiusKey,
+                highlight: { bringToFront },
+                label: { enabled: true },
+            })),
+        } as AgChartOptions);
+        await waitForChartStability(chart);
+        await hoverDatum(chart, 1);
+        const { highlightGroup, labelGroup } = getSeriesAt(chart, 1);
+        chart.destroy();
+        return [highlightGroup, labelGroup].map(({ zIndex }) => compareZIndex(zIndex, SERIES_GLOW_OVERLAY_Z_INDEX));
+    };
+
+    it('lie above the glow overlay when brought to front, and beneath it otherwise', async () => {
+        expect(await zIndexes(true)).toEqual([1, 1]);
+        expect(await zIndexes(false)).toEqual([-1, -1]);
     });
 });

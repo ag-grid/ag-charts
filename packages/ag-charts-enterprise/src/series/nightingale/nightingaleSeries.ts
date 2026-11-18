@@ -37,10 +37,12 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
     override setZIndex(zIndex: number): boolean {
         super.setZIndex(zIndex);
 
-        // Ensures highlights always appear on top
+        // Ensures highlights always appear on top. A series brought to front also lifts them to the level of the glow overlay,
+        // where the extra `zIndex` places them above it, so that no other series' glow covers them.
+        const level = zIndex === Number.MAX_VALUE ? zIndex : 0;
         this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, 0, SeriesContentZIndexMap.FOREGROUND, zIndex];
-        this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, 0, SeriesContentZIndexMap.HIGHLIGHT, zIndex];
-        this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, 0, SeriesContentZIndexMap.LABEL, zIndex];
+        this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, level, SeriesContentZIndexMap.HIGHLIGHT, zIndex];
+        this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, level, SeriesContentZIndexMap.LABEL, zIndex];
 
         return true;
     }
