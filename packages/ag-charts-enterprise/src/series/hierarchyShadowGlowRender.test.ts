@@ -291,10 +291,12 @@ describe('shadow and glow render (hierarchy series)', () => {
                 return [x + padding.left - 3, y + padding.top + height / 2] as const;
             };
 
-            it.each([
+            const PARENTS = [
                 ['a tile in its group in a treemap', treemap, 'A1', 'A', () => leftOf('A1')],
                 ['a sector in its parent ring in a sunburst', sunburst, 'A1', 'A', insideRing],
-            ])(
+            ] as const;
+
+            it.each(PARENTS)(
                 'keeps the glow of %s beneath the fill of the parent',
                 async (_name, testCase, hovered, parent, pixelOf) => {
                     const hover = [hovered];
@@ -305,17 +307,17 @@ describe('shadow and glow render (hierarchy series)', () => {
                 }
             );
 
-            // The control: with a parent that does not glow, the glow of the hovered node shows over its fill.
-            it.each([
-                ['a tile in its group in a treemap', treemap, 'A1', () => leftOf('A1')],
-                ['a sector in its parent ring in a sunburst', sunburst, 'A1', insideRing],
-            ])('shows the glow of %s over a parent that does not glow', async (_name, testCase, hovered, pixelOf) => {
-                const hover = [hovered];
+            // The control, at the same pixel: with a parent that does not glow, the glow of the hovered node shows over its fill.
+            it.each(PARENTS)(
+                'shows the glow of %s over a parent that does not glow',
+                async (_name, testCase, hovered, _parent, pixelOf) => {
+                    const hover = [hovered];
 
-                expect(await hoveredPixel(testCase, { hover, glows: [], highlight: own }, pixelOf)).not.toEqual(
-                    await hoveredPixel(testCase, { hover, glows: [], highlight: off }, pixelOf)
-                );
-            });
+                    expect(await hoveredPixel(testCase, { hover, glows: [], highlight: own }, pixelOf)).not.toEqual(
+                        await hoveredPixel(testCase, { hover, glows: [], highlight: off }, pixelOf)
+                    );
+                }
+            );
         });
 
         // Through its itemStyler, the hovered node glows at rest too, and so is not covered when it is not hovered.
@@ -335,22 +337,30 @@ describe('shadow and glow render (hierarchy series)', () => {
 
     // A series glow casts without a highlight glow of its own: its highlight is off, or the hovered node is of another part.
     describe('the series glow with no highlight glow to cast it', () => {
-        /** The chart with `hover` hovered, and the series glow of `placement`, as it is drawn. */
-        const hoveredImage = async (testCase: typeof treemap, placement: object, hover: string, highlight?: object) => {
+        /** An itemStyler that takes the glow off the node `name` alone. */
+        const withoutGlowOn = (name: string) => ({
+            itemStyler: ({ datum }: { datum?: { name?: string } }) =>
+                datum?.name === name ? { glow: { enabled: false } } : {},
+        });
+
+        /** The chart with `hover` hovered and the series glow, and `without` the glow of that node, as it is drawn. */
+        const hoveredImage = async (testCase: typeof treemap, hover: string, highlight?: object, without?: string) => {
+            const placement = without == null ? { glow: GLOW } : { glow: GLOW, ...withoutGlowOn(without) };
             await create([glowSeries(testCase, placement, highlight)], testCase.data, RENDER_OPTIONS);
             await hoverNode(chart(), nodeNamed(hover)(chart()));
             return canvasImage(chart());
         };
 
+        // The glow of every other node is in both images, so the node is the one that they differ by.
         it.each([
-            ['a sunburst', sunburst, 'B', { enabled: false }],
-            ['the groups of a treemap', treemapGroup, 'A', { enabled: false }],
-            ['the tiles of a treemap, with their highlight off,', treemap, 'A1', { enabled: false }],
-            ['the tiles of a treemap, with a group hovered,', treemap, 'B', undefined],
-        ])('casts the glow of %s', async (_name, testCase, hover, highlight) => {
-            const withGlow = await hoveredImage(testCase, { glow: GLOW }, hover, highlight);
+            ['a sunburst', sunburst, 'B', { enabled: false }, 'B'],
+            ['the groups of a treemap', treemapGroup, 'A', { enabled: false }, 'A'],
+            ['the tiles of a treemap, with their highlight off,', treemap, 'A1', { enabled: false }, 'A1'],
+            ['the tiles of a treemap, with a group hovered,', treemap, 'B', undefined, 'A1'],
+        ])('casts the glow of %s', async (_name, testCase, hover, highlight, node) => {
+            const withGlow = await hoveredImage(testCase, hover, highlight);
 
-            expect(differingBytes(withGlow, await hoveredImage(testCase, {}, hover, highlight))).toBeGreaterThan(0);
+            expect(differingBytes(withGlow, await hoveredImage(testCase, hover, highlight, node))).toBeGreaterThan(0);
         });
     });
 
