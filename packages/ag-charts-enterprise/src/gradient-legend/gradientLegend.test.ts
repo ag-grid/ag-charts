@@ -256,7 +256,7 @@ describe('GradientLegend', () => {
                 series: [{ type: 'heatmap', xKey: 'year', yKey: 'person', colorKey: 'spending' }],
                 gradientLegend,
             });
-            const module = deproxy(chart).modulesManager.getModule('gradientLegend') as unknown as GradientBarAccessor;
+            const module = deproxy(chart).modulesManager.getModule<GradientBarAccessor>('gradientLegend')!;
             const { width, height } = module.gradientRectSelection.at(0)!;
             return { width, height };
         }
