@@ -57,7 +57,12 @@ export class AccessibleDark extends DarkTheme {
     override getThemeParameters(): ThemeParamDefaults<WithThemeParams<AgChartAllThemeParams>> {
         return {
             ...super.getThemeParameters(),
-            ...accessibleThemeParameters('#8cc8ff'),
+            ...accessibleThemeParameters({
+                accentColor: '#a5b4fc',
+                foregroundColor: '#fff',
+                backgroundColor: '#000',
+                subtleTextMix: 0.7,
+            }),
         };
     }
 }

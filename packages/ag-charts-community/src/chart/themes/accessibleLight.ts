@@ -56,7 +56,7 @@ export class AccessibleLight extends ChartTheme {
     override getThemeParameters(): ThemeParamDefaults<WithThemeParams<AgChartAllThemeParams>> {
         return {
             ...super.getThemeParameters(),
-            ...accessibleThemeParameters('#0a4f96'),
+            ...accessibleThemeParameters({ accentColor: '#3730a3', foregroundColor: '#000', subtleTextMix: 0.8 }),
         };
     }
 }

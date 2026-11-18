@@ -83,7 +83,10 @@ __chartAPI.optionsMutationFn = function update(options, preset) {
     if (!isAgThemeOrUndefined(ownBaseTheme)) return options;
 
     // Like the gallery thumbnails, the gallery's theme dropdown replaces the example's own base theme.
-    const baseTheme = document.documentElement.dataset.galleryTheme ?? ownBaseTheme;
+    // TEMP: defaults docs examples to ag-accessible for QA. Revert before deploying.
+    const qaBaseTheme =
+        ownBaseTheme == null || ownBaseTheme.replace(/-dark$/, '') === 'ag-default' ? 'ag-accessible' : ownBaseTheme;
+    const baseTheme = document.documentElement.dataset.galleryTheme ?? qaBaseTheme;
 
     // Every other colour is derived from these two, so an example setting either has a scheme of
     // its own that these variables would only half-overwrite.
