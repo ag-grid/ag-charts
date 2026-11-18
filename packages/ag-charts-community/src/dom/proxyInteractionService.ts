@@ -263,6 +263,7 @@ export class ProxyInteractionService {
             this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, element.getElement(), insert);
             element.destroyListener = () => {
                 this.ctx.domManager.removeChild('canvas-proxy', params.domManagerId);
+                element.destroyListener = undefined;
             };
         }
     }

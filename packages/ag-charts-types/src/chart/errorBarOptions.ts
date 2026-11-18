@@ -1,4 +1,4 @@
-import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
+import type { LineDashOptions, ResolvedLineDash, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from './callbackOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from './types';
 
@@ -9,7 +9,8 @@ export type AgErrorBarItemStylerParams<TDatum = DatumDefault, TContext = Context
     ContextCallbackParams<TContext> &
     SeriesKeyOptions<TDatum> &
     ErrorBarKeyOptions<TDatum> &
-    Required<AgErrorBarThemeableOptions>;
+    Required<Omit<AgErrorBarThemeableOptions, 'lineDash'>> &
+    ResolvedLineDash;
 
 interface ErrorBarStylingOptions extends StrokeOptions, LineDashOptions {
     /** Whether to display the error bars. */

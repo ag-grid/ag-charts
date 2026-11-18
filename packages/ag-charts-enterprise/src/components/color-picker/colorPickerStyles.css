@@ -314,3 +314,10 @@
     border: none;
     outline: none;
 }
+
+.ag-charts-color-picker__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: calc(var(--ag-charts-spacing) * 2);
+    margin-top: calc(var(--ag-charts-spacing) * 2);
+}

@@ -25,6 +25,8 @@ import { ColorPicker } from '../color-picker/colorPicker';
 
 const { DraggablePopover } = _ModuleSupport;
 
+const MULTI_COLOR_CLASS = 'ag-charts-dialog__color-picker-button--multi-color';
+
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
 
 interface RadioGroupOptions<T extends string> {
@@ -75,7 +77,7 @@ interface ColorPickerOptions {
     isMultiColor?: boolean;
     hasMultiColorOption: boolean;
     onChange: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
-    onChangeHide: () => void;
+    onChangeHide: (cancelled: boolean) => void;
 }
 
 /**
@@ -249,12 +251,31 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    /** A labelled row of inputs, for values that belong together such as the x and y of one point. */
-    protected createInputRow(label: string, inputs: Widget[]) {
-        const group = this.createInputGroup(label);
-        group.addClass('ag-charts-dialog__input-group--inputs');
+    /** Inputs side by side, such as the x and y of one point; a row that `follows` another sits close beneath it. */
+    protected createInputRow(inputs: Widget[], follows = false) {
+        const row = new ContainerWidget('ag-charts-dialog__input-row');
+        if (follows) {
+            row.addClass('ag-charts-dialog__input-row--follows');
+        }
         for (const input of inputs) {
-            group.addChild(input);
+            row.addChild(input);
+        }
+        return row;
+    }
+
+    /** An input with its already translated label above it, or alongside it when `inline`. */
+    protected createLabelledInput(label: string, input: InputWidget, inline: boolean, ...extras: Widget[]) {
+        const group = new ContainerWidget('ag-charts-dialog__labelled-input');
+        if (inline) {
+            group.addClass('ag-charts-dialog__labelled-input--inline');
+        }
+        const labelWidget = new LabelWidget(label, 'ag-charts-dialog__input-group-label');
+        input.id = createElementId();
+        labelWidget.setFor(input.id);
+        group.addChild(labelWidget);
+        group.addChild(input);
+        for (const extra of extras) {
+            group.addChild(extra);
         }
         return group;
     }
@@ -317,6 +338,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             // Retrieve the anchor for this particular color picker element, and use it when repositioning if the chart
             // is resized. When a different color picker trigger element is clicked that one will take over this task.
             const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
+            // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
+            const swatchEl = colorEl.getElement();
+            const swatch = {
+                color: swatchEl.style.getPropertyValue('--color'),
+                isMultiColor: swatchEl.classList.contains(MULTI_COLOR_CLASS),
+            };
             this.colorPicker.show({
                 anchor,
                 fallbackAnchor,
@@ -327,15 +354,21 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 sourceEvent,
                 onChange: (newColorOpacity: string, newColor: string, newOpacity: number, newIsMultiColor: boolean) => {
                     colorEl.setCSSVariable('--color', newColorOpacity);
-                    colorEl.toggleClass('ag-charts-dialog__color-picker-button--multi-color', newIsMultiColor);
+                    colorEl.toggleClass(MULTI_COLOR_CLASS, newIsMultiColor);
                     onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
                 },
-                onChangeHide,
+                onChangeHide: (cancelled) => {
+                    if (cancelled) {
+                        colorEl.setCSSVariable('--color', swatch.color === '' ? null : swatch.color);
+                        colorEl.toggleClass(MULTI_COLOR_CLASS, swatch.isMultiColor);
+                    }
+                    onChangeHide(cancelled);
+                },
             });
         });
 
         if (isMultiColor) {
-            colorEl.addClass('ag-charts-dialog__color-picker-button--multi-color');
+            colorEl.addClass(MULTI_COLOR_CLASS);
         } else if (color != null && color !== '') {
             const hex = Color.fromString(color);
             const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);

@@ -2,13 +2,15 @@ import {
     CategoryScale,
     ContinuousScale,
     GroupedCategoryScale,
+    LogScale,
     OrdinalTimeScale,
     TimeScale,
     UnitTimeScale,
     intervalFloor,
-    intervalNext,
     isFiniteNumericValue,
     isNumericValue,
+    toNumber,
+    toPlainText,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -21,16 +23,30 @@ import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { getGrouping, getGroupingValue } from './scale';
 import type { PointType } from './scale';
 import { isCrossLineType } from './types';
-import { validateDatumPointDirection } from './validation';
 
-/** How an axis's values are typed into the settings dialog. */
-export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 'category';
+/**
+ * How a value is typed into the settings dialog: the kind of its axis, or `offset` for the position of a point within
+ * the band of a category-like axis. An offset is a percentage of the step between bands, including their padding,
+ * from the centre of the band: -50 and 50 reach the midpoints between it and its neighbours.
+ */
+export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 'category' | 'offset';
 
 export type ParsedCoordinate = AgNumericValue | Date | string;
 
-type PointRow = 'start' | 'end' | 'endRetracement';
+export type PointRow = 'start' | 'end' | 'endRetracement';
 
-export type CoordinateRow = PointRow | 'value' | 'offset' | 'startOffset' | 'endOffset';
+export function isPointRow(row: CoordinateRow): row is PointRow {
+    return row === 'start' || row === 'end' || row === 'endRetracement';
+}
+
+/** A `height` row is a distance along the y axis; the position of a point within its band is the `offset` kind. */
+export type HeightRow = 'height' | 'startHeight' | 'endHeight';
+
+export type CoordinateRow = PointRow | 'value' | HeightRow;
+
+export function isHeightRow(row: CoordinateRow): row is HeightRow {
+    return row === 'height' || row === 'startHeight' || row === 'endHeight';
+}
 
 /** The datum properties a coordinate edit can change, merged onto the datum as-is. */
 export interface CoordinateChangeProps {
@@ -49,6 +65,8 @@ export interface CoordinateField {
     kind: CoordinateKind;
     /** The datum's current value, formatted for the input. */
     value: string;
+    /** The decimals the axis's crosshair label shows for a number, so that the input shows the same. */
+    fractionDigits?: number;
     /** The input's granularity in seconds, so that a time shows the precision of its value. */
     step?: number;
     /** The axis's categories for the input to suggest, read once as the input is created. */
@@ -85,7 +103,7 @@ export function formatCoordinate(point: PointType | undefined, kind: CoordinateK
     if (value == null) {
         return '';
     }
-    if (kind === 'number') {
+    if (kind === 'number' || kind === 'offset') {
         return String(value);
     }
     if (kind === 'category') {
@@ -114,58 +132,58 @@ export function parseCoordinate(text: string, kind: CoordinateKind): ParsedCoord
     if (kind === 'number') {
         return parseNumeric(text);
     }
+    if (kind === 'offset') {
+        const offset = Number(text);
+        return Number.isFinite(offset) ? offset : undefined;
+    }
 
     const date = new Date(text);
     return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-/** The bar nearest to a date, or `undefined` when the date is before the first bar or after the last. */
+/**
+ * The bar nearest to a date, as an ordinal time axis cannot place a date between or beyond its bars; `undefined` where
+ * the axis has none.
+ */
 export function snapToBar(date: Date, bars: readonly Date[]): Date | undefined {
     const target = date.getTime();
     let nearest: Date | undefined;
     let nearestDistance = Infinity;
-    let first = Infinity;
-    let last = -Infinity;
     for (const bar of bars) {
-        const time = bar.getTime();
-        first = Math.min(first, time);
-        last = Math.max(last, time);
-        const distance = Math.abs(time - target);
+        const distance = Math.abs(bar.getTime() - target);
         if (distance < nearestDistance) {
             nearest = bar;
             nearestDistance = distance;
         }
     }
-    return target < first || target > last ? undefined : nearest;
+    return nearest;
 }
 
-/** The start of the band holding a date, or `undefined` when the date is before the first band or after the last. */
+/** The start of the band holding a date, or `undefined` when the axis has no interval to band by. */
 export function floorToBand(date: Date, scale: UnitTimeScale): Date | undefined {
-    const { interval, domain } = scale;
-    if (interval == null || domain.length < 2) {
-        return;
-    }
-
-    const first = intervalFloor(interval, Math.min(domain[0].getTime(), domain[1].getTime()));
-    const last = intervalFloor(interval, Math.max(domain[0].getTime(), domain[1].getTime()));
-    return date >= first && date < intervalNext(interval, last) ? intervalFloor(interval, date) : undefined;
+    const { interval } = scale;
+    return interval == null ? undefined : intervalFloor(interval, date);
 }
 
 /**
- * The value to apply for a parsed one, or `undefined` to reject it. A point must pass the test a dragged handle does,
- * land on a bar or band of a time band axis, or name a category; an offset is a distance, so it is not bound to the axis.
+ * The value to apply for a parsed one, or `undefined` to reject it. A value must be one its axis can place, as an
+ * annotation at a position the axis cannot convert is not drawn and cannot be selected again: a category must be one
+ * of the axis's, a log axis takes only the sign of its domain, and an ordinal time axis puts a date on its nearest
+ * bar. A value is not bound to the domain otherwise, as data loaded later can change it, and a time band axis puts a
+ * date on its band. A height is a distance, so it is not bound to the axis, but an offset is bound to its band.
  */
-
 export function resolveCoordinate(
     field: CoordinateField,
     parsed: ParsedCoordinate,
     context: AnnotationContext
 ): ParsedCoordinate | undefined {
-    if (field.row === 'offset' || field.row === 'startOffset' || field.row === 'endOffset') {
+    if (isHeightRow(field.row)) {
         return parsed;
     }
-
     const axis = field.axis === 'x' ? context.xAxis : context.yAxis;
+    if (field.kind === 'offset') {
+        return typeof parsed === 'number' && Math.abs(parsed) <= OFFSET_LIMIT + OFFSET_TOLERANCE ? parsed : undefined;
+    }
     if (field.kind === 'category') {
         return axis.scale.domain.find((category) => withoutLineBreaks(category) === parsed);
     }
@@ -175,7 +193,19 @@ export function resolveCoordinate(
     if (field.kind === 'ordinal-time') {
         return parsed instanceof Date ? snapToBar(parsed, axis.scale.domain) : undefined;
     }
-    return validateDatumPointDirection(parsed, axis) ? parsed : undefined;
+    if (field.kind === 'number' && LogScale.is(axis.scale)) {
+        return hasSignOfLogDomain(parsed, axis.scale) ? parsed : undefined;
+    }
+    return parsed;
+}
+
+/** A logarithm is not defined for zero or for the sign opposite to the domain's. */
+function hasSignOfLogDomain(parsed: ParsedCoordinate, { domain }: LogScale) {
+    if (!isNumericValue(parsed)) {
+        return false;
+    }
+    const value = toNumber(parsed);
+    return Math.min(...domain) >= 0 ? value > 0 : value < 0;
 }
 
 /** The editable coordinates of an annotation, in the order the dialog lists them. */
@@ -185,7 +215,13 @@ export function getCoordinateFields(datum: LinearDialogDatumType, context: Annot
 
     if (isCrossLineType(datum)) {
         const axis = datum.type === AnnotationType.HorizontalLine ? y : x;
-        return axis ? [createPointField('value', axis, datum.value, (value) => ({ value }))] : [];
+        const toProps = (value: PointType) => ({ value });
+        return axis
+            ? [
+                  createPointField('value', axis, datum.value, toProps),
+                  ...createOffsetPointFields('value', axis, datum.value, toProps),
+              ]
+            : [];
     }
 
     const fields: CoordinateField[] = [];
@@ -196,11 +232,17 @@ export function getCoordinateFields(datum: LinearDialogDatumType, context: Annot
         if (y) {
             fields.push(createPointField(row, y, point.y, (value) => ({ [row]: { y: value } })));
         }
+        if (x) {
+            fields.push(...createOffsetPointFields(row, x, point.x, (value) => ({ [row]: { x: value } })));
+        }
+        if (y) {
+            fields.push(...createOffsetPointFields(row, y, point.y, (value) => ({ [row]: { y: value } })));
+        }
     }
 
     // A channel's offset is a distance along the y axis, which only a numeric axis can measure.
     if (y?.kind === 'number') {
-        fields.push(...getOffsetFields(datum));
+        fields.push(...getHeightFields(datum));
     }
 
     return fields;
@@ -213,6 +255,19 @@ function withoutLineBreaks(category: unknown) {
 
 function pad(value: number, length = 2) {
     return String(value).padStart(length, '0');
+}
+
+const OFFSET_LIMIT = 50;
+// An offset is shown to two decimals, so the limit it is shown at is accepted back.
+const OFFSET_TOLERANCE = 0.005;
+
+/**
+ * Where an offset of zero lies in `groupPercentage`, and how many of its units make a step. A band's group percentage
+ * runs from its start across its width, so its centre is 0.5 and a step is more than one unit where bands are padded. A
+ * band with no width is a point, which a group percentage measures from across a whole step.
+ */
+function getOffsetBasis({ step = 0, bandwidth = 0 }: Pick<AnnotationAxisContext['scale'], 'step' | 'bandwidth'>) {
+    return bandwidth > 0 && step > 0 ? { centre: 0.5, stepInUnits: step / bandwidth } : { centre: 0, stepInUnits: 1 };
 }
 
 const INTEGER_TEXT = /^[+-]?\d+$/;
@@ -250,10 +305,62 @@ function createPointField(
         axis,
         kind,
         value,
+        fractionDigits: getFractionDigits(kind, current, context),
         step: getTimeStep(kind, value),
         suggestions: kind === 'category' ? () => context.scale.domain.map(withoutLineBreaks) : undefined,
         toProps: (parsed) => toProps(toPointType(parsed, kind, current)),
     };
+}
+
+/** The position within its band of a point on a category-like axis; none where the axis snaps points to the band centre. */
+function createOffsetPointFields(
+    row: CoordinateRow,
+    { axis, context, kind }: CoordinateAxis,
+    current: PointType | undefined,
+    toProps: (value: PointType) => CoordinateChangeProps
+): CoordinateField[] {
+    if (kind === 'number' || kind === 'time' || context.snapToGroup) {
+        return [];
+    }
+
+    const { value, groupPercentage } = getGrouping(current);
+    const { centre, stepInUnits } = getOffsetBasis(context.scale);
+    return [
+        {
+            row,
+            axis,
+            kind: 'offset',
+            value: String(Math.round(((groupPercentage - centre) / stepInUnits) * 1e4) / 100),
+            toProps: (parsed) =>
+                typeof parsed === 'number'
+                    ? toProps({ value, groupPercentage: centre + (parsed / 100) * stepInUnits })
+                    : undefined,
+        },
+    ];
+}
+
+/** Undefined where the crosshair label is not a plain number, such as the text of a custom formatter. */
+function getFractionDigits(kind: CoordinateKind, current: PointType | undefined, context: AnnotationAxisContext) {
+    const value = getGroupingValue(current);
+    if (kind !== 'number' || typeof value !== 'number') {
+        return;
+    }
+    const text = toPlainText(context.formatScaleValue(value, 'crosshair'));
+    // A comma without a point is a thousands separator or a decimal comma, and the text cannot say which.
+    if (text.includes(',') && !text.includes('.')) {
+        return;
+    }
+    const match = /^\D*[\d,]+(?:\.(\d+))?\D*$/.exec(text);
+    return match ? (match[1]?.length ?? 0) : undefined;
+}
+
+/** A number's text at the decimals its input shows; the datum keeps the full precision. */
+export function displayCoordinate(text: string, fractionDigits: number | undefined): string {
+    if (fractionDigits == null || INTEGER_TEXT.test(text.trim())) {
+        return text;
+    }
+    const value = Number(text);
+    return text.trim() === '' || !Number.isFinite(value) ? text : value.toFixed(Math.min(fractionDigits, 20));
 }
 
 function getTimeStep(kind: CoordinateKind, formatted: string) {
@@ -281,20 +388,20 @@ function getPointRows(datum: Exclude<LinearDialogDatumType, CrossLineDatum>): [P
     return rows;
 }
 
-function getOffsetFields(datum: LinearDialogDatumType): CoordinateField[] {
+function getHeightFields(datum: LinearDialogDatumType): CoordinateField[] {
     if (parallelChannelDatum.is(datum)) {
-        return [createOffsetField('offset', datum.height, 'height')];
+        return [createHeightField('height', datum.height, 'height')];
     }
     if (disjointChannelDatum.is(datum)) {
         return [
-            createOffsetField('startOffset', datum.startHeight, 'startHeight'),
-            createOffsetField('endOffset', datum.endHeight, 'endHeight'),
+            createHeightField('startHeight', datum.startHeight, 'startHeight'),
+            createHeightField('endHeight', datum.endHeight, 'endHeight'),
         ];
     }
     return [];
 }
 
-function createOffsetField(
+function createHeightField(
     row: CoordinateRow,
     current: AgNumericValue,
     key: 'height' | 'startHeight' | 'endHeight'

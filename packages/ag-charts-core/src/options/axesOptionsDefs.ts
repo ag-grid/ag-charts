@@ -48,6 +48,7 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     labelBoxOptionsDef,
+    lineDash,
     lineDashOptionsDef,
     padding,
     strokeOptionsDef,
@@ -269,7 +270,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
                 fillOpacity: positiveNumber,
                 stroke: or(colorOrRef, themeOperator), // TODO: is `themeOperator` still needed?
                 strokeWidth: positiveNumber,
-                lineDash: arrayOf(positiveNumber),
+                lineDash,
             },
             'a grid-line style object array'
         ),
@@ -281,7 +282,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         stroke: colorOrRef,
         strokeWidth: positiveNumber,
         strokeOpacity: ratio,
-        lineDash: arrayOf(positiveNumber),
+        lineDash,
     },
     tick: cartesianAxisTick,
     context: () => true,
@@ -468,7 +469,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgCate
             fillOpacity: ratio,
             stroke: colorOrRef,
             strokeWidth: positiveNumber,
-            lineDash: arrayOf(positiveNumber),
+            lineDash,
         },
     }),
 };

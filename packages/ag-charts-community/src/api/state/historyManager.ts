@@ -81,7 +81,7 @@ export class HistoryManager {
         if (undoAction == null) return;
 
         for (const mementoOriginatorKey of undoAction.mementos.keys()) {
-            const previousMemento = this.findPreviousMemento(mementoOriginatorKey);
+            const previousMemento = this.findMemento(mementoOriginatorKey, this.historyIndex - 1);
             if (previousMemento === NOT_FOUND) {
                 throw new Error(`Could not find previous memento for [${mementoOriginatorKey}].`);
             }
@@ -106,8 +106,21 @@ export class HistoryManager {
         this.debugEvent(`History redo: [${redoAction.label}]`);
     }
 
-    private findPreviousMemento(mementoOriginatorKey: string) {
-        for (let i = this.historyIndex - 1; i >= 0; i--) {
+    /** Restores the originators to the current history entry, without changing the history. */
+    revert(...originators: Array<MementoOriginator>) {
+        for (const { mementoOriginatorKey } of originators) {
+            const memento = this.findMemento(mementoOriginatorKey, this.historyIndex);
+            if (memento === NOT_FOUND) {
+                throw new Error(`Could not find memento for [${mementoOriginatorKey}].`);
+            }
+            this.restoreMemento(mementoOriginatorKey, memento);
+        }
+
+        this.debugEvent('History revert:', originators.map((originator) => originator.mementoOriginatorKey).join());
+    }
+
+    private findMemento(mementoOriginatorKey: string, fromIndex: number) {
+        for (let i = fromIndex; i >= 0; i--) {
             if (this.history[i].mementos.has(mementoOriginatorKey)) {
                 return this.history[i].mementos.get(mementoOriginatorKey);
             }

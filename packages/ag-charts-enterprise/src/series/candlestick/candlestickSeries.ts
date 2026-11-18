@@ -9,6 +9,7 @@ import {
     isImageFill,
     isPatternFill,
 } from 'ag-charts-core';
+import type { NormalisedLineDash } from 'ag-charts-core';
 import type { CssColor } from 'ag-charts-types';
 
 import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from '../ohlc/ohlcSeriesBase';
@@ -18,7 +19,13 @@ import { CandlestickNode } from './candlestickNode';
 type NormalisedCandlestickStyle = Normalised<
     NonNullable<OhlcNodeDatum['style']>,
     never,
-    FillStrokeMorph & { wick: Normalised<NonNullable<OhlcNodeDatum['style']>['wick'], never, { stroke?: CssColor }> }
+    FillStrokeMorph & {
+        wick: Normalised<
+            NonNullable<OhlcNodeDatum['style']>['wick'],
+            never,
+            { stroke?: CssColor } & NormalisedLineDash
+        >;
+    }
 >;
 
 /**

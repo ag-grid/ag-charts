@@ -16,7 +16,7 @@ import type {
 } from '../../chart/labelOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
+import type { AgLineDashName, ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
@@ -28,7 +28,13 @@ import type {
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    FillOptions,
+    LineDashOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from './commonOptions';
 
 export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
     extends
@@ -71,7 +77,8 @@ export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        Required<AgSeriesMarkerStyle> {
+        Required<Omit<AgSeriesMarkerStyle, 'lineDash'>>,
+        ResolvedLineDash {
     /** The type of datum. This can be `high` or `low`. */
     itemType: AgRangeAreaSeriesItemType;
 }
@@ -159,8 +166,8 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     strokeWidth?: PixelSize;
     /** The opacity of the stroke colour. */
     strokeOpacity?: Opacity;
-    /** An array specifying the length in pixels of alternating dashes and gaps for the stroke. */
-    lineDash?: PixelSize[];
+    /** The dash pattern for the stroke: a stock pattern name, or an array specifying the length in pixels of alternating dashes and gaps. */
+    lineDash?: PixelSize[] | AgLineDashName;
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
     /** Configuration used for distinct styling of the low and high lines. */

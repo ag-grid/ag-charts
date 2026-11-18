@@ -214,7 +214,9 @@ export class ChartTheme {
             tooltipSubtleTextColor: { $ref: 'chromeSubtleTextColor' },
 
             crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
+            crosshairLabelHorizontalPadding: 8,
             crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
+            crosshairLabelVerticalPadding: 4,
 
             titleFontSize: { $rem: FONT_SIZE_RATIO.LARGEST },
             titleLineHeight: { $ref: 'lineHeight' },
@@ -289,6 +291,7 @@ export class ChartTheme {
             seriesLabelFontSize: { $ref: 'fontSize' },
             seriesLabelLineHeight: { $ref: 'lineHeight' },
             seriesLabelFontWeight: { $ref: 'fontWeight' },
+            seriesLabelPadding: 8,
             seriesLabelInsideBackgroundColor: 'transparent',
             seriesLabelInsideTextColor: { $ref: 'chartBackgroundColor' },
             seriesLabelOutsideBackgroundColor: 'transparent',

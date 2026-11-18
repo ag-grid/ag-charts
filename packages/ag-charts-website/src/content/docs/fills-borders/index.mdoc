@@ -40,6 +40,36 @@ See [Series Fills](./fills) for details of the available fills types, including 
 }
 ```
 
+## Line Dash
+
+The `lineDash` option sets the dash pattern of a stroke. It accepts either a named stock pattern or an array of numbers, and the names are accepted everywhere `lineDash` is.
+
+{% chartExampleRunner title="Line Dash Patterns" name="line-dash-patterns" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'line',
+            xKey: 'quarter',
+            yKey: 'revenue',
+            strokeWidth: 2,
+            lineDash: 'long-dash-dot', // same as [14, 3, 2, 3] at a strokeWidth of 2
+        },
+    ],
+}
+```
+
+Each name is shorthand for a pattern of alternating dash and gap lengths, measured in multiples of the `strokeWidth`. A dot is always as long as the line is wide, so a name looks the same on a thin line as on a thick one.
+
+The names are `'solid'`, `'dot'`, `'dash'`, `'dash-dot'`, `'long-dash'`, `'long-dash-dot'`, `'long-dash-dot-dot'`, `'dash-dot-dot'`, `'dash-long-dash'` and `'long-dash-dash-dash'`.
+
+A custom pattern is still given as an array of lengths in pixels, for example `lineDash: [8, 2, 2, 2]`, and is not scaled by the `strokeWidth`. The `lineDashOffset` is in pixels too.
+
+Legend items and tooltip markers are drawn with the same dash as the series. Their lines are at most `2` pixels wide, so the dash, named or an array, is scaled in proportion to match and a `'dot'` stays a dot.
+
+A name takes the `strokeWidth` set alongside it, so a [Styler](./stylers/) that returns both a `strokeWidth` and a `lineDash` name scales the name by that width. A highlight or selection style that changes only the `strokeWidth` keeps the dash lengths of the series, as it sets no `lineDash` of its own.
+
 ## Padding
 
 Padding can be defined as a single number to be applied to all sides of the element, or as an object with values for `top`, `right`, `bottom` and `left`.

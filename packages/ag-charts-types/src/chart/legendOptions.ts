@@ -3,6 +3,7 @@ import type { Formatter, Renderer } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
+    AgLineDashName,
     AgMarkerShape,
     ContextDefault,
     FontFamilyFull,
@@ -98,8 +99,8 @@ export interface AgChartLegendLineDisabledStyle {
     stroke?: AgCssColorOrRef;
     /** Opacity of the line stroke. */
     strokeOpacity?: Opacity;
-    /** Defines how the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. */
-    lineDash?: PixelSize[];
+    /** Defines how the line stroke is rendered: a stock pattern name, or an array in which every number specifies the length in pixels of alternating dashes and gaps. */
+    lineDash?: PixelSize[] | AgLineDashName;
     /** The initial offset in pixels of the dash pattern. */
     lineDashOffset?: PixelSize;
 }

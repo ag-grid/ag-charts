@@ -33,8 +33,8 @@ export class LocaleManager {
     }
 
     t(key: string, variables: Record<string, any> = {}): string {
-        const { localeText = AG_CHARTS_LOCALE_EN_US, getLocaleText } = this;
-        const defaultValue: string | undefined = localeText[key];
+        const { localeText, getLocaleText } = this;
+        const defaultValue: string | undefined = localeText?.[key] ?? AG_CHARTS_LOCALE_EN_US[key];
 
         return String(
             getLocaleText?.({ key, defaultValue, variables }) ??

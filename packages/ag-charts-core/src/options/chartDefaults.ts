@@ -351,6 +351,7 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
         'line-series',
         'line-with-markers-series',
         'locked',
+        'magnet',
         'measurer-drawing',
         'note-annotation',
         'ohlc-series',

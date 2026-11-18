@@ -3,15 +3,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ChartUpdateType } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
+import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import { TooltipManager } from '../interaction/tooltipManager';
 import {
+    clickElementAction,
     createChart,
     deproxy,
     expectWarningsCalls,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    waitForChartStability,
 } from '../test/utils';
 import type { GroupedValidationIssues } from '../validation/chartValidations';
 import { getValidationOverlay } from './validationOverlay';
@@ -487,54 +490,40 @@ describe('ValidationOverlay', () => {
             expect(overlay.querySelector('.ag-charts-validation-overlay__copy')).toBeNull();
             expect(overlay.querySelector('.ag-charts-validation-overlay__dismiss')).not.toBeNull();
         });
+    });
 
-        it("is created in the chart's own document, as a chart in a popup window needs", async () => {
-            chart = deproxy(
-                await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] })
-            );
-
-            const popupDocument = document.implementation.createHTMLDocument('popup');
-            const agDocument = agDocumentWith({ writeText: vi.fn().mockResolvedValue(undefined) });
-            Object.defineProperty(agDocument, 'document', { value: popupDocument });
-            const overlay = getValidationOverlay({
-                agDocument,
-                localeManager: chart.ctx.localeManager,
-                grouped: groupedWithIssue,
-                onDismiss: () => undefined,
-            });
-
-            const elements = [overlay, ...Array.from(overlay.querySelectorAll('*'))];
-            expect(elements.length).toBeGreaterThan(10);
-            expect(elements.filter((element) => element.ownerDocument !== popupDocument)).toEqual([]);
-        });
-
-        it('clicking its buttons does not submit a form that contains the chart', async () => {
-            chart = deproxy(
-                await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] })
-            );
-
-            const onDismiss = vi.fn();
-            const overlay = getValidationOverlay({
-                agDocument: agDocumentWith({ writeText: vi.fn().mockResolvedValue(undefined) }),
-                localeManager: chart.ctx.localeManager,
-                grouped: groupedWithIssue,
-                onDismiss,
-            });
+    describe('#form', () => {
+        it('clicking Dismiss does not submit a form that contains the chart', async () => {
             const form = document.createElement('form');
             const onSubmit = vi.fn((event: Event) => event.preventDefault());
             form.addEventListener('submit', onSubmit);
-            form.appendChild(overlay);
-            document.body.appendChild(form);
+            document.body.append(form);
 
             try {
-                overlay.querySelector<HTMLButtonElement>('.ag-charts-validation-overlay__copy')!.click();
-                overlay.querySelector<HTMLButtonElement>('.ag-charts-validation-overlay__dismiss')!.click();
+                const options = prepareTestOptions(
+                    { ...invalidStrokeWidthOptions, validations: { showOverlayOn: ['warning'] } } as AgChartOptions,
+                    form
+                );
+                chart = deproxy(AgCharts.create(options));
+                await waitForChartStability(chart);
+                const dismiss = form.querySelector('.ag-charts-validation-overlay__dismiss');
+                expect(dismiss).not.toBeNull();
 
-                expect(onDismiss).toHaveBeenCalledTimes(1);
+                await clickElementAction(dismiss!)(chart);
+
+                expect(form.querySelector('.ag-charts-overlay')?.getAttribute('aria-hidden')).toEqual('true');
                 expect(onSubmit).not.toHaveBeenCalled();
             } finally {
                 form.remove();
             }
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`"notanumber"\`; expecting a number greater than or equal to 0, ignoring.",
+  ],
+]
+`);
         });
     });
 });

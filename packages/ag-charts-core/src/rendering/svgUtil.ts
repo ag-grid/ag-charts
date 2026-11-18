@@ -1,4 +1,4 @@
-import type { LineDashOptions } from 'ag-charts-types';
+import type { PixelSize } from 'ag-charts-types';
 
 import type { NormalisedStrokeOptions } from '../options/normalised/normalisedCommonOptions';
 import type { FontOptions } from '../types/text';
@@ -18,7 +18,10 @@ export function setSvgStrokeAttributes(element: SVGElement, options: NormalisedS
     if (strokeOpacity != null) element.setAttribute('stroke-opacity', String(strokeOpacity));
 }
 
-export function setSvgLineDashAttributes(element: SVGElement, options: LineDashOptions) {
+export function setSvgLineDashAttributes(
+    element: SVGElement,
+    options: { lineDash?: readonly PixelSize[]; lineDashOffset?: PixelSize }
+) {
     const { lineDash, lineDashOffset } = options;
     if (lineDash?.some((d) => d !== 0)) {
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setLineDash#segments

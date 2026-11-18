@@ -228,11 +228,14 @@ export function markThemeOperators(theme: unknown) {
     }
 }
 
+/** Whether `value` is an operator object recorded by {@link markThemeOperators}. */
+export function isThemeOriginOperator(value: unknown) {
+    return typeof value === 'object' && value != null && themeOriginOperators.has(value);
+}
+
 /** Accepts a theme operator when validating a theme, or one recorded by {@link markThemeOperators}. */
 export function isThemeOperatorAllowed(value: unknown, context: ValidatorContext) {
-    return (
-        isThemeOperator(value) && (context.params.themeOperators === true || themeOriginOperators.has(value as object))
-    );
+    return isThemeOperator(value) && (context.params.themeOperators === true || isThemeOriginOperator(value));
 }
 
 function callbackResultParams(params: ValidateParams): ValidateParams {

@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { PlainObject } from 'ag-charts-core';
+import { type PlainObject, markThemeOperators } from 'ag-charts-core';
 import { expectWarningsCalls, setupMockConsole, testLogger } from 'ag-charts-test';
-import type { AgChartThemeName } from 'ag-charts-types';
 
 import { getChartTheme } from '../chart/mapping/themes';
 import { setAgChartsDebug } from '../chart/test/seriesAccessors';
@@ -28,16 +27,120 @@ describe('OptionsGraph', () => {
 
     it.each(['$merge', '$clone'])('should ignore prototype keys of a user row grafted by %s', (operator) => {
         const row = JSON.parse('{ "__proto__": { "testMarker": 1 }, "value": 2 }');
-        const userOptions = prepareOptions({
-            title: { [operator]: { $path: '/series/0/data/0' } },
-            series: [{ type: 'line', data: [row] }],
-        });
-        const options = new OptionsGraph({}, userOptions).resolve(testLogger);
+        const overrides = { line: { title: { [operator]: { $path: '/series/0/data/0' } } } };
+        const userOptions = prepareOptions({ series: [{ type: 'line', data: [row] }] });
+        const options = new OptionsGraph({}, userOptions, undefined, {}, {}, overrides).resolve(testLogger);
 
         expect(({} as any).testMarker).toBeUndefined();
         expect(Object.prototype).not.toHaveProperty('testMarker');
         expect(options.title).toEqual({ value: 2 });
         expect(Object.keys(options.title)).not.toContain('__proto__');
+    });
+
+    describe('user option operators', () => {
+        const ignoredWarning = (path: string) =>
+            `AG Charts - Theme operators are only supported in themes, ignoring [${path}].`;
+
+        it('should not interpret private operators in user options', () => {
+            const userOptions = prepareOptions({
+                subtitle: { text: 'secret' },
+                title: { text: { $path: '/subtitle/text' } },
+                footnote: { $path: '/subtitle' },
+                items: [{ $path: '/subtitle/text' }, { text: { $if: [true, { $path: '/subtitle/text' }, 'no'] } }],
+            });
+            const options = new OptionsGraph({}, userOptions).resolve(testLogger);
+
+            expect(options).toEqual({
+                subtitle: { text: 'secret' },
+                axes: expect.any(Object),
+                series: expect.any(Array),
+            });
+            expectWarningsCalls().toStrictEqual([
+                [ignoredWarning('title.text')],
+                [ignoredWarning('footnote')],
+                [ignoredWarning('items.0')],
+                [ignoredWarning('items.1.text')],
+            ]);
+        });
+
+        it('should interpret public operators and operators marked as from a theme in user options', () => {
+            const marked = { $path: '/subtitle/text' };
+            markThemeOperators(marked);
+            const params = { accentColor: 'red' };
+            const userOptions = prepareOptions({
+                subtitle: { text: 'secret' },
+                title: { text: marked, color: { ref: 'accentColor' } },
+            });
+            const options = new OptionsGraph({}, userOptions, params).resolve(testLogger);
+
+            expect(options.title).toStrictEqual({ text: 'secret', color: 'red' });
+        });
+
+        it('should not interpret operators in a user row grafted by $merge or $clone', () => {
+            const row = { value: 2, text: { $path: '/subtitle/text' } };
+            const overrides = {
+                line: {
+                    title: { $merge: { $path: '/series/0/data/0' } },
+                    footnote: { $clone: { $path: '/series/0/data/0' } },
+                },
+            };
+            const userOptions = prepareOptions({
+                subtitle: { text: 'secret' },
+                series: [{ type: 'line', data: [row] }],
+            });
+            const options = new OptionsGraph({}, userOptions, undefined, {}, {}, overrides).resolve(testLogger);
+
+            expect(options.title).toStrictEqual({ value: 2 });
+            expect(options.footnote).toStrictEqual({ value: 2 });
+            expectWarningsCalls().toStrictEqual([[ignoredWarning('title.text')], [ignoredWarning('footnote.text')]]);
+        });
+
+        it('should interpret operators in a literal theme operand of $merge or $clone', () => {
+            const overrides = {
+                line: {
+                    title: { $merge: [{ text: { $ref: 'foo' } }, { color: 'red' }] },
+                    footnote: { $clone: { text: { $ref: 'foo' } } },
+                },
+            };
+            const options = new OptionsGraph({}, prepareOptions({}), { foo: 'bar' }, {}, {}, overrides).resolve(
+                testLogger
+            );
+
+            expect(options.title).toStrictEqual({ text: 'bar', color: 'red' });
+            expect(options.footnote).toStrictEqual({ text: 'bar' });
+        });
+
+        it('should not interpret operators in user values grafted by $applyPadding and $applyCycle', () => {
+            const themeConfig = {
+                line: {
+                    padding: { $applyPadding: 4 },
+                    items: { $applyCycle: [[]] },
+                },
+            };
+            const userOptions = prepareOptions({
+                subtitle: { text: 'secret' },
+                padding: { top: { $path: '/subtitle/text' } },
+                items: [{ text: { $path: '/subtitle/text' } }],
+            });
+            const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
+
+            expect(options.padding).toStrictEqual({ top: 4, right: 4, bottom: 4, left: 4 });
+            expect(options.items).toBeUndefined();
+            expectWarningsCalls().toStrictEqual([[ignoredWarning('padding.top')], [ignoredWarning('items.0.text')]]);
+        });
+
+        it('should not interpret private operators in partial options', () => {
+            const graph = new OptionsGraph({}, prepareOptions({ subtitle: { text: 'secret' } }));
+            graph.resolve(testLogger);
+
+            const partial = graph.resolvePartial(testLogger, ['series', '0'], {
+                stroke: { $path: '/subtitle/text' },
+                fill: 'blue',
+            });
+
+            expect(partial).toStrictEqual({ fill: 'blue' });
+            expectWarningsCalls().toStrictEqual([[ignoredWarning('series.0.stroke')]]);
+        });
     });
 
     it('should merge chart defaults and user options', () => {
@@ -362,6 +465,12 @@ describe('OptionsGraph', () => {
                 });
             });
 
+            const lightDarkOverrides = { common: { title: { text: { $lightDark: ['light', 'dark'] } } } };
+            const resolveTitleText = (theme: PlainObject) =>
+                createOptionsGraph(getChartTheme(theme), prepareOptions({ series: [{ type: 'line' }] })).resolve(
+                    testLogger
+                ).title.text;
+
             it.each([
                 ['ag-default', false],
                 ['ag-default-dark', true],
@@ -369,11 +478,8 @@ describe('OptionsGraph', () => {
                 ['ag-financial-dark', true],
                 ['ag-material-dark', true],
             ])('should follow the `%s` theme', (themeName, isDark) => {
-                const options = createOptionsGraph(
-                    getChartTheme(themeName),
-                    prepareOptions({ series: [{ type: 'line' }], one: { $lightDark: ['light', 'dark'] } })
-                ).resolve(testLogger);
-                expect(options.one).toBe(isDark ? 'dark' : 'light');
+                const text = resolveTitleText({ baseTheme: themeName, overrides: lightDarkOverrides });
+                expect(text).toBe(isDark ? 'dark' : 'light');
             });
 
             it.each([
@@ -381,11 +487,12 @@ describe('OptionsGraph', () => {
                 ['ag-default-dark', 'dark'],
                 ['ag-financial-dark', 'dark'],
             ])('should follow a custom theme with `baseTheme: %s`', (baseTheme, expected) => {
-                const options = createOptionsGraph(
-                    getChartTheme({ baseTheme: baseTheme as AgChartThemeName, params: { fontSize: 13 } }),
-                    prepareOptions({ series: [{ type: 'line' }], one: { $lightDark: ['light', 'dark'] } })
-                ).resolve(testLogger);
-                expect(options.one).toBe(expected);
+                const text = resolveTitleText({
+                    baseTheme,
+                    params: { fontSize: 13 },
+                    overrides: lightDarkOverrides,
+                });
+                expect(text).toBe(expected);
             });
         });
     });
@@ -748,17 +855,21 @@ describe('OptionsGraph', () => {
                         parent: { child: 'child-value' },
                     },
                 };
-                const userOptions = prepareOptions({
-                    cousin: { $path: '/key' },
-                    secondCousin: { $path: '/parent/child' },
-                    olderSibling: { $path: '/sibling' },
-                    sibling: 'sibling-value',
-                    youngerSibling: { $path: '/sibling' },
-                    relative: {
-                        relativeChild: { $path: '../parent/child' },
+                const overrides = {
+                    line: {
+                        cousin: { $path: '/key' },
+                        secondCousin: { $path: '/parent/child' },
+                        olderSibling: { $path: '/sibling' },
+                        youngerSibling: { $path: '/sibling' },
+                        relative: {
+                            relativeChild: { $path: '../parent/child' },
+                        },
                     },
-                });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
+                };
+                const userOptions = prepareOptions({ sibling: 'sibling-value' });
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
                 expect(options).toStrictEqual({
                     key: 'key-value',
                     parent: { child: 'child-value' },
@@ -783,12 +894,11 @@ describe('OptionsGraph', () => {
                         three: 'three-value',
                     },
                 };
-                const userOptions = prepareOptions({
-                    four: { $path: './five' },
-                    five: { $path: './six' },
-                    six: 'six-value',
-                });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
+                const overrides = { line: { four: { $path: './five' }, five: { $path: './six' } } };
+                const userOptions = prepareOptions({ six: 'six-value' });
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
                 expect(options).toStrictEqual({
                     one: 'three-value',
                     two: 'three-value',
@@ -993,10 +1103,12 @@ describe('OptionsGraph', () => {
                     four: { $if: [true, { five: { $if: [true, 'yes-yes', 'yes-no'] }, six: 'six' }, 'no'] },
                 },
             };
-            const userOptions = prepareOptions({
-                seven: { $if: [true, { $omit: [['six'], { $path: '/four' }] }, { eight: 'eight' }] },
-            });
-            const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
+            const overrides = {
+                line: { seven: { $if: [true, { $omit: [['six'], { $path: '/four' }] }, { eight: 'eight' }] } },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({}), undefined, {}, {}, overrides).resolve(
+                testLogger
+            );
             expect(options).toStrictEqual({
                 one: 'yes',
                 two: 'no',

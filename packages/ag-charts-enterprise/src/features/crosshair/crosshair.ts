@@ -27,7 +27,7 @@ import {
 } from 'ag-charts-core';
 import type { ClickWidgetEvent, DragWidgetEvent, MouseWidgetEvent } from 'ag-charts-core';
 
-import { type SnapInterval, snapPositionToInterval, snapValueToInterval } from '../../utils/axisSnap';
+import { type SnapInterval, snapPositionToInterval } from '../../utils/axisSnap';
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel } from './crosshairLabel';
 
@@ -83,7 +83,6 @@ export class Crosshair
     private highlightSnapNearest: boolean = false;
     private snapsWithoutHighlight: boolean = true;
     private lastPointer: CurrentPoint | undefined = undefined;
-    private emittedPosition: number | undefined = undefined;
     // Set for the duration of a drag of a cross-line annotation whose own axis label is on this axis.
     private annotationLabelDragging: boolean = false;
 
@@ -113,7 +112,6 @@ export class Crosshair
                 this.onAnnotationAxisLabelDragStart(event)
             ),
             () => {
-                this.emitPosition(undefined);
                 for (const label of Object.values(this.labels)) {
                     label.destroy();
                 }
@@ -130,7 +128,6 @@ export class Crosshair
 
     applyOptions(options: NormalisedCrosshairOptions) {
         this.options = options;
-        if (!options.enabled) this.emitPosition(undefined);
     }
 
     formatValue(
@@ -268,18 +265,12 @@ export class Crosshair
         });
     }
 
+    /** A snap interval keeps a snapping crosshair on the pointer, snapped to the interval, rather than on the highlight. */
     private followsPointer(): boolean {
-        const snap = this.snap();
-        if (snap === false) return true;
+        const snap = this.options?.snap;
+        if (snap === false || this.snapInterval() != null) return true;
         if (this.activeHighlight) return this.highlightSnapKeys === 'pointer';
-        // With nothing highlighted, a snap interval rounds the pointer rather than hiding the crosshair.
-        if (this.snapInterval() != null) return true;
         return snap == null && !this.snapsWithoutHighlight;
-    }
-
-    /** A snap interval turns snapping on when `snap` is unset. */
-    private snap(): boolean | undefined {
-        return this.options?.snap ?? (this.snapInterval() == null ? undefined : true);
     }
 
     private computeSnapsWithoutHighlight(): boolean {
@@ -307,7 +298,7 @@ export class Crosshair
         const { snapTo, mode } = config;
         let keys: readonly string[] = keyProperties;
         if (snapTo == null) {
-            if (this.snap() !== true) keys = [];
+            if (this.options?.snap !== true) keys = [];
         } else {
             keys = keyProperties.filter((key) => snapTo.includes(key));
         }
@@ -323,27 +314,11 @@ export class Crosshair
 
     private snapInterval(): SnapInterval | undefined {
         const options = this.options;
-        return options?.snap !== false && this.axisCtx.continuous ? options?.snapInterval : undefined;
+        return options?.snap && this.axisCtx.continuous ? options.snapInterval : undefined;
     }
 
     private isTimeAxis(): boolean {
         return this.axisCtx.axisType === 'time';
-    }
-
-    private snapDataToInterval(data: CrosshairData): CrosshairData {
-        const snapInterval = this.snapInterval();
-        if (snapInterval == null) return data;
-
-        const isTime = this.isTimeAxis();
-        const snapped: CrosshairData = {};
-        const positions = new Set<number>();
-        for (const key of Object.keys(data)) {
-            const lineData = snapValueToInterval(this.axisCtx, data[key].value, snapInterval, isTime) ?? data[key];
-            if (positions.has(lineData.position)) continue;
-            positions.add(lineData.position);
-            snapped[key] = lineData;
-        }
-        return snapped;
     }
 
     private isVertical(): boolean {
@@ -465,7 +440,9 @@ export class Crosshair
         this.resolveHighlightSnap();
 
         if (!this.activeHighlight) {
-            this.hideCrosshairs();
+            // Without highlight snapping, losing the highlight to another axis leaves the pointer line shown.
+            const ignoresHighlight = options.snap === false || this.snapInterval() != null;
+            if (!ignoresHighlight || !crosshairGroup.visible) this.hideCrosshairs();
         } else if (this.followsPointer()) {
             if (!followedPointer) {
                 this.showPointer();
@@ -501,9 +478,6 @@ export class Crosshair
     }
 
     private updatePositions(data: { [key: string]: { value: any; position: number } }) {
-        const lines = Object.values(data);
-        this.emitPosition(lines.length === 1 ? lines[0].position : undefined);
-
         const { seriesRect, lineGroupSelection } = this;
         const labelEnabled = (this.options?.label.enabled ?? false) && !this.annotationLabelDragging;
         lineGroupSelection.each((line, key) => {
@@ -562,10 +536,6 @@ export class Crosshair
     }
 
     private getActiveHighlightData(activeHighlight: ActiveHighlight): CrosshairData {
-        return this.snapDataToInterval(this.readActiveHighlightData(activeHighlight));
-    }
-
-    private readActiveHighlightData(activeHighlight: ActiveHighlight): CrosshairData {
         const { highlightSnapKeys } = this;
         if (Array.isArray(highlightSnapKeys)) {
             return this.getSnapKeysData(activeHighlight, highlightSnapKeys);
@@ -676,45 +646,40 @@ export class Crosshair
         label.setLabelHtml(html);
 
         const axisPosition = this.axisCtx.position;
-        let padding = this.axisLayout.label.spacing + this.axisLayout.tickSize;
+        const spacing = this.axisLayout.label.spacing + this.axisLayout.tickSize;
 
         // `crossAt` moves the axis line off its `position` edge; the offset is zero unless the label follows it.
         const crossOffset = this.axisLayout.crosshairOffset ?? { x: 0, y: 0 };
 
-        // CSS translate percentages avoid synchronous dimension reads.
+        // Cancels the label's own padding so its text, not its box, sits `spacing` from the line; `min` stops a small
+        // `spacing` pulling the box over the line. CSS keeps this free of synchronous style reads.
+        const pullBack = (axis: 'vertical' | 'horizontal') =>
+            `min(var(--ag-charts-crosshair-label-${axis}-padding), ${spacing}px)`;
+
         if (this.axisCtx.direction === ChartAxisDirection.X) {
-            // Cancels the label's own padding so its text, not its box, sits `spacing` from the line; the
-            // clamp keeps a small `spacing` from pulling the box over the line.
-            padding = Math.max(padding - 4, 0);
             const isBottom = axisPosition === 'bottom';
             const lineY = (isBottom ? bounds.y + bounds.height : bounds.y) + crossOffset.y;
             label.show({
                 x,
-                y: isBottom ? lineY + padding : lineY - padding,
+                y: isBottom ? lineY + spacing : lineY - spacing,
                 translateX: '-50%',
-                translateY: isBottom ? '0' : '-100%',
+                translateY: isBottom ? `calc(${pullBack('vertical')} * -1)` : `calc(-100% + ${pullBack('vertical')})`,
             });
         } else {
-            padding = Math.max(padding - 8, 0);
             const isRight = axisPosition === 'right';
             const lineX = (isRight ? bounds.x + bounds.width : bounds.x) + crossOffset.x;
             label.show({
-                x: isRight ? lineX + padding : lineX - padding,
+                x: isRight ? lineX + spacing : lineX - spacing,
                 y,
-                translateX: isRight ? '0' : '-100%',
+                translateX: isRight
+                    ? `calc(${pullBack('horizontal')} * -1)`
+                    : `calc(-100% + ${pullBack('horizontal')})`,
                 translateY: '-50%',
             });
         }
     }
 
-    private emitPosition(position: number | undefined) {
-        if (position === this.emittedPosition) return;
-        this.emittedPosition = position;
-        this.ctx.eventsHub.emit('crosshair:position-change', { axisId: this.axisCtx.axisId, position });
-    }
-
     private hideCrosshairs() {
-        this.emitPosition(undefined);
         this.crosshairGroup.visible = false;
         for (const key of Object.keys(this.labels)) {
             this.hideLabel(key);

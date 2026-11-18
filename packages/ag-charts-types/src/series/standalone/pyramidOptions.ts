@@ -9,7 +9,13 @@ import type {
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
-import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type {
+    AgColorType,
+    FillOptions,
+    LineDashOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
@@ -48,7 +54,8 @@ export interface AgPyramidSeriesItemStylerParams<TDatum, TContext = ContextDefau
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgPyramidSeriesOptionsKeys<TDatum>,
-        Required<AgPyramidSeriesStyle> {}
+        Required<Omit<AgPyramidSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {}
 
 export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 

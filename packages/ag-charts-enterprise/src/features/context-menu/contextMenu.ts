@@ -475,7 +475,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
         this.createMenu(event, expandedItems);
         this.container.addChild(this.menuWidget);
-        this.menuWidget.expand({ sourceEvent, overrideFocusVisible });
+        this.menuWidget.expand({ sourceEvent });
     }
 
     private hide() {

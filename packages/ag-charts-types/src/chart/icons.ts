@@ -28,6 +28,7 @@ export type AgIconName =
     | 'line-series'
     | 'line-with-markers-series'
     | 'locked'
+    | 'magnet'
     | 'measurer-drawing'
     | 'note-annotation'
     | 'ohlc-series'
