@@ -42,4 +42,52 @@ describe('wrapOptionsUpdateCode', () => {
 
         expect(standardiseWhitespace(propertyDefinition)).toBe(expected);
     });
+
+    describe('reads of the whole options variable', () => {
+        it('rewrites a bare read in code that updates no member', () => {
+            const propertyDefinition = wrapOptionsUpdateCode(`foo() {
+                const { series } = options;
+                console.log(series, { ...options });
+            }`);
+
+            expect(standardiseWhitespace(propertyDefinition)).toBe(
+                'foo() { const { series } = this.options; console.log(series, { ...this.options }); }'
+            );
+            expect(propertyDefinition).not.toContain('clone(');
+        });
+
+        it('rewrites a bare read to the custom input variable', () => {
+            const propertyDefinition = wrapOptionsUpdateCode(`foo() { return options; }`, 'options.value');
+
+            expect(standardiseWhitespace(propertyDefinition)).toBe('foo() { return options.value; }');
+        });
+
+        it('rewrites a bare read next to an update to the local copy, so both are the same variable', () => {
+            const propertyDefinition = wrapOptionsUpdateCode(`foo() {
+                options.padding.top = 20;
+                helper(options);
+            }`);
+
+            expect(standardiseWhitespace(propertyDefinition)).toBe(
+                'foo() { const options = clone(this.options); options.padding.top = 20; helper(options); this.options = options; }'
+            );
+        });
+
+        it('rewrites a bare read to the custom local variable', () => {
+            const propertyDefinition = wrapOptionsUpdateCode(
+                `foo() { options.padding.top = 20; helper(options); }`,
+                'this.state.options',
+                'this.setState({ options: copy });',
+                'copy'
+            );
+
+            expect(standardiseWhitespace(propertyDefinition)).toContain('copy.padding.top = 20; helper(copy);');
+        });
+
+        it('leaves a member that is merely called options', () => {
+            const propertyDefinition = wrapOptionsUpdateCode(`foo() { return props.options; }`);
+
+            expect(standardiseWhitespace(propertyDefinition)).toBe('foo() { return props.options; }');
+        });
+    });
 });
