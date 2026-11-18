@@ -335,6 +335,28 @@ describe('Context Menu', () => {
 
             expect(event.defaultPrevented).toBe(true);
         });
+
+        it('does not open over the validation overlay panel', async () => {
+            chart = await createEnterpriseChart({
+                data: EXAMPLE_OPTIONS.data,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: -5 }],
+                contextMenu: { enabled: true },
+                validations: { showOverlayOn: ['warning'] },
+            });
+            const panel = document.body.querySelector('.ag-charts-validation-overlay__panel');
+            expect(panel).not.toBeNull();
+
+            await contextMenuElementAction(panel!)(chart);
+
+            expect(menuItems()).toHaveLength(0);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`-5\`; expecting a number greater than or equal to 0, ignoring.",
+                ],
+              ]
+            `);
+        });
     });
 
     describe('series-node getItems datums (AG-17546)', () => {
