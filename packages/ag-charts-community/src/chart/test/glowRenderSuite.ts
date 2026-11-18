@@ -137,7 +137,8 @@ export function describeGlowSeries(
         });
 
         it.skipIf(!hoverable)('renders the shadow and glow of the hovered item', async () => {
-            await create([glowSeries(testCase, placement, { highlightedItem: hoveredItem })], testCase.data, options);
+            const hovered = testCase.hoveredPlacement ?? placement;
+            await create([glowSeries(testCase, hovered, { highlightedItem: hoveredItem })], testCase.data, options);
             await hoverCase(chart(), testCase);
             await snapshot();
         });
@@ -248,7 +249,9 @@ export function describeGlowSeries(
             async () => {
                 const series = await render(testCase, { glow: SERIES_GLOW });
                 expect(differingBytes(series, await render(testCase, {}))).toBeGreaterThan(0);
-                expectSamePixels(await render(testCase, { itemStyler: () => ({ glow: SERIES_GLOW }) }), series);
+                const styled = await render(testCase, { itemStyler: () => ({ glow: SERIES_GLOW }) });
+                if (testCase.stylerGlowCastsOtherParts) expect(differingBytes(styled, series)).toBeGreaterThan(0);
+                else expectSamePixels(styled, series);
             }
         );
     });

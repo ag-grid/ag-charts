@@ -3,8 +3,12 @@ import { describe, expect, it } from 'vitest';
 import {
     HIGHLIGHT_GLOW,
     RENDER_OPTIONS,
+    SERIES_GLOW,
+    SERIES_SHADOW,
     chartPixelAt,
     describeGlowSeries,
+    differingBytes,
+    expectSamePixels,
     getSeriesAt,
     glowSeries,
     hoverNode,
@@ -22,6 +26,7 @@ const { padding } = RENDER_OPTIONS;
 
 const treemap = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'treemap tile')!;
 const sunburst = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'sunburst')!;
+const treemapGroup = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'treemap group')!;
 
 /** An itemStyler that gives the nodes named a glow, and the rest nothing. */
 const glowing = (...names: string[]) => ({
@@ -30,7 +35,7 @@ const glowing = (...names: string[]) => ({
 
 describe('shadow and glow render (hierarchy series)', () => {
     const charts = useGlowCharts(createEnterpriseChart);
-    const { create, chart, snapshot } = charts;
+    const { create, chart, snapshot, render } = charts;
 
     describeGlowSeries(HIERARCHY_GLOW_SERIES, charts);
 
@@ -50,6 +55,25 @@ describe('shadow and glow render (hierarchy series)', () => {
         const { canvasX, canvasY } = Transformable.toCanvasPoint(a1, a1.centerX, a1.centerY);
         const angle = (a1.startAngle + a1.endAngle) / 2;
         const radius = a1.innerRadius - 4;
+        return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
+    };
+
+    /** The pixel 3px inside the group `name`, on the edge that it shares with the group beside it: the left of B, the right of A. */
+    const insideEdgeOf = (name: string) => {
+        const { x, y, width, height } = nodeNamed(name)(chart()).bbox!;
+        const edge = name === 'B' ? x + 3 : x + width - 3;
+        return [edge + padding.left, y + padding.top + height / 2] as const;
+    };
+
+    /** The pixel 3px inside the sector of A, on the radius that it shares with the sector of B. */
+    const insideSectorEdge = () => {
+        const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
+        const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
+        const ring = sectors.filter(({ innerRadius }) => innerRadius === innerRing);
+        const a = ring.find((sector) => sector.startAngle === Math.min(...ring.map((other) => other.startAngle)))!;
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(a, a.centerX, a.centerY);
+        const radius = (a.innerRadius + a.outerRadius) / 2;
+        const angle = a.endAngle - 3 / radius;
         return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
     };
 
@@ -80,6 +104,67 @@ describe('shadow and glow render (hierarchy series)', () => {
                 expect(seen).not.toContain('unhighlighted-item');
             }
         );
+    });
+
+    describe('the series glow of a hovered tile, group or sector', () => {
+        // The series glow is the one that the hovered node and the nodes beside it all cast: the highlight glow is its own.
+        const SERIES = { shadow: SERIES_SHADOW, glow: SERIES_GLOW };
+
+        it.each(HIERARCHY_GLOW_SERIES)('renders the series glow with the $name hovered', async (testCase) => {
+            await create([glowSeries(testCase, SERIES, { highlightedItem: testCase.hoveredItem })], testCase.data);
+            await hoverNode(chart(), testCase.hoverDatum!(chart()));
+            await snapshot();
+        });
+
+        it.each(HIERARCHY_GLOW_SERIES)('draws the series glow of the $name that is not hovered', async (testCase) => {
+            const rest = await render(testCase, {}, { hover: true });
+            expect(
+                differingBytes(await render(testCase, { glow: SERIES_GLOW }, { hover: true }), rest)
+            ).toBeGreaterThan(0);
+        });
+
+        it('glows the tiles of a treemap and not its groups, as an itemStyler that returns a glow for the tiles does', async () => {
+            const leaves = ['A1', 'A2', 'B1', 'B2'];
+            const series = await render(treemap, { glow: SERIES_GLOW });
+            const styled = await render(treemap, {
+                itemStyler: ({ datum }: { datum?: { name?: string } }) =>
+                    leaves.includes(datum?.name ?? '') ? { glow: SERIES_GLOW } : {},
+            });
+
+            expect(differingBytes(series, await render(treemap, {}))).toBeGreaterThan(0);
+            expectSamePixels(styled, series);
+        });
+
+        // With the series glow set every node glows, so the glow of the sibling reaches the hovered one: it must stay beneath its fill.
+        describe.each([
+            ['a tile of a treemap', treemap, 'A2', () => insideTopOf('A2')],
+            ['a group of a treemap', treemapGroup, 'B', () => insideEdgeOf('B')],
+            ['a sector of a sunburst', sunburst, 'A', insideSectorEdge],
+        ])('%s that is hovered', (_name, testCase, hovered, pixelOf) => {
+            const RED = { ...GLOW, fill: '#ff0000' };
+
+            /** The pixel just inside the hovered node, with the series `placement` and the glow of its highlighted item state. */
+            const hoveredPixel = async (placement: object, glow: object) => {
+                await create(
+                    [glowSeries(testCase, placement, { highlightedItem: { glow } })],
+                    testCase.data,
+                    RENDER_OPTIONS
+                );
+                await hoverNode(chart(), nodeNamed(hovered)(chart()));
+                return chartPixelAt(chart(), ...pixelOf());
+            };
+
+            it('is not covered by the series glow of the node beside it', async () => {
+                expect(await hoveredPixel({ glow: RED }, GLOW)).toEqual(await hoveredPixel({}, GLOW));
+            });
+
+            // The control: without a glow of its own, the hovered node is covered by that of the node beside it.
+            it('is covered by it where the hovered node does not glow', async () => {
+                const off = { ...GLOW, enabled: false };
+
+                expect(await hoveredPixel({ glow: RED }, off)).not.toEqual(await hoveredPixel({}, off));
+            });
+        });
     });
 
     describe('the glow of a tile that is not hovered', () => {

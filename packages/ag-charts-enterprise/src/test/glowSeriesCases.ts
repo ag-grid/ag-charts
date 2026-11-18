@@ -3,6 +3,7 @@ import {
     type GlowSeriesCase,
     HIGHLIGHT_GLOW,
     type HighlightStep,
+    SERIES_SHADOW,
     onMarker,
     onSeries,
 } from 'ag-charts-community-test';
@@ -334,9 +335,10 @@ const HIERARCHY = {
     // Two top-level branches, so that hovering a leaf of A leaves B as the other branch.
     data: HIERARCHY_SHADOW_DATA[0].children,
     hoverable: true,
-    // A hierarchy takes a series shadow, and a glow in its highlight states only.
-    seriesShadowOnly: true,
     hoveredItem: { glow: HIGHLIGHT_GLOW },
+    // The snapshot of the hovered item keeps the baseline of a hierarchy that has a series shadow only: hierarchyShadowGlowRender.test.ts
+    // snapshots a hover with the series glow set.
+    hoveredPlacement: { shadow: SERIES_SHADOW },
 };
 const HIERARCHY_KEYS = { labelKey: 'name', sizeKey: 'size' };
 const withHighlight = (part?: 'tile' | 'group') => (placed: any, highlight: object) =>
@@ -358,6 +360,7 @@ export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
         ...HIERARCHY,
         name: 'treemap tile',
         stylerCastsOtherParts: true,
+        stylerGlowCastsOtherParts: true,
         type: 'treemap',
         shadowSnapshot: 'series/treemap/treemapSeries.test.ts',
         highlightSteps: HIERARCHY_STEPS,
