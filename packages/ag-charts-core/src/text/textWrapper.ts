@@ -1158,7 +1158,12 @@ export function clipLines(
             const maxWidth = lineMaxWidth(options, lineTop - lineHeightAt(i - 1), lineTop);
             if (isTextTruncated(lastLine)) return clippedResults.concat(lastLine);
             return clippedResults.concat(
-                truncateLine(joinWrappedFrom(lines, i - 1, breaksBefore), measurer, maxWidth, true)
+                truncateLine(
+                    joinWrappedFrom(lines, i - 1, breaksBefore, lineMetrics, maxWidth),
+                    measurer,
+                    maxWidth,
+                    true
+                )
             );
         }
     }
@@ -1166,11 +1171,22 @@ export function clipLines(
     return lines;
 }
 
-/** Line `start` rejoined with the lines wrapping split from it, up to the next explicit line break. */
-function joinWrappedFrom(lines: readonly string[], start: number, breaksBefore: readonly (string | undefined)[]) {
+/**
+ * Line `start` rejoined with the lines wrapping split from it, up to the next explicit line break, and only
+ * until it is wider than `maxWidth`: text beyond that would be cut by the ellipsis anyway.
+ */
+function joinWrappedFrom(
+    lines: readonly string[],
+    start: number,
+    breaksBefore: readonly (string | undefined)[],
+    lineMetrics: readonly { width: number }[],
+    maxWidth: number
+) {
     let joined = lines[start];
-    for (let i = start + 1; i < lines.length && breaksBefore[i] != null; i++) {
+    let width = lineMetrics[start].width;
+    for (let i = start + 1; i < lines.length && breaksBefore[i] != null && width <= maxWidth; i++) {
         joined += breaksBefore[i] + lines[i];
+        width += lineMetrics[i].width;
     }
     return joined;
 }

@@ -29,6 +29,7 @@ import {
     type CandidateLabelStyle,
     type CandidateStyleResolver,
     type LabelAvoidance,
+    type LabelFitDescriptor,
     type LabelObstacle,
     type LabelPlacement,
     type OrientationAnchor,
@@ -3533,12 +3534,17 @@ function placePositionedLabelsOracle(
     return result;
 }
 
-function makePositionedFixture(seriesCount: number, perSeries: number, bounds: BoxBounds, seed0: number) {
+/** A deterministic generator in [0, 1], so a randomised fixture replays identically. */
+function seededRandom(seed0: number) {
     let seed = seed0;
-    const next = () => {
+    return () => {
         seed = (seed * 1103515245 + 12345) & 0x7fffffff;
         return seed / 0x7fffffff;
     };
+}
+
+function makePositionedFixture(seriesCount: number, perSeries: number, bounds: BoxBounds, seed0: number) {
+    const next = seededRandom(seed0);
     const data = new Map<string, SeriesLabels>();
     for (let s = 0; s < seriesCount; s++) {
         const datums: PointLabelDatum[] = [];
@@ -3610,7 +3616,16 @@ describe('placeLabels (positioned candidates)', () => {
 
     describe('trading a first-choice slot', () => {
         const avoid = { marker: true, label: true, shape: true };
-        const barDatum = (text: string, ownBox: BoxBounds, candidates: PositionedLabelCandidate[], neverDrop = false) =>
+        const barDatum = (
+            text: string,
+            ownBox: BoxBounds,
+            candidates: PositionedLabelCandidate[],
+            {
+                neverDrop = false,
+                threshold = 0,
+                fit,
+            }: { neverDrop?: boolean; threshold?: number; fit?: LabelFitDescriptor } = {}
+        ) =>
             buildBarPositionedLabelDatum(
                 text,
                 30,
@@ -3620,8 +3635,9 @@ describe('placeLabels (positioned candidates)', () => {
                 ownBox,
                 neverDrop,
                 avoid,
-                0,
-                true
+                threshold,
+                true,
+                fit
             );
         // The first candidate is bound to the bar, the fallbacks are not.
         const stacked = (ownBox: BoxBounds, ys: number[], offset = 0): PositionedLabelCandidate[] =>
@@ -3666,7 +3682,7 @@ describe('placeLabels (positioned candidates)', () => {
                 'the holder is under a different drop policy',
                 () => [
                     barDatum('held', heldBox, stacked(heldBox, [240, 262])),
-                    barDatum('blocked', blockedBox, stacked(blockedBox, [234, 254, 280]), true),
+                    barDatum('blocked', blockedBox, stacked(blockedBox, [234, 254, 280]), { neverDrop: true }),
                 ],
                 [],
             ],
@@ -3732,6 +3748,23 @@ describe('placeLabels (positioned candidates)', () => {
             ]);
         });
 
+        it('does not re-place a kept label left colliding on its first choice', () => {
+            const held = barDatum('held', heldBox, stacked(heldBox, [240, 262]), { neverDrop: true });
+            // Both candidates collide; the first is the less buried, so the label is kept on it.
+            const blocked = barDatum('blocked', blockedBox, stacked(blockedBox, [230, 232]), { neverDrop: true });
+            const calls: string[] = [];
+            const resolve: PositionedCandidateResolver = (d, c) => {
+                calls.push(`${d === held ? 'held' : 'blocked'}@${c.box.y}`);
+                return c;
+            };
+
+            expect(placedYs([held, blocked], 5, undefined, resolve)).toEqual([
+                { text: 'held', y: 240 },
+                { text: 'blocked', y: 230 },
+            ]);
+            expect(calls).toEqual(['held@240', 'blocked@230', 'blocked@232']);
+        });
+
         it('counts the nudge that cleared an earlier label from its first-choice slot', () => {
             const tallHeldBox = { x: 0, y: 100, width: 50, height: 200 };
             const shortBlockedBox = { x: 0, y: 150, width: 50, height: 100 };
@@ -3751,6 +3784,88 @@ describe('placeLabels (positioned candidates)', () => {
                 { text: 'held', y: 262 },
                 { text: 'blocked', y: 222 },
             ]);
+        });
+
+        it('finds an earlier label holding the first choice within the collision threshold', () => {
+            // 2px apart, inside the 4px threshold, so the boxes themselves never overlap.
+            const threshold = 4;
+            const tallBlockedBox = { x: 0, y: 150, width: 50, height: 130 };
+            const held = barDatum('held', heldBox, stacked(heldBox, [240, 220]), { threshold });
+            const blocked = barDatum('blocked', tallBlockedBox, stacked(tallBlockedBox, [258, 280]), { threshold });
+
+            expect(placedYs([held, blocked])).toEqual([
+                { text: 'held', y: 220 },
+                { text: 'blocked', y: 258 },
+            ]);
+        });
+
+        it('counts the nudge of an earlier label kept truncated at its first choice', () => {
+            const tallHeldBox = { x: 0, y: 100, width: 50, height: 200 };
+            const shortBlockedBox = { x: 0, y: 150, width: 50, height: 100 };
+            // Both held candidates truncate to a 30px container, so the cascade keeps the first, nudged 4px up.
+            const truncated = (cy: number): PositionedLabelCandidate => ({
+                box: { x: 0, y: cy - 10, width: 50, height: 20 },
+                fitTo: {
+                    container: { width: 30, height: 20 },
+                    anchor: { x: 25, y: cy, textAlign: 'center', textBaseline: 'middle' },
+                    padding: { top: 0, right: 0, bottom: 0, left: 0 },
+                },
+            });
+            const font = { fontSize: 12, fontFamily: 'sans-serif' };
+            const held = barDatum(
+                'held',
+                tallHeldBox,
+                [{ ...truncated(248), region: tallHeldBox, slideAxis: 'y' }, truncated(270)],
+                { fit: { text: 'WWWWW', policy: { overflowStrategy: 'ellipsis' }, font } }
+            );
+            const blocked = barDatum('blocked', shortBlockedBox, stacked(shortBlockedBox, [230, 210]));
+            const fixedLabel: LabelObstacle = {
+                kind: 'rect',
+                category: 'label',
+                box: { x: 0, y: 254, width: 50, height: 4 },
+            };
+
+            // Trading displaces held 22px against 20 + 4 kept, which only holds when the nudge counts.
+            expect(placedYs([held, blocked], 0, [fixedLabel])).toEqual([
+                { text: 'WW…', y: 260 },
+                { text: 'blocked', y: 230 },
+            ]);
+        });
+
+        it('never displaces a pair more in total than placing them in order', () => {
+            const next = seededRandom(7);
+            const ys = (first: number, span: number) => [
+                Math.round(first + next() * span),
+                Math.round(100 + next() * 220),
+                Math.round(100 + next() * 220),
+            ];
+            const centreY = (y: number) => y + 8;
+            const displacement = (placedY: number, candidateYs: number[]) =>
+                Math.abs(centreY(placedY) - centreY(candidateYs[0]));
+            let traded = 0;
+            for (let i = 0; i < 300; i++) {
+                const heldYs = ys(100, 144);
+                const blockedYs = ys(150, 86);
+                const held = barDatum('held', heldBox, stacked(heldBox, heldYs));
+                const blocked = barDatum('blocked', blockedBox, stacked(blockedBox, blockedYs));
+                const [heldAlone] = placedYs([held]);
+                if (heldAlone == null) continue;
+                const heldLabel: LabelObstacle = {
+                    kind: 'rect',
+                    category: 'label',
+                    box: { x: 10, y: heldAlone.y, width: 30, height: 16 },
+                };
+                const [blockedInOrder] = placedYs([blocked], 5, [heldLabel]);
+                const placed = placedYs([held, blocked]);
+                if (blockedInOrder == null || placed.length < 2) continue;
+
+                const inOrder = displacement(heldAlone.y, heldYs) + displacement(blockedInOrder.y, blockedYs);
+                const total = displacement(placed[0].y, heldYs) + displacement(placed[1].y, blockedYs);
+                expect(total).toBeLessThanOrEqual(inOrder + 1e-6);
+                if (placed[0].y !== heldAlone.y) traded++;
+            }
+            // Only worth asserting over a fixture that trades.
+            expect(traded).toBeGreaterThan(0);
         });
 
         it('keeps a label in place when trading would displace the pair more, and later labels still avoid it', () => {
