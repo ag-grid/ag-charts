@@ -23,7 +23,7 @@ import {
     rotatedLabelInset,
     sectorLabelContainer,
 } from './barLabelGeometry';
-import { type BoxBounds, boxCollides, boxContains, boxesEqual } from './boxBounds';
+import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import type { FitRegion } from './fitRegion';
 import {
     type CandidateLabelStyle,
@@ -3457,19 +3457,13 @@ describe('placeLabels positioned shrink ladder', () => {
 
 // Brute-force reference for the bar-family candidate cascade, for droppable labels without `fit` only:
 // the shrink, re-fit and never-drop fallback ranking are pinned by explicit cases instead.
-function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum, box: BoxBounds): boolean {
+function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
     const category = o.category ?? 'shape';
     const { ownBox } = d;
-    const straddlesForeignShape =
-        o.kind === 'rect' &&
-        category === 'shape' &&
-        !boxesEqual(o.box, ownBox) &&
-        !boxContains(o.box, box.x, box.y, box.width, box.height);
     if (
         ownBox != null &&
         !(d.ownBoxLabelsCollide === true && category === 'label') &&
-        boxCollides(o.box, ownBox.x, ownBox.y, ownBox.width, ownBox.height) &&
-        !straddlesForeignShape
+        boxCollides(o.box, ownBox.x, ownBox.y, ownBox.width, ownBox.height)
     ) {
         return true;
     }
@@ -3514,9 +3508,7 @@ function placePositionedLabelsOracle(
                 }
                 const contained = boxContains(region, x, y, cw, ch);
                 const blocked = obstacles.some(
-                    (o) =>
-                        !obstacleExcludedOracle(o, d, { x, y, width: cw, height: ch }) &&
-                        boxCollides(o.box, x, y, cw, ch)
+                    (o) => !obstacleExcludedOracle(o, d) && boxCollides(o.box, x, y, cw, ch)
                 );
                 if (contained && !blocked) {
                     winner = { x, y };
@@ -3640,14 +3632,18 @@ describe('placeLabels (positioned candidates)', () => {
 
     it('matches the brute-force oracle with cross-series obstacles', () => {
         const obstacles: LabelObstacle[] = [
-            { kind: 'rect', category: 'shape', box: { x: 100, y: 150, width: 120, height: 80 } },
+            // In the gap between the second and third bars, so it blocks labels wider than their bar but overlaps none.
+            { kind: 'rect', category: 'shape', box: { x: 132, y: 0, width: 2.5, height: 400 } },
             { kind: 'rect', category: 'label', box: { x: 380, y: 60, width: 90, height: 40 } },
         ];
+        let shapeBlocked = false;
         for (let seed = 1; seed <= 12; seed++) {
             const data = makePositionedFixture(2, 9, bounds, seed);
-            expect(normalise(placeLabels(data, bounds, 5, obstacles))).toEqual(
-                normalise(placePositionedLabelsOracle(data, bounds, obstacles))
-            );
+            const placed = normalise(placeLabels(data, bounds, 5, obstacles));
+            expect(placed).toEqual(normalise(placePositionedLabelsOracle(data, bounds, obstacles)));
+            const withoutShape = normalise(placeLabels(data, bounds, 5, obstacles.slice(1)));
+            shapeBlocked ||= JSON.stringify(placed) !== JSON.stringify(withoutShape);
         }
+        expect(shapeBlocked).toBe(true);
     });
 });
