@@ -140,8 +140,8 @@ In this example:
 
 - Use the controls to see how the labels wrap, shrink and truncate.
 - A label that exceeds `maxWidth` or `maxHeight` or does not fit within the series area, wraps according to `wrapping`, shrinks towards `minimumFontSize`, then is truncated if `truncate` is enabled. See [Series Label Collision Avoidance](./series-labels/#collision-avoidance) for details.
-- A `range` label with an `inside` placement is fitted to its band. An explicit `maxWidth` or `maxHeight` replaces the band's bound in that direction.
-- `wrapping` defaults to `'on-space'`, `truncate` to `true` and `collision.alwaysShow` to `true`. Set `wrapping: 'never'` and `truncate: false` to render the label at full length.
+- A `range` label with an `inside` placement fits within its band. `maxWidth` and `maxHeight` override the band's width and height.
+- Labels default to `wrapping: 'on-space'`, `truncate: true` and `collision.alwaysShow: true`.
 
 ## Polar Axes Cross Lines
 
