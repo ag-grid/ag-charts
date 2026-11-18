@@ -8,6 +8,7 @@ import {
     type CrossLineLabelPosition,
     type CrossLineType,
     type DynamicContext,
+    LinearScale,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
     Transformable,
@@ -1591,7 +1592,12 @@ describe('CrossLine', () => {
                 parent: { position: 'bottom' },
             };
             // A stub of the context members the unit under test reads, not a full axis context.
-            return new CartesianCrossLine(axisCtx as unknown as DynamicContext<CrossLinesRegistry>);
+            const crossLine = new CartesianCrossLine(axisCtx as unknown as DynamicContext<CrossLinesRegistry>);
+            crossLine.scale = new LinearScale();
+            crossLine.scale.domain = [0, 10];
+            crossLine.scale.range = [0, 100];
+            crossLine.gridLength = 100;
+            return crossLine;
         }
 
         function crossLineWith(
@@ -1601,6 +1607,7 @@ describe('CrossLine', () => {
         ) {
             const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions(type, { overflow, placement }));
+            crossLine.calculateLayout(true);
             return crossLine;
         }
 
@@ -1630,6 +1637,7 @@ describe('CrossLine', () => {
         it('an unset overflow pads as pad-chart does', () => {
             const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions('line', { placement: 'top' }));
+            crossLine.calculateLayout(true);
 
             const into: Partial<Record<CrossLineLabelPosition, number>> = {};
             crossLine.calculatePadding(into);
