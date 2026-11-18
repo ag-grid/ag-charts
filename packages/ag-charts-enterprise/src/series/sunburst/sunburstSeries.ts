@@ -35,11 +35,13 @@ import {
     findDiscreteColorBinLabel,
     fontWithSize,
     formatValue,
+    isFullSweep,
     isGradientFill,
     measureLabelText,
     mergeDefaults,
     normalizeAngle360,
     readDatumKey,
+    sectorEdgeInset,
     withoutCasts,
 } from 'ag-charts-core';
 import type { Path } from 'ag-charts-core';
@@ -175,14 +177,6 @@ function naturalStackHeight(blocks: readonly LabelStackBlock[], spacing: number)
         height += measureLabelText(fit.text, fit.font).height + padding.top + padding.bottom;
     }
     return height;
-}
-
-/** A child with no size has no sweep, so it leaves its parent's outer edge without a neighbour. */
-function hasOuterNeighbour(node: SunburstNode) {
-    for (const child of node.children) {
-        if (child.sumSize > 0) return true;
-    }
-    return false;
 }
 
 function setAngleData(node: SunburstNode, startAngle = 0, angleScale = (2 * Math.PI) / node.sumSize) {
@@ -427,7 +421,6 @@ export class SunburstSeries extends HierarchySeries<
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
 
-        const halfGap = gap * 0.5;
         const radius = Math.min(width, height) / 2;
         // No hole unless one of the inner-radius options is explicitly set - the short-circuit keeps an
         // unconfigured sunburst identical to before.
@@ -456,15 +449,23 @@ export class SunburstSeries extends HierarchySeries<
             this.centreCircle = { radius: hole };
         }
 
+        let outerRingDepth = 0;
         rootNode?.walk((node) => {
             const { startAngle, endAngle } = node;
             if (node.depth != null) {
+                if (node.sumSize > 0) outerRingDepth = Math.max(outerRingDepth, node.depth);
                 const midAngle = (startAngle + endAngle) / 2 + angleOffset;
                 const midRadius = hole + (node.depth + 0.5) * radiusScale;
                 node.midPoint.x = Math.cos(midAngle) * midRadius;
                 node.midPoint.y = Math.sin(midAngle) * midRadius;
             }
         });
+
+        const innerArcGap = (depth: number, strokeInset: number) => sectorEdgeInset(gap, strokeInset, depth > 0);
+        const outerArcGap = (depth: number, strokeInset: number) =>
+            sectorEdgeInset(gap, strokeInset, depth < outerRingDepth);
+        const sideGap = ({ startAngle, endAngle }: SunburstNode, strokeInset: number) =>
+            sectorEdgeInset(gap, strokeInset, !isFullSweep(startAngle, endAngle));
 
         const suppressFieldDotNotation = this.data?.suppressFieldDotNotation ?? false;
         const readLabel = labelKey == null ? undefined : datumKeyReader(labelKey, suppressFieldDotNotation);
@@ -537,15 +538,15 @@ export class SunburstSeries extends HierarchySeries<
             // zero-height annulus only yields non-finite geometry.
             if (radiusScale <= 0) return;
 
-            const innerRadius = hole + depth * radiusScale + (depth > 0 ? halfGap : 0);
-            const outerRadius = hole + (depth + 1) * radiusScale - (hasOuterNeighbour(node) ? halfGap : 0);
+            const innerRadius = hole + depth * radiusScale + innerArcGap(depth, 0);
+            const outerRadius = hole + (depth + 1) * radiusScale - outerArcGap(depth, 0);
             node.ring = {
                 innerRadius,
                 outerRadius,
                 sweep: endAngle - startAngle,
                 theta: angleOffset + (startAngle + endAngle) / 2,
                 radiusScale,
-                edgeInset: halfGap,
+                edgeInset: sideGap(node, 0),
                 // With a hole carved, depth 0 is a genuine annulus rather than a disc, so the
                 // centre-circle and wedge-from-centre label forms no longer apply to it.
                 wedge: depth === 0 && hole === 0,
@@ -599,9 +600,9 @@ export class SunburstSeries extends HierarchySeries<
             sector.outerRadius = hole + (depth + 1) * radiusScale;
             sector.startAngle = startAngle + angleOffset;
             sector.endAngle = endAngle + angleOffset;
-            sector.innerEdgeInset = strokeInset + (depth > 0 ? halfGap : 0);
-            sector.outerEdgeInset = strokeInset + (hasOuterNeighbour(nodeDatum) ? halfGap : 0);
-            sector.radialEdgeInset = strokeInset + halfGap;
+            sector.innerEdgeInset = innerArcGap(depth, strokeInset);
+            sector.outerEdgeInset = outerArcGap(depth, strokeInset);
+            sector.radialEdgeInset = sideGap(nodeDatum, strokeInset);
             sector.cornerRadius = cornerRadius;
         };
 

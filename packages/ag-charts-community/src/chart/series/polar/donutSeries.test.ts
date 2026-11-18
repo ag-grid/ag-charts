@@ -1906,6 +1906,18 @@ describe('DonutSeries', () => {
             expect(sectorFor(0).endAngle).toBeCloseTo(sectorFor(2).startAngle, 10);
             expect(sectorFor(0).radialEdgeInset + sectorFor(2).radialEdgeInset).toBe(gap);
         });
+
+        it('gives no side gap to a lone sector', async () => {
+            await createDonuts(
+                [
+                    { name: 'only', value: 1 },
+                    { name: 'zero', value: 0 },
+                ],
+                { gap: 10, strokeWidth: 4, strokes: ['white'] }
+            );
+
+            expect(sectorFor(0).radialEdgeInset).toBe(2);
+        });
     });
 
     describe('inner circle with rounded corners', () => {

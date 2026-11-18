@@ -12,6 +12,19 @@ export interface SectorBoundaries {
     radialEdgeInset?: number;
 }
 
+/** Whether a sector sweeps the whole circle, so its two straight edges meet each other rather than a neighbour. */
+export function isFullSweep(startAngle: number, endAngle: number) {
+    return Math.abs(endAngle - startAngle) >= 2 * Math.PI - 1e-6;
+}
+
+/**
+ * How far a sector edge sits inside its geometric edge: half the stroke, so the stroke paints inside the shape,
+ * plus half the gap where the edge faces a neighbouring shape.
+ */
+export function sectorEdgeInset(gap: number, strokeInset: number, facesNeighbour: boolean) {
+    return Math.max(strokeInset + (facesNeighbour ? gap / 2 : 0), 0);
+}
+
 export function sectorBox({ startAngle, endAngle, innerRadius, outerRadius }: SectorBoundaries) {
     let x0 = Infinity;
     let y0 = Infinity;

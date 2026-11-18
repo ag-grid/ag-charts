@@ -2206,34 +2206,72 @@ describe('SunburstSeries', () => {
     });
 
     describe('AG-18209 gap', () => {
-        it('separates neighbouring levels only, leaving the outermost arcs in place', async () => {
-            const gap = 8;
+        const gap = 8;
+        const renderSectors = async (data: object[]) => {
             chart = deproxy(
                 await createEnterpriseChart({
-                    data: [
-                        { name: 'Branch', children: [{ name: 'Leaf', size: 10 }] },
-                        { name: 'Root leaf', size: 6 },
-                        { name: 'Tiny parent', size: 5, children: [{ name: 'Tiny child', size: 0.0001 }] },
-                        { name: 'Zero parent', size: 5, children: [{ name: 'Zero child', size: 0 }] },
-                    ],
+                    data,
                     series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', gap, strokeWidth: 0 }],
                     animation: { enabled: false },
                 })
             );
-
             const sectors = getSeriesSelectionNodes<Sector<{ datum?: { name: string } }>>(chart, 'datumSelection');
-            const sector = (name: string) => sectors.find((s) => s.datum?.datum?.name === name)!;
-            const insets = (name: string) => [sector(name).innerEdgeInset, sector(name).outerEdgeInset];
+            return (name: string) => sectors.find((s) => s.datum?.datum?.name === name)!;
+        };
 
-            expect(insets('Branch')).toEqual([0, gap / 2]);
-            expect(insets('Leaf')).toEqual([gap / 2, 0]);
-            expect(insets('Root leaf')).toEqual([0, 0]);
-            expect(insets('Tiny parent')).toEqual([0, gap / 2]);
+        it('separates every ring from the next, leaving only the outermost ring at full radius', async () => {
+            const sector = await renderSectors([
+                { name: 'Branch', children: [{ name: 'Leaf', size: 10, children: [{ name: 'Empty', size: 0 }] }] },
+                { name: 'Root leaf', size: 6 },
+                { name: 'Own-size parent', size: 5, children: [{ name: 'Tiny child', size: 0.0001 }] },
+            ]);
+            const arcInsets = (name: string) => [sector(name).innerEdgeInset, sector(name).outerEdgeInset];
+
+            expect(arcInsets('Branch')).toEqual([0, gap / 2]);
+            expect(arcInsets('Root leaf')).toEqual([0, gap / 2]);
+            expect(arcInsets('Own-size parent')).toEqual([0, gap / 2]);
+            expect(arcInsets('Leaf')).toEqual([gap / 2, 0]);
             expect(sector('Tiny child').path.isEmpty()).toBe(true);
-            expect(insets('Zero parent')).toEqual([0, 0]);
-            for (const s of sectors.filter((node) => node.visible)) {
-                expect(s.radialEdgeInset).toBe(gap / 2);
-            }
+            expect(sector('Root leaf').radialEdgeInset).toBe(gap / 2);
+        });
+
+        it('fits wedge labels between the drawn straight edges, not the full sector', async () => {
+            const count = 30;
+            const sweep = (2 * Math.PI) / count;
+            const labelRadius = async (sectorGap: number) => {
+                chart?.destroy();
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: Array.from({ length: count }, (_, i) => ({ name: `N${i}`, size: 1 })),
+                        series: [
+                            { type: 'sunburst', labelKey: 'name', sizeKey: 'size', gap: sectorGap, strokeWidth: 0 },
+                        ],
+                        animation: { enabled: false },
+                    })
+                );
+                const wedge = getHierarchyRootNode(chart)!.children[0] as { label?: { radius: number } };
+                return wedge.label!.radius;
+            };
+
+            // Each straight edge gives way by gap / 2, so text across the wedge must sit further out
+            // for its edges to be far enough apart.
+            const shift = (await labelRadius(gap)) - (await labelRadius(0));
+            expect(shift).toBeCloseTo(gap / (4 * Math.sin(sweep / 2)), 6);
+        });
+
+        it('gives no side gap to a sector that fills its ring alone', async () => {
+            const sector = await renderSectors([
+                {
+                    name: 'Only',
+                    children: [
+                        { name: 'First', size: 1 },
+                        { name: 'Second', size: 1 },
+                    ],
+                },
+            ]);
+
+            expect(sector('Only').radialEdgeInset).toBe(0);
+            expect(sector('First').radialEdgeInset).toBe(gap / 2);
         });
     });
 });
