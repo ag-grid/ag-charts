@@ -6,7 +6,7 @@ import type { AgChartOptions } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
-import { BESIDE_COLOURS, BESIDE_GLOW, besideBars } from '../test/glowRender';
+import { BESIDE_GLOW, besideBars, expectGlowCoversPartsBeside } from '../test/glowRender';
 import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { shapesOf } from '../test/shadowFixtures';
 import {
@@ -199,23 +199,9 @@ describe('the labels of a series with a glow', () => {
         chart?.destroy();
     });
 
-    const labelPixels = async (glowing: 0 | 1 | undefined) => {
-        chart = deproxy(await createChart(besideBars(glowing, 'label')));
-        const counts = BESIDE_COLOURS.map((colour) => countChartPixels(chart, colour));
-        chart.destroy();
-        return counts;
-    };
-
     it.each([0, 1] as const)(
         'are covered by the glow of the series beside them alone, with series %s glowing',
-        async (glowing) => {
-            const bare = await labelPixels(undefined);
-            const glowed = await labelPixels(glowing);
-
-            expect(bare.every((count) => count > 0)).toBe(true);
-            expect(glowed[glowing]).toBe(bare[glowing]);
-            expect(glowed[1 - glowing]).toBeLessThan(bare[1 - glowing]);
-        }
+        (glowing) => expectGlowCoversPartsBeside(glowing, 'label', async (options) => createChart(options))
     );
 
     it('give the glow back where they were, once they are hidden', async () => {

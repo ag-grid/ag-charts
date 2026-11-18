@@ -1314,28 +1314,23 @@ describe('Shadow root', () => {
     describe('cost', () => {
         const spy = (name: 'gatherShadows' | 'gatherShadowChildren') => vi.spyOn(Group.prototype, name);
 
-        it('should not visit the groups of a chart that casts no shadow', () => {
+        it.each([
+            ['flat', () => Array.from({ length: 20 }, () => group('shared', [square(20, 40)]))],
+            [
+                'nested',
+                () =>
+                    Array.from({ length: 20 }, () =>
+                        group(false, [group('shared', [group('shared', [square(20, 40)])])])
+                    ),
+            ],
+        ])('should not visit the groups of a chart that casts no shadow, with the groups %s', (_layout, groups) => {
             const gather = spy('gatherShadows');
             const gatherChildren = spy('gatherShadowChildren');
 
-            draw(true, () => Array.from({ length: 20 }, () => group('shared', [square(20, 40)])));
+            draw(true, groups);
 
             expect(gather).not.toHaveBeenCalled();
             expect(gatherChildren).not.toHaveBeenCalled();
-        });
-
-        it('should not walk the groups of a chart that casts no glow', () => {
-            // The walk is private and leaves nothing else to observe, so the test names it by its method.
-            const collect = vi.spyOn(
-                Group.prototype as unknown as { collectChildGroups: () => void },
-                'collectChildGroups'
-            );
-
-            draw(true, () =>
-                Array.from({ length: 20 }, () => group(false, [group('shared', [group('shared', [square(20, 40)])])]))
-            );
-
-            expect(collect).not.toHaveBeenCalled();
         });
 
         it('should visit the groups that cast, and those that hold them, and no others', () => {

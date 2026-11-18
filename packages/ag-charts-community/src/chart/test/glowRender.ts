@@ -1,10 +1,12 @@
+import { expect } from 'vitest';
+
 import type { AgChartOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { getSeriesNodeData } from './seriesAccessors';
 import { legendHighlight } from './shadowFixtures';
-import { type ChartOrProxy, deproxy, waitForChartStability } from './utils';
+import { type ChartOrProxy, countChartPixels, deproxy, waitForChartStability } from './utils';
 
 /** An opaque, unblurred glow, so that the shape of the cast can be read off the render. */
 export const HARD_GLOW: AgGlowOptions = { enabled: true, fillOpacity: 1, blur: 0 };
@@ -54,6 +56,29 @@ export function besideBars(glowing: 0 | 1 | undefined, part: 'label' | 'errorBar
             };
         }),
     } as AgChartOptions;
+}
+
+/**
+ * Expects the glow of series `glowing` of {@link besideBars} to leave the `part` of its own series whole, and to cover that of
+ * the series beside it. `create` makes the chart, and the helper destroys it.
+ */
+export async function expectGlowCoversPartsBeside(
+    glowing: 0 | 1,
+    part: 'label' | 'errorBar',
+    create: (options: AgChartOptions) => Promise<ChartOrProxy<any>>
+) {
+    const count = async (glowingSeries: 0 | 1 | undefined) => {
+        const chart = deproxy(await create(besideBars(glowingSeries, part)));
+        const counts = BESIDE_COLOURS.map((colour) => countChartPixels(chart, colour));
+        chart.destroy();
+        return counts;
+    };
+    const bare = await count(undefined);
+    const glowed = await count(glowing);
+
+    expect(bare.every((pixels) => pixels > 0)).toBe(true);
+    expect(glowed[glowing]).toBe(bare[glowing]);
+    expect(glowed[1 - glowing]).toBeLessThan(bare[1 - glowing]);
 }
 
 /** The width and height of the part of the canvas that a render test snapshots. */
