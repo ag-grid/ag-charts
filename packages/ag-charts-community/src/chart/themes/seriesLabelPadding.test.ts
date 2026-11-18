@@ -1,6 +1,6 @@
 import { afterEach, describe, it } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartLabelOptions, AgChartThemeParams } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartLabelOptions, AgChartOptions, AgChartThemeParams } from 'ag-charts-types';
 
 import { compareImageSnapshot, createChart, setupMockCanvas, setupMockConsole } from '../test/utils';
 import type { ChartOrProxy } from '../test/utils';
@@ -61,13 +61,43 @@ describe('seriesLabelPadding theme parameter', () => {
         ],
     });
 
-    // Only the area and bar labels follow the parameter: the line labels are pinned to 2 by a theme override and the
-    // scatter labels to 2 by a series option, so both must keep that padding whatever the parameter says.
-    it.each<{ name: string; params: AgChartThemeParams }>([
+    // Pie labels take their padding from the shared `LABEL_BOXING_DEFAULTS` rather than the top-level defaults the
+    // cartesian series use, so they need a chart of their own.
+    const createPieOptions = (params: AgChartThemeParams): AgChartOptions => ({
+        data: [
+            { category: 'A', value: 40 },
+            { category: 'B', value: 30 },
+            { category: 'C', value: 20 },
+            { category: 'D', value: 10 },
+        ],
+        legend: { enabled: false },
+        theme: { params },
+        series: [
+            {
+                type: 'pie',
+                angleKey: 'value',
+                calloutLabelKey: 'category',
+                sectorLabelKey: 'value',
+                calloutLabel: boxedLabel(),
+                sectorLabel: boxedLabel({ color: '#222222' }),
+            },
+        ],
+    });
+
+    const PARAMS: { name: string; params: AgChartThemeParams }[] = [
         { name: 'the default of 8', params: {} },
         { name: 'a theme parameter of 16', params: { seriesLabelPadding: 16 } },
-    ])('pads series labels by $name', async ({ params }) => {
+    ];
+
+    // Only the area and bar labels follow the parameter: the line labels are pinned to 2 by a theme override and the
+    // scatter labels to 2 by a series option, so both must keep that padding whatever the parameter says.
+    it.each(PARAMS)('pads series labels by $name', async ({ params }) => {
         chart = await createChart(createOptions(params));
+        await compareImageSnapshot(chart, ctx);
+    });
+
+    it.each(PARAMS)('pads pie labels by $name', async ({ params }) => {
+        chart = await createChart(createPieOptions(params));
         await compareImageSnapshot(chart, ctx);
     });
 });
