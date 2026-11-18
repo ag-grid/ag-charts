@@ -600,7 +600,11 @@ export class SunburstSeries extends HierarchySeries<
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
         });
-        if (glowing) this.updateGlowEnds(angleOffset);
+        if (glowing) {
+            this.updateGlowEnds(angleOffset);
+        } else {
+            this.glowRings.clear();
+        }
 
         const { innerLabels = [] } = this.options;
         const centre = this.resolveCentreCircle();

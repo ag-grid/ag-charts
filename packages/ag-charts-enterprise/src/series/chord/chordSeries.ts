@@ -629,6 +629,8 @@ export class ChordSeries extends FlowProportionSeries<
 
         if (glowing) {
             this.glowRing.endGlows(datumSelection, addSectorDatum, true);
+        } else {
+            this.glowRing.release();
         }
     }
 

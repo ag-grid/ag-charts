@@ -422,9 +422,9 @@ describe('Sector', () => {
     });
 
     describe('glow ends', () => {
-        it('marks no sector changed when the glows of an unchanged ring are ended again', () => {
-            const third = (2 * Math.PI) / 3;
-            const thirds = [0, 1, 2].map((i) =>
+        const third = (2 * Math.PI) / 3;
+        const makeThirds = () =>
+            [0, 1, 2].map((i) =>
                 Object.assign(new Sector(), {
                     startAngle: i * third,
                     endAngle: (i + 1) * third,
@@ -432,12 +432,32 @@ describe('Sector', () => {
                     fillGlow: redGlow(),
                 })
             );
+        const fill = (ring: SectorGlowRing, sectors: readonly Sector[]) => {
+            ring.clear();
+            for (const sector of sectors) ring.add(sector, sector.startAngle, sector.endAngle, 0, 20);
+            setSectorGlowEnds(ring);
+        };
+
+        it.each([
+            ['is refilled with fewer sectors', (ring: SectorGlowRing, kept: Sector[]) => fill(ring, kept)],
+            ['is released', (ring: SectorGlowRing) => ring.release()],
+        ])('holds no sector that was removed once the ring %s', (_name, shrink) => {
+            const thirds = makeThirds();
             const ring = new SectorGlowRing();
-            const endGlows = () => {
-                ring.clear();
-                for (const sector of thirds) ring.add(sector, sector.startAngle, sector.endAngle, 0, 20);
-                setSectorGlowEnds(ring);
-            };
+            fill(ring, thirds);
+
+            const kept = thirds.slice(0, 1);
+            shrink(ring, kept);
+
+            // The pool is what keeps the sectors of a ring across updates, and nothing else shows what it holds.
+            const held = [...ring.entries, ...ring.ordered, ...ring['pool']].map((entry) => entry.sector);
+            for (const sector of thirds.slice(1)) expect(held).not.toContain(sector);
+        });
+
+        it('marks no sector changed when the glows of an unchanged ring are ended again', () => {
+            const thirds = makeThirds();
+            const ring = new SectorGlowRing();
+            const endGlows = () => fill(ring, thirds);
 
             endGlows();
             for (const sector of thirds) expect(sector.glowEndSpan).toBeCloseTo(third);

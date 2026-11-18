@@ -696,6 +696,18 @@ export class SectorGlowRing {
         this.entries.length = 0;
     }
 
+    /** Lets go of the pooled entries past those in use, so a ring that shrinks keeps no sector that was removed. */
+    trim() {
+        this.pool.length = this.entries.length;
+    }
+
+    /** Empties the ring and its pool, for a series whose sectors no longer glow. */
+    release() {
+        this.clear();
+        this.ordered.length = 0;
+        this.trim();
+    }
+
     add(sector: Sector, startAngle: number, endAngle: number, innerRadius: number, outerRadius: number) {
         const { pool, entries } = this;
         let entry = pool[entries.length];
@@ -773,6 +785,7 @@ export function setSectorGlowEnds(ring: SectorGlowRing, padded: boolean = false)
         findGlowEnds(ordered, padded, full, delta);
     }
     for (const entry of entries) assignGlowEnds(entry);
+    ring.trim();
 }
 
 function findGlowEnds(entries: SectorGlowEntry[], padded: boolean, full: number, delta: number) {

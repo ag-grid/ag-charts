@@ -1364,6 +1364,8 @@ export class DonutSeries extends PolarSeries<
         if (glowing) {
             // A glow ends where the sector beside it glows too, so every sector is resolved before any is ended.
             this.glowRing.endGlows(this.itemSelection, addSectorDatum);
+        } else {
+            this.glowRing.release();
         }
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
 

@@ -77,7 +77,10 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
     }
 
     protected override updateGlowEnds(selection: Selection<RadialColumnNodeDatum, Sector<RadialColumnNodeDatum>>) {
-        if (!selection.nodes().some((node) => node.fillGlow?.enabled === true)) return;
+        if (!selection.nodes().some((node) => node.fillGlow?.enabled === true)) {
+            this.glowRing.release();
+            return;
+        }
 
         // This runs before the sectors are laid out, so the radii come from the datum, as `updateItemPath` takes them.
         this.glowRing.endGlows(
