@@ -1,5 +1,5 @@
 import { type AgCrosshairOptions, VERSION } from 'ag-charts-community';
-import type { AxisPluginModuleDefinition } from 'ag-charts-core';
+import { type AxisPluginModuleDefinition, lineDashThemeDefault } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { Crosshair } from './crosshair';
@@ -18,7 +18,7 @@ export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
         stroke: { $ref: 'subtleTextColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
-        lineDash: [5, 6],
+        lineDash: lineDashThemeDefault([5, 6]),
         lineDashOffset: 0,
         label: {
             enabled: true,

@@ -2,17 +2,18 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type {
     FillStrokeMorph,
     Normalised,
+    NormalisedLineDash,
     NormalisedOhlcSeriesOwnOptions,
     Selection,
     ShapeColor,
 } from 'ag-charts-core';
-import { STROKE_STYLE_THEME_DEFAULTS } from 'ag-charts-core';
+import { SOLID_STROKE_STYLE } from 'ag-charts-core';
 
 import { OhlcNode } from './ohlcNode';
 import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from './ohlcSeriesBase';
 
 /** Post-resolution style: colour refs are resolved to concrete colours before reaching the scene node. */
-type NormalisedOhlcStyle = Normalised<NonNullable<OhlcNodeDatum['style']>, never, FillStrokeMorph>;
+type NormalisedOhlcStyle = Normalised<NonNullable<OhlcNodeDatum['style']>, never, FillStrokeMorph & NormalisedLineDash>;
 
 /**
  * Consolidated type interface for OhlcSeries.
@@ -149,7 +150,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
                         fillOpacity: up.strokeOpacity,
                         stroke: undefined,
                         strokeWidth: 0,
-                        ...STROKE_STYLE_THEME_DEFAULTS,
+                        ...SOLID_STROKE_STYLE,
                     },
                 },
                 legendItemName,

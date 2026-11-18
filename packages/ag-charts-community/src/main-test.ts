@@ -28,5 +28,7 @@ export * from './chart/test/glowRender';
 export * from './chart/test/glowRenderSuite';
 export { differingBytes, expectSamePixels } from './chart/test/expectSamePixels';
 export * from './chart/test/prepareOptions';
+export { optionAt } from './module/test/moduleAccessors';
 export * from './chart/test/syncFixtures';
 export * from './chart/test/glowGapFixtures';
+export * from './chart/test/sectorGlowJoins';

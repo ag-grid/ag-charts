@@ -25,7 +25,13 @@ import type {
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    FillOptions,
+    LineDashOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from './commonOptions';
 
 export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends
@@ -55,7 +61,8 @@ export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgBarSeriesOptionsKeys<TDatum>,
-        Required<AgBarSeriesStyle> {
+        Required<Omit<AgBarSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {
     readonly stackGroup?: string;
     /** The x value of the datum. */
     xValue: any;
@@ -76,7 +83,8 @@ export interface AgBarSeriesStylerParams<TDatum, TContext>
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgBarSeriesOptionsKeys<TDatum>,
-        Required<AgBarSeriesStyle> {
+        Required<Omit<AgBarSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {
     readonly stackGroup?: string;
 }
 
@@ -110,7 +118,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     crisp?: boolean;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
-    /** Configuration for the glow around the bars. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. The faint bars that a cross-filter draws behind the filtered ones cast no glow. */
+    /** Configuration for the glow around the bars. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
     glow?: AgGlowOptions;
     /** Configuration for the labels shown on bars. */
     label?: AgBarSeriesLabelOptions<TDatum, AgBarSeriesLabelFormatterParams<TDatum>, TContext>;

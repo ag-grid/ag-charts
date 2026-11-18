@@ -18,6 +18,7 @@ import {
     definedZoomState,
     isNumberEqual,
 } from 'ag-charts-core';
+import type { NormalisedLineDash } from 'ag-charts-core';
 import type { AgScrollbarThumbStyle, AgScrollbarTrackStyle } from 'ag-charts-types';
 
 import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
@@ -27,11 +28,11 @@ const { LayoutElement, InteractionState } = _ModuleSupport;
 
 type ScrollbarOrientation = 'horizontal' | 'vertical';
 
-type NormalisedScrollbarTrackStyle = Normalised<AgScrollbarTrackStyle, never, FillStrokeMorph>;
+type NormalisedScrollbarTrackStyle = Normalised<AgScrollbarTrackStyle, never, FillStrokeMorph & NormalisedLineDash>;
 type NormalisedScrollbarThumbStyle = Normalised<
     AgScrollbarThumbStyle,
     never,
-    FillStrokeMorph & { hoverStyle?: FillStrokeMorph & { strokeWidth?: number } }
+    FillStrokeMorph & { hoverStyle?: FillStrokeMorph & { strokeWidth?: number } } & NormalisedLineDash
 >;
 
 interface ScrollbarOrientationState {

@@ -1,5 +1,6 @@
 import type { AgGradientColor, AgImageFill, AgPatternColor } from '../series/cartesian/commonOptions';
 import type { AgChartAllThemeParams } from './themeParamsOptions';
+import type { AgLineDashName } from './types';
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, Operation, ExcludeLeaves>;
 
@@ -168,6 +169,7 @@ type TransformOperation =
     | { $applyPadding: Leaf<number> | Leaf<{ top: number; right: number; bottom: number; left: number }> }
     | { $applySwitch: any[] }
     | { $applyCycle: any[] }
+    | { $applyLineDash: [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>] } // Default dash | Stroke width a name scales by
     | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found
     | { $map: [AnyLeaf | object, AnyLeaf] } // Operation to apply to each item in the array | Target array
     | { $merge: Leaf<object>[] } // Array of objects to merge

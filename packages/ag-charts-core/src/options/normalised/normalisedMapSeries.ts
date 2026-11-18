@@ -20,7 +20,12 @@ import type {
 
 import type { FeatureCollection } from '../../types/geojson';
 import type { Normalised } from './normalise';
-import type { FillStrokeMorph, NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
+import type {
+    FillStrokeMorph,
+    NormalisedColorType,
+    NormalisedDropShadowOptions,
+    NormalisedLineDash,
+} from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions, NormalisedSeriesLabelOptions } from './normalisedLabelOptions';
 import type { NormalisedColorScaleOptions } from './normalisedScatterSeries';
 
@@ -30,9 +35,21 @@ export interface NormalisedTopologySeriesKeys {
     legendItemName?: string;
 }
 
-export type NormalisedMapShapeSeriesStyle = Normalised<AgMapShapeSeriesStyle, never, FillStrokeMorph>;
-export type NormalisedMapLineSeriesStyle = Normalised<AgMapLineSeriesStyle, never, { stroke?: CssColor }>;
-export type NormalisedMapMarkerSeriesStyle = Normalised<AgMapMarkerSeriesStyle, never, FillStrokeMorph>;
+export type NormalisedMapShapeSeriesStyle = Normalised<
+    AgMapShapeSeriesStyle,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
+export type NormalisedMapLineSeriesStyle = Normalised<
+    AgMapLineSeriesStyle,
+    never,
+    { stroke?: CssColor } & NormalisedLineDash
+>;
+export type NormalisedMapMarkerSeriesStyle = Normalised<
+    AgMapMarkerSeriesStyle,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
 
 export type NormalisedMapShapeSeriesLabelOptions =
     NormalisedCollisionFreeSeriesLabelOptions<AgMapShapeSeriesLabelFormatterParams> & {
@@ -69,7 +86,7 @@ export type NormalisedMapShapeSeriesOwnOptions = Normalised<
         label: NormalisedMapShapeSeriesLabelOptions;
         colorScale: NormalisedColorScaleOptions;
         itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<unknown, unknown>, AgMapShapeSeriesStyle>;
-    }
+    } & NormalisedLineDash
 >;
 
 /** Map line options the series owns, before the common series keys are layered on. */
@@ -82,7 +99,7 @@ export type NormalisedMapLineSeriesOwnOptions = Normalised<
         label: NormalisedMapLineSeriesLabelOptions;
         colorScale: NormalisedColorScaleOptions;
         itemStyler?: Styler<AgMapLineSeriesItemStylerParams<unknown, unknown>, AgMapLineSeriesStyle>;
-    }
+    } & NormalisedLineDash
 >;
 
 /** Map marker options the series owns, before the common series keys are layered on. */
@@ -107,7 +124,7 @@ export type NormalisedMapMarkerSeriesOwnOptions = Normalised<
         label: NormalisedMapMarkerSeriesLabelOptions;
         colorScale: NormalisedColorScaleOptions;
         itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<unknown, unknown>, AgMapMarkerSeriesStyle>;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedMapShapeBackgroundSeriesOwnOptions = Normalised<

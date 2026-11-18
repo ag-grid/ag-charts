@@ -23,9 +23,10 @@ import {
     PointerEvents,
     type PositionedLabelCandidate,
     type RequireOptional,
-    STROKE_STYLE_THEME_DEFAULTS,
+    SOLID_STROKE_STYLE,
     ScalableGroup,
     Sector,
+    SectorGlowRing,
     Selection,
     Text,
     TransformableText,
@@ -42,6 +43,7 @@ import {
     normalizeAngle360,
     readDatumKey,
     sectorEdgeInset,
+    setSectorGlowEnds,
     withoutCasts,
 } from 'ag-charts-core';
 import type { Path } from 'ag-charts-core';
@@ -220,6 +222,8 @@ export class SunburstSeries extends HierarchySeries<
 > {
     static override readonly className = 'SunburstSeries';
     static readonly type = 'sunburst' as const;
+
+    private readonly glowRings = new Map<number, SectorGlowRing>();
 
     NodeClass = SunburstNode;
 
@@ -581,15 +585,21 @@ export class SunburstSeries extends HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
+            const hoveredInPlace = !highlighted && highlightedNode?.datumIndex === nodeDatum.datumIndex;
+            const hoveredStyle = hoveredInPlace ? this.getItemStyle(nodeDatum, true) : undefined;
             sector.fillShadow = this.resolveNodeShadow(
                 shadow,
                 glow,
                 highlighted,
                 highlightedNode,
                 nodeDatum,
-                !highlighted && highlightedNode?.datumIndex === nodeDatum.datumIndex
-                    ? this.getItemStyle(nodeDatum, true).shadow
-                    : style.shadow
+                hoveredStyle == null ? style.shadow : hoveredStyle.shadow
+            );
+            sector.fillGlow = this.resolveNodeGlow(
+                glow,
+                highlighted,
+                hoveredInPlace,
+                hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null
             );
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
@@ -606,12 +616,19 @@ export class SunburstSeries extends HierarchySeries<
             sector.cornerRadius = cornerRadius;
         };
 
+        let glowing = false;
         this.datumSelection.each((sector, datum) => {
             updateSector(datum, sector, false);
+            glowing ||= sector.fillGlow?.enabled === true;
         });
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
         });
+        if (glowing) {
+            this.updateGlowEnds(angleOffset);
+        } else {
+            this.glowRings.clear();
+        }
 
         const { innerLabels = [] } = this.options;
         const centre = this.resolveCentreCircle();
@@ -645,6 +662,23 @@ export class SunburstSeries extends HierarchySeries<
         if (centre != null && innerLabels.length > 0) {
             this.updateInnerLabelNodes(centre);
         }
+    }
+
+    /** Ends the glow of each sector on the line between it and the sector beside it in its ring, where both glow. */
+    private updateGlowEnds(angleOffset: number) {
+        const { glowRings } = this;
+        for (const ring of glowRings.values()) ring.clear();
+        this.datumSelection.each((sector, { depth, startAngle, endAngle }) => {
+            if (depth == null) return;
+
+            let ring = glowRings.get(depth);
+            if (ring == null) {
+                ring = new SectorGlowRing();
+                glowRings.set(depth, ring);
+            }
+            ring.add(sector, startAngle + angleOffset, endAngle + angleOffset, sector.innerRadius, sector.outerRadius);
+        });
+        for (const ring of glowRings.values()) setSectorGlowEnds(ring);
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -1065,7 +1099,7 @@ export class SunburstSeries extends HierarchySeries<
             fillOpacity: 1,
             stroke: undefined,
             strokeWidth: 0,
-            ...STROKE_STYLE_THEME_DEFAULTS,
+            ...SOLID_STROKE_STYLE,
         };
 
         if (isGradientFill(markerStyle.fill)) {

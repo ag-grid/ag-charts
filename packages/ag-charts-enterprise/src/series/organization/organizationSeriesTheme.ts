@@ -5,6 +5,8 @@ import {
     FONT_SIZE_RATIO,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
+    UNSET_LINE_DASH_THEME_DEFAULT,
+    lineDashThemeDefault,
     themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -50,13 +52,15 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
             stroke: { $path: '../node/stroke' },
             strokeOpacity: { $path: '../node/strokeOpacity' },
             strokeWidth: { $path: '../node/strokeWidth' },
-            lineDash: { $path: '../node/lineDash' },
+            lineDash: lineDashThemeDefault({ $path: '../node/lineDash' }),
             lineDashOffset: { $path: '../node/lineDashOffset' },
             padding: { $applyPadding: { top: 5, right: 7.5, bottom: 5, left: 7.5 } },
             hoverStyle: {
                 // Background-only, matching the default toolbar and range button hover background — an
                 // accentColor/backgroundColor mix.
                 fill: { $ref: 'focusColor' },
+                // A name set here is measured by this state's width, else the expander's.
+                lineDash: lineDashThemeDefault(undefined, { $path: ['./strokeWidth', { $path: '../strokeWidth' }] }),
             },
             text: {
                 color: { $ref: 'subtleTextColor' },
@@ -75,6 +79,10 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
             highlightedItem: {
                 stroke: { $ref: 'accentColor' },
                 strokeWidth: 2,
+                lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
+            },
+            unhighlightedItem: {
+                lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
             },
         },
         selection: SERIES_SELECTION_THEME,
@@ -88,7 +96,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 type: 'step',
                 cornerRadius: 8,
             },
-            lineDash: [],
+            lineDash: lineDashThemeDefault([]),
             lineDashOffset: 0,
             stroke: { $foregroundBackgroundMix: 0.2 },
             strokeOpacity: 1,
@@ -102,7 +110,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
             cornerRadius: 4,
             fill: { $foregroundBackgroundMix: 0.02 },
             fillOpacity: 1,
-            lineDash: [],
+            lineDash: lineDashThemeDefault([]),
             lineDashOffset: 0,
             padding: { $applyPadding: 8 },
             stroke: { $foregroundBackgroundMix: 0.2 },

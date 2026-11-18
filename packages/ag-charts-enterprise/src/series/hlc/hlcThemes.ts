@@ -17,6 +17,7 @@ import {
     inheritedGlowTheme,
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
+    lineDashThemeDefault,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 
@@ -81,7 +82,7 @@ const HLC_ITEM_MARKER: WithThemeParams<HlcItemMarkerOptions> = {
         ],
     },
     fillOpacity: { $path: '/series/$index/marker/fillOpacity' },
-    lineDash: { $path: '/series/$index/marker/lineDash' },
+    lineDash: lineDashThemeDefault({ $path: '/series/$index/marker/lineDash' }),
     lineDashOffset: { $path: '/series/$index/marker/lineDashOffset' },
     shadow: {
         enabled: { $path: '/series/$index/marker/shadow/enabled' },

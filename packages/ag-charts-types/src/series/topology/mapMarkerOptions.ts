@@ -13,7 +13,13 @@ import type {
     GeoJSON,
     PixelSize,
 } from '../../chart/types';
-import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type {
+    AgColorScale,
+    FillOptions,
+    LineDashOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
@@ -37,7 +43,8 @@ export type AgMapMarkerSeriesItemStylerParams<TDatum = DatumDefault, TContext = 
 > &
     ContextCallbackParams<TContext> &
     AgMapMarkerSeriesOptionsKeys<TDatum> &
-    Required<AgMapMarkerSeriesStyle>;
+    Required<Omit<AgMapMarkerSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgMapMarkerSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the id value. */

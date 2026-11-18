@@ -1843,7 +1843,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 overrides,
                 highlightStyle,
                 this.getStyle(false, highlightState, selectionState, candidateState)
-            ) as Required<NormalisedBarSeriesStyle>;
+            );
         }
 
         let style = mergeDefaults(

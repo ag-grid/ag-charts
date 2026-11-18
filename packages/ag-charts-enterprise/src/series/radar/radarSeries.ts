@@ -4,6 +4,7 @@ import {
     type AgRadarSeriesStyle,
     type AgSeriesMarkerStyle,
     type CssColor,
+    type PixelSize,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -112,13 +113,18 @@ type RadarStylerApply = _ModuleSupport.MarkerStyleApply<
     ResolvedRadarStyle<any>
 >;
 
-type StylerResult<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'stroke' | 'marker'> & {
+type StylerResult<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'stroke' | 'lineDash' | 'marker'> & {
     stroke?: CssColor;
+    lineDash?: PixelSize[];
     marker?: NormalisedSeriesMarkerStyle & { enabled?: boolean };
 };
 
 export type ResolvedRadarStyle<TStyle extends AgRadarSeriesStyle> = {
-    [K in keyof TStyle]-?: K extends 'stroke' ? CssColor : Exclude<TStyle[K], undefined>;
+    [K in keyof TStyle]-?: K extends 'stroke'
+        ? CssColor
+        : K extends 'lineDash'
+          ? PixelSize[]
+          : Exclude<TStyle[K], undefined>;
 } & {
     marker: Required<NormalisedSeriesMarkerStyle> & { enabled: boolean };
 };
@@ -527,10 +533,6 @@ export abstract class RadarSeries<
             ctx,
             { compute: RadarSeries.computeStylerStyle, apply: RadarSeries.applyStylerDatum }
         );
-    }
-
-    protected override castsHighlightGlowInGroup() {
-        return false;
     }
 
     protected override getSeriesGlows() {

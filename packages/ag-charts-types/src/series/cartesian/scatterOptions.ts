@@ -25,7 +25,13 @@ import type {
     AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    AgColorScale,
+    FillOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from './commonOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends
@@ -54,7 +60,8 @@ export type AgScatterSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
 > &
     ContextCallbackParams<TContext> &
     AgScatterSeriesOptionsKeys<TDatum> &
-    Required<AgSeriesMarkerStyle>;
+    Required<Omit<AgSeriesMarkerStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
     extends

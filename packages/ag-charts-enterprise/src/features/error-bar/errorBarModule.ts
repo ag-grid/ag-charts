@@ -1,6 +1,6 @@
 import { type AgErrorBarOptions, VERSION } from 'ag-charts-community';
 import type { SeriesPluginModuleDefinition } from 'ag-charts-core';
-import { errorBarOptionsDefs } from 'ag-charts-core';
+import { errorBarOptionsDefs, lineDashThemeDefault } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { ErrorBars } from './errorBar';
@@ -21,7 +21,9 @@ export const ErrorBarsModule: SeriesPluginModuleDefinition<AgErrorBarOptions> = 
         stroke: { $ref: 'foregroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
+        lineDash: lineDashThemeDefault(undefined),
         cap: {
+            lineDash: lineDashThemeDefault(undefined, { $path: ['./strokeWidth', { $path: '../strokeWidth' }] }),
             lengthRatio: {
                 $if: [{ $eq: [{ $path: '../../type' }, 'bar'] }, 0.3, 1],
             },

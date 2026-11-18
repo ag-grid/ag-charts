@@ -294,6 +294,15 @@ describe('volumeProfile selection', () => {
             expect(bands()).toHaveLength(0);
         });
 
+        it('scales a named `lineDash` of the band by its `strokeWidth`', async () => {
+            await create({ selection: { enabled: true, selectedBand: { strokeWidth: 2, lineDash: 'dash' } } });
+
+            await click(0, 1);
+
+            expect(bands()).not.toHaveLength(0);
+            expect(bands().map((band) => band.lineDash)).toEqual(bands().map(() => [6, 4]));
+        });
+
         it('removes the bands when the selection is cleared', async () => {
             await create({ selection: { enabled: true, clickMode: 'multiple' } });
 

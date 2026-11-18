@@ -74,6 +74,9 @@ export type NormalisedColorType = CssColor | InternalAgGradientColor | InternalA
 export type NormalisedFillOptions = Normalised<FillOptions, never, { fill?: NormalisedColorType }>;
 export type NormalisedStrokeOptions = Normalised<StrokeOptions, never, { stroke?: CssColor }>;
 
+/** The theme resolves a named `lineDash` to its array of lengths, so only the array form remains. */
+export type NormalisedLineDash = { lineDash?: PixelSize[] };
+
 /**
  * Only a glow's `fill` may be unset; the theme has folded the deprecated `color` into `fill`. `glow` marks the shadow
  * that a highlight `glow` makes, which surrounds an item with no visible fill by its stroke.
@@ -83,10 +86,14 @@ export type NormalisedDropShadowOptions = Normalised<
     'enabled' | 'xOffset' | 'yOffset' | 'blur'
 > & {
     glow?: true;
-    /** A glow cast beneath the items of its series, not by the shadow root beneath every series. */
-    inGroup?: true;
+    /** A glow with no `gap` that is cast in an overlay, which cuts it only where its item, and every item that glows, is painted. */
+    overlay?: true;
     /** The `gap` of a glow: how far the shadow's silhouette is cut out of it, or undefined to cast it like a shadow. */
     gap?: PixelSize;
+    /** A glow that casts nothing, which only cuts the footprint of its item out of the glow overlay. */
+    cutOnly?: true;
+    /** With `cutOnly`, cuts the footprint out of the glows of its own series alone. */
+    ownCut?: true;
 };
 
 /** A shadow with the `fill` that it casts in. */

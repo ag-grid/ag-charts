@@ -6,6 +6,7 @@ import type {
     AgGlowOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
+    AgLineDashName,
     AgMultiSeriesHighlightOptions,
     AgSelectionOptions,
     AgSelectionStyleOptions,
@@ -509,7 +510,7 @@ const LABEL_BOXING_BORDER_DEFAULTS: WithThemeParams<Pick<LabelBoxOptions, 'borde
 export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     ...labelBoxingFillDefaults(),
     ...LABEL_BOXING_BORDER_DEFAULTS,
-    padding: 8,
+    padding: { $ref: 'seriesLabelPadding' },
     cornerRadius: { $ref: 'seriesLabelBorderRadius' },
 };
 
@@ -542,6 +543,7 @@ export const PLACED_LABEL_BOXING_DEFAULTS = (placement: SeriesLabelPlacement): W
 export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     ...labelBoxingFillDefaults(),
     ...LABEL_BOXING_BORDER_DEFAULTS,
+    padding: { $ref: 'seriesLabelPadding' },
     cornerRadius: { $ref: 'seriesLabelBorderRadius' },
 };
 
@@ -668,8 +670,26 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
 /** Interaction defaults for series whose public options omit `showInLegend`. */
 export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickRange: 'exact' } as const;
 
+/** The `strokeWidth` beside the `lineDash`, by which a stock dash name scales. */
+const SIBLING_STROKE_WIDTH = { $path: './strokeWidth' } as const;
+
+/** The `lineDash` theme default: the `defaultDash`, and the `strokeWidth` that a stock dash name scales by. */
+export function lineDashThemeDefault(
+    defaultDash: AgLineDashName | number[] | Operation | undefined,
+    strokeWidth: Operation = SIBLING_STROKE_WIDTH
+) {
+    return { $applyLineDash: [defaultDash, strokeWidth] } satisfies Operation;
+}
+
 /** Solid, fully opaque stroke; the theme value every stroked element starts from. */
-export const STROKE_STYLE_THEME_DEFAULTS = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
+export const STROKE_STYLE_THEME_DEFAULTS = {
+    strokeOpacity: 1,
+    lineDash: lineDashThemeDefault('solid'),
+    lineDashOffset: 0,
+};
+
+/** {@link STROKE_STYLE_THEME_DEFAULTS} resolved, for styles built outside the theme. */
+export const SOLID_STROKE_STYLE = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
 
 /** Font size, family and weight taken from the theme params; most text theme blocks spread this. */
 export const FONT_THEME_DEFAULTS = {
@@ -723,6 +743,32 @@ export const GLOW_THEME_DEFAULTS = {
     blur: 2,
     spread: 4,
 } as const;
+
+/** The `lineDash` default of a style that falls back to the series' when unset, such as a highlight bucket. */
+export const UNSET_LINE_DASH_THEME_DEFAULT = lineDashThemeDefault(undefined, {
+    $path: ['./strokeWidth', { $path: '/series/$index/strokeWidth' }],
+});
+
+/** The states of a selection, which each fall back to the series' `lineDash` when unset. */
+export const SELECTION_LINE_DASH_STATES = ['selectedItem', 'unselectedItem', 'unselectedSeries'] as const;
+
+/**
+ * `style` with `lineDash` (or `within.lineDash`, e.g. a candlestick's `wick`) defaulted in each of its `states`, so that
+ * a name set there resolves. Use for a highlight or selection that does not already spread {@link withGlowThemeDefaults}.
+ */
+export function withLineDashThemeDefaults<T extends object>(
+    style: T,
+    states: readonly string[],
+    { within, lineDash = UNSET_LINE_DASH_THEME_DEFAULT }: { within?: string; lineDash?: Operation } = {}
+): T {
+    const result: Record<string, any> = { ...(style as Record<string, unknown>) };
+    for (const state of states) {
+        const current = result[state] ?? {};
+        result[state] =
+            within == null ? { ...current, lineDash } : { ...current, [within]: { ...current[within], lineDash } };
+    }
+    return result as T;
+}
 
 /** The highlight states of a series with only item states, and of a treemap group. */
 export const ITEM_GLOW_BUCKETS = ['highlightedItem', 'unhighlightedItem'] as const;
@@ -780,6 +826,7 @@ export function withGlowThemeDefaults<T extends object>(
         result[bucket] = {
             ...(result[bucket] as object | undefined),
             glow: { enabled: perPart ? { $isUserOption: ['./', enabled, undefined] } : enabled },
+            lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
         };
     };
     const enabledPaths = glowPaths.map((path) => ({ $path: `${path}/enabled` }));
@@ -915,12 +962,15 @@ export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelect
     containment: { $path: ['/selection/containment', 'any'] },
     selectedItem: {
         strokeWidth: 2,
+        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
     },
     unselectedItem: {
         opacity: 0.6,
+        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
     },
     unselectedSeries: {
         opacity: 0.2,
+        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
     },
 };
 
@@ -973,7 +1023,7 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 ],
             },
             strokeOpacity: { $path: '../../../strokeOpacity' },
-            lineDash: { $path: '../../../lineDash' },
+            lineDash: lineDashThemeDefault({ $path: '../../../lineDash' }),
             lineDashOffset: { $path: '../../../lineDashOffset' },
         },
     },

@@ -39,7 +39,6 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             spacing: 6,
-            padding: 6,
             collision: BAR_LABEL_COLLISION_THEME,
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),

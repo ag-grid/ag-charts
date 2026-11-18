@@ -256,6 +256,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         padding: '$applyPadding',
         fills: '$applyCycle',
         strokes: '$applyCycle',
+        lineDash: '$applyLineDash',
     };
 
     public readonly paletteType: PaletteType;

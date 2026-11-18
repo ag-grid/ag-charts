@@ -32,6 +32,7 @@ import type {
 
 import { isObject } from '../data/typeGuards';
 import { Color } from '../format/color';
+import { LINE_DASH_PATTERNS } from '../rendering/lineDash';
 import type {
     InternalAgGradientColor,
     InternalAgImageFill,
@@ -416,8 +417,10 @@ export const fillCssOptionsDef: OptionsDefs<FillCssOptions> = {
     fillOpacity: ratio,
 };
 
+export const lineDash = or(arrayOf(positiveNumber), union(...Object.keys(LINE_DASH_PATTERNS)));
+
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
-    lineDash: arrayOf(positiveNumber),
+    lineDash,
     lineDashOffset: number,
 };
 

@@ -15,7 +15,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { NormalisedColorType, NormalisedPaddingOptions } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedLineDash, NormalisedPaddingOptions } from './normalisedCommonOptions';
 
 export type NormalisedNetworkSeriesTreeLayoutOptions = Normalised<
     Omit<AgNetworkSeriesTreeLayout, 'direction'>,
@@ -36,7 +36,7 @@ export type NormalisedOrganizationSeriesExpanderHoverStyle = Normalised<
         fill?: CssColor;
         stroke?: CssColor;
         text?: Normalised<AgOrganizationSeriesExpanderHoverTextStyle, never, { color?: CssColor }>;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedOrganizationSeriesExpanderOptions = Normalised<
@@ -55,7 +55,7 @@ export type NormalisedOrganizationSeriesExpanderOptions = Normalised<
         padding: NormalisedPaddingOptions;
         hoverStyle: NormalisedOrganizationSeriesExpanderHoverStyle;
         text: NormalisedOrganizationSeriesExpanderTextOptions;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedOrganizationSeriesLinkOptions = Normalised<
