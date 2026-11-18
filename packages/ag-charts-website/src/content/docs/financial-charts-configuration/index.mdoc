@@ -146,6 +146,7 @@ const options: AgFinancialChartOptions = {
     zoom: true,
     // disabled by default
     navigator: false,
+    lastPriceLine: false,
     volumeProfile: { enabled: false /*other volume profile options*/ },
 };
 ```
@@ -158,7 +159,34 @@ In this configuration:
 - `volume`: Displays volume data on the chart.
 - `statusBar`: Shows a status bar at the top of the chart when hovering over the chart series.
 - `zoom`: Enables zoom functionality for detailed analysis of the data.
+- `lastPriceLine`: Shows a [Last Price Line](#last-price-line) at the close of the last bar.
 - `volumeProfile`: Shows a [Volume Profile](./financial-charts-volume-profile/) of the volume traded at each price level.
+
+### Last Price Line
+
+Set `lastPriceLine` to draw a horizontal line, with an axis label, at the close of the last bar of the price series. The line moves when the chart data is updated, and is hidden while the close is outside the visible range. It cannot be selected or dragged, and is not part of the annotations that users create or that the [Chart State API](./api-state/) saves and restores.
+
+```ts
+const options: AgFinancialChartOptions = {
+    // ...
+    lastPriceLine: true,
+};
+```
+
+To style the line and its axis label, pass an object. It takes the line and `axisLabel` options of the [horizontal-line annotation](./financial-charts-toolbar/#lines), such as `stroke`, `strokeWidth`, `lineStyle` and `axisLabel`.
+
+```ts
+const options: AgFinancialChartOptions = {
+    // ...
+    lastPriceLine: {
+        stroke: '#F3A93C',
+        lineStyle: 'dashed',
+        axisLabel: { fill: '#F3A93C' },
+    },
+};
+```
+
+The line does not depend on the `toolbar` option. Other values, such as the first, lowest or average price, can be shown by updating a horizontal-line annotation alongside the data.
 
 ### Chart Types
 
