@@ -560,28 +560,46 @@ export abstract class FlowProportionSeries<
         this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
     }
 
-    protected getHighlightedDatum() {
-        let highlightedDatum: TDatum<TNodeDatum, TLinkDatum> | undefined =
-            this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum?.series === this && (highlightedDatum as any).type == null) {
-            // Handle highlighting legend items
-            highlightedDatum = this.findLegendNode(highlightedDatum);
-        } else if (highlightedDatum?.series !== this) {
-            highlightedDatum = undefined;
-        }
+    protected getHighlightedDatum(): TDatum<TNodeDatum, TLinkDatum> | undefined {
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        if (highlightedDatum?.series !== this) return undefined;
 
-        return highlightedDatum;
+        // Handle highlighting legend items
+        const datum = this.isLegendHighlight(highlightedDatum)
+            ? this.findLegendNode(highlightedDatum)
+            : (highlightedDatum as unknown as TDatum<TNodeDatum, TLinkDatum>);
+        return datum;
     }
 
-    /** The node a legend item highlights, which is raised as an `itemId` with no `datumIndex`. */
+    /** The legend node of the active highlight, which every shape of an update asks for. */
+    private legendNodePass?: {
+        highlightedDatum: _ModuleSupport.HighlightNodeDatum;
+        nodeData: unknown;
+        node: TNodeDatum | undefined;
+    };
+
+    protected override resetRedrawnIndex() {
+        super.resetRedrawnIndex();
+        this.legendNodePass = undefined;
+    }
+
+    /**
+     * The node a legend item highlights, which is raised as an `itemId` with no `datumIndex`. It is searched for once
+     * per highlight and set of node data, as each shape of an update reads it.
+     */
     private findLegendNode(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined): TNodeDatum | undefined {
         const itemId = highlightedDatum?.itemId;
-        if (itemId == null) return;
+        if (highlightedDatum == null || itemId == null) return;
 
-        const nodeData = this.contextNodeData?.nodeData ?? [];
-        return nodeData.find(
-            (node): node is TNodeDatum => node.type === FlowProportionDatumType.Node && node.id === itemId
+        const nodeData = this.contextNodeData?.nodeData;
+        const pass = this.legendNodePass;
+        if (pass?.highlightedDatum === highlightedDatum && pass.nodeData === nodeData) return pass.node;
+
+        const node = nodeData?.find(
+            (datum): datum is TNodeDatum => datum.type === FlowProportionDatumType.Node && datum.id === itemId
         );
+        this.legendNodePass = { highlightedDatum, nodeData, node };
+        return node;
     }
 
     /** A legend item has no `datumIndex`, so the node it highlights is the one redrawn on the highlight layer. */
