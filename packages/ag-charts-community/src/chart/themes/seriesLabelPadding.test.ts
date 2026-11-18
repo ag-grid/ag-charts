@@ -34,7 +34,7 @@ describe('seriesLabelPadding theme parameter', () => {
         { category: 'C', bar: 24, line: 44, scatter: 68, area: 90 },
     ];
 
-    const createOptions = (params: AgChartThemeParams): AgCartesianChartOptions => ({
+    const createCartesianOptions = (params: AgChartThemeParams): AgCartesianChartOptions => ({
         data,
         legend: { enabled: false },
         theme: {
@@ -91,13 +91,15 @@ describe('seriesLabelPadding theme parameter', () => {
 
     // Only the area and bar labels follow the parameter: the line labels are pinned to 2 by a theme override and the
     // scatter labels to 2 by a series option, so both must keep that padding whatever the parameter says.
-    it.each(PARAMS)('pads series labels by $name', async ({ params }) => {
-        chart = await createChart(createOptions(params));
-        await compareImageSnapshot(chart, ctx);
-    });
+    const CHARTS: { name: string; createOptions: (params: AgChartThemeParams) => AgChartOptions }[] = [
+        { name: 'series', createOptions: createCartesianOptions },
+        { name: 'pie', createOptions: createPieOptions },
+    ];
 
-    it.each(PARAMS)('pads pie labels by $name', async ({ params }) => {
-        chart = await createChart(createPieOptions(params));
-        await compareImageSnapshot(chart, ctx);
+    describe.each(CHARTS)('$name', ({ createOptions }) => {
+        it.each(PARAMS)('pads labels by $name', async ({ params }) => {
+            chart = await createChart(createOptions(params));
+            await compareImageSnapshot(chart, ctx);
+        });
     });
 });
