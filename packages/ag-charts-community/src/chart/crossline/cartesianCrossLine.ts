@@ -19,6 +19,7 @@ import {
     fontWithSize,
     resolveLabelAvoidance,
     resolveLabelFit,
+    resolveMinimumFontSize,
     resolvePadding,
     toRadians,
     validateCrossLineValue,
@@ -567,7 +568,9 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             const whole = fitted.text === '' && this.keepsLabel;
             this.fitted = {
                 text: typeof fitted.text === 'string' && !whole ? fitted.text : text,
-                fontSize: whole ? (label.minimumFontSize ?? label.fontSize) : (fitted.fontSize ?? label.fontSize),
+                fontSize: whole
+                    ? resolveMinimumFontSize(label.minimumFontSize, label.fontSize)
+                    : (fitted.fontSize ?? label.fontSize),
                 measurer,
                 key,
             };
