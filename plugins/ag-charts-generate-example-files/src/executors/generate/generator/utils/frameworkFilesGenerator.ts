@@ -353,9 +353,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
 
-        // Vue 3 examples are TypeScript, so build them from the typed bindings: the JS bindings
-        // strip the parameter types of callbacks, the type-only imports they reference and the
-        // top-level type declarations.
+        // Typed bindings: the JS bindings strip callback parameter types, type-only imports and type declarations.
         const vueBindings = deepCloneObject(typedBindings);
 
         let mainJs = await vanillaToVue3(vueBindings, [], suppressOptionsClone);
