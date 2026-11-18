@@ -1365,6 +1365,101 @@ describe('highlight glow (enterprise series)', () => {
         );
     });
 
+    // A sankey or chord casts its series shadow once: from the in-place copy of each item, through the root. The
+    // highlight layer's copy of the hovered item casts none, and nor does any copy on the focus layer.
+    describe.each(['sankey', 'chord'])('%s: the shadow of the hovered item', (type) => {
+        const series = {
+            node: { shadow: { ...SHADOW, fill: '#112233', blur: 11 } },
+            link: { shadow: { ...SHADOW, fill: '#445566', blur: 22 } },
+            highlight: { highlightedItem: { shadow: { blur: 1 } } },
+        };
+        const NODE_KIND = type === 'sankey' ? Rect : Sector;
+
+        const visible = (name: Parameters<typeof getSeriesGroup>[1]) =>
+            collectShapes(getSeriesGroup(chart, name)).filter((shape) => shape.visible);
+        const blurs = (shapes: Shape[]) => shapes.map((shape) => shape.fillShadow?.blur);
+        const casting = (shapes: Shape[]) => shapes.filter((shape) => shape.fillShadow?.enabled === true);
+        const inPlaceNodes = () => visible('nodeGroup').filter((shape) => (shape.constructor as unknown) === NODE_KIND);
+
+        /** A legend item raises the `id` of its node as an `itemId`, with no datum: the node at `index`, or none. */
+        const hoverLegendItem = async (index: number | undefined) => {
+            await hoverFlowPart(type, series, 'node');
+            raiseHighlight();
+            await waitForChartStability(chart);
+            const itemId = index == null ? 'not a node' : getFlowNodeData(chart)[index].id;
+            raiseHighlight({ series: FLOW_NODE(chart).series, itemId, datum: undefined, datumIndex: Number.NaN });
+            await waitForChartStability(chart);
+        };
+
+        describe('hovering a legend item', () => {
+            it('gives its node the highlightedItem shadow, as hovering the node does', async () => {
+                await hoverFlowPart(type, series, 'node');
+                const hoveredNode = blurs(inPlaceNodes());
+                expect(hoveredNode).toEqual([1, 11, 11, 11]);
+
+                await hoverLegendItem(0);
+                expect(blurs(inPlaceNodes())).toEqual(hoveredNode);
+            });
+
+            it('keeps every node casting its series shadow when the itemId matches no node', async () => {
+                await hoverLegendItem(undefined);
+
+                expect(blurs(inPlaceNodes())).toEqual([11, 11, 11, 11]);
+            });
+
+            it('moves the highlightedItem shadow with the hover, and takes it off when the hover ends', async () => {
+                await hoverLegendItem(1);
+                expect(blurs(inPlaceNodes())).toEqual([11, 1, 11, 11]);
+
+                raiseHighlight();
+                await waitForChartStability(chart);
+                expect(blurs(inPlaceNodes())).toEqual([11, 11, 11, 11]);
+            });
+        });
+
+        describe('hovering a node', () => {
+            it('casts the shadow of each neighbour once, from its in-place copy', async () => {
+                await hoverFlowPart(type, series, 'node');
+
+                // The hovered node casts the highlightedItem shadow in place, and its neighbours their series shadow.
+                expect(blurs(inPlaceNodes())).toEqual([1, 11, 11, 11]);
+                // The focus layer holds the hovered node and its neighbours, and casts none of them.
+                expect(visible('focusNodeGroup').length).toBeGreaterThan(1);
+                expect(casting(visible('focusNodeGroup'))).toHaveLength(0);
+                expect(casting(visible('highlightNodeGroup'))).toHaveLength(0);
+            });
+
+            it('casts the shadow of each link once, from its in-place copy', async () => {
+                await hoverFlowPart(type, series, 'node');
+
+                expect(visible('focusLinkGroup').length).toBeGreaterThan(0);
+                expect(casting(visible('focusLinkGroup'))).toHaveLength(0);
+                expect(blurs(visible('linkGroup'))).toEqual([22, 22, 22, 22]);
+            });
+
+            it('casts every node once the hover has ended', async () => {
+                await hoverFlowPart(type, series, 'node');
+                raiseHighlight();
+                await waitForChartStability(chart);
+
+                expect(blurs(inPlaceNodes())).toEqual([11, 11, 11, 11]);
+            });
+        });
+
+        describe('hovering a link', () => {
+            it('casts the shadow of its nodes and of itself once, from the in-place copy', async () => {
+                await hoverFlowPart(type, series, 'link');
+
+                expect(visible('focusNodeGroup').length).toBeGreaterThan(0);
+                expect(visible('focusLinkGroup').length).toBeGreaterThan(0);
+                expect(casting(visible('focusNodeGroup'))).toHaveLength(0);
+                expect(casting(visible('focusLinkGroup'))).toHaveLength(0);
+                expect(casting(visible('highlightLinkGroup'))).toHaveLength(0);
+                expect(blurs(inPlaceNodes())).toEqual([11, 11, 11, 11]);
+            });
+        });
+    });
+
     describe('theme defaults', () => {
         const HIERARCHY = (series: object) => ({ labelKey: 'name', sizeKey: 'size', ...series });
         const ITEM_BUCKETS = ['highlightedItem', 'unhighlightedItem'];

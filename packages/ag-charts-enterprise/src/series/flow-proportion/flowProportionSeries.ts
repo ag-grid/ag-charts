@@ -475,6 +475,8 @@ export abstract class FlowProportionSeries<
         const nodeData = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
 
+        // The legend node a highlight maps to comes from the node data, which may have changed since the last pass.
+        this.resetRedrawnIndex();
         const highlightedDatum = this.getHighlightedDatum();
 
         this.contentGroup.visible = this.visible;
@@ -563,17 +565,45 @@ export abstract class FlowProportionSeries<
             this.ctx.highlightManager?.getActiveHighlight() as any;
         if (highlightedDatum?.series === this && (highlightedDatum as any).type == null) {
             // Handle highlighting legend items
-            const { itemId } = highlightedDatum;
-            const nodeData = this.contextNodeData?.nodeData ?? [];
-            highlightedDatum =
-                itemId == null
-                    ? undefined
-                    : nodeData.find((node) => node.type === FlowProportionDatumType.Node && node.id === itemId);
+            highlightedDatum = this.findLegendNode(highlightedDatum);
         } else if (highlightedDatum?.series !== this) {
             highlightedDatum = undefined;
         }
 
         return highlightedDatum;
+    }
+
+    /** The node a legend item highlights, which is raised as an `itemId` with no `datumIndex`. */
+    private findLegendNode(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined): TNodeDatum | undefined {
+        const itemId = highlightedDatum?.itemId;
+        if (itemId == null) return;
+
+        const nodeData = this.contextNodeData?.nodeData ?? [];
+        return nodeData.find(
+            (node): node is TNodeDatum => node.type === FlowProportionDatumType.Node && node.id === itemId
+        );
+    }
+
+    /** A legend item has no `datumIndex`, so the node it highlights is the one redrawn on the highlight layer. */
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        if (highlightedDatum?.series !== this) return;
+        if (!this.isLegendHighlight(highlightedDatum)) return super.getRedrawnDatumIndex(highlightedDatum);
+        return this.findLegendNode(highlightedDatum)?.datumIndex;
+    }
+
+    protected override isItemHighlighted(
+        highlightedDatum?: _ModuleSupport.HighlightNodeDatum,
+        datumIndex?: _ModuleSupport.DatumIndex
+    ) {
+        if (!this.isLegendHighlight(highlightedDatum)) return super.isItemHighlighted(highlightedDatum, datumIndex);
+
+        // An `itemId` that matches no node highlights none, so every node keeps its series shadow.
+        const node = this.findLegendNode(highlightedDatum);
+        return node == null || datumIndex == null ? undefined : node.datumIndex === datumIndex;
+    }
+
+    private isLegendHighlight(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        return highlightedDatum != null && (highlightedDatum as { type?: unknown }).type == null;
     }
 
     protected isLabelHighlighted(datum: TNodeDatum, activeHighlight?: TNodeDatum | TLinkDatum): boolean {
@@ -604,9 +634,8 @@ export abstract class FlowProportionSeries<
 
     /**
      * `focusedDatum` is the hovered item when `datumSelection` is the focus layer, which redraws it among its
-     * neighbours. That copy casts no shadow: the hovered item's shadow is cast by exactly one other copy. The focus layer
-     * casts no glow at all: the in-place copy of each neighbour casts its own, and the hovered item's is cast by its
-     * highlight copy.
+     * neighbours. The focus layer casts no shadow and no glow at all: each item's shadow is cast by its in-place copy,
+     * through the root. A neighbour's glow is cast by its in-place copy too, and the hovered item's by its highlight copy.
      */
     protected abstract updateNodeNodes(opts: {
         datumSelection: Selection<TNodeDatum, TNode>;
