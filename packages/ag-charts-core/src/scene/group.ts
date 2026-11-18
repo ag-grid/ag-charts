@@ -573,8 +573,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 } else if (ownCuts && child.visible && this.cutsOwn(child)) {
                     cuts++;
                 }
-                // Only a group has groups in its counts, so a datum is not tested.
-                if (childCounts.groups > 0 && child.visible && child instanceof Group) {
+                // Only a group has groups in its counts, so a datum is not tested. The child groups of a group that cuts their
+                // shapes in its frame do not cast.
+                if (!this.cutsGroupedShapes && childCounts.groups > 0 && child.visible && child instanceof Group) {
                     sharedBelow += child.getSharedCasterCount();
                 }
             }
@@ -1033,8 +1034,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         if (this.sharedCutCount < 0) {
             this.countShadowCasters();
             let count = this.cutCasterCount;
-            for (const child of this.getChildGroups()) {
-                if (child.visible) count += child.getSharedCutCount();
+            // The shapes of the child groups of a group that cuts them in its frame are counted in its own cuts.
+            if (!this.cutsGroupedShapes) {
+                for (const child of this.getChildGroups()) {
+                    if (child.visible) count += child.getSharedCutCount();
+                }
             }
             this.sharedCutCount = count;
         }
@@ -1048,8 +1052,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 this.countShadowCasters();
                 count = this.glowCasterCount;
             }
-            for (const child of this.getChildGroups()) {
-                if (child.visible) count += child.countGlowCasters();
+            if (!this.cutsGroupedShapes) {
+                for (const child of this.getChildGroups()) {
+                    if (child.visible && child.getSharedCasterCount() > 0) count += child.countGlowCasters();
+                }
             }
             this.sharedGlowCasterCount = count;
         }
@@ -1098,8 +1104,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     protected getSharedCasterCount(): number {
         if (this.sharedCasterCount < 0) {
             let count = this.countRootCasters();
-            for (const child of this.getChildGroups()) {
-                if (child.visible) count += child.getSharedCasterCount();
+            // The child groups of a group that cuts their shapes in its frame do not cast, so they are not walked.
+            if (!this.cutsGroupedShapes) {
+                for (const child of this.getChildGroups()) {
+                    if (child.visible) count += child.getSharedCasterCount();
+                }
             }
             this.sharedCasterCount = count;
         }

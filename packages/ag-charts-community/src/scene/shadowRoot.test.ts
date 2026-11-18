@@ -1346,6 +1346,32 @@ describe('Shadow root', () => {
             expect(gather).toHaveBeenCalledTimes(3);
         });
 
+        it('should not walk the child groups of a group that cuts their shapes in its own frame', () => {
+            // The walks are private and leave nothing else to observe, so the test names them by their methods.
+            const walks = (['getSharedCasterCount', 'getSharedCutCount', 'countGlowCasters'] as const).map((name) =>
+                vi.spyOn(Group.prototype as unknown as Record<typeof name, () => number>, name)
+            );
+            // A group per item, as an error bar has, below one group that cuts their shapes out of its series' glows.
+            const items = Array.from({ length: 20 }, (_, i) => group(false, [box(10 + i * 18, 150, 10, 10)]));
+            const glow = {
+                enabled: true,
+                fill: 'rgba(0, 0, 255, 0.5)',
+                xOffset: 0,
+                yOffset: 0,
+                blur: 0,
+                glow: true as const,
+            };
+
+            draw(true, () => [
+                group('shared', [square(20, 40, { fillGlow: glow })]),
+                group(false, items, { cutsOwnGlows: true, cutsGroupedShapes: true }),
+            ]);
+
+            for (const walk of walks) {
+                expect(walk.mock.contexts.some((node) => items.includes(node as Group))).toBe(false);
+            }
+        });
+
         it('should not read the casters of the groups again when nothing in them changed', () => {
             const rects = [20, 120, 220].map((x) => box(x, 40, 40, 40, { fillShadow: RED_HALF }));
             let reads = 0;
