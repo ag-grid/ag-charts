@@ -136,6 +136,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     @SceneChangeDetection()
     cutsOwnGlows: boolean = false;
 
+    /**
+     * Whether the shapes of the child groups of a {@link cutsOwnGlows} group cut in its frame, so that a group per datum, such as
+     * an error bar, makes none of its own. Those child groups must not transform, clip or fade what they hold, nor cast.
+     */
+    @SceneChangeDetection()
+    cutsGroupedShapes: boolean = false;
+
     /** Whether the groups at or below this one hold the hovered item, whose glows the root casts above its overlay. */
     @SceneChangeDetection()
     castsHoveredGlows: boolean = false;
@@ -211,6 +218,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         readonly optimizeForInfrequentRedraws?: boolean;
         readonly batchShadows?: boolean | 'by-layer' | 'shared';
         readonly cutsOwnGlows?: boolean;
+        readonly cutsGroupedShapes?: boolean;
         readonly castsHoveredGlows?: boolean;
         readonly shadowRoot?: boolean;
         readonly glowOverlayZIndex?: ZIndex;
@@ -221,6 +229,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.optimizeForInfrequentRedraws = opts?.optimizeForInfrequentRedraws === true;
         this.batchShadows = opts?.batchShadows ?? false;
         this.cutsOwnGlows = opts?.cutsOwnGlows === true;
+        this.cutsGroupedShapes = opts?.cutsGroupedShapes === true;
         this.castsHoveredGlows = opts?.castsHoveredGlows === true;
         this.shadowRoot = opts?.shadowRoot === true;
         this.glowOverlayZIndex = opts?.shadowRoot === true ? opts.glowOverlayZIndex : undefined;
@@ -561,7 +570,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                     if ((kinds & CASTER) !== 0) casters++;
                     if ((kinds & GLOW_CASTER) !== 0) glowCasters++;
                     if ((kinds & CUT_CASTER) !== 0) cuts++;
-                } else if (ownCuts && child.visible && child instanceof Shape) {
+                } else if (ownCuts && child.visible && this.cutsOwn(child)) {
                     cuts++;
                 }
                 // Only a group has groups in its counts, so a datum is not tested.
@@ -782,14 +791,14 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         const { ctx } = renderCtx;
         try {
             let frames: readonly CollectedFrame[] = [];
+            const overlay = this.getSharedGlowCasterCount() > 0;
             // Nothing is gathered unless something casts through the root: a cut of the overlay alone casts nothing.
             if (this.getSharedCasterCount() > 0) {
-                const collector = new ShadowCollector(ctx, ctx.globalAlpha);
+                const collector = new ShadowCollector(ctx, ctx.globalAlpha, overlay);
                 this.gatherShadowChildren(collector);
                 frames = collector.frames;
             }
             // The glows are cast later, in the overlay, from these frames. With none, the root holds no overlay.
-            const overlay = this.getSharedGlowCasterCount() > 0;
             this.glowOverlayFrames = overlay ? frames : undefined;
             if (!overlay) this.releaseGlowOverlay(this.scene);
             const cover = castRootShadows(frames, this.scene, this, renderCtx, overlay);
@@ -873,18 +882,24 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.sortChildrenIfDirty();
 
         // A group with no caster or cut below it is not visited, so the root costs the groups that cast through it.
-        if (this.countRootCasters() + this.cutCasterCount > 0)
+        // Cuts matter only to the overlay, so without one the walk makes no frame for them.
+        const { cuts } = collector;
+        if (this.countRootCasters() + (cuts ? this.cutCasterCount : 0) > 0)
             collector.addFrame(
                 this,
                 this.shadowVersion,
                 !this.sharesShadows(),
                 !this.sharesGlows(),
                 this.inOwnCuts,
-                this.inHoveredLayer
+                this.inHoveredLayer,
+                this.cutsGroupedShapes
             );
 
+        // The child groups of a group that cuts their shapes in its frame have none of their own.
+        if (this.cutsGroupedShapes) return;
+
         for (const child of this.getChildGroups()) {
-            if (child.visible && child.getSharedCasterCount() + child.getSharedCutCount() > 0) {
+            if (child.visible && child.getSharedCasterCount() + (cuts ? child.getSharedCutCount() : 0) > 0) {
                 child.gatherShadows(collector);
             }
         }
@@ -961,6 +976,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         if (overlayDue) this.castGlowOverlay(childRenderCtx);
     }
 
+    /** Whether the child cuts its footprint out of the glows of the series, in the frame of this group. */
+    private cutsOwn(child: Node): boolean {
+        return child instanceof Shape || (this.cutsGroupedShapes && child instanceof Group);
+    }
+
     /** Whether the group batches the shadows of its children, and has any child that casts one. */
     protected hasBatchedShadows(): boolean {
         return this.batchShadows !== false && this.countShadowCasters() > 0;
@@ -985,7 +1005,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 if (!child.visible) continue;
 
                 if (!countCasters) {
-                    if (this.inOwnCuts && child instanceof Shape) cuts++;
+                    if (this.inOwnCuts && this.cutsOwn(child)) cuts++;
                     continue;
                 }
                 const kinds = getCasterKinds(child, shared, glows);

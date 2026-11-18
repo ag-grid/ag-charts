@@ -29,6 +29,8 @@ export interface CollectedFrame extends ShadowFrame {
     readonly owner: object | undefined;
     /** Whether the shapes of the group cut their footprint out of the glows of {@link owner} alone. */
     readonly ownCuts: boolean;
+    /** Whether the shapes of the child groups of the group cut in this frame too, see {@link Group.cutsGroupedShapes}. */
+    readonly groupedCuts: boolean;
     /** Whether the group holds the hovered item, whose glows are cast above the overlay, see {@link Group.castsHoveredGlows}. */
     readonly hovered: boolean;
 }
@@ -60,7 +62,9 @@ export class ShadowCollector {
 
     constructor(
         readonly ctx: CollectorContext,
-        alpha: number
+        alpha: number,
+        /** Whether the root holds an overlay of glows, the only cast that a cut matters to. */
+        readonly cuts: boolean = true
     ) {
         this.alpha = alpha;
     }
@@ -71,7 +75,8 @@ export class ShadowCollector {
         glowsOnly: boolean = false,
         cutsOnly: boolean = false,
         ownCuts: boolean = false,
-        hovered: boolean = false
+        hovered: boolean = false,
+        groupedCuts: boolean = false
     ) {
         const { a, b, c, d, e, f } = this.ctx.getTransform();
         this.frames.push({
@@ -85,6 +90,7 @@ export class ShadowCollector {
             cutsOnly,
             owner: this.owner,
             ownCuts,
+            groupedCuts,
             hovered,
         });
     }

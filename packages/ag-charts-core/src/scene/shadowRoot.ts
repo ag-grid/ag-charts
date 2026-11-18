@@ -18,6 +18,7 @@ import {
     releaseShadowScratch,
 } from './shadowEngine';
 import type { ShadowSlot } from './shadowPass';
+import { Shape } from './shape/shape';
 
 /** What a shadow root needs of the groups that cast through it. {@link Group} implements it. */
 interface ShadowSource extends Node {
@@ -99,10 +100,24 @@ function withFootprintCut(glow: NormalisedDropShadowOptions): NormalisedDropShad
     return cut;
 }
 
+const ringCuts = new WeakMap<NormalisedDropShadowOptions, NormalisedDropShadowOptions>();
+
+/** The cut of an item that casts `glow`, which for one with a `gap` of its own also clears the ring of the gap. */
+function getCut(glow: NormalisedDropShadowOptions | undefined): NormalisedDropShadowOptions {
+    if (glow?.gap == null || glow.overlay === true) return CUT_ONLY_GLOW;
+
+    let cut = ringCuts.get(glow);
+    if (cut == null) {
+        cut = { ...CUT_ONLY_GLOW, gap: glow.gap };
+        ringCuts.set(glow, cut);
+    }
+    return cut;
+}
+
 /** Adds the footprint of a child to the cuts of the overlay, which a child that casts no glow of its own makes. */
-function addCut(cuts: SlotKeys | undefined, child: Node, frame: CollectedFrame): SlotKeys {
+function addCut(cuts: SlotKeys | undefined, child: Node, frame: CollectedFrame, glow?: NormalisedDropShadowOptions) {
     cuts ??= new SlotKeys('glow');
-    cuts.add(child as ShadowCaster, CUT_ONLY_GLOW, frame, getShadowClip(child));
+    cuts.add(child as ShadowCaster, getCut(glow), frame, getShadowClip(child));
     return cuts;
 }
 
@@ -136,11 +151,22 @@ function buildOwnCuts(
             ownCuts ??= new Map();
             ownCuts.set(owner, ownerCuts);
         }
-        for (const child of (frame.source as ShadowSource).children()) {
-            if (child.visible) ownerCuts.add(child as ShadowCaster, OWN_CUT_GLOW, frame, getShadowClip(child));
-        }
+        addOwnCuts(ownerCuts, frame.source as ShadowSource, frame, frame.groupedCuts);
     }
     return ownCuts;
+}
+
+/** Adds the shapes of the source to the cuts of its series, and with `grouped`, those of its child groups too. */
+function addOwnCuts(ownerCuts: SlotKeys, source: ShadowSource, frame: CollectedFrame, grouped: boolean) {
+    for (const child of source.children()) {
+        if (!child.visible) continue;
+
+        if (grouped && !(child instanceof Shape)) {
+            addOwnCuts(ownerCuts, child as ShadowSource, frame, false);
+        } else {
+            ownerCuts.add(child as ShadowCaster, OWN_CUT_GLOW, frame, getShadowClip(child));
+        }
+    }
 }
 
 /**
@@ -188,8 +214,8 @@ function buildKeys(frames: readonly CollectedFrame[], glows: boolean, hoveredKey
             const shadow = glows ? withFootprintCut(cast) : cast;
             if (hovered != null && frame.hovered) {
                 hovered.add(child as ShadowCaster, shadow, frame, clip, keyOwner);
-                cuts = addCut(cuts, child, frame);
-                hoveredCuts = addCut(hoveredCuts, child, frame);
+                cuts = addCut(cuts, child, frame, cast);
+                hoveredCuts = addCut(hoveredCuts, child, frame, cast);
             } else {
                 keys.add(child as ShadowCaster, shadow, frame, clip, keyOwner);
             }
