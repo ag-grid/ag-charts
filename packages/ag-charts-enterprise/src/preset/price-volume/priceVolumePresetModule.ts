@@ -122,6 +122,8 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             },
             annotations: {
                 ...annotationsTheme,
+                // The default colours of the last price line, which takes the one for the last bar's direction
+                lastPriceLine: { up: { $palette: 'up.stroke' }, down: { $palette: 'down.stroke' } } as any,
                 axesButtons: {
                     // @ts-expect-error undocumented option
                     snap: { $path: '/axes/y/crosshair/snap' },

@@ -955,9 +955,26 @@ describe('priceVolumePreset', () => {
 
         it.each<[string, AgFinancialChartOptions]>([
             ['true', { lastPriceLine: true }],
+            ['an up bar', { lastPriceLine: true, data: rows.slice(0, 42) }],
+            // Down by its open, which is not given here, but up from the previous close
+            [
+                'a bar with no open',
+                {
+                    lastPriceLine: true,
+                    chartType: 'line',
+                    data: rows.slice(0, 36).map(({ open: _open, ...row }) => row),
+                },
+            ],
             [
                 'styled',
-                { lastPriceLine: { stroke: 'red', strokeWidth: 3, lineStyle: 'dashed', axisLabel: { fill: 'red' } } },
+                {
+                    lastPriceLine: {
+                        stroke: 'orange',
+                        strokeWidth: 3,
+                        lineStyle: 'dashed',
+                        axisLabel: { fill: 'purple' },
+                    },
+                },
             ],
             [
                 'without the toolbar, which also hides annotations',
@@ -978,7 +995,6 @@ describe('priceVolumePreset', () => {
             await compare();
         });
 
-        // The baseline differs from the one for `true`, which is drawn from the first 40 rows, only by the line's position.
         it('moves the line when the data is updated', async () => {
             chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data, lastPriceLine: true }));
             await waitForChartStability(chart);

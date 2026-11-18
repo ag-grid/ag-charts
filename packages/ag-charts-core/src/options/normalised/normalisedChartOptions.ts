@@ -90,6 +90,10 @@ export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
         /** The series whose last datum the line is drawn at. */
         seriesId: string;
         closeKey: string;
+        openKey?: string;
+        /** The default `stroke` and axis label fill while the last bar is up or down. */
+        up?: string;
+        down?: string;
         /** Whether the line is all that is drawn, so annotations are neither restored nor drawn. */
         only?: boolean;
     };

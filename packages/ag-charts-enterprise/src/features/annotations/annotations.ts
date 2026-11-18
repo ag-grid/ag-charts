@@ -57,7 +57,7 @@ import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { CalloutScene } from './callout/calloutScene';
 import { horizontalLineDatum, verticalLineDatum } from './cross-line/crossLineDatum';
 import { CrossLineScene } from './cross-line/crossLineScene';
-import { readLastPrice } from './cross-line/lastPriceLine';
+import { type LastPrice, readLastPrice } from './cross-line/lastPriceLine';
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
@@ -66,7 +66,7 @@ import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } fro
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
-import { type PointType, getGroupingValue } from './utils/scale';
+import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
@@ -1043,9 +1043,9 @@ export class Annotations extends AbstractModuleInstance {
         const series = options?.enabled
             ? this.ctx.chartService.series.find((s) => s.id === options.seriesId)
             : undefined;
-        const value = showAnnotations && options ? readLastPrice(series, options.closeKey) : undefined;
+        const price = showAnnotations && options ? readLastPrice(series, options.closeKey, options.openKey) : undefined;
 
-        if (options == null || value == null) {
+        if (options == null || price == null) {
             scene.visible = false;
             scene.setAxisLabelVisible(false);
             return;
@@ -1053,7 +1053,7 @@ export class Annotations extends AbstractModuleInstance {
 
         // The scene hides the axis label itself while the line is out of range.
         scene.setAxisLabelVisible(true);
-        scene.update(this.createLastPriceLineDatum(options, value), context);
+        scene.update(this.createLastPriceLineDatum(options, price), context);
     }
 
     private createLastPriceLineDatum(
@@ -1062,14 +1062,26 @@ export class Annotations extends AbstractModuleInstance {
             only: _only,
             seriesId: _seriesId,
             closeKey: _closeKey,
+            openKey: _openKey,
+            up,
+            down,
             ...styles
         }: NonNullable<NormalisedAnnotationsOptions['lastPriceLine']>,
-        value: PointType
+        { value, up: isUp }: LastPrice
     ) {
         const datum = horizontalLineDatum.create();
         const themeStyles = this.ctx.annotationManager?.getAnnotationTypeStyles(AnnotationType.HorizontalLine);
         if (themeStyles) applyAnnotationOptions(datum, themeStyles);
         applyAnnotationOptions(datum, styles);
+
+        // The colour of the last bar's direction is the default of the line and its axis label, unless they are set.
+        const colour = isUp ? up : down;
+        if (colour != null) {
+            applyAnnotationOptions(datum, {
+                stroke: styles.stroke ?? colour,
+                axisLabel: { fill: styles.axisLabel?.fill ?? colour },
+            });
+        }
         return Object.assign(datum, { value, locked: true, readOnly: true });
     }
 

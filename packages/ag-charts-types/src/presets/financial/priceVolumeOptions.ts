@@ -93,7 +93,10 @@ export interface AgPriceVolumePreset {
     sync?: boolean;
 }
 
-/** Styling for the line that marks the close of the last bar. These are the line and axis label options of the horizontal-line annotation. */
+/**
+ * Styling for the line that marks the close of the last bar. These are the line and axis label options of the horizontal-line annotation.
+ * Unless set, `stroke` and `axisLabel.fill` take the up or down colour of the last bar.
+ */
 export interface AgLastPriceLineOptions extends Toggleable, StrokeOptions, LineOptions {
     /** Configuration for the axis label showing the close of the last bar. */
     axisLabel?: AgAnnotationAxisLabel;

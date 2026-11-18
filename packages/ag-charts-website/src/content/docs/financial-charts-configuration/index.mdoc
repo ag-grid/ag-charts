@@ -173,6 +173,8 @@ const options: AgFinancialChartOptions = {
 };
 ```
 
+By default the line and the fill of its axis label take the colour of the last bar: the up colour when its close is above its open, otherwise the down colour. A bar with no open is compared with the previous close.
+
 To style the line and its axis label, pass an object. It takes the line and `axisLabel` options of the [horizontal-line annotation](./financial-charts-toolbar/#lines), such as `stroke`, `strokeWidth`, `lineStyle` and `axisLabel`.
 
 ```ts

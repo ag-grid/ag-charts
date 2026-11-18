@@ -347,13 +347,13 @@ function createVolumeAxis(volume: boolean): Record<string, AgInsetNumberAxisOpti
 
 function createLastPriceLineOptions(
     lastPriceLine: boolean | AgLastPriceLineOptions,
-    { closeKey }: PriceSeriesKeys,
+    { openKey, closeKey }: PriceSeriesKeys,
     toolbar: boolean
 ) {
     const styles = lastPriceLine === true ? {} : lastPriceLine;
     if (styles === false || styles.enabled === false) return;
 
-    return { ...styles, enabled: true, seriesId: PRICE_SERIES_ID, closeKey, only: !toolbar };
+    return { ...styles, enabled: true, seriesId: PRICE_SERIES_ID, closeKey, openKey, only: !toolbar };
 }
 
 function createAnnotationsOptions(
