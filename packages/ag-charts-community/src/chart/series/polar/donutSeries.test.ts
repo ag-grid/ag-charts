@@ -1854,6 +1854,29 @@ describe('DonutSeries', () => {
             expect(withStroke).toBe(withoutStroke);
         });
 
+        it('keeps the full gap near the centre of a pie without a stroke', async () => {
+            const gap = 10;
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'a', value: 1 },
+                        { name: 'b', value: 1 },
+                    ],
+                    series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name', gap, strokeWidth: 0 }],
+                })
+            );
+            const sector = sectorFor(0);
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY - 3 * gap);
+            const background = chartPixelAt(chart, 1, 1);
+            let count = 0;
+            for (let x = canvasX - 3 * gap; x <= canvasX + 3 * gap; x++) {
+                if (chartPixelAt(chart, x, canvasY).every((channel, i) => channel === background[i])) count++;
+            }
+
+            expect(Math.abs(count - gap)).toBeLessThanOrEqual(1);
+        });
+
         it('does not draw a sector narrower than the gap, but keeps its neighbours inset and its pick area', async () => {
             const gap = 20;
             const clicked: string[] = [];

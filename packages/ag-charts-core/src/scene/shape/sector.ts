@@ -344,7 +344,11 @@ export class Sector<D = unknown> extends Path<D> {
         if (outerAngleExceeded) return;
 
         const hasInnerSweep = (clipSector?.innerRadius ?? innerRadius) > innerEdgeInset;
-        const innerAngleExceeded = innerRadius < innerEdgeInset || sweepAngle < 2 * innerAngleOffset;
+        // A wedge's inset straight edges meet at an apex short of the centre.
+        const innerAngleExceeded =
+            innerRadius < innerEdgeInset ||
+            (innerRadius === 0 && radialEdgeInset > 0) ||
+            sweepAngle < 2 * innerAngleOffset;
 
         // radiiScalingFactor doesn't find outer radii factors when the corners are larger than the sector radius
         // First, scale everything down so every corner radius individually fits within the sector's radial range
