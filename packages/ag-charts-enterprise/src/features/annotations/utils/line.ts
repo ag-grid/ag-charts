@@ -13,13 +13,22 @@ import type { AgLineDashName } from 'ag-charts-types';
 import type { AnnotationLineStyleType } from '../annotationTypes';
 
 /**
- * The line style that a `lineDash` shows as in the toolbar and settings dialog. A dash that draws nothing but a solid
- * line counts as `solid`, and any dash other than `dot` counts as `dash`.
+ * The line style that a `lineDash` shows as in the toolbar and settings dialog. A dash that draws a solid line counts
+ * as `solid`, and any dash other than `dot` counts as `dash`.
  */
 export function getLineStyle(lineDash?: PixelSize[] | AgLineDashName): AnnotationLineStyleType {
     if (lineDash == null || lineDash === 'solid') return 'solid';
-    if (Array.isArray(lineDash) && !lineDash.some((length) => length > 0)) return 'solid';
+    if (Array.isArray(lineDash) && !hasGap(lineDash)) return 'solid';
     return lineDash === 'dot' ? 'dot' : 'dash';
+}
+
+/**
+ * Whether a dash array leaves a gap. Canvas repeats an odd-length array once, so that its entries alternate between a
+ * dash and a gap. Without a positive gap the stroke is continuous.
+ */
+function hasGap(lineDash: PixelSize[]) {
+    const pattern = lineDash.length % 2 === 0 ? lineDash : [...lineDash, ...lineDash];
+    return pattern.some((length, index) => index % 2 === 1 && length > 0);
 }
 
 export interface LineStyleSource {
