@@ -4,6 +4,7 @@ import {
     BBox,
     CUT_ONLY_GLOW,
     Group,
+    Logger,
     Path,
     Rect,
     Scene,
@@ -718,12 +719,26 @@ describe('Shadow root', () => {
                 expect(glowOverlayWarnings()).toHaveLength(1);
             });
 
-            // With no shadow, the root pass needs no canvas, so the overlay is the first cast to ask for one.
-            it('should drop the glows and warn once where no canvas can be had for the overlay', () => {
+            // With no shadow, the root pass needs no canvas, so the overlay is the first cast to ask for one. Its first canvas
+            // draws the masks, and its second merges and cuts the glows.
+            it.each([
+                ['its first canvas', 0],
+                ['the canvas it merges the glows on', 1],
+            ])('should drop the glows and warn once where %s cannot be had', (_name, granted) => {
                 const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
                 root.appendChild(group('shared', [casting()]));
-                const noContext = vi.spyOn(OffscreenCanvas.prototype, 'getContext').mockReturnValue(null);
+                const { getContext } = OffscreenCanvas.prototype;
+                const allowed: OffscreenCanvas[] = [];
+                const noContext = vi.spyOn(OffscreenCanvas.prototype, 'getContext').mockImplementation(function (
+                    this: OffscreenCanvas,
+                    ...args: Parameters<typeof getContext>
+                ) {
+                    if (!allowed.includes(this) && allowed.length < granted) allowed.push(this);
+                    return allowed.includes(this) ? getContext.apply(this, args) : null;
+                } as typeof getContext);
                 const scene = newScene(root);
+                // A logger of its own, as `warnOnce` would otherwise keep the warning of the case before.
+                scene.setLogger(new Logger());
                 scene.render();
                 redraw(scene, root);
                 redraw(scene, root);

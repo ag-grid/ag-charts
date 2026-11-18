@@ -1041,21 +1041,13 @@ function castOverlay(
     const width = Math.max(1, Math.floor(region.width * resolution));
     const height = Math.max(1, Math.floor(region.height * resolution));
     const merged = acquireGapCanvas(scene, width, height);
-    let rendered = true;
-    // Without a canvas to merge on, each glow is cast on its own, uncut.
+    // Without a canvas to merge and cut them on, the glows would draw over the items, so they are dropped for the frame.
     if (merged == null) {
-        for (const plan of plans) {
-            rendered = drawMask(plan, scratch, transform, renderCtx) && rendered;
-            target.save();
-            try {
-                clipToKey(plan.key, target, transform, originX, originY);
-                blurMask(plan, scratch.canvas, target, originX, originY);
-            } finally {
-                target.restore();
-            }
-        }
-        return rendered;
+        renderCtx.logger.warnOnce('Unable to create a canvas for the glow overlay, so the glows are not drawn');
+        return false;
     }
+
+    let rendered = true;
 
     const { canvas: mergedCanvas, context: glows } = merged;
     const scaleX = width / region.width;
