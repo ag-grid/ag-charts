@@ -229,6 +229,18 @@ describe('Context Menu', () => {
         });
     });
 
+    it('falls back to English for menu items omitted from a partial localeText', async () => {
+        chart = await createEnterpriseChart({
+            ...chartOptions(),
+            locale: { localeText: { contextMenuToggleSeriesVisibility: 'Show or Hide' } },
+        });
+        await contextMenuAction(410, 575)(chart);
+        await waitForChartStability(chart);
+
+        expect(findContextMenuItem('Show or Hide').textContent).toBe('Show or Hide');
+        expect(findContextMenuItem('Download').textContent).toBe('Download');
+    });
+
     describe('legend highlight state', () => {
         it('clears highlight when opening menu', async () => {
             chart = await createEnterpriseChart(chartOptions());
