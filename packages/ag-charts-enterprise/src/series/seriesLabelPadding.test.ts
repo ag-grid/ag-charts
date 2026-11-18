@@ -25,58 +25,62 @@ describe('seriesLabelPadding theme parameter', () => {
 
     // The range series share one chart, each in its own band of the value axis so that no label collides with another.
     // The waterfall is a solo series type that cannot share a chart, so it gets its own.
-    const CHARTS: Record<string, (params: AgChartThemeParams) => AgCartesianChartOptions> = {
-        'range area and range bar': (params) => ({
-            data: [
-                { category: 'A', low: 22, high: 48, rangeLow: 84, rangeHigh: 104 },
-                { category: 'B', low: 26, high: 52, rangeLow: 88, rangeHigh: 110 },
-                { category: 'C', low: 20, high: 46, rangeLow: 82, rangeHigh: 102 },
-            ],
-            legend: { enabled: false },
-            theme: { params },
-            axes,
-            series: [
-                {
-                    type: 'range-area',
-                    xKey: 'category',
-                    yLowKey: 'rangeLow',
-                    yHighKey: 'rangeHigh',
-                    fillOpacity: 0.3,
-                    label,
-                },
-                {
-                    type: 'range-bar',
-                    xKey: 'category',
-                    yLowKey: 'low',
-                    yHighKey: 'high',
-                    label: { ...label, placement: 'outside' },
-                },
-            ],
-        }),
-        waterfall: (params) => ({
-            data: [
-                { category: 'A', change: 30 },
-                { category: 'B', change: -12 },
-                { category: 'C', change: 24 },
-            ],
-            legend: { enabled: false },
-            theme: { params },
-            axes,
-            series: [{ type: 'waterfall', xKey: 'category', yKey: 'change', label }],
-        }),
-    };
+    const CHARTS: { name: string; createOptions: (params: AgChartThemeParams) => AgCartesianChartOptions }[] = [
+        {
+            name: 'range area and range bar',
+            createOptions: (params) => ({
+                data: [
+                    { category: 'A', low: 22, high: 48, rangeLow: 84, rangeHigh: 104 },
+                    { category: 'B', low: 26, high: 52, rangeLow: 88, rangeHigh: 110 },
+                    { category: 'C', low: 20, high: 46, rangeLow: 82, rangeHigh: 102 },
+                ],
+                legend: { enabled: false },
+                theme: { params },
+                axes,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'category',
+                        yLowKey: 'rangeLow',
+                        yHighKey: 'rangeHigh',
+                        fillOpacity: 0.3,
+                        label,
+                    },
+                    {
+                        type: 'range-bar',
+                        xKey: 'category',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { ...label, placement: 'outside' },
+                    },
+                ],
+            }),
+        },
+        {
+            name: 'waterfall',
+            createOptions: (params) => ({
+                data: [
+                    { category: 'A', change: 30 },
+                    { category: 'B', change: -12 },
+                    { category: 'C', change: 24 },
+                ],
+                legend: { enabled: false },
+                theme: { params },
+                axes,
+                series: [{ type: 'waterfall', xKey: 'category', yKey: 'change', label }],
+            }),
+        },
+    ];
 
-    const PARAMS: Record<string, AgChartThemeParams> = {
-        'the default of 8': {},
-        'a theme parameter of 16': { seriesLabelPadding: 16 },
-    };
+    const PARAMS: { name: string; params: AgChartThemeParams }[] = [
+        { name: 'the default of 8', params: {} },
+        { name: 'a theme parameter of 16', params: { seriesLabelPadding: 16 } },
+    ];
 
-    for (const [chartName, createOptions] of Object.entries(CHARTS)) {
-        for (const [paramsName, params] of Object.entries(PARAMS)) {
-            it(`pads ${chartName} labels by ${paramsName}`, async () => {
-                chart = await createEnterpriseChart(createOptions(params));
-                await compareImageSnapshot(chart, ctx);
-            });
-        }
-    }
+    describe.each(CHARTS)('$name', ({ createOptions }) => {
+        it.each(PARAMS)('pads labels by $name', async ({ params }) => {
+            chart = await createEnterpriseChart(createOptions(params));
+            await compareImageSnapshot(chart, ctx);
+        });
+    });
 });
