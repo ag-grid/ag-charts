@@ -1003,11 +1003,37 @@ describe('priceVolumePreset', () => {
             await compare();
         });
 
-        it('is neither annotation state nor an annotation the user can clear', async () => {
-            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data, lastPriceLine: true }));
+        it('is not cleared with the annotations by Clear All, and is not part of their state', async () => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    data,
+                    lastPriceLine: true,
+                    initialState: { annotations: [{ type: 'horizontal-line', value: 130 }] },
+                })
+            );
+            await waitForChartStability(chart);
+            // Only the annotation drawn, not the line
+            expect(chart.getState().annotations).toHaveLength(1);
+
+            deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('button[title="Clear All"]')!.click();
             await waitForChartStability(chart);
 
             expect(chart.getState().annotations ?? []).toEqual([]);
+            await compare();
+        });
+
+        it('draws only the line when the toolbar is turned off, hiding the annotations drawn before', async () => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    data,
+                    lastPriceLine: true,
+                    initialState: { annotations: [{ type: 'horizontal-line', value: 130 }] },
+                })
+            );
+            await waitForChartStability(chart);
+
+            await chart.updateDelta({ toolbar: false });
+            await compare();
         });
 
         it.each<[string, AgFinancialChartOptions]>([

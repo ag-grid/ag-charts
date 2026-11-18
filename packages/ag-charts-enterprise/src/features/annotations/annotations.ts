@@ -673,7 +673,10 @@ export class Annotations extends AbstractModuleInstance {
     async processData(dataController: _ModuleSupport.DataController) {
         const opts = this.opts;
         const enabled = opts.enabled ?? true;
-        if (!enabled || opts.data == null || opts.xKey == null || opts.volumeKey == null) return;
+        // The date and volume model is for annotation measurements, which are not drawn while only the line is
+        if (!enabled || opts.lastPriceLine?.only || opts.data == null || opts.xKey == null || opts.volumeKey == null) {
+            return;
+        }
 
         const props = [
             keyProperty(opts.xKey, undefined, { id: 'date' }),
@@ -1011,7 +1014,9 @@ export class Annotations extends AbstractModuleInstance {
             annotationManager?.updateData(annotationData.map(serialiseAnnotation) as AgAnnotation[]);
         }
 
-        const showAnnotations = this.showAnnotations();
+        // Annotations that were drawn before the module came to draw only the line are retained, but not drawn.
+        const showChart = this.showAnnotations();
+        const showAnnotations = showChart && !this.opts.lastPriceLine?.only;
         this.toolbar.refreshButtonsEnabled(showAnnotations);
         this.toolbar.toggleClearButtonEnabled(annotationData.length > 0 && showAnnotations);
 
@@ -1029,7 +1034,7 @@ export class Annotations extends AbstractModuleInstance {
                 updateAnnotation(node, datum, context);
             });
 
-        this.updateLastPriceLine(context, showAnnotations);
+        this.updateLastPriceLine(context, showChart);
 
         for (const fn of this.postUpdateFns) {
             fn();
@@ -1037,13 +1042,13 @@ export class Annotations extends AbstractModuleInstance {
         this.postUpdateFns = [];
     }
 
-    private updateLastPriceLine(context: AnnotationContext, showAnnotations: boolean) {
+    private updateLastPriceLine(context: AnnotationContext, showChart: boolean) {
         const { lastPriceLineScene: scene, opts } = this;
         const options = opts.lastPriceLine;
         const series = options?.enabled
             ? this.ctx.chartService.series.find((s) => s.id === options.seriesId)
             : undefined;
-        const price = showAnnotations && options ? readLastPrice(series, options.closeKey, options.openKey) : undefined;
+        const price = showChart && options ? readLastPrice(series, options.closeKey, options.openKey) : undefined;
 
         if (options == null || price == null) {
             scene.visible = false;
