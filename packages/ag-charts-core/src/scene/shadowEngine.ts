@@ -40,6 +40,8 @@ const MAX_CACHED_AREA = MAX_MASK_AREA / 4;
 
 /** The pixels that a kept shadow may reach past what the blur's Gaussian covers, for the rounding of its edge. */
 const CACHED_EXTENT_MARGIN = 2;
+/** The most casters a key has for its blur to be clipped to their extent, which is measured caster by caster. */
+const MAX_BOUNDED_CASTERS = 16;
 
 /** The resolution of a mask that was not scaled down. */
 const FULL_RESOLUTION = Object.freeze({ x: 1, y: 1 });
@@ -913,7 +915,8 @@ function castPlan(
     originX: number,
     originY: number,
     scene: object | undefined,
-    keyExtent: Extent | undefined
+    keyExtent: Extent | undefined,
+    bound?: Extent
 ): boolean {
     const { key } = plan;
     const { canvas } = scratch;
@@ -972,12 +975,33 @@ function castPlan(
 
     target.save();
     try {
+        if (bound != null) {
+            target.resetTransform();
+            target.beginPath();
+            target.rect(bound.x - originX, bound.y - originY, bound.width, bound.height);
+            target.clip();
+        }
         clipToKey(key, target, transform, originX, originY);
         blurMask(plan, canvas, target, originX, originY);
     } finally {
         target.restore();
     }
     return rendered;
+}
+
+/** OPTIMIZATION: a blur costs the area it is clipped to, so a key of few casters, such as a hovered item's, is clipped to its extent. */
+function getSmallKeyExtent(key: ShadowKey, transform: DOMMatrix, renderCtx: RenderContext): Extent | undefined {
+    // A key with a `gap` is already cast on a canvas of its own extent.
+    if (key.shadow.gap != null || key.casters.length > MAX_BOUNDED_CASTERS) return;
+
+    const { canvas } = renderCtx.ctx;
+    return getShadowExtent(
+        [key],
+        transform,
+        renderCtx.devicePixelRatio,
+        Math.ceil(canvas.width),
+        Math.ceil(canvas.height)
+    );
 }
 
 /** Casts the glows of an overlay's keys merged onto `target`, cut by every key's footprints. Returns whether every caster drew. */
@@ -1562,7 +1586,12 @@ export function castShadows(
     } else if (overlay === true) {
         castOverlay(plans, scratch, ctx, transform, renderCtx, 0, 0, scene, glowKeys, cuts, undefined, undefined);
     } else {
-        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined);
+        // A refused cast's extent is about the layer, so clipping to it would only cost a measure.
+        const declined = cache != null && isDeclined(cache, scene);
+        for (const plan of plans) {
+            const bound = declined ? undefined : getSmallKeyExtent(plan.key, transform, renderCtx);
+            castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined, bound);
+        }
     }
     return true;
 }
