@@ -88,7 +88,8 @@ export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions
 };
 
 type NodeData = [number, number];
-type FittedLabel = { text: string; fontSize: number };
+/** `rotated` is the band bound the text was fitted to, absent once the label is kept whole past it. */
+type FittedLabel = { text: string; fontSize: number; rotated?: TurnedBounds };
 type FitCache = FittedLabel & { measurer: TextMeasurer; key: string };
 
 const DEFAULT_RANGE_FILL = '#c16068';
@@ -571,6 +572,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
                 fontSize: whole
                     ? resolveMinimumFontSize(label.minimumFontSize, label.fontSize)
                     : (fitted.fontSize ?? label.fontSize),
+                rotated: whole ? undefined : fit?.rotated,
                 measurer,
                 key,
             };
@@ -697,9 +699,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
         // The rotated footprint is affine in the text width, which keeps the boxing padding out of the solve.
         // It cannot bound the lines wrapping adds, so an overflowing wrapped label collapses to one line first.
-        const { text: fittedText, fontSize } = this.fittedLabel();
+        const { text: fittedText, fontSize, rotated } = this.fittedLabel();
         const font = fontWithSize(label, fontSize);
-        const rotated = this.fitsToBand ? this.bandTurnedBounds(label, anchor) : undefined;
         const oneLine = (maxWidth: number | undefined) => {
             const fitted = fitLabelText(
                 text,

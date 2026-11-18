@@ -3500,17 +3500,35 @@ describe('CrossLine label fitting', () => {
             expect(label.width).toBeLessThanOrEqual(band.width + 0.5);
         });
 
+        const CONTAINER_OVERFLOWING_TEXT = Array.from({ length: 8 }, () => LONG_TEXT).join(' ');
+
         it('keeps a label clipped to its container inside the band', async () => {
             const label = undocumentedLabel({
-                text: `${LONG_TEXT} ${LONG_TEXT} ${LONG_TEXT}`,
+                text: CONTAINER_OVERFLOWING_TEXT,
                 placement: 'inside-top',
-                wrapping: 'on-space',
+                maxHeight: 2000,
                 overflow: 'clip-text',
             });
             chart = deproxy(await createChart(fitChart(rangeWith(label, [4, 4.6]), 'x')));
 
-            const { band, label: footprint } = bandAndLabel('x');
+            const { band, label: footprint, text } = bandAndLabel('x');
+            const { containerBox } = renderedLabel('x').crossLine;
+            expect(text).not.toContain('\n');
             expect(footprint.width).toBeLessThanOrEqual(band.width + 0.5);
+            expect(footprint.height).toBeLessThanOrEqual(containerBox?.height ?? 0);
+        });
+
+        it('keeps a label clipped to its container in a band too short for one line', async () => {
+            const label = undocumentedLabel({
+                text: CONTAINER_OVERFLOWING_TEXT,
+                placement: 'inside',
+                overflow: 'clip-text',
+            });
+            chart = deproxy(await createChart(fitChart(rangeWith(label, [4, 4.05]), 'y')));
+
+            const { text, footprint, crossLine } = renderedLabel('y');
+            expect(text).not.toBe('');
+            expect(footprint.width).toBeLessThanOrEqual(crossLine.containerBox?.width ?? 0);
         });
 
         it('fits each placement to its own bound', async () => {
