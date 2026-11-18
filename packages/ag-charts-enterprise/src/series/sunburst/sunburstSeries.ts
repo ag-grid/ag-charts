@@ -638,7 +638,7 @@ export class SunburstSeries extends HierarchySeries<
     private updateGlowEnds(angleOffset: number) {
         const { glowRings } = this;
         for (const ring of glowRings.values()) ring.clear();
-        // The hovered sector glows through its highlight copy, as its in-place one only cuts, so the copy takes its place.
+        // The hovered sector glows through its highlight copy, as its in-place one has no glow, so the copy takes its place.
         const [highlighted] = this.highlightSelection.nodes();
         this.datumSelection.each((inPlace, { depth, datumIndex, startAngle, endAngle }) => {
             if (depth == null) return;

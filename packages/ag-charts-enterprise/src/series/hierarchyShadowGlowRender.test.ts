@@ -66,15 +66,15 @@ describe('shadow and glow render (hierarchy series)', () => {
         return [edge + padding.left, y + padding.top + height / 2] as const;
     };
 
-    /** The pixel 3px inside the sector of A, on the radius that it shares with the sector of B. */
-    const insideSectorEdge = () => {
+    /** The pixel `offset` px along the ring from the radius that the sector of A shares with that of B: 3px inside A by default. */
+    const insideSectorEdge = (offset = -3) => {
         const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
         const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
         const ring = sectors.filter(({ innerRadius }) => innerRadius === innerRing);
         const a = ring.find((sector) => sector.startAngle === Math.min(...ring.map((other) => other.startAngle)))!;
         const { canvasX, canvasY } = Transformable.toCanvasPoint(a, a.centerX, a.centerY);
         const radius = (a.innerRadius + a.outerRadius) / 2;
-        const angle = a.endAngle - 3 / radius;
+        const angle = a.endAngle + offset / radius;
         return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
     };
 
@@ -206,18 +206,6 @@ describe('shadow and glow render (hierarchy series)', () => {
     describe('the glow of a sunburst sector that is hovered, beside one that glows, with a gap between them', () => {
         const FAINT = { ...GLOW, fillOpacity: 0.4 };
 
-        /** The pixel of the gap between the sectors of A and B that is on the side of B, in the ring of A, B and their glows. */
-        const insideGapOnTheSideOfB = () => {
-            const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
-            const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
-            const ring = sectors.filter(({ innerRadius }) => innerRadius === innerRing);
-            const a = ring.find((sector) => sector.startAngle === Math.min(...ring.map((other) => other.startAngle)))!;
-            const { canvasX, canvasY } = Transformable.toCanvasPoint(a, a.centerX, a.centerY);
-            const radius = (a.innerRadius + a.outerRadius) / 2;
-            const angle = a.endAngle + 1 / radius;
-            return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
-        };
-
         const gapPixel = async (hover: boolean) => {
             const series = {
                 ...glowSeries(sunburst, { glow: FAINT }, { highlightedItem: { glow: FAINT } }),
@@ -225,7 +213,7 @@ describe('shadow and glow render (hierarchy series)', () => {
             };
             await create([series], sunburst.data, RENDER_OPTIONS);
             if (hover) await hoverNode(chart(), nodeNamed('A')(chart()));
-            return chartPixelAt(chart(), ...insideGapOnTheSideOfB());
+            return chartPixelAt(chart(), ...insideSectorEdge(1));
         };
 
         // A glow of one sector over that of the other would add 0.4 of opacity to the pixel, a drop of 20 in each colour channel.
