@@ -427,6 +427,7 @@ export abstract class RadialColumnSeriesBase<
         }
 
         this.updateSectorSelection(this.itemSelection, false);
+        this.updateGlowEnds(this.itemSelection);
         this.updateSectorSelection(this.highlightSelection, true);
         this.updateLabels();
 
@@ -437,6 +438,11 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
+
+    /** Lets a series that draws sectors end the glow of each where the sector beside it glows too. */
+    protected updateGlowEnds(_selection: Selection<RadialColumnNodeDatum, ItemPathType>) {
+        // Nothing to do by default.
+    }
 
     protected updateSectorSelection(selection: Selection<RadialColumnNodeDatum, ItemPathType>, isHighlight: boolean) {
         const { contextNodeData } = this;

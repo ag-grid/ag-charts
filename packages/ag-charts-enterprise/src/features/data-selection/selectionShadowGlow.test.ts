@@ -7,6 +7,7 @@ import {
     SERIES_GLOW,
     SERIES_SHADOW,
     canvasImage,
+    chartPixelAt,
     clickAction,
     deproxy,
     differingBytes,
@@ -18,7 +19,7 @@ import {
     useGlowCharts,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { type Rect, Transformable } from 'ag-charts-core';
+import { type Rect, type Sector, Transformable } from 'ag-charts-core';
 
 import { createEnterpriseChart } from '../../test/utils';
 
@@ -224,5 +225,47 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
             expect([...chart().getSelection()]).toHaveLength(0);
             expectSamePixels(canvasImage(chart()), rest);
         });
+    });
+});
+
+describe('the glow of a pie sector that selectedOffset moves out', () => {
+    const { create, chart } = useGlowCharts(createEnterpriseChart);
+
+    it('wraps round the edges it is moved away from', async () => {
+        await create(
+            [
+                {
+                    type: 'pie',
+                    angleKey: 'value',
+                    fills: ['#808080'],
+                    strokeWidth: 0,
+                    glow: { enabled: true, fill: '#00ff00', fillOpacity: 1, blur: 0, spread: 12 },
+                    selection: { enabled: true, selectedOffset: 30 },
+                },
+            ],
+            [{ value: 3 }, { value: 2 }, { value: 4 }],
+            OPTIONS
+        );
+        const series = deproxy(chart()).series[0];
+        chart().setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(1) }]);
+        await waitForChartStability(chart());
+
+        const moved = getSeriesSelectionNodes<Sector>(chart(), 'itemSelection')[1];
+        expect(Math.hypot(moved.centerX, moved.centerY)).toBeCloseTo(30);
+        const centre = Transformable.toCanvasPoint(moved, moved.centerX, moved.centerY);
+        const radius = moved.outerRadius * 0.6;
+        // 5px outside each radial edge, on the side the neighbour was moved away from.
+        for (const [angle, side] of [
+            [moved.startAngle, -1],
+            [moved.endAngle, 1],
+        ]) {
+            const theta = angle + (side * 5) / radius;
+            const pixel = chartPixelAt(
+                chart(),
+                centre.canvasX + radius * Math.cos(theta),
+                centre.canvasY + radius * Math.sin(theta)
+            );
+            expect(pixel).toEqual([0, 255, 0, 255]);
+        }
     });
 });

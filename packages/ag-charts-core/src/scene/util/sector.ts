@@ -307,9 +307,13 @@ export function clockwiseAngle(angle: number, relativeToStartAngle: number) {
     }
 }
 
-export function clockwiseAngles(startAngle: number, endAngle: number, relativeToStartAngle = 0) {
+export function clockwiseSweep(startAngle: number, endAngle: number) {
     const fullPie = Math.abs(endAngle - startAngle) >= 2 * Math.PI - delta;
-    const sweepAngle = fullPie ? 2 * Math.PI : normalizeAngle360(endAngle - startAngle);
+    return fullPie ? 2 * Math.PI : normalizeAngle360(endAngle - startAngle);
+}
+
+export function clockwiseAngles(startAngle: number, endAngle: number, relativeToStartAngle = 0) {
+    const sweepAngle = clockwiseSweep(startAngle, endAngle);
     startAngle = clockwiseAngle(startAngle, relativeToStartAngle);
     endAngle = startAngle + sweepAngle;
     return { startAngle, endAngle };

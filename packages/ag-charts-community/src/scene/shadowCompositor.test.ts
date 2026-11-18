@@ -2604,29 +2604,30 @@ describe('Group shadow compositor', () => {
                 const [first, second] = measures;
                 const layer = new OffscreenCanvas(SIZE, SIZE);
 
+                // A cast that is not kept measures its casters once, to clip its blur to them.
                 drawLayer(group, layer);
-                expect(first).not.toHaveBeenCalled();
+                expect(first).toHaveBeenCalledTimes(1);
                 const repeated = drawLayer(group, layer);
                 // Both casts repeat, so both measure what they would keep, and the second finds no room for it.
-                expect(first).toHaveBeenCalledTimes(1);
-                expect(second).toHaveBeenCalledTimes(1);
+                expect(first).toHaveBeenCalledTimes(2);
+                expect(second).toHaveBeenCalledTimes(2);
                 expect(repeated.masked).toEqual([20, 21]);
                 expect(repeated.alpha).toBeGreaterThan(0);
 
                 // The first blits what it kept, and the second, which could not keep any, casts again without measuring.
                 const refused = drawLayer(group, layer);
-                expect(first).toHaveBeenCalledTimes(1);
-                expect(second).toHaveBeenCalledTimes(1);
+                expect(first).toHaveBeenCalledTimes(2);
+                expect(second).toHaveBeenCalledTimes(2);
                 expect(refused.masked).toEqual([21]);
                 expect(refused.alpha).toEqual(repeated.alpha);
 
                 // The first casts again once it moves, which frees what it held, so the second measures and keeps its shadows.
                 casters[0].x = 22;
                 const freed = drawLayer(group, layer);
-                expect(second).toHaveBeenCalledTimes(2);
+                expect(second).toHaveBeenCalledTimes(3);
                 expect(freed.masked).toEqual([22, 21]);
                 const blitted = drawLayer(group, layer);
-                expect(second).toHaveBeenCalledTimes(2);
+                expect(second).toHaveBeenCalledTimes(3);
                 expect(blitted.masked).not.toContain(21);
                 expect(blitted.alpha).toBeGreaterThan(0);
             });
