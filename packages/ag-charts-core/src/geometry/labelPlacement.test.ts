@@ -3629,43 +3629,9 @@ describe('placeLabels (positioned candidates)', () => {
         expect(droppedCount).toBeGreaterThan(0);
     });
 
-    it.each([
-        ['displaces the pair less', [234, 254, 280], 0],
-        ['displaces it equally without one label jumping the other', [234, 256], 0],
-        ['displaces it equally at fractional pixel positions', [234, 256], 8.083],
-    ])('trades a first-choice slot with the one earlier label holding it when that %s', (_, blockedYs, offset) => {
+    describe('trading a first-choice slot', () => {
         const avoid = { marker: true, label: true, shape: true };
-        const barDatum = (text: string, ownTop: number, ownHeight: number, ys: number[]) => {
-            const ownBox = { x: 0, y: ownTop + offset, width: 50, height: ownHeight };
-            return buildBarPositionedLabelDatum(
-                text,
-                30,
-                16,
-                ys.map((y, i) => ({
-                    box: { x: 10, y: y + offset, width: 30, height: 16 },
-                    region: i === 0 ? ownBox : undefined,
-                })),
-                {} as BarLabelTarget,
-                ownBox,
-                false,
-                avoid,
-                0,
-                true
-            );
-        };
-        const held = barDatum('held', 100, 160, [240, 262]);
-        const blocked = barDatum('blocked', 150, 102, blockedYs);
-
-        const [labels] = placeLabels(new Map([['s', seriesLabels([held, blocked])]]), bounds, 5).values();
-
-        expect(labels.map(({ text, y }) => ({ text, y }))).toEqual([
-            { text: 'held', y: 262 + offset },
-            { text: 'blocked', y: 234 + offset },
-        ]);
-    });
-
-    it('counts the nudge that cleared an earlier label from its first-choice slot when trading slots', () => {
-        const barDatum = (text: string, ownBox: BoxBounds, candidates: PositionedLabelCandidate[]) =>
+        const barDatum = (text: string, ownBox: BoxBounds, candidates: PositionedLabelCandidate[], neverDrop = false) =>
             buildBarPositionedLabelDatum(
                 text,
                 30,
@@ -3673,61 +3639,153 @@ describe('placeLabels (positioned candidates)', () => {
                 candidates,
                 {} as BarLabelTarget,
                 ownBox,
-                false,
-                { marker: true, label: true, shape: true },
+                neverDrop,
+                avoid,
                 0,
                 true
             );
-        const heldBox = { x: 0, y: 100, width: 50, height: 200 };
-        const blockedBox = { x: 0, y: 150, width: 50, height: 100 };
-        // Nudged 3px up by the fixed label, then displaced 22px by the trade: 22 < 3 + 20 only counting the nudge.
-        const held = barDatum('held', heldBox, [
-            { box: { x: 10, y: 240, width: 30, height: 16 }, region: heldBox, slideAxis: 'y' },
-            { box: { x: 10, y: 262, width: 30, height: 16 } },
-        ]);
-        const blocked = barDatum('blocked', blockedBox, [
-            { box: { x: 10, y: 222, width: 30, height: 16 }, region: blockedBox },
-            { box: { x: 10, y: 202, width: 30, height: 16 } },
-        ]);
-        const fixedLabel: LabelObstacle = {
-            kind: 'rect',
-            category: 'label',
-            box: { x: 0, y: 253, width: 50, height: 9 },
+        // The first candidate is bound to the bar, the fallbacks are not.
+        const stacked = (ownBox: BoxBounds, ys: number[], offset = 0): PositionedLabelCandidate[] =>
+            ys.map((y, i) => ({
+                box: { x: 10, y: y + offset, width: 30, height: 16 },
+                region: i === 0 ? ownBox : undefined,
+            }));
+        const heldBox = { x: 0, y: 100, width: 50, height: 160 };
+        const blockedBox = { x: 0, y: 150, width: 50, height: 102 };
+        const placedYs = (
+            datums: PointLabelDatum[],
+            padding = 5,
+            obstacles?: LabelObstacle[],
+            resolve?: PositionedCandidateResolver
+        ) => {
+            const [labels] = placeLabels(
+                new Map([['s', { datums, resolveCandidate: resolve }]]),
+                bounds,
+                padding,
+                obstacles
+            ).values();
+            return labels.map(({ text, y }) => ({ text, y }));
         };
 
-        const [labels] = placeLabels(new Map([['s', seriesLabels([held, blocked])]]), bounds, 0, [fixedLabel]).values();
+        it.each([
+            ['displaces the pair less', [234, 254, 280], 0],
+            ['displaces it equally without one label jumping the other', [234, 256], 0],
+            ['displaces it equally at fractional pixel positions', [234, 256], 8.083],
+        ])('trades with the one earlier label holding it when that %s', (_, blockedYs, offset) => {
+            const shift = (b: BoxBounds) => ({ ...b, y: b.y + offset });
+            const held = barDatum('held', shift(heldBox), stacked(shift(heldBox), [240, 262], offset));
+            const blocked = barDatum('blocked', shift(blockedBox), stacked(shift(blockedBox), blockedYs, offset));
 
-        expect(labels.map(({ text, y }) => ({ text, y }))).toEqual([
-            { text: 'held', y: 262 },
-            { text: 'blocked', y: 222 },
-        ]);
-    });
+            expect(placedYs([held, blocked])).toEqual([
+                { text: 'held', y: 262 + offset },
+                { text: 'blocked', y: 234 + offset },
+            ]);
+        });
 
-    it('keeps a label in place when trading its slot would displace the pair more, and later labels still avoid it', () => {
-        const barDatum = (text: string, ownBox: BoxBounds, ys: number[]) =>
-            buildBarPositionedLabelDatum(
-                text,
-                30,
-                16,
-                ys.map((y, i) => ({ box: { x: 10, y, width: 30, height: 16 }, region: i === 0 ? ownBox : undefined })),
-                {} as BarLabelTarget,
-                ownBox,
-                false,
-                { marker: true, label: true, shape: true },
+        it.each([
+            [
+                'the holder is under a different drop policy',
+                () => [
+                    barDatum('held', heldBox, stacked(heldBox, [240, 262])),
+                    barDatum('blocked', blockedBox, stacked(blockedBox, [234, 254, 280]), true),
+                ],
+                [],
+            ],
+            [
+                'the holder sits at a fallback because its first choice is hidden',
+                () => [
+                    barDatum('held', heldBox, [
+                        { box: { x: 10, y: 200, width: 30, height: 16 }, region: heldBox, hidden: true },
+                        { box: { x: 10, y: 240, width: 30, height: 16 } },
+                    ]),
+                    barDatum('blocked', blockedBox, stacked(blockedBox, [234, 254, 280])),
+                ],
+                [],
+            ],
+            [
+                'two earlier labels hold it',
+                () => [
+                    barDatum('held', heldBox, stacked(heldBox, [240, 262])),
+                    barDatum('other', { x: 0, y: 200, width: 50, height: 40 }, [
+                        { box: { x: 10, y: 222, width: 30, height: 14 }, unbounded: true },
+                    ]),
+                    barDatum('blocked', blockedBox, stacked(blockedBox, [234, 254, 280])),
+                ],
+                [],
+            ],
+            [
+                'it stays blocked with the holder out of the way',
+                () => [
+                    barDatum('held', heldBox, stacked(heldBox, [240, 200])),
+                    barDatum('blocked', blockedBox, stacked(blockedBox, [234, 254, 280])),
+                ],
+                [{ kind: 'rect', category: 'label', box: { x: 10, y: 234, width: 30, height: 2 } }],
                 0,
-                true
-            );
-        const held = barDatum('held', { x: 0, y: 100, width: 50, height: 160 }, [240, 290]);
-        const blocked = barDatum('blocked', { x: 0, y: 150, width: 50, height: 102 }, [234, 256]);
-        const later = barDatum('later', { x: 0, y: 200, width: 50, height: 100 }, [240, 274]);
+            ],
+        ])('keeps the earlier label in place when %s', (_, datums, obstacles, padding = 5) => {
+            const placed = placedYs(datums(), padding, obstacles);
+            expect(placed[0]).toEqual({ text: 'held', y: 240 });
+            expect(placed.at(-1)).toEqual({ text: 'blocked', y: 280 });
+        });
 
-        const [labels] = placeLabels(new Map([['s', seriesLabels([held, blocked, later])]]), bounds, 5).values();
+        it('trades on the boxes the resolver returned, resolving each reached candidate once per placement', () => {
+            const held = barDatum('held', heldBox, stacked(heldBox, [240, 262]));
+            const blocked = barDatum('blocked', blockedBox, stacked(blockedBox, [234, 254, 280]));
+            const calls: string[] = [];
+            const resolve: PositionedCandidateResolver = (d, c) => {
+                calls.push(`${d === held ? 'held' : 'blocked'}@${c.box.y}`);
+                return c;
+            };
 
-        expect(labels.map(({ text, y }) => ({ text, y }))).toEqual([
-            { text: 'held', y: 240 },
-            { text: 'blocked', y: 256 },
-            { text: 'later', y: 274 },
-        ]);
+            expect(placedYs([held, blocked], 5, undefined, resolve)).toEqual([
+                { text: 'held', y: 262 },
+                { text: 'blocked', y: 234 },
+            ]);
+            // Each placement resolves the candidates it reaches; the trade itself resolves none.
+            expect(calls).toEqual([
+                'held@240',
+                'blocked@234',
+                'blocked@254',
+                'blocked@280',
+                'blocked@234',
+                'held@240',
+                'held@262',
+            ]);
+        });
+
+        it('counts the nudge that cleared an earlier label from its first-choice slot', () => {
+            const tallHeldBox = { x: 0, y: 100, width: 50, height: 200 };
+            const shortBlockedBox = { x: 0, y: 150, width: 50, height: 100 };
+            // Nudged 3px up by the fixed label, then displaced 22px by the trade: 22 < 3 + 20 only counting the nudge.
+            const held = barDatum('held', tallHeldBox, [
+                { box: { x: 10, y: 240, width: 30, height: 16 }, region: tallHeldBox, slideAxis: 'y' },
+                { box: { x: 10, y: 262, width: 30, height: 16 } },
+            ]);
+            const blocked = barDatum('blocked', shortBlockedBox, stacked(shortBlockedBox, [222, 202]));
+            const fixedLabel: LabelObstacle = {
+                kind: 'rect',
+                category: 'label',
+                box: { x: 0, y: 253, width: 50, height: 9 },
+            };
+
+            expect(placedYs([held, blocked], 0, [fixedLabel])).toEqual([
+                { text: 'held', y: 262 },
+                { text: 'blocked', y: 222 },
+            ]);
+        });
+
+        it('keeps a label in place when trading would displace the pair more, and later labels still avoid it', () => {
+            const held = barDatum('held', heldBox, stacked(heldBox, [240, 290]));
+            const blocked = barDatum('blocked', blockedBox, stacked(blockedBox, [234, 256]));
+            const laterBox = { x: 0, y: 200, width: 50, height: 100 };
+            const later = barDatum('later', laterBox, stacked(laterBox, [240, 274]));
+
+            expect(placedYs([held, blocked, later])).toEqual([
+                { text: 'held', y: 240 },
+                { text: 'blocked', y: 256 },
+                { text: 'later', y: 274 },
+            ]);
+        });
     });
 
     it.each([
