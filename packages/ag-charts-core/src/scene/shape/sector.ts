@@ -701,7 +701,6 @@ export class SectorGlowRing {
         this.pool.length = this.entries.length;
     }
 
-    /** Empties the ring and its pool, for a series whose sectors no longer glow. */
     release() {
         this.clear();
         this.ordered.length = 0;
