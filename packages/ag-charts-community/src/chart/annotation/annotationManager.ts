@@ -45,7 +45,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
         memento: AnnotationsMemento | undefined,
         source: MementoRestoreSource = 'api-call'
     ) {
-        // Migration from older versions can be implemented here.
+        // Migrate state saved by older versions: `lineStyle` became a `lineDash` name.
         const migrated = (memento ?? []).map(migrateLineStyle);
 
         this.annotations = this.validateAnnotations(this.cleanData(migrated)).map((annotation) => {

@@ -12,9 +12,13 @@ import type { AgLineDashName } from 'ag-charts-types';
 
 import type { AnnotationLineStyleType } from '../annotationTypes';
 
-/** The line style that a `lineDash` shows as in the toolbar and settings dialog: any other dash counts as `dash`. */
+/**
+ * The line style that a `lineDash` shows as in the toolbar and settings dialog. A dash that draws nothing but a solid
+ * line counts as `solid`, and any dash other than `dot` counts as `dash`.
+ */
 export function getLineStyle(lineDash?: PixelSize[] | AgLineDashName): AnnotationLineStyleType {
     if (lineDash == null || lineDash === 'solid') return 'solid';
+    if (Array.isArray(lineDash) && !lineDash.some((length) => length > 0)) return 'solid';
     return lineDash === 'dot' ? 'dot' : 'dash';
 }
 

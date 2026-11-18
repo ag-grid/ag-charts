@@ -126,6 +126,12 @@ describe('Annotation datum lifecycle', () => {
     setupMockConsole();
     let chart: any;
 
+    const ctx = setupMockCanvas();
+
+    async function prepareChart(annotations: AgAnnotation[], baseOptions = ANNOTATIONS_EXAMPLE_OPTIONS) {
+        chart = await createAnnotationsChart({ ...baseOptions, initialState: { annotations } });
+    }
+
     const stateOf = () => chart.getState().annotations as any[];
 
     /** The lines the scene draws with a dash, with the solid ones left out. */
@@ -133,11 +139,6 @@ describe('Annotation datum lifecycle', () => {
         findSceneNodes(chart, (node): node is CollidableLine<any> => node instanceof CollidableLine).filter(
             (line) => !Array.isArray(line.lineDash) || line.lineDash.some((length) => length > 0)
         );
-    const ctx = setupMockCanvas();
-
-    async function prepareChart(annotations: AgAnnotation[], baseOptions = ANNOTATIONS_EXAMPLE_OPTIONS) {
-        chart = await createAnnotationsChart({ ...baseOptions, initialState: { annotations } });
-    }
 
     // Canvas position of a data point, read from the axes so the test does not encode layout sizes.
     function toCanvas(x: Date, y: number) {
