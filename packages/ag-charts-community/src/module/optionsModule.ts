@@ -213,6 +213,8 @@ enum GroupingType {
 
 const stringFormat = (value: string) => `'${value}'`;
 const COMPLETE_CSS_VARIABLE = /^var\(\s*--[\w-]+\s*(?:,[^{};]*)?\)$/;
+// A browser accepts any value containing `var()` as a colour, but the canvas cannot resolve it and paints black.
+const CSS_VARIABLE_PREFIX = /^\s*var\(/i;
 
 // TODO: move this somewhere more appropriate
 const AXIS_ID_PREFIX = '__AXIS_ID_';
@@ -2082,8 +2084,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 if (isColorOptionKey(key)) {
                     ChartOptions.processCSSVariablesArray(value, ctx, container, processedCSSVariables);
                 }
-            } else if (ChartOptions.isExternalColorVar(value) && isColorOptionKey(key)) {
-                ChartOptions.processCSSVariable(optionsNode, key, ctx, container, processedCSSVariables);
+            } else if (typeof value === 'string' && isColorOptionKey(key)) {
+                ChartOptions.processColorString(optionsNode, key, ctx, container, processedCSSVariables);
             }
         }
 
@@ -2100,9 +2102,26 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const value = array[i];
             if (Array.isArray(value)) {
                 ChartOptions.processCSSVariablesArray(value, ctx, container, processedCSSVariables);
-            } else if (ChartOptions.isExternalColorVar(value)) {
-                ChartOptions.processCSSVariable(array, i, ctx, container, processedCSSVariables);
+            } else if (typeof value === 'string') {
+                ChartOptions.processColorString(array, i, ctx, container, processedCSSVariables);
             }
+        }
+    }
+
+    private static processColorString(
+        parent: any,
+        key: string | number,
+        ctx: CSSVariableContext,
+        container: HTMLElement,
+        processedCSSVariables: Record<string, string>
+    ) {
+        const value: string = parent[key];
+        if (ChartOptions.isExternalColorVar(value)) {
+            ChartOptions.processCSSVariable(parent, key, ctx, container, processedCSSVariables);
+        } else if (ChartOptions.isMalformedColorVar(value)) {
+            ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+            ctx.removed = true;
+            delete parent[key];
         }
     }
 
@@ -2139,6 +2158,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             value.startsWith('var(--') &&
             !value.startsWith('--ag-charts', 4) &&
             COMPLETE_CSS_VARIABLE.test(value)
+        );
+    }
+
+    /** A `var(` value in any case that is not a complete external variable, such as `var(--x) red` or `VAR(--x)`. */
+    private static isMalformedColorVar(value: string) {
+        return (
+            CSS_VARIABLE_PREFIX.test(value) &&
+            !value.startsWith('var(--ag-charts') &&
+            !COMPLETE_CSS_VARIABLE.test(value)
         );
     }
 
