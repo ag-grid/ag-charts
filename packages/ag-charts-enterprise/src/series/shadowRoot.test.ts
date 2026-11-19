@@ -258,22 +258,22 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('rectGroup')).toBe('by-layer');
         });
 
-        it('should keep the rings of a sunburst layered, so that an outer ring still shadows the one inside it', async () => {
+        it.each([
+            {
+                group: 'sectorGroup',
+                title: 'should keep the rings of a sunburst layered, so that an outer ring still shadows the one inside it',
+            },
+            {
+                group: 'highlightSectorGroup',
+                title: 'should keep the rings of the highlighted copy of a sunburst layered too',
+            },
+        ] as const)('$title', async ({ group }) => {
             await create({
                 data: HIERARCHY_SHADOW_DATA,
                 series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size' }],
             } as AgChartOptions);
 
-            expect(batching('sectorGroup')).toBe('by-layer');
-        });
-
-        it('should keep the rings of the highlighted copy of a sunburst layered too', async () => {
-            await create({
-                data: HIERARCHY_SHADOW_DATA,
-                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size' }],
-            } as AgChartOptions);
-
-            expect(batching('highlightSectorGroup')).toBe('by-layer');
+            expect(batching(group)).toBe('by-layer');
         });
     });
 
