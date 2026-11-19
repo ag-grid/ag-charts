@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     ariaDescriptionCollapseNode: 'กด ALT ลูกศรขึ้น เพื่อยุบโหนดนี้',
     ariaDescriptionToggleNode: 'กด Space หรือ Enter เพื่อขยายหรือยุบโหนดนี้',
     ariaDescriptionLegendItem: 'กด Space หรือ Enter เพื่อสลับการแสดงผล',
-    ariaDescriptionMoveAnnotation: 'ใช้ปุ่มลูกศรเพื่อย้ายคำอธิบายประกอบ กด Shift ค้างไว้เพื่อย้ายครั้งละมากขึ้น และกด Esc เมื่อเสร็จสิ้น',
+    ariaDescriptionMoveAnnotation:
+        'ใช้ปุ่มลูกศรเพื่อย้ายคำอธิบายประกอบ กด Shift ค้างไว้เพื่อย้ายครั้งละมากขึ้น และกด Esc เมื่อเสร็จสิ้น',
     ariaLabelAddHorizontalLine: 'เพิ่มเส้นแนวนอน',
     ariaLabelAnnotationsToolbar: 'คำอธิบายประกอบ',
     ariaLabelAnnotationOptionsToolbar: 'ตัวเลือกคำอธิบายประกอบ',

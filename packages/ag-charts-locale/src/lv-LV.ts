@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_LV_LV: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Nospiediet ALT AUGŠUP, lai sakļautu šo mezglu',
     ariaDescriptionToggleNode: 'Nospiediet atstarpes taustiņu vai Enter, lai izvērstu vai sakļautu šo mezglu',
     ariaDescriptionLegendItem: 'Nospiediet atstarpes taustiņu vai Enter, lai pārslēgtu redzamību',
-    ariaDescriptionMoveAnnotation: 'Izmantojiet bulttaustiņus, lai pārvietotu anotāciju, turiet nospiestu Shift lielākiem soļiem un nospiediet Esc, kad esat pabeidzis',
+    ariaDescriptionMoveAnnotation:
+        'Izmantojiet bulttaustiņus, lai pārvietotu anotāciju, turiet nospiestu Shift lielākiem soļiem un nospiediet Esc, kad esat pabeidzis',
     ariaLabelAddHorizontalLine: 'Pievienot horizontālu līniju',
     ariaLabelAnnotationsToolbar: 'Anotācijas',
     ariaLabelAnnotationOptionsToolbar: 'Anotācijas opcijas',

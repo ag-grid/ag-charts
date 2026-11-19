@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'grafik, ${caption}',
     ariaDescriptionLegendItem: 'Görünürlüğü değiştirmek için Boşluk veya Enter tuşuna basın',
-    ariaDescriptionMoveAnnotation: 'Ek açıklamayı taşımak için ok tuşlarını kullanın, daha büyük adımlar için Shift tuşunu basılı tutun ve bitirdiğinizde Esc tuşuna basın',
+    ariaDescriptionMoveAnnotation:
+        'Ek açıklamayı taşımak için ok tuşlarını kullanın, daha büyük adımlar için Shift tuşunu basılı tutun ve bitirdiğinizde Esc tuşuna basın',
     ariaInitSeriesArea: 'etkileşimli grafik',
     ariaLabelAddHorizontalLine: 'Yatay Çizgi Ekle',
     ariaLabelAnnotationOptionsToolbar: 'Ek Açıklama Seçenekleri',

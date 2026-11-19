@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     ariaDescriptionCollapseNode: 'इस नोड को संक्षिप्त करने के लिए ALT UP दबाएँ',
     ariaDescriptionToggleNode: 'इस नोड को विस्तृत या संक्षिप्त करने के लिए Space या Enter दबाएँ',
     ariaDescriptionLegendItem: 'दृश्यता टॉगल करने के लिए Space या Enter दबाएँ',
-    ariaDescriptionMoveAnnotation: 'एनोटेशन को खिसकाने के लिए तीर कुंजियों का उपयोग करें, बड़े चरणों के लिए Shift दबाए रखें, और पूरा होने पर Esc दबाएँ',
+    ariaDescriptionMoveAnnotation:
+        'एनोटेशन को खिसकाने के लिए तीर कुंजियों का उपयोग करें, बड़े चरणों के लिए Shift दबाए रखें, और पूरा होने पर Esc दबाएँ',
     ariaLabelAddHorizontalLine: 'क्षैतिज रेखा जोड़ें',
     ariaLabelAnnotationsToolbar: 'एनोटेशन',
     ariaLabelAnnotationOptionsToolbar: 'एनोटेशन विकल्प',

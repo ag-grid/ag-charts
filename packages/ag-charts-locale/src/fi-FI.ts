@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'kaavio, ${caption}',
     ariaDescriptionLegendItem: 'Paina välilyöntiä tai Enteriä vaihtaaksesi näkyvyyttä',
-    ariaDescriptionMoveAnnotation: 'Siirrä merkintää nuolinäppäimillä, pidä Shift painettuna suurempia askelia varten ja paina Esc, kun olet valmis',
+    ariaDescriptionMoveAnnotation:
+        'Siirrä merkintää nuolinäppäimillä, pidä Shift painettuna suurempia askelia varten ja paina Esc, kun olet valmis',
     ariaInitSeriesArea: 'vuorovaikutteinen kaavio',
     ariaLabelAddHorizontalLine: 'Lisää vaakasuora viiva',
     ariaLabelAnnotationOptionsToolbar: 'Merkinnän vaihtoehdot',

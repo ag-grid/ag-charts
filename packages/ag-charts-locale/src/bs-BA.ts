@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_BS_BA: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Pritisnite ALT GORE za sažimanje ovog čvora',
     ariaDescriptionToggleNode: 'Pritisnite Space ili Enter za proširivanje ili sažimanje ovog čvora',
     ariaDescriptionLegendItem: 'Pritisnite Space ili Enter za uključivanje/isključivanje vidljivosti',
-    ariaDescriptionMoveAnnotation: 'Koristite tipke sa strelicama za pomjeranje napomene, držite Shift za veće korake i pritisnite Esc kada završite',
+    ariaDescriptionMoveAnnotation:
+        'Koristite tipke sa strelicama za pomjeranje napomene, držite Shift za veće korake i pritisnite Esc kada završite',
     ariaLabelAddHorizontalLine: 'Dodaj horizontalnu liniju',
     ariaLabelAnnotationsToolbar: 'Napomene',
     ariaLabelAnnotationOptionsToolbar: 'Opcije napomena',

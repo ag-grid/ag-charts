@@ -22,6 +22,7 @@ import type { LocaleManager } from '../../locale/localeManager';
 
 type ButtonValue =
     | 'menu'
+    | 'move'
     | AgAnnotationsToolbarButtonValue
     | AgAnnotationsToolbarSwitchValue
     | AgAnnotationOptionsToolbarButtonValue
@@ -92,6 +93,7 @@ const ARIA_HASPOPUP = {
     lock: 'false',
     magnet: 'false',
     menu: 'menu',
+    move: 'false',
     note: 'false',
     reset: 'false',
     settings: 'dialog',

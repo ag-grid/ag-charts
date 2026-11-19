@@ -33,7 +33,8 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'diagram, ${caption}',
     ariaDescriptionLegendItem: 'Nyomja meg a Szóközt vagy az Entert a láthatóság váltásához',
-    ariaDescriptionMoveAnnotation: 'A nyílbillentyűkkel mozgassa a jelölést, nagyobb lépésekhez tartsa lenyomva a Shift billentyűt, és ha végzett, nyomja meg az Esc billentyűt',
+    ariaDescriptionMoveAnnotation:
+        'A nyílbillentyűkkel mozgassa a jelölést, nagyobb lépésekhez tartsa lenyomva a Shift billentyűt, és ha végzett, nyomja meg az Esc billentyűt',
     ariaInitSeriesArea: 'interaktív diagram',
     ariaLabelAddHorizontalLine: 'Vízszintes vonal hozzáadása',
     ariaLabelAnnotationOptionsToolbar: 'Jelölési lehetőségek',

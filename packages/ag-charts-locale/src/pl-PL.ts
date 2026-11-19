@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'wykres, ${caption}',
     ariaDescriptionLegendItem: 'Naciśnij Spację lub Enter, aby przełączać widoczność',
-    ariaDescriptionMoveAnnotation: 'Użyj klawiszy strzałek, aby przesunąć adnotację, przytrzymaj Shift, aby wykonywać większe kroki, i naciśnij Esc po zakończeniu',
+    ariaDescriptionMoveAnnotation:
+        'Użyj klawiszy strzałek, aby przesunąć adnotację, przytrzymaj Shift, aby wykonywać większe kroki, i naciśnij Esc po zakończeniu',
     ariaInitSeriesArea: 'interaktywny wykres',
     ariaLabelAddHorizontalLine: 'Dodaj linię poziomą',
     ariaLabelAnnotationOptionsToolbar: 'Opcje Adnotacji',

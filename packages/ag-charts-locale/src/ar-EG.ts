@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum} الموجود على',
     ariaAnnounceStandaloneChart: 'المخطط، ${caption}',
     ariaDescriptionLegendItem: 'اضغط على المسافة أو الإدخال للتبديل بين الرؤية',
-    ariaDescriptionMoveAnnotation: 'استخدم مفاتيح الأسهم لتحريك التعليق التوضيحي، واضغط باستمرار على Shift لخطوات أكبر، واضغط على Esc عند الانتهاء',
+    ariaDescriptionMoveAnnotation:
+        'استخدم مفاتيح الأسهم لتحريك التعليق التوضيحي، واضغط باستمرار على Shift لخطوات أكبر، واضغط على Esc عند الانتهاء',
     ariaInitSeriesArea: 'مخطط تفاعلي',
     ariaLabelAddHorizontalLine: 'إضافة خط أفقي',
     ariaLabelAnnotationOptionsToolbar: 'خيارات التعليق',

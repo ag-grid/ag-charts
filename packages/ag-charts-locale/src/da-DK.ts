@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'diagram, ${caption}',
     ariaDescriptionLegendItem: 'Tryk på mellemrumstasten eller Enter for at skifte synlighed',
-    ariaDescriptionMoveAnnotation: 'Brug piletasterne til at flytte anmærkningen, hold Shift nede for større trin, og tryk på Esc, når du er færdig',
+    ariaDescriptionMoveAnnotation:
+        'Brug piletasterne til at flytte anmærkningen, hold Shift nede for større trin, og tryk på Esc, når du er færdig',
     ariaInitSeriesArea: 'interaktivt diagram',
     ariaLabelAddHorizontalLine: 'Tilføj vandret linje',
     ariaLabelAnnotationOptionsToolbar: 'Annotationmuligheder',

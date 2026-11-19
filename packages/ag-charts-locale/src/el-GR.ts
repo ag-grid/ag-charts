@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'Διάγραμμα, ${caption}',
     ariaDescriptionLegendItem: 'Πατήστε Space ή Enter για εναλλαγή ορατότητας',
-    ariaDescriptionMoveAnnotation: 'Χρησιμοποιήστε τα πλήκτρα βέλους για να μετακινήσετε τον σχολιασμό, κρατήστε πατημένο το Shift για μεγαλύτερα βήματα και πατήστε Esc όταν τελειώσετε',
+    ariaDescriptionMoveAnnotation:
+        'Χρησιμοποιήστε τα πλήκτρα βέλους για να μετακινήσετε τον σχολιασμό, κρατήστε πατημένο το Shift για μεγαλύτερα βήματα και πατήστε Esc όταν τελειώσετε',
     ariaInitSeriesArea: 'διαδραστικό γράφημα',
     ariaLabelAddHorizontalLine: 'Προσθήκη Οριζόντιας Γραμμής',
     ariaLabelAnnotationOptionsToolbar: 'Επιλογές σχολιασμού',

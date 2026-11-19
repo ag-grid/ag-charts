@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_SR_LATN_RS: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Pritisnite ALT + strelica nagore da skupite ovaj čvor',
     ariaDescriptionToggleNode: 'Pritisnite razmaknicu ili Enter da proširite ili skupite ovaj čvor',
     ariaDescriptionLegendItem: 'Pritisnite razmaknicu ili Enter da uključite ili isključite vidljivost',
-    ariaDescriptionMoveAnnotation: 'Koristite tastere sa strelicama da pomerite anotaciju, držite Shift za veće korake i pritisnite Esc kada završite',
+    ariaDescriptionMoveAnnotation:
+        'Koristite tastere sa strelicama da pomerite anotaciju, držite Shift za veće korake i pritisnite Esc kada završite',
     ariaLabelAddHorizontalLine: 'Dodaj horizontalnu liniju',
     ariaLabelAnnotationsToolbar: 'Anotacije',
     ariaLabelAnnotationOptionsToolbar: 'Opcije anotacije',

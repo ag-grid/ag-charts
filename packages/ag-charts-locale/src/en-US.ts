@@ -40,7 +40,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Screen reader description for legend items
     ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
     // Screen reader description for an annotation while the arrow keys move it
-    ariaDescriptionMoveAnnotation: 'Use the arrow keys to move the annotation, hold Shift for larger steps, and press Escape when done',
+    ariaDescriptionMoveAnnotation:
+        'Use the arrow keys to move the annotation, hold Shift for larger steps, and press Escape when done',
     // Screen reader for the '+' horizontal line button on the Y-axis
     ariaLabelAddHorizontalLine: 'Add Horizontal Line',
     // Screen reader text for annotations toolbar

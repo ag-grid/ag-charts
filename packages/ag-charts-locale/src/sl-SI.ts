@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_SL_SI: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Pritisnite ALT GOR, da strnete to vozlišče',
     ariaDescriptionToggleNode: 'Pritisnite preslednico ali Enter, da razširite ali strnete to vozlišče',
     ariaDescriptionLegendItem: 'Pritisnite preslednico ali Enter za preklop vidnosti',
-    ariaDescriptionMoveAnnotation: 'S puščičnimi tipkami premaknite opombo, za večje korake držite Shift in ko končate, pritisnite Esc',
+    ariaDescriptionMoveAnnotation:
+        'S puščičnimi tipkami premaknite opombo, za večje korake držite Shift in ko končate, pritisnite Esc',
     ariaLabelAddHorizontalLine: 'Dodaj vodoravno črto',
     ariaLabelAnnotationsToolbar: 'Opombe',
     ariaLabelAnnotationOptionsToolbar: 'Možnosti opomb',

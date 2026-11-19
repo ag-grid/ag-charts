@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Pindutin ang ALT UP para itiklop ang node na ito',
     ariaDescriptionToggleNode: 'Pindutin ang Space o Enter para palawakin o itiklop ang node na ito',
     ariaDescriptionLegendItem: 'Pindutin ang Space o Enter para i-toggle ang visibility',
-    ariaDescriptionMoveAnnotation: 'Gamitin ang mga arrow key upang ilipat ang anotasyon, pindutin nang matagal ang Shift para sa mas malalaking hakbang, at pindutin ang Esc kapag tapos na',
+    ariaDescriptionMoveAnnotation:
+        'Gamitin ang mga arrow key upang ilipat ang anotasyon, pindutin nang matagal ang Shift para sa mas malalaking hakbang, at pindutin ang Esc kapag tapos na',
     ariaLabelAddHorizontalLine: 'Magdagdag ng Horizontal na Linya',
     ariaLabelAnnotationsToolbar: 'Mga Anotasyon',
     ariaLabelAnnotationOptionsToolbar: 'Mga Opsyon sa Anotasyon',

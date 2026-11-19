@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'תרשים, ${caption}',
     ariaDescriptionLegendItem: 'לחץ על מקש הרווח או אנטר כדי להחליף את הנראות',
-    ariaDescriptionMoveAnnotation: 'השתמש במקשי החצים כדי להזיז את ההערה, החזק את Shift לצעדים גדולים יותר ולחץ על Esc בסיום',
+    ariaDescriptionMoveAnnotation:
+        'השתמש במקשי החצים כדי להזיז את ההערה, החזק את Shift לצעדים גדולים יותר ולחץ על Esc בסיום',
     ariaInitSeriesArea: 'תרשים אינטראקטיבי',
     ariaLabelAddHorizontalLine: 'הוסף קו אופקי',
     ariaLabelAnnotationOptionsToolbar: 'אפשרויות הערות',

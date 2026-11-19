@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}にフォーカスしています',
     ariaAnnounceStandaloneChart: 'チャート, ${caption}',
     ariaDescriptionLegendItem: 'Space キーまたは Enter キーを押して表示を切り替えます',
-    ariaDescriptionMoveAnnotation: '矢印キーで注釈を移動します。Shift キーを押したままにすると大きく移動し、完了したら Esc キーを押します',
+    ariaDescriptionMoveAnnotation:
+        '矢印キーで注釈を移動します。Shift キーを押したままにすると大きく移動し、完了したら Esc キーを押します',
     ariaInitSeriesArea: '対話型チャート',
     ariaLabelAddHorizontalLine: '水平線を追加',
     ariaLabelAnnotationOptionsToolbar: '注釈オプション',

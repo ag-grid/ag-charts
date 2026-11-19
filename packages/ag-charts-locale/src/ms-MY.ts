@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Tekan ALT ATAS untuk mengecutkan nod ini',
     ariaDescriptionToggleNode: 'Tekan Space atau Enter untuk mengembang atau mengecutkan nod ini',
     ariaDescriptionLegendItem: 'Tekan Space atau Enter untuk togol keterlihatan',
-    ariaDescriptionMoveAnnotation: 'Gunakan kekunci anak panah untuk mengalihkan anotasi, tahan Shift untuk langkah yang lebih besar, dan tekan Esc apabila selesai',
+    ariaDescriptionMoveAnnotation:
+        'Gunakan kekunci anak panah untuk mengalihkan anotasi, tahan Shift untuk langkah yang lebih besar, dan tekan Esc apabila selesai',
     ariaLabelAddHorizontalLine: 'Tambah Garisan Mendatar',
     ariaLabelAnnotationsToolbar: 'Anotasi',
     ariaLabelAnnotationOptionsToolbar: 'Pilihan Anotasi',

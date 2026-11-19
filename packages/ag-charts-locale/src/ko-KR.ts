@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: '차트, ${caption}',
     ariaDescriptionLegendItem: '스페이스바 또는 엔터를 눌러 표시 여부를 전환하세요',
-    ariaDescriptionMoveAnnotation: '화살표 키를 사용하여 주석을 이동하고, 더 크게 이동하려면 Shift를 누른 채로 있다가, 완료되면 Esc를 누르세요',
+    ariaDescriptionMoveAnnotation:
+        '화살표 키를 사용하여 주석을 이동하고, 더 크게 이동하려면 Shift를 누른 채로 있다가, 완료되면 Esc를 누르세요',
     ariaInitSeriesArea: '"인터랙티브 차트"',
     ariaLabelAddHorizontalLine: '수평선 추가',
     ariaLabelAnnotationOptionsToolbar: '주석 옵션',

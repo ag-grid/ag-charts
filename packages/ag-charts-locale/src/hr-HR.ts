@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'grafikon, ${caption}',
     ariaDescriptionLegendItem: 'Pritisnite razmaknicu ili Enter za uključivanje/isključivanje vidljivosti',
-    ariaDescriptionMoveAnnotation: 'Koristite tipke sa strelicama za pomicanje oznake, držite Shift za veće korake i pritisnite Esc kada završite',
+    ariaDescriptionMoveAnnotation:
+        'Koristite tipke sa strelicama za pomicanje oznake, držite Shift za veće korake i pritisnite Esc kada završite',
     ariaInitSeriesArea: 'interaktivni grafikon',
     ariaLabelAddHorizontalLine: 'Dodaj vodoravnu liniju',
     ariaLabelAnnotationOptionsToolbar: 'Opcije komentara',

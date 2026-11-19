@@ -2,3 +2,13 @@
 @import url(./annotationsToolbar.css);
 @import url(./axisButton.css);
 @import url(./settings-dialog/settingsDialog.css);
+
+.ag-charts-annotations__live-region {
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    pointer-events: none;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}

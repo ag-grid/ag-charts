@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'biểu đồ, ${caption}',
     ariaDescriptionLegendItem: 'Nhấn Phím Cách hoặc Enter để chuyển đổi chế độ hiển thị',
-    ariaDescriptionMoveAnnotation: 'Sử dụng các phím mũi tên để di chuyển chú thích, giữ Shift để di chuyển bước lớn hơn và nhấn Esc khi hoàn tất',
+    ariaDescriptionMoveAnnotation:
+        'Sử dụng các phím mũi tên để di chuyển chú thích, giữ Shift để di chuyển bước lớn hơn và nhấn Esc khi hoàn tất',
     ariaInitSeriesArea: 'biểu đồ tương tác',
     ariaLabelAddHorizontalLine: 'Thêm Đường Ngang',
     ariaLabelAnnotationOptionsToolbar: 'Tùy chọn Chú thích',
