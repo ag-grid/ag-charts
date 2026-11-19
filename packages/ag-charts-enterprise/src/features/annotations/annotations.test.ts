@@ -1209,7 +1209,7 @@ describe('Annotations', () => {
             expect(names).toEqual(['Remove annotation', 'Edit annotation']);
         });
 
-        it('warns once per unnamed button in either toolbar, including an unnamed locked switch state', async () => {
+        it('warns once per unnamed button in either toolbar, including an unnamed locked switch state, but not for the library-labelled controls', async () => {
             await prepareChart(undefined, {
                 ...ANNOTATIONS_EXAMPLE_OPTIONS,
                 annotations: {
@@ -1225,6 +1225,8 @@ describe('Annotations', () => {
                         buttons: [
                             { icon: 'delete', value: 'delete', ariaLabel: '' },
                             { type: 'switch', icon: 'unlocked', value: 'lock', tooltip: 'Lock' },
+                            { value: 'line-stroke-width' },
+                            { value: 'text-size' },
                         ],
                     },
                 },

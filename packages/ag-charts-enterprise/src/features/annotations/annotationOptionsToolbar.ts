@@ -8,7 +8,6 @@ import {
     attachListener,
     hasToolbarButtonAccessibleName,
     warnUnnamedToolbarButton,
-    warnUnnamedToolbarButtons,
 } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
@@ -54,6 +53,12 @@ const TOOLBAR_BUTTON_OPTIONS: Record<
     'text-size': AnnotationOptions.TextSize,
     settings: AnnotationOptions.Settings,
 };
+
+// The toolbar labels these with the selected annotation's stroke width or font size whenever they are shown.
+const LIBRARY_LABELLED_BUTTONS = new Set<AgAnnotationOptionsToolbarButtonValue | AgAnnotationOptionsToolbarSwitchValue>([
+    'line-stroke-width',
+    'text-size',
+]);
 interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
@@ -201,10 +206,13 @@ export class AnnotationOptionsToolbar {
 
     private warnUnnamedButtons(buttons: NonNullable<AgAnnotationOptionsToolbar['buttons']>) {
         const path = 'annotations.optionsToolbar.buttons';
-        const { logger } = this.ctx;
-        warnUnnamedToolbarButtons(logger, path, buttons);
+        const { logger, localeManager } = this.ctx;
         for (const [index, button] of buttons.entries()) {
-            if (button.type === 'switch' && !hasToolbarButtonAccessibleName(button.checkedOverrides)) {
+            if (LIBRARY_LABELLED_BUTTONS.has(button.value)) continue;
+            if (!hasToolbarButtonAccessibleName(button, localeManager)) {
+                warnUnnamedToolbarButton(logger, `${path}[${index}]`, button.value);
+            }
+            if (button.type === 'switch' && !hasToolbarButtonAccessibleName(button.checkedOverrides, localeManager)) {
                 warnUnnamedToolbarButton(logger, `${path}[${index}].checkedOverrides`, button.value);
             }
         }

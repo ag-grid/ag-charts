@@ -7,13 +7,25 @@ interface NameableToolbarButton {
     value?: unknown;
 }
 
-function isNonBlank(text: string | undefined) {
-    return Boolean(text?.trim());
+/** Resolves a name field the way the button widget does before rendering it. */
+interface ToolbarButtonTranslator {
+    t(key: string): string;
 }
 
-export function hasToolbarButtonAccessibleName(button: NameableToolbarButton | undefined): boolean {
+function isNonBlank(text: string | undefined, translator: ToolbarButtonTranslator) {
+    return text != null && translator.t(text).trim() !== '';
+}
+
+export function hasToolbarButtonAccessibleName(
+    button: NameableToolbarButton | undefined,
+    translator: ToolbarButtonTranslator
+): boolean {
     if (button == null) return false;
-    return isNonBlank(button.ariaLabel) || isNonBlank(button.tooltip) || isNonBlank(button.label);
+    return (
+        isNonBlank(button.ariaLabel, translator) ||
+        isNonBlank(button.tooltip, translator) ||
+        isNonBlank(button.label, translator)
+    );
 }
 
 export function warnUnnamedToolbarButton(logger: Logger, path: string, value: unknown) {
@@ -26,12 +38,13 @@ export function warnUnnamedToolbarButton(logger: Logger, path: string, value: un
 /** Warns once per button in `buttons` that has no non-blank `ariaLabel`, `tooltip` or `label`. */
 export function warnUnnamedToolbarButtons(
     logger: Logger,
+    translator: ToolbarButtonTranslator,
     path: string,
     buttons: ReadonlyArray<NameableToolbarButton> | undefined
 ) {
     if (buttons == null) return;
     for (const [index, button] of buttons.entries()) {
-        if (!hasToolbarButtonAccessibleName(button)) {
+        if (!hasToolbarButtonAccessibleName(button, translator)) {
             warnUnnamedToolbarButton(logger, `${path}[${index}]`, button.value);
         }
     }
