@@ -43,6 +43,7 @@ export type BaseAttributeTypeMap = {
     'aria-hidden': boolean;
     'aria-label': string;
     'aria-labelledby': ElementID;
+    'aria-pressed': boolean;
     'aria-live': 'assertive' | 'polite';
     'aria-orientation': Direction;
     'aria-roledescription': string;
@@ -51,7 +52,6 @@ export type BaseAttributeTypeMap = {
     'aria-valuemin': number;
     'aria-valuetext': string;
     'data-focus-override': boolean;
-    'data-focus-visible-override': boolean;
     'data-preventdefault': boolean;
     class: string;
     contenteditable: 'plaintext-only';
@@ -88,6 +88,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'aria-hidden': booleanParser,
     'aria-label': stringParser,
     'aria-labelledby': stringParser<ElementID>,
+    'aria-pressed': booleanParser,
     'aria-live': stringParser<BaseAttributeTypeMap['aria-live']>,
     'aria-orientation': stringParser<Direction>,
     'aria-roledescription': stringParser,
@@ -96,7 +97,6 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'aria-valuemin': numberParser,
     'aria-valuetext': stringParser,
     'data-focus-override': booleanParser,
-    'data-focus-visible-override': booleanParser,
     'data-preventdefault': booleanParser,
     class: stringParser,
     contenteditable: stringParser<'plaintext-only'>,

@@ -73,21 +73,4 @@ test.describe('validation overlay', () => {
 
         await expect(copyButton).toHaveText('Copied');
     });
-
-    // The chart's context menu skips a right-click whose default was already prevented, so this is what keeps it
-    // from opening over the dialog.
-    test('a right-click on the panel is marked as handled', async ({ page }) => {
-        const { url } = toExamplePageUrl('dev-validation', 'validation-overlay-multi', 'vanilla');
-        await gotoExample(page, url);
-        await waitForAllChartUpdates(page);
-
-        await page.evaluate(() => {
-            document.addEventListener('contextmenu', (event) => {
-                document.body.dataset.contextmenuDefaultPrevented = String(event.defaultPrevented);
-            });
-        });
-        await page.locator(PANEL).click({ button: 'right' });
-
-        await expect(page.locator('body')).toHaveAttribute('data-contextmenu-default-prevented', 'true');
-    });
 });

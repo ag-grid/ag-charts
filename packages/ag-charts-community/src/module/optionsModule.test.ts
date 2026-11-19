@@ -889,6 +889,188 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('lineDash', () => {
+        const warnings = () => (console.warn as Mock).mock.calls.map(([m]) => String(m));
+
+        const LOCATIONS: Array<[string, string, (lineDash: never, strokeWidth?: number) => AgCartesianChartOptions]> = [
+            [
+                'series',
+                'series[0].lineDash',
+                (lineDash, strokeWidth) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', lineDash, strokeWidth }],
+                }),
+            ],
+            [
+                'series marker',
+                'series[0].marker.lineDash',
+                (lineDash, strokeWidth) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { lineDash, strokeWidth } }],
+                }),
+            ],
+            [
+                'series highlight',
+                'series[0].highlight.highlightedItem.lineDash',
+                (lineDash, strokeWidth) => ({
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'x',
+                            yKey: 'y',
+                            highlight: { highlightedItem: { lineDash, strokeWidth } },
+                        },
+                    ],
+                }),
+            ],
+            [
+                'series selection',
+                'series[0].selection.selectedItem.lineDash',
+                (lineDash, strokeWidth) => ({
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y', selection: { selectedItem: { lineDash, strokeWidth } } },
+                    ],
+                }),
+            ],
+            [
+                'axis line',
+                'axes.x.line.lineDash',
+                (lineDash, strokeWidth) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category', position: 'bottom', line: { lineDash, strokeWidth } } },
+                }),
+            ],
+            [
+                'axis grid line',
+                'axes.y.gridLine.style[0].lineDash',
+                (lineDash, strokeWidth) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: { y: { type: 'number', position: 'left', gridLine: { style: [{ lineDash, strokeWidth }] } } },
+                }),
+            ],
+            [
+                'cross line',
+                'axes.x.crossLines[0].lineDash',
+                (lineDash, strokeWidth) => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: {
+                            type: 'category',
+                            position: 'bottom',
+                            crossLines: [{ type: 'line', value: 'a', lineDash, strokeWidth }],
+                        },
+                    },
+                }),
+            ],
+        ];
+
+        // `long-dash-dot-dot` is [7, 2, 1, 2, 1, 2] in multiples of the stroke width. Rendering: `chart/lineDash.test.ts`.
+        it.each(LOCATIONS)(
+            'resolves a stock dash name on a %s, scaled by its strokeWidth, and not an array',
+            (_, path, build) => {
+                const named = prepareOptions<AgCartesianChartOptions>(build('long-dash-dot-dot' as never, 3));
+                expect(optionAt(named, path)).toEqual([21, 6, 3, 6, 3, 6]);
+
+                const array = prepareOptions<AgCartesianChartOptions>(build([6, 4] as never, 3));
+                expect(optionAt(array, path)).toEqual([6, 4]);
+                expect(warnings()).toEqual([]);
+            }
+        );
+
+        const SERIES: AgCartesianChartOptions['series'] = [{ type: 'line', xKey: 'x', yKey: 'y' }];
+        const CROSS_LINE_AXES: AgCartesianChartOptions['axes'] = {
+            x: { type: 'category', position: 'bottom', crossLines: [{ type: 'line', value: 'a' }] },
+        };
+
+        const OTHER_ROUTES: Array<[string, string, (lineDash: never) => AgCartesianChartOptions]> = [
+            [
+                'a theme override on an axis position',
+                'axes.x.line.lineDash',
+                (lineDash) => ({
+                    series: SERIES,
+                    axes: { x: { type: 'category', position: 'bottom' } },
+                    theme: { overrides: { common: { axes: { category: { bottom: { line: { lineDash } } } } } } },
+                }),
+            ],
+            [
+                'a theme override on a cross line type',
+                'axes.x.crossLines[0].lineDash',
+                (lineDash) => ({
+                    series: SERIES,
+                    axes: CROSS_LINE_AXES,
+                    theme: { overrides: { common: { axes: { category: { crossLines: { line: { lineDash } } } } } } },
+                }),
+            ],
+        ];
+
+        it.each(OTHER_ROUTES)('resolves a stock dash name from %s, and an array unchanged', (_, path, build) => {
+            const named = prepareOptions<AgCartesianChartOptions>(build('dash' as never));
+            expect(optionAt(named, path)).toEqual([3, 2]);
+
+            const array = prepareOptions<AgCartesianChartOptions>(build([7, 3] as never));
+            expect(optionAt(array, path)).toEqual([7, 3]);
+            expect(warnings()).toEqual([]);
+        });
+
+        it('resolves a theme override operator to the dash it stands for', () => {
+            const resolve = (lineDash: unknown, seriesDash?: number[]) =>
+                optionAt(
+                    prepareOptions<AgCartesianChartOptions>({
+                        series: [{ ...SERIES[0], lineDash: seriesDash } as never],
+                        theme: { overrides: { line: { series: { lineDash } } } } as never,
+                    }),
+                    'series[0].lineDash'
+                );
+
+            expect(resolve({ $if: [true, [9, 9], [1, 1]] })).toEqual([9, 9]);
+            // A series line is 2px wide by default.
+            expect(resolve({ $if: [true, 'dash', 'dot'] })).toEqual([6, 4]);
+            expect(resolve({ $if: [true, [9, 9], [1, 1]] }, [4])).toEqual([4, 9]);
+        });
+
+        it('scales a stock dash name in the legend disabled style by the legend line strokeWidth, else 2', () => {
+            const resolve = (line: object) =>
+                optionAt(
+                    prepareOptions<AgCartesianChartOptions>({
+                        series: SERIES,
+                        legend: { item: { line: { ...line, disabledStyle: { lineDash: 'dash' as never } } } },
+                    }),
+                    'legend.item.line.disabledStyle.lineDash'
+                );
+
+            expect(resolve({})).toEqual([6, 4]);
+            expect(resolve({ strokeWidth: 3 })).toEqual([9, 6]);
+            expect(warnings()).toEqual([]);
+        });
+
+        it('scales a stock dash name as if the strokeWidth were 1 when it is unset (1 on an axis line) or zero', () => {
+            for (const strokeWidth of [undefined, 0]) {
+                const options = prepareOptions<AgCartesianChartOptions>({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category', position: 'bottom', line: { lineDash: 'dash-dot', strokeWidth } } },
+                });
+                expect(optionAt(options, 'axes.x.line.lineDash'), `strokeWidth ${strokeWidth}`).toEqual([
+                    3, 1.5, 1, 1.5,
+                ]);
+            }
+        });
+
+        it('rejects an unknown dash name at every location and drops it', () => {
+            for (const [location, path, build] of LOCATIONS) {
+                (console.warn as Mock).mockClear();
+                const options = prepareOptions<AgCartesianChartOptions>(build(invalidOption('wavy')));
+
+                // The reported path carries the cross line's discriminator.
+                const reportedPath = path.replace('crossLines[0]', 'crossLines[0][type=line]');
+                const expected = `Option \`${reportedPath}\` cannot be set to \`"wavy"\``;
+                expect(
+                    warnings().some((m) => m.includes(expected)),
+                    location
+                ).toBe(true);
+                expect(optionAt(options, path), location).not.toBe('wavy');
+            }
+            expect(warnings().some((m) => m.includes("'solid'") && m.includes("'long-dash-dash-dash'"))).toBe(true);
+        });
+    });
+
     describe('highlight.mode and tooltip.mode defaults', () => {
         type Modes = { tooltip?: AgTooltipMode; highlight?: AgChartHighlightMode };
         const bar = (count: number) =>
@@ -4860,6 +5042,20 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.series?.[0]).toMatchObject({ xKeyAxis: 'y', yKeyAxis: 'x' });
             });
 
+            it.each([
+                ['an untyped axis', { axes: { y: { position: 'left', title: { text: { $path: '/title/text' } } } } }],
+                ['initial state', { initialState: { zoom: { $path: '/title' } } }],
+            ])('should not interpret a private theme operator in %s', (_name, options) => {
+                const preparedOptions = prepareOptions({
+                    title: { text: 'secret-title' },
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    ...options,
+                } as AgCartesianChartOptions);
+
+                expect(JSON.stringify(preparedOptions).split('secret-title')).toHaveLength(2);
+            });
+
             it('should flip axes when a theme operator makes a series horizontal', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
@@ -5449,6 +5645,88 @@ describe('ChartOptions', () => {
 
             expect(chartOptions.processedCSSVariables).not.toHaveProperty([value]);
             expect(optionAt(chartOptions.processedOptions, path)).toBe(value);
+        });
+    });
+
+    describe('complete var() values outside colour options (AG-19346)', () => {
+        const value = 'var(--brand)';
+        const createChartOptions = (container: HTMLElement, options: object) =>
+            new ChartOptions<AgChartOptions>(
+                {
+                    container,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    ...options,
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+        it.each([
+            ['a title text', { title: { text: value } }, 'title.text'],
+            ['a series yName', { series: [{ type: 'bar', xKey: 'x', yKey: 'y', yName: value }] }, 'series[0].yName'],
+            [
+                'an annotation text',
+                { initialState: { annotations: [{ type: 'text', x: 'a', y: 1, text: value }] } },
+                'initialState.annotations[0].text',
+            ],
+        ])('leaves %s literal whether or not the variable is set', (_name, options, path) => {
+            const container = document.createElement('div');
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+
+            for (const styles of [{ '--brand': '#00ff00' }, {}] as Record<string, string>[]) {
+                mockComputedStyle(container, styles);
+                const chartOptions = createChartOptions(container, options);
+
+                expect(chartOptions.processedCSSVariables).not.toHaveProperty([value]);
+                expect(optionAt(chartOptions.processedOptions, path)).toBe(value);
+            }
+            expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
+                false
+            );
+        });
+
+        it('substitutes a variable shared with a colour option only in the colour option', () => {
+            const container = document.createElement('div');
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+            mockComputedStyle(container, { '--brand': '#00ff00' });
+
+            const chartOptions = createChartOptions(container, {
+                title: { text: value },
+                // jsdom's style declaration rejects a `var()` as a colour, so this goes through `ontoColor`.
+                theme: {
+                    params: {
+                        accentColor: '#ff0000',
+                        foregroundColor: { ref: 'accentColor', mix: 0.5, ontoColor: value },
+                    },
+                },
+            });
+
+            expect(chartOptions.processedCSSVariables).toEqual({ [value]: '#00ff00' });
+            expect(chartOptions.themeParameters.foregroundColor).toBe('#808000');
+            expect(optionAt(chartOptions.processedOptions, 'title.text')).toBe(value);
+        });
+
+        it('collects variables in colour lists, but not in other lists', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--a': '#ff0000', '--b': '#0000ff', '--c': '#00ff00' });
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = {
+                fills: ['var(--a)', { type: 'gradient', colorStops: [{ color: 'var(--b)' }] }],
+                sequentialColors: [['var(--c)']],
+                keys: ['var(--d)'],
+            };
+
+            expect(chartOptions.processCSSVariablesPartial(node, container)).toEqual({
+                'var(--a)': '#ff0000',
+                'var(--b)': '#0000ff',
+                'var(--c)': '#00ff00',
+            });
         });
     });
 

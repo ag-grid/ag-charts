@@ -1,6 +1,7 @@
 import type {
     Normalised,
     NormalisedColorType,
+    NormalisedLineDash,
     NormalisedOrganizationSeriesNodeImageOptions,
     NormalisedPaddingOptions,
     NormalisedTextOrSegments,
@@ -81,7 +82,7 @@ export type NormalisedOrganizationSeriesExpanderStyle = Normalised<
     | 'stroke'
     | 'strokeOpacity'
     | 'strokeWidth',
-    { padding: NormalisedPaddingOptions; text: NormalisedOrganizationSeriesExpanderTextStyle }
+    { padding: NormalisedPaddingOptions; text: NormalisedOrganizationSeriesExpanderTextStyle } & NormalisedLineDash
 >;
 
 type NormalisedOrganizationSeriesExpanderTextStyle = Normalised<
@@ -111,5 +112,5 @@ export type NormalisedOrganizationNodeStyle = Normalised<
         padding: NormalisedPaddingOptions;
         title: NormalisedOrganizationNodeTextStyle;
         subtitle: NormalisedOrganizationNodeTextStyle;
-    }
+    } & NormalisedLineDash
 >;

@@ -6,6 +6,7 @@ import type { AgChartOptions } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
+import { BESIDE_GLOW, besideBars, expectGlowCoversPartsBeside } from '../test/glowRender';
 import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { shapesOf } from '../test/shadowFixtures';
 import {
@@ -15,6 +16,7 @@ import {
     createChart,
     deproxy,
     hoverLegendItem,
+    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -106,16 +108,17 @@ describe('a highlight glow of the markers of a series', () => {
         }
     );
 
-    it.each(['line', 'area'] as const)('does not cover the line or the fill of its own series (%s)', async (type) => {
+    // The glow is cast in the overlay above the series, so it covers the line and the fill, which do not glow, as the glow
+    // of a hovered marker does. Only the footprint of a marker, which glows, is cut out of it.
+    it.each(['line', 'area'] as const)('covers the line and the fill of its own series (%s)', async (type) => {
         const without = await hover(type, undefined);
         chart.destroy();
         const withGlow = await hover(type, GLOW);
 
-        // The glow reaches this far, past the line, where nothing else of the series is drawn.
-        expect(withGlow.beside).toEqual([0, 255, 0, 255]);
-        expect(withGlow.line).toEqual(STROKE);
-        expect(withGlow.line).toEqual(without.line);
-        if (type === 'area') expect(withGlow.fill).toEqual(STROKE);
+        expect(without.line).toEqual(STROKE);
+        expect(withGlow.beside).toEqual(GREEN);
+        expect(withGlow.line).toEqual(GREEN);
+        if (type === 'area') expect(withGlow.fill).toEqual(GREEN);
     });
 });
 
@@ -174,14 +177,87 @@ describe('a highlight glow of the sectors of a donut', () => {
         };
     };
 
-    it('does not cover the inner circle of its own series, and shows beside the ring', async () => {
+    // The inner circle lies beneath the glow overlay, and only labels and error bars cut a series' own glow.
+    it('covers the inner circle of its own series, and shows beside the ring', async () => {
         const without = await hoverRing(undefined);
         chart.destroy();
         const withGlow = await hoverRing(GLOW);
 
         expect(without.inner).toEqual(STROKE);
-        expect(withGlow.inner).toEqual(without.inner);
+        expect(withGlow.inner).toEqual(GREEN);
         expect(without.outside).not.toEqual(GREEN);
         expect(withGlow.outside).toEqual(GREEN);
+    });
+});
+
+describe('the labels of a series with a glow', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    it.each([0, 1] as const)(
+        'are covered by the glow of the series beside them alone, with series %s glowing',
+        (glowing) => expectGlowCoversPartsBeside(glowing, 'label', async (options) => createChart(options))
+    );
+
+    it('give the glow back where they were, once they are hidden', async () => {
+        chart = deproxy(await createChart(besideBars(0, 'label', false)));
+        const unlabelled = countChartPixels(chart, BESIDE_GLOW);
+        chart.destroy();
+
+        const instance = await createChart(besideBars(0, 'label'));
+        chart = deproxy(instance);
+        const labelledGlow = countChartPixels(chart, BESIDE_GLOW);
+        await instance.update(prepareTestOptions(besideBars(0, 'label', false)));
+        await waitForChartStability(chart);
+
+        expect(labelledGlow).toBeLessThan(unlabelled);
+        expect(countChartPixels(chart, BESIDE_GLOW)).toBe(unlabelled);
+    });
+});
+
+describe('the glow of the middle of three donut rings', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    it('covers the rings inside and outside it alike, whatever their order', async () => {
+        const RINGS: [number, number, string][] = [
+            [1, 0.8, '#ff0000'],
+            [0.8, 0.6, '#808080'],
+            [0.6, 0.4, '#0000ff'],
+        ];
+        chart = deproxy(
+            await createChart({
+                data: [{ value: 1 }],
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: RINGS.map(([outerRadiusRatio, innerRadiusRatio, fill], index) => ({
+                    type: 'donut',
+                    angleKey: 'value',
+                    outerRadiusRatio,
+                    innerRadiusRatio,
+                    fills: [fill],
+                    strokeWidth: 0,
+                    glow: index === 1 ? { ...GLOW, spread: 10 } : undefined,
+                })),
+            } as AgChartOptions)
+        );
+
+        const [outer, , inner] = [0, 1, 2].map((index) => shapesOf(getSeriesAt(chart, index).contentGroup, Sector)[0]);
+        const centre = Transformable.toCanvas(outer).computeCenter();
+        // 5px into each ring from the edge it shares with the glowing ring, at the top.
+        expect(chartPixelAt(chart, centre.x, centre.y - outer.innerRadius - 5)).toEqual(GREEN);
+        expect(chartPixelAt(chart, centre.x, centre.y - inner.outerRadius + 5)).toEqual(GREEN);
+        expect(chartPixelAt(chart, centre.x, centre.y - outer.innerRadius - 15)).toEqual(STROKE);
+        expect(chartPixelAt(chart, centre.x, centre.y - inner.outerRadius + 15)).toEqual([0, 0, 255, 255]);
     });
 });

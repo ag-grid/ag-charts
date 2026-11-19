@@ -6,7 +6,7 @@ import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
-import { translate } from '../utils/coords';
+import { magnetTranslation, translate } from '../utils/coords';
 import { isWriteable } from '../utils/datum';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
@@ -207,7 +207,13 @@ export class CrossLineScene extends AnnotationScene<never> {
             this[activeHandle].toggleDragging(true);
         }
 
-        this.translatePoint(datum, dragState.middle, Vec2.sub(target, dragState.offset), context);
+        const translation = Vec2.sub(target, dragState.offset);
+        this.translatePoint(
+            datum,
+            dragState.middle,
+            magnetTranslation(dragState.middle, translation, context),
+            context
+        );
     }
 
     public translate(datum: CrossLineDatum, translation: Point, context: AnnotationContext) {

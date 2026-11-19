@@ -54,7 +54,7 @@ import {
     toNumber,
     withoutCasts,
 } from 'ag-charts-core';
-import type { BoxBounds, Path, Segment, SegmentedPath, Selection, Text } from 'ag-charts-core';
+import type { BoxBounds, NormalisedLineDash, Path, Segment, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
@@ -141,7 +141,7 @@ type ResolvedStyleMixin = {
 type NormalisedRangeAreaSeriesLineStyle = Normalised<
     AgRangeAreaSeriesLineStyle,
     never,
-    { stroke?: CssColor; marker?: NormalisedSeriesMarkerStyle }
+    { stroke?: CssColor; marker?: NormalisedSeriesMarkerStyle } & NormalisedLineDash
 >;
 /** Range-area style after theme-merge: fill (and nested item styles) are resolved colours. */
 type NormalisedRangeAreaSeriesStyle = Normalised<
@@ -1333,10 +1333,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             ctx,
             { compute: RangeAreaSeries.computeStylerStyle, apply: RangeAreaSeries.applyStylerDatum }
         );
-    }
-
-    protected override castsHighlightGlowInGroup() {
-        return false;
     }
 
     protected override getSeriesGlows() {

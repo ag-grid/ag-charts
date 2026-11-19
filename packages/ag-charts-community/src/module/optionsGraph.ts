@@ -41,6 +41,7 @@ import {
     getPathSafe,
     hasPathSafe,
     hasTemplatePathSafe,
+    isColorOptionPath,
     isListIndex,
     setPathSafe,
 } from './optionsGraphUtils';
@@ -238,6 +239,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         'axesButtons',
         'data',
         'enabled',
+        'magnet',
         'optionsToolbar',
         'snap',
         'toolbar',
@@ -254,6 +256,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         padding: '$applyPadding',
         fills: '$applyCycle',
         strokes: '$applyCycle',
+        lineDash: '$applyLineDash',
     };
 
     public readonly paletteType: PaletteType;
@@ -351,7 +354,15 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
         debug('build user');
-        this.buildGraphFromObject(this.root, USER_OPTIONS_EDGE, without(userOptions, ['theme']));
+        this.buildGraphFromObject(
+            this.root,
+            USER_OPTIONS_EDGE,
+            without(userOptions, ['theme']),
+            undefined,
+            undefined,
+            undefined,
+            true
+        );
         debug('build defaults');
         this.buildGraphFromObject(this.root, DEFAULTS_EDGE, without(themeDefaults, OptionsGraph.COMPLEX_KEYS));
 
@@ -724,7 +735,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved);
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved, vertex);
         }
 
         let value = this.getVertexValue(valueVertex);
@@ -735,7 +746,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             value = getPathSafe(object, this.getPathArray(vertex));
         }
 
-        return this.resolveValueOrCssVariable(value);
+        return this.resolveValueOrCssVariable(value, vertex);
     }
 
     /**
@@ -835,10 +846,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         object: PlainObject,
         overridesPathArrays?: Array<Array<string> | undefined>,
         edgeValue = this.graftEdge,
-        typeKeys?: OverrideTypeKeys
+        typeKeys?: OverrideTypeKeys,
+        userSource = false
     ) {
         const pathArrayVertex = this.findNeighbour(target, PATH_ARRAY_EDGE);
-        this.buildGraphFromObject(target, edgeValue, object, pathArrayVertex);
+        this.buildGraphFromObject(target, edgeValue, object, pathArrayVertex, undefined, undefined, userSource);
 
         if (this.overrides && overridesPathArrays) {
             const overridesList: PlainObject[] = [];
@@ -873,7 +885,14 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
      * the graph each time this function is called, at the given path, while `value` is used for value$1 where
      * `ontoObject` is an operation that invokes value$1.
      */
-    graftValue(target: Vertex<unknown>, path: string, ontoObject: unknown, value: unknown, edgeValue = this.graftEdge) {
+    graftValue(
+        target: Vertex<unknown>,
+        path: string,
+        ontoObject: unknown,
+        value: unknown,
+        edgeValue = this.graftEdge,
+        userSource = false
+    ) {
         const pathArray = [...this.getPathArray(target), path];
         const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
@@ -884,7 +903,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         this.value$1.set(pathArray.join('.'), value);
 
-        this.buildGraphFromValue(target, pathVertex, edgeValue, pathArray, ontoObject);
+        this.buildGraphFromValue(target, pathVertex, edgeValue, pathArray, ontoObject, undefined, userSource);
         this.buildDependencyGraph();
     }
 
@@ -932,10 +951,15 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         object: PlainObject,
         pathArrayVertex?: Vertex<unknown>,
         shallowPaths: Set<string> = SHALLOW_OPTION_KEYS,
-        ignorePaths?: Set<string>
+        ignorePaths?: Set<string>,
+        userSource = false
     ) {
         const keys = Object.keys(object);
-        const operation = getOperation(object, this, keys);
+        const operation = getOperation(object, this, keys, userSource);
+        if (operation === null) {
+            this.warnRejectedOperator(pathArrayVertex ? (this.getVertexValue(pathArrayVertex) as Array<string>) : []);
+            return;
+        }
         if (operation) {
             const valueVertex = this.addVertex(object);
             this.addEdge(parentVertex, valueVertex, edgeValue);
@@ -976,7 +1000,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
                     edgeValue,
                     childPathArray,
                     object[key],
-                    shallowPaths
+                    shallowPaths,
+                    userSource
                 );
             }
 
@@ -1039,8 +1064,15 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         edgeValue: string,
         pathArray: Array<string>,
         value: unknown,
-        shallowPaths?: Set<string>
+        shallowPaths?: Set<string>,
+        userSource = false
     ) {
+        const operation = getOperation(value, this, undefined, userSource);
+        if (operation === null) {
+            this.warnRejectedOperator(pathArray);
+            return;
+        }
+
         this.addEdge(parentVertex, pathVertex, PATH_EDGE);
 
         let pathArrayVertex = this.findNeighbour(pathVertex, PATH_ARRAY_EDGE);
@@ -1049,14 +1081,21 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.addEdge(pathVertex, pathArrayVertex, PATH_ARRAY_EDGE);
         }
 
-        const operation = getOperation(value, this);
         if (operation) {
             const valueVertex = this.addVertex(value);
             this.addEdge(pathVertex, valueVertex, edgeValue);
             this.addEdge(valueVertex, pathArrayVertex, PATH_ARRAY_EDGE);
             this.buildGraphFromOperation(valueVertex, edgeValue, operation, pathArrayVertex);
         } else if (isObjectLike(value)) {
-            this.buildGraphFromObject(pathVertex, edgeValue, value, pathArrayVertex, shallowPaths);
+            this.buildGraphFromObject(
+                pathVertex,
+                edgeValue,
+                value,
+                pathArrayVertex,
+                shallowPaths,
+                undefined,
+                userSource
+            );
         } else {
             const neighbour = this.findNeighbour(pathVertex, edgeValue);
             // TODO: this check shouldn't be needed, the duplication is caused by the $applyTheme operation somehow.
@@ -1069,6 +1108,10 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const valueVertex = this.addVertex(value);
             this.addEdge(pathVertex, valueVertex, edgeValue);
         }
+    }
+
+    private warnRejectedOperator(pathArray: Array<string>) {
+        this.warnOnce(`Theme operators are only supported in themes, ignoring [${pathArray.join('.')}].`);
     }
 
     private buildShallowGraphFromValue(
@@ -1271,7 +1314,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const valueVertex = this.findNeighbour(vertex, edgeValue);
             if (valueVertex == null) continue;
 
-            const value = this.resolveVertexValueInternal(vertex, valueVertex);
+            const value = this.resolveVertexValueInternal(vertex, valueVertex, pathArray);
 
             // Only allow setting values to `undefined` from the highest priority edge
             if (value == null && edgeValue !== highestPriority) continue;
@@ -1321,7 +1364,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         return edgePriority;
     }
 
-    private resolveVertexValueInternal(vertex: Vertex<unknown>, valueVertex: Vertex<unknown>) {
+    private resolveVertexValueInternal(
+        vertex: Vertex<unknown>,
+        valueVertex: Vertex<unknown>,
+        pathArray: Array<string>
+    ) {
         this.resolveVertexDependencies(valueVertex);
 
         const operation = this.findNeighbourValue(valueVertex, OPERATION_EDGE);
@@ -1330,10 +1377,12 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved);
+            return resolved === RESOLVED_TO_BRANCH
+                ? undefined
+                : this.resolveValueOrCssVariable(resolved, vertex, pathArray);
         }
 
-        return this.resolveValueOrCssVariable(this.getVertexValue(valueVertex));
+        return this.resolveValueOrCssVariable(this.getVertexValue(valueVertex), vertex, pathArray);
     }
 
     private resolveVertexAutoEnable(vertex: Vertex<unknown>, object: PlainObject, pathArray: Array<string>) {
@@ -1451,8 +1500,13 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
     }
 
-    private resolveValueOrCssVariable(value: unknown) {
-        if (typeof value === 'string' && Object.hasOwn(this.cssVariables, value)) {
+    /** Substitute a collected CSS variable, but only where the target is a colour option, never in text. */
+    private resolveValueOrCssVariable(value: unknown, vertex: Vertex<unknown>, pathArray?: Array<string>) {
+        if (
+            typeof value === 'string' &&
+            Object.hasOwn(this.cssVariables, value) &&
+            isColorOptionPath(pathArray ?? this.getPathArray(vertex))
+        ) {
             return this.cssVariables[value];
         }
 
@@ -1588,7 +1642,15 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
             this.snapshot();
 
-            this.buildGraphFromObject(parentVertex, USER_PARTIAL_OPTIONS_EDGE, partialOptions, pathArrayVertex);
+            this.buildGraphFromObject(
+                parentVertex,
+                USER_PARTIAL_OPTIONS_EDGE,
+                partialOptions,
+                pathArrayVertex,
+                undefined,
+                undefined,
+                true
+            );
 
             // Refresh all the pending processing edges within the given partial options.
             for (const key of partialKeys) {

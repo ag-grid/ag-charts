@@ -15,7 +15,12 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { NormalisedBorderOptions, NormalisedColorType, NormalisedPaddingOptions } from './normalisedCommonOptions';
+import type {
+    NormalisedBorderOptions,
+    NormalisedColorType,
+    NormalisedLineDash,
+    NormalisedPaddingOptions,
+} from './normalisedCommonOptions';
 
 // --- Leaf normalised types ---
 
@@ -28,7 +33,7 @@ export type NormalisedLegendMarkerDisabledStyle = Normalised<
 export type NormalisedLegendLineDisabledStyle = Normalised<
     AgChartLegendLineDisabledStyle,
     never,
-    { stroke?: CssColor }
+    { stroke?: CssColor } & NormalisedLineDash
 >;
 
 export type NormalisedLegendLabelDisabledStyle = Normalised<

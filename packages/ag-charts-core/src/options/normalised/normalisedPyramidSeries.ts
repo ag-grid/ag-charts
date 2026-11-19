@@ -10,10 +10,19 @@ import type {
 
 import type { Normalised } from './normalise';
 import type { NormalisedBarSeriesLabelOptions } from './normalisedCartesianSeries';
-import type { FillStrokeMorph, NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
+import type {
+    FillStrokeMorph,
+    NormalisedColorType,
+    NormalisedDropShadowOptions,
+    NormalisedLineDash,
+} from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions } from './normalisedLabelOptions';
 
-export type NormalisedPyramidSeriesStyle = Normalised<AgPyramidSeriesStyle, never, FillStrokeMorph>;
+export type NormalisedPyramidSeriesStyle = Normalised<
+    AgPyramidSeriesStyle,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+>;
 
 export type NormalisedPyramidSeriesLabelOptions = NormalisedBarSeriesLabelOptions<
     AgPyramidSeriesLabelFormatterParams,
@@ -54,5 +63,5 @@ export type NormalisedPyramidSeriesOwnOptions = Normalised<
         stageLabel: NormalisedPyramidSeriesStageLabelOptions;
         shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgPyramidSeriesItemStylerParams<unknown>, AgPyramidSeriesStyle>;
-    }
+    } & NormalisedLineDash
 >;

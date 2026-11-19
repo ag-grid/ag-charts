@@ -1,6 +1,7 @@
 import {
     type AgAnnotationAxisLabel,
     type AgAnnotationHandleStyles,
+    type AgAnnotationMagnet,
     type AgAnnotationOptionsToolbar,
     type AgAnnotationsThemeableOptions,
     type AgAnnotationsToolbar,
@@ -13,7 +14,9 @@ import {
     type TextOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, themeLineHeight } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, lineDashThemeDefault, themeLineHeight } from 'ag-charts-core';
+
+import { DEFAULT_MAGNET } from './utils/magnet';
 
 export const DEFAULT_FIBONACCI_STROKES = [
     '#797b86',
@@ -209,6 +212,9 @@ const optionsToolbar: WithThemeParams<AgAnnotationOptionsToolbar> = {
     },
 };
 
+/** The magnet defaults, which a preset with its own annotations theme repeats, so that they are themeable there too. */
+export const MAGNET_THEME: WithThemeParams<AgAnnotationMagnet> = DEFAULT_MAGNET;
+
 export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = {
     enabled: false,
 
@@ -244,7 +250,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...stroke,
         ...selectionAxes(axisLabel),
         middle: {
-            lineDash: [6, 5],
+            lineDash: lineDashThemeDefault([6, 5]),
             strokeWidth: 1,
         },
         background: { ...background },
@@ -353,6 +359,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
 
     axesButtons: {},
+    magnet: { ...MAGNET_THEME },
     // Toolbars
     toolbar,
     optionsToolbar,

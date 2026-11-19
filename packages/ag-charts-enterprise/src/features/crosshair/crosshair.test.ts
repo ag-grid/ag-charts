@@ -860,6 +860,19 @@ describe('Crosshair', () => {
             await waitForChartStability(chart);
         };
 
+        it('formats a value handed to the axis as the crosshair label does, by format or formatter', async () => {
+            const formatted = async (label: NonNullable<AgNumericAxisCrosshairOptions['label']>) => {
+                chart = await createEnterpriseChart(
+                    labelOptions({}, { type: 'number', position: 'left', crosshair: { ...CROSSHAIR_OPTIONS, label } })
+                );
+                return findAxis(chart, 'left').createAxisContext().formatScaleValue(123.456, 'crosshair');
+            };
+
+            expect(await formatted({ format: '.2f' })).toBe('123.46');
+            chart.destroy();
+            expect(await formatted({ formatter: ({ value }) => `~${value}` })).toBe('~123.456');
+        });
+
         it('renders markup characters in category values as text', async () => {
             await hoverMarkupCategory(labelOptions());
 
@@ -921,7 +934,7 @@ describe('Crosshair', () => {
                 )
             ).map(({ style }) => `${style.left} ${style.top} (${style.translate})`);
 
-        const hoverWithAxes = async (axes: AgCartesianAxesOptions) => {
+        const hoverWithAxes = async (axes: AgCartesianAxesOptions, theme?: AgCartesianChartOptions['theme']) => {
             const options: AgCartesianChartOptions = {
                 data: [
                     { x: -10, y: -8 },
@@ -930,6 +943,7 @@ describe('Crosshair', () => {
                 ],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes,
+                theme,
             };
             chart = await createEnterpriseChart(options);
             await hoverAction(480, 250)(chart);
@@ -946,14 +960,33 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 562px (-50% 0)",
+                "480px 566px (-50% calc(min(var(--ag-charts-crosshair-label-vertical-padding), 11px) * -1))",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "46px 250px (-100% -50%)",
+                "38px 250px (calc(-100% + min(var(--ag-charts-crosshair-label-horizontal-padding), 11px)) -50%)",
               ]
             `);
+        });
+
+        // The label's padding is its only padding: the stylesheet reads these variables and the placement above
+        // cancels them, so the theme parameters are what a theme author changes.
+        it.each([
+            ['by default', undefined, { horizontal: '8px', vertical: '4px' }],
+            [
+                'from the theme parameters',
+                { params: { crosshairLabelHorizontalPadding: 12, crosshairLabelVerticalPadding: 6 } },
+                { horizontal: '12px', vertical: '6px' },
+            ],
+        ] as const)('should size the label padding %s', async (_name, theme, expected) => {
+            await hoverWithAxes(axesAt(), theme);
+
+            const wrapper = document.querySelector<HTMLElement>('.ag-charts-wrapper')!;
+            expect({
+                horizontal: wrapper.style.getPropertyValue('--ag-charts-crosshair-label-horizontal-padding'),
+                vertical: wrapper.style.getPropertyValue('--ag-charts-crosshair-label-vertical-padding'),
+            }).toEqual(expected);
         });
 
         it('should hold a label at the axis line when label spacing is smaller than its own padding', async () => {
@@ -962,12 +995,12 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 562px (-50% 0)",
+                "480px 566px (-50% calc(min(var(--ag-charts-crosshair-label-vertical-padding), 6px) * -1))",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "44px 250px (-100% -50%)",
+                "38px 250px (calc(-100% + min(var(--ag-charts-crosshair-label-horizontal-padding), 6px)) -50%)",
               ]
             `);
         });
@@ -995,12 +1028,12 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 562px (-50% 0)",
+                "480px 566px (-50% calc(min(var(--ag-charts-crosshair-label-vertical-padding), 11px) * -1))",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "46px 250px (-100% -50%)",
+                "38px 250px (calc(-100% + min(var(--ag-charts-crosshair-label-horizontal-padding), 11px)) -50%)",
               ]
             `);
         });
@@ -1749,23 +1782,35 @@ describe('Crosshair', () => {
             };
 
             it.each(['number', 'log'] as const)(
-                'rounds a highlighted datum on a %s axis with no snap setting',
+                'rounds the pointer rather than the highlighted datum on a %s axis with no snap setting',
                 async (type) => {
                     chart = await createEnterpriseChart(roundedLine({ snapInterval: 25 }, type));
-                    await hoverDatum('B', 137);
-                    expectLineAt('left', 125);
+                    await hoverDatum('B', 105);
+                    expectLineAt('left', 100);
                 }
             );
 
             it.each<[string, boolean | undefined]>([
                 ['no snap setting', undefined],
                 ['snap true', true],
-            ])('rounds the crosshairSnapTo close of a candle with %s', async (_name, snap) => {
+            ])('rounds the pointer rather than the crosshairSnapTo close of a candle with %s', async (_name, snap) => {
                 chart = await createEnterpriseChart(
                     candleOptions([candlestick({ crosshairSnapTo: ['close'] })], candleAxes({ snap, snapInterval: 25 }))
                 );
                 await hoverDatum(CANDLES[1].date, 120);
-                expectLineAt('left', 100);
+                expectLineAt('left', 125);
+            });
+
+            it('never rounds to a value outside the log axis domain', async () => {
+                chart = await createEnterpriseChart({
+                    ...roundedLine({ snapInterval: 10 }, 'log'),
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'log', position: 'left', min: 1, crosshair: { snapInterval: 10 } },
+                    },
+                });
+                await hoverDatum('B', 3);
+                expectLineAt('left', 10);
             });
 
             it('rounds the pointer over an empty area', async () => {
@@ -1781,8 +1826,8 @@ describe('Crosshair', () => {
                     ...roundedLine({}),
                     theme: { overrides: { common: { axes: { number: { crosshair: { snapInterval: 25 } } } } } },
                 });
-                await hoverDatum('B', 137);
-                expectLineAt('left', 125);
+                await hoverDatum('B', 105);
+                expectLineAt('left', 100);
             });
 
             it('follows the pointer without rounding with snap false', async () => {
@@ -1828,19 +1873,6 @@ describe('Crosshair', () => {
                 });
                 await hoverDatum(date, 8);
                 expectLineAt('bottom', expected);
-            });
-
-            it('draws one line for values that round to the same tick', async () => {
-                chart = await createEnterpriseChart(
-                    candleOptions([candlestick()], candleAxes({ snap: true, snapInterval: 15 }))
-                );
-                await hoverDatum(CANDLES[1].date, 120);
-                const byPosition = (a: number, b: number) => a - b;
-                const positions = getCrosshairLines(chart, 'left').map(({ position }) => position);
-                expect(positions.toSorted(byPosition)).toEqual(
-                    [90, 105, 135].map((value) => axisPositionOf('left', value)).toSorted(byPosition)
-                );
-                expect(visibleLabelCount('left')).toBe(3);
             });
 
             it('formats the rounded value with the axis crosshair label format', async () => {

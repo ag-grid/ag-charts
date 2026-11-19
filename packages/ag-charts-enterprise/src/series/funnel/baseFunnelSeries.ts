@@ -16,6 +16,7 @@ import type {
     NormalisedBaseFunnelSeriesOwnOptions,
     NormalisedChartLabelPlacementStyleOptions,
     NormalisedDropShadowOptions,
+    NormalisedLineDash,
     NormalisedTextOrSegments,
     PlacedLabel,
     Point,
@@ -84,7 +85,7 @@ export type Bounds = {
     height: number;
 };
 
-type NormalisedFunnelSeriesStyle = Normalised<AgFunnelSeriesStyle, never, FillStrokeMorph>;
+type NormalisedFunnelSeriesStyle = Normalised<AgFunnelSeriesStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
 /** `Rect` scales oversized radii down to fit the shape, so mirror that clamp to match what is drawn. */
 function renderedCornerRadius(cornerRadius: number, { width, height }: Bounds) {

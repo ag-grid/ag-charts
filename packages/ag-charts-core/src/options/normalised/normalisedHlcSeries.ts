@@ -14,7 +14,7 @@ import type {
     NormalisedCartesianSeriesOptionsCommon,
     NormalisedInterpolationOptions,
 } from './normalisedCartesianSeries';
-import type { NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedLineDash } from './normalisedCommonOptions';
 import type { NormalisedSeriesMarkerOptions } from './normalisedSeriesMarkerOptions';
 import type { NormalisedSeriesOptions } from './normalisedSeriesOptions';
 
@@ -28,14 +28,14 @@ type HlcItemLineRequiredKeys = 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lin
 export type NormalisedHlcSeriesItemLineOptions = Normalised<
     AgHlcSeriesItemLineThemeableOptions<unknown, unknown>,
     HlcItemLineRequiredKeys,
-    { stroke: CssColor; marker: NormalisedHlcSeriesMarkerOptions }
+    { stroke: CssColor; marker: NormalisedHlcSeriesMarkerOptions } & NormalisedLineDash
 >;
 
 /** A band (high or low) and its outer edge after the theme fills its fill, stroke and marker. */
 export type NormalisedHlcSeriesItemBandOptions = Normalised<
     AgHlcSeriesItemBandThemeableOptions<unknown, unknown>,
     HlcItemLineRequiredKeys | 'fill' | 'fillOpacity',
-    { fill: NormalisedColorType; stroke: CssColor; marker: NormalisedHlcSeriesMarkerOptions }
+    { fill: NormalisedColorType; stroke: CssColor; marker: NormalisedHlcSeriesMarkerOptions } & NormalisedLineDash
 >;
 
 type HlcRequiredKeys =

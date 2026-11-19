@@ -153,6 +153,21 @@ export const LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE: AgCartesianChartOptions = {
     },
 };
 
+export const LOG_AXIS_VALUES_BELOW_MIN_EXAMPLE: AgCartesianChartOptions = {
+    data: [
+        { x: 1, y: 40 },
+        { x: 2, y: 1 },
+        { x: 3, y: 60 },
+        { x: 4, y: 2 },
+        { x: 5, y: 80 },
+    ],
+    series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { size: 12 } }],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'log', position: 'left', min: 5 },
+    },
+};
+
 export const NUMBER_AXIS_LOG10_EXAMPLE: AgCartesianChartOptions = {
     ...NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE,
     data: data.DATA_YOUTUBE_VIDEOS_STATS_BY_DAY_OF_YEAR_LARGE_SCALE,

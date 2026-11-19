@@ -23,6 +23,36 @@ export type AgMarkerShape =
     | 'hourglass'
     | AgMarkerShapeFn;
 
+/**
+ * A stock dash pattern, applied by name wherever `lineDash` is accepted.
+ *
+ * Each name stands for dash and gap lengths in multiples of the line's `strokeWidth` (1 if unset), so `'dot'` is `[1, 1.5]`
+ * at a `strokeWidth` of 1 and `[2, 3]` at 2. An array of lengths is in pixels and is not scaled by the `strokeWidth`,
+ * although legend and tooltip markers, which are drawn at most 2 pixels wide, scale any dash to match.
+ *
+ * - `'solid'`: `[0]`
+ * - `'dot'`: `[1, 1.5]`
+ * - `'dash'`: `[3, 2]`
+ * - `'dash-dot'`: `[3, 1.5, 1, 1.5]`
+ * - `'long-dash'`: `[7, 2]`
+ * - `'long-dash-dot'`: `[7, 1.5, 1, 1.5]`
+ * - `'long-dash-dot-dot'`: `[7, 2, 1, 2, 1, 2]`
+ * - `'dash-dot-dot'`: `[3, 1.5, 1, 1.5, 1, 1.5]`
+ * - `'dash-long-dash'`: `[3, 2, 7, 2]`
+ * - `'long-dash-dash-dash'`: `[7, 1.5, 3, 1.5, 3, 1.5]`
+ */
+export type AgLineDashName =
+    | 'solid'
+    | 'dot'
+    | 'dash'
+    | 'dash-dot'
+    | 'long-dash'
+    | 'long-dash-dot'
+    | 'long-dash-dot-dot'
+    | 'dash-dot-dot'
+    | 'dash-long-dash'
+    | 'long-dash-dash-dash';
+
 export interface AgPath {
     readonly moveTo: (x: number, y: number) => void;
     readonly lineTo: (x: number, y: number) => void;

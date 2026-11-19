@@ -26,7 +26,13 @@ import type {
     AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    FillOptions,
+    LineDashOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from './commonOptions';
 
 /**
  * The standard set of bin data exposed to every histogram callback (tooltip, label formatter,
@@ -105,14 +111,16 @@ export interface AgHistogramSeriesItemStylerParams<TDatum = DatumDefault, TConte
         ContextCallbackParams<TContext>,
         AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesBinParams<TDatum>,
-        Required<AgHistogramSeriesStyle> {}
+        Required<Omit<AgHistogramSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {}
 
 export interface AgHistogramSeriesStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgHistogramSeriesOptionsKeys<TDatum>,
-        Required<AgHistogramSeriesStyle> {}
+        Required<Omit<AgHistogramSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {}
 
 export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'>, AgHistogramSeriesStyle {

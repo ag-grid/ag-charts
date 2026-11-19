@@ -4,6 +4,7 @@ import {
     ContainerWidget,
     type DragWidgetEvent,
     type DynamicContext,
+    InputButtonWidget,
     type KeyboardWidgetEvent,
     LabelWidget,
     RangeInputWidget,
@@ -21,7 +22,8 @@ export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOption
     hasMultiColorOption: boolean;
     sourceEvent: Event;
     onChange?: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
-    onChangeHide?: () => void;
+    /** Called when the picker closes after the colour changed. `cancelled` is set when it closed via Cancel. */
+    onChangeHide?: (cancelled: boolean) => void;
 }
 
 const getHsva = (input: string) => {
@@ -36,20 +38,22 @@ const getHsva = (input: string) => {
 
 export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptions> {
     private hasChanged = false;
-    private onChangeHide?: () => void;
+    private cancelled = false;
+    private onChangeHide?: (cancelled: boolean) => void;
     private i18nUpdater?: () => void;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>, options?: _ModuleSupport.PopoverConstructorOptions) {
         super(ctx, 'color-picker', options);
         this.hideFns.push(() => {
             this.i18nUpdater = undefined;
-            if (this.hasChanged) this.onChangeHide?.();
+            if (this.hasChanged) this.onChangeHide?.(this.cancelled);
         });
         this.cleanup.register(this.ctx.eventsHub.on('locale:change', () => this.i18nUpdater?.()));
     }
 
     public show(options: ColorPickerOptions) {
         this.hasChanged = false;
+        this.cancelled = false;
         this.onChangeHide = options.onChangeHide;
 
         const { content, initialFocus } = this.createColorPicker(options);
@@ -101,6 +105,20 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         colorPicker.addChild(alphaInput);
         colorPicker.addChild(colorField);
 
+        const actionsRow = new ContainerWidget(doc, 'ag-charts-color-picker__actions');
+        actionsRow.setAriaRole('presentation');
+        const cancelButton = new InputButtonWidget(
+            { label: localeManager.t('colorPickerCancel') },
+            'ag-charts-color-picker__cancel-button'
+        );
+        const confirmButton = new InputButtonWidget(
+            { label: localeManager.t('colorPickerConfirm') },
+            'ag-charts-color-picker__confirm-button'
+        );
+        actionsRow.addChild(cancelButton);
+        actionsRow.addChild(confirmButton);
+        colorPicker.addChild(actionsRow);
+
         // Update the 2D-slider to with the new S and V values. By default, announce S first followed by V. If the user
         // is arrowing up or down, then announce V first because it's more relevant.
         const updatePaletteInputAriaValue = (first: 's' | 'v') => {
@@ -116,6 +134,8 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             alphaInput.setAriaLabel(localeManager.t('ariaLabelColorPickerAlpha'));
             colorInput.setAriaLabel(localeManager.t('ariaLabelColor'));
             updatePaletteInputAriaValue('s');
+            cancelButton.setTextContent(localeManager.t('colorPickerCancel'));
+            confirmButton.setTextContent(localeManager.t('colorPickerConfirm'));
         };
         this.i18nUpdater();
 
@@ -179,6 +199,12 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
                     return;
             }
             sourceEvent.preventDefault();
+        });
+        confirmButton.addListener('click', () => this.hide());
+        cancelButton.addListener('click', () => {
+            // Closing records the change; onChangeHide(true) then lets the owner undo that record.
+            this.cancelled = true;
+            this.hide();
         });
         paletteInput.addListener('drag-start', (event) => {
             paletteInput.focus();

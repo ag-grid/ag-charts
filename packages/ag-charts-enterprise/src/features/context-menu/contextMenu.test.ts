@@ -229,6 +229,18 @@ describe('Context Menu', () => {
         });
     });
 
+    it('falls back to English for menu items omitted from a partial localeText', async () => {
+        chart = await createEnterpriseChart({
+            ...chartOptions(),
+            locale: { localeText: { contextMenuToggleSeriesVisibility: 'Show or Hide' } },
+        });
+        await contextMenuAction(410, 575)(chart);
+        await waitForChartStability(chart);
+
+        expect(findContextMenuItem('Show or Hide').textContent).toBe('Show or Hide');
+        expect(findContextMenuItem('Download').textContent).toBe('Download');
+    });
+
     describe('legend highlight state', () => {
         it('clears highlight when opening menu', async () => {
             chart = await createEnterpriseChart(chartOptions());
@@ -322,6 +334,28 @@ describe('Context Menu', () => {
             const event = await contextMenuElementAction(item)(chart);
 
             expect(event.defaultPrevented).toBe(true);
+        });
+
+        it('does not open over the validation overlay panel', async () => {
+            chart = await createEnterpriseChart({
+                data: EXAMPLE_OPTIONS.data,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: -5 }],
+                contextMenu: { enabled: true },
+                validations: { showOverlayOn: ['warning'] },
+            });
+            const panel = document.body.querySelector('.ag-charts-validation-overlay__panel');
+            expect(panel).not.toBeNull();
+
+            await contextMenuElementAction(panel!)(chart);
+
+            expect(menuItems()).toHaveLength(0);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`-5\`; expecting a number greater than or equal to 0, ignoring.",
+                ],
+              ]
+            `);
         });
     });
 

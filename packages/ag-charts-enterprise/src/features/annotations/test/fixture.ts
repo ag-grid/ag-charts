@@ -21,13 +21,15 @@ export const ANNOTATIONS_EXAMPLE_OPTIONS: AgCartesianChartOptions = {
 /** The axes of an annotation context, which is all the coordinate editing reads; the rest of the interface is unused. */
 export function createAxesContext(
     xScale: AnnotationAxisContext['scale'],
-    yScale: AnnotationAxisContext['scale']
+    yScale: AnnotationAxisContext['scale'],
+    formatYValue: (value: unknown) => string = String
 ): AnnotationContext {
-    const axis = (scale: AnnotationAxisContext['scale']) => ({
+    const axis = (scale: AnnotationAxisContext['scale'], format: (value: unknown) => string = String) => ({
         scale,
         continuous: ContinuousScale.is(scale) || DiscreteTimeScale.is(scale),
+        formatScaleValue: format,
     });
-    return { xAxis: axis(xScale), yAxis: axis(yScale) } as unknown as AnnotationContext;
+    return { xAxis: axis(xScale), yAxis: axis(yScale, formatYValue) } as unknown as AnnotationContext;
 }
 
 export async function createAnnotationsChart(options: AgCartesianChartOptions) {

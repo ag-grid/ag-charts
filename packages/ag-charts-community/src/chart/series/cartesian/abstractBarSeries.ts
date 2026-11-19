@@ -255,7 +255,13 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         const { scale } = xAxis;
         if (!ContinuousScale.is(scale)) return scale.bandwidth ?? 0;
 
-        if (!this.isProfile()) return scale.calcBandwidth(this.smallestDataInterval, minWidth);
+        if (!this.isProfile()) {
+            const bandwidth = scale.calcBandwidth(this.smallestDataInterval, minWidth);
+            if (scale.type === 'log') return bandwidth;
+            // Edges snap independently when crisp, so a sub-pixel gap between neighbours renders as stray gap columns.
+            const step = this.dataStep(scale);
+            return step > bandwidth && step - bandwidth < 1 ? step : bandwidth;
+        }
 
         const width = this.profileLevelWidth(xAxis);
         // Whole pixels, as the group scale rounds bars on a category axis.
@@ -264,14 +270,14 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
     /** A profile level's band: one data step, or for a single level the visible axis less its outer padding. */
     private profileLevelWidth(axis: ChartAxis) {
-        const step = this.profileStep(axis.scale);
+        const step = this.dataStep(axis.scale);
         if (Number.isFinite(step)) return step;
         const { range } = axis;
         return Math.abs(range[1] - range[0]) * (1 - 2 * this.getBandScalePadding().outer);
     }
 
-    /** The pixel distance between neighbouring profile levels, or `NaN` for a single level. */
-    private profileStep(scale: ChartAxis['scale']) {
+    /** The pixel distance between neighbouring data levels, or `NaN` for a single level. */
+    private dataStep(scale: ChartAxis['scale']) {
         const interval = this.smallestDataInterval;
         if (interval == null) return Number.NaN;
         const d0 = Number(scale.domain[0]);
@@ -280,7 +286,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
     /** How far a single profile level moves to sit centred on the visible axis, regardless of its value. */
     private singleLevelOffset(axis: ChartAxis) {
-        if (!this.isProfile() || Number.isFinite(this.profileStep(axis.scale))) return 0;
+        if (!this.isProfile() || Number.isFinite(this.dataStep(axis.scale))) return 0;
         const level = this.processedData?.domain.keys[0]?.[0];
         return (axis.range[0] + axis.range[1]) / 2 - axis.scale.convert(level);
     }

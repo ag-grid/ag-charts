@@ -56,6 +56,10 @@ export class WidgetListenerInternal {
     constructor(private readonly dispatchCallback: (type: EventType, event: EventMap[EventType]) => void) {}
 
     destroy(): void {
+        this.clear();
+    }
+
+    clear(): void {
         this.dragTriggerRemover?.();
         this.dragTriggerRemover = undefined;
         this.listeners?.clear();

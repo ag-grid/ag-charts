@@ -11,7 +11,7 @@ const ITEMS = 1000;
 const DISTINCT_ITEMS = 100;
 
 type SeriesType = 'bar' | 'scatter';
-type StylerMode = 'none' | 'neither' | 'shared' | 'distinct';
+type StylerMode = 'none' | 'neither' | 'shared' | 'sparse' | 'distinct';
 
 type Datum = { x: number; category: string; y: number; blur: number };
 
@@ -32,6 +32,8 @@ const STYLERS: Record<
         shadow: { xOffset: 2, yOffset: 2, blur: 4, fill: 'rgba(0, 0, 0, 0.4)' },
         glow: { blur: 6, fill: 'rgba(255, 200, 0, 0.6)' },
     }),
+    // A glow on one item in ten, so that the glows lie beside items that have none.
+    sparse: ({ datum }) => (datum.x % 10 === 0 ? { glow: { blur: 6, fill: 'rgba(255, 200, 0, 0.6)' } } : {}),
     distinct: ({ datum }) => ({
         shadow: { xOffset: 2, yOffset: 2, blur: datum.blur, fill: 'rgba(0, 0, 0, 0.4)' },
         glow: { blur: datum.blur + 2, fill: 'rgba(255, 200, 0, 0.6)' },
@@ -42,6 +44,7 @@ const MODE_LABELS: Record<StylerMode, string> = {
     none: 'No styler',
     neither: 'Styler, no shadow or glow',
     shared: 'Styler, one shared shadow and glow',
+    sparse: 'Styler, a glow on one item in ten',
     distinct: 'Styler, a different blur per item',
 };
 
@@ -111,7 +114,7 @@ async function prepare(seriesType: SeriesType, mode: StylerMode, items: number) 
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
     const sizes: { suffix: string; items: number; modes: StylerMode[] }[] = [
-        { suffix: '', items: ITEMS, modes: ['none', 'neither', 'shared'] },
+        { suffix: '', items: ITEMS, modes: ['none', 'neither', 'shared', 'sparse'] },
         { suffix: '-distinct', items: DISTINCT_ITEMS, modes: ['none', 'shared', 'distinct'] },
     ];
     const testCases: BenchmarkConfig['testCases'] = [];

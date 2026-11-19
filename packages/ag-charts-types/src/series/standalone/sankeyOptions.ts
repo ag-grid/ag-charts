@@ -7,7 +7,13 @@ import type {
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
-import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type {
+    AgColorType,
+    FillOptions,
+    LineDashOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
@@ -51,14 +57,16 @@ export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = ContextDe
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys<TDatum>,
-        Required<AgSankeySeriesLinkStyle> {}
+        Required<Omit<AgSankeySeriesLinkStyle, 'lineDash'>>,
+        ResolvedLineDash {}
 
 export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys<TDatum>,
-        Required<AgSankeySeriesNodeStyle> {
+        Required<Omit<AgSankeySeriesNodeStyle, 'lineDash'>>,
+        ResolvedLineDash {
     /** Label of the node. */
     label: string | undefined;
     /** Size of the node. */

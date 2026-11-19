@@ -2,7 +2,6 @@ import type { RequireOptional } from '../types/global';
 import { CollapseMode } from './collapseMode';
 import type {
     CollapseWidgetEvent,
-    ExpandControlledOpts,
     ExpandControlledWidgetEvent,
     ExpandableWidget,
     ExpansionControllerWidget,
@@ -66,15 +65,14 @@ export class ExpansionControllerImpl<TElement extends HTMLElement> implements Ex
         return this.controls;
     }
 
-    expandControlled(opts?: ExpandControlledOpts): void {
+    expandControlled(): void {
         // Disabled buttons are focusable and can receive events, but have aria-disabled="true"
         if (!this.controller.isDisabled()) {
-            // Check that all options in ExpandControlledOpts are copied over to ExpandOpts
+            // Fails to compile if ExpandOpts gains an option that this call does not set.
             type AllDefined = RequireOptional<Parameters<NonNullable<typeof this.controls>['expand']>[0]>;
             this.controls?.expand({
                 controller: this.controller,
                 sourceEvent: undefined,
-                overrideFocusVisible: opts?.overrideFocusVisible,
             } satisfies AllDefined);
         }
     }

@@ -16,6 +16,7 @@ import type {
     Mutable,
     Normalised,
     NormalisedBoxPlotSeriesOwnOptions,
+    NormalisedLineDash,
     RequireOptional,
     Selection,
     Text,
@@ -61,20 +62,20 @@ const {
 } = _ModuleSupport;
 
 /** Whisker style after theme-merge: colour refs are resolved before reaching this point. */
-type NormalisedBoxPlotWhiskerOptions = Normalised<AgBoxPlotWhiskerOptions, never, FillStrokeMorph>;
+type NormalisedBoxPlotWhiskerOptions = Normalised<AgBoxPlotWhiskerOptions, never, FillStrokeMorph & NormalisedLineDash>;
 
 /** Box plot style after theme-merge: fill/stroke (and nested whisker stroke) are resolved colours. */
 type NormalisedBoxPlotSeriesStyle = Normalised<
     AgBoxPlotSeriesStyle,
     never,
-    FillStrokeMorph & { whisker?: NormalisedBoxPlotWhiskerOptions }
+    FillStrokeMorph & { whisker?: NormalisedBoxPlotWhiskerOptions } & NormalisedLineDash
 >;
 
 /** Highlight style after theme-merge, retaining the additional `opacity` field. */
 type NormalisedBoxPlotHighlightStyleOptions = Normalised<
     AgBoxPlotHighlightStyleOptions,
     never,
-    FillStrokeMorph & { whisker?: NormalisedBoxPlotWhiskerOptions }
+    FillStrokeMorph & { whisker?: NormalisedBoxPlotWhiskerOptions } & NormalisedLineDash
 >;
 
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {

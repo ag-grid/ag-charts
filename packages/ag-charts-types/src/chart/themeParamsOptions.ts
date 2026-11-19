@@ -610,6 +610,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     crosshairLabelBackgroundColor?: AgCssColorOrRef;
     /**
+     * Padding at the left and right of crosshair labels.
+     *
+     * Default: `8`
+     *
+     * @group Crosshairs
+     */
+    crosshairLabelHorizontalPadding?: PixelSize;
+    /**
      * Colour for text in crosshair labels. A colour string, or a theme-colour reference object.
      *
      * Default: `backgroundColor`
@@ -617,6 +625,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * @group Crosshairs
      */
     crosshairLabelTextColor?: AgCssColorOrRef;
+    /**
+     * Padding at the top and bottom of crosshair labels.
+     *
+     * Default: `4`
+     *
+     * @group Crosshairs
+     */
+    crosshairLabelVerticalPadding?: PixelSize;
     /**
      * Colour of the chart title text. A colour string, or a theme-colour reference object.
      *
@@ -1025,6 +1041,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * @group Series Labels
      */
     seriesLabelOutsideTextColor?: AgCssColorOrRef;
+    /**
+     * Padding between the text of series labels and the edge of their box, applied to all four sides. It only has an effect on a label that draws a box, through a background colour or a border.
+     *
+     * Default: `8`
+     *
+     * @group Series Labels
+     */
+    seriesLabelPadding?: PixelSize;
     /**
      * Colour of text that should stand out less in panels and dialogs. A colour string, or a theme-colour reference object.
      *

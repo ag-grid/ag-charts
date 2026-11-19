@@ -98,7 +98,14 @@ export function getSeriesPlacedLabels<TDatum = unknown>(
 // The annotations module keeps its axis helpers private; the toolbars are public but belong to the module's own type.
 interface AnnotationsHost {
     ctx: DynamicContext<_ModuleSupport.ChartRegistry>;
-    toolbar: { enabled?: boolean };
+    toolbar: {
+        enabled?: boolean;
+        events: {
+            emit(event: 'pressed-create-annotation', data: { annotation: string }): void;
+            emit(event: 'pressed-magnet', data: null): void;
+        };
+    };
+    magnetEnabled: boolean;
     optionsToolbar: {
         enabled?: boolean;
         updateButtons(annotation: object | undefined): void;
@@ -123,6 +130,21 @@ function getAnnotations(chartOrProxy: ChartOrProxy<any>): AnnotationsHost {
 /** The context the annotations module builds its dialogs from, for driving a dialog without a canvas hit-test. */
 export function getAnnotationsModuleContext(chartOrProxy: ChartOrProxy<any>) {
     return getAnnotations(chartOrProxy).ctx;
+}
+
+/** Starts drawing an annotation of `type`, as pressing its button in the annotation toolbar does. */
+export function pressAnnotationToolbarCreate(chartOrProxy: ChartOrProxy<any>, type: string): void {
+    getAnnotations(chartOrProxy).toolbar.events.emit('pressed-create-annotation', { annotation: type });
+}
+
+/** Switches the magnet on or off, as pressing its button in the annotation toolbar does. */
+export function pressAnnotationMagnetButton(chartOrProxy: ChartOrProxy<any>): void {
+    getAnnotations(chartOrProxy).toolbar.events.emit('pressed-magnet', null);
+}
+
+/** Whether the magnet is on, before Ctrl or Cmd inverts it. */
+export function getAnnotationMagnetEnabled(chartOrProxy: ChartOrProxy<any>): boolean {
+    return getAnnotations(chartOrProxy).magnetEnabled;
 }
 
 /** Whether the annotations module enabled its annotation toolbar and its options toolbar. */
