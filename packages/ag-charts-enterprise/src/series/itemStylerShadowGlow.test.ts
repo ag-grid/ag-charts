@@ -490,6 +490,33 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
                 expect(itemParams).toMatchObject({ shadow: SHADOW, glow: HIGHLIGHT_GLOW });
             }
         });
+
+        it('gives the styler params the glow of the state they are called in, and the series glow, or none, before the hover', async () => {
+            const byState = new Map<string, any[]>();
+            await create({
+                glow: testCase.seriesGlow ? SERIES_GLOW : undefined,
+                highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } },
+                hover: true,
+                styler: (itemParams) => {
+                    byState.set(itemParams.highlightState, [
+                        ...(byState.get(itemParams.highlightState) ?? []),
+                        itemParams,
+                    ]);
+                    return {};
+                },
+            });
+
+            expect(byState.get('highlighted-item')).not.toHaveLength(0);
+            for (const itemParams of byState.get('highlighted-item') ?? []) {
+                expect(itemParams.glow).toMatchObject(HIGHLIGHT_GLOW);
+            }
+            // The leaves: a group of a treemap has a glow of its own.
+            const others = (byState.get('none') ?? []).filter((itemParams) => itemParams.datum.children == null);
+            expect(others.length).toBeGreaterThan(1);
+            for (const itemParams of others) {
+                expect(itemParams.glow).toEqual(testCase.seriesGlow ? SERIES_GLOW : undefined);
+            }
+        });
     });
 });
 
