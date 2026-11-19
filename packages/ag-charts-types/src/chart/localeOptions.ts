@@ -10,7 +10,7 @@ export interface AgLocaleOptions {
 export interface MessageFormatterParams {
     /** Key of the translation - usually defined in `localeText`. */
     key: string;
-    /** The default, unformatted translation, if it exists in `localeText`. */
+    /** The default, unformatted translation: the `localeText` value for the key, or the English text when `localeText` omits the key. */
     defaultValue: string | undefined;
     /** Variables used for the translation. Keyed by the name of the variables. Values can be string, numbers, or dates. */
     variables: Record<string, any>;

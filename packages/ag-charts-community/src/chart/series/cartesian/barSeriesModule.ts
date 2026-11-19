@@ -51,7 +51,6 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
             lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             spacing: 8,
-            padding: 8,
             collision: BAR_LABEL_COLLISION_THEME,
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),

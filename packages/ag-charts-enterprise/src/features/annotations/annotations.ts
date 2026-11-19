@@ -2,7 +2,6 @@ import {
     type AgAnnotation,
     type AgAnnotationFollow,
     type AgAnnotationFollowName,
-    type AgAnnotationLineStyleType,
     type AgAnnotationsEventSource,
     type Direction,
     _ModuleSupport,
@@ -25,7 +24,13 @@ import {
     isValidDate,
 } from 'ag-charts-core';
 import type { ClickWidgetEvent, DblClickWidgetEvent, DragWidgetEvent, KeyboardWidgetEvent } from 'ag-charts-core';
-import type { AgAnnotationAxesButtons, AgNumericValue } from 'ag-charts-types';
+import type {
+    AgAnnotationAxesButtons,
+    AgAnnotationMagnet,
+    AgAnnotationMagnetMode,
+    AgNumericValue,
+    PixelSize,
+} from 'ag-charts-types';
 
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
 import type { FontFields } from './annotationDatum';
@@ -34,6 +39,7 @@ import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
 import type {
     AnnotationContext,
+    AnnotationLineStyleType,
     AnnotationOptionsColorPickerType,
     DataPoint,
     HasFontSizeAnnotationType,
@@ -59,6 +65,8 @@ import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './se
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
+import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
+import { getMagnetPoints } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
@@ -96,6 +104,18 @@ export class Annotations extends AbstractModuleInstance {
 
     public axesButtons: Required<AgAnnotationAxesButtons> = { enabled: false, axes: 'y' };
     private axesButtonsSnapInterval?: number;
+
+    /** Whether the options enable the magnet, which a change to resets `magnetEnabled`. */
+    private configuredMagnetEnabled?: boolean;
+    /** Whether the magnet is on, as the options or the toolbar button have set it; holding Ctrl or Cmd inverts it. */
+    private magnetEnabled = false;
+    private magnetStrength: AgAnnotationMagnetMode = DEFAULT_MAGNET.mode;
+    private magnetRange: PixelSize = DEFAULT_MAGNET.range;
+    /**
+     * Whether Ctrl or Cmd is held, which inverts the magnet mode. Every snap follows a pointer event that has set it
+     * from its own modifiers, so it cannot stick when a `keyup` is missed.
+     */
+    private magnetInverted = false;
 
     // Annotations is only created when the `annotations` subtree is configured, so assert
     // the subtree's presence here and rely on annotationsTheme for field-level defaults.
@@ -145,7 +165,8 @@ export class Annotations extends AbstractModuleInstance {
                 const opts = get('options', 'annotations');
                 const enabled = opts?.enabled ?? false;
 
-                const { toolbar, optionsToolbar, axesButtons } = opts ?? {};
+                const { toolbar, optionsToolbar, axesButtons, magnet } = opts ?? {};
+                this.applyMagnetOptions({ ...DEFAULT_MAGNET, ...magnet });
                 this.toolbar.applyOptions({ ...toolbar, enabled: toolbar?.enabled ?? enabled });
                 this.optionsToolbar.applyOptions({ ...optionsToolbar, enabled: optionsToolbar?.enabled ?? enabled });
                 this.axesButtons = { enabled: axesButtons?.enabled ?? enabled, axes: axesButtons?.axes ?? 'y' };
@@ -159,6 +180,40 @@ export class Annotations extends AbstractModuleInstance {
             }
         );
     }
+
+    private applyMagnetOptions({ enabled, mode, range }: Required<AgAnnotationMagnet>) {
+        this.magnetStrength = mode;
+        this.magnetRange = range;
+        if (enabled === this.configuredMagnetEnabled) return;
+
+        this.configuredMagnetEnabled = enabled;
+        this.magnetEnabled = enabled;
+        this.toolbar.setMagnetPressed(enabled);
+    }
+
+    private toggleMagnet() {
+        this.magnetEnabled = !this.magnetEnabled;
+        this.toolbar.setMagnetPressed(this.magnetEnabled);
+    }
+
+    private trackMagnetModifier(sourceEvent: Pick<MouseEvent, 'ctrlKey' | 'metaKey'> | undefined) {
+        if (sourceEvent != null) this.magnetInverted = sourceEvent.ctrlKey || sourceEvent.metaKey;
+    }
+
+    /** Snaps an offset in the series area to a value of the nearest datum, at the datum's position, as the magnet mode says. */
+    private readonly magnetOffset = (offset: Point): Point => {
+        const mode = resolveMagnetMode(this.magnetEnabled, this.magnetStrength, this.magnetInverted);
+        const { xAxis, yAxis } = this;
+        // The values of a category axis are bands, not positions to snap to.
+        if (mode == null || !xAxis || !yAxis?.context.continuous) return offset;
+
+        const seriesIds = yAxis.context.seriesIds();
+        const axes = { x: xAxis.context, y: yAxis.context };
+        const points = this.ctx.chartService.series
+            .filter((s) => s.visible && seriesIds.includes(s.id))
+            .flatMap((s) => getMagnetPoints(s, offset, axes));
+        return applyMagnet(offset, points, mode, this.magnetRange);
+    };
 
     private setupStateMachine() {
         const { ctx } = this;
@@ -254,6 +309,10 @@ export class Annotations extends AbstractModuleInstance {
                 if (previousNode === selectedNode && selectedNode != null) return;
 
                 previousNode?.toggleActive(false);
+                // A reset deselects without naming the previous annotation, so clear every other one.
+                for (const node of annotations.nodes()) {
+                    if (node !== selectedNode) node.toggleSelected(false);
+                }
 
                 // Hide the annotation options so it has time to update before being shown again
                 optionsToolbar.hide();
@@ -261,6 +320,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
+                    selectedNode.toggleSelected(true);
                     if (!isEphemeralType(selectedDatum)) {
                         optionsToolbar.updateButtons(this.annotationData.at(index!)!);
                         this.postUpdateFns.push(() => {
@@ -283,7 +343,10 @@ export class Annotations extends AbstractModuleInstance {
 
             selectLast: () => {
                 this.pushAnnotationState(InteractionState.AnnotationsSelected);
-                return this.annotationData.length - 1;
+                const index = this.annotationData.length - 1;
+                // A drawn annotation's scene does not exist until the next update, and no `select` reaches it.
+                this.postUpdateFns.push(() => this.annotations.at(index)?.toggleSelected(true));
+                return index;
             },
 
             startInteracting: () => {
@@ -419,13 +482,11 @@ export class Annotations extends AbstractModuleInstance {
                         this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity, isMultiColor);
                         this.optionsToolbar.updateColorPickerColor(colorType, color, opacity, isMultiColor);
                     };
-                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () => {
-                    this.recordActionAfterNextUpdate(
+                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => (cancelled: boolean) =>
+                    this.endColorPickerSession(
                         `Change ${datum.type} ${colorType} to ${getDefaultColor(datum, colorType)}`,
-                        ['annotations', 'defaults']
+                        cancelled
                     );
-                    this.update();
-                };
 
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,
@@ -535,6 +596,7 @@ export class Annotations extends AbstractModuleInstance {
             toolbar.events.on('pressed-place-annotation', ({ annotation, sourceEvent }) => {
                 this.createAnnotationAtCentre(annotation, sourceEvent);
             }),
+            toolbar.events.on('pressed-magnet', () => this.toggleMagnet()),
             toolbar.events.on('pressed-clear', () => {
                 this.clear();
                 this.recordActionAfterNextUpdate('Clear all');
@@ -563,11 +625,8 @@ export class Annotations extends AbstractModuleInstance {
             optionsToolbar.events.on('hid-overlays', () => {
                 this.settingsDialog.hide();
             }),
-            optionsToolbar.events.on('saved-color', ({ type, colorPickerType, color }) => {
-                this.recordActionAfterNextUpdate(`Change ${type} ${colorPickerType} to ${color}`, [
-                    'annotations',
-                    'defaults',
-                ]);
+            optionsToolbar.events.on('saved-color', ({ type, colorPickerType, color, cancelled }) => {
+                this.endColorPickerSession(`Change ${type} ${colorPickerType} to ${color}`, cancelled);
             }),
             optionsToolbar.events.on(
                 'updated-color',
@@ -833,18 +892,14 @@ export class Annotations extends AbstractModuleInstance {
                 annotations.each((sceneNode) => {
                     const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = value;
-                    if ('setAxisLabelOpacity' in node) {
-                        node.setAxisLabelOpacity(value);
-                    }
+                    node.setAxisLabelOpacity(value);
                 });
             },
             onStop() {
                 annotations.each((sceneNode) => {
                     const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = to;
-                    if ('setAxisLabelOpacity' in node) {
-                        node.setAxisLabelOpacity(to);
-                    }
+                    node.setAxisLabelOpacity(to);
                 });
             },
         });
@@ -912,6 +967,17 @@ export class Annotations extends AbstractModuleInstance {
         });
     }
 
+    private endColorPickerSession(label: string, cancelled: boolean) {
+        const { defaults, ctx } = this;
+        if (cancelled) {
+            if (ctx.annotationManager) ctx.historyManager.revert(defaults, ctx.annotationManager);
+            return;
+        }
+
+        this.recordActionAfterNextUpdate(label, ['annotations', 'defaults']);
+        this.update();
+    }
+
     private setColorAndDefault(
         datumType: AnnotationType,
         colorPickerType: AnnotationOptionsColorPickerType,
@@ -930,8 +996,8 @@ export class Annotations extends AbstractModuleInstance {
         this.recordActionAfterNextUpdate(`Change ${datumType} font size to ${fontSize}`, ['annotations', 'defaults']);
     }
 
-    private setLineStyleTypeAndDefault(datumType: HasLineStyleAnnotationType, styleType: AgAnnotationLineStyleType) {
-        this.state.transition('lineStyle', { type: styleType });
+    private setLineStyleTypeAndDefault(datumType: HasLineStyleAnnotationType, styleType: AnnotationLineStyleType) {
+        this.state.transition('lineStyle', { lineDash: styleType });
         this.defaults.setDefaultLineStyleType(datumType, styleType);
         this.recordActionAfterNextUpdate(`Change ${datumType} line style to ${styleType}`, ['annotations', 'defaults']);
     }
@@ -964,15 +1030,11 @@ export class Annotations extends AbstractModuleInstance {
                 const node = sceneNode as AnnotationSceneUnion;
                 if (!showAnnotations) {
                     node.visible = false;
-                    if ('setAxisLabelVisible' in node) {
-                        node.setAxisLabelVisible(false);
-                    }
+                    node.setAxisLabelVisible(false);
                     return;
                 }
 
-                if ('setAxisLabelVisible' in node) {
-                    node.setAxisLabelVisible(true);
-                }
+                node.setAxisLabelVisible(true);
                 updateAnnotation(node, datum, context);
             });
 
@@ -994,16 +1056,19 @@ export class Annotations extends AbstractModuleInstance {
             isRtl: ctx.domManager.isRtl,
             getVolume: this.getDatumRangeVolume,
             getFollowedValue: this.getFollowedValue,
+            magnet: this.magnetOffset,
             xAxis: {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(xAxis.layout),
+                thickness: xAxis.layout.labelThickness ?? 0,
                 snapToGroup: snap,
             },
             yAxis: {
                 ...yAxis.context,
                 bounds: yAxis.bounds,
                 labelPadding: calculateAxisLabelPadding(yAxis.layout),
+                thickness: yAxis.layout.labelThickness ?? 0,
                 snapToGroup: snap,
             },
         };
@@ -1016,9 +1081,10 @@ export class Annotations extends AbstractModuleInstance {
         if (!context) return;
 
         const shiftKey = event.sourceEvent.shiftKey;
+        this.trackMagnetModifier(event.sourceEvent);
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = this.placementPoint(offset, context);
 
         state.transition('hover', { offset, point, shiftKey, context });
     }
@@ -1029,8 +1095,13 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context || event.device === 'keyboard') return;
 
+        // The states finish an endpoint from the last hover, so it is refreshed to the click's own point and modifiers.
+        if (!state.isIdle()) this.onHover(event);
+
         const shiftKey = event.sourceEvent.shiftKey;
-        const point = invertCoords(Vec2.from(event), context);
+        this.trackMagnetModifier(event.sourceEvent);
+        const offset = Vec2.from(event);
+        const point = this.placementPoint(offset, context);
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
@@ -1101,8 +1172,10 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context) return;
 
+        this.trackMagnetModifier(event.sourceEvent);
+
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = this.placementPoint(offset, context);
 
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
@@ -1116,8 +1189,10 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context) return;
 
+        this.trackMagnetModifier(event.sourceEvent);
+
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = this.placementPoint(offset, context);
         const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
@@ -1186,6 +1261,7 @@ export class Annotations extends AbstractModuleInstance {
 
         const { sourceEvent } = event;
         const { shiftKey, ctrlKey, metaKey } = sourceEvent;
+        this.trackMagnetModifier(sourceEvent);
         const ctrlMeta = ctrlKey || metaKey;
         const ctrlShift = ctrlKey || shiftKey;
 
@@ -1243,6 +1319,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private onKeyUp(event: KeyboardWidgetEvent<'keyup'>) {
         const { shiftKey } = event.sourceEvent;
+        this.trackMagnetModifier(event.sourceEvent);
         const context = this.getAnnotationContext();
         if (!context) {
             return;
@@ -1325,6 +1402,20 @@ export class Annotations extends AbstractModuleInstance {
 
     private isEditing() {
         return !this.state.isIdle() || this.settingsDialog.isVisible() || this.optionsToolbar.isMenuVisible();
+    }
+
+    /**
+     * The data point at a pointer position. While an annotation is being drawn the pointer position is the point to
+     * place, so the magnet applies, including when drawing by dragging. Otherwise it is only a position to move from, and
+     * the scenes apply the magnet to the point that a handle ends on.
+     */
+    private placementPoint(offset: Point, context: AnnotationContext) {
+        return invertCoords(this.isCreating() ? context.magnet(offset) : offset, context);
+    }
+
+    /** Whether an annotation is being drawn, which is when a pointer position is read as a point to place. */
+    private isCreating() {
+        return this.ctx.interactionManager.isState(InteractionState.Annotations);
     }
 
     private isAnnotationState() {

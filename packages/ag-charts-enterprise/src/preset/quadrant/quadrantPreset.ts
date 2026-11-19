@@ -1,3 +1,4 @@
+import type { Normalised, NormalisedLineDash } from 'ag-charts-core';
 import {
     type CartesianAxisDirection,
     Logger,
@@ -151,6 +152,8 @@ export function createQuadrant(
 
     const chartOptions = pick(options, [
         'animation',
+        'background',
+        'border',
         'container',
         'contextMenu',
         'data',
@@ -161,17 +164,22 @@ export function createQuadrant(
         'formatter',
         'height',
         'initialState',
+        'keyboard',
         'listeners',
+        'loadGoogleFonts',
         'locale',
         'minHeight',
         'minWidth',
         'overrideDevicePixelRatio',
         'padding',
         'selection',
+        'styleNonce',
         'subtitle',
         'suppressFieldDotNotation',
         'title',
         'theme',
+        'touch',
+        'validations',
         'width',
     ]);
 
@@ -298,7 +306,15 @@ export function createQuadrant(
 
         // Compose the user's itemStyler within the region's itemStyler.
         if (options.itemStyler) {
-            result = { ...result, ...options.itemStyler({ ...params, ...result, region: regionName }) };
+            result = {
+                ...result,
+                ...options.itemStyler({
+                    ...params,
+                    // The region style was resolved against the theme, so a `lineDash` name is already its array.
+                    ...(result as Normalised<AgSeriesMarkerStyle, never, NormalisedLineDash>),
+                    region: regionName,
+                }),
+            };
         }
 
         return result;

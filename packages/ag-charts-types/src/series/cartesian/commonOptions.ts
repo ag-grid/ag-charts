@@ -6,6 +6,7 @@ import type {
     AgCssColorOrRef,
 } from '../../chart/themeParamsOptions';
 import type {
+    AgLineDashName,
     CssColor,
     DatumKey,
     FontFamily,
@@ -176,13 +177,20 @@ export type AgPatternName =
     | 'horizontal-lines'
     | 'forward-slanted-lines'
     | 'backward-slanted-lines'
+    | 'vertical-dashed-lines'
+    | 'horizontal-dashed-lines'
+    | 'waves'
+    | 'criss-cross'
+    | 'zig-zag'
     | 'squares'
     | 'circles'
+    | 'hollow-circles'
     | 'triangles'
     | 'diamonds'
     | 'stars'
     | 'hearts'
-    | 'crosses';
+    | 'crosses'
+    | 'polka-dots';
 
 /**
  * Represents options for the strokes in a chart.
@@ -212,10 +220,19 @@ export interface LabelBoxOptions extends FillOptions {
  * Represents options for defining dashed strokes in a chart.
  */
 export interface LineDashOptions {
-    /** An array specifying the length in pixels of alternating dashes and gaps. */
-    lineDash?: PixelSize[];
+    /** The dash pattern: a stock pattern name, or an array specifying the length in pixels of alternating dashes and gaps. */
+    lineDash?: PixelSize[] | AgLineDashName;
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
+}
+
+/**
+ * The `lineDash` that a callback receives: a stock pattern name has already been resolved to its array of lengths in
+ * pixels.
+ */
+export interface ResolvedLineDash {
+    /** An array specifying the length in pixels of alternating dashes and gaps. */
+    lineDash: PixelSize[];
 }
 
 /**

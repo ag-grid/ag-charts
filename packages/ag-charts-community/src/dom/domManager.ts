@@ -10,18 +10,20 @@ import {
     SizeMonitor,
     StateTracker,
     type StrictHTMLElement,
+    attachListener,
     createElement,
     createId,
     createPerWindowRegistry,
     createStyleElement,
     entries,
+    getAttribute,
+    hasNoModifiers,
     isDirectionRtl,
     isDocumentFragment,
     isNode,
     isObject,
     kebabCase,
     setAttribute,
-    stopPageScrolling,
     strictObjectKeys,
 } from 'ag-charts-core';
 import type { AgChartAllThemeParams } from 'ag-charts-types';
@@ -47,6 +49,7 @@ const DOM_ELEMENT_CLASSES = [
 const BUTTON_STATE_BORDER_KEYS = new Set(['buttonHoverBorder', 'buttonActiveBorder', 'buttonDisabledBorder']);
 
 const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
+const CSS_VARIABLE_NAME = /^--[\w-]+$/;
 const CONTAINER_MODIFIERS = {
     safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
     safeVertical: 'ag-charts-wrapper--safe-vertical',
@@ -86,6 +89,18 @@ type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, StrictHTMLElement>;
 };
+
+const ARROW_KEYS = new Set(['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp']);
+
+function stopPageScrolling(element: HTMLElement) {
+    return attachListener(element, 'keydown', (event: KeyboardEvent) => {
+        if (event.defaultPrevented) return;
+        const shouldPrevent = getAttribute(event.target, 'data-preventdefault', true);
+        if (shouldPrevent && hasNoModifiers(event) && ARROW_KEYS.has(event.key)) {
+            event.preventDefault();
+        }
+    });
+}
 
 const NULL_DOMRECT: DOMRect = {
     x: 0,
@@ -600,6 +615,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
                 (key.endsWith('Size') ||
                     key.endsWith('Radius') ||
                     key.endsWith('Width') ||
+                    key.endsWith('Padding') ||
                     key.endsWith('Thickness') ||
                     numericKeys?.includes(key))
             ) {
@@ -1132,6 +1148,13 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
 
         for (const property of properties) {
             if (this.cssVariableWatchers.has(property)) continue;
+
+            // Only a plain name can be written into an `@property` rule. Anything else, such as `--name, fallback`, is
+            // tracked without a rule so the attach still re-resolves it and a move into a shadow root still watches it.
+            if (!CSS_VARIABLE_NAME.test(property)) {
+                this.cssVariableWatchers.set(property, () => {});
+                continue;
+            }
 
             const styleElement = createStyleElement(this.styleNonce);
             styleElement.dataset.variableName = property;

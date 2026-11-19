@@ -2,6 +2,7 @@ import { type TextOptions, _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, Group, type Point, Range, Selection, Vec4 } from 'ag-charts-core';
 import type { BBox } from 'ag-charts-core';
 
+import { getStrokeColours } from '../annotationDatum';
 import type { AnnotationAxisContext, AnnotationContext, LineTextAlignment } from '../annotationTypes';
 import type { FibonacciDatum } from '../datum/fibonacciDatum';
 import { applySceneNodeTopCenterAnchor } from '../utils/coords';
@@ -10,7 +11,7 @@ import type { FibonacciRangeDatum } from '../utils/fibonacci';
 import { FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
-import { convertLine } from '../utils/values';
+import { convertLine, convertPoints } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
@@ -52,6 +53,14 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
     constructor() {
         super();
         this.append([this.trendLine, this.rangeFillsGroup, this.rangeStrokesGroup, this.labelsGroup]);
+    }
+
+    protected override getSelectionPoints(datum: Datum, context: AnnotationContext) {
+        return convertPoints([datum.start, datum.end], context);
+    }
+
+    protected override getSelectionColours(datum: Datum) {
+        return getStrokeColours({ stroke: datum.rangeStroke ?? datum.stroke, strokeOpacity: datum.strokeOpacity });
     }
 
     public update(datum: Datum, context: AnnotationContext) {
@@ -125,6 +134,8 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
 
     private updateRangeStrokes(datum: Datum) {
         const { lineDashOffset, strokeWidth, strokeOpacity, strokes, rangeStroke, isMultiColor } = datum;
+        const lineCap = getLineCap(datum);
+        const lineDash = getLineDash(datum);
 
         this.rangeStrokesGroupSelection.each((line, { x1, x2, y2, tag }, index) => {
             const y = y2;
@@ -137,8 +148,8 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
                 stroke: color,
                 strokeOpacity,
                 strokeWidth,
-                lineCap: getLineCap(datum),
-                lineDash: getLineDash(datum),
+                lineCap,
+                lineDash,
                 lineDashOffset,
                 tag,
             });
@@ -166,6 +177,8 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
             showFill,
             isMultiColor,
         } = datum;
+        const lineCap = getLineCap(datum);
+        const lineDash = getLineDash(datum);
 
         this.rangeFillsGroupSelection.each((range, { x1, x2, y1, y2 }, index) => {
             const color = isMultiColor ? colors[index % colors.length] : rangeStroke;
@@ -185,8 +198,8 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
                 fill: color,
                 fillOpacity: (strokeOpacity ?? 1) * 0.15,
                 strokeWidth,
-                lineCap: getLineCap(datum),
-                lineDash: getLineDash(datum),
+                lineCap,
+                lineDash,
                 lineDashOffset,
                 visible: true,
             });

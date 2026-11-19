@@ -9,8 +9,8 @@ import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoida
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
-    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
+    AgErrorBarSeriesLabelCollisionFitOptions,
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -30,7 +30,12 @@ import type {
     AgCartesianSeriesTooltipRendererParams,
     AgErrorBoundSeriesTooltipRendererParams,
 } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    LineDashOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from './commonOptions';
 
 export interface AgLineSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends
@@ -44,7 +49,7 @@ export type AgLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgLineSeri
 export interface AgLineSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, TParams, TContext>,
-        AgChartLabelCollisionFitOptions,
+        AgErrorBarSeriesLabelCollisionFitOptions,
         AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
@@ -104,7 +109,8 @@ export interface AgLineSeriesStylerParams<TDatum, TContext>
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         Required<StrokeOptions>,
-        Required<LineDashOptions> {
+        Required<Omit<LineDashOptions, 'lineDash'>>,
+        ResolvedLineDash {
     /** Current series styling options on markers. */
     marker?: AgSeriesMarkerStyle;
 }
@@ -115,7 +121,11 @@ export interface AgLineSeriesStylerResult extends StrokeOptions, LineDashOptions
 }
 
 export interface AgLineSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgLineSeriesOptionsKeys<TDatum>, ContextCallbackParams<TContext>, Required<AgSeriesMarkerStyle> {
+    extends
+        AgLineSeriesOptionsKeys<TDatum>,
+        ContextCallbackParams<TContext>,
+        Required<Omit<AgSeriesMarkerStyle, 'lineDash'>>,
+        ResolvedLineDash {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { createElement } from '../dom/domElements';
 import type { ElementID } from '../identity/idBranding';
@@ -18,34 +18,6 @@ function makeEvent(target: EventTarget | null, currentTarget: EventTarget | null
 describe('Widget', () => {
     afterEach(() => {
         document.body.replaceChildren();
-    });
-
-    describe('setTitle', () => {
-        it('sets and removes the title attribute', () => {
-            const widget = makeWidget();
-            widget.setTitle('Drag');
-            expect(widget.getElement().getAttribute('title')).toBe('Drag');
-            widget.setTitle(undefined);
-            expect(widget.getElement().hasAttribute('title')).toBe(false);
-        });
-    });
-
-    describe('setOpacity', () => {
-        it('sets and removes the inline opacity', () => {
-            const widget = makeWidget();
-            widget.setOpacity(0.25);
-            expect(widget.getElement().style.opacity).toBe('0.25');
-            widget.setOpacity(undefined);
-            expect(widget.getElement().style.opacity).toBe('');
-        });
-    });
-
-    describe('setInnerText', () => {
-        it('writes the text through innerText', () => {
-            const widget = makeWidget();
-            widget.setInnerText('No data\nto display');
-            expect(widget.getElement().innerText).toBe('No data\nto display');
-        });
     });
 
     describe('setData', () => {
@@ -80,24 +52,6 @@ describe('Widget', () => {
             expect(widget.getElement().hasAttribute('aria-checked')).toBe(false);
             expect(widget.getElement().hasAttribute('aria-selected')).toBe(false);
             expect(widget.getElement().hasAttribute('aria-labelledby')).toBe(false);
-        });
-    });
-
-    describe('setTranslate', () => {
-        it('writes a translate transform in pixels', () => {
-            const widget = makeWidget();
-            widget.setTranslate(12, -3.5);
-            expect(widget.getElement().style.transform).toBe('translate(12px, -3.5px)');
-        });
-    });
-
-    describe('setBorderRadius', () => {
-        it('writes and removes a border radius in pixels', () => {
-            const widget = makeWidget();
-            widget.setBorderRadius(6);
-            expect(widget.getElement().style.borderRadius).toBe('6px');
-            widget.setBorderRadius(undefined);
-            expect(widget.getElement().style.borderRadius).toBe('');
         });
     });
 
@@ -181,47 +135,6 @@ describe('Widget', () => {
         });
     });
 
-    describe('isHovered and isFocusVisible', () => {
-        // jsdom has no pointer state and rejects `:focus-visible`, so only the delegation is tested here.
-        it('isHovered queries :hover', () => {
-            const widget = makeWidget();
-            vi.spyOn(widget.getElement(), 'matches').mockImplementation((s) => s === ':hover');
-
-            expect(widget.isHovered()).toBe(true);
-            expect(widget.isFocusVisible()).toBe(false);
-        });
-
-        it('isFocusVisible queries :focus-visible', () => {
-            const widget = makeWidget();
-            vi.spyOn(widget.getElement(), 'matches').mockImplementation((s) => s === ':focus-visible');
-
-            expect(widget.isHovered()).toBe(false);
-            expect(widget.isFocusVisible()).toBe(true);
-        });
-    });
-
-    describe('offsetWidth and offsetHeight', () => {
-        it('return the element layout size', () => {
-            const widget = makeWidget();
-            const elem = widget.getElement();
-            vi.spyOn(elem, 'offsetWidth', 'get').mockReturnValue(120);
-            vi.spyOn(elem, 'offsetHeight', 'get').mockReturnValue(45);
-
-            expect(widget.offsetWidth).toBe(120);
-            expect(widget.offsetHeight).toBe(45);
-        });
-    });
-
-    describe('setCSSPosition', () => {
-        it('sets and removes the position style', () => {
-            const widget = makeWidget();
-            widget.setCSSPosition('absolute');
-            expect(widget.getElement().style.position).toBe('absolute');
-            widget.setCSSPosition(undefined);
-            expect(widget.getElement().style.position).toBe('');
-        });
-    });
-
     describe('insertSiblingAfter', () => {
         it('moves the sibling element directly after this element without changing the widget tree', () => {
             const list = makeWidget();
@@ -270,46 +183,6 @@ describe('Widget', () => {
             widget.setCssOffset({ y: 30 });
             expect(widget.cssLeft()).toBe(10);
             expect(widget.cssTop()).toBe(30);
-        });
-    });
-
-    describe('setMinWidth', () => {
-        it('sets and removes min-width in pixels', () => {
-            const widget = makeWidget();
-            widget.setMinWidth(200);
-            expect(widget.getElement().style.minWidth).toBe('200px');
-            widget.setMinWidth(undefined);
-            expect(widget.getElement().style.minWidth).toBe('');
-        });
-    });
-
-    describe('setWidth', () => {
-        it('sets and removes width in pixels', () => {
-            const widget = makeWidget();
-            widget.setWidth(120);
-            expect(widget.getElement().style.width).toBe('120px');
-            widget.setWidth(undefined);
-            expect(widget.getElement().style.width).toBe('');
-        });
-    });
-
-    describe('setMaxWidth', () => {
-        it('sets and removes max-width in pixels', () => {
-            const widget = makeWidget();
-            widget.setMaxWidth(300.5);
-            expect(widget.getElement().style.maxWidth).toBe('300.5px');
-            widget.setMaxWidth(undefined);
-            expect(widget.getElement().style.maxWidth).toBe('');
-        });
-    });
-
-    describe('setTextAlign', () => {
-        it('sets and removes text-align', () => {
-            const widget = makeWidget();
-            widget.setTextAlign('right');
-            expect(widget.getElement().style.textAlign).toBe('right');
-            widget.setTextAlign(undefined);
-            expect(widget.getElement().style.textAlign).toBe('');
         });
     });
 

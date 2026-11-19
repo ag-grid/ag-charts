@@ -2,9 +2,9 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle, AgSeriesMarkerStylerPa
 
 import type { RequireOptional } from '../../types/global';
 import type { BivariantCallback, Normalised } from './normalise';
-import type { FillStrokeMorph, NormalisedDropShadowOptions } from './normalisedCommonOptions';
+import type { FillStrokeMorph, NormalisedDropShadowOptions, NormalisedLineDash } from './normalisedCommonOptions';
 
-export type NormalisedSeriesMarkerStyle = Normalised<AgSeriesMarkerStyle, never, FillStrokeMorph>;
+export type NormalisedSeriesMarkerStyle = Normalised<AgSeriesMarkerStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
 export type NormalisedSeriesMarkerStylerParams<TDatum, TContext> = Normalised<
     AgSeriesMarkerStylerParams<TDatum, TContext>,
@@ -32,5 +32,5 @@ export type NormalisedSeriesMarkerOptions<TParams = never> = Normalised<
             NormalisedSeriesMarkerStylerParams<unknown, unknown> & RequireOptional<Omit<TParams, 'context'>>,
             AgSeriesMarkerStyle | undefined
         >;
-    }
+    } & NormalisedLineDash
 >;

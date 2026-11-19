@@ -9,6 +9,7 @@ import type {
     AgAxisContinuousIntervalOptions,
     AgAxisCrossLineListeners,
     AgAxisGridLineOptions,
+    AgAxisGridStyle,
     AgAxisLineOptions,
     AgBandHighlightOptions,
     AgBaseAxisLabelOptions,
@@ -47,7 +48,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { NormalisedBorderOptions, NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedBorderOptions, NormalisedColorType, NormalisedLineDash } from './normalisedCommonOptions';
 import type { NormalisedChartLabelCollisionOptions, NormalisedLabelFitOptions } from './normalisedLabelOptions';
 
 // --- Label normalised shapes ---
@@ -131,10 +132,14 @@ export type NormalisedAngleAxisFormattableLabelOptions<TContext = ContextDefault
 export type NormalisedAxisLineOptions = Normalised<
     AgAxisLineOptions,
     'enabled' | 'strokeWidth' | 'strokeOpacity' | 'lineDash',
-    { stroke?: CssColor }
+    { stroke?: CssColor } & NormalisedLineDash
 >;
 
-export type NormalisedAxisGridLineOptions = Normalised<AgAxisGridLineOptions, 'enabled' | 'width' | 'style'>;
+export type NormalisedAxisGridLineOptions = Normalised<
+    AgAxisGridLineOptions,
+    'enabled' | 'width' | 'style',
+    { style?: Array<Normalised<AgAxisGridStyle, never, NormalisedLineDash>> }
+>;
 
 export type NormalisedAxisTickOptions = Normalised<AgAxisBaseTickOptions, 'enabled' | 'width' | 'size'>;
 
@@ -371,16 +376,15 @@ type CrosshairLabelMorph<TFormat, TContext> = {
 export type NormalisedCrosshairOptions<TFormat = string, TContext = ContextDefault> = Normalised<
     AgCrosshairOptions<NormalisedCrosshairLabelOptions<TFormat, TContext>>,
     'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'label',
-    CrosshairLabelMorph<TFormat, TContext>
+    CrosshairLabelMorph<TFormat, TContext> & NormalisedLineDash
 > & {
-    /** When set with `snap`, the pointer value snaps to the nearest multiple of this interval. */
-    snapInterval?: number;
+    snapInterval?: AgTimeInterval | AgTimeIntervalUnit | number;
 };
 
 export type NormalisedBandHighlightOptions = Normalised<
     AgBandHighlightOptions,
     'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'fill' | 'fillOpacity',
-    { stroke?: CssColor; fill?: NormalisedColorType }
+    { stroke?: CssColor; fill?: NormalisedColorType } & NormalisedLineDash
 >;
 
 // --- Cross-lines normalised shapes ---
@@ -423,10 +427,10 @@ export type NormalisedAxisCrossLineOptions =
     | Normalised<
           AgLineCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, ContextDefault>,
           CrossLineRequiredKeys,
-          CrossLineLabelMorph
+          CrossLineLabelMorph & NormalisedLineDash
       >
     | Normalised<
           AgRangeCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, ContextDefault>,
           CrossLineRequiredKeys,
-          CrossLineLabelMorph
+          CrossLineLabelMorph & NormalisedLineDash
       >;

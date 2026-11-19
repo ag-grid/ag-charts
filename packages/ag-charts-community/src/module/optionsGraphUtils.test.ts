@@ -1,15 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     getPathLastIndex,
     getPathLastIndexIndex,
     getPathSafe,
     hasTemplatePathSafe,
+    isColorOptionKey,
+    isColorOptionPath,
     resolvePath,
     setPathSafe,
 } from './optionsGraphUtils';
 
 describe('OptionsGraph Utils', () => {
+    afterEach(() => {
+        delete (Object.prototype as any).testMarker;
+    });
+
     it('getPathSafe', () => {
         const object = { one: { two: { three: 'value' } } };
         expect(getPathSafe(object, ['one', 'two', 'three'])).toEqual('value');
@@ -54,6 +60,24 @@ describe('OptionsGraph Utils', () => {
         expect(resolvePath(['one', 'two'], '../three')).toEqual(['three']);
     });
 
+    it('setPathSafe ignores prototype keys', () => {
+        const object = {};
+        setPathSafe(object, ['__proto__', 'testMarker'], 1);
+        expect(({} as any).testMarker).toBeUndefined();
+        expect(Object.prototype).not.toHaveProperty('testMarker');
+        expect(Object.keys(object)).toEqual([]);
+    });
+
+    it.each([
+        ['constructor', ['constructor', 'prototype', 'testMarker']],
+        ['prototype', ['prototype', 'testMarker']],
+        ['trailing __proto__', ['one', '__proto__']],
+    ])('setPathSafe leaves Object.prototype untouched for %s paths', (_name, path) => {
+        setPathSafe({}, path, 1);
+        expect(({} as any).testMarker).toBeUndefined();
+        expect(Object.prototype).not.toHaveProperty('testMarker');
+    });
+
     it('getPathLastIndex', () => {
         expect(getPathLastIndex(['one', '2', 'three', '4'])).toEqual(4);
         expect(getPathLastIndex(['one', '2', 'three'])).toEqual(2);
@@ -62,5 +86,34 @@ describe('OptionsGraph Utils', () => {
     it('getPathLastIndexIndex', () => {
         expect(getPathLastIndexIndex(['one', '2', 'three', '4'])).toEqual(3);
         expect(getPathLastIndexIndex(['one', '2', 'three'])).toEqual(1);
+    });
+
+    it.each([
+        'fill',
+        'color',
+        'fills',
+        'backgroundFill',
+        'rangeStroke',
+        'ontoColor',
+        'foregroundColor',
+        'sequentialColors',
+        'defaultColorRange',
+        'undocumentedGroupStrokes',
+    ])('isColorOptionKey(%s) is true', (key) => {
+        expect(isColorOptionKey(key)).toBe(true);
+    });
+
+    it.each(['text', 'yName', 'legendItemName', 'fontFamily', 'id', 'fillOpacity'])(
+        'isColorOptionKey(%s) is false',
+        (key) => {
+            expect(isColorOptionKey(key)).toBe(false);
+        }
+    );
+
+    it('isColorOptionPath', () => {
+        expect(isColorOptionPath(['series', '0', 'fills', '1'])).toBe(true);
+        expect(isColorOptionPath(['series', '0', 'yName'])).toBe(false);
+        expect(isColorOptionPath(['title', 'text'])).toBe(false);
+        expect(isColorOptionPath([])).toBe(true);
     });
 });

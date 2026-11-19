@@ -332,7 +332,12 @@ describe('enterprise feature test accessors', () => {
         });
 
         it('reports a line that is not shown while nothing is hovered', async () => {
-            const c = await create();
+            const c = await create({
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', crosshair: { enabled: true } },
+                },
+            });
 
             expect(getCrosshairLine(c, 'left').visible).toBe(false);
         });

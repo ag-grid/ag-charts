@@ -28,7 +28,13 @@ import type {
     AgLineCrossLineOptions,
     AgRangeCrossLineOptions,
 } from './crossLineOptions';
-import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
+import type {
+    AgBaseCrosshairLabel,
+    AgCrosshairLabel,
+    AgCrosshairOptions,
+    AgNumericAxisCrosshairOptions,
+    AgTimeAxisCrosshairOptions,
+} from './crosshairOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
 import type { AgAxesChartListeners, AgAxisListeners } from './eventOptions';
 import type { AgChartLabelAutoFontSizeOptions, AgChartLabelFitOptions, AgChartLabelStyleOptions } from './labelOptions';
@@ -66,7 +72,8 @@ export interface AgBaseCartesianAxisOptions<
      */
     maxThicknessRatio?: Ratio;
     /**
-     * The space between this axis and the next axis further out at the same `position`.
+     * The space between this axis and the next axis towards the series area at the same `position`. The first
+     * axis in `axes` at a position is the outermost, so `spacing` on the innermost axis has no effect.
      *
      * Default: `15`
      */
@@ -399,6 +406,8 @@ export interface AgTimeAxisOptions<TContext = ContextDefault>
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** Add cross-lines or regions corresponding to data values. */
     crossLines?: AgCartesianCrossLineOptions<AgTimeValue, TContext>[];
+    /** Configuration for the axis crosshair. */
+    crosshair?: AgTimeAxisCrosshairOptions<AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>>;
 }
 
 export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
@@ -491,6 +500,8 @@ export interface AgNumberAxisOptions<TContext = ContextDefault>
     type?: 'number';
     /** Add cross-lines or regions corresponding to data values. */
     crossLines?: AgCartesianCrossLineOptions<AgNumericValue, TContext>[];
+    /** Configuration for the axis crosshair. */
+    crosshair?: AgNumericAxisCrosshairOptions<AgCrosshairLabel<string, TContext>>;
 }
 
 export interface AgLogAxisOptions<TContext = ContextDefault>
@@ -509,6 +520,8 @@ export interface AgLogAxisOptions<TContext = ContextDefault>
     base?: number;
     /** Add cross-lines or regions corresponding to data values. */
     crossLines?: AgCartesianCrossLineOptions<AgNumericValue, TContext>[];
+    /** Configuration for the axis crosshair. */
+    crosshair?: AgNumericAxisCrosshairOptions<AgCrosshairLabel<string, TContext>>;
 }
 
 /**
@@ -745,7 +758,7 @@ export interface AgCartesianCrossLineLabelOptions
     /**
      * Where to place the label. An array is tried in order, and the first placement that fits is used.
      *
-     * Default: `'top'`
+     * Default: `['top', 'bottom']`
      */
     placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
     /** The rotation of the Cross Line label in degrees. */

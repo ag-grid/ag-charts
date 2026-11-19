@@ -209,26 +209,6 @@ describe('Ranges', () => {
         });
     });
 
-    describe('container', () => {
-        it('places both toolbars in a presentation container', async () => {
-            chart = await createEnterpriseChart({
-                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'number', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-                ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] },
-            });
-            const { body } = deproxy(chart).ctx.agDocument;
-
-            const toolbars = Array.from(body.querySelectorAll('.ag-charts-range-buttons'));
-            expect(toolbars).toHaveLength(2);
-            expect(toolbars[0].parentElement).toBe(toolbars[1].parentElement);
-            expect(toolbars[0].parentElement?.getAttribute('role')).toBe('presentation');
-        });
-    });
-
     describe('AG-16886 button value function source parameter', () => {
         it('should pass source parameter to AgRangesButtonValueFunction', async () => {
             const receivedSources: AgRangesButtonValueSource[] = [];
@@ -362,6 +342,30 @@ describe('Ranges', () => {
             expect(receivedContexts.length).toBeGreaterThan(0);
             expect(receivedContexts[0]).toBeUndefined();
         });
+    });
+
+    it('names each range button from its ariaLabel, tooltip or label', async () => {
+        chart = await createEnterpriseChart({
+            data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            ranges: {
+                enabled: true,
+                buttons: [
+                    { label: 'A', ariaLabel: 'First range', value: [0, 5] },
+                    { label: 'B', tooltip: 'Second range', value: [0, 10] },
+                    { label: 'All', value: [0, 19] },
+                ],
+            },
+        });
+
+        const names = Array.from(
+            deproxy(chart).ctx.agDocument.body.querySelectorAll(
+                '.ag-charts-range-buttons--buttons .ag-charts-toolbar__button'
+            ),
+            (button) => button.getAttribute('aria-label')
+        );
+        expect(names).toEqual(['First range', 'Second range', 'All']);
     });
 
     describe('theme params', () => {

@@ -318,6 +318,14 @@ export interface AgBaseChartThemeParams {
      */
     inputPlaceholderTextColor?: AgCssColorOrRef;
     /**
+     * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
+     * dropdown menus of the toolbars and the colour picker. Independent of `popupShadow`. The value must be a valid CSS
+     * box-shadow.
+     *
+     * @group Menus & Popups
+     */
+    cardShadow?: CssShadow;
+    /**
      * Border around menus. `true` for the default border, `false` to disable, or an object to customise it.
      *
      * Default: `color: borderColor, width: borderWidth`
@@ -356,16 +364,6 @@ export interface AgBaseChartThemeParams {
      * @group Panels & Dialogs
      */
     panelBackgroundColor?: AgCssColorOrRef;
-    /**
-     * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
-     * dropdown menus of the toolbars and the colour picker. Defaults to `popupShadow`. The value must be a valid CSS
-     * box-shadow.
-     *
-     * Default: `popupShadow`
-     *
-     * @group Menus & Popups
-     */
-    cardShadow?: CssShadow;
     /**
      * Background colour of tooltips, menus, dialogs, toolbars and buttons. A colour string, or a theme-colour reference object.
      *
@@ -612,6 +610,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     crosshairLabelBackgroundColor?: AgCssColorOrRef;
     /**
+     * Padding at the left and right of crosshair labels.
+     *
+     * Default: `8`
+     *
+     * @group Crosshairs
+     */
+    crosshairLabelHorizontalPadding?: PixelSize;
+    /**
      * Colour for text in crosshair labels. A colour string, or a theme-colour reference object.
      *
      * Default: `backgroundColor`
@@ -619,6 +625,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * @group Crosshairs
      */
     crosshairLabelTextColor?: AgCssColorOrRef;
+    /**
+     * Padding at the top and bottom of crosshair labels.
+     *
+     * Default: `4`
+     *
+     * @group Crosshairs
+     */
+    crosshairLabelVerticalPadding?: PixelSize;
     /**
      * Colour of the chart title text. A colour string, or a theme-colour reference object.
      *
@@ -756,7 +770,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     gridLineColor?: AgCssColorOrRef;
     /**
-     * Border around the legend and the gradient legend. `true` for the default border, `false` to disable, or an object to customise it.
+     * Border around the legend and the gradient legend. `true` for the default border, `false` to disable it. An options-enabled border takes its colour and width from this param, falling back to `borderColor` and `borderWidth`.
      *
      * @group Legend
      */
@@ -1027,6 +1041,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * @group Series Labels
      */
     seriesLabelOutsideTextColor?: AgCssColorOrRef;
+    /**
+     * Padding between the text of series labels and the edge of their box, applied to all four sides. It only has an effect on a label that draws a box, through a background colour or a border.
+     *
+     * Default: `8`
+     *
+     * @group Series Labels
+     */
+    seriesLabelPadding?: PixelSize;
     /**
      * Colour of text that should stand out less in panels and dialogs. A colour string, or a theme-colour reference object.
      *

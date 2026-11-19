@@ -1,5 +1,5 @@
 import { VERSION } from 'ag-charts-community';
-import type { AxisPluginModuleDefinition } from 'ag-charts-core';
+import { type AxisPluginModuleDefinition, lineDashThemeDefault } from 'ag-charts-core';
 
 import { AxisSelectedBand } from './axisSelectedBand';
 import type { AxisSelectedBandOptions } from './axisSelectedBandTypes';
@@ -22,6 +22,7 @@ export const AxisSelectedBandModule: AxisPluginModuleDefinition<AxisSelectedBand
         fill: { $palette: 'neutral.fill' },
         fillOpacity: 0.2,
         strokeWidth: 0,
+        lineDash: lineDashThemeDefault(undefined),
     },
 
     create: (ctx) => new AxisSelectedBand(ctx),

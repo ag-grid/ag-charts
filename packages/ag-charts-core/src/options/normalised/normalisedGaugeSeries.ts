@@ -31,7 +31,7 @@ import type {
 
 import type { RequireOptional } from '../../types/global';
 import type { Normalised } from './normalise';
-import type { FillStrokeMorph } from './normalisedCommonOptions';
+import type { FillStrokeMorph, NormalisedLineDash } from './normalisedCommonOptions';
 import type {
     NormalisedChartLabelPlacementStyleOptions,
     NormalisedChartLabelStyleOptions,
@@ -41,7 +41,7 @@ import type {
 export type NormalisedGaugeSeriesStyle = Normalised<
     FillOptions & StrokeOptions & LineDashOptions,
     never,
-    FillStrokeMorph
+    FillStrokeMorph & NormalisedLineDash
 >;
 
 type GaugeStyleRequiredKeys =
@@ -73,7 +73,7 @@ export type NormalisedRadialGaugeScaleOptions = Normalised<
     GaugeFillsOverrides & {
         label: NormalisedRadialGaugeScaleLabelOptions;
         interval: NormalisedRadialGaugeScaleIntervalOptions;
-    }
+    } & NormalisedLineDash
 > & {
     /** Undocumented: scale fill used while the bar is enabled and no scale fills are configured. */
     defaultFill: CssColor;
@@ -82,13 +82,13 @@ export type NormalisedRadialGaugeScaleOptions = Normalised<
 export type NormalisedRadialGaugeBarOptions = Normalised<
     AgRadialGaugeBarStyle,
     'enabled' | 'fillMode' | GaugeStyleRequiredKeys,
-    GaugeFillsOverrides
+    GaugeFillsOverrides & NormalisedLineDash
 >;
 
 export type NormalisedRadialGaugeNeedleOptions = Normalised<
     AgRadialGaugeNeedleStyle,
     'enabled' | 'spacing' | 'fill' | GaugeStyleRequiredKeys,
-    FillStrokeMorph
+    FillStrokeMorph & NormalisedLineDash
 >;
 
 type GaugeLabelFormatter<TParams> = RichFormatter<AgChartLabelFormatterParams<unknown> & RequireOptional<TParams>>;
@@ -113,7 +113,7 @@ export type NormalisedRadialGaugeTargetOptions = Normalised<
     never,
     FillStrokeMorph & {
         label?: Normalised<AgRadialGaugeTargetLabelOptions, never, LabelBoxOverrides & { color?: CssColor }>;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedRadialGaugeDefaultTargetOptions = Normalised<
@@ -177,7 +177,7 @@ export type NormalisedLinearGaugeScaleOptions = Normalised<
     GaugeFillsOverrides & {
         label: NormalisedLinearGaugeScaleLabelOptions;
         interval?: AgLinearGaugeScaleInterval;
-    }
+    } & NormalisedLineDash
 > & {
     /** Undocumented: scale fill used while the bar is enabled and no scale fills are configured. */
     defaultFill: CssColor;
@@ -191,7 +191,7 @@ export interface NormalisedLinearGaugeDefaultScaleOptions {
 export type NormalisedLinearGaugeBarOptions = Normalised<
     AgLinearGaugeBarStyle,
     'enabled' | 'thicknessRatio' | 'fillMode' | GaugeStyleRequiredKeys,
-    GaugeFillsOverrides
+    GaugeFillsOverrides & NormalisedLineDash
 >;
 
 export type NormalisedLinearGaugeLabelOptions = Normalised<
@@ -206,7 +206,11 @@ export type NormalisedLinearGaugeLabelOptions = Normalised<
 >;
 
 /** A user-configured linear target; anything left unset falls back to the themed `defaultTarget`. */
-export type NormalisedLinearGaugeTargetOptions = Normalised<AgLinearGaugeTarget, never, FillStrokeMorph> & {
+export type NormalisedLinearGaugeTargetOptions = Normalised<
+    AgLinearGaugeTarget,
+    never,
+    FillStrokeMorph & NormalisedLineDash
+> & {
     label?: NormalisedLinearGaugeTargetLabelOptions;
 };
 
@@ -219,12 +223,12 @@ export type NormalisedLinearGaugeTargetLabelOptions = Normalised<
 export type NormalisedLinearGaugeDefaultTargetOptions = Normalised<
     AgLinearGaugeTarget,
     'shape' | 'placement' | 'spacing' | 'size' | 'rotation' | 'fill' | GaugeStyleRequiredKeys,
-    FillStrokeMorph & { value?: never }
+    FillStrokeMorph & { value?: never } & NormalisedLineDash
 > & {
     label: Normalised<
         AgLinearGaugeTargetLabelOptions,
         'enabled' | 'fontStyle' | 'fontWeight' | 'fontSize' | 'fontFamily' | 'spacing',
-        LabelBoxOverrides & { color: CssColor }
+        LabelBoxOverrides & { color: CssColor } & NormalisedLineDash
     >;
 };
 

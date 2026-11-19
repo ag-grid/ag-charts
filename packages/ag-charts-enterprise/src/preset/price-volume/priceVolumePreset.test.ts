@@ -6,6 +6,8 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    getSeriesNodeData,
+    getSeriesRect,
     getSwapChainText,
     hoverAction,
     isTooltipVisible,
@@ -19,6 +21,7 @@ import {
 import type { Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type {
+    AgAnnotation,
     AgAnnotationsToolbarButton,
     AgCartesianChartOptions,
     AgChartInstance,
@@ -160,6 +163,26 @@ describe('priceVolumePreset', () => {
         const { processedOptions } = deproxy(chart).chartOptions;
         expect(processedOptions.tooltip?.mode).toBe('shared');
         expect((processedOptions as AgCartesianChartOptions).highlight?.mode).toBe('single');
+    });
+
+    it.each([
+        { name: 'themes the magnet defaults', theme: undefined, expected: { enabled: false, mode: 'weak', range: 20 } },
+        {
+            name: 'applies a theme override of the magnet',
+            theme: { overrides: { common: { annotations: { magnet: { enabled: true, mode: 'strong' } } } } },
+            expected: { enabled: true, mode: 'strong', range: 20 },
+        },
+    ] as const)('$name', async ({ theme, expected }) => {
+        chart = AgCharts.createFinancialChart(
+            prepareFinancialTestOptions({
+                ...EXAMPLES.candlestick,
+                theme: theme as AgChartTheme<any, never> | undefined,
+            })
+        );
+        await waitForChartStability(chart);
+
+        const { processedOptions } = deproxy(chart).chartOptions;
+        expect((processedOptions as AgCartesianChartOptions).annotations?.magnet).toEqual(expected);
     });
 
     it('gives the price, volume and volume profile series four distinct fixed ids', async () => {
@@ -708,6 +731,19 @@ describe('priceVolumePreset', () => {
             return labels;
         };
 
+        interface CandleNode {
+            centerX: number;
+            y: number;
+            height: number;
+            datum: { open: number; close: number };
+        }
+
+        interface VolumeNode {
+            x: number;
+            y: number;
+            width: number;
+        }
+
         const isTickMultiple = (text: string | undefined) => {
             const ticks = Number(text) / TICK_SIZE;
             return Math.abs(ticks - Math.round(ticks)) < 1e-9;
@@ -723,7 +759,7 @@ describe('priceVolumePreset', () => {
         ])('snaps the price label to multiples of tickSize %s', async (_name, options) => {
             const labels = await hoverLabels({ ...options, tickSize: TICK_SIZE });
             const prices = labels.map((l) => l.price);
-            expect(prices.every(isTickMultiple)).toBe(true);
+            expect(prices.every((price) => price != null && isTickMultiple(price))).toBe(true);
             expect(new Set(prices).size).toBeGreaterThan(1);
             expect(labels.map((l) => l.priceTop)).not.toEqual(HOVER_YS.map((y) => `${y}px`));
         });
@@ -744,6 +780,36 @@ describe('priceVolumePreset', () => {
             expect(labels.map((l) => l.priceTop)).toEqual(HOVER_YS.map((y) => `${y}px`));
         });
 
+        const CHART_TYPES = [
+            'candlestick',
+            'hollow-candlestick',
+            'ohlc',
+            'line',
+            'step-line',
+            'hlc',
+            'high-low',
+        ] as const;
+
+        it.each(CHART_TYPES.flatMap((chartType) => [true, false].map((volume) => [chartType, volume] as const)))(
+            'shows date and price crosshair labels by default for %s with volume %s',
+            async (chartType, volume) => {
+                const [label] = await hoverLabels({ chartType, volume });
+                expect(label.price).toBeTruthy();
+                expect(label.date).toBeTruthy();
+            }
+        );
+
+        it.each<[string, 'number' | 'ordinal-time', boolean, boolean]>([
+            ['price', 'number', false, true],
+            ['date', 'ordinal-time', true, false],
+        ])('hides the %s label when theme overrides disable that axis crosshair', async (_name, axis, price, date) => {
+            const theme = { overrides: { common: { axes: { [axis]: { crosshair: { enabled: false } } } } } };
+
+            const [label] = await hoverLabels({ theme });
+            expect(label.price != null).toBe(price);
+            expect(label.date != null).toBe(date);
+        });
+
         it('snaps within a zoomed range', async () => {
             const labels = await hoverLabels({
                 tickSize: TICK_SIZE,
@@ -754,6 +820,7 @@ describe('priceVolumePreset', () => {
 
         it.each<[string, AgFinancialChartOptions, boolean]>([
             ['snapped with tickSize', { tickSize: TICK_SIZE }, true],
+            ['snapped on a line chart', { tickSize: TICK_SIZE, chartType: 'line', volume: false }, true],
             [
                 'continuous when theme overrides turn snap off',
                 {
@@ -778,12 +845,107 @@ describe('priceVolumePreset', () => {
             expect(isTickMultiple(String(value))).toBe(snapped);
         });
 
+        it('rounds the pointer price inside a candle rather than snapping to its values', async () => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ data: getStockData(), chartType: 'candlestick', tickSize: TICK_SIZE })
+            );
+            await waitForChartStability(chart);
+            const index = deproxy(chart).series.findIndex((s) => s.type === 'candlestick');
+            const candle = getSeriesNodeData<CandleNode>(chart, index)
+                .filter((node) => node.centerX > 0)
+                .toSorted((a, b) => b.height - a.height)[0];
+            const rect = getSeriesRect(chart);
+            const roundToTick = (value: number) => (Math.round(value / TICK_SIZE) * TICK_SIZE).toFixed(2);
+            const top = Math.max(candle.datum.open, candle.datum.close);
+            const bottom = Math.min(candle.datum.open, candle.datum.close);
+            const ratios = [0.3, 0.7];
+
+            const prices: Array<string | undefined> = [];
+            for (const ratio of ratios) {
+                await hoverAction(rect.x + candle.centerX, rect.y + candle.y + candle.height * ratio)(deproxy(chart));
+                await waitForChartStability(chart);
+                prices.push(crosshairLabel('y')?.textContent?.trim());
+            }
+            expect(prices).toEqual(ratios.map((ratio) => roundToTick(top - (top - bottom) * ratio)));
+        });
+
+        it.each<[string, AgFinancialChartOptions]>([
+            ['with tickSize', { tickSize: TICK_SIZE }],
+            [
+                'with snap off',
+                {
+                    tickSize: TICK_SIZE,
+                    theme: { overrides: { common: { axes: { number: { crosshair: { snap: false } } } } } },
+                },
+            ],
+        ])('gives the same price over a volume bar and over the empty space beside it %s', async (_name, options) => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data: getStockData(), ...options }));
+            await waitForChartStability(chart);
+            const index = deproxy(chart).series.findIndex((s) => s.id === 'volume');
+            const bars = getSeriesNodeData<VolumeNode>(chart, index).filter((node) => node.x > 0);
+            const [bar, neighbour] = bars
+                .slice(1)
+                .map((node, i) => [node, bars[i]] as const)
+                .toSorted(([a, an], [b, bn]) => bn.y - b.y - (an.y - a.y))[0];
+            const rect = getSeriesRect(chart);
+            const y = rect.y + (bar.y + neighbour.y) / 2;
+
+            const prices: Array<string | undefined> = [];
+            for (const node of [bar, neighbour]) {
+                await hoverAction(rect.x + node.x + node.width / 2, y)(deproxy(chart));
+                await waitForChartStability(chart);
+                prices.push(crosshairLabel('y')?.textContent?.trim());
+            }
+            expect(prices[0]).toBeDefined();
+            expect(prices[1]).toBe(prices[0]);
+        });
+
         it('leaves the date label unchanged', async () => {
             const snapped = await hoverLabels({ tickSize: TICK_SIZE });
             chart.destroy();
             const continuous = await hoverLabels({});
             expect(snapped.map((l) => l.date)).toEqual(continuous.map((l) => l.date));
             expect(snapped.every((l) => l.date != null)).toBe(true);
+        });
+    });
+
+    describe('selected annotation axes (AG-12118)', () => {
+        const data = getStockData().slice(0, 40);
+        const [start, end] = [
+            { x: { __type: 'date' as const, value: data[5].date.toISOString() }, y: 140 },
+            { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 150 },
+        ];
+
+        // The labels and shading take the annotation's own colours, so the theme sets only the white text and the shading
+        // at the opacity of the annotation's background, or of its own when it has no background.
+        it.each<AgAnnotation>([
+            { type: 'line', start, end },
+            { type: 'arrow', start, end },
+            { type: 'parallel-channel', start, end, height: 5 },
+            { type: 'disjoint-channel', start, end, startHeight: 4, endHeight: 8 },
+            { type: 'fibonacci-retracement', start, end },
+            { type: 'date-price-range', start, end },
+        ])('themes the axis labels and shading of a $type without fixing their colour', async (annotation) => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ data, initialState: { annotations: [annotation] } })
+            );
+            await waitForChartStability(chart);
+
+            const state = chart.getState().annotations![0] as AgAnnotation & {
+                stroke?: string;
+                background?: { fillOpacity?: number };
+                axisLabel?: { fill?: string };
+                axisShading?: { fill?: string; fillOpacity?: number };
+            };
+            expect(state).toMatchObject({
+                axisLabel: { enabled: true, color: 'white' },
+                axisShading: { enabled: true },
+            });
+            expect(state.axisLabel?.fill).toBeUndefined();
+            expect(state.axisShading?.fill).toBeUndefined();
+            expect(state.axisShading?.fillOpacity ?? state.background?.fillOpacity).toBe(0.2);
+            // The annotation's colour, which they follow, is the theme's annotation colour and not the default foreground.
+            expect(state.stroke).not.toBe('#181d1f');
         });
     });
 
@@ -805,9 +967,14 @@ describe('priceVolumePreset', () => {
             expect(buttons).toEqual(userButtons);
         });
 
-        it('falls back to the six default buttons without an override', () => {
-            expect(presetButtons()).toHaveLength(6);
-            expect(presetButtons({ common: {} })).toHaveLength(6);
+        it('falls back to the seven default buttons without an override', () => {
+            expect(presetButtons()).toHaveLength(7);
+            expect(presetButtons({ common: {} })).toHaveLength(7);
+        });
+
+        it('includes the magnet button by default, before the clear button', () => {
+            const values = presetButtons()?.map((button) => button.value);
+            expect(values?.slice(-2)).toEqual(['magnet', 'clear']);
         });
     });
 });

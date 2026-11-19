@@ -85,7 +85,7 @@ test.describe('text-navigation', () => {
         await page.getByTitle('Settings').click();
         await page.getByRole('tab').getByText('Coordinates').click();
 
-        const input = page.getByLabel('Value X');
+        const input = page.getByLabel('Value: X');
         const original = await input.inputValue();
 
         // Focus the year, after the month and the day, and type its first digit.

@@ -1,11 +1,4 @@
-import type {
-    AgDrawingMode,
-    AgImageFill,
-    AgPatternColor,
-    CssColor,
-    LineDashOptions,
-    StrokeOptions,
-} from 'ag-charts-types';
+import type { AgDrawingMode, AgImageFill, AgPatternColor, CssColor, StrokeOptions } from 'ag-charts-types';
 
 import { clamp } from '../../data/numbers';
 import { objectsEqual } from '../../data/object';
@@ -28,6 +21,7 @@ import {
     SceneObjectChangeDetection,
     TRIPLE_EQ,
 } from '../../rendering/changeDetectable';
+import type { ResolvedLineDashOptions } from '../../rendering/lineDash';
 import type { AlignedInterval } from '../../rendering/pixel';
 import { align, alignCentre, centreSnapApplies, deviceDimension } from '../../rendering/pixel';
 import { parseSvg } from '../../rendering/svg';
@@ -44,6 +38,7 @@ import { Image } from '../image/image';
 import type { MatrixFrame } from '../matrix';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
+import { STROKE_ONLY_PATTERNS } from '../pattern/patterns';
 import {
     canTintShadows,
     getColourAlpha,
@@ -57,11 +52,8 @@ import { type ShadowSlot, dilatesShadow, getShadowSpread, shadowPass } from '../
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
-/**
- * The miter limit of the stroke that dilates a shape for its shadow `spread`. Right angles keep their sharp corners,
- * like a CSS `box-shadow` spread, while acute vertices are bevelled instead of spiking out.
- */
-const DILATION_MITER_LIMIT = 2;
+/** The miter limit of the stroke that dilates a shape for a `spread` or `gap`: it bevels vertices under about 57°, so a triangle marker's apex stays pointed. */
+const DILATION_MITER_LIMIT = 2.1;
 
 /** The alpha of a plain colour, which a shadow cast from an opaque copy of the shape has to follow. */
 function colourAlpha(colour: unknown): number {
@@ -85,24 +77,16 @@ function gradientAlpha(gradient: Gradient): number {
     return stops.length === 0 ? 1 : Math.max(...stops.map((stop) => colourAlpha(stop.color)));
 }
 
-/** The patterns that draw open segments, whose fill paints nothing. */
-const LINE_PATTERNS: ReadonlySet<string> = new Set([
-    'vertical-lines',
-    'horizontal-lines',
-    'forward-slanted-lines',
-    'backward-slanted-lines',
-]);
-
 /**
  * The most that a pattern paints. Its background, fill and stroke are drawn over one another, and where all three
  * overlap they composite, so that is `1 - (1 - a)(1 - b)(1 - c)`. `Pattern` paints nothing for a background or a fill that it
- * was not given, and draws no stroke of 0px. The line patterns draw open segments, so their fill paints nothing either,
+ * was not given, and draws no stroke of 0px. The stroke-only patterns paint no fill either,
  * unless a custom `path` replaces the segments, which it does only if it parses.
  */
 function patternAlpha(pattern: Pattern): number {
     const { fill, fillOpacity, backgroundFill, backgroundFillOpacity, stroke, strokeOpacity, strokeWidth } = pattern;
     const customPath = pattern.path != null && pattern.path !== '' && parseSvg(pattern.path) != null;
-    const fillsNothing = LINE_PATTERNS.has(pattern.pattern) && !customPath;
+    const fillsNothing = STROKE_ONLY_PATTERNS.has(pattern.pattern) && !customPath;
     const parts = [
         backgroundFill === 'none' ? 0 : paintAlpha(backgroundFill, backgroundFillOpacity),
         fill === 'none' || fillsNothing ? 0 : paintAlpha(fill, fillOpacity),
@@ -252,7 +236,7 @@ export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { col
 
 export type ShapeColor = CssColor | ShapeGradientColor | AgPatternColor | AgImageFill;
 
-type SvgAttributes = StrokeOptions & LineDashOptions;
+type SvgAttributes = StrokeOptions & ResolvedLineDashOptions;
 
 export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     @DeclaredSceneChangeDetection()
@@ -576,7 +560,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** A glow with no `fill` takes the shape's fill, else its stroke; kept per shadow and paint, as it is asked often. */
     getCastShadow(slot: ShadowSlot = 'shadow'): ResolvedDropShadowOptions | undefined {
         const shadow = this.getSlot(slot);
-        if (shadow?.enabled !== true) return;
+        if (shadow?.enabled !== true || shadow.cutOnly === true) return;
         if (shadow.fill != null) return shadow as ResolvedDropShadowOptions;
 
         const { __fill: fill, __fillOpacity: fillOpacity, __stroke: stroke, __strokeOpacity: strokeOpacity } = this;
@@ -610,6 +594,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
         }
         return cast.resolved;
+    }
+
+    /** Whether the shape casts no glow, and only cuts its footprint out of the glow overlay of the shadow root. */
+    cutsGlowOverlay(): boolean {
+        return this.__fillGlow?.cutOnly === true;
     }
 
     /**
@@ -696,9 +685,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * as the engine's would be erased inside its footprint; every other shape's glow is cast by the batch or root alone.
      */
     private castsOwnShadow(slot: ShadowSlot): boolean {
-        if (slot === 'glow' && (this.__fillGlow == null || this.__drawingMode !== 'cutout')) return false;
-        // A group above the shadow root casts the glow of a cutout that is `inGroup`, as it would for any other shape.
-        if (slot === 'glow' && this.__fillGlow?.inGroup === true) return false;
+        if (
+            slot === 'glow' &&
+            (this.__fillGlow == null || this.__drawingMode !== 'cutout' || shadowPass.hoveredGlowsCast)
+        ) {
+            return false;
+        }
 
         return shadowPass.state === 'none' && this.getCastShadow(slot) != null;
     }
@@ -723,13 +715,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
-        const shadow = this.getSlot(slot);
-        if (shadow?.enabled !== true) return;
-
+        // A label or error bar that cuts its series' glows has no glow of its own, but still has a footprint.
         if (shadowPass.erase != null) {
-            this.eraseFootprint(slot, ctx, path, shadowPass.erase);
+            this.eraseFootprint(slot, ctx, path, shadowPass.erase, shadowPass.erasePainted);
             return;
         }
+
+        const shadow = this.getSlot(slot);
+        if (shadow?.enabled !== true) return;
 
         const spread = getShadowSpread(shadow);
         const drawsFill = this.castsShadowFromFill(slot);
@@ -942,11 +935,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return true;
     }
 
-    /**
-     * Sets how the stroke that dilates the shape by a `spread` is drawn: solid, and capped so that open ends spread too.
-     * A `footprint` is joined round, which dilates every vertex by exactly the `spread`. The join of the item would spike
-     * at its sharp vertices, and cut the glow away well past the `gap`.
-     */
+    /** Sets how the stroke that dilates the shape by a `spread` is drawn: solid, capped, and mitred for a `footprint`. */
     private setDilationStyle(
         slot: ShadowSlot,
         ctx: CanvasContext,
@@ -960,7 +949,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.lineCap = dilationCap;
         const ownJoin = drawsStroke && !footprint;
         ctx.lineJoin = ownJoin ? (this.__lineJoin ?? 'miter') : 'miter';
-        if (footprint) ctx.lineJoin = 'round';
         ctx.miterLimit = ownJoin ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
         ctx.lineWidth = (drawsStroke ? this.__strokeWidth : 0) + spread * 2;
     }
@@ -978,31 +966,44 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         drawsStroke: boolean,
         footprint: boolean = false
     ) {
-        const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
-        ctx.fillStyle = tint;
-        ctx.strokeStyle = tint;
-        this.setDilationStyle(slot, ctx, spread, drawsStroke, footprint);
+        const clipped = slot === 'glow' && this.clipGlowEnds(ctx, spread);
+        try {
+            const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
+            ctx.fillStyle = tint;
+            ctx.strokeStyle = tint;
+            this.setDilationStyle(slot, ctx, spread, drawsStroke, footprint);
 
-        if (drawsFill) {
-            this.executeFill(ctx, path);
-        }
-        if (drawsStroke) {
-            this.shadowStrokeGrowth = spread * 2;
-            try {
-                this.executeStroke(ctx, path);
-            } finally {
-                this.shadowStrokeGrowth = 0;
+            if (drawsFill) {
+                this.executeFill(ctx, path);
             }
-            // The round join leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
-            if (footprint) this.executeOwnStroke(ctx, path);
-        } else if (drawsFill && spread > 0 && path != null) {
-            this.dilateFill(ctx, path);
+            if (drawsStroke) {
+                this.shadowStrokeGrowth = spread * 2;
+                try {
+                    this.executeStroke(ctx, path);
+                } finally {
+                    this.shadowStrokeGrowth = 0;
+                }
+                // The capped mitre leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
+                if (footprint) this.executeOwnStroke(ctx, path);
+            } else if (drawsFill && spread > 0 && path != null) {
+                this.dilateFill(ctx, path);
+            }
+            // A set gap casts the extras at any dilation, as the real paint of an ungapped glow does. A footprint has them always.
+            const shadow = this.getSlot(slot);
+            if (footprint || (this.getShadowMode(slot) !== 'fill' && shadow != null && dilatesShadow(shadow))) {
+                this.dilateSilhouetteExtras(ctx, spread * 2);
+            }
+        } finally {
+            if (clipped) ctx.restore();
         }
-        // A set gap casts the extras at any dilation, as the real paint of an ungapped glow does. A footprint has them always.
-        const shadow = this.getSlot(slot);
-        if (footprint || (this.getShadowMode(slot) !== 'fill' && shadow != null && dilatesShadow(shadow))) {
-            this.dilateSilhouetteExtras(ctx, spread * 2);
-        }
+    }
+
+    /**
+     * Saves `ctx` and clips it to where this shape's glow, or its `gap` cut, may reach, dilated by `reach`. Returns true if
+     * it did, for the caller to restore. A shape's glow reaches everywhere around it unless it says otherwise.
+     */
+    protected clipGlowEnds(_ctx: CanvasContext, _reach: number): boolean {
+        return false;
     }
 
     /** Strokes the path as the item paints it, with its own width and join. */
@@ -1013,16 +1014,31 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.executeStroke(ctx, path);
     }
 
-    /** Erases the geometry of the item, dilated by a glow's `gap`, from `ctx`, whatever its paint. A `Line` has no fill to erase. */
-    private eraseFootprint(slot: ShadowSlot, ctx: CanvasContext, path: Path2D | undefined, gap: number) {
+    /** Erases the geometry of the item, dilated by a glow's `gap`, or, if `painted`, only what it paints. A `Line` has no fill. */
+    private eraseFootprint(
+        slot: ShadowSlot,
+        ctx: CanvasContext,
+        path: Path2D | undefined,
+        gap: number,
+        painted: boolean = false
+    ) {
         if (ctx.globalAlpha <= 0 || (this.__opacity ?? 1) <= 0) return;
 
         const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
-        const drawsStroke = stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
-        const drawsFill = path != null && this.__shadowMode !== 'stroke';
+        const hasStroke = stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
+        const drawsStroke = hasStroke && (!painted || this.hasCastableStroke());
+        const drawsFill =
+            (path != null || this.fillsWithoutPath()) &&
+            this.__shadowMode !== 'stroke' &&
+            (!painted || this.hasCastableFill());
         ctx.globalAlpha = 1;
-        ctx.globalCompositeOperation = 'destination-out';
+        ctx.globalCompositeOperation = shadowPass.eraseOp;
         this.drawSpreadSilhouette(slot, ctx, path, gap, drawsFill, drawsStroke, true);
+    }
+
+    /** Whether {@link executeFill} paints the fill without a `Path2D`, as text does with its glyphs. */
+    protected fillsWithoutPath(): boolean {
+        return false;
     }
 
     /** True when the shape paints a stroke, which {@link renderStroke} skips otherwise. */

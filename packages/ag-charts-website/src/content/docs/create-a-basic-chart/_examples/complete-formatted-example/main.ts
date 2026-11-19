@@ -4,7 +4,6 @@ import {
     AgChartCaptionOptions,
     AgChartLegendOptions,
     AgChartOptions,
-    AgChartSubtitleOptions,
     AgCharts,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
@@ -32,7 +31,7 @@ const options: AgChartOptions = {
     // Chart Title
     title: { text: 'Ice Cream Sales and Avg Temp' } as AgChartCaptionOptions,
     // Chart Subtitle
-    subtitle: { text: 'Data from 2022' } as AgChartSubtitleOptions,
+    subtitle: { text: 'Data from 2022' } as AgChartCaptionOptions,
     // Data: Data to be displayed within the chart
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },

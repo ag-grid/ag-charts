@@ -536,6 +536,22 @@ describe('Color', () => {
         }
     });
 
+    test.each([
+        'rgb(1,2,3) junk',
+        'x rgb(1,2,3)',
+        'rgbx(1,2,3)',
+        'rgb(1,2,3) junk{} .testMarker{}',
+        'hsl(0, 0%, 0%) junk',
+        'x hsl(0, 0%, 0%)',
+        'oklch(0.7 0.15 200) junk',
+        'x oklch(0.7 0.15 200)',
+        '#abcdez',
+        'ab#cdef',
+    ])('rejects text around a colour: %s', (value) => {
+        expect(Color.validColorString(value)).toBe(false);
+        expect(() => Color.fromString(value)).toThrow();
+    });
+
     test('non-regression: previously-valid formats remain valid', () => {
         for (const value of ['#00000080', '#f00f', 'transparent', 'WHITE', 'oklch(0.7 0.15 200)']) {
             expect(Color.validColorString(value)).toBe(true);

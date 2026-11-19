@@ -24,6 +24,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgAnnotationAxisLabel,
+    AgAnnotationAxisShading,
     AgAnnotationHandleStyles,
     AgAnnotationOptionsToolbarButton,
     AgAnnotationOptionsToolbarSwitch,
@@ -52,7 +53,6 @@ import type {
 } from 'ag-charts-types';
 
 const annotationLineOptionsDef: OptionsDefs<LineOptions> = {
-    lineStyle: union('solid', 'dashed', 'dotted'),
     ...lineDashOptionsDef,
 };
 
@@ -92,6 +92,17 @@ export const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> =
     ...lineDashOptionsDef,
 };
 
+export const annotationAxisShadingOptionsDef: OptionsDefs<AgAnnotationAxisShading> = {
+    enabled: boolean,
+    ...fillOptionsDef,
+};
+
+/** The axis labels and shading shown while an annotation with two or more points is selected. */
+const selectionAxesDefs = {
+    axisLabel: annotationAxisLabelOptionsDef,
+    axisShading: annotationAxisShadingOptionsDef,
+};
+
 const annotationChannelMiddleDefs: OptionsDefs<AgChannelAnnotationMiddle> = {
     visible: boolean,
     ...annotationLineOptionsDef,
@@ -121,6 +132,7 @@ export const annotationLineStyleDefs: OptionsDefs<AgLineAnnotationStyles> = {
     extendEnd: boolean,
     handle: annotationHandleStylesDefs,
     text: annotationLineTextDefs,
+    ...selectionAxesDefs,
     ...annotationLineOptionsDef,
     ...strokeOptionsDef,
 };
@@ -145,6 +157,7 @@ export const annotationChannelStyleDefs: OptionsDefs<AgChannelAnnotationStyles> 
     handle: annotationHandleStylesDefs,
     text: annotationChannelTextDefs,
     background: fillOptionsDef,
+    ...selectionAxesDefs,
     ...annotationLineOptionsDef,
     ...strokeOptionsDef,
 };
@@ -208,6 +221,7 @@ export const annotationMeasurerStylesDefs: OptionsDefs<AgMeasurerAnnotationStyle
     text: annotationLineTextDefs,
     background: fillOptionsDef,
     statistics: annotationMeasurerStatisticsOptionsDefs,
+    ...selectionAxesDefs,
     ...annotationLineOptionsDef,
     ...strokeOptionsDef,
 };
@@ -216,6 +230,7 @@ export const annotationQuickMeasurerStylesDefs: OptionsDefs<AgQuickMeasurerAnnot
     visible: boolean,
     up: annotationQuickMeasurerDirectionStylesDefs,
     down: annotationQuickMeasurerDirectionStylesDefs,
+    ...selectionAxesDefs,
 };
 
 export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
@@ -224,6 +239,11 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
         enabled: boolean,
         axes: union('x', 'y', 'xy'),
         ...undocumentedDefs({ snap: boolean, snapInterval: positiveNumberNonZero }),
+    },
+    magnet: {
+        enabled: boolean,
+        mode: union('weak', 'strong'),
+        range: positiveNumber,
     },
     toolbar: {
         enabled: boolean,
@@ -249,6 +269,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
                     'comment',
                     'callout',
                     'note',
+                    'magnet',
                     'clear'
                 ),
             },

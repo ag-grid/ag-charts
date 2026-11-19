@@ -1,5 +1,5 @@
-import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import type { BBox, Logger } from 'ag-charts-core';
+import type { _ModuleSupport } from 'ag-charts-community';
+import type { BBox, Logger, Point } from 'ag-charts-core';
 import type { AgAnnotationFollow, AgNumericValue } from 'ag-charts-types';
 
 import type { PointType } from './utils/scale';
@@ -109,6 +109,8 @@ export interface AnnotationAxisContext extends Pick<
 > {
     bounds: BBox;
     labelPadding: number;
+    /** Distance from the edge of the series area to the outer edge of the axis's tick labels. */
+    thickness: number;
     snapToGroup: boolean;
 }
 
@@ -121,6 +123,13 @@ export interface AnnotationContext {
     isRtl: boolean;
     getVolume(from: DataPoint['x'], to: DataPoint['x']): AgNumericValue | undefined;
     getFollowedValue(follow: AgAnnotationFollow): PointType | undefined;
+    /**
+     * Snaps an offset in the series area to the nearest value of a datum, at its position, when the magnet is on. Creation
+     * applies it to the point it places, and each scene to the point that a handle drag ends on, through
+     * `snapPoint` or `magnetTranslation`; a new scene that moves a point with a handle must do the same. Moving a whole
+     * annotation, or moving it by keyboard, is exempt, as it has no single point to snap.
+     */
+    magnet(offset: Point): Point;
 }
 
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';
@@ -131,8 +140,11 @@ export interface FibonacciAnnotationToolbarOptionsType {
     showFill?: boolean;
 }
 
+/** The line styles the toolbar and settings dialog offer, each standing for a stock dash name. */
+export type AnnotationLineStyleType = 'solid' | 'dash' | 'dot';
+
 export interface AnnotationLineStyle {
-    type?: AgAnnotationLineStyleType;
+    lineDash?: AnnotationLineStyleType;
     strokeWidth?: number;
 }
 

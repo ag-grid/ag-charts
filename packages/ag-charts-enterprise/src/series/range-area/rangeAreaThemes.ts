@@ -1,6 +1,5 @@
 import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-community';
 import {
-    CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
@@ -23,6 +22,7 @@ import {
     inheritedGlowTheme,
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
+    lineDashThemeDefault,
     themeLineHeight,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
@@ -30,9 +30,7 @@ import {
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
 const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemOptions]> = {
-    lineDash: {
-        $path: '/series/$index/lineDash',
-    },
+    lineDash: lineDashThemeDefault({ $path: '/series/$index/lineDash' }),
     lineDashOffset: {
         $path: '/series/$index/lineDashOffset',
     },
@@ -91,9 +89,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         fillOpacity: {
             $path: '/series/$index/marker/fillOpacity',
         },
-        lineDash: {
-            $path: '/series/$index/marker/lineDash',
-        },
+        lineDash: lineDashThemeDefault({ $path: '/series/$index/marker/lineDash' }),
         lineDashOffset: {
             $path: '/series/$index/marker/lineDashOffset',
         },
@@ -167,7 +163,6 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             spacing: 10,
-            padding: 10,
             collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW, collideWith: { seriesArea: true } },
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside', 'textColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
@@ -197,11 +192,6 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
                 ],
             },
             fillOpacity: { $path: '../fillOpacity' },
-        },
-    },
-    axes: {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: {
-            crosshair: { enabled: true },
         },
     },
 };

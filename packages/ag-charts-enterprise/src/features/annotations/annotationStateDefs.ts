@@ -47,11 +47,14 @@ export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
     const channelText = { ...annotationChannelTextDefs, label: string };
     const textual = { ...point, text: string, padding: positiveNumber };
 
-    const line = { ...annotationLineStyleDefs, ...startEnd, text: lineText };
+    // `getState()` also emits the label's `textAlign`, which is not an option.
+    const axisLabel = { ...annotationAxisLabelOptionsDef, textAlign };
+
+    const line = { ...annotationLineStyleDefs, ...startEnd, text: lineText, axisLabel };
     const crossLine = {
         ...annotationCrossLineStyleDefs,
         value,
-        axisLabel: { ...annotationAxisLabelOptionsDef, textAlign },
+        axisLabel,
         text: lineText,
     };
     const followName = union('first', 'last');
@@ -62,8 +65,8 @@ export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
             optionsDefs<AgAnnotationFollowOptions>({ follow: required(followName), seriesId: string })
         ),
     };
-    const fibonacci = { ...annotationFibonacciStylesDefs, ...startEnd, text: lineText, reverse: boolean };
-    const measurer = { ...annotationMeasurerStylesDefs, ...startEnd, text: lineText };
+    const fibonacci = { ...annotationFibonacciStylesDefs, ...startEnd, text: lineText, reverse: boolean, axisLabel };
+    const measurer = { ...annotationMeasurerStylesDefs, ...startEnd, text: lineText, axisLabel };
     const quickMeasurerDirection = annotationQuickMeasurerStylesDefs.up;
     const callout = { ...annotationCalloutStylesDefs, ...startEnd, text: string, padding: positiveNumber };
 
@@ -78,6 +81,7 @@ export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
                 ...startEnd,
                 height: numericValue,
                 text: channelText,
+                axisLabel,
             },
             'disjoint-channel': {
                 ...annotationDisjointChannelStyleDefs,
@@ -85,6 +89,7 @@ export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
                 startHeight: numericValue,
                 endHeight: numericValue,
                 text: channelText,
+                axisLabel,
             },
             'fibonacci-retracement': fibonacci,
             'fibonacci-retracement-trend-based': { ...fibonacci, endRetracement: point },

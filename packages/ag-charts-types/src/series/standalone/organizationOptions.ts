@@ -8,6 +8,7 @@ import type {
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
+    AgLineDashName,
     ContextDefault,
     DatumDefault,
     DatumKey,
@@ -114,8 +115,8 @@ export interface AgOrganizationSeriesExpanderHoverStyle {
     stroke?: AgCssColorOrRef;
     /** The opacity of the stroke when the expander is hovered. */
     strokeOpacity?: Opacity;
-    /** An array specifying the length in pixels of alternating dashes and gaps, applied when the expander is hovered. */
-    lineDash?: PixelSize[];
+    /** The dash pattern applied when the expander is hovered: a stock pattern name, or an array specifying the length in pixels of alternating dashes and gaps. */
+    lineDash?: PixelSize[] | AgLineDashName;
     /** The initial offset of the dashed line in pixels, applied when the expander is hovered. */
     lineDashOffset?: PixelSize;
     /** Styling applied to the expander text when the expander is hovered. */

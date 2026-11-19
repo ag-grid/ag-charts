@@ -45,11 +45,22 @@ There are no breaking changes in AG Charts version {% migrationVersion() %}.
 The full list of breaking changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Breaking Changes" %}
+
 This release includes the following breaking changes:
 
-### Breaking changes section Name
+{% if isFramework("angular") %}
 
-- TODO: describe change
+### Compatibility
+
+- The minimum supported version of Angular is now Angular 21.
+
+{% /if %}
+
+### Types
+
+- The `AgChartSubtitleOptions` and `AgChartFooterOptions` types have been removed. Use `AgChartCaptionOptions` instead.
+- Pie and Donut series are no longer supported by `AgPolarChartOptions`. Use `AgStandaloneChartOptions` instead.
+- `AgPieSeriesOptions` and `AgDonutSeriesOptions` are no longer part of `AgPolarSeriesOptions`. Use `AgStandaloneSeriesOptions` instead.
 
 {% /expandingSection %}
 
@@ -71,6 +82,19 @@ This release includes the following behaviour changes:
 ### Theme Defaults
 
 - The default value of `contextMenu.allowBrowserMenuWithModifierKey` has changed from `false` to `true`.
+- The default value of `title.orientation` on a right-hand y-axis has changed from `'vertical-reversed'` to `'vertical'`.
+- The default value of `gradientLegend.gradient.preferredLength` has changed from `100` to `240`.
+- The default value of `crossAt.titlePlacement` has changed from `'crossing'` to `'edge'`.
+
+### OHLC Series
+
+- The default `seriesId` and legend label for OHLC series has changed from `ohlc-1` to `OhlcSeries-1`.
+
+### Cross Lines
+
+- Cartesian cross line labels now default to `wrapping: 'on-space'` and `truncate: true`. Setting one of `maxWidth`, `maxHeight`, `wrapping`, `truncate` or `minimumFontSize`, or giving `placement` as an array, no longer changes the defaults of the others.
+- A range cross line label with an `inside` placement that is longer than its band now wraps on spaces and truncates with an ellipsis to fit the band, instead of rendering at full length past it. To keep the previous rendering, set `wrapping: 'never'` and `truncate: false`.
+- The default value of a cartesian cross line label `placement` has changed from `'top'` to `['top', 'bottom']`, so a label that does not fit at the top is placed at the bottom.
 
 {% /expandingSection %}
 
@@ -87,9 +111,29 @@ The following APIs have been deprecated since version 14 and have now been remov
 
 {% expandingSection headerText="Removed Deprecated APIs" %}
 
-### Deprecated APIs section Name
+### Modules
 
-- TODO: describe change
+- `AllCartesianModule`, `AllCartesianAxesModule`, `AllCartesianSeriesModule`, `AllPolarModule`, `AllGaugeModule` and `AllMapSeriesModule` have been removed. Use `AllCommunityModule` / `AllEnterpriseModule`, or register the individual modules instead.
+- `AxisInteractionModule` is no longer exported. The Enterprise axis modules already include it.
+
+### Options
+
+- Organization series `verticalSpacing` has been removed. Use `depthSpacing` instead.
+- Heatmap series `textAlign` and `verticalAlign` have been removed. Use `label.textAlign` and `label.verticalAlign` instead.
+- Cone Funnel series `label.placement` values `'before'`, `'middle'` and `'after'` have been removed. Use `'start-center'`, `'middle-center'` and `'end-center'` instead.
+- The `overflowStrategy` label option has been removed from Heatmap, Treemap, Sunburst, Linear Gauge, Radial Gauge, Map Shape and Organization series. Use `truncate` instead: `'ellipsis'` becomes `truncate: true` and `'hide'` becomes `truncate: false`.
+- Treemap series `tile.textAlign` and `tile.verticalAlign` have been removed. Use the same options on `tile.label` and `tile.secondaryLabel` instead.
+- Treemap series `group.textAlign` has been removed. Use `group.label.textAlign` instead.
+- Navigator `mask` has been removed. Use `track` instead.
+- Cross-line `label.position` has been removed. Use `label.placement` instead.
+- Axis `line.width` has been removed. Use `line.strokeWidth` instead.
+- Linear Gauge `label.avoidCollisions` has been removed. Use `label.collision.alwaysShow` instead, which has the opposite sense: `avoidCollisions: false` becomes `collision.alwaysShow: true`.
+
+### Types
+
+- The `AgConeFunnelSeriesLabelPlacementAlias` type has been removed. Use `AgConeFunnelSeriesLabelPlacement` instead.
+- The `AgNavigatorMaskOptions` type has been removed. Use `AgNavigatorTrackOptions` instead.
+- The `time` import has been removed. Use an `AgTimeInterval` object instead.
 
 {% /expandingSection %}
 

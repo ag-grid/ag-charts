@@ -11,8 +11,8 @@ import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../.
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
-    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
+    AgErrorBarSeriesLabelCollisionFitOptions,
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -25,7 +25,13 @@ import type {
     AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    AgColorScale,
+    FillOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from './commonOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends
@@ -54,12 +60,13 @@ export type AgScatterSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
 > &
     ContextCallbackParams<TContext> &
     AgScatterSeriesOptionsKeys<TDatum> &
-    Required<AgSeriesMarkerStyle>;
+    Required<Omit<AgSeriesMarkerStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>, TContext>,
-        AgChartLabelCollisionFitOptions,
+        AgErrorBarSeriesLabelCollisionFitOptions,
         AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /** Whether to show the labels. Labels render only when `labelKey` is set. */

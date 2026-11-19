@@ -96,7 +96,7 @@ export interface ChartRegistry {
     readonly seriesStateManager: SeriesStateManager;
     readonly labelManager: LabelManager;
     readonly stateManager: StateManager;
-    readonly syncManager: SyncManager;
+    readonly syncManager?: SyncManager;
     readonly tooltipManager: TooltipManager;
     readonly validations: ChartValidations;
     readonly widgets: WidgetSet;

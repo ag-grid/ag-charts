@@ -74,4 +74,31 @@ describe('ToolbarButtonWidget', () => {
         expect(elem.children[1]).not.toBe(label);
         expect(elem.children[1].textContent).toBe('Zoom more');
     });
+
+    it.each([
+        ['ariaLabel', { ariaLabel: 'Aria', tooltip: 'Tooltip', label: 'Label' }, 'Aria'],
+        ['tooltip', { tooltip: 'Tooltip', label: 'Label' }, 'Tooltip'],
+        ['label', { label: 'Label' }, 'Label'],
+        ['locale key', { ariaLabel: 'toolbarRange1MonthAria', label: '1M' }, '1 month'],
+    ])('names the button from its %s', (_, options, expected) => {
+        expect(createButton(options).elem.getAttribute('aria-label')).toBe(expected);
+    });
+
+    it('removes the name when no ariaLabel, tooltip or label is set', () => {
+        const { elem, update } = createButton({ icon: 'zoom-in', ariaLabel: 'Zoom in' });
+
+        update({ icon: 'zoom-in' });
+        expect(elem.hasAttribute('aria-label')).toBe(false);
+    });
+
+    it('shows whether a toggle button is pressed, and nothing on a button that is reused for another', () => {
+        const { elem, update } = createButton({ icon: 'magnet', pressed: true });
+        expect(elem.getAttribute('aria-pressed')).toBe('true');
+
+        update({ icon: 'magnet', pressed: false });
+        expect(elem.getAttribute('aria-pressed')).toBe('false');
+
+        update({ icon: 'zoom-in' });
+        expect(elem.hasAttribute('aria-pressed')).toBe(false);
+    });
 });

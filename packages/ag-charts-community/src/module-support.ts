@@ -121,13 +121,14 @@ export type {
 } from './chart/interaction/contextMenuTypes';
 export { InteractionManager, InteractionState } from './chart/interaction/interactionManager';
 export { TooltipManager } from './chart/interaction/tooltipManager';
-export {
-    userInteraction,
-    type UpdateZoomSourcing,
-    type UpdateZoomWithFunction,
-    ZoomManager,
+export { userInteraction, ZoomManager } from './chart/interaction/zoomManager';
+export type {
+    CoreZoomState,
+    CoreZoomStateSafeRetrieval,
+    UpdateZoomChanges,
+    UpdateZoomSourcing,
+    UpdateZoomWithFunction,
 } from './chart/interaction/zoomManager';
-export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
 export { getItemId } from './chart/series/pickManager';
 export { Series } from './chart/series/series';
 export { SeriesNodePickMode } from './chart/series/pickTypes';
@@ -262,7 +263,14 @@ export type { ExtraOpts, ApplyFn, FromToFns } from './motion/fromToMotion';
 export { pathMotion } from './motion/pathMotion';
 export { DOMManager } from './dom/domManager';
 export { DOMElementProxy } from './dom/domElementProxy';
-export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
+export { SyncManager } from './chart/interaction/syncManager';
+export type {
+    SyncAxisLike,
+    SyncDerivedDomain,
+    SyncGroupMember,
+    SyncGroupState,
+    SyncStatus,
+} from './chart/interaction/syncManager';
 
 export {
     expandLabelBoxExtent,

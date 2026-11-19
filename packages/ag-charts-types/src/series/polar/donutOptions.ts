@@ -20,6 +20,7 @@ import type {
     AgColorType,
     FillOptions,
     LineDashOptions,
+    ResolvedLineDash,
     StrokeOptions,
     TextOptions,
     TextOrSegments,
@@ -56,7 +57,8 @@ export type AgDonutSeriesItemStylerParams<TDatum = DatumDefault, TContext = Cont
 > &
     ContextCallbackParams<TContext> &
     AgDonutSeriesOptionsKeys<TDatum> &
-    Required<AgDonutSeriesStyle>;
+    Required<Omit<AgDonutSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgDonutSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each sector. */
@@ -154,7 +156,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     radiusMax?: number;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
-    /** Configuration for the glow around the sectors. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. The faint sectors that a cross-filter draws behind the filtered ones cast no glow. */
+    /** Configuration for the glow around the sectors. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
     glow?: AgGlowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams<TDatum, TContext>>;

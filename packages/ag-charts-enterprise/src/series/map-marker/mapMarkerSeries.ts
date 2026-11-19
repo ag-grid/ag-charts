@@ -879,7 +879,7 @@ export class MapMarkerSeries
             }
         }
         // fill/stroke refs are resolved during theme-merge before reaching here.
-        return style as Required<NormalisedMapMarkerSeriesStyle> & AgItemShadowStyle;
+        return style;
     }
 
     private makeLabelFormatterParams() {
@@ -1245,7 +1245,18 @@ export class MapMarkerSeries
         } else if (latitudeKey != null && longitudeKey != null) {
             const latValue = dataModel.resolveColumnById(this, `latValue`, processedData, 'number')[datumIndex];
             const lonValue = dataModel.resolveColumnById(this, `lonValue`, processedData, 'number')[datumIndex];
-            heading = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
+            const { localeManager } = this.ctx;
+            // Pass the numbers as strings: the message formatter would reformat a number and drop the 4 decimal places.
+            heading = localeManager.t('seriesMapMarkerTooltipCoordinates', {
+                lat: Math.abs(latValue).toFixed(4),
+                latDirection: localeManager.t(
+                    latValue >= 0 ? 'seriesMapMarkerTooltipNorth' : 'seriesMapMarkerTooltipSouth'
+                ),
+                lon: Math.abs(lonValue).toFixed(4),
+                lonDirection: localeManager.t(
+                    lonValue >= 0 ? 'seriesMapMarkerTooltipEast' : 'seriesMapMarkerTooltipWest'
+                ),
+            });
         }
 
         const format = this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);

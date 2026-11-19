@@ -1,6 +1,6 @@
-import type { AgBaseCrossLineOptions } from 'ag-charts-types';
+import type { AgBaseCrossLineOptions, AgCartesianCrossLineLabelOptions } from 'ag-charts-types';
 
-import { FONT_THEME_DEFAULTS, LABEL_OVERFLOW_DEFAULTS, themeLineHeight, undocumentedThemeOptions } from './themeUtil';
+import { FONT_THEME_DEFAULTS, lineDashThemeDefault, themeLineHeight, undocumentedThemeOptions } from './themeUtil';
 
 /**
  * Title defaults for axes that render a title (cartesian + radius). Composed via
@@ -100,7 +100,7 @@ export const commonAxisThemeTemplate = {
         enabled: true,
         strokeWidth: { $ref: 'axisLineWidth' },
         strokeOpacity: 1,
-        lineDash: [],
+        lineDash: lineDashThemeDefault([]),
         stroke: { $ref: 'axisLineColor' },
     },
     tick: {
@@ -118,14 +118,14 @@ export const commonAxisThemeTemplate = {
                     fillOpacity: 1,
                     stroke: { $ref: 'gridLineColor' },
                     strokeWidth: { $path: '../../width' },
-                    lineDash: [],
+                    lineDash: lineDashThemeDefault([]),
                 },
                 [
                     {
                         fillOpacity: 1,
                         stroke: { $ref: 'gridLineColor' },
                         strokeWidth: { $path: '../../width' },
-                        lineDash: [],
+                        lineDash: lineDashThemeDefault([]),
                     },
                 ],
             ],
@@ -135,8 +135,17 @@ export const commonAxisThemeTemplate = {
 
 export const CROSS_LINE_TYPES = ['line', 'range'] as const satisfies ReadonlyArray<AgBaseCrossLineOptions['type']>;
 
+export type CrossLineLabelDefaults = Pick<AgCartesianCrossLineLabelOptions, 'wrapping' | 'truncate' | 'placement'>;
+
+/** Label fit and placement defaults for cartesian cross-lines; polar labels have no such options. */
+export const CARTESIAN_CROSS_LINE_LABEL_DEFAULTS: CrossLineLabelDefaults = {
+    wrapping: 'on-space',
+    truncate: true,
+    placement: ['top', 'bottom'],
+};
+
 /** Defaults for each cross-line, layered with the `common` and per-series axis theme overrides for its kind. */
-export const crossLinesThemeTemplate = {
+export const crossLinesThemeTemplate = (labelDefaults: CrossLineLabelDefaults = {}) => ({
     $apply: [
         {
             enabled: true,
@@ -146,8 +155,9 @@ export const crossLinesThemeTemplate = {
             fillOpacity: { $if: [{ $eq: [{ $path: './type' }, 'range'] }, 0.08, undefined] },
             stroke: { $ref: 'foregroundColor' },
             strokeWidth: 1,
+            lineDash: lineDashThemeDefault([]),
             label: {
-                ...LABEL_OVERFLOW_DEFAULTS,
+                ...labelDefaults,
                 ...undocumentedThemeOptions({ overflow: 'pad-chart' }),
                 ...FONT_THEME_DEFAULTS,
                 padding: {
@@ -178,4 +188,4 @@ export const crossLinesThemeTemplate = {
         },
         CROSS_LINE_TYPES,
     ],
-};
+});

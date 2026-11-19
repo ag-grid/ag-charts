@@ -49,7 +49,7 @@ import type {
     NormalisedCartesianSeriesOptionsCommon,
     NormalisedSeriesSegmentation,
 } from './normalisedCartesianSeries';
-import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedDropShadowOptions, NormalisedLineDash } from './normalisedCommonOptions';
 import type { NormalisedChartLabelPlacementStyleOptions, NormalisedSeriesLabelOptions } from './normalisedLabelOptions';
 import type { NormalisedSeriesOptions } from './normalisedSeriesOptions';
 
@@ -75,7 +75,7 @@ export type NormalisedRangeBarSeriesOwnOptions = Normalised<
         styler?: Styler<AgRangeBarSeriesStylerParams<unknown, unknown>, AgRangeBarSeriesStyle>;
         itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<unknown>, AgRangeBarSeriesStyle>;
         segmentation: NormalisedSeriesSegmentation;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedRangeBarSeriesOptions = NormalisedSeriesOptions<NormalisedRangeBarSeriesOwnOptions> &
@@ -91,13 +91,13 @@ export type NormalisedWaterfallSeriesItemOptions = Normalised<
         shadow?: NormalisedDropShadowOptions;
         label: NormalisedBarSeriesLabelOptions<AgWaterfallSeriesLabelFormatterParams, AgWaterfallSeriesLabelPlacement>;
         itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<unknown>, AgWaterfallSeriesStyle>;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedWaterfallSeriesLineOptions = Normalised<
     AgWaterfallSeriesLineOptions,
     'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset',
-    { stroke: CssColor }
+    { stroke: CssColor } & NormalisedLineDash
 >;
 
 /** Waterfall options the series owns, before the common series keys are layered on. */
@@ -118,7 +118,11 @@ export type NormalisedWaterfallSeriesOptions = NormalisedSeriesOptions<Normalise
     NormalisedCartesianSeriesOptionsCommon;
 
 /** Whisker overrides; each absent key falls back to the box stroke at render time. */
-export type NormalisedBoxPlotWhiskerOptions = Normalised<AgBoxPlotWhiskerOptions, never, { stroke?: CssColor }>;
+export type NormalisedBoxPlotWhiskerOptions = Normalised<
+    AgBoxPlotWhiskerOptions,
+    never,
+    { stroke?: CssColor } & NormalisedLineDash
+>;
 
 /** Box plot options the series owns, before the common series keys are layered on. */
 export type NormalisedBoxPlotSeriesOwnOptions = Normalised<
@@ -143,7 +147,7 @@ export type NormalisedBoxPlotSeriesOwnOptions = Normalised<
         styler?: Styler<AgBoxPlotSeriesStylerParams<unknown, unknown>, AgBoxPlotSeriesStyle>;
         itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<unknown>, AgBoxPlotSeriesStyle>;
         segmentation: NormalisedSeriesSegmentation;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedBoxPlotSeriesOptions = NormalisedSeriesOptions<NormalisedBoxPlotSeriesOwnOptions> &
@@ -155,7 +159,7 @@ type StrokeStyleRequiredKeys = 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lin
 export type NormalisedOhlcSeriesItemOptions = Normalised<
     AgOhlcSeriesItemOptions,
     StrokeStyleRequiredKeys,
-    { stroke: CssColor }
+    { stroke: CssColor } & NormalisedLineDash
 >;
 
 /** Wick overrides; each absent key falls back to the candle body stroke at render time. */
@@ -165,7 +169,7 @@ export type NormalisedCandlestickWickOptions = Normalised<AgCandlestickWickOptio
 export type NormalisedCandlestickSeriesItemOptions = Normalised<
     AgCandlestickSeriesItemOptions,
     BarStyleRequiredKeys,
-    { fill: NormalisedColorType; stroke: CssColor; wick?: NormalisedCandlestickWickOptions }
+    { fill: NormalisedColorType; stroke: CssColor; wick?: NormalisedCandlestickWickOptions } & NormalisedLineDash
 >;
 
 /**
@@ -259,7 +263,7 @@ export type NormalisedFunnelSeriesOwnOptions = Normalised<
         shadow: NormalisedDropShadowOptions;
         label: NormalisedBarSeriesLabelOptions<AgFunnelSeriesLabelFormatterParams, AgFunnelSeriesLabelPlacement>;
         itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedFunnelSeriesOptions = NormalisedSeriesOptions<NormalisedFunnelSeriesOwnOptions> &
@@ -277,7 +281,7 @@ export type NormalisedConeFunnelSeriesOwnOptions = Normalised<
             placement?: AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacement[];
             spacing: number;
         };
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedConeFunnelSeriesOptions = NormalisedSeriesOptions<NormalisedConeFunnelSeriesOwnOptions> &

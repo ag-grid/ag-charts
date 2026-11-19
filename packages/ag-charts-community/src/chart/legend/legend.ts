@@ -29,6 +29,7 @@ import {
     isPatternFill,
     isTextTruncated,
     objectsEqual,
+    rescaleLineDash,
     toPlainText,
     toTextString,
     truncateLine,
@@ -839,11 +840,13 @@ export class Legend {
         const { disabledStyle } = this.opts.item.line;
         const overrides = enabled ? undefined : disabledStyle;
 
+        const drawnStrokeWidth = this.opts.item.line.strokeWidth ?? defaultLineStrokeWidth;
+
         return {
             stroke: overrides?.stroke ?? stroke,
             strokeOpacity: overrides?.strokeOpacity ?? strokeOpacity,
-            strokeWidth: this.opts.item.line.strokeWidth ?? defaultLineStrokeWidth,
-            lineDash: overrides?.lineDash ?? lineDash,
+            strokeWidth: drawnStrokeWidth,
+            lineDash: overrides?.lineDash ?? rescaleLineDash(lineDash, strokeWidth ?? 1, drawnStrokeWidth),
             lineDashOffset: overrides?.lineDashOffset,
             opacity: enabled ? 1 : this.disabledOpacities().line,
         };
@@ -854,6 +857,7 @@ export class Legend {
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
         const { disabledStyle } = this.opts.item.marker;
         const overrides = enabled ? undefined : disabledStyle;
+        const drawnStrokeWidth = overrides?.strokeWidth ?? this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth;
         // The symbol is pre-cloned by the caller, but the disabled fill comes straight from the
         // options and is mutated below when it is a pattern or image fill.
         const fill = overrides?.fill == null ? marker.fill : deepClone(overrides.fill);
@@ -879,8 +883,8 @@ export class Legend {
                     stroke: overrides?.stroke ?? stroke,
                     strokeOpacity: overrides?.strokeOpacity ?? strokeOpacity,
                     fillOpacity: overrides?.fillOpacity ?? fillOpacity,
-                    strokeWidth: overrides?.strokeWidth ?? this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
-                    lineDash,
+                    strokeWidth: drawnStrokeWidth,
+                    lineDash: rescaleLineDash(lineDash, strokeWidth ?? 1, drawnStrokeWidth),
                     lineDashOffset,
                 },
                 FILL_GRADIENT_BLANK_DEFAULTS,

@@ -1,4 +1,4 @@
-import { type ModuleScope, type PlainObject, isNumber, isObjectLike } from 'ag-charts-core';
+import { type ModuleScope, type PlainObject, SKIP_JS_BUILTINS, isNumber, isObjectLike } from 'ag-charts-core';
 
 import type { PaletteType } from './coreModulesTypes';
 
@@ -45,9 +45,17 @@ export interface OptionsGraphInterface {
         object: PlainObject,
         overridesPathArrays?: Array<Array<string> | undefined>,
         edgeValue?: string,
-        typeKeys?: OverrideTypeKeys
+        typeKeys?: OverrideTypeKeys,
+        userSource?: boolean
     ): void;
-    graftValue(target: VertexInterface, path: string, ontoObject: unknown, value: unknown, edgeValue?: string): void;
+    graftValue(
+        target: VertexInterface,
+        path: string,
+        ontoObject: unknown,
+        value: unknown,
+        edgeValue?: string,
+        userSource?: boolean
+    ): void;
     hasThemeOverride(path: Array<string>): boolean;
     hasUserOption(path: Array<string>): boolean;
     neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface> | undefined;
@@ -147,9 +155,11 @@ export function setPathSafe(object: PlainObject, path: (string | number)[], valu
     let result = object;
     const lastIndex = pathLength - 1;
     const lastPart = path[lastIndex];
+    if (SKIP_JS_BUILTINS.has(lastPart as string)) return;
 
     for (let i = 0; i < lastIndex; i++) {
         const part = path[i];
+        if (SKIP_JS_BUILTINS.has(part as string)) return;
         const nextPart = path[i + 1];
         let currentValue = result[part];
 
@@ -230,3 +240,23 @@ export function resolvePath(currentPath: string[], path: string, variables?: Pla
 
 export const UNRESOLVABLE_PATH = Symbol('unresolvable-path');
 export const RESOLVED_TO_BRANCH = Symbol('resolved-to-branch');
+
+const COLOR_OPTION_KEYS = new Set(['fill', 'stroke', 'color', 'fills', 'strokes', 'colors']);
+const COLOR_OPTION_KEY_REGEX = /(?:Colors?|Fills?|Strokes?|ColorRange)$/;
+
+/** Whether an option key holds a colour, or a list of colours, so a `var(--…)` value there is a CSS variable. */
+export function isColorOptionKey(key: string) {
+    return COLOR_OPTION_KEYS.has(key) || COLOR_OPTION_KEY_REGEX.test(key);
+}
+
+/**
+ * Whether the nearest named segment of `pathArray` is a colour option key. A path with no named segment is treated as
+ * a colour location, as its key is unknown.
+ */
+export function isColorOptionPath(pathArray: Array<string>) {
+    for (let i = pathArray.length - 1; i >= 0; i--) {
+        const part = pathArray[i];
+        if (!DIGITS_ONLY_REGEX.test(part)) return isColorOptionKey(part);
+    }
+    return true;
+}

@@ -264,6 +264,31 @@ describe('LegendEvent', () => {
             expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 1 })).toBe(true);
             expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 2 })).toBe(true);
         });
+        it('setState skips a legend entry whose seriesId has no legend data and still restores later sections', async () => {
+            const opts = {
+                data: [
+                    { os: 'Android', share: 5 },
+                    { os: 'iOS', share: 3 },
+                ],
+                series: [{ id: 'pie-1', type: 'pie', angleKey: 'share', legendItemKey: 'os' }],
+            } as AgChartOptions;
+            const apiChart = await createChart(opts);
+            chart = apiChart;
+            prepareTestOptions(opts);
+            await waitForChartStability(chart);
+
+            const state = apiChart.getState();
+            await expect(
+                apiChart.setState({
+                    ...state,
+                    legend: [{ seriesId: 'constructor', visible: false, itemId: 'a' }],
+                    collapsed: [1],
+                })
+            ).resolves.toBeUndefined();
+            await waitForChartStability(chart);
+
+            expect(apiChart.getState().collapsed).toEqual([1]);
+        });
     });
 
     describe('label.text', () => {

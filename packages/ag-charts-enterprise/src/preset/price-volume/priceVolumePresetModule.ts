@@ -24,6 +24,7 @@ import { ChartToolbarModule } from '../../features/chart-toolbar/chartToolbarMod
 import { StatusBarModule } from '../../features/status-bar/statusBarModule';
 import { CandlestickSeriesModule } from '../../series/candlestick/candlestickModule';
 import { RangeBarSeriesModule } from '../../series/range-bar/rangeBarModule';
+import { basePresetOptionsDefs } from '../presetCommonOptions';
 import { volumeProfileBarsOptionsDef, volumeProfileTotalSegmentOptionsDef } from '../volume-profile/volumeProfile';
 import { priceVolume } from './priceVolumePreset';
 import { annotationsTheme } from './priceVolumePresetTheme';
@@ -71,6 +72,9 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     formatter: defined,
     enableRtl: boolean,
     suppressFieldDotNotation: boolean,
+    locale: defined,
+    touch: defined,
+    ...basePresetOptionsDefs,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
         foreground: defined,
@@ -82,7 +86,15 @@ const NO_UNHIGHLIGHT_THEME = { unhighlightedItem: { opacity: 1 }, unhighlightedS
 // The axis theme is taken from the first series' type, and series themes set `snap` over `common`, so this is applied
 // to every series type the preset can put first.
 const PRICE_AXIS_THEME = {
-    number: { crosshair: { snap: { $if: [{ $preset: 'tickSize' }, true, false] } as any } },
+    // Crosshair options are themed rather than set by `create()`, so that theme overrides can turn them off.
+    number: {
+        crosshair: {
+            enabled: true,
+            snap: { $if: [{ $preset: 'tickSize' }, true, false] } as any,
+            snapInterval: { $preset: 'tickSize' } as any,
+        },
+    },
+    'ordinal-time': { crosshair: { enabled: true } },
 };
 
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {

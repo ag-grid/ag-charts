@@ -22,7 +22,7 @@ import {
 import { getManagerSizeMonitor } from '../dom/test/domAccessors';
 import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
 import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
-import { invalidOption } from '../module/test/moduleAccessors';
+import { fakeComputedStyle, invalidOption } from '../module/test/moduleAccessors';
 
 describe('AgCharts', () => {
     setupMockConsole({ includeAllLevels: true });
@@ -806,6 +806,28 @@ describe('AgCharts', () => {
             expect(deproxy(chart).series).toHaveLength(1);
             expect(console.error).not.toHaveBeenCalled();
         });
+    });
+
+    it('adds no CSS variable watcher for an incomplete var() value in a title', async () => {
+        chart = await createChart({
+            title: { text: 'var(--x, rgb(1,2,3) junk{} .testMarker{})' },
+            data: [{ x: 'a', y: 1 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        } as AgChartOptions);
+
+        expect(document.querySelectorAll('[data-variable-name]')).toHaveLength(0);
+    });
+
+    it('adds no CSS variable watcher for a complete var() value in a title', async () => {
+        vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue(fakeComputedStyle({ '--brand': '#00ff00' }));
+        chart = await createChart({
+            title: { text: 'var(--brand)' },
+            data: [{ x: 'a', y: 1 }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        } as AgChartOptions);
+
+        expect(document.querySelectorAll('[data-variable-name]')).toHaveLength(0);
+        expect(deproxy(chart).chartOptions.processedCSSVariables).toEqual({});
     });
 
     describe('CSS variables left out of a styler result on a detached container', () => {

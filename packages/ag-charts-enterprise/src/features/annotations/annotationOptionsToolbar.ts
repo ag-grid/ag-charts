@@ -1,4 +1,4 @@
-import { type AgAnnotationLineStyleType, type AgAnnotationOptionsToolbar, _ModuleSupport } from 'ag-charts-community';
+import { type AgAnnotationOptionsToolbar, _ModuleSupport } from 'ag-charts-community';
 import {
     type BoxBounds,
     CleanupRegistry,
@@ -16,6 +16,7 @@ import type {
 import { ColorPicker } from '../../components/color-picker/colorPicker';
 import { getDefaultColor, getDefaultOpacity } from './annotationDatums';
 import {
+    type AnnotationLineStyleType,
     type AnnotationOptionsColorPickerType,
     type HasColorAnnotationType,
     type HasFontSizeAnnotationType,
@@ -59,6 +60,7 @@ interface EventMap {
         type: HasColorAnnotationType;
         colorPickerType: AnnotationOptionsColorPickerType;
         color: string | undefined;
+        cancelled: boolean;
     };
     'updated-color': {
         type: HasColorAnnotationType;
@@ -69,7 +71,7 @@ interface EventMap {
         isMultiColor: boolean;
     };
     'updated-font-size': { type: HasFontSizeAnnotationType; fontSize: number };
-    'updated-line-style': { type: HasLineStyleAnnotationType; lineStyleType: AgAnnotationLineStyleType };
+    'updated-line-style': { type: HasLineStyleAnnotationType; lineStyleType: AnnotationLineStyleType };
     'updated-line-width': { type: HasLineStyleAnnotationType; strokeWidth: number };
 }
 
@@ -308,7 +310,7 @@ export class AnnotationOptionsToolbar {
         });
     }
 
-    public updateLineStyleType(item: _ModuleSupport.MenuItem<AgAnnotationLineStyleType>) {
+    public updateLineStyleType(item: _ModuleSupport.MenuItem<AnnotationLineStyleType>) {
         this.updateButtonByValue(AnnotationOptions.LineStyleType, {
             icon: item.icon,
         });
@@ -338,9 +340,9 @@ export class AnnotationOptionsToolbar {
 
         switch (button.value) {
             case AnnotationOptions.LineStyleType: {
-                const lineStyle = hasLineStyle(datum) ? getLineStyle(datum.lineDash, datum.lineStyle) : undefined;
+                const lineStyle = hasLineStyle(datum) ? getLineStyle(datum.lineDash) : undefined;
                 this.openOverlay = button.value;
-                this.lineStyleTypeMenu.show<AgAnnotationLineStyleType>(buttonWidget, {
+                this.lineStyleTypeMenu.show<AnnotationLineStyleType>(buttonWidget, {
                     items: LINE_STYLE_TYPE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyle'),
                     value: lineStyle,
@@ -377,11 +379,12 @@ export class AnnotationOptionsToolbar {
                     hasMultiColorOption: isFibonacciType(datum),
                     isMultiColor: isFibonacciType(datum) && datum.isMultiColor,
                     onChange: datum == null ? undefined : this.onColorPickerChange.bind(this, button.value, datum),
-                    onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
+                    onChangeHide: ((type: AnnotationOptionsColorPickerType, cancelled: boolean) => {
                         this.events.emit('saved-color', {
                             type: datum.type,
                             colorPickerType: button.value as AnnotationOptionsColorPickerType,
                             color: getDefaultColor(datum, type),
+                            cancelled,
                         });
                     }).bind(this, button.value),
                 });
@@ -487,10 +490,7 @@ export class AnnotationOptionsToolbar {
         this.updateFontSize(fontSize);
     }
 
-    private onLineStyleTypeMenuPress(
-        item: _ModuleSupport.MenuItem<AgAnnotationLineStyleType>,
-        datum?: AnnotationDatum
-    ) {
+    private onLineStyleTypeMenuPress(item: _ModuleSupport.MenuItem<AnnotationLineStyleType>, datum?: AnnotationDatum) {
         if (!hasLineStyle(datum)) return;
 
         const type = item.value;
@@ -535,7 +535,7 @@ export class AnnotationOptionsToolbar {
         if (!hasLineStyle(datum)) return;
 
         const strokeWidth = datum.strokeWidth ?? 1;
-        const lineStyleType = getLineStyle(datum.lineDash, datum.lineStyle);
+        const lineStyleType = getLineStyle(datum.lineDash);
 
         this.updateStrokeWidth({
             strokeWidth,

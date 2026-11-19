@@ -120,14 +120,35 @@
 }
 
 /* Input */
-.ag-charts-dialog__input-group--inputs {
+.ag-charts-dialog__input-row {
     column-gap: 6px;
+    display: flex;
     flex-wrap: wrap;
     row-gap: 4px;
 }
 
-.ag-charts-dialog__input-group--inputs > .ag-charts-dialog__input-group-label {
-    flex: 0 0 100%;
+/* Closes the panel gap above a row to the row-gap, to group it with the row before it. */
+.ag-charts-dialog__input-row--follows {
+    margin-top: calc(var(--ag-charts-spacing) * -3);
+}
+
+.ag-charts-dialog__labelled-input {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--ag-charts-chrome-font-size);
+    flex: 1 1 90px;
+    gap: 2px;
+    line-height: var(--ag-charts-chrome-line-height);
+    min-width: 0;
+}
+
+.ag-charts-dialog__labelled-input:has(> .ag-charts-dialog__input[type='number']) {
+    flex: none;
+}
+
+.ag-charts-dialog__labelled-input--inline {
+    align-items: center;
+    flex-direction: row;
 }
 
 .ag-charts-dialog__input {
@@ -136,14 +157,16 @@
     border-radius: var(--ag-charts-input-border-radius);
     border-style: solid;
     border-width: var(--ag-charts-input-border-width);
-    flex: 1 1 90px;
+    flex: 1 1 auto;
     font-size: inherit;
-    min-width: 90px;
+    min-width: 0;
     padding: 3px 4px 4px;
 }
 
-.ag-charts-dialog__input[type='datetime-local'] {
-    flex-basis: 170px;
+/* Room for six digits, a decimal point and the spin buttons. */
+.ag-charts-dialog__input[type='number'] {
+    flex: none;
+    width: calc(7ch + 28px);
 }
 
 /* Button */

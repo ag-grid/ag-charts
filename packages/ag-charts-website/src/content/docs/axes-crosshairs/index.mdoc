@@ -48,6 +48,37 @@ This default behaviour can be modified by using the crosshair `snap` option. Whe
 
 {% chartExampleRunner title="Crosshair Snap False" name="crosshair-snap" type="generated" /%}
 
+### Snap Interval
+
+Use `snapInterval` on `number`, `log` and `time` axes to round the pointer position to a fixed step, such as a price tick or a time slot. The crosshair then follows the pointer in those steps instead of snapping to the highlighted item. Setting it turns snapping on, unless `snap` is `false`.
+
+{% chartExampleRunner title="Crosshair Snap Interval" name="crosshair-snap-interval" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'time',
+            crosshair: {
+                snapInterval: { unit: 'minute', step: 15 },
+            },
+        },
+        y: {
+            type: 'number',
+            crosshair: {
+                snapInterval: 0.25,
+            },
+        },
+    },
+}
+```
+
+In this example:
+
+- The `y` axis crosshair rounds to the nearest multiple of `0.25`.
+- The `x` axis crosshair rounds to the nearest 15 minutes. On `time` axes, `snapInterval` takes the same values as [`interval.step`](./axes-intervals/).
+- Hover the chart to see both crosshairs follow the pointer in steps, whichever item is highlighted.
+
 ## Styles
 
 Crosshair styles such as `stroke`, `strokeWidth` and `lineDash` are customisable via `AgCrosshairOptions`.
@@ -183,6 +214,7 @@ Note that:
 
 - The structure of the returned DOM is up to you.
 - The elements have custom CSS class attributes, but the default class names can also be used so that the label gets the default styling.
+- The label is positioned allowing for the theme's `crosshairLabelVerticalPadding` and `crosshairLabelHorizontalPadding`, but only an element with the default `ag-charts-crosshair-label-content` class is given that padding.
 - The styles for the elements are defined in the external styles.css file.
 
 {% chartExampleRunner title="Crosshair Custom Label" name="crosshair-custom-label" type="generated" /%}
@@ -222,6 +254,14 @@ See the [Band Highlight API Reference](#reference-AgBandHighlightOptions) for mo
 
 {% tabItem id="AgCrosshairOptions" label="Crosshair" %}
 {% apiReference id="AgCrosshairOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgNumericAxisCrosshairOptions" label="Number and Log Axis Crosshair" %}
+{% apiReference id="AgNumericAxisCrosshairOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgTimeAxisCrosshairOptions" label="Time Axis Crosshair" %}
+{% apiReference id="AgTimeAxisCrosshairOptions" /%}
 {% /tabItem %}
 
 {% tabItem id="AgBandHighlightOptions" label="Band Highlight" %}

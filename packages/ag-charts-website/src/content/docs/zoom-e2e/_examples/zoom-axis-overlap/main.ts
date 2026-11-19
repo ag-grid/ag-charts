@@ -24,6 +24,7 @@ const options: AgCartesianChartOptions = {
         y: {
             type: 'number',
             crossAt: { value: 5, titlePlacement: 'crossing', crosshairLabelPlacement: 'crossing' },
+            crosshair: { enabled: true },
             title: { text: 'Value' },
             line: {
                 stroke: 'black',

@@ -8,6 +8,7 @@ import {
     type CrossLineLabelPosition,
     type CrossLineType,
     type DynamicContext,
+    LinearScale,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
     Transformable,
@@ -33,6 +34,7 @@ import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import { getSeriesRect } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
+import { prepareProcessedOptions } from '../test/prepareOptions';
 import { getSeriesSelectionNodes } from '../test/seriesAccessors';
 import type { CartesianTestCase } from '../test/utils';
 import {
@@ -1590,7 +1592,12 @@ describe('CrossLine', () => {
                 parent: { position: 'bottom' },
             };
             // A stub of the context members the unit under test reads, not a full axis context.
-            return new CartesianCrossLine(axisCtx as unknown as DynamicContext<CrossLinesRegistry>);
+            const crossLine = new CartesianCrossLine(axisCtx as unknown as DynamicContext<CrossLinesRegistry>);
+            crossLine.scale = new LinearScale();
+            crossLine.scale.domain = [0, 10];
+            crossLine.scale.range = [0, 100];
+            crossLine.gridLength = 100;
+            return crossLine;
         }
 
         function crossLineWith(
@@ -1600,6 +1607,7 @@ describe('CrossLine', () => {
         ) {
             const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions(type, { overflow, placement }));
+            crossLine.calculateLayout(true);
             return crossLine;
         }
 
@@ -1629,6 +1637,7 @@ describe('CrossLine', () => {
         it('an unset overflow pads as pad-chart does', () => {
             const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions('line', { placement: 'top' }));
+            crossLine.calculateLayout(true);
 
             const into: Partial<Record<CrossLineLabelPosition, number>> = {};
             crossLine.calculatePadding(into);
@@ -1925,11 +1934,13 @@ describe('CrossLine', () => {
         // that overlaps it and pads the chart further.
         function collisionChart({
             alwaysShow = false,
+            defaultPlacement = false,
             stroke = 'blue',
             small = {},
             values: [smallValue, largeValue] = [5, 5],
         }: {
             alwaysShow?: boolean;
+            defaultPlacement?: boolean;
             stroke?: string;
             small?: Partial<SmallLabel>;
             values?: [number, number];
@@ -1950,7 +1961,12 @@ describe('CrossLine', () => {
                             {
                                 type: 'line',
                                 value: largeValue,
-                                label: { text: 'LARGE LABEL', fontSize: 40, collision: { alwaysShow } },
+                                label: {
+                                    text: 'LARGE LABEL',
+                                    fontSize: 40,
+                                    placement: defaultPlacement ? undefined : 'top',
+                                    collision: { alwaysShow },
+                                },
                             },
                         ],
                     },
@@ -1981,6 +1997,15 @@ describe('CrossLine', () => {
         it('renders a colliding label hidden without the space it would pad', async () => {
             chart = deproxy(await createChart(collisionChart()));
             await compare();
+        });
+
+        it('moves a colliding label to the bottom by default', async () => {
+            chart = deproxy(await createChart(collisionChart({ defaultPlacement: true })));
+
+            expect(labelsShown()).toEqual([true, true]);
+            const [, large] = crossLineInstancesOf(chart, 'x');
+            const { y } = Transformable.toCanvas(large.labelGroup);
+            expect(y).toBeGreaterThan(chart.seriesRect!.y + chart.seriesRect!.height);
         });
 
         it('keeps a label outside the series area when nothing collides with it', async () => {
@@ -3029,6 +3054,7 @@ describe('CrossLine label fitting', () => {
     });
 
     const LONG_TEXT = 'A cross line label long enough to need fitting';
+    const ONE_TRUNCATED_LINE = expect.stringMatching(/^A[^\n]*…$/);
 
     type AxisOverrides = Partial<AgNumberAxisOptions>;
 
@@ -3112,6 +3138,22 @@ describe('CrossLine label fitting', () => {
         expect(rendered.text.endsWith('…')).toBe(true);
         expect(rendered.width).toBeLessThanOrEqual(80);
         expect(rendered.height).toBeLessThanOrEqual(label.maxHeight ?? Infinity);
+    });
+
+    it.each<[AgCartesianCrossLineLabelOptions, Pick<AgCartesianCrossLineLabelOptions, 'wrapping' | 'truncate'>]>([
+        [{}, {}],
+        [{ maxWidth: 40 }, {}],
+        [{ maxHeight: 40 }, {}],
+        [{ minimumFontSize: 8 }, {}],
+        [{ placement: ['bottom', 'top'] }, {}],
+        [{ wrapping: 'never' }, { wrapping: 'never' }],
+        [{ truncate: false }, { truncate: false }],
+    ])('resolves the label defaults independently of %o', (label, changed) => {
+        const { processedOptions } = prepareProcessedOptions(fitChart(lineWith(label)));
+        const [crossLine] = (processedOptions as AgCartesianChartOptions).axes!.y!.crossLines!;
+        const { wrapping, truncate } = crossLine.label!;
+
+        expect({ wrapping, truncate }).toEqual({ wrapping: 'on-space', truncate: true, ...changed });
     });
 
     it('lets a label that does not fit overflow when truncate is disabled', async () => {
@@ -3234,8 +3276,26 @@ describe('CrossLine label fitting', () => {
         expect(into.left).toBeLessThanOrEqual(80 + 10);
     });
 
+    it.each<[string, AgCartesianCrossLineLabelOptions, unknown]>([
+        ['whole', { maxHeight: 4 }, LONG_TEXT],
+        ['to one line within maxWidth', { maxHeight: 4, maxWidth: 40 }, ONE_TRUNCATED_LINE],
+    ])('keeps a label %s at a maxHeight below one line', async (_, bounds, text) => {
+        chart = deproxy(await createChart(fitChart(lineWith({ placement: 'left', ...bounds }))));
+
+        const rendered = renderedLabel();
+        expect(rendered.text).toEqual(text);
+        expect(rendered.width).toBeLessThanOrEqual(bounds.maxWidth ?? Infinity);
+    });
+
+    it('keeps a label to its first character at a maxWidth narrower than one', async () => {
+        chart = deproxy(await createChart(fitChart(lineWith({ placement: 'left', maxWidth: 2, wrapping: 'never' }))));
+
+        expect(renderedLabel().text).toBe('A…');
+    });
+
     it('neither pads the chart nor collides for a label erased by a maxHeight below one line', async () => {
-        chart = deproxy(await createChart(fitChart(lineWith({ placement: 'left', maxHeight: 4 }))));
+        const label = { placement: 'left', maxHeight: 4, collision: { alwaysShow: false } } as const;
+        chart = deproxy(await createChart(fitChart(lineWith(label))));
 
         const rendered = renderedLabel();
         const into: Partial<Record<CrossLineLabelPosition, number>> = {};
@@ -3311,6 +3371,301 @@ describe('CrossLine label fitting', () => {
         await chart.publicApi!.update(options(100));
         expect(labelInsideBand()).toBe(false);
         expect(renderedLabel('x').text).toBe(zoomedIn);
+    });
+
+    describe('bounded by the band', () => {
+        const rangeWith = (
+            label: AgCartesianCrossLineLabelOptions,
+            range: [number, number] = [4, 5]
+        ): AgCartesianCrossLineOptions => ({
+            type: 'range',
+            range,
+            label: { text: LONG_TEXT, ...label },
+        });
+
+        function bandAndLabel(axisId: 'x' | 'y') {
+            const { crossLine, footprint, text } = renderedLabel(axisId);
+            return { band: Transformable.toCanvas(crossLine.rangeGroup), label: footprint, text };
+        }
+
+        it('fits the label to the band without a fit option', async () => {
+            chart = deproxy(await createChart(fitChart(rangeWith({ placement: 'inside-top' }), 'x')));
+
+            const { band, label, text } = bandAndLabel('x');
+            expect(text).not.toBe(LONG_TEXT);
+            expect(label.width).toBeLessThanOrEqual(band.width);
+        });
+
+        it.each<[AgCartesianCrossLineLabelOptions, unknown, number]>([
+            [{}, LONG_TEXT, 14],
+            [{ minimumFontSize: 6 }, LONG_TEXT, 6],
+            [{ maxWidth: 40 }, ONE_TRUNCATED_LINE, 14],
+            [{ maxWidth: 40, minimumFontSize: 6 }, ONE_TRUNCATED_LINE, 6],
+        ])('keeps a label to one line in a band too short for one, given %o', async (label, text, fontSize) => {
+            const crossLine = rangeWith({ placement: 'inside', fontSize: 14, ...label }, [4, 4.05]);
+            chart = deproxy(await createChart(fitChart(crossLine, 'y')));
+
+            const rendered = renderedLabel('y');
+            expect(rendered).toMatchObject({ text, fontSize });
+            expect(rendered.width).toBeLessThanOrEqual(label.maxWidth ?? Infinity);
+        });
+
+        it('hides a label in a band too short for one line when alwaysShow is false', async () => {
+            const crossLine = rangeWith({ placement: 'inside', collision: { alwaysShow: false } }, [4, 4.05]);
+            chart = deproxy(await createChart(fitChart(crossLine, 'y')));
+
+            expect(renderedLabel('y').text).toBe('');
+        });
+
+        it('renders the label whole past the band with wrapping and truncation off', async () => {
+            const crossLine = rangeWith({ placement: 'inside-top', wrapping: 'never', truncate: false });
+            chart = deproxy(await createChart(fitChart(crossLine, 'x')));
+
+            const { band, label, text } = bandAndLabel('x');
+            expect(text).toBe(LONG_TEXT);
+            expect(label.width).toBeGreaterThan(band.width);
+        });
+
+        it.each<['x' | 'y', AgCartesianCrossLineLabelOptions, 'width' | 'height']>([
+            ['x', { placement: 'inside-top' }, 'width'],
+            ['y', { placement: 'inside', fontSize: 30, minimumFontSize: 8 }, 'height'],
+        ])('bounds a %s-axis %o label in %s', async (axisId, label, dimension) => {
+            const crossLine = rangeWith({ ...label, truncate: true }, [4, 4.5]);
+            chart = deproxy(await createChart(fitChart(crossLine, axisId)));
+
+            const { band, label: footprint } = bandAndLabel(axisId);
+            expect(footprint[dimension]).toBeLessThanOrEqual(band[dimension]);
+        });
+
+        it.each<['x' | 'y', AgCartesianCrossLineLabelPlacement, 'width' | 'height']>([
+            ['x', 'top', 'width'],
+            ['y', 'left', 'height'],
+            ['y', 'top', 'height'],
+        ])('leaves a %s-axis %s label unbounded in %s', async (axisId, placement, dimension) => {
+            chart = deproxy(await createChart(fitChart(rangeWith({ placement, truncate: true }, [4, 4.1]), axisId)));
+
+            const { band, label, text } = bandAndLabel(axisId);
+            expect(text).toBe(LONG_TEXT);
+            expect(label[dimension]).toBeGreaterThan(band[dimension]);
+        });
+
+        it('keeps an inside label clear of the band edge it is anchored to', async () => {
+            chart = deproxy(
+                await createChart(fitChart(rangeWith({ placement: 'inside-left', truncate: true, spacing: 10 }), 'x'))
+            );
+
+            const { band, label } = bandAndLabel('x');
+            expect(label.x).toBeGreaterThanOrEqual(band.x + 10 - 0.5);
+            expect(label.x + label.width).toBeLessThanOrEqual(band.x + band.width);
+        });
+
+        it('lets an explicit maxWidth replace the band bound, even when wider', async () => {
+            chart = deproxy(
+                await createChart(fitChart(rangeWith({ placement: 'inside-top', truncate: true, maxWidth: 400 }), 'x'))
+            );
+
+            const { band, label, text } = bandAndLabel('x');
+            expect(text).toBe(LONG_TEXT);
+            expect(label.width).toBeGreaterThan(band.width);
+        });
+
+        it.each<[string, AgCartesianCrossLineLabelOptions]>([
+            ['maxWidth', { maxWidth: 400 }],
+            ['maxHeight', { maxHeight: 200 }],
+            ['maxWidth and maxHeight', { maxWidth: 400, maxHeight: 200 }],
+        ])('lets an explicit %s replace the band bound on an oblique label', async (_, bounds) => {
+            const crossLine = rangeWith({ placement: 'inside', rotation: 45, ...bounds });
+            chart = deproxy(await createChart(fitChart(crossLine, 'x')));
+
+            const { band, label, text } = bandAndLabel('x');
+            expect(text.replaceAll('\n', ' ')).toBe(LONG_TEXT);
+            expect(label.width).toBeGreaterThan(band.width);
+            expect(renderedLabel('x').width).toBeLessThanOrEqual(bounds.maxWidth ?? band.width * Math.SQRT2);
+        });
+
+        it('refits the label as the visible band changes', async () => {
+            const options = (min: number, max: number) =>
+                fitChart(rangeWith({ placement: 'inside-top', truncate: true }), 'x', { x: { min, max } });
+            chart = deproxy(await createChart(options(3.5, 5.5)));
+            const wide = bandAndLabel('x');
+            expect(wide.text).toBe(LONG_TEXT);
+
+            await chart.publicApi!.update(options(0, 20));
+
+            const narrow = bandAndLabel('x');
+            expect(narrow.text).not.toBe(LONG_TEXT);
+            expect(narrow.label.width).toBeLessThanOrEqual(narrow.band.width);
+        });
+
+        it('reserves the space a wrapped outer label takes after a resize', async () => {
+            const options = (width: number) => ({
+                ...fitChart(rangeWith({ placement: 'top', wrapping: 'on-space' }, [3, 4]), 'x'),
+                width,
+            });
+            chart = deproxy(await createChart(options(800)));
+            const expected = chart.seriesRect?.clone();
+            chart.destroy();
+
+            chart = deproxy(await createChart(options(800)));
+            await chart.publicApi!.update(options(300));
+            await chart.publicApi!.update(options(800));
+
+            expect(chart.seriesRect).toEqual(expected);
+        });
+
+        it.each([90, 45])('bounds a label rotated %i° by its rotated footprint', async (rotation) => {
+            chart = deproxy(await createChart(fitChart(rangeWith({ placement: 'inside', truncate: true, rotation }))));
+
+            const { band, label } = bandAndLabel('y');
+            expect(label.width).toBeLessThanOrEqual(band.width + 0.5);
+            expect(label.height).toBeLessThanOrEqual(band.height + 0.5);
+        });
+
+        it('keeps explicit lines of a tilted label inside the band', async () => {
+            const text = 'First line of text\nSecond line of text\nThird line of text';
+            const crossLine = rangeWith({ text, placement: 'inside', rotation: 45, truncate: true });
+            chart = deproxy(await createChart(fitChart(crossLine, 'x')));
+
+            const { band, label } = bandAndLabel('x');
+            expect(label.width).toBeLessThanOrEqual(band.width + 0.5);
+        });
+
+        const CONTAINER_OVERFLOWING_TEXT = Array.from({ length: 8 }, () => LONG_TEXT).join(' ');
+
+        it('keeps a label clipped to its container inside the band', async () => {
+            const label = undocumentedLabel({
+                text: CONTAINER_OVERFLOWING_TEXT,
+                placement: 'inside-top',
+                maxHeight: 2000,
+                overflow: 'clip-text',
+            });
+            chart = deproxy(await createChart(fitChart(rangeWith(label, [4, 4.6]), 'x')));
+
+            const { band, label: footprint, text } = bandAndLabel('x');
+            const { containerBox } = renderedLabel('x').crossLine;
+            expect(text).toMatch(/^A.*…$/);
+            expect(text).not.toContain('\n');
+            expect(footprint.width).toBeLessThanOrEqual(band.width + 0.5);
+            expect(footprint.height).toBeLessThanOrEqual(containerBox?.height ?? 0);
+        });
+
+        it('keeps a label clipped to its container in a band too short for one line', async () => {
+            const label = undocumentedLabel({
+                text: CONTAINER_OVERFLOWING_TEXT,
+                placement: 'inside',
+                overflow: 'clip-text',
+            });
+            chart = deproxy(await createChart(fitChart(rangeWith(label, [4, 4.05]), 'y')));
+
+            const { text, footprint, crossLine } = renderedLabel('y');
+            expect(text).not.toBe('');
+            expect(footprint.width).toBeLessThanOrEqual(crossLine.containerBox?.width ?? 0);
+        });
+
+        it('keeps an oblique label to its first character in a band too short for one line', async () => {
+            const crossLine = rangeWith(
+                { text: CONTAINER_OVERFLOWING_TEXT, placement: 'inside', rotation: 45 },
+                [4, 4.05]
+            );
+            chart = deproxy(await createChart(fitChart(crossLine, 'y')));
+
+            const { band, label, text } = bandAndLabel('y');
+            expect(text).toBe('A…');
+            expect(label.width).toBeLessThanOrEqual(band.width);
+        });
+
+        it.each([
+            ['its first character', true, 'A…'],
+            ['nothing', false, ''],
+        ])(
+            'shows %s of a label in a band narrower than an ellipsis when alwaysShow is %s',
+            async (_, alwaysShow, text) => {
+                const label: AgCartesianCrossLineLabelOptions = {
+                    placement: 'inside',
+                    wrapping: 'never',
+                    collision: { alwaysShow },
+                };
+                chart = deproxy(await createChart(fitChart(rangeWith(label, [4, 4.05]), 'x')));
+
+                expect(renderedLabel('x').text).toBe(text);
+            }
+        );
+
+        it('fits each placement to its own bound', async () => {
+            const label: AgCartesianCrossLineLabelOptions = {
+                placement: ['inside', 'top'],
+                wrapping: 'never',
+                truncate: false,
+                collision: { alwaysShow: false },
+            };
+            const crossLine = rangeWith(label, [0, 0.1]);
+            chart = deproxy(await createChart(fitChart(crossLine)));
+
+            const { band, label: footprint, text } = bandAndLabel('y');
+            expect(text).toBe(LONG_TEXT);
+            expect(footprint.y + footprint.height).toBeLessThanOrEqual(band.y);
+        });
+
+        it.each([
+            ['labels', 'top', 'right'],
+            ['inside labels', 'inside-bottom', 'inside-right'],
+        ] as const)('renders %s bounded by their bands', async (_, xPlacement, yPlacement) => {
+            const xCrossLines: AgCartesianCrossLineOptions[] = [
+                { type: 'range', range: [1, 2], label: { text: LONG_TEXT, placement: 'inside-top', truncate: true } },
+                {
+                    type: 'range',
+                    range: [3, 4],
+                    label: { text: LONG_TEXT, placement: xPlacement, wrapping: 'on-space' },
+                },
+                {
+                    type: 'range',
+                    range: [6, 7],
+                    label: { text: LONG_TEXT, placement: 'inside', rotation: 90, truncate: true, fill: 'lightyellow' },
+                },
+            ];
+            const yCrossLines: AgCartesianCrossLineOptions[] = [
+                {
+                    type: 'range',
+                    range: [5, 8],
+                    label: {
+                        text: LONG_TEXT,
+                        placement: yPlacement,
+                        rotation: 90,
+                        wrapping: 'on-space',
+                        truncate: true,
+                    },
+                },
+            ];
+            chart = deproxy(
+                await createChart(
+                    fitChart(xCrossLines[0], 'x', { x: { crossLines: xCrossLines }, y: { crossLines: yCrossLines } })
+                )
+            );
+
+            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders oblique labels with explicit bounds past their bands', async () => {
+            const oblique = (
+                range: [number, number],
+                label: AgCartesianCrossLineLabelOptions
+            ): AgCartesianCrossLineOptions =>
+                rangeWith({ placement: 'inside', rotation: 45, fill: 'lightyellow', ...label }, range);
+            const xCrossLines = [
+                oblique([0.5, 1.5], {}),
+                oblique([3, 4], { maxWidth: 200 }),
+                oblique([5.5, 6.5], { maxHeight: 60 }),
+                oblique([8, 9], { maxWidth: 150, maxHeight: 40 }),
+            ];
+            const yCrossLines = [oblique([8.5, 9.8], { rotation: -20, maxWidth: 300 })];
+            chart = deproxy(
+                await createChart(
+                    fitChart(xCrossLines[0], 'x', { x: { crossLines: xCrossLines }, y: { crossLines: yCrossLines } })
+                )
+            );
+
+            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
     });
 
     it.each(['number', 'log', 'category', 'time', 'unit-time', 'grouped-category'] as const)(

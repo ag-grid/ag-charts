@@ -783,6 +783,10 @@ export class Text<D = unknown> extends Shape<D> {
         this.boxing.render(renderCtx);
     }
 
+    protected override fillsWithoutPath(): boolean {
+        return true;
+    }
+
     protected override executeFill(ctx: CanvasRenderingContext2D) {
         this.renderLines((line, x, y) => ctx.fillText(line, x, y));
     }

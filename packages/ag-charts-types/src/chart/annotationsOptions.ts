@@ -61,7 +61,8 @@ export interface AgAnnotationAxesButtons extends Toggleable {
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
 
 // Lines
-export interface AgLineAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
+export interface AgLineAnnotationStyles
+    extends Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandleStyles;
     /** Configuration for the line text. */
@@ -125,7 +126,8 @@ export interface AgShapeAnnotationStyles extends Writeable, Visible, FillOptions
 }
 
 // Measurers
-export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Writeable, Visible {
+export interface AgMeasurerAnnotationStyles
+    extends StrokeOptions, LineOptions, Extendable, Writeable, Visible, SelectionAxes {
     /** Configuration for the background fill. */
     background?: FillOptions;
     /** Configuration for the drag handles. */
@@ -136,7 +138,7 @@ export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, 
     text?: AgLineAnnotationTextStyles;
 }
 
-export interface AgQuickMeasurerAnnotationStyles extends Visible {
+export interface AgQuickMeasurerAnnotationStyles extends Visible, SelectionAxes {
     /** Configuration for the annotation when measuring up the y-axis. */
     up?: AgQuickMeasurerAnnotationDirectionStyles;
     /** Configuration for the annotation when measuring down the y-axis. */
@@ -154,9 +156,25 @@ export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, S
 // * Options *
 // ***********
 
+/**
+ * How strongly annotation points snap to the values of the nearest datum, measured along the y-axis.
+ * - `'weak'` snaps only when the pointer is within `range` pixels of a value.
+ * - `'strong'` always snaps to the nearest value.
+ */
+export type AgAnnotationMagnetMode = 'weak' | 'strong';
+
+export interface AgAnnotationMagnet extends Toggleable {
+    /** How strongly annotation points snap to the position and values of the nearest datum, such as the open, high, low and close of a candlestick. Holding Ctrl or Cmd while drawing or dragging inverts whether the magnet is enabled. Default: `'weak'` */
+    mode?: AgAnnotationMagnetMode;
+    /** The distance in pixels from a value of a datum, at its position, within which a `'weak'` magnet snaps to it. Default: `20` */
+    range?: PixelSize;
+}
+
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
+    /** Configuration for snapping annotation points to the values of the nearest datum. */
+    magnet?: AgAnnotationMagnet;
     /** Configuration for the toolbar for creating annotations. */
     toolbar?: AgAnnotationsToolbar;
     /** Configuration for the options toolbar for editing an annotation. */
@@ -194,7 +212,7 @@ export type AgAnnotation =
 // ********************/
 
 export interface AgLineAnnotation
-    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions {
+    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
     /** Configuration for the trend line annotation.*/
     type: 'line';
     /** Configuration for the drag handles. */
@@ -284,7 +302,8 @@ export interface AgFibonacciRetracementTrendBasedAnnotation extends AgFibonacciA
 // * Channel Annotations *
 // ***********************/
 /** Configuration for channel annotation styling. */
-export interface AgChannelAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
+export interface AgChannelAnnotationStyles
+    extends Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the channel text. */
@@ -356,7 +375,7 @@ export interface AgTextAnnotation extends AgTextAnnotationStyles, AgAnnotationPo
 // ********************/
 
 export interface AgArrowAnnotation
-    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions {
+    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
     /** Configuration for the arrow annotation.*/
     type: 'arrow';
     handle?: AgAnnotationHandle;
@@ -430,7 +449,8 @@ export interface AgQuickDatePriceRangeAnnotation extends AgMeasurerAnnotation {
     down?: AgMeasurerAnnotationDirection;
 }
 
-export interface AgMeasurerAnnotation extends AnnotationLinePoints, Writeable, Visible, StrokeOptions, LineOptions {
+export interface AgMeasurerAnnotation
+    extends AnnotationLinePoints, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the line text. */
@@ -453,12 +473,7 @@ export interface AgMeasurerAnnotationStatistics extends TextOptions, FillOptions
 // * Components *
 // **************/
 
-export type AgAnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';
-
-export interface LineOptions extends LineDashOptions {
-    /** Defines how the line stroke is rendered. If `lineDash` is configured, this takes priority over the `lineStyle` property. */
-    lineStyle?: AgAnnotationLineStyleType;
-}
+export interface LineOptions extends LineDashOptions {}
 
 /** Configuration for annotation drag handles. */
 export interface AgAnnotationHandle extends AgAnnotationHandleStyles {}
@@ -484,6 +499,29 @@ export interface AgAnnotationAxisLabel extends Toggleable, FillOptions, StrokeOp
      * Default: `{ top: 4, right: 8, bottom: 4, left: 8 }`
      */
     padding?: Padding;
+}
+
+/** Configuration for the shading drawn over an axis between the points of the selected annotation. */
+export interface AgAnnotationAxisShading extends Toggleable, FillOptions {}
+
+/** Axis labels and shading shown for the points of an annotation while it is selected. */
+interface SelectionAxes {
+    /**
+     * Configuration for the axis labels shown at each of the annotation's points, on both axes, while the annotation is
+     * selected. Unlike the axis label of a horizontal or vertical line, these are not shown when the annotation is not
+     * selected.
+     *
+     * The labels are filled with the annotation's line colour unless `fill` is set.
+     */
+    axisLabel?: AgAnnotationAxisLabel;
+    /**
+     * Configuration for the shading drawn over each axis, between the annotation's outermost points, while the
+     * annotation is selected. It covers the axis ticks and tick labels but not the axis title.
+     *
+     * The shading is filled with the annotation's background, such as a channel's, unless `fill` is set. An annotation
+     * with no background shades with its line colour.
+     */
+    axisShading?: AgAnnotationAxisShading;
 }
 
 export interface AgLineAnnotationText extends AgLineAnnotationTextStyles {
@@ -591,6 +629,7 @@ export type AgAnnotationsToolbarButtonValue =
     | 'comment'
     | 'callout'
     | 'note'
+    | 'magnet'
     | 'clear';
 
 // *******************

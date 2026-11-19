@@ -18,7 +18,7 @@ import type {
     NormalisedInterpolationOptions,
     NormalisedSeriesSegmentation,
 } from './normalisedCartesianSeries';
-import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedDropShadowOptions, NormalisedLineDash } from './normalisedCommonOptions';
 import type { NormalisedSeriesMarkerOptions } from './normalisedSeriesMarkerOptions';
 import type { NormalisedSeriesOptions } from './normalisedSeriesOptions';
 
@@ -30,7 +30,7 @@ export type NormalisedRangeAreaSeriesMarkerOptions = NormalisedSeriesMarkerOptio
 export type NormalisedRangeAreaSeriesItemLineOptions = Normalised<
     AgRangeAreaSeriesItemLineThemeableOptions<unknown, unknown>,
     'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'marker',
-    { stroke: CssColor; marker: NormalisedRangeAreaSeriesMarkerOptions }
+    { stroke: CssColor; marker: NormalisedRangeAreaSeriesMarkerOptions } & NormalisedLineDash
 >;
 
 export type NormalisedRangeAreaSeriesInvertedStyle = Normalised<
@@ -74,7 +74,7 @@ export type NormalisedRangeAreaSeriesOwnOptions = Normalised<
         label: NormalisedBarSeriesLabelOptions<AgRangeAreaSeriesLabelFormatterParams, AgRangeAreaSeriesLabelPlacement>;
         styler?: Styler<AgRangeAreaSeriesStylerParams<unknown, unknown>, AgRangeAreaSeriesStyle>;
         segmentation: NormalisedSeriesSegmentation;
-    }
+    } & NormalisedLineDash
 >;
 
 export type NormalisedRangeAreaSeriesOptions = NormalisedSeriesOptions<NormalisedRangeAreaSeriesOwnOptions> &

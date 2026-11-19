@@ -40,7 +40,7 @@ import type {
 import { without } from '../data/object';
 import type { OptionsContribution } from '../modules/optionsContribution';
 import type { CARTESIAN_AXIS_TYPE, POLAR_AXIS_TYPE } from '../types/themeConstants';
-import { crossLinesThemeTemplate } from './axisThemeTemplate';
+import { type CrossLineLabelDefaults, crossLinesThemeTemplate } from './axisThemeTemplate';
 import { numberFormatValidator, textOrSegments, timeInterval, timeIntervalUnit } from './chartDefaults';
 import {
     borderOptionsDef,
@@ -48,6 +48,7 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     labelBoxOptionsDef,
+    lineDash,
     lineDashOptionsDef,
     padding,
     strokeOptionsDef,
@@ -159,14 +160,15 @@ export type CrossLinesAxisType = `${CARTESIAN_AXIS_TYPE}` | `${POLAR_AXIS_TYPE}`
 export function crossLinesContribution(
     axisTypes: CrossLinesAxisType[],
     value: Validator,
-    labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
+    labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>,
+    labelDefaults?: CrossLineLabelDefaults
 ): OptionsContribution {
     return {
         path: 'axes[].crossLines',
         axisTypes,
         options: crossLinesArrayOptionsDefs(value, labelDefs),
         themeOptions: crossLineThemeOptionsDefs(labelDefs),
-        themeTemplate: crossLinesThemeTemplate,
+        themeTemplate: crossLinesThemeTemplate(labelDefaults),
     };
 }
 
@@ -268,7 +270,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
                 fillOpacity: positiveNumber,
                 stroke: or(colorOrRef, themeOperator), // TODO: is `themeOperator` still needed?
                 strokeWidth: positiveNumber,
-                lineDash: arrayOf(positiveNumber),
+                lineDash,
             },
             'a grid-line style object array'
         ),
@@ -280,7 +282,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         stroke: colorOrRef,
         strokeWidth: positiveNumber,
         strokeOpacity: ratio,
-        lineDash: arrayOf(positiveNumber),
+        lineDash,
     },
     tick: cartesianAxisTick,
     context: () => true,
@@ -392,7 +394,6 @@ export function cartesianAxisCrosshairOptions(
         label: crosshairLabel ?? baseCrosshairLabel,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
-        ...undocumentedDefs({ snapInterval: positiveNumberNonZero }),
     };
 }
 
@@ -468,7 +469,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgCate
             fillOpacity: ratio,
             stroke: colorOrRef,
             strokeWidth: positiveNumber,
-            lineDash: arrayOf(positiveNumber),
+            lineDash,
         },
     }),
 };
@@ -509,7 +510,7 @@ export const numberAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgNumber
     ...continuousAxisOptions(numericValue),
     type: constant('number'),
     label: cartesianNumericAxisLabel,
-    crosshair: cartesianAxisCrosshairOptions(true),
+    crosshair: { ...cartesianAxisCrosshairOptions(true), snapInterval: positiveNumberNonZero },
     ...undocumentedDefs({ axisInsetValue: axisInsetValueOptionsDefs }),
 };
 
@@ -522,7 +523,7 @@ export const logAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgLogAxisOp
         attachDescription((value) => value !== 1, 'not equal to 1')
     ),
     label: cartesianNumericAxisLabel,
-    crosshair: cartesianAxisCrosshairOptions(true),
+    crosshair: { ...cartesianAxisCrosshairOptions(true), snapInterval: positiveNumberNonZero },
 };
 
 export const timeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgTimeAxisOptions>> = {
@@ -531,7 +532,10 @@ export const timeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgTimeAxis
     type: constant('time'),
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
-    crosshair: cartesianAxisCrosshairOptions(true, true),
+    crosshair: {
+        ...cartesianAxisCrosshairOptions(true, true),
+        snapInterval: or(positiveNumberNonZero, timeIntervalUnit, timeInterval),
+    },
 };
 
 export const unitTimeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgUnitTimeAxisOptions>> = {

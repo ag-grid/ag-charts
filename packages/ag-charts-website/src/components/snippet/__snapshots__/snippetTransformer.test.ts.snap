@@ -2028,6 +2028,170 @@ const myValueFormatter = params => {
 };"
 `;
 
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'angular' snippets 1`] = `
+"<ag-grid-angular
+    [columnDefs]="columnDefs"
+    /* other grid options ... */>
+</ag-grid-angular>
+
+this.columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'angular' snippets with space between properties 1`] = `
+"<ag-grid-angular
+    [columnDefs]="columnDefs"
+    /* other grid options ... */>
+</ag-grid-angular>
+
+this.columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'angular' snippets without framework context 1`] = `
+"this.columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'angular' snippets without framework context and space between properties 1`] = `
+"this.columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'javascript' snippets 1`] = `
+"const gridOptions = {
+    columnDefs: baseColumnDefs.map((colDef) => ({
+        ...colDef,
+        headerName: colDef.headerName ?? colDef.field,
+        width: colDef.width?.toFixed(0),
+    })),
+
+    // other grid options ...
+}"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'javascript' snippets with space between properties 1`] = `
+"const gridOptions = {
+    columnDefs: baseColumnDefs.map((colDef) => ({
+        ...colDef,
+        headerName: colDef.headerName ?? colDef.field,
+        width: colDef.width?.toFixed(0),
+    })),
+
+    // other grid options ...
+}"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'javascript' snippets without framework context 1`] = `
+"columnDefs: baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+})),"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'javascript' snippets without framework context and space between properties 1`] = `
+"columnDefs: baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+})),"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'react' snippets 1`] = `
+"const columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));
+
+<AgGridReact columnDefs={columnDefs} />"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'react' snippets with space between properties 1`] = `
+"const columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));
+
+<AgGridReact columnDefs={columnDefs} />"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'react' snippets without framework context 1`] = `
+"const columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));
+
+<AgGridReact columnDefs={columnDefs} />"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'react' snippets without framework context and space between properties 1`] = `
+"const columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));
+
+<AgGridReact columnDefs={columnDefs} />"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'vue' snippets 1`] = `
+"<ag-grid-vue
+    :columnDefs="columnDefs"
+    /* other grid options ... */>
+</ag-grid-vue>
+
+this.columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'vue' snippets with space between properties 1`] = `
+"<ag-grid-vue
+    :columnDefs="columnDefs"
+    /* other grid options ... */>
+</ag-grid-vue>
+
+this.columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'vue' snippets without framework context 1`] = `
+"this.columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));"
+`;
+
+exports[`Snippet Component > given object spread, optional chaining and nullish coalescing > it should create 'vue' snippets without framework context and space between properties 1`] = `
+"this.columnDefs = baseColumnDefs.map((colDef) => ({
+    ...colDef,
+    headerName: colDef.headerName ?? colDef.field,
+    width: colDef.width?.toFixed(0),
+}));"
+`;
+
 exports[`Snippet Component > given simple column definitions > it should create 'angular' snippets 1`] = `
 "<ag-grid-angular
     [columnDefs]="columnDefs"

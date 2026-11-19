@@ -50,11 +50,4 @@ describe('ContentEditableWidget', () => {
         expect(selection?.anchorOffset).toBe(5);
         expect(selection?.isCollapsed).toBe(true);
     });
-
-    it('creates its element in the given document', () => {
-        const popupDocument = document.implementation.createHTMLDocument('popup');
-        const widget = new ContentEditableWidget(popupDocument, 'ag-charts-text');
-        expect(widget.getElement().ownerDocument).toBe(popupDocument);
-        expect(widget.getElement().className).toBe('ag-charts-text');
-    });
 });

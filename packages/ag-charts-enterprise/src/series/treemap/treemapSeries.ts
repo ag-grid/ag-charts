@@ -32,7 +32,7 @@ import {
     Rect,
     type RequireOptional,
     type ResolvedTextAlign,
-    STROKE_STYLE_THEME_DEFAULTS,
+    SOLID_STROKE_STYLE,
     Selection,
     Text,
     Transformable,
@@ -805,15 +805,21 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
             rect.setStyleProperties(style, fillBBox);
 
+            const hoveredInPlace = !isHighlight && highlightedNode?.datumIndex === node.datumIndex;
+            const hoveredStyle = hoveredInPlace ? this.getItemStyle(node, isLeaf, true) : undefined;
             rect.fillShadow = this.resolveNodeShadow(
                 (isLeaf ? tile : group).shadow,
                 glow,
                 isHighlight,
                 highlightedNode,
                 node,
-                !isHighlight && highlightedNode?.datumIndex === node.datumIndex
-                    ? this.getItemStyle(node, isLeaf, true).shadow
-                    : style.shadow
+                hoveredStyle == null ? style.shadow : hoveredStyle.shadow
+            );
+            rect.fillGlow = this.resolveNodeGlow(
+                glow,
+                isHighlight,
+                hoveredInPlace,
+                hoveredStyle != null && this.getNodeGlow(node, isLeaf, true, highlightedNode, hoveredStyle.glow) != null
             );
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
@@ -1400,7 +1406,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             fillOpacity: 1,
             stroke: undefined,
             strokeWidth: 0,
-            ...STROKE_STYLE_THEME_DEFAULTS,
+            ...SOLID_STROKE_STYLE,
         };
 
         if (isGradientFill(markerStyle.fill)) {

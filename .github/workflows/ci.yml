@@ -290,6 +290,7 @@ jobs:
                   e2e_cross_browser=true
                   e2e_list_args=()
                   e2e_assign_args=()
+                  e2e_scoped_empty=false
                   if [[ "${{ github.event_name }}" == "pull_request" ]] ; then
                     e2e_scope=$(node tools/ci/e2e-scope.mjs --base ${{ steps.setup.outputs.base }} --out "${e2e_specs_file}")
                     echo "E2E scope: ${e2e_scope}"
@@ -297,6 +298,10 @@ jobs:
                       e2e_cross_browser=$(jq -r .crossBrowser <<< "${e2e_scope}")
                       mapfile -t e2e_list_args < <(sed 's#^#e2e/#' "${e2e_specs_file}")
                       e2e_assign_args=(--specs "${e2e_specs_file}")
+                      # An empty list would make `playwright test --list` count every spec.
+                      if ! grep -q . "${e2e_specs_file}" ; then
+                        e2e_scoped_empty=true
+                      fi
                     fi
                   fi
                   echo "e2e_cross_browser=${e2e_cross_browser}" >> $GITHUB_OUTPUT
@@ -306,7 +311,7 @@ jobs:
                   else
                     e2e_nx_count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e --json=false | wc -l)
                   fi
-                  if [[ ${e2e_nx_count} -gt 0 ]] ; then
+                  if [[ ${e2e_nx_count} -gt 0 && ${e2e_scoped_empty} == false ]] ; then
                     e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list "${e2e_list_args[@]}" | grep -v '!!!SKIPPED!!!' | wc -l)
                   else
                     e2e_count=0
@@ -2711,6 +2716,9 @@ jobs:
         if: vars.SONARCLOUD_ENABLED != 'false' &&
             (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
         runs-on: ubuntu-24.04
+        # Normally 2-6 minutes (p95 ~5). A hung scan otherwise holds the `report` job, and so the
+        # staging deploy, for the 6 hour default. On timeout the job fails and the run is "partial".
+        timeout-minutes: 10
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:

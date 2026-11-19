@@ -24,7 +24,13 @@ import type {
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type {
+    AgBaseCartesianSeriesAxisOptions,
+    FillOptions,
+    LineDashOptions,
+    ResolvedLineDash,
+    StrokeOptions,
+} from './commonOptions';
 
 export type AgRangeBarSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
     TDatum,
@@ -32,14 +38,16 @@ export type AgRangeBarSeriesItemStylerParams<TDatum = DatumDefault, TContext = C
 > &
     ContextCallbackParams<TContext> &
     AgRangeBarSeriesOptionsKeys<TDatum> &
-    Required<AgRangeBarSeriesStyle>;
+    Required<Omit<AgRangeBarSeriesStyle, 'lineDash'>> &
+    ResolvedLineDash;
 
 export interface AgRangeBarSeriesStylerParams<TDatum, TContext>
     extends
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgRangeBarSeriesOptionsKeys<TDatum>,
-        Required<AgRangeBarSeriesStyle> {}
+        Required<Omit<AgRangeBarSeriesStyle, 'lineDash'>>,
+        ResolvedLineDash {}
 
 export interface AgRangeBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */

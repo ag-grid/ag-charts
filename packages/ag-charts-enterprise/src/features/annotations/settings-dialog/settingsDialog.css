@@ -1,6 +1,12 @@
 .ag-charts-dialog--annotation-settings {
     min-height: 233px;
-    width: 289px;
+    min-width: 289px;
+    /* Grows past the minimum only for the tab labels, which stay on one line. */
+    width: min-content;
+}
+
+.ag-charts-dialog--annotation-settings .ag-charts-dialog__tab-button {
+    white-space: nowrap;
 }
 
 .ag-charts-dialog--annotation-settings .ag-charts-textarea {

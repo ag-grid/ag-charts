@@ -13,10 +13,12 @@ import type {
     AgCrosshairOptions,
     AgHlcSeriesOptions,
     AgLineSeriesOptions,
+    AgNumericAxisCrosshairOptions,
     AgOhlcSeriesOptions,
     AgRangeAreaSeriesOptions,
     AgRangeBarCrosshairSnapValue,
     AgRangeBarSeriesOptions,
+    AgTimeAxisCrosshairOptions,
 } from 'ag-charts-community';
 import {
     HIGH_VOLUME_COUNT,
@@ -82,11 +84,22 @@ function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: bo
 }
 
 const CROSSHAIR_OPTIONS = {
+    enabled: true,
     stroke: '#5470C6',
     strokeWidth: 3,
     lineDash: [10, 5],
     snap: false,
 };
+
+const withCrosshairEnabled = (
+    axes: AgCartesianAxesOptions = {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    }
+): AgCartesianAxesOptions =>
+    mapValues(axes, (axis) =>
+        axis.type === 'category' ? axis : { ...axis, crosshair: { enabled: true, ...axis.crosshair } }
+    ) as AgCartesianAxesOptions;
 
 const BASE_OPTIONS: AgCartesianChartOptions = {
     ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
@@ -379,6 +392,7 @@ describe('Crosshair', () => {
 
         const options: AgChartOptions = {
             data,
+            axes: withCrosshairEnabled(),
             series: [
                 {
                     type: 'area',
@@ -846,6 +860,19 @@ describe('Crosshair', () => {
             await waitForChartStability(chart);
         };
 
+        it('formats a value handed to the axis as the crosshair label does, by format or formatter', async () => {
+            const formatted = async (label: NonNullable<AgNumericAxisCrosshairOptions['label']>) => {
+                chart = await createEnterpriseChart(
+                    labelOptions({}, { type: 'number', position: 'left', crosshair: { ...CROSSHAIR_OPTIONS, label } })
+                );
+                return findAxis(chart, 'left').createAxisContext().formatScaleValue(123.456, 'crosshair');
+            };
+
+            expect(await formatted({ format: '.2f' })).toBe('123.46');
+            chart.destroy();
+            expect(await formatted({ formatter: ({ value }) => `~${value}` })).toBe('~123.456');
+        });
+
         it('renders markup characters in category values as text', async () => {
             await hoverMarkupCategory(labelOptions());
 
@@ -907,7 +934,7 @@ describe('Crosshair', () => {
                 )
             ).map(({ style }) => `${style.left} ${style.top} (${style.translate})`);
 
-        const hoverWithAxes = async (axes: AgCartesianAxesOptions) => {
+        const hoverWithAxes = async (axes: AgCartesianAxesOptions, theme?: AgCartesianChartOptions['theme']) => {
             const options: AgCartesianChartOptions = {
                 data: [
                     { x: -10, y: -8 },
@@ -916,6 +943,7 @@ describe('Crosshair', () => {
                 ],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes,
+                theme,
             };
             chart = await createEnterpriseChart(options);
             await hoverAction(480, 250)(chart);
@@ -932,14 +960,33 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 562px (-50% 0)",
+                "480px 566px (-50% calc(min(var(--ag-charts-crosshair-label-vertical-padding), 11px) * -1))",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "46px 250px (-100% -50%)",
+                "38px 250px (calc(-100% + min(var(--ag-charts-crosshair-label-horizontal-padding), 11px)) -50%)",
               ]
             `);
+        });
+
+        // The label's padding is its only padding: the stylesheet reads these variables and the placement above
+        // cancels them, so the theme parameters are what a theme author changes.
+        it.each([
+            ['by default', undefined, { horizontal: '8px', vertical: '4px' }],
+            [
+                'from the theme parameters',
+                { params: { crosshairLabelHorizontalPadding: 12, crosshairLabelVerticalPadding: 6 } },
+                { horizontal: '12px', vertical: '6px' },
+            ],
+        ] as const)('should size the label padding %s', async (_name, theme, expected) => {
+            await hoverWithAxes(axesAt(), theme);
+
+            const wrapper = document.querySelector<HTMLElement>('.ag-charts-wrapper')!;
+            expect({
+                horizontal: wrapper.style.getPropertyValue('--ag-charts-crosshair-label-horizontal-padding'),
+                vertical: wrapper.style.getPropertyValue('--ag-charts-crosshair-label-vertical-padding'),
+            }).toEqual(expected);
         });
 
         it('should hold a label at the axis line when label spacing is smaller than its own padding', async () => {
@@ -948,12 +995,12 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 562px (-50% 0)",
+                "480px 566px (-50% calc(min(var(--ag-charts-crosshair-label-vertical-padding), 6px) * -1))",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "44px 250px (-100% -50%)",
+                "38px 250px (calc(-100% + min(var(--ag-charts-crosshair-label-horizontal-padding), 6px)) -50%)",
               ]
             `);
         });
@@ -981,12 +1028,12 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 562px (-50% 0)",
+                "480px 566px (-50% calc(min(var(--ag-charts-crosshair-label-vertical-padding), 11px) * -1))",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "46px 250px (-100% -50%)",
+                "38px 250px (calc(-100% + min(var(--ag-charts-crosshair-label-horizontal-padding), 11px)) -50%)",
               ]
             `);
         });
@@ -1227,7 +1274,7 @@ describe('Crosshair', () => {
             ...extra,
         });
 
-        const valueAxis = (crosshair: AgCrosshairOptions): AgCartesianAxesOptions => ({
+        const valueAxis = (crosshair: AgNumericAxisCrosshairOptions): AgCartesianAxesOptions => ({
             x: { type: 'category', position: 'bottom' },
             y: { type: 'number', position: 'left', crosshair },
         });
@@ -1247,11 +1294,11 @@ describe('Crosshair', () => {
         const boxOptions = (
             series: AgCartesianChartOptions['series'],
             axes?: AgCartesianAxesOptions
-        ): AgCartesianChartOptions => ({ data: BOX_DATA, series, axes });
+        ): AgCartesianChartOptions => ({ data: BOX_DATA, series, axes: withCrosshairEnabled(axes) });
         const rangeOptions = (
             series: AgCartesianChartOptions['series'],
             axes?: AgCartesianAxesOptions
-        ): AgCartesianChartOptions => ({ data: RANGES, series, axes });
+        ): AgCartesianChartOptions => ({ data: RANGES, series, axes: withCrosshairEnabled(axes) });
 
         const axisPositionOf = (axis: string, value: unknown) => {
             const { scale } = findAxis(chart, axis);
@@ -1446,6 +1493,7 @@ describe('Crosshair', () => {
                         { x: 'C', y: 25 },
                     ],
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: withCrosshairEnabled(),
                 },
                 hover: ['B', 30],
                 expected: { yKey: 30 },
@@ -1608,7 +1656,7 @@ describe('Crosshair', () => {
                         hi: Math.sin(i / 10) + 1,
                     })),
                     series: [rangeBar({ xKey: 'x', strokeWidth: 0 })],
-                    axes: STRIPPED_NUMBER_AXES as AgCartesianChartOptions['axes'],
+                    axes: withCrosshairEnabled(STRIPPED_NUMBER_AXES as AgCartesianAxesOptions),
                 });
 
                 const nodes = getSeriesNodeData<RangeBarNode>(chart);
@@ -1707,5 +1755,319 @@ describe('Crosshair', () => {
                 expectLines('left', { yLowKey: 30, yHighKey: 80 });
             });
         });
+
+        describe('snapInterval', () => {
+            const ROUNDED = [
+                { x: 'A', y: 112 },
+                { x: 'B', y: 137 },
+                { x: 'C', y: 88 },
+            ];
+            const roundedLine = (
+                crosshair: AgNumericAxisCrosshairOptions,
+                type: 'number' | 'log' = 'number'
+            ): AgCartesianChartOptions => ({
+                data: ROUNDED,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: { x: { type: 'category', position: 'bottom' }, y: { type, position: 'left', crosshair } },
+            });
+            const candleAxes = (crosshair: AgNumericAxisCrosshairOptions): AgCartesianAxesOptions => ({
+                x: { type: 'time', position: 'bottom' },
+                y: { type: 'number', position: 'left', crosshair },
+            });
+            const expectLineAt = (axis: string, value: unknown) => {
+                const lines = getCrosshairLines(chart, axis);
+                expect(lines).toHaveLength(1);
+                expect(lines[0].position).toBeCloseTo(axisPositionOf(axis, value), 0);
+                expect(visibleLabelCount(axis)).toBe(1);
+            };
+
+            it.each(['number', 'log'] as const)(
+                'rounds the pointer rather than the highlighted datum on a %s axis with no snap setting',
+                async (type) => {
+                    chart = await createEnterpriseChart(roundedLine({ snapInterval: 25 }, type));
+                    await hoverDatum('B', 105);
+                    expectLineAt('left', 100);
+                }
+            );
+
+            it.each<[string, boolean | undefined]>([
+                ['no snap setting', undefined],
+                ['snap true', true],
+            ])('rounds the pointer rather than the crosshairSnapTo close of a candle with %s', async (_name, snap) => {
+                chart = await createEnterpriseChart(
+                    candleOptions([candlestick({ crosshairSnapTo: ['close'] })], candleAxes({ snap, snapInterval: 25 }))
+                );
+                await hoverDatum(CANDLES[1].date, 120);
+                expectLineAt('left', 125);
+            });
+
+            it('never rounds to a value outside the log axis domain', async () => {
+                chart = await createEnterpriseChart({
+                    ...roundedLine({ snapInterval: 10 }, 'log'),
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'log', position: 'left', min: 1, crosshair: { snapInterval: 10 } },
+                    },
+                });
+                await hoverDatum('B', 3);
+                expectLineAt('left', 10);
+            });
+
+            it('rounds the pointer over an empty area', async () => {
+                chart = await createEnterpriseChart(
+                    rangeOptions([{ type: 'bar', xKey: 'x', yKey: 'hi' }], valueAxis({ snapInterval: 0.25 }))
+                );
+                await hoverDatum('A', 75.1);
+                expectLineAt('left', 75);
+            });
+
+            it('applies a snapInterval set for the axis type in a theme', async () => {
+                chart = await createEnterpriseChart({
+                    ...roundedLine({}),
+                    theme: { overrides: { common: { axes: { number: { crosshair: { snapInterval: 25 } } } } } },
+                });
+                await hoverDatum('B', 105);
+                expectLineAt('left', 100);
+            });
+
+            it('follows the pointer without rounding with snap false', async () => {
+                chart = await createEnterpriseChart(roundedLine({ snap: false, snapInterval: 25 }));
+                const point = await hoverDatum('B', 137);
+                expectFollowsPointer('left', point);
+            });
+
+            it.each<[string, AgTimeAxisCrosshairOptions['snapInterval'], Date, Date, boolean?]>([
+                ['a unit', 'day', new Date(2024, 0, 2, 10, 8), new Date(2024, 0, 2)],
+                [
+                    'an interval object',
+                    { unit: 'minute', step: 15 },
+                    new Date(2024, 0, 2, 10, 8),
+                    new Date(2024, 0, 2, 10, 15),
+                ],
+                ['milliseconds', 15 * 60 * 1000, new Date(2024, 0, 2, 10, 7), new Date(2024, 0, 2, 10, 0)],
+                [
+                    'an interval aligned to an epoch',
+                    { unit: 'hour', step: 6, epoch: new Date(2024, 0, 1, 3) },
+                    new Date(2024, 0, 2, 10, 7),
+                    new Date(2024, 0, 2, 9),
+                ],
+                [
+                    'an interval aligned to the domain start',
+                    { unit: 'minute', step: 15 },
+                    new Date(2024, 0, 2, 10, 8),
+                    new Date(2024, 0, 2, 10, 1),
+                    false,
+                ],
+            ])('rounds a time axis to %s', async (_name, snapInterval, date, expected, nice) => {
+                chart = await createEnterpriseChart({
+                    data: [
+                        { date: new Date(2024, 0, 1, 9, 31), value: 5 },
+                        { date, value: 8 },
+                        { date: new Date(2024, 0, 3, 13, 52), value: 3 },
+                    ],
+                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                    axes: {
+                        x: { type: 'time', position: 'bottom', nice, crosshair: { snapInterval } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                });
+                await hoverDatum(date, 8);
+                expectLineAt('bottom', expected);
+            });
+
+            it('formats the rounded value with the axis crosshair label format', async () => {
+                chart = await createEnterpriseChart(roundedLine({ snapInterval: 25, label: { format: '#{.1f}' } }));
+                await hoverDatum('B', 137);
+                const label = document.querySelector(
+                    `.ag-charts-crosshair-label[data-axis-id="${findAxis(chart, 'left').id}"]:not(.ag-charts-crosshair-label--hidden)`
+                );
+                expect(label?.textContent?.trim()).toBe('125.0');
+            });
+
+            describe('validation', () => {
+                it.each<[string, unknown, string]>([
+                    ['zero', 0, '`0`'],
+                    ['a unit', 'day', '`"day"`'],
+                ])('warns about %s on a number axis and ignores it', async (_name, snapInterval, shown) => {
+                    chart = await createEnterpriseChart(roundedLine({ snapInterval } as AgNumericAxisCrosshairOptions));
+                    expectWarningsCalls().toEqual([
+                        [
+                            `AG Charts - Option \`axes.y.crosshair.snapInterval\` cannot be set to ${shown}; expecting a number greater than 0, ignoring.`,
+                        ],
+                    ]);
+                    await hoverDatum('B', 137);
+                    expectLineAt('left', 137);
+                });
+
+                it('warns about the option on a category axis', async () => {
+                    chart = await createEnterpriseChart({
+                        ...roundedLine({}),
+                        axes: {
+                            x: {
+                                type: 'category',
+                                position: 'bottom',
+                                crosshair: { snapInterval: 1 } as AgCrosshairOptions,
+                            },
+                            y: { type: 'number', position: 'left' },
+                        },
+                    });
+                    expectWarningsCalls().toEqual([[expect.stringContaining('Unknown option')]]);
+                });
+            });
+        });
+    });
+
+    describe('crosshair default', () => {
+        const ROWS = ['A', 'B', 'C', 'D', 'E'].map((cat, i) => ({
+            cat,
+            cat2: ['P', 'Q'][i % 2],
+            n: i + 1,
+            v: 10 + i * 5,
+            w: [100, -30, -30, -30, -5][i],
+            lo: 5 + i,
+            hi: 25 + i * 3,
+            size: 5 + i,
+            min: 1 + i,
+            q1: 3 + i,
+            median: 5 + i,
+            q3: 8 + i,
+            max: 10 + i,
+            t: new Date(2024, 0, i + 1),
+        }));
+        const CANDLES = ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04'].map((date, i) => ({
+            date: new Date(date),
+            open: 100 + i,
+            high: 130 + i,
+            low: 90 + i,
+            close: 110 + i,
+        }));
+        const OHLC = { xKey: 'date', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' } as const;
+
+        type AxisType = 'number' | 'category' | 'time' | 'log';
+        const visibleLabels = () =>
+            document.querySelectorAll('.ag-charts-crosshair-label:not(.ag-charts-crosshair-label--hidden)').length;
+        const hasVisibleLabel = (position: string) =>
+            document.querySelectorAll(
+                `.ag-charts-crosshair-label[data-axis-id="${findAxis(chart, position).id}"]:not(.ag-charts-crosshair-label--hidden)`
+            ).length >= 1;
+
+        const hoverCentre = async () => {
+            const { x, y, width, height } = getSeriesRect(chart);
+            await hoverAction(x + width / 2, y + height / 2)(chart);
+            await waitForChartStability(chart);
+        };
+
+        const axesFor = ([xType, yType]: [AxisType, AxisType], crosshair?: { enabled: boolean }) =>
+            ({
+                x: { type: xType, position: 'bottom', ...(crosshair && { crosshair }) },
+                y: { type: yType, position: 'left', ...(crosshair && { crosshair }) },
+            }) as AgCartesianAxesOptions;
+
+        const OFF_CASES: [string, AgCartesianChartOptions['series'], [AxisType, AxisType]][] = [
+            ['line', [{ type: 'line', xKey: 'n', yKey: 'v' }], ['number', 'number']],
+            ['area', [{ type: 'area', xKey: 'n', yKey: 'v' }], ['number', 'number']],
+            ['scatter', [{ type: 'scatter', xKey: 'n', yKey: 'v' }], ['number', 'number']],
+            ['bubble', [{ type: 'bubble', xKey: 'n', yKey: 'v', sizeKey: 'size' }], ['number', 'number']],
+            ['bar vertical', [{ type: 'bar', xKey: 'cat', yKey: 'v' }], ['category', 'number']],
+            [
+                'bar horizontal',
+                [{ type: 'bar', direction: 'horizontal', xKey: 'cat', yKey: 'v' }],
+                ['number', 'category'],
+            ],
+            ['histogram', [{ type: 'histogram', xKey: 'v' }], ['number', 'number']],
+            [
+                'box plot',
+                [
+                    {
+                        type: 'box-plot',
+                        xKey: 'cat',
+                        minKey: 'min',
+                        q1Key: 'q1',
+                        medianKey: 'median',
+                        q3Key: 'q3',
+                        maxKey: 'max',
+                    },
+                ],
+                ['category', 'number'],
+            ],
+            ['range bar', [{ type: 'range-bar', xKey: 'cat', yLowKey: 'lo', yHighKey: 'hi' }], ['category', 'number']],
+            [
+                'range area',
+                [{ type: 'range-area', xKey: 'cat', yLowKey: 'lo', yHighKey: 'hi' }],
+                ['category', 'number'],
+            ],
+            ['waterfall', [{ type: 'waterfall', xKey: 'cat', yKey: 'w' }], ['category', 'number']],
+            ['heatmap', [{ type: 'heatmap', xKey: 'cat', yKey: 'cat2', colorKey: 'v' }], ['category', 'category']],
+            ['line with time x and log y', [{ type: 'line', xKey: 't', yKey: 'v' }], ['time', 'log']],
+        ];
+
+        it.each(OFF_CASES)(
+            '%s has no crosshair by default and shows one when enabled',
+            async (_name, series, types) => {
+                chart = await createEnterpriseChart({ data: ROWS, series, axes: axesFor(types) });
+                await hoverCentre();
+                expect(visibleLabels()).toBe(0);
+                chart.destroy();
+
+                chart = await createEnterpriseChart({ data: ROWS, series, axes: axesFor(types, { enabled: true }) });
+                await hoverCentre();
+                expect(hasVisibleLabel('bottom'), 'x label').toBe(true);
+                expect(hasVisibleLabel('left'), 'y label').toBe(true);
+            }
+        );
+
+        const FINANCIAL_CASES: [string, AgCartesianChartOptions][] = [
+            ['candlestick', { data: CANDLES, series: [{ type: 'candlestick', ...OHLC }] }],
+            ['ohlc', { data: CANDLES, series: [{ type: 'ohlc', ...OHLC }] }],
+            [
+                'hlc',
+                {
+                    data: CANDLES,
+                    series: [{ type: 'hlc', xKey: 'date', highKey: 'high', lowKey: 'low', closeKey: 'close' }],
+                },
+            ],
+            [
+                'candlestick with a time x axis',
+                { data: CANDLES, series: [{ type: 'candlestick', ...OHLC }], axes: { x: { type: 'time' } } },
+            ],
+            [
+                'candlestick with a unit-time x axis',
+                { data: CANDLES, series: [{ type: 'candlestick', ...OHLC }], axes: { x: { type: 'unit-time' } } },
+            ],
+            [
+                'candlestick with a log y axis',
+                { data: CANDLES, series: [{ type: 'candlestick', ...OHLC }], axes: { y: { type: 'log' } } },
+            ],
+            [
+                'candlestick followed by a line',
+                {
+                    data: CANDLES,
+                    series: [
+                        { type: 'candlestick', ...OHLC },
+                        { type: 'line', xKey: 'date', yKey: 'close' },
+                    ],
+                },
+            ],
+        ];
+
+        it.each(FINANCIAL_CASES)('%s shows x and y crosshair labels by default', async (_name, options) => {
+            chart = await createEnterpriseChart(options);
+            await hoverCentre();
+            expect(hasVisibleLabel('bottom'), 'x label').toBe(true);
+            expect(hasVisibleLabel('left'), 'y label').toBe(true);
+        });
+
+        it.each(FINANCIAL_CASES.slice(0, 3))(
+            '%s hides the y label when the y axis disables it',
+            async (_name, options) => {
+                chart = await createEnterpriseChart({
+                    ...options,
+                    axes: { y: { type: 'number', crosshair: { enabled: false } } },
+                });
+                await hoverCentre();
+                expect(hasVisibleLabel('bottom'), 'x label').toBe(true);
+                expect(visibleLabels()).toBe(1);
+            }
+        );
     });
 });

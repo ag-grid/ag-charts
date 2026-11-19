@@ -24,6 +24,7 @@ import {
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
+import { FINANCIAL_SERIES_AXES_THEME } from '../../features/crosshair/crosshairThemes';
 import { OhlcSeries } from './ohlcSeries';
 import { ohlcSeriesOptionsDef, ohlcSeriesThemeableOptionsDef } from './ohlcSeriesOptionsDef';
 
@@ -57,14 +58,7 @@ const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
         highlight: withGlowThemeDefaults({ ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
     },
-    axes: {
-        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
-            groupPaddingInner: 0,
-            crosshair: {
-                enabled: true,
-            },
-        },
-    },
+    axes: FINANCIAL_SERIES_AXES_THEME,
 };
 
 export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {

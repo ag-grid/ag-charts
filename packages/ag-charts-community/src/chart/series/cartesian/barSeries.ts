@@ -578,6 +578,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return dataModel.hasColumnById(this, 'yValue-end') ? 'yValue-end' : 'yValue-raw';
     }
 
+    protected override gapValueColumn() {
+        const { dataModel, processedData } = this;
+        if (dataModel == null || processedData == null) return;
+        return dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'mixed-numeric');
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
 
@@ -1918,7 +1924,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 overrides,
                 highlightStyle,
                 this.getStyle(false, highlightState, selectionState, candidateState)
-            ) as Required<NormalisedBarSeriesStyle>;
+            );
         }
 
         let style = mergeDefaults(

@@ -2,12 +2,12 @@ import { _Theme } from 'ag-charts-community';
 import {
     type Logger,
     type OptionsDefs,
-    arrayOf,
     boolean,
     callback,
     color,
     fillOptionsDef,
     fontOptionsDef,
+    lineDash,
     lineDashOptionsDef,
     positiveNumber,
     ratio,
@@ -243,7 +243,7 @@ export const volumeProfileSelectionOptionsDef: OptionsDefs<AgVolumeProfileSelect
         fillOpacity: ratio,
         stroke: color,
         strokeWidth: positiveNumber,
-        lineDash: arrayOf(positiveNumber),
+        lineDash,
     } satisfies OptionsDefs<AgVolumeProfileSelectedBandOptions>,
 };
 
