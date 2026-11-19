@@ -114,9 +114,9 @@ const SELECTION_LAYERS = (chart: AgChartInstance) => ({
 });
 // Only groups cast in the group case, so the leaf rects that share the selection are left out.
 const GROUP_LAYERS = (chart: AgChartInstance) => {
-    const groups = (name: 'datumSelection' | 'highlightSelection') =>
+    const groups = (name: 'datumSelection' | 'highlightGroupSelection') =>
         getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name).filter((node) => node.datum?.hasChildren);
-    return { inPlace: groups('datumSelection'), highlighted: groups('highlightSelection') };
+    return { inPlace: groups('datumSelection'), highlighted: groups('highlightGroupSelection') };
 };
 // A flow series redraws the hovered item's neighbours on a focus layer; the highlight layer holds the item itself,
 // as a node or as a link.
@@ -308,7 +308,6 @@ const SERIES: SeriesCase[] = [
     {
         // Tile and group highlights live under `tile.highlight` and `group.highlight`, not the series' `highlight`.
         name: 'treemap tiles',
-        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Rect,
         hover: FIRST_LEAF,
@@ -339,7 +338,6 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'sunburst',
-        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Sector,
         hover: FIRST_LEAF,

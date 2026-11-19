@@ -213,7 +213,16 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
     protected readonly datumSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect<TreemapNode>);
     private readonly labelSelection = Selection.select<Group<TreemapNode>>(this.labelGroup, Group<TreemapNode>);
-    private readonly highlightSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect);
+    /** The highlight copy of a group, which draws in depth order, for the tiles of the group to draw over its fill. */
+    private readonly highlightGroupSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect);
+    /**
+     * Above every node, and cast by the root above its overlay, so that the glow of a hovered tile draws over the fill and the glow
+     * of every other node, a branch that glows included. It holds the highlight copy of a tile, which has no tiles to cover.
+     */
+    private readonly highlightTileGroup = this.contentGroup.appendChild(
+        new Group({ batchShadows: 'by-layer', castsHoveredGlows: true })
+    );
+    private readonly highlightSelection = Selection.select<Rect<TreemapNode>>(this.highlightTileGroup, Rect);
 
     protected override _data?: HierarchyDataSet<any>;
     protected override _chartData?: HierarchyDataSet<any>;
@@ -668,7 +677,13 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const highlightedNode = this.getActiveHighlightNode();
 
         const getDatumId = (node: TreemapNode) => node.datumIndex;
-        this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
+        const highlightedIsGroup = highlightedNode != null && highlightedNode.children.length > 0;
+        this.highlightGroupSelection.update(highlightedIsGroup ? [highlightedNode] : [], undefined, getDatumId);
+        this.highlightSelection.update(
+            highlightedNode != null && !highlightedIsGroup ? [highlightedNode] : [],
+            undefined,
+            getDatumId
+        );
 
         if (!this.nodeDataRefresh) {
             return;
@@ -826,13 +841,16 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 (isLeaf ? tile : group).shadow,
                 glow,
                 isHighlight,
-                hoveredStyle == null ? style.shadow : hoveredStyle.shadow
+                hoveredStyle == null ? style.shadow : hoveredStyle.shadow,
+                isHighlight && isLeaf
             );
             rect.fillGlow = this.resolveNodeGlow(
                 glow,
                 isHighlight,
                 hoveredInPlace,
-                hoveredStyle != null && this.getNodeGlow(node, isLeaf, true, highlightedNode, hoveredStyle.glow) != null
+                hoveredStyle != null &&
+                    this.getNodeGlow(node, isLeaf, true, highlightedNode, hoveredStyle.glow) != null,
+                isHighlight && isLeaf
             );
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = this.getNodeZIndex(node, depth, isHighlight, highlightedNode);
@@ -859,9 +877,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
         this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, false));
 
-        this.highlightSelection.each((rect, datum) => {
-            updateRectFn(datum, rect, true);
-        });
+        this.highlightGroupSelection.each((rect, datum) => updateRectFn(datum, rect, true));
+        this.highlightSelection.each((rect, datum) => updateRectFn(datum, rect, true));
 
         if (!this.usesPlacedLabels) this.updateLabelNodes();
     }

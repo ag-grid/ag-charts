@@ -259,6 +259,42 @@ describe('shadow and glow render (hierarchy series)', () => {
         });
     });
 
+    /** The pixel in the sector of A2, 3px from the radius that it shares with A1, and 3px beyond its inner radius. */
+    const insideSectorBesideA1 = () => {
+        const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
+        const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
+        const leaves = sectors.filter(({ innerRadius }) => innerRadius > innerRing);
+        const a1 = leaves.find((sector) => sector.startAngle === Math.min(...leaves.map((leaf) => leaf.startAngle)))!;
+        const a2 = leaves.find((sector) => sector.startAngle === a1.endAngle)!;
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(a2, a2.centerX, a2.centerY);
+        const radius = a2.innerRadius + 3;
+        const angle = a2.startAngle + 3 / radius;
+        return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
+    };
+
+    // The glows stack by depth: where the glow of a hovered leaf overlaps that of its branch, the leaf's is the one on top.
+    describe.each([
+        ['a tile of a treemap', treemap, () => leftOf('A')],
+        ['a sector of a sunburst', sunburst, insideSectorBesideA1],
+    ])('the glow of a hovered leaf, and that of its branch, in %s', (_name, testCase, pixelOf) => {
+        // The pixel is reached by the glows of both the branch A and of its leaf A1.
+        const pixel = (branchGlows: boolean, leafGlows: boolean) =>
+            pixelWhileHovering(testCase, 'A1', pixelOf, branchGlows ? glowing('A') : {}, leafGlows ? RED : OFF);
+
+        it('draws the glow of the leaf over that of its branch', async () => {
+            expect(await pixel(true, true)).toEqual(await pixel(false, true));
+        });
+
+        // The controls: each glow reaches the pixel alone, so the equality above is the leaf's colour over the branch's.
+        it('has the glow of the leaf at that pixel', async () => {
+            expect(await pixel(false, true)).not.toEqual(await pixel(false, false));
+        });
+
+        it('has the glow of the branch at that pixel', async () => {
+            expect(await pixel(true, false)).not.toEqual(await pixel(false, false));
+        });
+    });
+
     describe('the glow of a tile that is not hovered', () => {
         const pixelBelow = async (name: string, ...glowingNames: string[]) => {
             await create([glowSeries(treemap, glowing(...glowingNames))], treemap.data, RENDER_OPTIONS);

@@ -78,8 +78,6 @@ interface Case {
     layers: (chart: AgChartInstance) => Layers;
     /** The slot of a shape that holds the glow it casts: the glow slot, or the shadow slot of a series with one slot per item. */
     glowSlot: 'fillGlow' | 'fillShadow';
-    /** The slot that holds the glow of the highlight layer's copy, if it is not `glowSlot`: a hierarchy casts it as a shadow. */
-    highlightGlowSlot?: 'fillGlow' | 'fillShadow';
     /** A series with one slot per item shows its glow in place of its shadow; others cast both. */
     oneSlot: boolean;
     /** Whether the series has a series-level `glow` option; the hierarchy series take a glow from their highlight styles only. */
@@ -126,7 +124,6 @@ const CASES: Case[] = [
         name: 'treemap tile',
         data: HIERARCHY_SHADOW_DATA,
         glowSlot: 'fillGlow',
-        highlightGlowSlot: 'fillShadow',
         oneSlot: false,
         seriesGlow: true,
         isFirst: (params) => params.datum.name === 'A1',
@@ -144,7 +141,6 @@ const CASES: Case[] = [
         name: 'sunburst',
         data: HIERARCHY_SHADOW_DATA,
         glowSlot: 'fillGlow',
-        highlightGlowSlot: 'fillShadow',
         oneSlot: false,
         seriesGlow: true,
         isFirst: (params) => params.datum.name === 'A1',
@@ -201,7 +197,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
 
     // A series with one slot per item holds the glow where it would hold the shadow; the shadow is cast where it has no glow.
     const glowOf = (shape: Shape) => shape[testCase.glowSlot];
-    const highlightGlowOf = (shape: Shape) => shape[testCase.highlightGlowSlot ?? testCase.glowSlot];
+    const highlightGlowOf = (shape: Shape) => shape[testCase.glowSlot];
 
     describe('override', () => {
         it('casts the shadow that the styler returns for an item, and the series shadow for the others', async () => {

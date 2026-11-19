@@ -85,7 +85,12 @@ export function getActiveHighlight(chartOrProxy: ChartOrProxy<any>): HighlightNo
 
 /** The scene selections of a series that tests read the drawn nodes through. */
 export type SeriesSelectionName =
-    'datumSelection' | 'labelSelection' | 'highlightSelection' | 'highlightLabelSelection' | 'itemSelection';
+    | 'datumSelection'
+    | 'labelSelection'
+    | 'highlightSelection'
+    | 'highlightGroupSelection'
+    | 'highlightLabelSelection'
+    | 'itemSelection';
 
 /**
  * The nodes a series drew into one of its selections, in selection order. Which selections a series has depends on its

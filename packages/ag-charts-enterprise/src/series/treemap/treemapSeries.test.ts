@@ -186,8 +186,12 @@ describe('TreemapSeries', () => {
         const nodeAtPath = (path: number[]): HierarchyNode | undefined =>
             path.reduce<HierarchyNode | undefined>((node, idx) => node?.children[idx], getHierarchyRootNode(chart));
 
-        // Highlight selection holds only the active highlight node, so its fill reveals whether highlighting applied.
-        const highlightFill = (): unknown => getSeriesSelectionNodes<Rect>(chart, 'highlightSelection')[0]?.fill;
+        // The highlight selections hold only the active highlight node (a tile or a group), so its fill reveals whether highlighting applied.
+        const highlightFill = (): unknown =>
+            [
+                ...getSeriesSelectionNodes<Rect>(chart, 'highlightSelection'),
+                ...getSeriesSelectionNodes<Rect>(chart, 'highlightGroupSelection'),
+            ][0]?.fill;
 
         const highlightNodeAndReadFill = async (path: number[]): Promise<unknown> => {
             const node = nodeAtPath(path);
