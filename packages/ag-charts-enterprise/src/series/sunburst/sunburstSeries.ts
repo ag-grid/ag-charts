@@ -139,6 +139,14 @@ function edgeSpanRadius({ sweep, edgeInset }: SunburstLabelRing, width: number) 
     return (width + (2 * edgeInset) / Math.cos(sweep * 0.5)) / (2 * Math.tan(sweep * 0.5));
 }
 
+/**
+ * How far along the bisector a label `width` across must start to clear a wedge's drawn straight edges. From half a
+ * turn up, the cut-out lies behind the centre, so only the label's near side has to clear it.
+ */
+function wedgeApexRadius(ring: SunburstLabelRing, width: number) {
+    return ring.sweep < Math.PI ? edgeSpanRadius(ring, width) : ring.edgeInset;
+}
+
 /** How far apart the drawn straight edges of a sector narrower than half a turn are at `radius`. */
 function edgeSpanAt({ sweep, edgeInset }: SunburstLabelRing, radius: number) {
     return 2 * (radius * Math.tan(sweep * 0.5) - edgeInset / Math.cos(sweep * 0.5));
@@ -165,7 +173,7 @@ function sectorLabelRadius(
         }
         case LabelPlacement.Perpendicular: {
             if (!wedge) return (innerRadius + outerRadius) * 0.5;
-            const minimumRadius = edgeSpanRadius(ring, height) + width * 0.5;
+            const minimumRadius = wedgeApexRadius(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
             return (minimumRadius + maximumRadius) * 0.5;
         }
@@ -737,13 +745,12 @@ export class SunburstSeries extends HierarchySeries<
         }
 
         const straightEdges = sweep < Math.PI ? edgeSpanAt(ring, innerRadius) : Infinity;
-        const parallelWidth = (height: number) => Math.min(2 * chordAt(innerRadius + height), straightEdges);
+        // From half a turn up, the drawn straight edges sit `edgeInset` in front of the centre.
+        const nearSide = sweep < Math.PI ? innerRadius : Math.max(innerRadius, ring.edgeInset);
+        const parallelWidth = (height: number) => Math.min(2 * chordAt(nearSide + height), straightEdges);
         let perpendicularWidth: ((height: number) => number) | undefined;
         if (wedge) {
-            perpendicularWidth = (height) => {
-                const apex = sweep < Math.PI ? edgeSpanRadius(ring, height) : 0;
-                return chordAt(height * 0.5) - apex;
-            };
+            perpendicularWidth = (height) => chordAt(height * 0.5) - wedgeApexRadius(ring, height);
         } else if (normalizeAngle360(sweep) < Math.PI / 4) {
             // Measured across the sector's full height at its inner edge, however short the text.
             const across = chordAt(straightEdges * 0.5) - innerRadius;
