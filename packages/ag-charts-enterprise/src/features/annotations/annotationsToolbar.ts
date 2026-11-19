@@ -99,8 +99,7 @@ export class AnnotationsToolbar {
         this.padding = padding;
         this.buttons = buttons.map((button) => this.withPressed(button));
         if (enabled) {
-            const { logger, localeManager } = this.ctx;
-            warnUnnamedToolbarButtons(logger, localeManager, 'annotations.toolbar.buttons', buttons);
+            warnUnnamedToolbarButtons(this.ctx.logger, 'annotations.toolbar.buttons', buttons);
         }
     }
 

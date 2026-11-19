@@ -117,7 +117,7 @@ export class Ranges extends AbstractModuleInstance {
                 // Read both before branching: the observer only tracks the keys read on its first run.
                 const enabled = get('options', 'ranges.enabled') ?? false;
                 const buttons = get('options', 'ranges.buttons');
-                if (enabled) warnUnnamedToolbarButtons(ctx.logger, ctx.localeManager, 'ranges.buttons', buttons);
+                if (enabled) warnUnnamedToolbarButtons(ctx.logger, 'ranges.buttons', buttons);
             }),
             this.teardown.bind(this)
         );

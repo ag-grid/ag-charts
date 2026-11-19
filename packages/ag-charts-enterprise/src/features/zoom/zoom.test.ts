@@ -224,29 +224,6 @@ describe('Zoom', () => {
         ]);
     });
 
-    it('warns for a zoom button whose only name resolves to blank text through the locale', async () => {
-        await prepareChart(
-            {
-                buttons: {
-                    enabled: true,
-                    visible: 'always',
-                    buttons: [
-                        { icon: 'zoom-in', value: 'zoom-in', section: 'scale', tooltip: 'Magnify' },
-                        { icon: 'reset', value: 'reset', section: 'scale' },
-                    ],
-                },
-            },
-            undefined,
-            { ...EXAMPLE_OPTIONS, locale: { localeText: { toolbarZoomReset: '' } } }
-        );
-
-        expectWarningsCalls().toEqual([
-            [
-                "AG Charts - `zoom.buttons.buttons[1]` (value 'reset') has no accessible name; set a non-empty `ariaLabel`, `tooltip` or `label` so that screen readers can announce it.",
-            ],
-        ]);
-    });
-
     describe('tick datums across a data update', () => {
         const rows = (shift = 0, maxX = 20) =>
             Array.from({ length: 11 }, (_, i) => ({ x: (i * maxX) / 10, y: ((i + shift) % 2) * 10 }));

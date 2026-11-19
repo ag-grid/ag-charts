@@ -145,8 +145,7 @@ export class ZoomToolbar {
                 : button
         );
         if (enabled) {
-            const { logger, localeManager } = this.ctx;
-            warnUnnamedToolbarButtons(logger, localeManager, 'zoom.buttons.buttons', this.buttons);
+            warnUnnamedToolbarButtons(this.ctx.logger, 'zoom.buttons.buttons', this.buttons);
         }
         if (visible !== this.visible) {
             this.visible = visible;
