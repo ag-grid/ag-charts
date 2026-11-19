@@ -8,6 +8,7 @@ import {
     getReferencedOptions,
     getTypes,
     replaceOptionsReferences,
+    splitReferencedOptions,
     usesDefaultOptionsType,
 } from './parser-utils';
 
@@ -184,6 +185,69 @@ describe('getReferencedOptions', () => {
             ],
         };
         expect(getReferencedOptions(bindings, bindings.properties[1])).toEqual([]);
+    });
+});
+
+describe('getReferencedOptions with charts that read each other', () => {
+    const chart = (name: string, value: string) => ({ name, value });
+    const bindings = {
+        chartProperties: { a: 'options1', b: 'options2' },
+        properties: [
+            // options1's callback reads options2, which spreads options1.
+            chart('options1', '{ listeners: { nodeClick: () => console.log(options2.series) }, series: [] }'),
+            chart('options2', '{ ...options1, subtitle: { text: "x" } }'),
+        ],
+    };
+
+    it('terminates and returns the other chart, for either chart', () => {
+        const [options1, options2] = bindings.properties;
+        expect(getReferencedOptions(bindings, options2)).toEqual([options1]);
+        expect(getReferencedOptions(bindings, options1)).toEqual([options2]);
+    });
+
+    it('never lists a chart as its own dependency', () => {
+        const self = chart('options1', '{ listeners: { nodeClick: () => options1.series } }');
+        expect(getReferencedOptions({ chartProperties: { a: 'options1' }, properties: [self] }, self)).toEqual([]);
+    });
+
+    it('terminates on a cycle of three charts', () => {
+        const props = [chart('a', '{ x: () => b }'), chart('b', '{ x: () => c }'), chart('c', '{ x: () => a }')];
+        const three = { chartProperties: { 1: 'a', 2: 'b', 3: 'c' }, properties: props };
+        expect(
+            getReferencedOptions(three, props[0])
+                .map((p) => p.name)
+                .sort()
+        ).toEqual(['b', 'c']);
+    });
+});
+
+describe('splitReferencedOptions', () => {
+    const chart = (name: string, value: string) => ({ name, value });
+    const names = (charts: any[]) => charts.map((p) => p.name);
+
+    it('puts a chart that the component spreads before it', () => {
+        const props = [chart('first', '{ title: 1 }'), chart('second', '{ ...first }')];
+        const bindings = { chartProperties: { a: 'first', b: 'second' }, properties: props };
+        const split = splitReferencedOptions(bindings, props[1]);
+        expect(names(split.before)).toEqual(['first']);
+        expect(split.after).toEqual([]);
+    });
+
+    it('does not order a chart before another that only reads it inside a callback', () => {
+        // options1 reads options2 only in a callback, so options2 (which spreads options1) must come second.
+        const props = [
+            chart('options1', '{ listeners: { nodeClick: () => console.log(options2.series) }, series: [] }'),
+            chart('options2', '{ ...options1, subtitle: { text: "x" } }'),
+        ];
+        const bindings = { chartProperties: { a: 'options1', b: 'options2' }, properties: props };
+        expect(splitReferencedOptions(bindings, props[0])).toEqual({ before: [], after: [props[1]] });
+        expect(splitReferencedOptions(bindings, props[1])).toEqual({ before: [props[0]], after: [] });
+    });
+
+    it('is empty either side when the chart reads no other chart', () => {
+        const props = [chart('first', '{}'), chart('second', '{}')];
+        const bindings = { chartProperties: { a: 'first', b: 'second' }, properties: props };
+        expect(splitReferencedOptions(bindings, props[0])).toEqual({ before: [], after: [] });
     });
 });
 

@@ -327,6 +327,74 @@ AgCharts.create(second);
     });
 });
 
+describe('charts whose options read each other', () => {
+    // options1's callback reads options2, which spreads options1. Both reads must be declared in the right order
+    // and the generator must terminate.
+    const MUTUAL = `
+import { AgCharts, AgChartOptions } from 'ag-charts-community';
+
+const options1: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    listeners: {
+        nodeClick: () => console.log(options2.series),
+    },
+    series: [],
+};
+
+const options2: AgChartOptions = {
+    ...options1,
+    container: document.getElementById('otherChart'),
+    subtitle: { text: 'x' },
+};
+
+AgCharts.create(options1);
+AgCharts.create(options2);
+`;
+    const component = (output: string, name: string) => {
+        const start = output.indexOf(`class ${name}`);
+        const next = output.indexOf('@Component', start);
+        return output.slice(start, next === -1 ? undefined : next);
+    };
+
+    test('every variant is generated', async () => {
+        const output = await generate(MUTUAL, TWO_CHARTS_HTML);
+        for (const variant of Object.values(output)) {
+            expect(variant).toContain('options1');
+            expect(variant).toContain('options2');
+        }
+    });
+
+    test('Angular reads the component own chart as a member and the other chart as a local', async () => {
+        const output = (await generate(MUTUAL, TWO_CHARTS_HTML)).angular;
+        const myChart = component(output, 'MyChart');
+        expect(myChart).toContain('console.log(options2.series)');
+        expect(myChart).toMatch(/const options2: AgChartOptions = \{ \.\.\.this\.options1,/);
+
+        const otherChart = component(output, 'OtherChart');
+        expect(otherChart).toMatch(/const options1: AgChartOptions = \{[^]*console\.log\(this\.options2\.series\)/);
+        expect(otherChart).toMatch(/this\.options2 = \{ \.\.\.options1,/);
+        expect(otherChart).not.toContain('this.options1');
+    });
+
+    test('React and Vue declare the spread chart before the chart that spreads it', async () => {
+        const { react, vue } = await generate(MUTUAL, TWO_CHARTS_HTML);
+        for (const output of [react, vue]) {
+            for (const name of ['MyChart', 'OtherChart']) {
+                const body = output.slice(output.indexOf(`const ${name} =`));
+                const declaredAt = (chart: string) => body.search(new RegExp(`const \\[?${chart}\\b`));
+                expect(declaredAt('options1')).toBeGreaterThan(-1);
+                expect(declaredAt('options1')).toBeLessThan(declaredAt('options2'));
+            }
+        }
+    });
+
+    test('Angular does not read a dependency chart as a member of the component', async () => {
+        const output = (await generate(MUTUAL, TWO_CHARTS_HTML)).angular;
+        // OtherChart has no options1 member, so reading this.options1 there would not type-check.
+        expect(component(output, 'OtherChart')).not.toContain('public options1');
+    });
+});
+
 describe('callbacks that read the options variable', () => {
     const SRC = `
 import { AgCharts, AgChartOptions } from 'ag-charts-community';
