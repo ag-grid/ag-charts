@@ -278,9 +278,9 @@ describe('shadow and glow render (hierarchy series)', () => {
                 async (_name, testCase, hovered, parent, pixelOf) => {
                     const hover = [hovered];
 
-                    expect(await hoveredPixel(testCase, { hover, glows: [parent], highlight: own }, pixelOf)).not.toEqual(
-                        await hoveredPixel(testCase, { hover, glows: [parent], highlight: off }, pixelOf)
-                    );
+                    expect(
+                        await hoveredPixel(testCase, { hover, glows: [parent], highlight: own }, pixelOf)
+                    ).not.toEqual(await hoveredPixel(testCase, { hover, glows: [parent], highlight: off }, pixelOf));
                 }
             );
 
@@ -295,6 +295,35 @@ describe('shadow and glow render (hierarchy series)', () => {
                     );
                 }
             );
+        });
+
+        // The glow of the hovered sector is drawn over the fill of a child that glows too: the pixel is 3px inside the sector of A1.
+        describe('beside a child that glows', () => {
+            const own = { highlightedItem: { glow: GLOW } };
+            const off = { highlightedItem: { glow: { ...GLOW, enabled: false } } };
+            const insideChild = () => {
+                const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
+                const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
+                const leaves = sectors.filter(({ innerRadius }) => innerRadius > innerRing);
+                const a1 = leaves.find(
+                    (sector) => sector.startAngle === Math.min(...leaves.map((leaf) => leaf.startAngle))
+                )!;
+                const { canvasX, canvasY } = Transformable.toCanvasPoint(a1, a1.centerX, a1.centerY);
+                const angle = (a1.startAngle + a1.endAngle) / 2;
+                const radius = a1.innerRadius + 3;
+                return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
+            };
+            const pixel = (highlight: object, glows: string[]) =>
+                hoveredPixel(sunburst, { hover: ['A'], glows, highlight }, insideChild);
+
+            it('shows the glow of the hovered sector over the fill of its child', async () => {
+                expect(await pixel(own, ['A1'])).not.toEqual(await pixel(off, ['A1']));
+            });
+
+            // The control, at the same pixel: the glow of the child alone does not reach it, as its own fill is above it.
+            it('has no glow of the child at that pixel', async () => {
+                expect(await pixel(off, ['A1'])).toEqual(await pixel(off, []));
+            });
         });
 
         // Through its itemStyler, the hovered node glows at rest too, and so is not covered when it is not hovered.
