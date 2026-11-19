@@ -18886,6 +18886,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "#b499b5",
         "#b7b5ba",
       ],
+      "gap": 1,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -18981,7 +18982,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "count",
-      "sectorSpacing": 1,
       "selection": {
         "containment": "any",
         "enabled": false,
@@ -19983,6 +19983,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "#72508c",
         "#b7b5ba",
       ],
+      "gap": 1,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -20045,7 +20046,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "population",
-      "sectorSpacing": 1,
       "selection": {
         "containment": "any",
         "enabled": false,

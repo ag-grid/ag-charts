@@ -2309,6 +2309,27 @@ describe('sectorLabelContainer', () => {
         expect(thin.width).toBeLessThan(wide.width);
     });
 
+    it('keeps every corner the radial edge inset clear of both straight edges', () => {
+        const inset = 6;
+        const mid = Math.PI / 2;
+        const sector = {
+            startAngle: mid - Math.PI / 6,
+            endAngle: mid + Math.PI / 6,
+            innerRadius: 40,
+            outerRadius: 120,
+        };
+        const anchor = anchorAt(85, mid);
+        const box = sectorLabelContainer(anchor, { ...sector, radialEdgeInset: inset }, 14);
+
+        expect(box.width).toBeLessThan(sectorLabelContainer(anchor, sector, 14).width);
+        for (const corner of cornersOf(anchor, box)) {
+            for (const angle of [sector.startAngle, sector.endAngle]) {
+                const distanceFromEdge = Math.abs(corner.x * Math.sin(angle) - corner.y * Math.cos(angle));
+                expect(distanceFromEdge).toBeGreaterThanOrEqual(inset - 1e-6);
+            }
+        }
+    });
+
     it('returns an empty box at the centre', () => {
         const box = sectorLabelContainer(
             { x: 0, y: 0 },

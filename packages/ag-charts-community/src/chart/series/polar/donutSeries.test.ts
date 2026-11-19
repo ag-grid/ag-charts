@@ -26,6 +26,7 @@ import { getLegendItemNodes, getSeriesSelectionNodes } from '../../test/seriesAc
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    chartPixelAt,
     clickAction,
     compareImageSnapshot,
     createChart,
@@ -1781,6 +1782,198 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('AG-18209 gap', () => {
+        const sectorFor = (datumIndex: number) =>
+            getSeriesSelectionNodes<Sector<{ datumIndex: number }>>(chart, 'itemSelection').find(
+                (sector) => sector.datum?.datumIndex === datumIndex
+            )!;
+
+        /**
+         * The run of background pixels through the top of the series, `distance` above its centre, and whether a
+         * sector ends it on both sides.
+         */
+        const gapAbove = (distance: number, gap: number) => {
+            const sector = sectorFor(0);
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY - distance);
+            const background = chartPixelAt(chart, 1, 1);
+            const isBackground = (x: number) =>
+                chartPixelAt(chart, x, canvasY).every((channel, i) => channel === background[i]);
+            const reach = 3 * gap;
+            if (!isBackground(canvasX)) return { width: 0, bounded: true };
+            let left = 0;
+            let right = 0;
+            while (left < reach && isBackground(canvasX - left - 1)) left++;
+            while (right < reach && isBackground(canvasX + right + 1)) right++;
+            return { width: left + right + 1, bounded: left < reach && right < reach };
+        };
+        const paintedGapAbove = (distance: number, gap: number) => gapAbove(distance, gap).width;
+
+        const createDonuts = async (data: object[], ...series: Partial<AgDonutSeriesOptions>[]) => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data,
+                    series: series.map(
+                        (s) =>
+                            ({ type: 'donut', angleKey: 'value', legendItemKey: 'name', ...s }) as AgDonutSeriesOptions
+                    ),
+                })
+            );
+        };
+
+        it('separates the sides only, leaving touching donuts at their full ring width', async () => {
+            const data = [
+                { name: 'a', value: 1 },
+                { name: 'b', value: 2 },
+                { name: 'c', value: 3 },
+            ];
+            const ring = { gap: 10, stroke: 'white', strokeWidth: 4 };
+            await createDonuts(
+                data,
+                { ...ring, innerRadiusRatio: 0.5, outerRadiusRatio: 0.75 },
+                { ...ring, innerRadiusRatio: 0.75 }
+            );
+
+            for (const seriesIndex of [0, 1]) {
+                for (const sector of getSeriesSelectionNodes<Sector>(chart, 'itemSelection', seriesIndex)) {
+                    expect(sector.innerEdgeInset).toBe(2);
+                    expect(sector.outerEdgeInset).toBe(2);
+                    expect(sector.radialEdgeInset).toBe(7);
+                }
+            }
+        });
+
+        it('paints the same gap whatever the stroke width', async () => {
+            const gap = 10;
+            const paintedGap = async (strokeWidth: number) => {
+                chart?.destroy();
+                await createDonuts(
+                    [
+                        { name: 'a', value: 1 },
+                        { name: 'b', value: 1 },
+                    ],
+                    { gap, strokeWidth, fills: ['#ff0000', '#0000ff'], strokes: ['#00ff00', '#00ff00'] }
+                );
+                const { innerRadius, outerRadius } = sectorFor(0);
+                return paintedGapAbove((innerRadius + outerRadius) / 2, gap);
+            };
+
+            const withoutStroke = await paintedGap(0);
+            const withStroke = await paintedGap(6);
+            expect(Math.abs(withoutStroke - gap)).toBeLessThanOrEqual(1);
+            expect(withStroke).toBe(withoutStroke);
+        });
+
+        const nearCentre = (gap: number) => 1.5 * gap;
+        const besideHole = () => sectorFor(0).innerRadius + 2;
+        const midRing = () => (sectorFor(0).innerRadius + sectorFor(0).outerRadius) / 2;
+        const tinyHole = { innerRadiusRatio: 0, innerRadiusOffset: 10 };
+        it.each([
+            { where: 'near the centre of a pie cut in halves', type: 'pie', values: [1, 1], at: nearCentre },
+            { where: 'near the centre of a pie cut 1:3', type: 'pie', values: [1, 3], at: nearCentre },
+            { where: 'beside a small hole', innerRadiusRatio: 0.1, values: [1, 1], at: besideHole },
+            { where: 'around a 10px hole (halves)', ...tinyHole, values: [1, 1], at: nearCentre },
+            { where: 'around a 10px hole (1:3)', ...tinyHole, values: [1, 3], at: nearCentre },
+            { where: 'beside rounded corners', innerRadiusRatio: 0.5, cornerRadius: 20, values: [1, 1], at: midRing },
+            {
+                where: 'beside corners too big for a wedge wider than a half turn',
+                type: 'pie',
+                cornerRadius: 1000,
+                values: [1, 3],
+                at: nearCentre,
+                gapWidens: true,
+            },
+            {
+                where: 'between rings no thicker than their stroke',
+                innerRadiusRatio: 1,
+                innerRadiusOffset: -4,
+                strokeWidth: 4,
+                values: [1, 1],
+                at: midRing,
+                gapWidens: true,
+            },
+        ])('keeps the full gap $where', async ({ type = 'donut', values, at, gapWidens = false, ...series }) => {
+            const gap = 30;
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: values.map((value, i) => ({ name: `n${i}`, value })),
+                    series: [{ type, angleKey: 'value', legendItemKey: 'name', gap, strokeWidth: 0, ...series }],
+                } as AgChartOptions)
+            );
+
+            const { width, bounded } = gapAbove(at(gap), gap);
+            expect(bounded).toBe(true);
+            expect(width).toBeGreaterThanOrEqual(gap - 1);
+            expect(width).toBeLessThanOrEqual(gapWidens ? 2 * gap : gap + 1);
+        });
+
+        it('does not draw a sector narrower than the gap, but keeps its neighbours inset and its pick area', async () => {
+            const gap = 20;
+            const clicked: string[] = [];
+            await createDonuts(
+                [
+                    { name: 'a', value: 50 },
+                    { name: 'tiny', value: 0.01 },
+                    { name: 'b', value: 50 },
+                ],
+                { gap, strokeWidth: 0, listeners: { seriesNodeClick: (event) => clicked.push(event.datum.name) } }
+            );
+
+            const [before, tiny, after] = [0, 1, 2].map(sectorFor);
+            expect(tiny.path.isEmpty()).toBe(true);
+            expect(before.path.isEmpty()).toBe(false);
+            expect(after.path.isEmpty()).toBe(false);
+            expect(before.radialEdgeInset).toBe(gap / 2);
+            expect(after.radialEdgeInset).toBe(gap / 2);
+
+            const angle = (tiny.startAngle + tiny.endAngle) / 2;
+            const radius = (tiny.innerRadius + tiny.outerRadius) / 2;
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(
+                tiny,
+                tiny.centerX + radius * Math.cos(angle),
+                tiny.centerY + radius * Math.sin(angle)
+            );
+            await clickAction(canvasX, canvasY)(chart);
+            expect(clicked).toEqual(['tiny']);
+        });
+
+        it.each([
+            { absent: 'a zero-value sector', value: 0, hideInLegend: false },
+            { absent: 'a sector hidden in the legend', value: 1, hideInLegend: true },
+        ])('closes up to a single gap around $absent', async ({ value, hideInLegend }) => {
+            const gap = 10;
+            await createDonuts(
+                [
+                    { name: 'a', value: 1 },
+                    { name: 'absent', value },
+                    { name: 'b', value: 1 },
+                ],
+                { gap, strokeWidth: 0 }
+            );
+            if (hideInLegend) {
+                const legendItem = [...iterLegendMarkerLabels(chart)].find(({ text }) => text === 'absent')!;
+                await clickAction(legendItem.x, legendItem.y)(chart);
+                await waitForChartStability(chart);
+            }
+
+            expect(sectorFor(0).endAngle).toBeCloseTo(sectorFor(2).startAngle, 10);
+            expect(sectorFor(0).radialEdgeInset + sectorFor(2).radialEdgeInset).toBe(gap);
+        });
+
+        it('gives no side gap to a lone sector', async () => {
+            await createDonuts(
+                [
+                    { name: 'only', value: 1 },
+                    { name: 'zero', value: 0 },
+                ],
+                { gap: 10, strokeWidth: 4, strokes: ['white'] }
+            );
+
+            expect(sectorFor(0).radialEdgeInset).toBe(2);
+        });
+    });
+
     describe('inner circle with rounded corners', () => {
         const data = [
             { asset: 'Stocks', amount: 30 },
@@ -1817,8 +2010,8 @@ describe('DonutSeries', () => {
         const paintedRadii = () => {
             const [sector] = sectorNodes();
             return {
-                innerRadius: sector.innerRadius + sector.concentricEdgeInset,
-                outerRadius: sector.outerRadius - sector.concentricEdgeInset,
+                innerRadius: sector.innerRadius + sector.innerEdgeInset,
+                outerRadius: sector.outerRadius - sector.outerEdgeInset,
             };
         };
         const expectCircleToReach = (series: DonutSeries, radius: number) => {
@@ -1831,6 +2024,21 @@ describe('DonutSeries', () => {
             const series = await createDonut({ cornerRadius, innerCircle: { fill: '#c9fdc9' } });
 
             expectCircleToReach(series, paintedRadii().innerRadius + cornerRadius);
+        });
+
+        it('does not grow the inner circle where the gap keeps the sides off the hole', async () => {
+            const gap = 30;
+            const series = await createDonut({
+                cornerRadius: 20,
+                gap,
+                innerRadiusRatio: 0.06,
+                innerCircle: { fill: '#c9fdc9' },
+            });
+
+            const { innerRadius } = paintedRadii();
+            const widestSweep = Math.max(...sectorNodes().map((s) => s.endAngle - s.startAngle));
+            expect(innerRadius * Math.sin(widestSweep / 2)).toBeLessThan(gap / 2);
+            expectCircleToReach(series, innerRadius);
         });
 
         test('never grows the inner circle past the sectors mid-line', async () => {
@@ -1862,7 +2070,8 @@ describe('DonutSeries', () => {
                 expect(cutout.endAngle).toBe(sector.endAngle);
                 expect(cutout.innerRadius).toBe(sector.innerRadius);
                 expect(cutout.outerRadius).toBe(sector.outerRadius);
-                expect(cutout.concentricEdgeInset).toBe(sector.concentricEdgeInset);
+                expect(cutout.innerEdgeInset).toBe(sector.innerEdgeInset);
+                expect(cutout.outerEdgeInset).toBe(sector.outerEdgeInset);
                 expect(cutout.radialEdgeInset).toBe(sector.radialEdgeInset);
                 expect(cutout.startOuterCornerRadius).toBe(sector.startOuterCornerRadius);
                 expect(cutout.endOuterCornerRadius).toBe(sector.endOuterCornerRadius);
@@ -1871,33 +2080,33 @@ describe('DonutSeries', () => {
             }
         });
 
-        test('carries the sector spacing inset into the cutouts', async () => {
-            const sectorSpacing = 6;
-            const series = await createDonut({ cornerRadius: 20, sectorSpacing, innerCircle: { fill: '#c9fdc9' } });
+        test('carries the gap inset into the cutouts', async () => {
+            const gap = 6;
+            const series = await createDonut({ cornerRadius: 20, gap, innerCircle: { fill: '#c9fdc9' } });
 
             const sectors = sectorNodes();
-            expect(sectors[0].radialEdgeInset).toBeCloseTo(sectorSpacing / 2, 5);
+            expect(sectors[0].radialEdgeInset).toBeCloseTo(gap / 2, 5);
             for (const [index, cutout] of series.innerCircleCutoutSelection.nodes().entries()) {
                 expect(cutout.radialEdgeInset).toBe(sectors[index].radialEdgeInset);
             }
         });
 
-        test('aligns the inner circle with the sectors mid-line under sector spacing', async () => {
-            const sectorSpacing = 20;
+        it('keeps a thin ring at full width under a wide gap, and aligns the inner circle with its mid-line', async () => {
+            const gap = 20;
             const series = await createDonut({
                 cornerRadius: 20,
-                sectorSpacing,
+                gap,
                 innerRadiusRatio: 0.9,
                 innerCircle: { fill: '#c9fdc9' },
             });
 
             const { innerRadius, outerRadius } = paintedRadii();
+            expect(innerRadius).toBe(series.getInnerRadius());
+            expect(outerRadius).toBe(series.getOuterRadius());
+            expect(sectorNodes()[0].radialEdgeInset).toBe(gap / 2);
+
             const midLineRadius = innerRadius + Math.floor((outerRadius - innerRadius) / 2);
             expectCircleToReach(series, midLineRadius);
-            // The band the spacing carves out is thin enough that the sectors would otherwise sit
-            // entirely inside the fill.
-            expect(midLineRadius).toBeLessThan(outerRadius);
-            expect(midLineRadius).toBeGreaterThan(series.getInnerRadius());
         });
 
         test('leaves the inner circle alone when there are no rounded corners', async () => {
