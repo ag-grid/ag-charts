@@ -55,6 +55,9 @@ export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 /** The miter limit of a dilation that doesn't follow the item's own join: it bevels vertices under about 57°. */
 const DILATION_MITER_LIMIT = 2.1;
 
+/** The most a gapped glow's dilation mitres a vertex, which is the canvas default limit, so the glow and its cast region stay bounded. */
+const GAP_MITER_LIMIT_CAP = 10;
+
 /** The alpha of a plain colour, which a shadow cast from an opaque copy of the shape has to follow. */
 function colourAlpha(colour: unknown): number {
     if (!isString(colour)) return 1;
@@ -957,8 +960,20 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
         ctx.lineCap = dilationCap;
         ctx.lineJoin = followsStroke ? (this.__lineJoin ?? 'miter') : 'miter';
-        ctx.miterLimit = followsStroke ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
+        ctx.miterLimit = this.getDilationMiterLimit(followsStroke, cutsGap || this.getSlot(slot)?.gap != null);
         ctx.lineWidth = (drawsStroke ? this.__strokeWidth : 0) + spread * 2;
+    }
+
+    /** The miter limit of a dilation: the item's own if it `followsStroke`, up to a cap when `gapped`, else {@link DILATION_MITER_LIMIT}. */
+    private getDilationMiterLimit(followsStroke: boolean, gapped: boolean): number {
+        if (!followsStroke) return DILATION_MITER_LIMIT;
+        const miterLimit = this.__miterLimit ?? 10;
+        return gapped ? Math.min(miterLimit, GAP_MITER_LIMIT_CAP) : miterLimit;
+    }
+
+    /** Whether the item's own mitred spikes can be longer than a gapped dilation's, which is capped at {@link GAP_MITER_LIMIT_CAP}. */
+    private paintsLongerMitres(): boolean {
+        return (this.__lineJoin ?? 'miter') === 'miter' && (this.__miterLimit ?? 10) > GAP_MITER_LIMIT_CAP;
     }
 
     /** Whether the item has a stroke whose outline, with its own join, miter limit and cap, a glow's `gap` is kept clear of. */
@@ -971,7 +986,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * Draws the shape, dilated by `spread`, opaque and in one solid colour: its fill, its stroke widened by the spread (or
      * the fill's outline stroked by it) and its extras. Where those overlap they only cover each other.
      *
-     * With a `gap`, a stroked item is dilated with its own join and miter limit, and an unstroked one by a mitre and a round
+     * With a `gap`, a stroked item is dilated with its own join and miter limit (up to 10), and an unstroked one by a mitre and a round
      * join, so that corners stay square and sharp points are still `gap` clear.
      */
     private drawSpreadSilhouette(
@@ -1007,7 +1022,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 // A butt-capped stroke ends where the item's does, so draw the `gap` past it.
                 if (cutsGap && ctx.lineCap === 'butt') this.strokeButtEnds(ctx, spread);
                 // The capped mitre leaves the spikes that the item's own join paints at sharp vertices, which are in its footprint.
-                if (footprint && painted) this.executeOwnStroke(ctx, path);
+                if (painted || (cutsGap && this.paintsLongerMitres())) this.executeOwnStroke(ctx, path);
             } else if (drawsFill && spread > 0 && path != null) {
                 this.dilateFill(ctx, path);
                 if (gapped && !followsStroke) {
@@ -1113,7 +1128,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         // A glow's gap dilates the fill of a stroked item with the join of its stroke.
         const ownJoin = !fillOnly || (this.getSlot(slot)?.gap != null && this.hasStrokeOutline());
         // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
-        const miterLimit = ownJoin ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
+        const miterLimit = this.getDilationMiterLimit(ownJoin, this.getSlot(slot)?.gap != null);
         const joinReach = !ownJoin || (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * miterLimit : halfStroke;
         // A square cap reaches a half-stroke along the diagonal. A spread dilation caps its open strokes too.
         const squareCap = spread > 0 || (!fillOnly && this.__lineCap === 'square');

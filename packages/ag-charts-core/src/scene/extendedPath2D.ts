@@ -770,9 +770,11 @@ export class ExtendedPath2D {
     }
 }
 
-/** Whether the horizontal ray running left from (x, y) crosses the edge, under the half-open rule. */
-/** Draws a line of `reach` past `to`, in line with the segment from `from`. Returns whether the context has begun a path. */
-function extendLineEnd(
+/**
+ * Draws a line of `reach` past `to`, in line with the segment from `from`, starting a unit inside the segment so the two
+ * erases of a gap's cut overlap. Returns whether the context has begun a path.
+ */
+export function extendLineEnd(
     ctx: Pick<CanvasRenderingContext2D, 'beginPath' | 'moveTo' | 'lineTo'>,
     fromX: number,
     fromY: number,
@@ -784,11 +786,15 @@ function extendLineEnd(
     const length = Math.hypot(toX - fromX, toY - fromY);
     if (!Number.isFinite(length) || length <= 0) return began;
     if (!began) ctx.beginPath();
-    ctx.moveTo(toX, toY);
-    ctx.lineTo(toX + ((toX - fromX) / length) * reach, toY + ((toY - fromY) / length) * reach);
+    const dx = (toX - fromX) / length;
+    const dy = (toY - fromY) / length;
+    const overlap = Math.min(length, 1);
+    ctx.moveTo(toX - dx * overlap, toY - dy * overlap);
+    ctx.lineTo(toX + dx * reach, toY + dy * reach);
     return true;
 }
 
+/** Whether the horizontal ray running left from (x, y) crosses the edge, under the half-open rule. */
 function rayCrossesLine(x0: number, y0: number, x1: number, y1: number, x: number, y: number): number {
     if (y0 > y === y1 > y) {
         return 0;

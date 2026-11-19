@@ -5,6 +5,7 @@ import { SceneChangeDetection } from '../../rendering/changeDetectable';
 import { snapDeviceCentre } from '../../rendering/pixel';
 import type { SerializedLineProps, SerializedNodeState } from '../../types/scene';
 import { BBox } from '../bbox';
+import { extendLineEnd } from '../extendedPath2D';
 import type { NodeOptions, RenderContext } from '../node';
 import { type CanvasContext, Shape } from './shape';
 
@@ -89,18 +90,9 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
         if (reach <= 0) return;
 
         const { drawnX1: x1, drawnY1: y1, drawnX2: x2, drawnY2: y2 } = this;
-        const length = Math.hypot(x2 - x1, y2 - y1);
         // A butt cap on a line with no length draws nothing, so it has no end to reach past.
-        if (!Number.isFinite(length) || length <= 0) return;
-
-        const dx = ((x2 - x1) / length) * reach;
-        const dy = ((y2 - y1) / length) * reach;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x1 - dx, y1 - dy);
-        ctx.moveTo(x2, y2);
-        ctx.lineTo(x2 + dx, y2 + dy);
-        ctx.stroke();
+        const began = extendLineEnd(ctx, x2, y2, x1, y1, reach, false);
+        if (extendLineEnd(ctx, x1, y1, x2, y2, reach, began)) ctx.stroke();
     }
 
     override render(renderCtx: RenderContext) {
