@@ -89,6 +89,16 @@ describe('ExtendedPath2D', () => {
         });
     });
 
+    describe('getStrokePath2D', () => {
+        it('follows straight segments once half the stroke reaches the tightest bend of a circle', () => {
+            const path = new ExtendedPath2D();
+            path.arc(0, 0, 10, 0, 2 * Math.PI);
+
+            expect(path.getStrokePath2D(17, 1)).toBe(path.getPath2D());
+            expect(path.getStrokePath2D(20, 1)).not.toBe(path.getPath2D());
+        });
+    });
+
     describe('minCurveRadius', () => {
         it('is the radius of an arc', () => {
             const path = new ExtendedPath2D();

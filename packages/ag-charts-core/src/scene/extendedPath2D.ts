@@ -690,14 +690,15 @@ export class ExtendedPath2D {
     getStrokePath2D(lineWidth: number, deviceScale: number): Path2D {
         const halfWidth = lineWidth / 2;
         const minRadius = this.minCurveRadius();
-        if (halfWidth <= minRadius) return this.path2d;
+        if (halfWidth <= minRadius * CURVATURE_MARGIN) return this.path2d;
         return this.getFlattenedPath2D((minRadius + halfWidth) * deviceScale);
     }
 
     /** The path with its curves split finely enough that a stroke reaching `reach` device pixels out stays smooth. */
     getFlattenedPath2D(reach: number): Path2D {
         let curveSamples = 8;
-        while (curveSamples < 64 && reach * (1 - Math.cos(Math.PI / 4 / curveSamples)) > FLATTEN_TOLERANCE) {
+        for (const maxReach of FLATTEN_MAX_REACH) {
+            if (reach <= maxReach) break;
             curveSamples *= 2;
         }
 
@@ -843,8 +844,14 @@ export class ExtendedPath2D {
 /** Largest deviation, in device pixels, of a flattened stroke's outer edge from the curved one. */
 const FLATTEN_TOLERANCE = 0.1;
 
+/** The furthest reach that 8, 16 and 32 segments per quarter turn keep within `FLATTEN_TOLERANCE`; beyond them, 64. */
+const FLATTEN_MAX_REACH = [8, 16, 32].map((segments) => FLATTEN_TOLERANCE / (1 - Math.cos(Math.PI / 4 / segments)));
+
 /** Where along each cubic `minCurveRadius` samples the curvature. */
-const CURVATURE_SAMPLES = [0, 0.5, 1];
+const CURVATURE_SAMPLES = Array.from({ length: 17 }, (_, i) => i / 16);
+
+/** Flattens a little before the sampled radius is reached, as the tightest bend can fall between samples. */
+const CURVATURE_MARGIN = 0.9;
 
 /** Whether the horizontal ray running left from (x, y) crosses the edge, under the half-open rule. */
 function rayCrossesLine(x0: number, y0: number, x1: number, y1: number, x: number, y: number): number {
