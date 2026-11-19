@@ -703,6 +703,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         this.updatePaths({ itemId, contextData, paths });
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
+        this.itemPositions = undefined;
         this.labelGroup.batchedUpdate(() => {
             this.labelSelection = this.updateLabelSelection({ labelData, labelSelection }) ?? labelSelection;
         });
@@ -788,13 +789,48 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                 });
             }
         } else if (highlightRedraw instanceof Set) {
-            const highlightedSelection = selectItemsAt(datumSelection, highlightRedraw);
+            const highlightedSelection = selectItemsAt(
+                datumSelection,
+                this.findItemPositions(datumSelection, highlightRedraw)
+            );
             this.updateDatumNodes({ datumSelection: highlightedSelection, isHighlight: false, drawingMode: 'overlay' });
         }
     }
 
     protected override redrawsHighlightedItemsOnly(): boolean {
         return true;
+    }
+
+    /** The positions in `datumSelection` of the nodes that draw each datum index, built on the first hover that needs them. */
+    private itemPositions?: Map<number, number[]>;
+
+    /** The positions, in order, of the nodes that draw the items at `indices`. */
+    private findItemPositions(selection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>, indices: Set<number>) {
+        const nodes = selection.nodes();
+        const lookup = (byIndex: Map<number, number[]>) => {
+            const found: number[] = [];
+            for (const index of indices) {
+                for (const position of byIndex.get(index) ?? []) {
+                    // A position that no longer draws this item means the map is stale.
+                    if (nodes[position]?.unsafeNonNullDatum.datumIndex !== index) return;
+                    found.push(position);
+                }
+            }
+            return found.sort((a, b) => a - b);
+        };
+
+        const cached = this.itemPositions && lookup(this.itemPositions);
+        if (cached) return cached;
+
+        const byIndex = new Map<number, number[]>();
+        for (const [position, node] of nodes.entries()) {
+            const { datumIndex } = node.unsafeNonNullDatum;
+            const positions = byIndex.get(datumIndex);
+            if (positions == null) byIndex.set(datumIndex, [position]);
+            else positions.push(position);
+        }
+        this.itemPositions = byIndex;
+        return lookup(byIndex) ?? [];
     }
 
     protected getHighlightData(
@@ -1814,22 +1850,16 @@ function clippedRangeIndices(
     return [xMinIndex, xMaxIndex];
 }
 
-/**
- * A view of `selection` whose `each` visits only the nodes of the items at `indices`, so that a series updates them as it
- * would all of its nodes. OPTIMIZATION: restyling every node of a large series on each hover is what this avoids.
- */
-function selectItemsAt<TDatum extends { datumIndex: number }, TNode extends Node<TDatum>>(
+/** A view of `selection` whose `each` visits only the nodes at `positions`, so that a series updates them as it would all. */
+function selectItemsAt<TDatum, TNode extends Node<TDatum>>(
     selection: Selection<TDatum, TNode>,
-    indices: Set<number>
+    positions: number[]
 ): Selection<TDatum, TNode> {
     const view = Object.create(selection) as Selection<TDatum, TNode>;
     view.each = function eachItemAt(iterate) {
         const nodes = selection.nodes();
         selection.batchedUpdate(function selectionEachItemAt() {
-            for (let index = 0; index < nodes.length; index++) {
-                const datum = nodes[index].unsafeNonNullDatum;
-                if (indices.has(datum.datumIndex)) iterate(nodes[index], datum, index);
-            }
+            for (const position of positions) iterate(nodes[position], nodes[position].unsafeNonNullDatum, position);
         });
         return view;
     };
