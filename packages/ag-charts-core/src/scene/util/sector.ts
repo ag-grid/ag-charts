@@ -8,6 +8,79 @@ export interface SectorBoundaries {
     endAngle: number;
     innerRadius: number;
     outerRadius: number;
+    /** How far, in pixels, the drawn straight edges sit inside the edges at `startAngle` and `endAngle`. */
+    radialEdgeInset?: number;
+}
+
+/** Whether a sector sweeps the whole circle, so its two straight edges meet each other rather than a neighbour. */
+export function isFullSweep(startAngle: number, endAngle: number) {
+    return Math.abs(endAngle - startAngle) >= 2 * Math.PI - 1e-6;
+}
+
+/**
+ * How far a sector edge sits inside its geometric edge: half the stroke, so the stroke paints inside the shape,
+ * plus half the gap where the edge faces a neighbouring shape.
+ */
+export function sectorEdgeInset(gap: number, strokeInset: number, facesNeighbour: boolean) {
+    return Math.max(strokeInset + (facesNeighbour ? gap / 2 : 0), 0);
+}
+
+/**
+ * The angle from a sector's straight edge to the point at `radius` that lies `distance` from that edge, measured
+ * square to it; a right angle where nothing at that radius is so far from the edge.
+ */
+export function edgeOffsetAngle(radius: number, distance: number) {
+    if (radius <= 0 || distance <= 0) return 0;
+    return distance < radius ? Math.asin(distance / radius) : Math.PI / 2;
+}
+
+/** The chord between a sector's two straight edges, each moved in by `inset`, at `radius`; zero where they do not reach it. */
+export function insetChord(radius: number, sweep: number, inset: number) {
+    if (radius <= 0 || radius <= inset) return 0;
+    const span = sweep - 2 * edgeOffsetAngle(radius, inset);
+    return span > 0 ? 2 * radius * Math.sin(span / 2) : 0;
+}
+
+export interface SectorCornerRadii {
+    startOuter: number;
+    endOuter: number;
+    startInner: number;
+    endInner: number;
+}
+
+/**
+ * Shrinks a sector's corner radii, in place, to what its straight edges leave room for once each is moved in by
+ * `inset`. `innerCorners` is false where those edges never reach the inner arc, which then has no corners.
+ */
+export function clampSectorCornerRadii(
+    corners: SectorCornerRadii,
+    sweep: number,
+    innerRadius: number,
+    outerRadius: number,
+    inset: number,
+    innerCorners: boolean
+) {
+    const radialLength = outerRadius - innerRadius;
+    const outerLimit = Math.min(insetChord(outerRadius, sweep, inset), radialLength, outerRadius - inset) / 2;
+    const innerLimit = innerCorners ? Math.min(insetChord(innerRadius, sweep, inset), radialLength) / 2 : 0;
+    let startOuter = Math.floor(Math.max(0, Math.min(corners.startOuter, outerLimit)));
+    let endOuter = Math.floor(Math.max(0, Math.min(corners.endOuter, outerLimit)));
+    let startInner = Math.floor(Math.max(0, Math.min(corners.startInner, innerLimit)));
+    let endInner = Math.floor(Math.max(0, Math.min(corners.endInner, innerLimit)));
+
+    const outerScale = radiiScalingFactor(outerRadius, sweep, -startOuter, -endOuter, inset);
+    startOuter *= outerScale;
+    endOuter *= outerScale;
+    const innerScale = radiiScalingFactor(innerRadius, sweep, startInner, endInner, inset);
+    startInner *= innerScale;
+    endInner *= innerScale;
+
+    const longestEdge = Math.max(startOuter + startInner, endOuter + endInner);
+    const edgeScale = longestEdge > 0 ? Math.min(radialLength / longestEdge, 1) : 1;
+    corners.startOuter = startOuter * edgeScale;
+    corners.endOuter = endOuter * edgeScale;
+    corners.startInner = startInner * edgeScale;
+    corners.endInner = endInner * edgeScale;
 }
 
 export function sectorBox({ startAngle, endAngle, innerRadius, outerRadius }: SectorBoundaries) {
@@ -86,7 +159,8 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
         Math.min(innerRadius, outerRadius),
         Math.max(innerRadius, outerRadius),
         normalizeAngle180(sector.startAngle),
-        normalizeAngle180(sector.endAngle)
+        normalizeAngle180(sector.endAngle),
+        sector
     );
 }
 
@@ -102,7 +176,7 @@ export function sectorPointTest(sector: SectorBoundaries): (x: number, y: number
     const startAngle = normalizeAngle180(sector.startAngle);
     const endAngle = normalizeAngle180(sector.endAngle);
     return function isPointInPreparedSector(x, y) {
-        return isPointInNormalisedSector(x, y, minRadius, maxRadius, startAngle, endAngle);
+        return isPointInNormalisedSector(x, y, minRadius, maxRadius, startAngle, endAngle, sector);
     };
 }
 
@@ -112,16 +186,42 @@ function isPointInNormalisedSector(
     minRadius: number,
     maxRadius: number,
     startAngle: number,
-    endAngle: number
+    endAngle: number,
+    sector: SectorBoundaries
 ) {
     const radius = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     if (radius < minRadius || radius > maxRadius) return false;
 
     const angle = Math.atan2(y, x);
     // Sector can cross axis start
-    return startAngle < endAngle
-        ? angle <= endAngle && angle >= startAngle
-        : (angle <= endAngle && angle >= -Math.PI) || (angle >= startAngle && angle <= Math.PI);
+    const inAngle =
+        startAngle < endAngle
+            ? angle <= endAngle && angle >= startAngle
+            : (angle <= endAngle && angle >= -Math.PI) || (angle >= startAngle && angle <= Math.PI);
+    const inset = sector.radialEdgeInset ?? 0;
+    if (!inAngle || inset <= 0) return inAngle;
+    return isClearOfEdge(x, y, sector.startAngle, inset, 1) && isClearOfEdge(x, y, sector.endAngle, inset, -1);
+}
+
+// OPTIMIZATION: label fitting probes the same two edges thousands of times per label, so each edge's direction is
+// kept until its angle changes. Shared by every caller, so not re-entrant.
+const edgeDirections = { 1: { angle: Number.NaN, cos: 1, sin: 0 }, [-1]: { angle: Number.NaN, cos: 1, sin: 0 } };
+
+/**
+ * False when the point lies within `inset` of the straight edge at `angle`, on the side `interior` faces. Assumes the
+ * sector runs clockwise from its start edge (`interior` 1) to its end edge (`interior` -1).
+ */
+function isClearOfEdge(x: number, y: number, angle: number, inset: number, interior: 1 | -1) {
+    const direction = edgeDirections[interior];
+    if (direction.angle !== angle) {
+        direction.angle = angle;
+        direction.cos = Math.cos(angle);
+        direction.sin = Math.sin(angle);
+    }
+    const { cos, sin } = direction;
+    if (x * cos + y * sin < 0) return true;
+    const across = interior * (y * cos - x * sin);
+    return across < 0 || across >= inset;
 }
 
 /**
@@ -300,18 +400,21 @@ export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries, edge
 
 // https://ag-grid.atlassian.net/wiki/spaces/AG/pages/3090087939/Sector+Corner+Radii
 // Interval bisection over [0, 1]; no analytic solution is known.
-// Pass in negative values for outer radius, positive for inner.
-export function radiiScalingFactor(r: number, sweep: number, a: number, b: number) {
+// Pass in negative values for outer radius, positive for inner. Each corner keeps `inset` clear of its straight edge.
+export function radiiScalingFactor(r: number, sweep: number, a: number, b: number, inset = 0) {
     if (a === 0 && b === 0) return 0;
 
-    const fs1 = Math.asin(Math.abs(1 * a) / (r + 1 * a)) + Math.asin(Math.abs(1 * b) / (r + 1 * b)) - sweep;
+    const fs1 = edgeOffsetAngle(r + a, inset + Math.abs(a)) + edgeOffsetAngle(r + b, inset + Math.abs(b)) - sweep;
     if (fs1 < 0) return 1;
 
     let start = 0;
     let end = 1;
     for (let i = 0; i < 8; i += 1) {
         const s = (start + end) / 2;
-        const fs = Math.asin(Math.abs(s * a) / (r + s * a)) + Math.asin(Math.abs(s * b) / (r + s * b)) - sweep;
+        const fs =
+            edgeOffsetAngle(r + s * a, inset + Math.abs(s * a)) +
+            edgeOffsetAngle(r + s * b, inset + Math.abs(s * b)) -
+            sweep;
         if (fs < 0) {
             start = s;
         } else {

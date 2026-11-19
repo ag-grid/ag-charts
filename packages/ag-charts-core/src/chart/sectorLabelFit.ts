@@ -84,7 +84,7 @@ function furthestInside(limit: number, inside: (t: number) => boolean): number {
  */
 export function fitSectorLabelRect(
     anchor: Point,
-    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    sector: SectorBoundaries,
     lineHeight: number,
     block?: BlockSize
 ): SectorLabelRect {
@@ -130,8 +130,7 @@ const BAND_STEPS = 48;
 /** Sector shrunk radially by {@link SECTOR_ARC_INSET}, so a box it accepts also clears the drawn arcs. */
 function arcInsetSector(sector: SectorBoundaries): SectorBoundaries {
     return {
-        startAngle: sector.startAngle,
-        endAngle: sector.endAngle,
+        ...sector,
         innerRadius: sector.innerRadius > 0 ? sector.innerRadius + SECTOR_ARC_INSET : 0,
         outerRadius: Math.abs(sector.outerRadius) - SECTOR_ARC_INSET,
     };
@@ -231,7 +230,7 @@ export function sectorLabelRoom(anchor: Point, sector: SectorBoundaries, lineHei
  */
 function centreSectorLabelInBand(
     anchor: Point,
-    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    sector: SectorBoundaries,
     height: number,
     blockWidth?: number
 ): SectorLabelRect | null {

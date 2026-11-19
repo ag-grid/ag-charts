@@ -60,7 +60,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
     outerRadiusOffset: number,
     outerRadiusRatio: ratio,
     hideZeroValueSectorsInLegend: boolean,
-    sectorSpacing: positiveNumber,
+    gap: positiveNumber,
     cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgPieSeriesStyle & AgItemShadowStyle>({
         ...itemStylerCastDefs,

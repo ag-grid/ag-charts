@@ -122,6 +122,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return popover;
     }
 
+    protected override onHide() {
+        this.colorPicker.hide();
+    }
+
     protected override updatePosition(position: Point): void {
         super.updatePosition(position);
 
@@ -376,10 +380,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         }
 
         group.addChild(colorEl);
-
-        this.hideFns.push(() => {
-            this.colorPicker.hide();
-        });
 
         return group;
     }
