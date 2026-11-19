@@ -690,6 +690,7 @@ describe('Navigator', () => {
         const GRIP_CASES: Record<string, object> = {
             'a 36x36 handle': { width: 36, height: 36 },
             'a tall and narrow handle': { width: 8, height: 40 },
+            'a rounded handle with a thick border': { width: 100, height: 100, cornerRadius: 50, strokeWidth: 30 },
         };
 
         it.each(Object.entries(GRIP_CASES))('for %s it should render to canvas as expected', async (_name, handle) => {

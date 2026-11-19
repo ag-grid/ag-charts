@@ -9,6 +9,49 @@ const GRIP_SPACING = 3;
 const GRIP_HALF_WIDTH = GRIP_SPACING / 2 + GRIP_RADIUS;
 const GRIP_HALF_HEIGHT = GRIP_SPACING + GRIP_RADIUS;
 
+interface GripScaleInput {
+    width: number;
+    height: number;
+    /** The half-size the handle is drawn at, which can be rounded down to a device pixel. */
+    halfWidth: number;
+    halfHeight: number;
+    strokeWidth: number;
+    cornerRadius: number;
+}
+
+/**
+ * One factor for both axes keeps the dots round at any aspect ratio; it is `1` at the 12x24 default size.
+ * Capped so the grip fits inside the stroke, including its rounded corners.
+ */
+function gripScale({ width, height, halfWidth, halfHeight, strokeWidth, cornerRadius }: GripScaleInput) {
+    const innerHalfWidth = halfWidth - strokeWidth;
+    const innerHalfHeight = halfHeight - strokeWidth;
+    const pathRadius = Math.min(cornerRadius, halfWidth - strokeWidth / 2, halfHeight - strokeWidth / 2);
+    const innerRadius = Math.max(0, pathRadius - strokeWidth / 2);
+    const arcCenterX = innerHalfWidth - innerRadius;
+    const arcCenterY = innerHalfHeight - innerRadius;
+
+    // The outer dots are the extremes. A disc inside a convex shape stays inside when scaled about its centre, so
+    // the fitting scales are an interval `[0, max]`.
+    const fits = (scale: number) => {
+        if (GRIP_HALF_WIDTH * scale > innerHalfWidth || GRIP_HALF_HEIGHT * scale > innerHalfHeight) return false;
+        const dx = (GRIP_SPACING / 2) * scale - arcCenterX;
+        const dy = GRIP_SPACING * scale - arcCenterY;
+        return dx <= 0 || dy <= 0 || Math.hypot(dx, dy) + GRIP_RADIUS * scale <= innerRadius;
+    };
+
+    let high = Math.sqrt((width / GRIP_REFERENCE_WIDTH) * (height / GRIP_REFERENCE_HEIGHT));
+    if (fits(high)) return high;
+
+    let low = 0;
+    for (let i = 0; i < 16; i++) {
+        const mid = (low + high) / 2;
+        if (fits(mid)) low = mid;
+        else high = mid;
+    }
+    return low;
+}
+
 export class RangeHandle extends Path {
     static override readonly className = 'RangeHandle';
 
@@ -95,7 +138,14 @@ export class RangeHandle extends Path {
 
         // Grip
         if (grip) {
-            const scale = this.gripScale(halfWidth - strokeWidth, halfHeight - strokeWidth);
+            const scale = gripScale({
+                width: this.width,
+                height: this.height,
+                halfWidth,
+                halfHeight,
+                strokeWidth,
+                cornerRadius,
+            });
             const gripSpacing = GRIP_SPACING * scale;
             const gripRadius = GRIP_RADIUS * scale;
             for (let x = -0.5; x <= 0.5; x += 1) {
@@ -105,16 +155,6 @@ export class RangeHandle extends Path {
                 }
             }
         }
-    }
-
-    /**
-     * One factor for both axes keeps the dots round at any aspect ratio; it is `1` at the 12x24 default size.
-     * Capped so the grip stays clear of the border on skewed or thickly stroked handles.
-     */
-    private gripScale(innerHalfWidth: number, innerHalfHeight: number) {
-        const sizeScale = Math.sqrt((this.width / GRIP_REFERENCE_WIDTH) * (this.height / GRIP_REFERENCE_HEIGHT));
-        const fitScale = Math.min(innerHalfWidth / GRIP_HALF_WIDTH, innerHalfHeight / GRIP_HALF_HEIGHT);
-        return Math.max(0, Math.min(sizeScale, fitScale));
     }
 
     protected override renderFill(ctx: CanvasContext, logger: Logger, path?: Path2D): void {
