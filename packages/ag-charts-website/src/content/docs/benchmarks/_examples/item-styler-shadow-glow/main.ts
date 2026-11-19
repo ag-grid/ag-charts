@@ -5,8 +5,9 @@ import { AgCartesianChartOptions, AgCharts, AgItemShadowStyle, VERSION } from 'a
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { ChartRef, performDatumHighlight, performInitialLoad } from './benchmarkUtils';
 
-// A distinct `blur` costs a blur pass per item, so a chart of 1,000 outlasts the update timeout: that case has fewer items.
-// Its test case also times a shared shadow and glow and no styler at that size, to compare with.
+// Without a cap on distinct casts, a distinct `blur` costs a blur pass per item and a chart of 1,000 can outlast the update
+// timeout: its `-distinct` case has fewer items, with a shared shadow and glow and no styler at that size to compare with.
+// The `-distinct-1000` case times the cap itself, at the full size.
 const ITEMS = 1000;
 const DISTINCT_ITEMS = 100;
 
@@ -116,6 +117,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
     const sizes: { suffix: string; items: number; modes: StylerMode[] }[] = [
         { suffix: '', items: ITEMS, modes: ['none', 'neither', 'shared', 'sparse'] },
         { suffix: '-distinct', items: DISTINCT_ITEMS, modes: ['none', 'shared', 'distinct'] },
+        { suffix: '-distinct-1000', items: ITEMS, modes: ['distinct'] },
     ];
     const testCases: BenchmarkConfig['testCases'] = [];
     for (const seriesType of ['bar', 'scatter'] as const) {

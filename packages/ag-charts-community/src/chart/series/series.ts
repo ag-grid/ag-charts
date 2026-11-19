@@ -142,6 +142,8 @@ import { hasDimmedOpacity, isDatumHighlight, resolveMarkerDrawingMode } from './
 const NO_ITEM_CAST_BASE = {};
 
 /** Where the merges of one cast object are kept: the shadow's, then the glow's by highlight state. */
+/** The most distinct shadows and glows that item stylers cast in one series; the rest fall back to the series' own. */
+const MAX_ITEM_CASTS = 16;
 const ITEM_SHADOW_INDEX = 0;
 const ITEM_GLOW_INDEX = 1;
 
@@ -1295,7 +1297,11 @@ export abstract class Series<
     private clearItemCasts() {
         this.itemCastInterns = undefined;
         this.itemCastRecalls = undefined;
+        this.itemCastCount = 0;
     }
+
+    /** The distinct casts merged since {@link clearItemCasts}, which {@link MAX_ITEM_CASTS} caps. */
+    private itemCastCount = 0;
 
     /**
      * The merge already made of `itemCast` over `base` at `index`: `undefined` if there is none, `null` if it cast
@@ -1312,12 +1318,14 @@ export abstract class Series<
     /**
      * The merge of an item styler's `itemCast` over `base` that {@link recallItemCast} did not find, kept by `index`
      * so that the same cast object is not serialised again, and by `key` so that equal casts share one merged object.
+     * Past {@link MAX_ITEM_CASTS} distinct keys, a new key casts `fallback`, what the item casts without a styler.
      */
     protected mergeItemCast(
         base: object | undefined,
         itemCast: object,
         index: number,
         key: string,
+        fallback: NormalisedDropShadowOptions | undefined,
         merge: () => NormalisedDropShadowOptions | undefined
     ): NormalisedDropShadowOptions | undefined {
         const baseKey = base ?? NO_ITEM_CAST_BASE;
@@ -1329,7 +1337,16 @@ export abstract class Series<
         }
         let cast = merged.get(key);
         if (cast === undefined) {
-            cast = merge() ?? null;
+            if (this.itemCastCount < MAX_ITEM_CASTS) {
+                this.itemCastCount++;
+                cast = merge() ?? null;
+            } else {
+                this.ctx.logger.warnOnce(
+                    `series '${this.id}' has more than ${MAX_ITEM_CASTS} distinct item styler shadow or glow values; ` +
+                        `the others use the shadow or glow that the series would cast without a styler.`
+                );
+                cast = fallback ?? null;
+            }
             merged.set(key, cast);
         }
 
@@ -1356,19 +1373,26 @@ export abstract class Series<
         const recalled = this.recallItemCast(cascaded, itemShadow, ITEM_SHADOW_INDEX);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        return this.mergeItemCast(cascaded, itemShadow, ITEM_SHADOW_INDEX, `s${JSON.stringify(itemShadow)}`, () => {
-            const overrides = {
-                fillOpacity: itemShadow.fill == null ? undefined : 1,
-                ...itemShadow,
-                enabled: itemShadow.enabled ?? true,
-            };
-            const merged = mergeDefaults(
-                overrides,
-                cascaded,
-                getItemCastBase(itemShadow)
-            ) as NormalisedDropShadowOptions;
-            return merged.enabled ? merged : undefined;
-        });
+        return this.mergeItemCast(
+            cascaded,
+            itemShadow,
+            ITEM_SHADOW_INDEX,
+            `s${JSON.stringify(itemShadow)}`,
+            cascaded,
+            () => {
+                const overrides = {
+                    fillOpacity: itemShadow.fill == null ? undefined : 1,
+                    ...itemShadow,
+                    enabled: itemShadow.enabled ?? true,
+                };
+                const merged = mergeDefaults(
+                    overrides,
+                    cascaded,
+                    getItemCastBase(itemShadow)
+                ) as NormalisedDropShadowOptions;
+                return merged.enabled ? merged : undefined;
+            }
+        );
     }
 
     /**
@@ -1380,9 +1404,10 @@ export abstract class Series<
         index: number,
         keyPrefix: string,
         itemGlow: AgGlowOptions,
+        fallback: NormalisedDropShadowOptions | undefined,
         under: () => Array<DeepPartial<AgGlowOptions> | undefined>
     ): NormalisedDropShadowOptions | undefined {
-        return this.mergeItemCast(base, itemGlow, index, `${keyPrefix}${JSON.stringify(itemGlow)}`, () => {
+        return this.mergeItemCast(base, itemGlow, index, `${keyPrefix}${JSON.stringify(itemGlow)}`, fallback, () => {
             return glowToShadow(
                 mergeGlow({ glow: { enabled: true, ...itemGlow } }, ...under().map((glow) => ({ glow })), {
                     glow: GLOW_THEME_DEFAULTS,
@@ -1427,10 +1452,14 @@ export abstract class Series<
         const recalled = this.recallItemCast(seriesGlow, itemGlow, index);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        return this.mergeItemGlow(seriesGlow, index, `g${highlightState}`, itemGlow, () => [
-            this.getHighlightGlow(highlightState),
+        return this.mergeItemGlow(
             seriesGlow,
-        ]);
+            index,
+            `g${highlightState}`,
+            itemGlow,
+            this.getCascadedGlow(seriesGlow, highlightState),
+            () => [this.getHighlightGlow(highlightState), seriesGlow]
+        );
     }
 
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */
@@ -2195,19 +2224,6 @@ export abstract class Series<
             const resolved = this.ctx.optionsGraphService.resolvePartial(getResolvePath(), style);
 
             markerStyle = mergeMarkerStylesPair(resolved, markerStyle);
-
-            if (!isHighlight && this.isHoveredInPlace(datumIndex, highlightState)) {
-                // The hovered marker's in-place copy casts the `shadow` of its `Item` state, and no `glow`.
-                const hovered = this.getMarkerStyle(
-                    marker,
-                    { datumIndex, datum, point } as Partial<TDatum>,
-                    params,
-                    { ...opts, isHighlight: true, highlightState: HighlightState.Item },
-                    defaultOverrideStyle,
-                    inheritedStyle
-                ) as AgItemShadowStyle;
-                markerStyle = { ...markerStyle, shadow: hovered.shadow } as typeof markerStyle;
-            }
         }
 
         return markerStyle;
@@ -2313,15 +2329,17 @@ export abstract class Series<
         opts: {
             keyExtra?: (datum: TPassDatum) => string;
             cacheable?: boolean;
+            hoveredItemShadow?: boolean;
             compute: MarkerStyleCompute<TSeries, TCtx, TPassDatum, TCache>;
             apply: MarkerStyleApply<TSeries, TCtx, TPassDatum, TCache>;
         }
     ): void {
-        const { keyExtra, cacheable = true, compute, apply } = opts;
+        const { keyExtra, cacheable = true, hoveredItemShadow = false, compute, apply } = opts;
         const cache = cacheable ? new Map<string, TCache>() : null;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const self = this;
         const seriesArg = self as unknown as TSeries;
+        const hoveredSeries = hoveredItemShadow && !isHighlight && highlightedDatum?.series === self;
         datumSelection.each(function runMarkerStylePass(node, datum) {
             if (datumSelection.isGarbage(node)) return;
             const highlightState = self.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
@@ -2335,6 +2353,19 @@ export abstract class Series<
                 cache?.set(stateKey, cached);
             }
             apply(seriesArg, ctx, datum, highlightState, selectionState, cached);
+            if (hoveredSeries && self.isHoveredInPlace(datum.datumIndex, highlightState)) {
+                // The in-place copy of the hovered marker casts the `shadow` of its own `Item`-state call.
+                const styled = datum as { style?: unknown };
+                const inPlace = styled.style as AgItemShadowStyle;
+                const itemKey = `${HighlightState.Item}:${selectionState ?? '-'}:${candidateState ?? '-'}${extra}`;
+                let itemCached = cache?.get(itemKey);
+                if (itemCached === undefined) {
+                    itemCached = compute(seriesArg, ctx, HighlightState.Item, selectionState, datum);
+                    cache?.set(itemKey, itemCached);
+                }
+                apply(seriesArg, ctx, datum, HighlightState.Item, selectionState, itemCached);
+                styled.style = { ...inPlace, shadow: (styled.style as AgItemShadowStyle).shadow };
+            }
         });
     }
 

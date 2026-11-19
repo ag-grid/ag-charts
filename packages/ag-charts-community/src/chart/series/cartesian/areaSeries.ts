@@ -1597,6 +1597,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             ReturnType<AreaSeries['getStyle']>,
             AreaSeries
         >(datumSelection, isHighlight, ctx, {
+            hoveredItemShadow: true,
             compute: AreaSeries.computeStylerStyle,
             apply: AreaSeries.applyStylerDatum,
         });

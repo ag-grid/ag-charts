@@ -666,9 +666,14 @@ export abstract class HierarchySeries<
         const recalled = this.recallItemCast(glow ?? undefined, itemGlow, index);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        return this.mergeItemGlow(glow ?? undefined, index, `h${slot}:${highlightState}:`, itemGlow, () => [
-            resolveGlow(highlightState),
-        ]);
+        return this.mergeItemGlow(
+            glow ?? undefined,
+            index,
+            `h${slot}:${highlightState}:`,
+            itemGlow,
+            glow ?? undefined,
+            () => [resolveGlow(highlightState)]
+        );
     }
 
     /** The shadow on one copy of a node, in `fillShadow`: the highlight copy casts none, as its glow is cast in the root's overlay. */
