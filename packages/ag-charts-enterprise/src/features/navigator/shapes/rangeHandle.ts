@@ -8,6 +8,8 @@ const GRIP_RADIUS = 1;
 const GRIP_SPACING = 3;
 const GRIP_HALF_WIDTH = GRIP_SPACING / 2 + GRIP_RADIUS;
 const GRIP_HALF_HEIGHT = GRIP_SPACING + GRIP_RADIUS;
+// Halving 16 times narrows the fit to 1/65536 of the full-size scale, well under a device pixel.
+const GRIP_FIT_ITERATIONS = 16;
 
 interface GripScaleInput {
     width: number;
@@ -20,7 +22,8 @@ interface GripScaleInput {
 }
 
 /**
- * One factor for both axes keeps the dots round at any aspect ratio; it is `1` at the 12x24 default size.
+ * One factor for both axes keeps the dots round at any aspect ratio; it is `1` at the theme's default handle size
+ * (`NAVIGATOR_HANDLE_THEME`), not the class field defaults.
  * Capped so the grip fits inside the stroke, including its rounded corners.
  */
 function gripScale({ width, height, halfWidth, halfHeight, strokeWidth, cornerRadius }: GripScaleInput) {
@@ -44,7 +47,7 @@ function gripScale({ width, height, halfWidth, halfHeight, strokeWidth, cornerRa
     if (fits(high)) return high;
 
     let low = 0;
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < GRIP_FIT_ITERATIONS; i++) {
         const mid = (low + high) / 2;
         if (fits(mid)) low = mid;
         else high = mid;

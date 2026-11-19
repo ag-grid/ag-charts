@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgLineSeriesOptions } from 'ag-charts-community';
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgLineSeriesOptions,
+    AgNavigatorHandleOptions,
+} from 'ag-charts-community';
 import {
     CROSSLINE_EXAMPLES,
     type CartesianTestCase,
@@ -687,7 +692,7 @@ describe('Navigator', () => {
     });
 
     describe('handle grip', () => {
-        const GRIP_CASES: Record<string, object> = {
+        const GRIP_CASES: Record<string, AgNavigatorHandleOptions> = {
             'a 36x36 handle': { width: 36, height: 36 },
             'a tall and narrow handle': { width: 8, height: 40 },
             'a rounded handle with a thick border': { width: 100, height: 100, cornerRadius: 50, strokeWidth: 30 },
