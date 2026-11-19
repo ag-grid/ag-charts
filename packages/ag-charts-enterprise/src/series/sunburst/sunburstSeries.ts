@@ -172,7 +172,8 @@ function sectorLabelRadius(
         case LabelPlacement.Parallel: {
             const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
             const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
-            const minimumRadius = parallelNearSide(ring) + padding + height;
+            const nearSide = parallelNearSide(ring);
+            const minimumRadius = nearSide > innerRadius ? nearSide + padding + height : 0;
             // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
             const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (width / 2) ** 2));
             return Math.min(Math.max(idealRadius, minimumRadius), maximumRadius);

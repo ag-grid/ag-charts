@@ -22,7 +22,7 @@ export function isFullSweep(startAngle: number, endAngle: number) {
  * plus half the gap where the edge faces a neighbouring shape.
  */
 export function sectorEdgeInset(gap: number, strokeInset: number, facesNeighbour: boolean) {
-    return Math.max(strokeInset + (facesNeighbour ? gap / 2 : 0), 0);
+    return strokeInset + (facesNeighbour ? gap / 2 : 0);
 }
 
 /**
@@ -176,10 +176,13 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
 }
 
 // OPTIMIZATION: label fitting probes the same two edges thousands of times per label, so each edge's direction is
-// kept until its angle changes.
+// kept until its angle changes. Shared by every caller, so not re-entrant.
 const edgeDirections = { 1: { angle: Number.NaN, cos: 1, sin: 0 }, [-1]: { angle: Number.NaN, cos: 1, sin: 0 } };
 
-/** False when the point lies within `inset` of the straight edge at `angle`, on the side `interior` faces. */
+/**
+ * False when the point lies within `inset` of the straight edge at `angle`, on the side `interior` faces. Assumes the
+ * sector runs clockwise from its start edge (`interior` 1) to its end edge (`interior` -1).
+ */
 function isClearOfEdge(x: number, y: number, angle: number, inset: number, interior: 1 | -1) {
     const direction = edgeDirections[interior];
     if (direction.angle !== angle) {
