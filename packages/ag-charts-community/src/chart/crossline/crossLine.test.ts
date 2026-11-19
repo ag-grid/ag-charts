@@ -3469,6 +3469,20 @@ describe('CrossLine label fitting', () => {
             expect(label.width).toBeGreaterThan(band.width);
         });
 
+        it.each<[string, AgCartesianCrossLineLabelOptions]>([
+            ['maxWidth', { maxWidth: 400 }],
+            ['maxHeight', { maxHeight: 200 }],
+            ['maxWidth and maxHeight', { maxWidth: 400, maxHeight: 200 }],
+        ])('lets an explicit %s replace the band bound on an oblique label', async (_, bounds) => {
+            const crossLine = rangeWith({ placement: 'inside', rotation: 45, ...bounds });
+            chart = deproxy(await createChart(fitChart(crossLine, 'x')));
+
+            const { band, label, text } = bandAndLabel('x');
+            expect(text.replaceAll('\n', ' ')).toBe(LONG_TEXT);
+            expect(label.width).toBeGreaterThan(band.width);
+            expect(renderedLabel('x').width).toBeLessThanOrEqual(bounds.maxWidth ?? band.width * Math.SQRT2);
+        });
+
         it('refits the label as the visible band changes', async () => {
             const options = (min: number, max: number) =>
                 fitChart(rangeWith({ placement: 'inside-top', truncate: true }), 'x', { x: { min, max } });

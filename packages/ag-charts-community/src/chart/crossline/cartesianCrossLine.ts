@@ -613,11 +613,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return rotated == null ? fit : { ...fit, rotated, hideOverflowingEllipsis: true };
     }
 
-    /** The room the visible band leaves a turned label inside it; an explicit bound replaces it along its axis. */
+    /** The room the visible band leaves a turned label inside it; an explicit bound frees that dimension of it. */
     private bandTurnedBounds(fit: Pick<LabelFit, 'maxWidth' | 'maxHeight'>, anchor: Anchor): TurnedBounds | undefined {
         const { labelBounds: band, label } = this;
         const inside = anchor.labelH === anchor.rangeH && anchor.labelV === anchor.rangeV;
         if (this.type !== 'range' || band == null || !inside) return;
+        if (fit.maxWidth != null && fit.maxHeight != null) return;
 
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
         const roomX = bandRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
@@ -626,18 +627,22 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const rotation = label.rotation ?? 0;
         const cos = Math.abs(Math.cos(toRadians(rotation)));
         const sin = Math.abs(Math.sin(toRadians(rotation)));
-        let explicitX: number | undefined;
-        let explicitY: number | undefined;
-        if (sin <= ROTATION_EPSILON) [explicitX, explicitY] = [fit.maxWidth, fit.maxHeight];
-        else if (cos <= ROTATION_EPSILON) [explicitX, explicitY] = [fit.maxHeight, fit.maxWidth];
-
         const insets = this.boxed ? resolvePadding(label.padding) : undefined;
         const insetsH = insets == null ? 0 : insets.left + insets.right;
         const insetsV = insets == null ? 0 : insets.top + insets.bottom;
-        const width = explicitX == null ? Math.max(roomX - insetsH * cos - insetsV * sin, 0) : Infinity;
-        const height = explicitY == null ? Math.max(roomY - insetsH * sin - insetsV * cos, 0) : Infinity;
-        if (!Number.isFinite(width) && !Number.isFinite(height)) return;
-        return { rotation, width, height };
+        const width = Math.max(roomX - insetsH * cos - insetsV * sin, 0);
+        const height = Math.max(roomY - insetsH * sin - insetsV * cos, 0);
+        if (fit.maxWidth == null && fit.maxHeight == null) return { rotation, width, height };
+
+        // In the label's own frame, hence unturned: the band bounds only the dimension left without a bound.
+        const span = (along: number, across: number) =>
+            Math.min(
+                along > ROTATION_EPSILON ? width / along : Infinity,
+                across > ROTATION_EPSILON ? height / across : Infinity
+            );
+        return fit.maxWidth == null
+            ? { rotation: 0, width: span(cos, sin), height: Infinity }
+            : { rotation: 0, width: Infinity, height: span(sin, cos) };
     }
 
     /** False once the fit has erased the text of a label that `collision.alwaysShow: false` lets hide. */
