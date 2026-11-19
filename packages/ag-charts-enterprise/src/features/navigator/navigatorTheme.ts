@@ -96,6 +96,10 @@ const WICK_STROKE_WIDTH: Parameters<typeof lineDashThemeDefault>[1] = {
 // A mini-chart line or area takes no dash from the main series (the price volume preset maps an area to a line).
 const MINI_CHART_TYPES_WITHOUT_MAIN_DASH = new Set(['line', 'area']);
 
+// A mini-chart line takes no width from the main series either, and its own default is only filled in after theming.
+// A name scales by that default, which is the line series theme's `strokeWidth`.
+const MINI_CHART_LINE_STROKE_WIDTH: Parameters<typeof lineDashThemeDefault>[1] = { $path: ['./strokeWidth', 2] };
+
 /**
  * The `lineDash` defaults of a mini-chart series type, each with the main series' value as its default, so a name
  * resolves by the width of the mini-chart series and an unset option still follows the main series.
@@ -108,7 +112,12 @@ function miniChartLineDashTheme(type: string, locations: string[]) {
             location === '' && MINI_CHART_TYPES_WITHOUT_MAIN_DASH.has(type)
                 ? undefined
                 : { $path: `/series/$index/${[...keys, 'lineDash'].join('/')}` };
-        const strokeWidth = keys.at(-1) === 'wick' ? WICK_STROKE_WIDTH : undefined;
+        const strokeWidth =
+            keys.at(-1) === 'wick'
+                ? WICK_STROKE_WIDTH
+                : type === 'line' && location === ''
+                  ? MINI_CHART_LINE_STROKE_WIDTH
+                  : undefined;
 
         let node = theme;
         for (const key of keys) node = node[key] ??= {};

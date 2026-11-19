@@ -184,6 +184,17 @@ describe('named line dash patterns in enterprise options', () => {
             expect(dashAt(withMiniChart({ ...mini, strokeWidth: 1 }, main))).toEqual([3, 2]);
         });
 
+        it('scales a stock dash name on a mini chart line by its default width, as on a main line', () => {
+            const line = { type: 'line', xKey: 'x', yKey: 'y', lineDash: 'dash' };
+            const mainDash = optionAt(
+                prepareProcessedOptions({ data: DATA, series: [line] }).processedOptions,
+                'series[0].lineDash'
+            );
+
+            expect(mainDash).toEqual([6, 4]);
+            expect(dashAt(withMiniChart(line, { ...line, lineDash: undefined }))).toEqual(mainDash);
+        });
+
         it('leaves an array in pixels, and follows the main series when it sets none', () => {
             const mini = { type: 'bar', xKey: 'x', yKey: 'y' };
             const main = { type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 2, lineDash: 'dash' };
