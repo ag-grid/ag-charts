@@ -348,6 +348,37 @@ describe('glow gap', () => {
                 expectRingOverPoint(pixelAt, THICK_GAP, THICK_SPREAD - 3, 1);
             });
 
+            // Where the join is a bevel, or a mitre that the limit bevels, the cut follows the bevel that the item paints, as the
+            // stroke widened by the gap does, so the glow is as close to the face of the bevel as the join widens it. A bevel
+            // face moves by the gap times the sine of half the point's angle, so only that the glow is off the item and closed
+            // over it is asserted, and that it is not mitred out from it.
+            it.each([
+                ['a bevel join', { lineJoin: 'bevel' as const }],
+                ['a miter limit of 2, which bevels the point of the star', { miterLimit: 2 }],
+            ])(
+                'should follow the bevel that the stroke paints with %s, with a ring unbroken over it',
+                (_name, join) => {
+                    const stroke = { ...THICK_STROKE, ...join };
+                    const bare = draw(route, star(stroke)).pixelAt;
+                    const { pixelAt } = draw(route, star(stroke, THICK_GLOW));
+
+                    // No mitre of the dilation reaches further than the bevel does, so the glow is within a gap and a spread of it.
+                    expect(Math.max(...glowDistances(bare, pixelAt, WINDOW))).toBeLessThanOrEqual(
+                        THICK_GAP + THICK_SPREAD + 1
+                    );
+                    for (const dx of [-3, 0, 3]) {
+                        const rows = CENTRE_Y - WINDOW.top + 1;
+                        const runs = classRuns(
+                            Array.from({ length: rows }, (_, i) => classOf(pixelAt(CENTRE_X + dx, CENTRE_Y - i)))
+                        );
+                        expect(runs.map((run) => run.class).join(','), `the column ${dx} from the axis`).toBe(
+                            'item,none,glow,none'
+                        );
+                        expect(runs[1].length, `the cut in the column ${dx} from the axis`).toBeGreaterThanOrEqual(1);
+                    }
+                }
+            );
+
             // A limit over 10 is held to 10 by a gap, which the point of the star, a mitre of about 2.2 half-strokes, is under.
             it('should keep the glow a gap clear of the point that a stroke with a miter limit of 20 paints', () => {
                 const stroke = { ...THICK_STROKE, miterLimit: 20 };
