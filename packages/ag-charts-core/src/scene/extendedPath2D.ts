@@ -31,6 +31,10 @@ export class ExtendedPath2D {
     params: number[] = [];
     private commandsLength: number = 0;
     private paramsLength: number = 0;
+    // Derived from the commands on first use, for the command count stamped in `derivedLength`.
+    private flattenedPath2Ds?: Map<number, Path2D>;
+    private cachedMinCurveRadius = Number.NaN;
+    private derivedLength = -1;
 
     cx = Number.NaN;
     cy = Number.NaN;
@@ -449,6 +453,7 @@ export class ExtendedPath2D {
         this.path2d = new Path2DCtor();
         this.openedPath = false;
         this.closedPath = false;
+        this.derivedLength = -1;
     }
 
     isPointInPath(x: number, y: number): boolean {
@@ -656,55 +661,210 @@ export class ExtendedPath2D {
      * `curveSamples` segments. Pure geometry — no canvas — for containment/area analysis.
      */
     flatten(curveSamples: number = 16): { x: number; y: number }[][] {
-        const { commands, params } = this;
         const polygons: { x: number; y: number }[][] = [];
         let current: { x: number; y: number }[] = [];
+        let sx = Number.NaN;
+        let sy = Number.NaN;
+
+        this.walkFlattened(
+            curveSamples,
+            (x, y) => {
+                if (current.length > 0) polygons.push(current);
+                current = [{ x, y }];
+                sx = x;
+                sy = y;
+            },
+            (x, y) => current.push({ x, y }),
+            () => {
+                if (!Number.isNaN(sx)) current.push({ x: sx, y: sy });
+            }
+        );
+        if (current.length > 0) polygons.push(current);
+        return polygons;
+    }
+
+    /**
+     * A copy of the path with every curve replaced by straight segments, for stroking. Some canvas curve strokers
+     * leave the centre unpainted where half the line width exceeds a curve's radius of curvature; line segments stroke
+     * correctly. `reach` is the stroke's outer radius in device pixels, which sets how finely the curves are split.
+     */
+    getFlattenedPath2D(reach: number): Path2D {
+        let curveSamples = 8;
+        while (curveSamples < 64 && reach * (1 - Math.cos(Math.PI / 4 / curveSamples)) > FLATTEN_TOLERANCE) {
+            curveSamples *= 2;
+        }
+
+        this.validateDerived();
+        this.flattenedPath2Ds ??= new Map();
+        let path2d = this.flattenedPath2Ds.get(curveSamples);
+        if (path2d == null) {
+            const Path2DCtor = getPath2D();
+            const flattened = new Path2DCtor();
+            let sx = Number.NaN;
+            let sy = Number.NaN;
+            let cx = Number.NaN;
+            let cy = Number.NaN;
+            let drawn = false;
+            // A curve ending where its subpath began (a full arc) meets itself smoothly; once split into chords the
+            // two ends meet at an angle, so join them rather than leave a capped seam.
+            const closeIfReturned = () => {
+                if (drawn && Math.abs(cx - sx) < 1e-6 && Math.abs(cy - sy) < 1e-6) flattened.closePath();
+            };
+            this.walkFlattened(
+                curveSamples,
+                (x, y) => {
+                    closeIfReturned();
+                    flattened.moveTo(x, y);
+                    sx = cx = x;
+                    sy = cy = y;
+                    drawn = false;
+                },
+                (x, y) => {
+                    flattened.lineTo(x, y);
+                    cx = x;
+                    cy = y;
+                    drawn = true;
+                },
+                () => {
+                    flattened.closePath();
+                    drawn = false;
+                }
+            );
+            closeIfReturned();
+            path2d = flattened;
+            this.flattenedPath2Ds.set(curveSamples, path2d);
+        }
+        return path2d;
+    }
+
+    /**
+     * The smallest radius of curvature over the path's curves, sampled at each cubic's ends and midpoint. Samples where
+     * the curve has no direction (a control point on its endpoint, as at a pin's tip) are skipped. `Infinity` without
+     * curves.
+     */
+    minCurveRadius(): number {
+        this.validateDerived();
+        if (!Number.isNaN(this.cachedMinCurveRadius)) return this.cachedMinCurveRadius;
+
+        const { commands, params } = this;
+        let minRadius = Infinity;
+        let cx = Number.NaN;
+        let cy = Number.NaN;
+        let pi = 0;
+        for (let ci = 0; ci < this.commandsLength; ci++) {
+            switch (commands[ci]) {
+                case Command.Move:
+                case Command.Line:
+                    cx = params[pi++];
+                    cy = params[pi++];
+                    break;
+                case Command.Curve: {
+                    const p1x = params[pi++];
+                    const p1y = params[pi++];
+                    const p2x = params[pi++];
+                    const p2y = params[pi++];
+                    const p3x = params[pi++];
+                    const p3y = params[pi++];
+                    for (const t of CURVATURE_SAMPLES) {
+                        const radius = cubicRadiusOfCurvature(cx, cy, p1x, p1y, p2x, p2y, p3x, p3y, t);
+                        if (radius < minRadius) minRadius = radius;
+                    }
+                    cx = p3x;
+                    cy = p3y;
+                    break;
+                }
+            }
+        }
+
+        this.cachedMinCurveRadius = minRadius;
+        return minRadius;
+    }
+
+    private validateDerived() {
+        if (this.derivedLength === this.commandsLength) return;
+        this.derivedLength = this.commandsLength;
+        this.flattenedPath2Ds = undefined;
+        this.cachedMinCurveRadius = Number.NaN;
+    }
+
+    private walkFlattened(
+        curveSamples: number,
+        moveTo: (x: number, y: number) => void,
+        lineTo: (x: number, y: number) => void,
+        closePath: () => void
+    ) {
+        const { commands, params } = this;
         let cx = Number.NaN;
         let cy = Number.NaN;
         let sx = Number.NaN;
         let sy = Number.NaN;
 
-        const push = (x: number, y: number) => {
-            current.push({ x, y });
-            cx = x;
-            cy = y;
-        };
-
         let pi = 0;
         for (let ci = 0; ci < this.commandsLength; ci++) {
             switch (commands[ci]) {
                 case Command.Move:
-                    if (current.length > 0) polygons.push(current);
-                    current = [];
-                    push(params[pi++], params[pi++]);
-                    sx = cx;
-                    sy = cy;
+                    cx = sx = params[pi++];
+                    cy = sy = params[pi++];
+                    moveTo(cx, cy);
                     break;
                 case Command.Line:
-                    push(params[pi++], params[pi++]);
+                    cx = params[pi++];
+                    cy = params[pi++];
+                    lineTo(cx, cy);
                     break;
                 case Command.Curve: {
-                    const [c0x, c0y] = [cx, cy];
+                    const c0x = cx;
+                    const c0y = cy;
                     const c1x = params[pi++];
                     const c1y = params[pi++];
                     const c2x = params[pi++];
                     const c2y = params[pi++];
-                    const c3x = params[pi++];
-                    const c3y = params[pi++];
-                    for (let i = 1; i <= curveSamples; i++) {
+                    cx = params[pi++];
+                    cy = params[pi++];
+                    for (let i = 1; i < curveSamples; i++) {
                         const t = i / curveSamples;
-                        push(evaluateBezier(c0x, c1x, c2x, c3x, t), evaluateBezier(c0y, c1y, c2y, c3y, t));
+                        lineTo(evaluateBezier(c0x, c1x, c2x, cx, t), evaluateBezier(c0y, c1y, c2y, cy, t));
                     }
+                    lineTo(cx, cy);
                     break;
                 }
                 case Command.ClosePath:
-                    if (!Number.isNaN(sx)) push(sx, sy);
+                    closePath();
+                    cx = sx;
+                    cy = sy;
                     break;
             }
         }
-        if (current.length > 0) polygons.push(current);
-        return polygons;
     }
+}
+
+/** Largest deviation, in device pixels, of a flattened stroke's outer edge from the curved one. */
+const FLATTEN_TOLERANCE = 0.1;
+
+/** Where along each cubic `minCurveRadius` samples the curvature. */
+const CURVATURE_SAMPLES = [0, 0.5, 1];
+
+/** Radius of curvature `|B'|³ / |B' × B''|` of a cubic at `t`, or `Infinity` where it is straight or has no direction. */
+function cubicRadiusOfCurvature(
+    p0x: number,
+    p0y: number,
+    p1x: number,
+    p1y: number,
+    p2x: number,
+    p2y: number,
+    p3x: number,
+    p3y: number,
+    t: number
+): number {
+    const mt = 1 - t;
+    const dx = 3 * (mt * mt * (p1x - p0x) + 2 * mt * t * (p2x - p1x) + t * t * (p3x - p2x));
+    const dy = 3 * (mt * mt * (p1y - p0y) + 2 * mt * t * (p2y - p1y) + t * t * (p3y - p2y));
+    const ddx = 6 * (mt * (p2x - 2 * p1x + p0x) + t * (p3x - 2 * p2x + p1x));
+    const ddy = 6 * (mt * (p2y - 2 * p1y + p0y) + t * (p3y - 2 * p2y + p1y));
+    const speed = Math.hypot(dx, dy);
+    const cross = Math.abs(dx * ddy - dy * ddx);
+    if (speed < 1e-9 || cross === 0) return Infinity;
+    return (speed * speed * speed) / cross;
 }
 
 /** Whether the horizontal ray running left from (x, y) crosses the edge, under the half-open rule. */

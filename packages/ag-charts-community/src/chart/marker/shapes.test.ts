@@ -1,8 +1,19 @@
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
+import { Transformable } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { compareImageSnapshot, createChart, setupMockCanvas, setupMockConsole } from '../test/utils';
+import { getSeriesAt } from '../test/seriesAccessors';
+import { shapesOf } from '../test/shadowFixtures';
+import {
+    chartPixelAt,
+    compareImageSnapshot,
+    createChart,
+    deproxy,
+    setupMockCanvas,
+    setupMockConsole,
+} from '../test/utils';
+import { Marker } from './marker';
 
 describe('Marker Shapes', () => {
     setupMockConsole();
@@ -128,6 +139,35 @@ describe('Marker Shapes', () => {
                 ],
             };
             chart = await createChart(options);
+            await compare();
+        });
+    });
+
+    describe('stroke wider than the outline curvature', () => {
+        it('should paint curved markers solid out to the outer edge of the stroke', async () => {
+            const shapes = ['circle', 'heart', 'pin'] as const;
+            const options: AgChartOptions = {
+                data: [{ x: 0, circle: 10, heart: 20, pin: 30 }],
+                series: shapes.map((shape) => ({
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: shape,
+                    shape,
+                    size: shape === 'circle' ? 7 : 10,
+                    fill: 'lime',
+                    stroke: 'red',
+                    strokeWidth: shape === 'circle' ? 40 : 24,
+                })),
+            };
+            const proxy = await createChart(options);
+            chart = proxy;
+
+            const internal = deproxy(proxy);
+            const { pixelRatio } = internal.ctx.scene.canvas;
+            const [circle] = shapesOf(getSeriesAt(internal, 0).contentGroup, Marker);
+            const centre = Transformable.toCanvas(circle).computeCenter();
+            // Between the fill and the inner edge of a stroke that curve strokers can leave unpainted.
+            expect(chartPixelAt(proxy, (centre.x + 10) * pixelRatio, centre.y * pixelRatio)).toEqual([255, 0, 0, 255]);
             await compare();
         });
     });

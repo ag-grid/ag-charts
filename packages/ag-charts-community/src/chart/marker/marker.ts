@@ -212,6 +212,17 @@ class InternalMarker<D = any> extends Path<D> {
     protected override executeStroke(ctx: CanvasContext, path?: Path2D): void {
         if (!path) return;
 
+        // A stroke wider than the outline's curvature is drawn along straight segments; see `getFlattenedPath2D`.
+        const sharedPath = this._sharedPath;
+        if (sharedPath != null && path === sharedPath.getPath2D()) {
+            const halfWidth = (this.__strokeWidth + this.shadowStrokeGrowth) / 2;
+            const minRadius = sharedPath.minCurveRadius();
+            if (halfWidth > minRadius) {
+                const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+                path = sharedPath.getFlattenedPath2D((minRadius + halfWidth) * pixelRatio);
+            }
+        }
+
         return super.executeStroke(ctx, path);
     }
 }
