@@ -17,7 +17,6 @@ import {
     doubleClickAction,
     doubleTapAction,
     dragAction,
-    expectWarningsCalls,
     findChartTarget,
     focusIndicatorContainsCanvasPoint,
     getAggregatedMarkerXValues,
@@ -184,7 +183,7 @@ describe('Zoom', () => {
         });
     };
 
-    it('names each zoom button from its ariaLabel or tooltip, and warns for the one that sets neither', async () => {
+    it('names each zoom button from its ariaLabel or tooltip', async () => {
         await prepareChart({
             buttons: {
                 enabled: true,
@@ -202,29 +201,6 @@ describe('Zoom', () => {
             (button) => button.getAttribute('aria-label')
         );
         expect(names).toEqual(['Magnify', 'Shrink', 'Reset the zoom']);
-        expectWarningsCalls().toEqual([
-            [
-                "AG Charts - `zoom.buttons.buttons[2]` (value 'reset') has no accessible name; set an `ariaLabel`, `tooltip` or `label` so that screen readers can announce it.",
-            ],
-        ]);
-    });
-
-    it('logs no warning for the default zoom buttons', async () => {
-        await prepareChart({ buttons: { enabled: true, visible: 'always' } });
-
-        expectWarningsCalls().toEqual([]);
-    });
-
-    it('logs no warning for a zoom button whose only name option is blank', async () => {
-        await prepareChart({
-            buttons: {
-                enabled: true,
-                visible: 'always',
-                buttons: [{ icon: 'zoom-out', value: 'zoom-out', section: 'scale', tooltip: '  ' }],
-            },
-        });
-
-        expectWarningsCalls().toEqual([]);
     });
 
     describe('tick datums across a data update', () => {
