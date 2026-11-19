@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
@@ -722,6 +722,37 @@ describe('series-level glow (enterprise series)', () => {
             await waitForChartStability(chart);
             expect(glowOf()).not.toBe(before);
             expect(glowOf()).toMatchObject({ blur: 11 });
+        });
+
+        it('neither restyles nor makes dirty the connectors of a series with a glow when it is highlighted', async () => {
+            chart = await createEnterpriseChart({
+                data: STAGES,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [{ type: 'cone-funnel', stageKey: 'stage', valueKey: 'value', glow: SERIES_GLOW }],
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+            const connectors = collectShapes(getSeriesAt(chart).contentGroup).filter(
+                (shape) => shape.fillGlow?.enabled
+            );
+            expect(connectors).toHaveLength(STAGES.length - 1);
+            const before = connectors.map((shape) => shape.fillGlow);
+            const spies = connectors.map((shape) => vi.spyOn(shape, 'markDirty'));
+
+            const { ctx, id } = deproxy(chart);
+            ctx.highlightManager.updateHighlight(id, {
+                series: getSeriesAt(chart),
+                itemId: 'series',
+                datum: undefined,
+                datumIndex: Number.NaN,
+            });
+            await waitForChartStability(chart);
+            ctx.highlightManager.updateHighlight(id);
+            await waitForChartStability(chart);
+
+            for (const [i, shape] of connectors.entries()) expect(shape.fillGlow).toBe(before[i]);
+            expect(spies.map((spy) => spy.mock.calls.length)).toEqual(connectors.map(() => 0));
+            expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
         });
 
         // Only the highlight layer's copy casts the hovered item's glow, so a move redraws no in-place node.
