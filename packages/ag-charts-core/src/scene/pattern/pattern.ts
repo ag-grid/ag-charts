@@ -138,12 +138,9 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     }
 
     // Per context, as a shadow mask and its layer paint the same fill and would evict one shared entry every frame.
-    private readonly _cache = new WeakMap<
-        CanvasRenderingContext2D,
-        { pattern: CanvasPattern | undefined; pixelRatio: number }
-    >();
+    private _cache?: WeakMap<CanvasRenderingContext2D, { pattern: CanvasPattern | undefined; pixelRatio: number }>;
     createPattern(ctx: CanvasRenderingContext2D, pixelRatio: number, logger: Logger): CanvasPattern | undefined {
-        const cached = this._cache.get(ctx);
+        const cached = this._cache?.get(ctx);
         if (cached?.pixelRatio === pixelRatio) {
             return cached.pattern;
         }
@@ -151,6 +148,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         const pattern = this.createCanvasPattern(ctx, pixelRatio, logger);
         if (pattern == null) return;
 
+        this._cache ??= new WeakMap();
         this._cache.set(ctx, { pattern, pixelRatio });
 
         return pattern;

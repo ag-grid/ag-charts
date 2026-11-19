@@ -25,10 +25,7 @@ export abstract class Gradient {
     ): CanvasGradient | undefined;
 
     // Per context, as a shadow mask and its layer paint the same fill and would evict one shared entry every frame.
-    private readonly _cache = new WeakMap<
-        CanvasRenderingContext2D,
-        { bbox: BBox; gradient: CanvasGradient | string | undefined }
-    >();
+    private _cache?: WeakMap<CanvasRenderingContext2D, { bbox: BBox; gradient: CanvasGradient | string | undefined }>;
     createGradient(
         ctx: CanvasRenderingContext2D,
         shapeBbox: BBox,
@@ -40,7 +37,7 @@ export abstract class Gradient {
             return;
         }
 
-        const cached = this._cache.get(ctx);
+        const cached = this._cache?.get(ctx);
         if (cached?.bbox.equals(bbox)) {
             return cached.gradient;
         }
@@ -80,6 +77,7 @@ export abstract class Gradient {
             gradient = (gradient as { createPattern(): CanvasGradient }).createPattern();
         }
 
+        this._cache ??= new WeakMap();
         this._cache.set(ctx, { bbox, gradient });
 
         return gradient;

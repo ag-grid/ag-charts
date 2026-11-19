@@ -1233,7 +1233,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (drawsFill) {
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
             // The plain fill that replaces an undrawable pattern has its opacity in the context's alpha already.
-            strength = fillPattern?.drawable === false ? colourAlpha(fillPattern.fill) : fillAlpha;
+            strength = fillPattern?.drawable === false ? fillAlpha / fillPattern.fillOpacity : fillAlpha;
         } else if (drawsStroke) {
             this.applyStrokeAndAlpha(ctx, bboxOverride);
             strength = strokeAlpha;
