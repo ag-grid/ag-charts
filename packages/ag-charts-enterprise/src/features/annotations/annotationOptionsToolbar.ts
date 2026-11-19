@@ -172,7 +172,7 @@ export class AnnotationOptionsToolbar {
             attachListener(this.toolbar.getElement(), 'pointerdown', (event: PointerEvent) => {
                 this.openOverlayAtPointerDown = event.button === 0 ? this.getOpenOverlay() : undefined;
             }),
-            attachListener(this.toolbar.getElement(), 'keydown', (sourceEvent: KeyboardEvent) => {
+            this.toolbar.addListener('keydown', ({ sourceEvent }) => {
                 if (sourceEvent.key === 'Escape') this.events.emit('pressed-escape', { sourceEvent });
             }),
             () => {
