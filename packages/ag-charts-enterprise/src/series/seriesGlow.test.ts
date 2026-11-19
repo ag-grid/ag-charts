@@ -666,7 +666,7 @@ describe('series-level glow (enterprise series)', () => {
     describe('redraw on hover', () => {
         // A cone funnel has no highlight options, so no state style makes it redraw. Highlighting the whole series, as
         // a legend item of the series does, redraws no one item, so the glow on its connectors is all that can.
-        const highlightSeries = async (glow: object | undefined) => {
+        const createFunnel = async (glow: object | undefined) => {
             chart = await createEnterpriseChart({
                 data: STAGES,
                 animation: { enabled: false },
@@ -674,6 +674,9 @@ describe('series-level glow (enterprise series)', () => {
                 series: [{ type: 'cone-funnel', stageKey: 'stage', valueKey: 'value', glow }],
             } as AgChartOptions);
             await waitForChartStability(chart);
+        };
+
+        const raiseSeriesHighlight = async () => {
             const { ctx, id } = deproxy(chart);
             ctx.highlightManager.updateHighlight(id, {
                 series: getSeriesAt(chart),
@@ -682,6 +685,11 @@ describe('series-level glow (enterprise series)', () => {
                 datumIndex: Number.NaN,
             });
             await waitForChartStability(chart);
+        };
+
+        const highlightSeries = async (glow: object | undefined) => {
+            await createFunnel(glow);
+            await raiseSeriesHighlight();
         };
 
         it('leaves the connectors of a series with a glow cached when it is highlighted', async () => {
@@ -724,14 +732,8 @@ describe('series-level glow (enterprise series)', () => {
             expect(glowOf()).toMatchObject({ blur: 11 });
         });
 
-        it('neither restyles nor makes dirty the connectors of a series with a glow when it is highlighted', async () => {
-            chart = await createEnterpriseChart({
-                data: STAGES,
-                animation: { enabled: false },
-                legend: { enabled: false },
-                series: [{ type: 'cone-funnel', stageKey: 'stage', valueKey: 'value', glow: SERIES_GLOW }],
-            } as AgChartOptions);
-            await waitForChartStability(chart);
+        it('keeps the glow object of the connectors of a series with a glow, and does not make them dirty, when it is highlighted', async () => {
+            await createFunnel(SERIES_GLOW);
             const connectors = collectShapes(getSeriesAt(chart).contentGroup).filter(
                 (shape) => shape.fillGlow?.enabled
             );
@@ -739,14 +741,8 @@ describe('series-level glow (enterprise series)', () => {
             const before = connectors.map((shape) => shape.fillGlow);
             const spies = connectors.map((shape) => vi.spyOn(shape, 'markDirty'));
 
+            await raiseSeriesHighlight();
             const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, {
-                series: getSeriesAt(chart),
-                itemId: 'series',
-                datum: undefined,
-                datumIndex: Number.NaN,
-            });
-            await waitForChartStability(chart);
             ctx.highlightManager.updateHighlight(id);
             await waitForChartStability(chart);
 

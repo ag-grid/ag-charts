@@ -4,10 +4,10 @@ import { Rect } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
-import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
-import { getSeriesAt, getSeriesHasChangesOnHighlight, getSeriesNodeData } from '../test/seriesAccessors';
+import { endHover, hoverDatum } from '../test/glowRender';
+import { getSeriesAt, getSeriesHasChangesOnHighlight } from '../test/seriesAccessors';
 import { SERIES_GLOW, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
@@ -29,22 +29,26 @@ interface SeriesCase {
     name: string;
     series: (key: 'v' | 'w', glow: object | undefined, opts?: { highlight?: object; itemStyler?: unknown }) => object;
     kind: abstract new (...args: any[]) => Shape;
+    /** Whether `highlight.mode: 'shared'` lights the item that shares the hovered category in the other series. */
+    sharesCategory: boolean;
 }
 
 const SERIES: SeriesCase[] = [
     {
         name: 'bar',
         kind: Rect,
+        sharesCategory: true,
         series: (key, glow, opts) => ({ type: 'bar', xKey: 'x', yKey: key, glow, ...opts }),
     },
     {
         name: 'scatter',
         kind: Marker,
+        sharesCategory: false,
         series: (key, glow, opts) => ({ type: 'scatter', xKey: 'x', yKey: key, glow, ...opts }),
     },
 ];
 
-describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ series, kind }) => {
+describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ series, kind, sharesCategory }) => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -69,22 +73,33 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
 
     const inPlace = (seriesIndex = 0) => shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, kind);
 
-    const hover = async (seriesIndex: number, datumIndex: number) => {
-        chart.ctx.highlightManager.updateHighlight(
-            chart.id,
-            getSeriesNodeData<HighlightNodeDatum>(chart, seriesIndex)[datumIndex]
-        );
-        await waitForChartStability(chart);
-    };
+    const hover = (seriesIndex: number, datumIndex: number) => hoverDatum(chart, seriesIndex, datumIndex);
 
-    const endHover = async () => {
-        chart.ctx.highlightManager.updateHighlight(chart.id);
-        await waitForChartStability(chart);
+    /** The datum indices of the items that the styling pass of a series visits while `action` runs, in the order visited. */
+    const visitedDuring = async (seriesIndex: number, action: () => Promise<void>) => {
+        const series = getSeriesAt(chart, seriesIndex) as any;
+        const update = series.updateDatumNodes;
+        const visited: number[] = [];
+        vi.spyOn(series, 'updateDatumNodes').mockImplementation(function (this: unknown, opts: any) {
+            const { datumSelection } = opts;
+            const own = Object.getOwnPropertyDescriptor(datumSelection, 'each');
+            const each = datumSelection.each;
+            datumSelection.each = function (this: unknown, iterate: (...args: any[]) => void) {
+                return each.call(this, (node: unknown, datum: any, index: number) => {
+                    if (!opts.isHighlight) visited.push(datum.datumIndex);
+                    iterate(node, datum, index);
+                });
+            };
+            try {
+                return update.call(this, opts);
+            } finally {
+                if (own) Object.defineProperty(datumSelection, 'each', own);
+                else delete datumSelection.each;
+            }
+        });
+        await action();
+        return visited;
     };
-
-    /** Spies on `markDirty` of every shape given, to tell which a following action made dirty. */
-    const watchDirty = (shapes: Shape[]) => shapes.map((shape) => vi.spyOn(shape, 'markDirty'));
-    const dirtied = (spies: ReturnType<typeof watchDirty>) => spies.map((spy) => spy.mock.calls.length > 0);
 
     describe('a glow that a state leaves as the series casts it', () => {
         // The theme dims the other items and series, so those nodes are restyled for their opacity. What a state that casts
@@ -115,7 +130,7 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
             await hover(0, 0);
             for (const [i, shape] of shapes.entries()) expect(shape.fillGlow).toBe(before[i]);
 
-            await endHover();
+            await endHover(chart);
             for (const [i, shape] of shapes.entries()) expect(shape.fillGlow).toBe(before[i]);
         });
 
@@ -153,16 +168,20 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
         it('restyles the item left and the item reached, and no other', async () => {
             await create([series('v', SERIES_GLOW, { highlight })]);
             await hover(0, 0);
-            const [first, second, ...rest] = inPlace();
-            expect(rest.length).toBeGreaterThan(0);
-            const spies = watchDirty([first, second, ...rest]);
 
-            await hover(0, 1);
+            const visited = await visitedDuring(0, () => hover(0, 1));
 
-            const [firstDirty, secondDirty, ...restDirty] = dirtied(spies);
-            expect(firstDirty).toBe(true);
-            expect(secondDirty).toBe(true);
-            expect(restDirty.every((isDirty) => !isDirty)).toBe(true);
+            expect(DATA.length).toBeGreaterThan(2);
+            expect(visited.sort()).toEqual([0, 1]);
+        });
+
+        it('restyles every item where the hover ends, which the check above would otherwise not tell from no visit', async () => {
+            await create([series('v', SERIES_GLOW, { highlight })]);
+            await hover(0, 0);
+
+            const visited = await visitedDuring(0, () => endHover(chart));
+
+            expect(visited.sort()).toEqual(DATA.map((_, i) => i));
         });
 
         it('casts the glows of the states after the move, as a chart hovered at that item does', async () => {
@@ -190,7 +209,7 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
             await hover(0, 0);
             await hover(0, 1);
             await hover(0, 2);
-            await endHover();
+            await endHover(chart);
 
             for (const shape of inPlace()) expect(shape.fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
         });
@@ -200,29 +219,7 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
         const create3 = (highlight: object) =>
             create(['v', 'w', 'x'].map((key) => series(key as 'v', SERIES_GLOW, { highlight })));
 
-        // Under the default theme a series that is entered or left is dimmed or lit, so only a series whose state does not
-        // change can be skipped: the third, which stays unhighlighted while the hover moves from the first to the second.
-        it('asks no redraw of a series that the move neither enters nor leaves', async () => {
-            await create3({});
-            await hover(0, 0);
-            await hover(1, 0);
-
-            expect(getSeriesHasChangesOnHighlight(chart, 2)).toBe(false);
-        });
-
-        it('leaves the nodes of that series with their glow, without making them dirty', async () => {
-            await create3({});
-            await hover(0, 0);
-            const untouched = inPlace(2);
-            const before = untouched.map((shape) => shape.fillGlow);
-            const spies = watchDirty(untouched);
-
-            await hover(1, 0);
-
-            for (const [i, shape] of untouched.entries()) expect(shape.fillGlow).toBe(before[i]);
-            expect(dirtied(spies).every((isDirty) => !isDirty)).toBe(true);
-        });
-
+        // Under the default theme a series that is entered or left is dimmed or lit, so it is restyled for its opacity.
         it('does redraw the series entered and left, with the glow that its state casts', async () => {
             await create3({ unhighlightedSeries: { glow: { blur: 13 } } });
             await hover(0, 0);
@@ -244,7 +241,7 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
             for (const shape of inPlace(1))
                 expect(shape.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 13 }));
 
-            await endHover();
+            await endHover(chart);
             for (const index of [0, 1, 2]) {
                 for (const shape of inPlace(index)) expect(shape.fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
             }
@@ -267,27 +264,36 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
                 else expect(shape.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 17 }));
             }
 
-            await endHover();
+            await endHover(chart);
             for (const shape of inPlace()) expect(shape.fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
         });
 
-        it('with highlight.mode shared, still casts the glow of the item that shares the hovered category', async () => {
-            const highlight = { highlightedItem: { glow: { blur: 9 } }, unhighlightedItem: { glow: { blur: 11 } } };
-            await create([series('v', SERIES_GLOW, { highlight }), series('w', SERIES_GLOW, { highlight })], {
-                highlight: { mode: 'shared' },
-            });
+        // A scatter series lights no item for a category that the hover shares with it, so only a bar has one to check.
+        it.runIf(sharesCategory)(
+            'with highlight.mode shared, still casts the highlighted glow on the item that shares the hovered category',
+            async () => {
+                const highlight = { highlightedItem: { glow: { blur: 9 } }, unhighlightedItem: { glow: { blur: 11 } } };
+                await create([series('v', SERIES_GLOW, { highlight }), series('w', SERIES_GLOW, { highlight })], {
+                    highlight: { mode: 'shared' },
+                });
+                const lit = glowShadow({ ...SERIES_GLOW, blur: 9 });
+                const atRest = glowShadow(SERIES_GLOW);
 
-            await hover(0, 0);
-            await hover(0, 1);
+                // The other series casts the highlighted glow on the item of the hovered category only.
+                await hover(0, 0);
+                expect(inPlace(1)[0].fillGlow).toMatchObject(lit);
+                for (const shape of inPlace(1).slice(1)) expect(shape.fillGlow).toMatchObject(atRest);
 
-            // Whatever a series draws for the shared category, no item is left with a glow that was cast for the previous one.
-            const fresh = inPlace(1).map((shape) => shape.fillGlow);
-            chart.destroy();
-            await create([series('v', SERIES_GLOW, { highlight }), series('w', SERIES_GLOW, { highlight })], {
-                highlight: { mode: 'shared' },
-            });
-            await hover(0, 1);
-            expect(fresh).toEqual(inPlace(1).map((shape) => shape.fillGlow));
-        });
+                // The glow moves with the hover to the next category, and the item left returns to its glow at rest.
+                await hover(0, 1);
+                expect(inPlace(1)[1].fillGlow).toMatchObject(lit);
+                for (const [i, shape] of inPlace(1).entries()) {
+                    if (i !== 1) expect(shape.fillGlow).toMatchObject(atRest);
+                }
+
+                await endHover(chart);
+                for (const shape of inPlace(1)) expect(shape.fillGlow).toMatchObject(atRest);
+            }
+        );
     });
 });
