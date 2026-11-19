@@ -7,6 +7,7 @@ import {
     getSeriesOptions,
     optionAt,
     prepareProcessedOptions,
+    resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -94,12 +95,14 @@ function miniChartLocations(): Location[] {
     const range = { xKey: 'x', yLowKey: 'y', yHighKey: 'y' };
     const ohlc = { xKey: 'x', openKey: 'y', highKey: 'y', lowKey: 'y', closeKey: 'y' };
     const hlc = { xKey: 'x', highKey: 'y', lowKey: 'y', closeKey: 'y' };
+    const boxPlot = { xKey: 'x', minKey: 'y', q1Key: 'y', medianKey: 'y', q3Key: 'y', maxKey: 'y' };
     const markers = (...items: string[]) => items.map((item) => `${item}.marker.lineDash`);
 
     const types: Array<[type: string, keys: object, paths: string[]]> = [
         ['line', xy, ['lineDash', 'marker.lineDash']],
         ['area', xy, ['lineDash', 'marker.lineDash']],
         ['bar', xy, ['lineDash']],
+        ['box-plot', boxPlot, ['lineDash', 'whisker.lineDash']],
         ['scatter', xy, ['lineDash']],
         ['bubble', { ...xy, sizeKey: 'y' }, ['lineDash']],
         ['histogram', { xKey: 'x' }, ['lineDash']],
@@ -193,6 +196,30 @@ describe('named line dash patterns in enterprise options', () => {
 
             expect(mainDash).toEqual([6, 4]);
             expect(dashAt(withMiniChart(line, { ...line, lineDash: undefined }))).toEqual(mainDash);
+        });
+
+        it('scales a stock dash name on a box plot and its whisker by the default width, without a main box plot', () => {
+            const boxPlot = {
+                type: 'box-plot',
+                xKey: 'x',
+                minKey: 'y',
+                q1Key: 'y',
+                medianKey: 'y',
+                q3Key: 'y',
+                maxKey: 'y',
+            };
+            const processed = prepareProcessedOptions(
+                withMiniChart(
+                    { ...boxPlot, lineDash: 'dash', whisker: { lineDash: 'dot' } },
+                    { type: 'histogram', xKey: 'x' }
+                )
+            ).processedOptions;
+
+            // The mini chart series copies options that a box plot does not take from the histogram main series.
+            resetMockConsole();
+
+            expect(optionAt(processed, 'navigator.miniChart.series[0].lineDash')).toEqual([6, 4]);
+            expect(optionAt(processed, 'navigator.miniChart.series[0].whisker.lineDash')).toEqual([2, 3]);
         });
 
         it('leaves an array in pixels, and follows the main series when it sets none', () => {

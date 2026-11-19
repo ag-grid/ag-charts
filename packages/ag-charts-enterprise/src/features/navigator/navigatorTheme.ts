@@ -70,13 +70,15 @@ function omitInheritedShadow(ignoredProperties: readonly string[]) {
 
 /**
  * Where each mini-chart series type takes a `lineDash`: `own` is the series' own, `nested` are paths from the series.
+ * `ownStrokeWidth` is the type's default `strokeWidth` where its main series, if of another type, cannot supply one.
  * The main series theme is copied over as a whole, so these locations hold no `$applyLineDash` default of their own:
  * without one a name is left unresolved or, where the copy supplies an array, dropped.
  */
-const miniChartLineDashLocations: Record<string, { own?: true; nested?: string[] }> = {
-    line: { own: true, nested: ['marker'] },
+const miniChartLineDashLocations: Record<string, { own?: true; nested?: string[]; ownStrokeWidth?: number }> = {
+    line: { own: true, nested: ['marker'], ownStrokeWidth: 2 },
     area: { own: true, nested: ['marker'] },
     bar: { own: true },
+    'box-plot': { own: true, nested: ['whisker'], ownStrokeWidth: 2 },
     scatter: { own: true },
     bubble: { own: true },
     histogram: { own: true },
@@ -101,34 +103,44 @@ const miniChartLineDashLocations: Record<string, { own?: true; nested?: string[]
     },
 };
 
-// A wick scales by its own width, else its item's, as in the main series theme.
-const WICK_STROKE_WIDTH: Parameters<typeof lineDashThemeDefault>[1] = {
-    $path: ['./strokeWidth', { $path: '../strokeWidth' }],
+// A wick or whisker scales by its own width, else its parent's, as in the main series theme. A parent takes no width from
+// a main series of another type, so a whisker's is `parentStrokeWidth`, as for `ownStrokeWidth`.
+const parentStrokeWidth = (width?: number): Parameters<typeof lineDashThemeDefault>[1] => ({
+    $path: ['./strokeWidth', { $path: width == null ? '../strokeWidth' : ['../strokeWidth', width] }],
+});
+const PARENT_STROKE_WIDTHS: Record<string, Parameters<typeof lineDashThemeDefault>[1]> = {
+    wick: parentStrokeWidth(),
+    whisker: parentStrokeWidth(2),
 };
 
 // A mini-chart line or area takes no dash from the main series (the price volume preset maps an area to a line).
 const MINI_CHART_TYPES_WITHOUT_MAIN_DASH = new Set(['line', 'area']);
 
-// A mini-chart line takes no width from the main series either, and its own default is only filled in after theming.
-// A name scales by that default, which is the line series theme's `strokeWidth`.
-const MINI_CHART_LINE_STROKE_WIDTH: Parameters<typeof lineDashThemeDefault>[1] = { $path: ['./strokeWidth', 2] };
+// A series takes no width from a main series of another type, and its own default is only filled in after theming. A
+// name scales by that default, which `ownStrokeWidth` mirrors from the series theme.
+const strokeWidthOrDefault = (width: number): Parameters<typeof lineDashThemeDefault>[1] => ({
+    $path: ['./strokeWidth', width],
+});
 
 /**
  * The `lineDash` defaults of a mini-chart series type, each with the main series' value as its default, so a name
  * resolves by the width of the mini-chart series and an unset option still follows the main series.
  */
-function miniChartLineDashTheme(type: string, { own, nested = [] }: (typeof miniChartLineDashLocations)[string]) {
+function miniChartLineDashTheme(
+    type: string,
+    { own, nested = [], ownStrokeWidth: width }: (typeof miniChartLineDashLocations)[string]
+) {
     const theme: Record<string, any> = {};
     if (own) {
         const inherited = MINI_CHART_TYPES_WITHOUT_MAIN_DASH.has(type)
             ? undefined
             : { $path: '/series/$index/lineDash' };
-        theme.lineDash = lineDashThemeDefault(inherited, type === 'line' ? MINI_CHART_LINE_STROKE_WIDTH : undefined);
+        theme.lineDash = lineDashThemeDefault(inherited, width == null ? undefined : strokeWidthOrDefault(width));
     }
     for (const location of nested) {
         const keys = location.split('.');
         const inherited = { $path: `/series/$index/${[...keys, 'lineDash'].join('/')}` };
-        const strokeWidth = keys.at(-1) === 'wick' ? WICK_STROKE_WIDTH : undefined;
+        const strokeWidth = PARENT_STROKE_WIDTHS[keys.at(-1)!];
 
         let node = theme;
         for (const key of keys) node = node[key] ??= {};
