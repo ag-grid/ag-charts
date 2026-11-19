@@ -2429,9 +2429,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const x = this.computeXPosition(ctx, datumIndex);
         if (!Number.isFinite(x)) return undefined;
 
-        // Cross-filtering draws the filtered value as a narrowed bar inset within the band.
+        // Cross-filtering draws the filtered value as a narrowed bar inset within the band. As in updateNodeDatum, the
+        // overlay is sized by the stack-space filter delta (the raw value differs in a normalised stack).
         const crossScale = yFilterValue != null && yFilterValue > yRawValue ? 0.6 : 1;
-        const currY = yFilterValue == null ? yEnd : Number(yStart) + yFilterValue;
+        const yFilterStackValue = this.resolveFilterStackValue(ctx, datumIndex, yFilterValue);
+        const currY = yFilterStackValue == null ? yEnd : Number(yStart) + yFilterStackValue;
 
         const y = ctx.yScale.convert(currY);
         const bottomY = ctx.yScale.convert(yStart);
@@ -2449,7 +2451,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const yRange = (ctx.stackedTowardEnd ? stackTotal?.(datumIndex, isPositive) : undefined) ?? yEnd;
             const hasOpposite =
                 yStart === zeroLike(yStart) && hasOppositeStack(stackTotal?.(datumIndex, !isPositive), isPositive);
-            const edges = barGapEdges(yStart, yEnd, yRange, currY, yFilterValue == null, hasOpposite);
+            const edges = barGapEdges(yStart, yEnd, yRange, currY, yFilterStackValue == null, hasOpposite);
             insetGapSpan(gapSpan, ctx.halfGap, edges, bottomY <= y);
         }
         const { start: alongStart, length: alongLength } = gapSpan;
