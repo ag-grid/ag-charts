@@ -127,9 +127,9 @@ const CASES: Case[] = [
     {
         name: 'treemap tile',
         data: HIERARCHY_SHADOW_DATA,
-    leaves: (count) => [
-        { name: 'Root', children: Array.from({ length: count }, (_, id) => ({ name: `L${id}`, size: 10 })) },
-    ],
+        leaves: (count) => [
+            { name: 'Root', children: Array.from({ length: count }, (_, id) => ({ name: `L${id}`, size: 10 })) },
+        ],
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
@@ -147,9 +147,9 @@ const CASES: Case[] = [
     {
         name: 'sunburst',
         data: HIERARCHY_SHADOW_DATA,
-    leaves: (count) => [
-        { name: 'Root', children: Array.from({ length: count }, (_, id) => ({ name: `L${id}`, size: 10 })) },
-    ],
+        leaves: (count) => [
+            { name: 'Root', children: Array.from({ length: count }, (_, id) => ({ name: `L${id}`, size: 10 })) },
+        ],
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
