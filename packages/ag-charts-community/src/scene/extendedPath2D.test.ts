@@ -60,6 +60,22 @@ describe('ExtendedPath2D', () => {
             expect(openLineEnds(path, 3)).toEqual([]);
         });
 
+        it('should allocate end storage only for a path with an open run of lines', () => {
+            const closed = new ExtendedPath2D();
+            square(closed, 5);
+            closed.moveTo(20, 0);
+            closed.arc(20, 0, 5, 0, Math.PI);
+            const open = new ExtendedPath2D();
+            open.moveTo(0, 0);
+            open.lineTo(10, 0);
+
+            openLineEnds(closed, 3);
+            openLineEnds(open, 3);
+
+            expect(closed['openEnds']).toBeUndefined();
+            expect(open['openEnds']).toHaveLength(8);
+        });
+
         it('should draw nothing for a reach of 0', () => {
             const path = new ExtendedPath2D();
             path.moveTo(0, 0);

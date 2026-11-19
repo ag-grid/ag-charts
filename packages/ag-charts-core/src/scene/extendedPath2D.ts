@@ -484,7 +484,7 @@ export class ExtendedPath2D {
 
     private findOpenLineEnds() {
         const { commands, params, commandsLength } = this;
-        const openEnds = (this.openEnds ??= []);
+        let openEnds = this.openEnds;
         let n = 0;
         // The first and last segments of the subpath being read, and whether it is still a plain open run of lines.
         let x0 = 0;
@@ -504,6 +504,7 @@ export class ExtendedPath2D {
             switch (ci < commandsLength ? commands[ci] : Command.Move) {
                 case Command.Move:
                     if (plain && lines > 0) {
+                        openEnds ??= this.openEnds = [];
                         openEnds[n++] = x1;
                         openEnds[n++] = y1;
                         openEnds[n++] = x0;
