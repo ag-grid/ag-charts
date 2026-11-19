@@ -6,6 +6,7 @@ import type { AgGlowOptions } from 'ag-charts-types';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { expectSamePixels } from '../test/expectSamePixels';
+import { classRuns } from '../test/glowGapFixtures';
 import { HARD_GAP_GLOW, ROOM, canvasImage, endHover, hoverDatum, hoverSeries } from '../test/glowRender';
 import { expectSectorGlowJoins } from '../test/sectorGlowJoins';
 import { getSeriesAt } from '../test/seriesAccessors';
@@ -187,16 +188,8 @@ describe('glow refinements', () => {
             };
 
             /** The classes of the pixels going up a column from the point of the star, run by run, with the length of each run. */
-            const runsUp = (x: number, fromY: number, toY: number) => {
-                const runs: { class: string; length: number }[] = [];
-                for (let y = fromY; y >= toY; y--) {
-                    const pixelClass = classOf(pixel(x, y));
-                    const last = runs.at(-1);
-                    if (last?.class === pixelClass) last.length++;
-                    else runs.push({ class: pixelClass, length: 1 });
-                }
-                return runs;
-            };
+            const runsUp = (x: number, fromY: number, toY: number) =>
+                classRuns(Array.from({ length: fromY - toY + 1 }, (_, i) => classOf(pixel(x, fromY - i))));
 
             // The glow is cast three ways: for the series, by an itemStyler, and for the hovered item.
             describe.each(PLACEMENTS)('from %s', (_name, placement, hover) => {

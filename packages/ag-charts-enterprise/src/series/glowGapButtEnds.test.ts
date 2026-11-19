@@ -12,8 +12,9 @@ import {
 import type { Shape } from 'ag-charts-core';
 
 import { boxPlot, candlestick } from '../test/glowGapItems';
-
-type WickOptions = NonNullable<Parameters<typeof candlestick>[2]>;
+import type { WickOptions } from '../test/glowGapItems';
+import type { BoxPlotNode } from './box-plot/boxPlotNode';
+import type { CandlestickNode } from './candlestick/candlestickNode';
 
 const { x: CENTRE_X, y: CENTRE_Y } = GLOW_CENTRE;
 
@@ -36,45 +37,45 @@ const WICK_PATHS: Record<string, { options: WickOptions; ownPath: boolean }> = {
     'in the path of the body': { options: { strokeWidth: 4, wickInBodyPath: true }, ownPath: false },
 };
 
-const candlestickEnds = (widths: WickOptions): Record<string, End> => ({
+const candlestickEnds = (options: WickOptions): Record<string, End> => ({
     'the top end of a candlestick wick': {
-        build: (gap) => candlestick(redGlow(gap), CENTRE_X, widths),
+        build: (gap) => candlestick(redGlow(gap), CENTRE_X, options),
         vertical: true,
         across: CENTRE_X,
-        end: 40,
+        end: 40 + (options.shift ?? 0),
         direction: -1,
     },
     'the bottom end of a candlestick wick': {
-        build: (gap) => candlestick(redGlow(gap), CENTRE_X, widths),
+        build: (gap) => candlestick(redGlow(gap), CENTRE_X, options),
         vertical: true,
         across: CENTRE_X,
-        end: 180,
+        end: 180 + (options.shift ?? 0),
         direction: 1,
     },
 });
 
 // The caps of the whiskers are 60 across, centred on the whiskers, and 4 thick.
-const boxPlotEnds = (widths: WickOptions): Record<string, End> => ({
+const boxPlotEnds = (options: WickOptions): Record<string, End> => ({
     'the top end of the cap of a box plot whisker': {
-        build: (gap) => boxPlot(redGlow(gap), widths),
+        build: (gap) => boxPlot(redGlow(gap), options),
         vertical: true,
         across: 40,
-        end: 80,
+        end: 80 + (options.shift ?? 0),
         direction: -1,
     },
     'the bottom end of the cap of a box plot whisker': {
-        build: (gap) => boxPlot(redGlow(gap), widths),
+        build: (gap) => boxPlot(redGlow(gap), options),
         vertical: true,
         across: 40,
-        end: 140,
+        end: 140 + (options.shift ?? 0),
         direction: 1,
     },
     // With no cap the whisker itself ends, 40 from the centre of the plot.
     'the end of a box plot whisker with no cap': {
-        build: (gap) => Object.assign(boxPlot(redGlow(gap), widths), { capLengthRatio: 0 }),
+        build: (gap) => Object.assign(boxPlot(redGlow(gap), options), { capLengthRatio: 0 }),
         vertical: false,
         across: CENTRE_Y,
-        end: 40,
+        end: 40 + (options.shift ?? 0),
         direction: -1,
     },
 });
@@ -83,20 +84,31 @@ describe('glow gap past the butt ends of wicks and whiskers', () => {
     setupMockCanvas(GLOW_SCENE_SIZE);
     const draw = useGlowScenes();
 
-    describe.each(GLOW_ROUTES)('cast by the %s', (route) => {
-        describe.each(Object.entries(WICK_PATHS))('with the wicks %s', (_paths, { options, ownPath }) => {
+    describe.each(Object.entries(WICK_PATHS))('with the wicks %s', (_paths, { options, ownPath }) => {
+        // Where the wicks are drawn does not depend on how the glow is cast, so one route shows it.
+        it.each<[string, () => boolean]>([
+            [
+                'a candlestick',
+                () => {
+                    const item: CandlestickNode<unknown> = candlestick(redGlow(5), CENTRE_X, options);
+                    draw('root', item);
+                    return item['wickPath'].isEmpty();
+                },
+            ],
+            [
+                'a box plot',
+                () => {
+                    const item: BoxPlotNode = boxPlot(redGlow(5), options);
+                    draw('root', item);
+                    return item['wickPath'].isEmpty();
+                },
+            ],
+        ])('should have the wicks of %s in the path it is set up for', (_name, wickPathIsEmpty) => {
+            expect(wickPathIsEmpty()).toBe(!ownPath);
+        });
+
+        describe.each(GLOW_ROUTES)('cast by the %s', (route) => {
             const ENDS = { ...candlestickEnds(options), ...boxPlotEnds(options) };
-
-            it.each([
-                ['a candlestick', () => candlestick(redGlow(5), CENTRE_X, options)],
-                ['a box plot', () => boxPlot(redGlow(5), options)],
-            ])('should have the wicks of %s in the path it is set up for', (_name, build) => {
-                const item = build();
-                draw(route, item);
-
-                const { wickPath } = item as unknown as { wickPath: { isEmpty(): boolean } };
-                expect(wickPath.isEmpty()).toBe(!ownPath);
-            });
 
             describe.each(Object.entries(ENDS))('at %s', (_name, { build, vertical, across, end, direction }) => {
                 /** The pixel `distance` pixels past the end of the wick, so that 0 is the pixel that touches it. */
@@ -135,6 +147,35 @@ describe('glow gap past the butt ends of wicks and whiskers', () => {
                         expect(pastEnd(pixelAt, distance)[3], `${distance}px past the end`).toBeGreaterThan(0);
                     }
                 });
+            });
+        });
+    });
+
+    // The cut erases the wick, then erases the gap past its end. Where the end is part way through a pixel, each erase only
+    // partly covers that pixel, and a glow that two erases are meant to cover would show there as a faint line across the hole.
+    describe.each([0.4, 0.7])('with the wicks ending %d of the way through a pixel', (shift) => {
+        describe.each(Object.entries(WICK_PATHS))('with the wicks %s', (_paths, { options }) => {
+            const ENDS = { ...candlestickEnds({ ...options, shift }), ...boxPlotEnds({ ...options, shift }) };
+
+            describe.each(GLOW_ROUTES)('cast by the %s', (route) => {
+                it.each(Object.entries(ENDS))(
+                    'should leave no glow in the pixel that holds %s, nor in the gap past it',
+                    (_name, { build, vertical, across, end, direction }) => {
+                        const gap = 3;
+                        const { pixelAt } = draw(route, build(gap));
+                        const at = (along: number) => (vertical ? pixelAt(across, along) : pixelAt(along, across));
+                        const holdsEnd = Math.floor(end);
+
+                        // The pixel that holds the end is the wick's, and the rest of it is cut; the glow is red.
+                        expect(at(holdsEnd)[0], 'the pixel that holds the end').toBe(0);
+                        // The pixels past it that are wholly in the gap.
+                        const first = direction < 0 ? holdsEnd - 1 : holdsEnd + 1;
+                        const last = direction < 0 ? Math.ceil(end - gap) : Math.floor(end + gap) - 1;
+                        for (let along = first; direction < 0 ? along >= last : along <= last; along += direction) {
+                            expect(at(along), `the pixel at ${along}`).toEqual(CLEAR);
+                        }
+                    }
+                );
             });
         });
     });
