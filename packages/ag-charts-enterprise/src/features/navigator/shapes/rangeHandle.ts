@@ -1,6 +1,14 @@
 import type { CanvasContext, Logger } from 'ag-charts-core';
 import { BBox, ExtendedPath2D, Path, SceneChangeDetection } from 'ag-charts-core';
 
+// The grip is a 2×3 grid of dots, drawn at this size on a handle of the reference size (the theme default).
+const GRIP_REFERENCE_WIDTH = 12;
+const GRIP_REFERENCE_HEIGHT = 24;
+const GRIP_RADIUS = 1;
+const GRIP_SPACING = 3;
+const GRIP_HALF_WIDTH = GRIP_SPACING / 2 + GRIP_RADIUS;
+const GRIP_HALF_HEIGHT = GRIP_SPACING + GRIP_RADIUS;
+
 export class RangeHandle extends Path {
     static override readonly className = 'RangeHandle';
 
@@ -86,15 +94,27 @@ export class RangeHandle extends Path {
         );
 
         // Grip
-        const gripSpacing = 3;
         if (grip) {
+            const scale = this.gripScale(halfWidth - strokeWidth, halfHeight - strokeWidth);
+            const gripSpacing = GRIP_SPACING * scale;
+            const gripRadius = GRIP_RADIUS * scale;
             for (let x = -0.5; x <= 0.5; x += 1) {
                 for (let y = -1; y <= 1; y += 1) {
-                    gripPath.arc(centerX + x * gripSpacing, centerY + y * gripSpacing, 1, 0, 2 * Math.PI);
+                    gripPath.arc(centerX + x * gripSpacing, centerY + y * gripSpacing, gripRadius, 0, 2 * Math.PI);
                     gripPath.closePath();
                 }
             }
         }
+    }
+
+    /**
+     * One factor for both axes keeps the dots round at any aspect ratio; it is `1` at the 12x24 default size.
+     * Capped so the grip stays clear of the border on skewed or thickly stroked handles.
+     */
+    private gripScale(innerHalfWidth: number, innerHalfHeight: number) {
+        const sizeScale = Math.sqrt((this.width / GRIP_REFERENCE_WIDTH) * (this.height / GRIP_REFERENCE_HEIGHT));
+        const fitScale = Math.min(innerHalfWidth / GRIP_HALF_WIDTH, innerHalfHeight / GRIP_HALF_HEIGHT);
+        return Math.max(0, Math.min(sizeScale, fitScale));
     }
 
     protected override renderFill(ctx: CanvasContext, logger: Logger, path?: Path2D): void {
