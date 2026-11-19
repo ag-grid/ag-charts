@@ -8,6 +8,7 @@ import { getSeriesAt } from '../../test/seriesAccessors';
 import { HIGHLIGHT_GLOW, SERIES_GLOW, shapesOf } from '../../test/shadowFixtures';
 import {
     type Chart,
+    chartPixelAt,
     createChart,
     deproxy,
     setupMockCanvas,
@@ -24,9 +25,6 @@ const SHADOW: AgDropShadowOptions = {
     yOffset: 24,
     blur: 0,
 };
-
-/** The opacity that the donut draws its phantoms at. */
-const PHANTOM_OPACITY = 0.2;
 
 const RED = [255, 0, 0, 255];
 const BLUE = [0, 0, 255, 255];
@@ -154,30 +152,44 @@ describe('polar series shadow root', () => {
         it('should cast the shadow of a phantom, once where it falls on that of an item', async () => {
             await create(filteredDonut());
             const plain = pixels();
-            const { cx, cy, radius, width } = phantomDisc(plain);
+            const { cx, cy, radius } = phantomDisc(plain);
+
+            // The colour of a phantom alone is the mode of what the chart draws besides the background and its items.
+            const counts = new Map<string, number>();
+            for (let i = 0; i < plain.length; i += 4) {
+                const colour = plain.slice(i, i + 3);
+                if (colour.every((channel) => channel === 255) || colour.every((channel, c) => channel === BLUE[c])) {
+                    continue;
+                }
+                counts.set(colour.join(), (counts.get(colour.join()) ?? 0) + 1);
+            }
+            const [phantomColour] = [...counts]
+                .sort(([, a], [, b]) => b - a)[0][0]
+                .split(',')
+                .map(Number);
+            const phantomOpacity = 1 - phantomColour / 255;
+            const phantomPixel = (i: number) => plain[i] === phantomColour && plain[i + 2] === 255;
+
             await create(filteredDonut({ shadow: SHADOW }));
-            const shadowed = pixels();
-            const at = (x: number, y: number) =>
-                shadowed.slice(4 * (Math.round(y) * width + Math.round(x))).slice(0, 3);
 
             // Beyond the items and the phantoms, down and right, only the shadow of a phantom reaches.
-            const beyond = radius + 12;
-            const phantomOnly = 255 * (1 - SHADOW_STRENGTH * PHANTOM_OPACITY);
-            const diagonal = Math.SQRT1_2 * beyond;
-            for (const channel of at(cx + diagonal, cy + diagonal)) expect(channel).toBeCloseTo(phantomOnly, -0.5);
+            const diagonal = Math.SQRT1_2 * (radius + 12);
+            const phantomOnly = 255 * (1 - SHADOW_STRENGTH * phantomOpacity);
+            for (const channel of chartPixelAt(chart!, cx + diagonal, cy + diagonal).slice(0, 3)) {
+                expect(channel).toBeCloseTo(phantomOnly, -0.5);
+            }
 
             // Where the shadows of an item and its phantom overlap, they are one cast, as strong as the item's alone.
             const itemOnly = [255, 255, 255].map(
-                (channel, c) => channel * (1 - SHADOW_STRENGTH) * (1 - PHANTOM_OPACITY) + BLUE[c] * PHANTOM_OPACITY
+                (channel, c) => channel * (1 - SHADOW_STRENGTH) * (1 - phantomOpacity) + BLUE[c] * phantomOpacity
             );
-            const overlapped = [];
+            const shadowed = pixels();
+            const single: number[][] = [];
             for (let i = 0; i < plain.length; i += 4) {
-                if (plain[i] === 204 && plain[i + 1] === 204 && plain[i + 2] === 255)
-                    overlapped.push(shadowed.slice(i, i + 3));
+                if (!phantomPixel(i)) continue;
+                const pixel = shadowed.slice(i, i + 3);
+                if (pixel.every((channel, c) => Math.abs(channel - itemOnly[c]) <= 2)) single.push(pixel);
             }
-            const single = overlapped.filter((pixel) =>
-                pixel.every((channel, c) => Math.abs(channel - itemOnly[c]) <= 2)
-            );
             expect(single.length).toBeGreaterThan(1000);
         });
 
@@ -204,13 +216,17 @@ describe('polar series shadow root', () => {
     describe('phantom sector glows', () => {
         /** The distances beyond the phantoms of the pixels that the glows change, which only a phantom's glow can reach. */
         const glowDistances = async (hover: boolean) => {
-            await create(filteredDonut());
+            // Both renders are hovered or neither is, so that only the glows tell them apart. A hover cuts out its item.
+            const hovered = (options: AgChartOptions) =>
+                ({ ...options, highlight: hover ? { drawingMode: 'cutout' } : undefined }) as AgChartOptions;
+            await create(hovered(filteredDonut()));
+            if (hover) await hoverDatum(chart!);
             const plain = pixels();
             const { cx, cy, radius, width } = phantomDisc(plain);
 
             const glow: AgGlowOptions = SERIES_GLOW;
             const highlightedItem: AgGlowOptions = HIGHLIGHT_GLOW;
-            await create(filteredDonut({ glow, highlight: { highlightedItem: { glow: highlightedItem } } }));
+            await create(hovered(filteredDonut({ glow, highlight: { highlightedItem: { glow: highlightedItem } } })));
             if (hover) await hoverDatum(chart!);
             const glowing = pixels();
             const distances: number[] = [];
