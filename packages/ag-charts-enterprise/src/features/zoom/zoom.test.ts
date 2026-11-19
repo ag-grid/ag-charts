@@ -17,6 +17,7 @@ import {
     doubleClickAction,
     doubleTapAction,
     dragAction,
+    expectWarningsCalls,
     findChartTarget,
     focusIndicatorContainsCanvasPoint,
     getAggregatedMarkerXValues,
@@ -201,6 +202,21 @@ describe('Zoom', () => {
             (button) => button.getAttribute('aria-label')
         );
         expect(names).toEqual(['Magnify', 'Shrink', 'Reset the zoom']);
+    });
+
+    it('warns once for a zoom button whose blank tooltip leaves it without an accessible name', async () => {
+        const buttons = [
+            { icon: 'zoom-in', value: 'zoom-in', tooltip: 'Magnify' },
+            { icon: 'zoom-out', value: 'zoom-out', tooltip: '  ' },
+        ] as const;
+        await prepareChart({ buttons: { enabled: true, visible: 'always', buttons: [...buttons] } });
+        await chart.updateDelta({ zoom: { buttons: { visible: 'hover' } } });
+
+        expectWarningsCalls().toEqual([
+            [
+                "AG Charts - `zoom.buttons.buttons[1]` (value 'zoom-out') has no accessible name; set a non-empty `ariaLabel`, `tooltip` or `label` so that screen readers can announce it.",
+            ],
+        ]);
     });
 
     describe('tick datums across a data update', () => {

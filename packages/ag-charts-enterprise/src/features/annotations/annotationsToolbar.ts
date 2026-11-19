@@ -1,5 +1,12 @@
 import { type AgAnnotationsToolbar, _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, ChartAxisDirection, CleanupRegistry, type DynamicContext, EventEmitter } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    ChartAxisDirection,
+    CleanupRegistry,
+    type DynamicContext,
+    EventEmitter,
+    warnUnnamedToolbarButtons,
+} from 'ag-charts-core';
 import type { ClickWidgetEvent, ExpansionControllerWidget, KeyboardWidgetEvent } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
@@ -91,6 +98,9 @@ export class AnnotationsToolbar {
         this.toolbar.setButtonSize(buttonSize);
         this.padding = padding;
         this.buttons = buttons.map((button) => this.withPressed(button));
+        if (enabled) {
+            warnUnnamedToolbarButtons(this.ctx.logger, 'annotations.toolbar.buttons', buttons);
+        }
     }
 
     public toggleClearButtonEnabled(enabled: boolean) {

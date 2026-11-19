@@ -18,6 +18,7 @@ import {
     debounce,
     definedZoomState,
     entries,
+    warnUnnamedToolbarButtons,
 } from 'ag-charts-core';
 
 import type { ZoomProperties } from './zoomTypes';
@@ -43,6 +44,16 @@ interface ZoomToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
 }
 
 type ZoomButtonsVisible = 'always' | 'zoomed' | 'hover';
+
+const DEFAULT_BUTTON_TOOLTIPS = {
+    'pan-end': 'toolbarZoomPanEnd',
+    'pan-left': 'toolbarZoomPanLeft',
+    'pan-right': 'toolbarZoomPanRight',
+    'pan-start': 'toolbarZoomPanStart',
+    'zoom-in': 'toolbarZoomZoomIn',
+    'zoom-out': 'toolbarZoomZoomOut',
+    reset: 'toolbarZoomReset',
+} as const;
 
 /** The anchor points are undocumented options, so they sit outside the public `AgZoomButtons` shape. */
 type ZoomToolbarOptions = NormalisedZoomButtons & {
@@ -128,8 +139,14 @@ export class ZoomToolbar {
             this.enabled = enabled;
             this.toolbar.setHidden(!enabled);
         }
-        // Copied because `onLayoutComplete` fills in the default tooltip on each button.
-        this.buttons = options.buttons.map((button) => ({ ...button }));
+        this.buttons = options.buttons.map((button) =>
+            button.tooltip == null && button.label == null
+                ? { ...button, tooltip: DEFAULT_BUTTON_TOOLTIPS[button.value] }
+                : button
+        );
+        if (enabled) {
+            warnUnnamedToolbarButtons(this.ctx.logger, 'zoom.buttons.buttons', this.buttons);
+        }
         if (visible !== this.visible) {
             this.visible = visible;
             const always = visible === 'always';
@@ -185,20 +202,6 @@ export class ZoomToolbar {
         const { buttons, container } = this;
         const { rect } = event.series;
 
-        for (const b of buttons) {
-            if (b.tooltip == null && b.label == null) {
-                const map = {
-                    'pan-end': 'toolbarZoomPanEnd',
-                    'pan-left': 'toolbarZoomPanLeft',
-                    'pan-right': 'toolbarZoomPanRight',
-                    'pan-start': 'toolbarZoomPanStart',
-                    'zoom-in': 'toolbarZoomZoomIn',
-                    'zoom-out': 'toolbarZoomZoomOut',
-                    reset: 'toolbarZoomReset',
-                } as const;
-                b.tooltip = map[b.value];
-            }
-        }
         this.toolbar.updateButtons(buttons);
         this.toggleButtonsDebounced();
 

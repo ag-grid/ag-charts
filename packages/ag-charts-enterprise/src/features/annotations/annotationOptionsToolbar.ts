@@ -6,6 +6,9 @@ import {
     type DynamicContext,
     EventEmitter,
     attachListener,
+    hasToolbarButtonAccessibleName,
+    warnUnnamedToolbarButton,
+    warnUnnamedToolbarButtons,
 } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
@@ -191,6 +194,20 @@ export class AnnotationOptionsToolbar {
             type: button.type ?? 'button',
             value: TOOLBAR_BUTTON_OPTIONS[button.value],
         }));
+        if (options.enabled) {
+            this.warnUnnamedButtons(options.buttons);
+        }
+    }
+
+    private warnUnnamedButtons(buttons: AgAnnotationOptionsToolbar['buttons']) {
+        const path = 'annotations.optionsToolbar.buttons';
+        const { logger } = this.ctx;
+        warnUnnamedToolbarButtons(logger, path, buttons);
+        for (const [index, button] of (buttons ?? []).entries()) {
+            if (button.type === 'switch' && !hasToolbarButtonAccessibleName(button.checkedOverrides)) {
+                warnUnnamedToolbarButton(logger, `${path}[${index}].checkedOverrides`, button.value);
+            }
+        }
     }
 
     public show() {

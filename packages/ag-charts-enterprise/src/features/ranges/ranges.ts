@@ -19,6 +19,7 @@ import {
     isTimeInterval,
     isTimeIntervalUnit,
     isValidDate,
+    warnUnnamedToolbarButtons,
 } from 'ag-charts-core';
 import type { CssColor } from 'ag-charts-types';
 
@@ -108,9 +109,11 @@ export class Ranges extends AbstractModuleInstance {
             ctx.eventsHub.on('theme:params-change', () => this.invalidateToolbarHeightCache()),
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'ranges.enabled') ?? false;
+                const buttons = get('options', 'ranges.buttons');
                 // Reset `isDropdown` state when the ranges module is disabled, to ensure the buttons are
                 // correctly re-shown if the module is re-enabled.
                 if (!enabled) this.isDropdown = undefined;
+                if (enabled) warnUnnamedToolbarButtons(ctx.logger, 'ranges.buttons', buttons);
             }),
             this.teardown.bind(this)
         );

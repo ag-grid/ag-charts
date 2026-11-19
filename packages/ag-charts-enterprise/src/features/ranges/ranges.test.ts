@@ -4,6 +4,7 @@ import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-communi
 import {
     type Chart,
     deproxy,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -206,6 +207,36 @@ describe('Ranges', () => {
             for (const toolbar of toolbars) {
                 expect(toolbar.style.width).not.toBe('999px');
             }
+        });
+    });
+
+    describe('accessible name warning', () => {
+        const rangesOptions = (ranges: AgRangesOptions): AgCartesianChartOptions => ({
+            data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            ranges,
+        });
+
+        it('logs no warning for the default buttons', async () => {
+            chart = await createEnterpriseChart(rangesOptions({ enabled: true }));
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('warns once per unnamed or blank-named button, from when ranges are enabled', async () => {
+            const buttons: AgRangesOptions['buttons'] = [
+                { label: 'Start', value: [0, 5] },
+                { value: [0, 10] },
+                { label: ' ', value: [0, 19] },
+            ];
+            chart = await createEnterpriseChart(rangesOptions({ enabled: false, buttons }));
+            expectWarningsCalls().toEqual([]);
+
+            await chart.updateDelta({ ranges: { enabled: true } });
+            await chart.updateDelta({ ranges: { gap: 4 } });
+
+            const message = (index: number) =>
+                `AG Charts - \`ranges.buttons[${index}]\` has no accessible name; set a non-empty \`ariaLabel\`, \`tooltip\` or \`label\` so that screen readers can announce it.`;
+            expectWarningsCalls().toEqual([[message(1)], [message(2)]]);
         });
     });
 

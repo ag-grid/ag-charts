@@ -225,6 +225,7 @@ export * from './widget/tabListWidget';
 export * from './widget/textAreaWidget';
 export * from './widget/textFieldWidget';
 export * from './widget/textSpanWidget';
+export * from './widget/toolbarButtonAccessibleName';
 export * from './widget/toolbarWidget';
 export * from './widget/widget';
 export * from './widget/widgetEvents';
