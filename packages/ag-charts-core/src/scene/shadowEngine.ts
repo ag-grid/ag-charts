@@ -43,8 +43,6 @@ const MAX_CACHED_AREA = MAX_MASK_AREA / 4;
 
 /** The pixels that a kept shadow may reach past what the blur's Gaussian covers, for the rounding of its edge. */
 const CACHED_EXTENT_MARGIN = 2;
-/** The most casters a key has for its blur to be clipped to their extent, which is measured caster by caster. */
-const MAX_BOUNDED_CASTERS = 16;
 
 /** The resolution of a mask that was not scaled down. */
 const FULL_RESOLUTION = Object.freeze({ x: 1, y: 1 });
@@ -536,9 +534,54 @@ interface Extent {
 const silhouette: SilhouetteBounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
 /**
+ * Writes into `out` the union of the silhouettes that the casters of a key cast shadows from, in device pixels on the layer,
+ * before the shadow's offset and blur. Returns false if a caster's silhouette can't be bounded.
+ */
+function measureSilhouettes(key: ShadowKey, transform: DOMMatrix, out: SilhouetteBounds): boolean {
+    const { slot, shadow, casters, frames } = key;
+    const spread = getShadowSpread(shadow);
+    out.minX = out.minY = Infinity;
+    out.maxX = out.maxY = -Infinity;
+    // A `root` key has a matrix for each frame, and a local key has the one transform.
+    let frame: ShadowFrame | undefined;
+    let frameTransform: MatrixFrame = transform;
+    for (let i = 0; i < casters.length; i++) {
+        const caster = casters[i];
+        const next = frames?.[i];
+        if (next != null && next !== frame) {
+            frame = next;
+            const [a, b, c, d, e, f] = next.matrix;
+            frameTransform = { a, b, c, d, e, f };
+        }
+        if (!caster.getShadowSilhouetteBounds(frameTransform, spread, silhouette, slot)) return false;
+
+        out.minX = Math.min(out.minX, silhouette.minX);
+        out.maxX = Math.max(out.maxX, silhouette.maxX);
+        out.minY = Math.min(out.minY, silhouette.minY);
+        out.maxY = Math.max(out.maxY, silhouette.maxY);
+    }
+    return true;
+}
+
+/** The silhouettes of keys that a cast has measured, or false for a key whose silhouettes can't be bounded. */
+type MeasuredKeys = Map<ShadowKey, SilhouetteBounds | false>;
+
+/** Measures the silhouettes of a key, once for a cast, as both the mask and the extent of its shadows are cut by them. */
+function getSilhouettes(key: ShadowKey, transform: DOMMatrix, measured: MeasuredKeys): SilhouetteBounds | undefined {
+    let bounds = measured.get(key);
+    if (bounds == null) {
+        const out = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+        bounds = measureSilhouettes(key, transform, out) && out;
+        measured.set(key, bounds);
+    }
+    return bounds === false ? undefined : bounds;
+}
+
+/**
  * The part of the layer that the shadows of the keys can land on, in device pixels, or the whole layer if a caster's
  * silhouette can't be bounded. It is measured as the mask is cleared, so a kept cast holds every pixel a direct one draws.
  * If `keyExtents` is given, each key with a `gap` has its own extent set on it, so that its casters are not measured again.
+ * The keys that `measured` holds are not measured again either.
  */
 function getShadowExtent(
     keys: readonly ShadowKey[],
@@ -546,6 +589,7 @@ function getShadowExtent(
     devicePixelRatio: number,
     width: number,
     height: number,
+    measured: MeasuredKeys,
     keyExtents?: Map<ShadowKey, Extent>
 ): Extent {
     const layer = { x: 0, y: 0, width, height };
@@ -555,40 +599,24 @@ function getShadowExtent(
     let maxY = -Infinity;
 
     for (const key of keys) {
-        const { slot, shadow, casters, frames } = key;
-        const spread = getShadowSpread(shadow);
+        const { shadow } = key;
         const offsetX = shadow.xOffset * devicePixelRatio;
         const offsetY = shadow.yOffset * devicePixelRatio;
         const blurReach = getBlurReach(shadow.blur * devicePixelRatio) + CACHED_EXTENT_MARGIN;
         const measuresKey = keyExtents != null && shadow.gap != null;
-        let keyMinX = Infinity;
-        let keyMinY = Infinity;
-        let keyMaxX = -Infinity;
-        let keyMaxY = -Infinity;
-        // A `root` key has a matrix for each frame, and a local key has the one transform.
-        let frame: ShadowFrame | undefined;
-        let frameTransform: MatrixFrame = transform;
-        for (let i = 0; i < casters.length; i++) {
-            const caster = casters[i];
-            const next = frames?.[i];
-            if (next != null && next !== frame) {
-                frame = next;
-                const [a, b, c, d, e, f] = next.matrix;
-                frameTransform = { a, b, c, d, e, f };
+        const keySilhouettes = getSilhouettes(key, transform, measured);
+        if (keySilhouettes == null) {
+            // The extent of the keys is the layer, so a key with a gap is cut on the layer too.
+            if (keyExtents != null) {
+                for (const other of keys) if (other.shadow.gap != null) keyExtents.set(other, layer);
             }
-            if (!caster.getShadowSilhouetteBounds(frameTransform, spread, silhouette, slot)) {
-                // The extent of the keys is the layer, so a key with a gap is cut on the layer too.
-                if (keyExtents != null) {
-                    for (const other of keys) if (other.shadow.gap != null) keyExtents.set(other, layer);
-                }
-                return layer;
-            }
-
-            keyMinX = Math.min(keyMinX, silhouette.minX + offsetX - blurReach);
-            keyMaxX = Math.max(keyMaxX, silhouette.maxX + offsetX + blurReach);
-            keyMinY = Math.min(keyMinY, silhouette.minY + offsetY - blurReach);
-            keyMaxY = Math.max(keyMaxY, silhouette.maxY + offsetY + blurReach);
+            return layer;
         }
+
+        const keyMinX = keySilhouettes.minX + offsetX - blurReach;
+        const keyMaxX = keySilhouettes.maxX + offsetX + blurReach;
+        const keyMinY = keySilhouettes.minY + offsetY - blurReach;
+        const keyMaxY = keySilhouettes.maxY + offsetY + blurReach;
         if (measuresKey) {
             keyExtents.set(key, clampExtent(keyMinX, keyMinY, keyMaxX, keyMaxY, width, height));
         }
@@ -816,10 +844,16 @@ interface MaskPlan {
     readonly blur: number;
     readonly offsetX: number;
     readonly offsetY: number;
-    readonly padLeft: number;
-    readonly padTop: number;
+    /** Where the top left of the mask is on the layer, in device pixels. It is above and left of the layer if the mask has pads. */
+    readonly maskX: number;
+    readonly maskY: number;
     readonly maskWidth: number;
     readonly maskHeight: number;
+    /**
+     * The part of the mask that holds the silhouettes of the key's casters, which is all of the mask that can be drawn on.
+     * Undefined if they can't be bounded. A cast uses it for the mask unless the whole mask would have to be scaled down.
+     */
+    readonly silhouettes: Extent | undefined;
     readonly colour: string;
     readonly opaque: boolean;
     /** Whether the mask holds silhouettes in the colours that they cast in, to blur once, rather than in one colour. */
@@ -840,6 +874,8 @@ interface KeyPlan extends MaskPlan {
 function planKey(
     key: ShadowKey,
     renderCtx: RenderContext,
+    transform: DOMMatrix,
+    measured: MeasuredKeys | undefined,
     width: number,
     height: number,
     known?: StrengthPart
@@ -879,6 +915,7 @@ function planKey(
 
     const maskWidth = width + padLeft + padRight;
     const maskHeight = height + padTop + padBottom;
+    const silhouettes = measured && getMaskExtent(key, transform, measured, -padLeft, -padTop, maskWidth, maskHeight);
 
     // Casters at one translucent strength are drawn solid, with the shadow cast at that strength. A `root` key's frames hold the layer alpha.
     const layerAlpha = key.frames == null ? ctx.globalAlpha : 1;
@@ -900,15 +937,43 @@ function planKey(
         blur,
         offsetX,
         offsetY,
-        padLeft,
-        padTop,
+        maskX: -padLeft,
+        maskY: -padTop,
         maskWidth,
         maskHeight,
+        silhouettes,
         colour,
         opaque,
         tinted,
         alpha,
     };
+}
+
+/**
+ * The part of a mask, whose top left is (`maskX`, `maskY`) on the layer, that the silhouettes of the key's casters can be
+ * drawn on, or undefined if they can't be bounded. The mask is blank outside it.
+ */
+function getMaskExtent(
+    key: ShadowKey,
+    transform: DOMMatrix,
+    measured: MeasuredKeys,
+    maskX: number,
+    maskY: number,
+    maskWidth: number,
+    maskHeight: number
+): Extent | undefined {
+    const silhouettes = getSilhouettes(sourceOf(key), transform, measured);
+    if (silhouettes == null) return;
+
+    const { minX, minY, maxX, maxY } = silhouettes;
+    if (!(isFiniteNumber(minX) && isFiniteNumber(minY) && isFiniteNumber(maxX) && isFiniteNumber(maxY))) return;
+
+    // Casters that are off the mask draw nothing on it, which a mask of one pixel is as blank as.
+    const x = Math.min(maskX + maskWidth - 1, Math.max(maskX, Math.floor(minX - CACHED_EXTENT_MARGIN)));
+    const y = Math.min(maskY + maskHeight - 1, Math.max(maskY, Math.floor(minY - CACHED_EXTENT_MARGIN)));
+    const right = Math.min(maskX + maskWidth, Math.max(x + 1, Math.ceil(maxX + CACHED_EXTENT_MARGIN)));
+    const bottom = Math.min(maskY + maskHeight, Math.max(y + 1, Math.ceil(maxY + CACHED_EXTENT_MARGIN)));
+    return { x, y, width: right - x, height: bottom - y };
 }
 
 /** Clips `target` to what is inside every region, which are in device pixels. */
@@ -933,7 +998,7 @@ function clipToRegions(target: RenderContext['ctx'], regions: readonly ShadowReg
 function drawMask(plan: KeyPlan, scratch: SpreadCanvas, transform: DOMMatrix, renderCtx: RenderContext): boolean {
     const { ctx } = renderCtx;
     let rendered: boolean;
-    const { key, padLeft, padTop, canvasWidth, canvasHeight, scaleX, scaleY, opaque, tinted } = plan;
+    const { key, maskX, maskY, canvasWidth, canvasHeight, scaleX, scaleY, opaque, tinted } = plan;
     const { context } = scratch;
 
     context.save();
@@ -946,8 +1011,8 @@ function drawMask(plan: KeyPlan, scratch: SpreadCanvas, transform: DOMMatrix, re
                 b * scaleY,
                 c * scaleX,
                 d * scaleY,
-                (e + padLeft) * scaleX,
-                (f + padTop) * scaleY
+                (e - maskX) * scaleX,
+                (f - maskY) * scaleY
             );
         const { frames } = key;
         let placed: ShadowFrame | undefined;
@@ -1003,8 +1068,7 @@ function castPlan(
     originX: number,
     originY: number,
     scene: object | undefined,
-    keyExtent: Extent | undefined,
-    bound?: Extent
+    keyExtent: Extent | undefined
 ): boolean {
     const { key } = plan;
     const { canvas } = scratch;
@@ -1063,33 +1127,12 @@ function castPlan(
 
     target.save();
     try {
-        if (bound != null) {
-            target.resetTransform();
-            target.beginPath();
-            target.rect(bound.x - originX, bound.y - originY, bound.width, bound.height);
-            target.clip();
-        }
         clipToKey(key, target, transform, originX, originY);
         blurMask(plan, canvas, target, originX, originY);
     } finally {
         target.restore();
     }
     return rendered;
-}
-
-/** OPTIMIZATION: a blur costs the area it is clipped to, so a key of few casters, such as a hovered item's, is clipped to its extent. */
-function getSmallKeyExtent(key: ShadowKey, transform: DOMMatrix, renderCtx: RenderContext): Extent | undefined {
-    // A key with a `gap` is already cast on a canvas of its own extent.
-    if (key.shadow.gap != null || key.casters.length > MAX_BOUNDED_CASTERS) return;
-
-    const { canvas } = renderCtx.ctx;
-    return getShadowExtent(
-        [key],
-        transform,
-        renderCtx.devicePixelRatio,
-        Math.ceil(canvas.width),
-        Math.ceil(canvas.height)
-    );
 }
 
 /** Casts the glows of an overlay's keys merged onto `target`, cut by every key's footprints. Returns whether every caster drew. */
@@ -1118,6 +1161,7 @@ function castOverlay(
             renderCtx.devicePixelRatio,
             Math.ceil(canvas.width),
             Math.ceil(canvas.height),
+            new Map(),
             measured
         );
         keyExtents = measured;
@@ -1374,8 +1418,7 @@ function blurMask(
     scaleX: number = 1,
     scaleY: number = 1
 ) {
-    const { offsetX, offsetY, padLeft, padTop, maskWidth, maskHeight, canvasWidth, canvasHeight, colour, tinted } =
-        plan;
+    const { offsetX, offsetY, maskX, maskY, maskWidth, maskHeight, canvasWidth, canvasHeight, colour, tinted } = plan;
     const blur = plan.blur * scaleX;
     dest.setTransform(scaleX, 0, 0, scaleY, -left * scaleX, -top * scaleY);
     if (tinted) {
@@ -1388,20 +1431,20 @@ function blurMask(
             0,
             canvasWidth,
             canvasHeight,
-            offsetX - padLeft,
-            offsetY - padTop,
+            offsetX + maskX,
+            offsetY + maskY,
             maskWidth,
             maskHeight
         );
     } else {
         // The mask is drawn this far to the left, so that none of it is on the layer. The shadow offset brings its shadow back.
-        const distance = maskWidth;
+        const distance = Math.max(maskWidth, maskX + maskWidth);
         dest.globalAlpha = 1;
         dest.shadowColor = colour;
         dest.shadowOffsetX = (offsetX + distance) * scaleX;
         dest.shadowOffsetY = offsetY * scaleY;
         dest.shadowBlur = blur;
-        dest.drawImage(canvas, 0, 0, canvasWidth, canvasHeight, -padLeft - distance, -padTop, maskWidth, maskHeight);
+        dest.drawImage(canvas, 0, 0, canvasWidth, canvasHeight, maskX - distance, maskY, maskWidth, maskHeight);
     }
 }
 
@@ -1426,7 +1469,8 @@ function getGapRegion(
             transform,
             renderCtx.devicePixelRatio,
             Math.ceil(canvas.width),
-            Math.ceil(canvas.height)
+            Math.ceil(canvas.height),
+            new Map()
         );
     const x = Math.max(extent.x, originX);
     const y = Math.max(extent.y, originY);
@@ -1562,6 +1606,9 @@ export function castShadows(
         cache.declinedAt = undefined;
     }
 
+    const measured: MeasuredKeys = new Map();
+    // A cast that was refused room keeps its masks whole: its casters are large, so cutting a mask to them would only cost a measure.
+    const declined = cache != null && isDeclined(cache, scene);
     // Every key is planned before any is drawn, so that a cast that can't be made is not half made.
     const masks: MaskPlan[] = [];
     let maskWidth = 0;
@@ -1581,7 +1628,15 @@ export function castShadows(
         gapped ||= key.shadow.gap != null;
         if (overlay === true) {
             for (const part of splitByStrength(key)) {
-                const plan = planKey(part.key, renderCtx, width, height, part);
+                const plan = planKey(
+                    part.key,
+                    renderCtx,
+                    transform,
+                    declined ? undefined : measured,
+                    width,
+                    height,
+                    part
+                );
                 if (plan === 'unusable') return false;
                 if (plan !== 'empty') {
                     masks.push(plan);
@@ -1592,7 +1647,7 @@ export function castShadows(
             continue;
         }
 
-        const plan = planKey(key, renderCtx, width, height);
+        const plan = planKey(key, renderCtx, transform, declined ? undefined : measured, width, height);
         if (plan === 'unusable') return false;
         if (plan === 'empty') continue;
 
@@ -1603,10 +1658,56 @@ export function castShadows(
     if (masks.length === 0) return true;
     const glowKeys = cuts == null ? keys : keys.filter((key) => key.shadow.cutOnly !== true);
 
+    // A mask is cut down to its casters' silhouettes, if they can be bounded. It is not if the whole mask would have to be scaled
+    // down to fit a canvas, since the cut mask would then be drawn at a finer resolution, and the shadow would change.
+    const bounded = fitMask(maskWidth, maskHeight) === 1;
+    if (bounded) {
+        maskWidth = 0;
+        maskHeight = 0;
+        for (let i = 0; i < masks.length; i++) {
+            const { silhouettes } = masks[i];
+            if (silhouettes != null) {
+                masks[i] = {
+                    ...masks[i],
+                    maskX: silhouettes.x,
+                    maskY: silhouettes.y,
+                    maskWidth: silhouettes.width,
+                    maskHeight: silhouettes.height,
+                };
+            }
+            maskWidth = Math.max(maskWidth, masks[i].maskWidth);
+            maskHeight = Math.max(maskHeight, masks[i].maskHeight);
+        }
+    }
+
+    let keyExtents: Map<ShadowKey, Extent> | undefined;
+    let keysExtent: Extent | undefined;
+    const keepsCast = cache != null && repeated && !declined;
+    if (keepsCast || overlay === true) {
+        keyExtents = gapped ? new Map() : undefined;
+        keysExtent = getShadowExtent(
+            glowKeys,
+            transform,
+            renderCtx.devicePixelRatio,
+            width,
+            height,
+            measured,
+            keyExtents
+        );
+    }
+    // The cutting of an overlay stamps its footprints on the scratch canvas, if the glows' canvas fits on it.
+    let scratchWidth = maskWidth;
+    let scratchHeight = maskHeight;
+    if (bounded && overlay === true && keysExtent != null) {
+        const glowResolution = fitMask(keysExtent.width, keysExtent.height);
+        scratchWidth = Math.max(scratchWidth, Math.floor(keysExtent.width * glowResolution));
+        scratchHeight = Math.max(scratchHeight, Math.floor(keysExtent.height * glowResolution));
+    }
+
     // The masks share a scratch canvas as wide as the widest and as tall as the tallest, so they share a resolution that fits it.
     const resolution = fitMask(maskWidth, maskHeight);
-    const scratchWidth = Math.max(1, Math.floor(maskWidth * resolution));
-    const scratchHeight = Math.max(1, Math.floor(maskHeight * resolution));
+    scratchWidth = Math.max(1, Math.floor(scratchWidth * resolution));
+    scratchHeight = Math.max(1, Math.floor(scratchHeight * resolution));
     const plans = masks.map((mask): KeyPlan => {
         const canvasWidth = Math.max(1, Math.floor(mask.maskWidth * resolution));
         const canvasHeight = Math.max(1, Math.floor(mask.maskHeight * resolution));
@@ -1626,14 +1727,8 @@ export function castShadows(
         return false;
     }
 
-    let kept: SpreadCanvas | undefined;
-    let keyExtents: Map<ShadowKey, Extent> | undefined;
-    let keysExtent: Extent | undefined;
-    if (cache != null && repeated && !isDeclined(cache, scene)) {
-        keyExtents = gapped ? new Map() : undefined;
-        keysExtent = getShadowExtent(glowKeys, transform, renderCtx.devicePixelRatio, width, height, keyExtents);
-        kept = acquireCacheCanvas(cache, scene, keysExtent);
-    }
+    const kept =
+        cache != null && keepsCast && keysExtent != null ? acquireCacheCanvas(cache, scene, keysExtent) : undefined;
     if (cache != null && kept != null) {
         kept.context.clearRect(0, 0, kept.canvas.width, kept.canvas.height);
         let rendered = true;
@@ -1664,14 +1759,9 @@ export function castShadows(
         cache.valid = rendered;
         blitCache(ctx, cache);
     } else if (overlay === true) {
-        castOverlay(plans, scratch, ctx, transform, renderCtx, 0, 0, scene, glowKeys, cuts, undefined, undefined);
+        castOverlay(plans, scratch, ctx, transform, renderCtx, 0, 0, scene, glowKeys, cuts, keysExtent, keyExtents);
     } else {
-        // A refused cast's extent is about the layer, so clipping to it would only cost a measure.
-        const declined = cache != null && isDeclined(cache, scene);
-        for (const plan of plans) {
-            const bound = declined ? undefined : getSmallKeyExtent(plan.key, transform, renderCtx);
-            castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined, bound);
-        }
+        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined);
     }
     return true;
 }

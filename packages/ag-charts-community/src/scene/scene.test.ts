@@ -78,24 +78,26 @@ describe('Scene', () => {
             root.appendChild(caster);
             scene.setRoot(root);
 
-            // The canvas is as large as the layer and the reach of the shadow, so a shadow offset far from the caster asks
-            // for a large one. The caster also moves, as an animating one does, so that the scene keeps none of its shadows.
-            const renderWithOffset = (offset: number) => {
+            // The canvas is as large as the casters' silhouettes, so a large caster asks for a large one. The caster also
+            // moves, as an animating one does, so that the scene keeps none of its shadows.
+            const renderWithSize = (size: number) => {
                 caster.x += 1;
-                caster.fillShadow = redHalfShadow(offset, offset);
+                caster.width = size;
+                caster.height = size;
+                caster.fillShadow = redHalfShadow(0, 0);
                 root.markDirty('test');
                 scene.render();
             };
 
-            renderWithOffset(1000);
+            renderWithSize(120);
             const large = scratchArea(before);
             expect(large).toBeGreaterThan(0);
 
             // A frame counts once the next one starts, so the 31st small frame is the first to see 30 of them.
-            for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) renderWithOffset(0);
+            for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) renderWithSize(10);
             expect(scratchArea(before)).toBe(large);
 
-            renderWithOffset(0);
+            renderWithSize(10);
             expect(scratchArea(before) * 4).toBeLessThan(large);
 
             scene.destroy();
