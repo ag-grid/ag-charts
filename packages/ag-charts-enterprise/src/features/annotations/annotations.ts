@@ -2,7 +2,6 @@ import {
     type AgAnnotation,
     type AgAnnotationFollow,
     type AgAnnotationFollowName,
-    type AgAnnotationLineStyleType,
     type AgAnnotationsEventSource,
     type Direction,
     _ModuleSupport,
@@ -40,6 +39,7 @@ import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
 import type {
     AnnotationContext,
+    AnnotationLineStyleType,
     AnnotationOptionsColorPickerType,
     DataPoint,
     HasFontSizeAnnotationType,
@@ -996,8 +996,8 @@ export class Annotations extends AbstractModuleInstance {
         this.recordActionAfterNextUpdate(`Change ${datumType} font size to ${fontSize}`, ['annotations', 'defaults']);
     }
 
-    private setLineStyleTypeAndDefault(datumType: HasLineStyleAnnotationType, styleType: AgAnnotationLineStyleType) {
-        this.state.transition('lineStyle', { type: styleType });
+    private setLineStyleTypeAndDefault(datumType: HasLineStyleAnnotationType, styleType: AnnotationLineStyleType) {
+        this.state.transition('lineStyle', { lineDash: styleType });
         this.defaults.setDefaultLineStyleType(datumType, styleType);
         this.recordActionAfterNextUpdate(`Change ${datumType} line style to ${styleType}`, ['annotations', 'defaults']);
     }
