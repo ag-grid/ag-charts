@@ -3231,7 +3231,13 @@ describe('Group shadow compositor', () => {
                     expect(castShadows({ scene, user: {}, keys, index: 0, overlay: path.overlay }, renderCtx)).toBe(
                         true
                     );
-                    return Array.from(context.getImageData(0, 0, layer.width, layer.height).data);
+                    return context;
+                };
+
+                // Reading the layer back expands it into an array, so only the test that compares pixels does.
+                const castPixels = (size: Size) => {
+                    const { width, height } = layers[size];
+                    return Array.from(cast(size).getImageData(0, 0, width, height).data);
                 };
 
                 const frame = (...sizes: Size[]) => {
@@ -3260,28 +3266,74 @@ describe('Group shadow compositor', () => {
                     expect(shrinkable(before) * 4).toBeLessThan(large);
                 });
 
-                it('should count a frame by its largest cast, whichever comes first', () => {
+                // A frame is as large as its largest cast, whichever order it casts in, so none of these is a small frame.
+                it.each<[string, Size[]]>([
+                    ['small then large', ['small', 'large']],
+                    ['large then small', ['large', 'small']],
+                    ['small, large, then small', ['small', 'large', 'small']],
+                ])('should count a frame by its largest cast, cast %s', (_order, casts) => {
                     const before = offscreenCanvases();
-                    frame('large');
+                    frame(...casts);
                     const large = shrinkable(before);
+                    const created = createdSince(before).length;
 
-                    // Each of these frames also casts the large size, last, so that none of them is small.
-                    for (let i = 0; i < SHADOW_SHRINK_AFTER + 1; i++) frame('small', 'large');
+                    for (let i = 0; i < SHADOW_SHRINK_AFTER + 5; i++) frame(...casts);
 
                     expect(shrinkable(before)).toBe(large);
+                    expect(createdSince(before)).toHaveLength(created);
                 });
 
-                it('should keep its size when a large frame interrupts the small ones', () => {
+                it('should reset the count when a larger cast follows, so that it never shrinks and regrows', () => {
                     const before = offscreenCanvases();
                     frame('large');
                     const large = shrinkable(before);
+                    const created = createdSince(before).length;
 
-                    for (let i = 0; i < 2; i++) {
-                        for (let j = 0; j < SHADOW_SHRINK_AFTER; j++) frame('small');
+                    // Fewer small frames than it takes to shrink on each side of a large one, but more than that between
+                    // the first and the last, so that a count that the large frame didn't reset would shrink the canvas.
+                    const BEFORE_LARGE = Math.floor(SHADOW_SHRINK_AFTER * 0.7);
+                    expect(BEFORE_LARGE * 2).toBeGreaterThan(SHADOW_SHRINK_AFTER);
+                    for (let i = 0; i < 3; i++) {
+                        for (let j = 0; j < BEFORE_LARGE; j++) frame('small');
                         frame('large');
                     }
+                    for (let j = 0; j < BEFORE_LARGE; j++) frame('small');
 
                     expect(shrinkable(before)).toBe(large);
+                    expect(createdSince(before)).toHaveLength(created);
+                });
+
+                it('should count a frame that grows the canvas by the cast that grew it', () => {
+                    const before = offscreenCanvases();
+                    frame('small');
+                    const small = shrinkable(before);
+
+                    // The canvas grows for the large cast, and the small one that follows must not make the frame a small one.
+                    frame('large', 'small');
+                    const large = shrinkable(before);
+                    expect(large).toBeGreaterThan(small);
+                    const created = createdSince(before).length;
+
+                    // The count restarts after the large frame, so these frames fall one short of shrinking the canvas.
+                    for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) frame('small');
+
+                    expect(shrinkable(before)).toBe(large);
+                    expect(createdSince(before)).toHaveLength(created);
+
+                    frame('small');
+                    expect(shrinkable(before) * 4).toBeLessThan(large);
+                });
+
+                it('should count a frame that allocates the canvas by the cast that allocated it', () => {
+                    const before = offscreenCanvases();
+                    frame('large', 'small');
+                    const large = shrinkable(before);
+                    const created = createdSince(before).length;
+
+                    for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) frame('small');
+
+                    expect(shrinkable(before)).toBe(large);
+                    expect(createdSince(before)).toHaveLength(created);
                 });
 
                 it('should not be reallocated by frames of one large cast and many small', () => {
@@ -3312,7 +3364,7 @@ describe('Group shadow compositor', () => {
                 it('should draw the same pixels from the shrunk canvas', () => {
                     const before = offscreenCanvases();
                     startShadowFrame(scene);
-                    const expected = cast('small');
+                    const expected = castPixels('small');
                     expect(maxAlphaOf(expected)).toBeGreaterThan(0);
                     destroyShadowScratch(scene);
 
@@ -3320,7 +3372,7 @@ describe('Group shadow compositor', () => {
                     const large = shrinkable(before);
                     for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) frame('small');
                     startShadowFrame(scene);
-                    const actual = cast('small');
+                    const actual = castPixels('small');
 
                     expect(shrinkable(before) * 4).toBeLessThan(large);
                     expect(actual).toEqual(expected);

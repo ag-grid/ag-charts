@@ -367,7 +367,10 @@ function acquireShadowScratch(
         const grows = scratch == null || scratch.canvas.width < width || scratch.canvas.height < height;
         if (grows) {
             // Growing replaces every canvas of the pool. Shrinking leaves the others, which settle their own frames.
+            // The scratch keeps the peak of this frame, which this request is part of, or the frame could count as small.
+            const { scratch: use } = pool.uses;
             freeScratch(pool);
+            pool.uses.scratch = use;
         } else if (scratch != null) {
             releaseSpreadCanvas(scratch.context);
             disposeCanvas(scratch.canvas);
