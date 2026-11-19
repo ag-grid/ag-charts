@@ -5,9 +5,8 @@ import { AgCartesianChartOptions, AgCharts, AgItemShadowStyle, VERSION } from 'a
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { ChartRef, performDatumHighlight, performInitialLoad } from './benchmarkUtils';
 
-// Without a cap on distinct casts, a distinct `blur` costs a blur pass per item and a chart of 1,000 can outlast the update
-// timeout: its `-distinct` case has fewer items, with a shared shadow and glow and no styler at that size to compare with.
-// The `-distinct-1000` case times the cap itself, at the full size.
+// Without a cap on distinct casts, 1,000 distinct blurs can outlast the update timeout, so the `-distinct` case has fewer
+// items; `-distinct-1000` times the cap at the full size.
 const ITEMS = 1000;
 const DISTINCT_ITEMS = 100;
 

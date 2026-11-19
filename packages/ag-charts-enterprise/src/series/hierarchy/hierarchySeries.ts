@@ -692,19 +692,23 @@ export abstract class HierarchySeries<
     }
 
     /**
-     * The `shadow` and `glow` a node casts without an item styler, for the params of one: unset where it casts none.
-     * The glow is the entry of its `slot` and state, so every node in a state gets the same object.
+     * The `shadow` a node casts without an item styler, for the params of one: unset where it casts none.
+     * It is the series' own object, so nothing is allocated per node.
      */
-    protected getHierarchyStylerShadowGlow(
+    protected getHierarchyStylerShadow(shadow: NormalisedDropShadowOptions | undefined) {
+        return shadow?.enabled ? (shadow as Readonly<NormalisedDropShadowOptions>) : undefined;
+    }
+
+    /**
+     * The `glow` a node casts without an item styler, for the params of one: unset where it casts none.
+     * It is the entry of its `slot` and state, so every node in a state gets the same object.
+     */
+    protected getHierarchyStylerGlow(
         slot: number,
-        shadow: NormalisedDropShadowOptions | undefined,
-        resolveGlow: (highlightState: HierarchyHighlightState) => DeepPartial<AgGlowOptions> | undefined,
-        highlightState: HierarchyHighlightState
+        highlightState: HierarchyHighlightState,
+        resolveGlow: (highlightState: HierarchyHighlightState) => DeepPartial<AgGlowOptions> | undefined
     ) {
-        return {
-            shadow: shadow?.enabled ? (shadow as Readonly<NormalisedDropShadowOptions>) : undefined,
-            glow: this.getGlowEntry(slot, highlightState, resolveGlow).options,
-        };
+        return this.getGlowEntry(slot, highlightState, resolveGlow).options;
     }
 
     /** The shadow on one copy of a node, in `fillShadow`: the highlight copy casts none, as its glow is cast in the root's overlay. */

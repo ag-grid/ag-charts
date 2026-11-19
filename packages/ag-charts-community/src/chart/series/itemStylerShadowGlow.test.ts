@@ -804,6 +804,25 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             expectWarningMessages([capWarning]);
         });
 
+        it('counts a value once, however many highlight states it is cast in', async () => {
+            const { inPlace } = await create({
+                data: testCase.rows(10),
+                glow: SERIES_GLOW,
+                styler: (params) => ({ glow: { blur: params.datum.id + 1 } }),
+            });
+
+            const nodeData = getSeriesNodeData<HighlightNodeDatum>(chart);
+            for (const datum of nodeData.slice(0, 3)) {
+                chart.ctx.highlightManager.updateHighlight(chart.id, datum);
+                await waitForChartStability(chart);
+            }
+
+            // The hovered item casts its glow on the highlight copy; every other one keeps the styler's.
+            const others = inPlace.slice(3).map((shape) => (shape.fillGlow as { blur?: number } | undefined)?.blur);
+            expect(others).toEqual([4, 5, 6, 7, 8, 9, 10]);
+            expectWarningMessages([]);
+        });
+
         it('warns once for each series that passes the cap', async () => {
             const data = testCase.rows(CAP + 1);
             const styler = blurBy((id) => id + 1);

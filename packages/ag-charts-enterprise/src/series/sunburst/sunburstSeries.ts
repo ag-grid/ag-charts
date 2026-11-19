@@ -316,12 +316,8 @@ export class SunburstSeries extends HierarchySeries<
                         nodeDatum,
                         style,
                         toHierarchyHighlightString(highlightState),
-                        this.getHierarchyStylerShadowGlow(
-                            SUNBURST_SLOT,
-                            this.options.shadow,
-                            this.resolveGlow,
-                            highlightState
-                        )
+                        this.getHierarchyStylerShadow(this.options.shadow),
+                        this.getNodeStylerGlow(highlightState)
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
@@ -340,6 +336,12 @@ export class SunburstSeries extends HierarchySeries<
 
     private readonly resolveGlow = (highlightState: HierarchyHighlightState) =>
         this.getHierarchyHighlightGlow(highlightState, this.options.highlight, this.options.glow);
+
+    /** The glow a node casts without an item styler in `highlightState`, as {@link getNodeGlow} selects it. */
+    private getNodeStylerGlow(highlightState: HierarchyHighlightState) {
+        if (!this.options.highlight.enabled && this.options.glow?.enabled !== true) return;
+        return this.getHierarchyStylerGlow(SUNBURST_SLOT, highlightState, this.resolveGlow);
+    }
 
     /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
     private getNodeGlow(
@@ -371,7 +373,8 @@ export class SunburstSeries extends HierarchySeries<
         nodeDatum: SunburstNode,
         style: ItemStyle,
         highlightState: AgSunburstHighlightState,
-        shadowGlow: AgItemShadowStylerParams
+        shadow: AgItemShadowStylerParams['shadow'],
+        glow: AgItemShadowStylerParams['glow']
     ) {
         const { id: seriesId } = this;
         const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.options;
@@ -387,8 +390,8 @@ export class SunburstSeries extends HierarchySeries<
             sizeKey,
             labelKey,
             secondaryLabelKey,
-            shadow: shadowGlow.shadow,
-            glow: shadowGlow.glow,
+            shadow,
+            glow,
             highlightState,
             selectionState: this.getSelectionStateString(nodeDatum.datumIndex),
             candidateState: this.getCandidateStateString(nodeDatum.datumIndex),

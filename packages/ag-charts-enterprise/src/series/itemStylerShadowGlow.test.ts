@@ -521,6 +521,60 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
     });
 });
 
+describe('itemStyler glow params of a treemap tile', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    it('are the glow the tile casts, with a group highlighted', async () => {
+        const seen = new Map<string, any>();
+        chart = await createEnterpriseChart({
+            data: HIERARCHY_SHADOW_DATA,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    tile: {
+                        glow: { enabled: true, blur: 3 },
+                        highlight: {
+                            highlightedItem: { glow: { enabled: true, blur: 9 } },
+                            highlightedBranch: { glow: { enabled: true, blur: 9 } },
+                        },
+                    },
+                    itemStyler: (params: any) => {
+                        if (params.depth > 1) seen.set(params.datum.name, params.glow);
+                        return {};
+                    },
+                },
+            ],
+        } as AgChartOptions);
+
+        const { ctx, id } = deproxy(chart);
+        const [group] = hierarchyRoot(chart).children;
+        seen.clear();
+        ctx.highlightManager.updateHighlight(id, group);
+        await waitForChartStability(chart);
+
+        const tiles = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).filter(
+            (shape) => !(shape as Shape<HierarchyNode>).datum?.hasChildren
+        );
+        expect(tiles.length).toBeGreaterThan(1);
+        for (const tile of tiles) {
+            const name = (tile as Shape<{ datum: { name: string } }>).datum?.datum?.name ?? '';
+            expect(seen.get(name)?.blur).toBe(3);
+            expect((tile.fillGlow as { blur?: number }).blur).toBe(3);
+        }
+    });
+});
+
 describe('itemStyler shadow and glow (nodes with their own paths)', () => {
     setupMockConsole();
     setupMockCanvas();

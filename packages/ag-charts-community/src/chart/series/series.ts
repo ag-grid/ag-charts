@@ -141,9 +141,10 @@ import { hasDimmedOpacity, isDatumHighlight, resolveMarkerDrawingMode } from './
 /** The key of a merge that has nothing under it. */
 const NO_ITEM_CAST_BASE = {};
 
-/** Where the merges of one cast object are kept: the shadow's, then the glow's by highlight state. */
 /** The most distinct shadows and glows that item stylers cast in one series; the rest fall back to the series' own. */
 const MAX_ITEM_CASTS = 16;
+
+/** Where the merges of one cast object are kept: the shadow's, then the glow's by highlight state. */
 const ITEM_SHADOW_INDEX = 0;
 const ITEM_GLOW_INDEX = 1;
 
@@ -1324,11 +1325,16 @@ export abstract class Series<
     private clearItemCasts() {
         this.itemCastInterns = undefined;
         this.itemCastRecalls = undefined;
-        this.itemCastCount = 0;
+        this.itemCastValues = undefined;
     }
 
-    /** The distinct casts merged since {@link clearItemCasts}, which {@link MAX_ITEM_CASTS} caps. */
-    private itemCastCount = 0;
+    /**
+     * The distinct values of an item styler's `shadow` and `glow` merged since {@link clearItemCasts}, which
+     * {@link MAX_ITEM_CASTS} caps. A value counts once, whatever highlight state or base it is merged in.
+     */
+    private itemCastValues?: Set<string>;
+
+    private warnedItemCastCap = false;
 
     /**
      * The merge already made of `itemCast` over `base` at `index`: `undefined` if there is none, `null` if it cast
@@ -1344,14 +1350,16 @@ export abstract class Series<
 
     /**
      * The merge of an item styler's `itemCast` over `base` that {@link recallItemCast} did not find, kept by `index`
-     * so that the same cast object is not serialised again, and by `key` so that equal casts share one merged object.
-     * Past {@link MAX_ITEM_CASTS} distinct keys, a new key casts `fallback`, what the item casts without a styler.
+     * so that the same cast object is not serialised again, and by `keyPrefix` and `value` so that equal casts share one
+     * merged object. Past {@link MAX_ITEM_CASTS} distinct `value`s, a new one casts `fallback`, what the item casts
+     * without a styler.
      */
     protected mergeItemCast(
         base: object | undefined,
         itemCast: object,
         index: number,
-        key: string,
+        keyPrefix: string,
+        value: string,
         fallback: NormalisedDropShadowOptions | undefined,
         merge: () => NormalisedDropShadowOptions | undefined
     ): NormalisedDropShadowOptions | undefined {
@@ -1362,16 +1370,15 @@ export abstract class Series<
             merged = new Map();
             interns.set(baseKey, merged);
         }
+        const key = keyPrefix + value;
         let cast = merged.get(key);
         if (cast === undefined) {
-            if (this.itemCastCount < MAX_ITEM_CASTS) {
-                this.itemCastCount++;
+            const values = (this.itemCastValues ??= new Set());
+            if (values.has(value) || values.size < MAX_ITEM_CASTS) {
+                values.add(value);
                 cast = merge() ?? null;
             } else {
-                this.ctx.logger.warnOnce(
-                    `series '${this.id}' has more than ${MAX_ITEM_CASTS} distinct item styler shadow or glow values; ` +
-                        `the others use the shadow or glow that the series would cast without a styler.`
-                );
+                this.warnItemCastCap();
                 cast = fallback ?? null;
             }
             merged.set(key, cast);
@@ -1392,6 +1399,15 @@ export abstract class Series<
         return cast ?? undefined;
     }
 
+    private warnItemCastCap() {
+        if (this.warnedItemCastCap) return;
+        this.warnedItemCastCap = true;
+        this.ctx.logger.warnOnce(
+            `series '${this.id}' has more than ${MAX_ITEM_CASTS} distinct item styler shadow or glow values; ` +
+                `the others use the shadow or glow that the series would cast without a styler.`
+        );
+    }
+
     /** A styler's `shadow` over `cascaded`, over the series' and theme's `shadow`; a `fill` alone is opaque. */
     protected mergeItemShadow(
         cascaded: NormalisedDropShadowOptions | undefined,
@@ -1404,6 +1420,7 @@ export abstract class Series<
             cascaded,
             itemShadow,
             ITEM_SHADOW_INDEX,
+            '',
             `s${JSON.stringify(itemShadow)}`,
             cascaded,
             () => {
@@ -1434,7 +1451,7 @@ export abstract class Series<
         fallback: NormalisedDropShadowOptions | undefined,
         under: () => Array<DeepPartial<AgGlowOptions> | undefined>
     ): NormalisedDropShadowOptions | undefined {
-        return this.mergeItemCast(base, itemGlow, index, `${keyPrefix}${JSON.stringify(itemGlow)}`, fallback, () => {
+        return this.mergeItemCast(base, itemGlow, index, keyPrefix, `g${JSON.stringify(itemGlow)}`, fallback, () => {
             return glowToShadow(
                 mergeGlow({ glow: { enabled: true, ...itemGlow } }, ...under().map((glow) => ({ glow })), {
                     glow: GLOW_THEME_DEFAULTS,
