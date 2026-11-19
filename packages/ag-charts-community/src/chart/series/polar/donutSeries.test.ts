@@ -1788,17 +1788,25 @@ describe('DonutSeries', () => {
                 (sector) => sector.datum?.datumIndex === datumIndex
             )!;
 
-        /** The background pixels across the gap at the top of the series, `distance` above its centre. */
-        const paintedGapAbove = (distance: number, gap: number) => {
+        /**
+         * The run of background pixels through the top of the series, `distance` above its centre, and whether a
+         * sector ends it on both sides.
+         */
+        const gapAbove = (distance: number, gap: number) => {
             const sector = sectorFor(0);
             const { canvasX, canvasY } = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY - distance);
             const background = chartPixelAt(chart, 1, 1);
-            let count = 0;
-            for (let x = canvasX - 3 * gap; x <= canvasX + 3 * gap; x++) {
-                if (chartPixelAt(chart, x, canvasY).every((channel, i) => channel === background[i])) count++;
-            }
-            return count;
+            const isBackground = (x: number) =>
+                chartPixelAt(chart, x, canvasY).every((channel, i) => channel === background[i]);
+            const reach = 3 * gap;
+            if (!isBackground(canvasX)) return { width: 0, bounded: true };
+            let left = 0;
+            let right = 0;
+            while (left < reach && isBackground(canvasX - left - 1)) left++;
+            while (right < reach && isBackground(canvasX + right + 1)) right++;
+            return { width: left + right + 1, bounded: left < reach && right < reach };
         };
+        const paintedGapAbove = (distance: number, gap: number) => gapAbove(distance, gap).width;
 
         const createDonuts = async (data: object[], ...series: Partial<AgDonutSeriesOptions>[]) => {
             chart = deproxy(
@@ -1873,9 +1881,18 @@ describe('DonutSeries', () => {
                 cornerRadius: 1000,
                 values: [1, 3],
                 at: nearCentre,
-                cornersCurveAway: true,
+                gapWidens: true,
             },
-        ])('keeps the full gap $where', async ({ type = 'donut', values, at, cornersCurveAway = false, ...series }) => {
+            {
+                where: 'between rings no thicker than their stroke',
+                innerRadiusRatio: 1,
+                innerRadiusOffset: -4,
+                strokeWidth: 4,
+                values: [1, 1],
+                at: midRing,
+                gapWidens: true,
+            },
+        ])('keeps the full gap $where', async ({ type = 'donut', values, at, gapWidens = false, ...series }) => {
             const gap = 30;
             chart = deproxy(
                 await createChart({
@@ -1885,9 +1902,10 @@ describe('DonutSeries', () => {
                 } as AgChartOptions)
             );
 
-            const painted = paintedGapAbove(at(gap), gap);
-            expect(painted).toBeGreaterThanOrEqual(gap - 1);
-            expect(painted).toBeLessThanOrEqual(cornersCurveAway ? Infinity : gap + 1);
+            const { width, bounded } = gapAbove(at(gap), gap);
+            expect(bounded).toBe(true);
+            expect(width).toBeGreaterThanOrEqual(gap - 1);
+            expect(width).toBeLessThanOrEqual(gapWidens ? 2 * gap : gap + 1);
         });
 
         it('does not draw a sector narrower than the gap, but keeps its neighbours inset and its pick area', async () => {

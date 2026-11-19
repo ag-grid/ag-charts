@@ -175,10 +175,19 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
     return isClearOfEdge(x, y, sector.startAngle, inset, 1) && isClearOfEdge(x, y, sector.endAngle, inset, -1);
 }
 
+// OPTIMIZATION: label fitting probes the same two edges thousands of times per label, so each edge's direction is
+// kept until its angle changes.
+const edgeDirections = { 1: { angle: Number.NaN, cos: 1, sin: 0 }, [-1]: { angle: Number.NaN, cos: 1, sin: 0 } };
+
 /** False when the point lies within `inset` of the straight edge at `angle`, on the side `interior` faces. */
 function isClearOfEdge(x: number, y: number, angle: number, inset: number, interior: 1 | -1) {
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
+    const direction = edgeDirections[interior];
+    if (direction.angle !== angle) {
+        direction.angle = angle;
+        direction.cos = Math.cos(angle);
+        direction.sin = Math.sin(angle);
+    }
+    const { cos, sin } = direction;
     if (x * cos + y * sin < 0) return true;
     const across = interior * (y * cos - x * sin);
     return across < 0 || across >= inset;

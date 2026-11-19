@@ -456,8 +456,11 @@ export class Sector<D = unknown> extends Path<D> {
             path.closePath();
             return;
         } else if (this.clipSector == null && Math.abs(innerRadius - outerRadius) < 1e-6) {
-            path.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
-            path.arc(centerX, centerY, outerRadius, endAngle, startAngle, true);
+            const edgeOffset = this.getAngleOffset(outerRadius);
+            const arcStart = startAngle + edgeOffset;
+            const arcEnd = endAngle - edgeOffset;
+            path.arc(centerX, centerY, outerRadius, arcStart, arcEnd, false);
+            path.arc(centerX, centerY, outerRadius, arcEnd, arcStart, true);
             path.closePath();
             return;
         }
