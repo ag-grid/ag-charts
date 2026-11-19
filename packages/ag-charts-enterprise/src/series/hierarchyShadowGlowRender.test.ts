@@ -28,6 +28,8 @@ const OFF = { ...GLOW, enabled: false };
 /** The highlight state of the hovered node, with its glow on and off. */
 const HIGHLIGHT_ON = { highlightedItem: { glow: GLOW } };
 const HIGHLIGHT_OFF = { highlightedItem: { glow: OFF } };
+/** A highlight style that leaves a node opaque, which the highlight otherwise dims, so that nothing shows through its fill. */
+const OPAQUE_FILL = { opacity: 1, fillOpacity: 1, strokeOpacity: 1 };
 const { padding } = RENDER_OPTIONS;
 
 const treemap = HIERARCHY_GLOW_SERIES.find(({ name }) => name === 'treemap tile')!;
@@ -102,7 +104,7 @@ describe('shadow and glow render (hierarchy series)', () => {
         pixelOf: () => readonly [number, number],
         placement: object,
         glow: object,
-        highlight: { highlightedItem?: object; unhighlightedItem?: object } = {}
+        highlight: Record<string, object> = {}
     ) => {
         await create(
             [
@@ -221,7 +223,7 @@ describe('shadow and glow render (hierarchy series)', () => {
     // The glow of a hovered group is drawn over the tiles of the group beside it, as the glow of a hovered tile is over its neighbours.
     describe('the glow of a hovered treemap group', () => {
         // The group beside it dims with the hover: its tiles are made opaque, so that a glow beneath them could not show through.
-        const OPAQUE = { unhighlightedItem: { opacity: 1, fillOpacity: 1, strokeOpacity: 1 } };
+        const OPAQUE = { unhighlightedItem: OPAQUE_FILL };
         const pixelOfB1 = (glow: object, dx: number) =>
             pixelWhileHovering(treemapGroup, 'A', () => insideLeftOf('B1', dx), {}, glow, OPAQUE);
 
@@ -463,6 +465,65 @@ describe('shadow and glow render (hierarchy series)', () => {
             const plain = await insideA1();
 
             expect(await insideA1(SHADOW)).toEqual(plain);
+        });
+    });
+
+    // The shadow of a hovered node is cast beneath the fill of the node beside it, as that of a node that is not hovered is. The
+    // highlight copy of a tile or sector is in a layer of its own, above the others: it casts its glow there, and no shadow.
+    describe.each([
+        [
+            'a tile of a treemap',
+            treemap,
+            'A2',
+            'A1',
+            { xOffset: 0, yOffset: -40 },
+            () => {
+                const { x, y, width, height } = nodeNamed('A1')(chart()).bbox!;
+                return [x + padding.left + width / 2, y + padding.top + height - 3] as const;
+            },
+            { unhighlightedItem: OPAQUE_FILL, unhighlightedBranch: OPAQUE_FILL },
+        ],
+        [
+            'a group of a treemap',
+            treemapGroup,
+            'A',
+            'B',
+            { xOffset: 40, yOffset: 0 },
+            () => insideEdgeOf('B'),
+            { unhighlightedItem: OPAQUE_FILL },
+        ],
+        [
+            'a sector of a sunburst',
+            sunburst,
+            'B',
+            'A',
+            { xOffset: 30, yOffset: 0 },
+            () => {
+                // 3px to the right of the vertical radius that A shares with B, in the ring of A and B.
+                const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
+                const ring = sectors.find(({ innerRadius, outerRadius }) => innerRadius === 0 && outerRadius > 0)!;
+                const { canvasX, canvasY } = Transformable.toCanvasPoint(ring, ring.centerX, ring.centerY);
+                return [canvasX + 3, canvasY - (ring.innerRadius + ring.outerRadius) / 2] as const;
+            },
+            { unhighlightedItem: OPAQUE_FILL, unhighlightedBranch: OPAQUE_FILL },
+        ],
+    ])('the shadow of %s that is hovered', (_name, testCase, hovered, beside, offsets, pixelOf, opaque) => {
+        const SHADOW = { enabled: true, fill: '#ff0000', fillOpacity: 1, blur: 0, ...offsets };
+        /** An itemStyler that takes the fill off the node `beside`, so that what is beneath it shows. */
+        const withoutFill = {
+            itemStyler: ({ datum }: { datum?: { name?: string } }) =>
+                datum?.name === beside ? { fill: 'rgba(0, 0, 0, 0)' } : {},
+        };
+        const pixelHovering = (shadow?: object, placement: object = {}) =>
+            pixelWhileHovering(testCase, hovered, pixelOf, { shadow, ...placement }, OFF, opaque);
+
+        it('does not show over the fill of the node beside it', async () => {
+            expect(await pixelHovering(SHADOW)).toEqual(await pixelHovering());
+        });
+
+        // The control: the shadow reaches that pixel, and shows once the node beside it has no fill.
+        it('reaches the pixel inside the node beside it', async () => {
+            expect(await pixelHovering(SHADOW, withoutFill)).not.toEqual(await pixelHovering(undefined, withoutFill));
         });
     });
 
