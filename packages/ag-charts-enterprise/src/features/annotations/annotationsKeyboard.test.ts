@@ -126,8 +126,7 @@ describe('Annotations keyboard navigation', () => {
         it('has no tab stop without annotations', async () => {
             await prepareChart([]);
 
-            expect(items()).toHaveLength(0);
-            expect(list()?.style.display).toBe('none');
+            expect(body().querySelectorAll('.ag-charts-annotations [tabindex="0"]')).toHaveLength(0);
         });
 
         it('includes an annotation outside the viewport and pans it into view when it is focused', async () => {
@@ -259,7 +258,7 @@ describe('Annotations keyboard navigation', () => {
             expect(horizontalLineValue()).toBeGreaterThan(50);
             expect(activeElement()).toBe(handle);
             expect(handle?.textContent).toMatch(/^50\.\d+, Horizontal Line annotation$/);
-            const liveRegion = body().querySelector('[aria-live="polite"].ag-charts-annotations__live-region');
+            const liveRegion = body().querySelector('[role="status"]');
             expect(liveRegion?.textContent).toMatch(/^50\.\d+$/);
         });
 

@@ -9,7 +9,6 @@ import {
     type KeyboardWidgetEvent,
     type ListWidget,
     createElementId,
-    setAttribute,
 } from 'ag-charts-core';
 
 const LIST_ID = 'annotations';
@@ -36,27 +35,18 @@ export interface AnnotationsDOMProxyListener {
     onMoveBlur(): void;
 }
 
-/**
- * The keyboard and screen reader view of the annotations: a list with a menu button per annotation, whose popup is the
- * Annotation Options Toolbar. Pointer events pass through it to the series area.
- */
-export class AnnotationsDOMProxy {
-    private readonly cleanup = new CleanupRegistry();
-    private readonly list: ListWidget;
-    private readonly moveGroup: GroupWidget;
-    private readonly moveHandle: ButtonWidget;
-    private readonly liveRegion: HTMLElement;
-    private readonly buttons = new Map<string, ButtonWidget>();
-    private readonly moveDescription = new DescriptionWidget();
-    private readonly moveDescriptionId = createElementId();
-    private hasPopup = true;
-    private movingId?: string;
+/** The widgets of the annotations' keyboard view, which are created only once there is an annotation to list. */
+class AnnotationsDOM {
+    readonly list: ListWidget;
+    readonly moveGroup: GroupWidget;
+    readonly moveHandle: ButtonWidget;
+    readonly liveRegion: GroupWidget;
+    readonly moveDescription = new DescriptionWidget();
+    readonly moveDescriptionId = createElementId();
 
-    constructor(
-        private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
-        private readonly listener: AnnotationsDOMProxyListener
-    ) {
-        this.list = ctx.proxyInteractionService.createProxyContainer({
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        const { proxyInteractionService } = ctx;
+        this.list = proxyInteractionService.createProxyContainer({
             type: 'list',
             domManagerId: LIST_ID,
             classList: ['ag-charts-annotations'],
@@ -66,10 +56,9 @@ export class AnnotationsDOMProxy {
 
         this.moveDescription.id = this.moveDescriptionId;
         this.list.setDescription(this.moveDescription);
-        this.updateMoveDescription();
 
         // A separate element takes the focus while an annotation moves, since the arrow keys move between the list items.
-        this.moveGroup = ctx.proxyInteractionService.createProxyContainer({
+        this.moveGroup = proxyInteractionService.createProxyContainer({
             type: 'group',
             domManagerId: MOVE_HANDLE_ID,
             classList: [],
@@ -77,7 +66,7 @@ export class AnnotationsDOMProxy {
             role: 'presentation',
             where: 'afterend',
         });
-        this.moveHandle = ctx.proxyInteractionService.createProxyElement({
+        this.moveHandle = proxyInteractionService.createProxyElement({
             type: 'button',
             textContent: '',
             tabIndex: -1,
@@ -86,25 +75,46 @@ export class AnnotationsDOMProxy {
         this.moveHandle.setPointerEvents('none');
         this.moveHandle.setHidden(true);
         this.moveHandle.setAriaDescribedBy(this.moveDescriptionId);
-        this.moveHandle.addListener('keydown', this.onMoveKeyDown);
-        this.moveHandle.addListener('keyup', ({ sourceEvent }) => this.listener.onMoveKeyUp(sourceEvent));
-        this.moveHandle.addListener('blur', () => {
-            if (this.movingId != null) this.listener.onMoveBlur();
+
+        this.liveRegion = proxyInteractionService.createProxyContainer({
+            type: 'group',
+            domManagerId: LIVE_REGION_ID,
+            classList: ['ag-charts-annotations__live-region'],
+            ariaLabel: undefined,
+            role: 'status',
         });
+    }
 
-        this.liveRegion = ctx.domManager.addChild('canvas-proxy', LIVE_REGION_ID);
-        this.liveRegion.classList.add('ag-charts-annotations__live-region');
-        setAttribute(this.liveRegion, 'aria-live', 'polite');
+    destroy() {
+        const { ctx } = this;
+        this.list.destroy();
+        this.moveGroup.destroy();
+        this.liveRegion.destroy();
+        ctx.domManager.removeChild('canvas-proxy', LIST_ID);
+        ctx.domManager.removeChild('canvas-proxy', MOVE_HANDLE_ID);
+        ctx.domManager.removeChild('canvas-proxy', LIVE_REGION_ID);
+    }
+}
 
+/**
+ * The keyboard and screen reader view of the annotations: a list with a menu button per annotation, whose popup is the
+ * Annotation Options Toolbar. Pointer events pass through it to the series area.
+ */
+export class AnnotationsDOMProxy {
+    private readonly cleanup = new CleanupRegistry();
+    // OPTIMIZATION: created on first use, as every chart with the annotations module creates this, such as a sparkline.
+    private dom?: AnnotationsDOM;
+    private readonly buttons = new Map<string, ButtonWidget>();
+    private hasPopup = true;
+    private movingId?: string;
+
+    constructor(
+        private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
+        private readonly listener: AnnotationsDOMProxyListener
+    ) {
         this.cleanup.register(
             ctx.eventsHub.on('locale:change', () => this.updateMoveDescription()),
-            () => {
-                this.list.destroy();
-                this.moveGroup.destroy();
-                ctx.domManager.removeChild('canvas-proxy', LIST_ID);
-                ctx.domManager.removeChild('canvas-proxy', MOVE_HANDLE_ID);
-                ctx.domManager.removeChild('canvas-proxy', LIVE_REGION_ID);
-            }
+            () => this.dom?.destroy()
         );
     }
 
@@ -113,11 +123,14 @@ export class AnnotationsDOMProxy {
     }
 
     update(items: AnnotationsDOMProxyItem[], seriesRect: BBox) {
-        this.syncButtons(items);
-        this.list.setHidden(items.length === 0);
+        if (this.dom == null && items.length === 0) return;
 
-        this.list.setBounds(seriesRect);
-        this.moveGroup.setBounds(seriesRect);
+        const { list, moveGroup, moveHandle } = this.getDOM();
+        this.syncButtons(list, items);
+        list.setHidden(items.length === 0);
+
+        list.setBounds(seriesRect);
+        moveGroup.setBounds(seriesRect);
         for (const item of items) {
             const button = this.buttons.get(item.id);
             if (button == null) continue;
@@ -129,15 +142,17 @@ export class AnnotationsDOMProxy {
             button.setAriaExpanded(this.hasPopup ? item.expanded : undefined);
 
             if (item.id === this.movingId) {
-                this.moveHandle.setTextContent(item.label);
-                this.moveHandle.setBounds(getButtonBounds(item.bbox, seriesRect));
+                moveHandle.setTextContent(item.label);
+                moveHandle.setBounds(getButtonBounds(item.bbox, seriesRect));
             }
         }
     }
 
     clear() {
-        this.syncButtons([]);
-        this.list.setHidden(true);
+        const { dom } = this;
+        if (dom == null) return;
+        this.syncButtons(dom.list, []);
+        dom.list.setHidden(true);
     }
 
     /** Whether the annotations open a popup, which is the Annotation Options Toolbar unless it is disabled. */
@@ -151,8 +166,8 @@ export class AnnotationsDOMProxy {
 
     /** Focuses the annotation that the arrow keys last moved to, if any annotation is listed. */
     focusList() {
-        if (this.buttons.size === 0) return false;
-        this.list.focus();
+        if (this.dom == null || this.buttons.size === 0) return false;
+        this.dom.list.focus();
         return true;
     }
 
@@ -162,30 +177,47 @@ export class AnnotationsDOMProxy {
      */
     startMove(id: string) {
         const button = this.buttons.get(id);
-        if (button == null) return;
+        const moveHandle = this.dom?.moveHandle;
+        if (button == null || moveHandle == null) return;
 
         this.movingId = id;
-        this.moveHandle.setTextContent(button.getTextContent());
-        this.moveHandle.setBounds(button.getBounds());
-        this.moveHandle.setHidden(false);
-        this.moveHandle.focus();
+        moveHandle.setTextContent(button.getTextContent());
+        moveHandle.setBounds(button.getBounds());
+        moveHandle.setHidden(false);
+        moveHandle.focus();
     }
 
     stopMove() {
         this.movingId = undefined;
-        this.moveHandle.setHidden(true);
+        this.dom?.moveHandle.setHidden(true);
     }
 
     announce(text: string) {
+        const liveRegion = this.dom?.liveRegion;
+        if (liveRegion == null) return;
         // A live region announces only a change, so the same text twice needs to differ.
-        this.liveRegion.textContent = this.liveRegion.textContent === text ? `${text}\u00A0` : text;
+        liveRegion.setTextContent(liveRegion.getTextContent() === text ? `${text}\u00A0` : text);
+    }
+
+    private getDOM() {
+        if (this.dom != null) return this.dom;
+
+        const dom = new AnnotationsDOM(this.ctx);
+        dom.moveHandle.addListener('keydown', this.onMoveKeyDown);
+        dom.moveHandle.addListener('keyup', ({ sourceEvent }) => this.listener.onMoveKeyUp(sourceEvent));
+        dom.moveHandle.addListener('blur', () => {
+            if (this.movingId != null) this.listener.onMoveBlur();
+        });
+        this.dom = dom;
+        this.updateMoveDescription();
+        return dom;
     }
 
     private updateMoveDescription() {
-        this.moveDescription.setTextContent(this.ctx.localeManager.t('ariaDescriptionMoveAnnotation'));
+        this.dom?.moveDescription.setTextContent(this.ctx.localeManager.t('ariaDescriptionMoveAnnotation'));
     }
 
-    private syncButtons(items: AnnotationsDOMProxyItem[]) {
+    private syncButtons(list: ListWidget, items: AnnotationsDOMProxyItem[]) {
         const { buttons } = this;
         const ids = new Set(items.map((item) => item.id));
         for (const [id, button] of buttons) {
@@ -201,12 +233,12 @@ export class AnnotationsDOMProxy {
                 button.destroy();
             }
             buttons.clear();
-            this.createButtons(items);
+            this.createButtons(list, items);
             if (focusedId != null) this.focus(focusedId);
             return;
         }
 
-        this.createButtons(items);
+        this.createButtons(list, items);
     }
 
     /** Whether the listed annotations are in the order of `items`, so any new ones can be appended. */
@@ -226,18 +258,18 @@ export class AnnotationsDOMProxy {
         return true;
     }
 
-    private createButtons(items: AnnotationsDOMProxyItem[]) {
+    private createButtons(list: ListWidget, items: AnnotationsDOMProxyItem[]) {
         for (const { id, label } of items) {
             if (this.buttons.has(id)) continue;
-            this.buttons.set(id, this.createButton(id, label));
+            this.buttons.set(id, this.createButton(list, id, label));
         }
     }
 
-    private createButton(id: string, label: string) {
+    private createButton(list: ListWidget, id: string, label: string) {
         const button = this.ctx.proxyInteractionService.createProxyElement({
             type: 'button',
             textContent: label,
-            parent: this.list,
+            parent: list,
         });
         button.setPointerEvents('none');
         button.addListener('focus', () => this.listener.onFocus(id));

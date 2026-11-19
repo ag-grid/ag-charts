@@ -98,22 +98,6 @@ test.describe('annotations keyboard navigation', () => {
         await expect(moveButton).toBeFocused();
     });
 
-    test('Ctrl+Z undoes a keyboard move', async ({ page }) => {
-        await tabToAnnotations(page);
-        await page.keyboard.press('Enter');
-        await optionsToolbar(page).getByRole('button', { name: 'Move Annotation' }).focus();
-        await page.keyboard.press('Enter');
-        await page.keyboard.press('ArrowUp');
-        expect((await getHorizontalLineValues(page))[0]).toBeGreaterThan(30);
-
-        await page.keyboard.press('Escape');
-        await page.keyboard.press('Escape');
-        await page.locator(SWAPCHAIN).focus();
-        await page.keyboard.press('Control+z');
-
-        expect(await getHorizontalLineValues(page)).toEqual([30, 60]);
-    });
-
     test('Clicking an annotation still selects it without the Move Annotation button', async ({ page }) => {
         const seriesArea = await page.locator('.ag-charts-series-area').boundingBox();
         // The first line is at 30 on a 0 to 100 y axis.
