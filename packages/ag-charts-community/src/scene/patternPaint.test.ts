@@ -116,6 +116,11 @@ describe('Pattern paint and shadow mask', () => {
             ['an opaque background', { backgroundFill: 'black', backgroundFillOpacity: 1 }, 51],
             ['a semi-transparent background', { backgroundFill: 'black', backgroundFillOpacity: 0.5 }, 51],
             ['no background', { backgroundFill: 'none' }, 51],
+            [
+                'a translucent fill colour with its own opacity',
+                { fill: 'rgba(255, 0, 0, 0.5)', fillOpacity: 0.4, backgroundFill: 'black', backgroundFillOpacity: 0.5 },
+                51,
+            ],
             ['an opaque fill', { fillOpacity: 1, backgroundFill: 'black', backgroundFillOpacity: 0.5 }, 255],
             ['a fill of none', { fill: 'none', backgroundFill: 'black', backgroundFillOpacity: 0.5 }, 0],
         ] as const;

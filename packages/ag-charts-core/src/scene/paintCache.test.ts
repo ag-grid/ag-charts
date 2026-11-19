@@ -18,9 +18,7 @@ const node = {} as Node;
 
 type Painter = (ctx: CanvasRenderingContext2D, changed: boolean) => unknown;
 
-// A shadow mask and its layer paint the same fill in two contexts by turns. Each context keeps its own entry, so the paint is built
-// once for each, and not on every switch. What a paint builds shows in the calls it makes on the context it is given. Patterns are
-// covered with the scene tests of the community package, as drawing their tile needs a canvas.
+// A shadow mask and its layer paint one fill in two contexts by turns: each context keeps its own entry.
 const CASES: { name: string; built: keyof FakeContext; key: string; make: () => Painter }[] = [
     {
         name: 'Gradient',
