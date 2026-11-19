@@ -65,6 +65,15 @@ export default defineConfig({
     retries: CI ? 1 : 0,
     workers: CI ? 2 : undefined,
     reporter,
-    projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+    projects: [
+        {
+            name: 'chromium',
+            use: {
+                ...devices['Desktop Chrome'],
+                // Partial tile re-raster changes edge anti-aliasing depending on timing, so the two sides drift.
+                launchOptions: { args: ['--disable-partial-raster'] },
+            },
+        },
+    ],
     webServer: webServer.length > 0 ? webServer : undefined,
 });
