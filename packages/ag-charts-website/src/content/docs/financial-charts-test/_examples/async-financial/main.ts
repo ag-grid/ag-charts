@@ -85,7 +85,7 @@ const options: AgFinancialChartOptions = {
                     fill: '#a5a9ac',
                 },
                 stroke: '#a5a9ac',
-                lineStyle: 'dotted',
+                lineDash: 'dot',
             },
             {
                 type: 'text',
@@ -141,7 +141,7 @@ const options: AgFinancialChartOptions = {
                 },
                 extendEnd: true,
                 strokeWidth: 2,
-                lineStyle: 'dashed',
+                lineDash: 'dash',
             },
         ],
     },

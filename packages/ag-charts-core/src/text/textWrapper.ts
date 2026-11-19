@@ -313,6 +313,18 @@ function fitTurnedText(
     return best ?? (isArray(text) ? [] : '');
 }
 
+/** `bounds` grown to hold a `width` by `height` box drawn turned, plus the margin the fit's inverse rounds away. */
+export function turnedBoundsHolding(bounds: TurnedBounds, width: number, height: number): TurnedBounds {
+    const angle = toRadians(bounds.rotation);
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+    return {
+        rotation: bounds.rotation,
+        width: Math.max(bounds.width, width * cos + height * sin + TURNED_EXTENT_EPSILON),
+        height: Math.max(bounds.height, width * sin + height * cos + TURNED_EXTENT_EPSILON),
+    };
+}
+
 /** Where each line of wrapped text ends, measured from its top, by the heights its own content gives it. */
 function lineBottoms(wrapped: string | MeasuredSegment[], font: FontOptions): number[] {
     if (!isArray(wrapped)) {

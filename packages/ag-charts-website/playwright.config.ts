@@ -79,7 +79,8 @@ export default defineConfig({
             use: {
                 ...devices['Desktop Chrome'],
                 launchOptions: {
-                    args: ['--ignore-certificate-errors'],
+                    // Partial tile re-raster changes icon anti-aliasing depending on timing, so screenshots drift.
+                    args: ['--ignore-certificate-errors', '--disable-partial-raster'],
                 },
                 viewport: {
                     width: 800,

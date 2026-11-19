@@ -1,9 +1,9 @@
-import { type AgAnnotationLineStyleType } from 'ag-charts-community';
 import type { MementoOriginator } from 'ag-charts-core';
 import { deepClone } from 'ag-charts-core';
 
 import {
     type AnnotationLineStyle,
+    type AnnotationLineStyleType,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type ChannelTextPosition,
@@ -161,12 +161,12 @@ export class AnnotationDefaults implements MementoOriginator<DefaultsMemento> {
         this.fontSizes.set(type, fontSize);
     }
 
-    setDefaultLineStyleType(type: HasLineStyleAnnotationType, lineStyleType: AgAnnotationLineStyleType | undefined) {
+    setDefaultLineStyleType(type: HasLineStyleAnnotationType, lineStyleType: AnnotationLineStyleType | undefined) {
         const defaultStyle = this.lineStyles.get(type);
         if (defaultStyle) {
-            defaultStyle.type = lineStyleType;
+            defaultStyle.lineDash = lineStyleType;
         } else {
-            this.lineStyles.set(type, { type: lineStyleType });
+            this.lineStyles.set(type, { lineDash: lineStyleType });
         }
     }
 

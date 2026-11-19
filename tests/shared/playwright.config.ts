@@ -56,6 +56,8 @@ export default defineConfig({
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
+                // Partial tile re-raster changes anti-aliasing depending on timing, so screenshots drift.
+                launchOptions: { args: ['--disable-partial-raster'] },
                 viewport: {
                     width: 800,
                     height: 600,

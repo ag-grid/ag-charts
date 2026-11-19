@@ -59,6 +59,7 @@ import type { DataLoadWindow, UpdateOpts } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesGrouping } from '../module/seriesGrouping';
+import { migrateLineStyle } from './annotation/annotationManager';
 import { Background } from './background/background';
 import { ChartBorder } from './background/chartBorder';
 import { ChartAxes } from './chartAxes';
@@ -1739,7 +1740,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
                 .filter((annotation) => isObject(annotation))
                 .map((annotation) => {
                     const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
-                    return mergeDefaults(annotation, annotationTheme);
+                    return mergeDefaults(migrateLineStyle(annotation), annotationTheme);
                 });
 
             stateManager.setState(annotationManager, annotations);

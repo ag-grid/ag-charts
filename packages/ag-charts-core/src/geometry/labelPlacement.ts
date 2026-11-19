@@ -3089,7 +3089,7 @@ function fitKeptAtFloor(fit: LabelFitDescriptor, floorFont: FontOptions): boolea
 }
 
 /** Width of the text's first character drawn with an ellipsis, in the font that character is drawn in. */
-function leadCharacterWidth(text: NormalisedTextOrSegments, font: FontOptions): number {
+export function leadCharacterWidth(text: NormalisedTextOrSegments, font: FontOptions): number {
     if (!isArray(text)) {
         const lead = leadCharacter(toTextString(text));
         return lead == null ? 0 : measureLabelText(appendEllipsis(lead), font).width;
