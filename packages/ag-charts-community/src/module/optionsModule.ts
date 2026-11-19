@@ -212,9 +212,38 @@ enum GroupingType {
 }
 
 const stringFormat = (value: string) => `'${value}'`;
-const COMPLETE_CSS_VARIABLE = /^var\(\s*--[\w-]+\s*(?:,[^{};]*)?\)$/;
+const CSS_VARIABLE_NAME = /^--[\w-]+$/;
 // A browser accepts any value containing `var()` as a colour, but the canvas cannot resolve it and paints black.
 const CSS_VARIABLE_PREFIX = /^\s*var\(/i;
+
+/**
+ * Parses a complete `var(--name)` or `var(--name, fallback)`: balanced parentheses, nothing after the closing one.
+ * Returns `undefined` for anything else, such as `var(--a, red) var(--b)` or `var(--a) red`.
+ */
+function parseCssVariable(value: string): { name: string; fallback?: string } | undefined {
+    if (!value.startsWith('var(')) return;
+
+    let depth = 0;
+    let comma = -1;
+    for (let i = 3; i < value.length; i++) {
+        const char = value[i];
+        if (char === '(') {
+            depth++;
+        } else if (char === ')' && --depth === 0) {
+            if (i !== value.length - 1) return;
+        } else if (char === ',' && depth === 1 && comma === -1) {
+            comma = i;
+        } else if (char === '{' || char === '}' || char === ';') {
+            return;
+        }
+    }
+    if (depth !== 0) return;
+
+    const name = value.slice(4, comma === -1 ? -1 : comma).trim();
+    if (!CSS_VARIABLE_NAME.test(name)) return;
+
+    return comma === -1 ? { name } : { name, fallback: value.slice(comma + 1, -1).trim() };
+}
 
 // TODO: move this somewhere more appropriate
 const AXIS_ID_PREFIX = '__AXIS_ID_';
@@ -2116,25 +2145,28 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processedCSSVariables: Record<string, string>
     ) {
         const value: string = parent[key];
-        if (ChartOptions.isMalformedColorVar(value)) {
+        if (!CSS_VARIABLE_PREFIX.test(value)) return;
+
+        const variable = parseCssVariable(value);
+        if (variable == null) {
             ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
             ctx.removed = true;
             delete parent[key];
-        } else if (ChartOptions.isExternalColorVar(value)) {
-            ChartOptions.processCSSVariable(parent, key, ctx, container, processedCSSVariables);
+        } else if (!variable.name.startsWith('--ag-charts')) {
+            ChartOptions.processCSSVariable(parent, key, variable, ctx, container, processedCSSVariables);
         }
     }
 
     private static processCSSVariable(
         parent: any,
         key: string | number,
+        variable: { name: string; fallback?: string },
         ctx: CSSVariableContext,
         container: HTMLElement,
         processedCSSVariables: Record<string, string>
     ) {
         const value: string = parent[key];
-        const resolved = ChartOptions.resolveColorVar(value, container);
-        if (!resolved) return;
+        const resolved = ChartOptions.resolveColorVar(variable, container);
 
         if (!resolved.isValid) {
             // A detached element has no computed style, so a variable with no value yet may be given one once
@@ -2152,40 +2184,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processedCSSVariables[value] ??= resolved.propertyValue;
     }
 
-    private static isExternalColorVar(value: unknown): value is string {
-        return (
-            typeof value === 'string' &&
-            value.startsWith('var(--') &&
-            !value.startsWith('--ag-charts', 4) &&
-            COMPLETE_CSS_VARIABLE.test(value)
-        );
-    }
-
-    /** A `var(` value in any case that is not a complete external variable, such as `var(--x) red` or `VAR(--x)`. */
-    private static isMalformedColorVar(value: string) {
-        return (
-            CSS_VARIABLE_PREFIX.test(value) &&
-            !value.startsWith('var(--ag-charts') &&
-            !COMPLETE_CSS_VARIABLE.test(value)
-        );
-    }
-
     private static resolveColorVar(
-        value: string,
+        { name, fallback }: { name: string; fallback?: string },
         container: HTMLElement
-    ): { isValid: boolean; propertyValue: string } | undefined {
-        const propertyKey = value.slice(4, -1);
-        const [mainKey, ...fallbackKeys] = propertyKey.split(',');
-
+    ): { isValid: boolean; propertyValue: string } {
         const computedStyle = getComputedStyle(container);
-        let propertyValue = computedStyle.getPropertyValue(mainKey.trim()).trim();
+        let propertyValue = computedStyle.getPropertyValue(name).trim();
         let isValid = Color.validColorString(propertyValue);
 
-        if (!isValid && fallbackKeys.length > 0) {
-            const fallback = fallbackKeys.join(',').trim();
+        if (!isValid && fallback != null) {
             // A nested `var(--…)` fallback needs the same custom-property lookup, not a raw `getPropertyValue`.
-            if (fallback.startsWith('var(--')) {
-                return ChartOptions.resolveColorVar(fallback, container);
+            if (fallback.startsWith('var(')) {
+                const nested = parseCssVariable(fallback);
+                return nested == null
+                    ? { isValid: false, propertyValue: fallback }
+                    : ChartOptions.resolveColorVar(nested, container);
             }
             const fallbackValue = computedStyle.getPropertyValue(fallback).trim();
             propertyValue = fallbackValue === '' ? fallback : fallbackValue;

@@ -5739,17 +5739,39 @@ describe('ChartOptions', () => {
             mockComputedStyle(container, { '--brand': '#00ff00' });
             const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
 
+            const malformed = [
+                'var(--brand) red',
+                'VAR(--brand)',
+                'var(--brand)junk',
+                'var(--brand, red) var(--other)',
+                'var(--ag-charts-accent-color) red',
+            ];
             const node: any = {
-                fill: 'var(--brand) red',
-                stroke: 'VAR(--brand)',
-                fills: ['var(--brand)junk', '#ff0000'],
+                fill: malformed[0],
+                stroke: malformed[1],
+                fills: [malformed[2], '#ff0000'],
+                textColor: malformed[3],
+                backgroundColor: malformed[4],
             };
 
             expect(chartOptions.processCSSVariablesPartial(node, container)).toEqual({});
             expect(node).toEqual({ fills: [undefined, '#ff0000'] });
-            for (const value of ['var(--brand) red', 'VAR(--brand)', 'var(--brand)junk']) {
+            for (const value of malformed) {
                 expect((console.warn as Mock).mock.calls.some(isInvalidColourWarning(value))).toBe(true);
             }
+        });
+
+        it('resolves a complete var() with whitespace inside the parentheses', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--brand': '#00ff00' });
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { fill: 'var( --brand )', stroke: 'var(--missing, var( --brand))' };
+
+            expect(chartOptions.processCSSVariablesPartial(node, container)).toEqual({
+                'var( --brand )': '#00ff00',
+                'var(--missing, var( --brand))': '#00ff00',
+            });
         });
 
         it('leaves var() text outside colour options and internal variables untouched', () => {
