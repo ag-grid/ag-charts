@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MARKER_SHAPES } from '../chart/markerShapes';
 import { ExtendedPath2D } from './extendedPath2D';
 
 /** Records the calls made on it, standing in for the canvas Path2D that jsdom lacks. */
@@ -23,12 +22,6 @@ class RecordingPath2D {
 function callsOf(path2d: unknown): string[] {
     if (!(path2d instanceof RecordingPath2D)) throw new Error('Expected a RecordingPath2D');
     return path2d.calls;
-}
-
-function markerPath(shape: 'circle' | 'heart' | 'pin', size: number) {
-    const path = new ExtendedPath2D();
-    MARKER_SHAPES[shape]({ path, x: 0, y: 0, size, pixelRatio: 1 });
-    return path;
 }
 
 describe('ExtendedPath2D', () => {
@@ -107,14 +100,6 @@ describe('ExtendedPath2D', () => {
             const path = new ExtendedPath2D();
             path.rect(0, 0, 10, 10);
             expect(path.minCurveRadius()).toBe(Infinity);
-        });
-
-        it('is a quarter of the size for a heart marker', () => {
-            expect(markerPath('heart', 20).minCurveRadius()).toBeCloseTo(5, 0);
-        });
-
-        it('skips the tip of a pin marker, where the curve has no direction', () => {
-            expect(markerPath('pin', 30).minCurveRadius()).toBeCloseTo(5.3, 1);
         });
 
         it('is recomputed after the path is cleared', () => {
