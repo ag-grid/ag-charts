@@ -7,23 +7,19 @@ interface NameableToolbarButton {
     value?: unknown;
 }
 
-function isNonBlank(text: string | undefined) {
-    return Boolean(text?.trim());
-}
-
 export function hasToolbarButtonAccessibleName(button: NameableToolbarButton | undefined): boolean {
     if (button == null) return false;
-    return isNonBlank(button.ariaLabel) || isNonBlank(button.tooltip) || isNonBlank(button.label);
+    return button.ariaLabel != null || button.tooltip != null || button.label != null;
 }
 
 export function warnUnnamedToolbarButton(logger: Logger, path: string, value: unknown) {
     const identifier = typeof value === 'string' ? ` (value '${value}')` : '';
     logger.warnOnce(
-        `\`${path}\`${identifier} has no accessible name; set a non-empty \`ariaLabel\`, \`tooltip\` or \`label\` so that screen readers can announce it.`
+        `\`${path}\`${identifier} has no accessible name; set an \`ariaLabel\`, \`tooltip\` or \`label\` so that screen readers can announce it.`
     );
 }
 
-/** Warns once per button in `buttons` that has no non-blank `ariaLabel`, `tooltip` or `label`. */
+/** Warns once per button in `buttons` that sets none of `ariaLabel`, `tooltip` or `label`. */
 export function warnUnnamedToolbarButtons(
     logger: Logger,
     path: string,

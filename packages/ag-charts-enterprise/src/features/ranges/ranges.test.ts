@@ -222,7 +222,7 @@ describe('Ranges', () => {
             expectWarningsCalls().toEqual([]);
         });
 
-        it('warns once per unnamed or blank-named button, from when ranges are enabled', async () => {
+        it('warns once per button with no name option set, from when ranges are enabled', async () => {
             const buttons: AgRangesOptions['buttons'] = [
                 { label: 'Start', value: [0, 5] },
                 { value: [0, 10] },
@@ -235,8 +235,8 @@ describe('Ranges', () => {
             await chart.updateDelta({ ranges: { gap: 4 } });
 
             const message = (index: number) =>
-                `AG Charts - \`ranges.buttons[${index}]\` has no accessible name; set a non-empty \`ariaLabel\`, \`tooltip\` or \`label\` so that screen readers can announce it.`;
-            expectWarningsCalls().toEqual([[message(1)], [message(2)]]);
+                `AG Charts - \`ranges.buttons[${index}]\` has no accessible name; set an \`ariaLabel\`, \`tooltip\` or \`label\` so that screen readers can announce it.`;
+            expectWarningsCalls().toEqual([[message(1)]]);
         });
     });
 

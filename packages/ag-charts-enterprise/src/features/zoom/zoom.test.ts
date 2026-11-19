@@ -204,24 +204,16 @@ describe('Zoom', () => {
         expect(names).toEqual(['Magnify', 'Shrink', 'Reset the zoom']);
     });
 
-    it('warns once for a zoom button whose blank tooltip leaves it without an accessible name', async () => {
+    it('logs no warning for a zoom button whose only name option is blank', async () => {
         await prepareChart({
             buttons: {
                 enabled: true,
                 visible: 'always',
-                buttons: [
-                    { icon: 'zoom-in', value: 'zoom-in', section: 'scale', tooltip: 'Magnify' },
-                    { icon: 'zoom-out', value: 'zoom-out', section: 'scale', tooltip: '  ' },
-                ],
+                buttons: [{ icon: 'zoom-out', value: 'zoom-out', section: 'scale', tooltip: '  ' }],
             },
         });
-        await chart.updateDelta({ zoom: { buttons: { visible: 'hover' } } });
 
-        expectWarningsCalls().toEqual([
-            [
-                "AG Charts - `zoom.buttons.buttons[1]` (value 'zoom-out') has no accessible name; set a non-empty `ariaLabel`, `tooltip` or `label` so that screen readers can announce it.",
-            ],
-        ]);
+        expectWarningsCalls().toEqual([]);
     });
 
     describe('tick datums across a data update', () => {

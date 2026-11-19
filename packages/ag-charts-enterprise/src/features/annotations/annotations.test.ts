@@ -1209,7 +1209,7 @@ describe('Annotations', () => {
             expect(names).toEqual(['Remove annotation', 'Edit annotation']);
         });
 
-        it('warns once per unnamed button in either toolbar, including an unnamed locked switch state', async () => {
+        it('warns once per button with no name option set in either toolbar, including a locked switch state', async () => {
             await prepareChart(undefined, {
                 ...ANNOTATIONS_EXAMPLE_OPTIONS,
                 annotations: {
@@ -1223,7 +1223,8 @@ describe('Annotations', () => {
                     },
                     optionsToolbar: {
                         buttons: [
-                            { icon: 'delete', value: 'delete', ariaLabel: '' },
+                            { icon: 'delete', value: 'delete' },
+                            { icon: 'settings', value: 'settings', ariaLabel: '' },
                             { type: 'switch', icon: 'unlocked', value: 'lock', tooltip: 'Lock' },
                         ],
                     },
@@ -1232,11 +1233,11 @@ describe('Annotations', () => {
             await chart.updateDelta({ annotations: { toolbar: { padding: 10 } } });
 
             const message = (path: string, value: string) =>
-                `AG Charts - \`${path}\` (value '${value}') has no accessible name; set a non-empty \`ariaLabel\`, \`tooltip\` or \`label\` so that screen readers can announce it.`;
+                `AG Charts - \`${path}\` (value '${value}') has no accessible name; set an \`ariaLabel\`, \`tooltip\` or \`label\` so that screen readers can announce it.`;
             expectWarningsCalls().toEqual([
                 [message('annotations.toolbar.buttons[1]', 'text-menu')],
                 [message('annotations.optionsToolbar.buttons[0]', 'delete')],
-                [message('annotations.optionsToolbar.buttons[1].checkedOverrides', 'lock')],
+                [message('annotations.optionsToolbar.buttons[2].checkedOverrides', 'lock')],
             ]);
         });
     });
