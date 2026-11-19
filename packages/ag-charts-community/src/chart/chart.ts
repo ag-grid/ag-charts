@@ -1482,11 +1482,23 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             this.series.filter((s) => s.visible),
             this.ctx.chartState.getValue('options', 'padding'),
             this.seriesRect,
-            this.getSeriesAreaPadding()
+            this.getSeriesAreaPadding(),
+            () => this.seriesPaintOrder()
         );
         if (relayout) {
             this.update(ChartUpdateType.PERFORM_LAYOUT);
         }
+    }
+
+    /** Each series' rank in the at-rest paint order, keyed by series id. */
+    private seriesPaintOrder(): Map<string, number> {
+        const ranks = this.seriesLayerManager.atRestPaintOrder();
+        const paintOrder = new Map<string, number>();
+        for (const series of this.series) {
+            const rank = ranks.get(series.internalId);
+            if (rank != null) paintOrder.set(series.id, rank);
+        }
+        return paintOrder;
     }
 
     private readonly seriesGroupingChanged = (event: SeriesGroupingChangedEvent) => {
@@ -1500,6 +1512,10 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             type: series.type,
             contentGroup: series.contentGroup,
             bringToFront: () => series.bringToFront(),
+            raisedAtRest: () => series.raisedAtRest(),
+            get declarationOrder() {
+                return series.declarationOrder;
+            },
             renderToOffscreenCanvas: () => series.renderToOffscreenCanvas(),
             seriesGrouping,
         });

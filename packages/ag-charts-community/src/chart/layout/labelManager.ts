@@ -52,25 +52,36 @@ function placesLabels(source: LabelSource): source is PlacedLabelSource {
     return source.usesPlacedLabels;
 }
 
-function seriesLabels(source: PlacedLabelSource, datums: PointLabelDatum[]): SeriesLabels {
+/** Each source's rank in the at-rest paint order, keyed by source id; higher is drawn over lower. */
+type PaintOrder = ReadonlyMap<string, number>;
+
+const NO_PAINT_ORDER: PaintOrder = new Map();
+
+function seriesLabels(source: PlacedLabelSource, datums: PointLabelDatum[], paintOrder?: number): SeriesLabels {
     return {
         datums,
         defaults: source.getLabelDefaults?.(),
         resolveCandidateStyle: source.getLabelCandidateStyler?.(),
         resolveCandidate: source.getLabelCandidateResolver?.(),
+        paintOrder,
     };
 }
 
 /**
  * Identity of the placement inputs: each source's node-data version (label data and obstacles both
- * derive from node data) and the layout bounds. Unchanged between two updates means placement would
- * produce the same result.
+ * derive from node data) and paint order, and the layout bounds. Unchanged between two updates means
+ * placement would produce the same result.
  */
-function placementSignature(sources: LabelSource[], bounds: BoxBounds, avoidsAxisLabels: boolean): string {
+function placementSignature(
+    sources: LabelSource[],
+    bounds: BoxBounds,
+    avoidsAxisLabels: boolean,
+    paintOrder: PaintOrder
+): string {
     let ids = '';
     for (const source of sources) {
         if (source.axisLabelObstacles === true && !avoidsAxisLabels) continue;
-        ids += `${source.id}:${source.nodeDataVersion};`;
+        ids += `${source.id}:${source.nodeDataVersion}:${paintOrder.get(source.id) ?? ''};`;
     }
     return `${ids}|${bounds.x},${bounds.y},${bounds.width},${bounds.height}`;
 }
@@ -99,12 +110,16 @@ export class LabelManager {
         this.sources.delete(id);
     }
 
-    /** Returns whether the chart must lay out again for a placement that invalidated its layout. */
+    /**
+     * Returns whether the chart must lay out again for a placement that invalidated its layout.
+     * `paintOrder` is only read when some source places labels.
+     */
     updateLabels(
         visibleSources: PlacedLabelSource[],
         padding: NormalisedPaddingOptions,
         seriesRect = BBox.zero,
-        seriesAreaPadding: NormalisedPaddingOptions = padding
+        seriesAreaPadding: NormalisedPaddingOptions = padding,
+        paintOrder?: () => PaintOrder
     ): boolean {
         // A label allowed outside the series area must get at least the room one kept inside it does.
         const left = Math.max(padding.left, seriesAreaPadding.left);
@@ -132,14 +147,15 @@ export class LabelManager {
         // SERIES_UPDATE also fires on hover/highlight, where the placement inputs are unchanged, so
         // reuse the cached solve; it is still re-applied below to refresh per-datum highlight styling.
         const { avoidsAxisLabels } = this;
-        let signature = placementSignature(allSources, bounds, avoidsAxisLabels);
+        const order = paintOrder?.() ?? NO_PAINT_ORDER;
+        let signature = placementSignature(allSources, bounds, avoidsAxisLabels, order);
         let placedLabels = this.lastPlacedLabels;
         const sourcesReplaced = !sameSources(allSources, this.lastSources);
         this.lastSources = allSources;
         if (placedLabels == null || sourcesReplaced || signature !== this.lastPlacementSignature) {
-            placedLabels = this.computePlacement(placedLabelSources, allSources, bounds, seriesRect);
+            placedLabels = this.computePlacement(placedLabelSources, allSources, bounds, seriesRect, order);
             if (this.avoidsAxisLabels !== avoidsAxisLabels) {
-                signature = placementSignature(allSources, bounds, this.avoidsAxisLabels);
+                signature = placementSignature(allSources, bounds, this.avoidsAxisLabels, order);
             }
             this.lastPlacementSignature = signature;
             this.lastPlacedLabels = placedLabels;
@@ -179,7 +195,8 @@ export class LabelManager {
         placedLabelSources: PlacedLabelSource[],
         allSources: LabelSource[],
         bounds: BoxBounds,
-        seriesRect: BBox
+        seriesRect: BBox,
+        paintOrder: PaintOrder
     ): Map<string, PlacedLabel[]> {
         // Placement is greedy in iteration order, so the map must be rebuilt in source order rather
         // than mutated: a re-shown series has to reclaim its original slot, not land at the end.
@@ -187,12 +204,13 @@ export class LabelManager {
         this.labelData = new Map();
         for (const source of placedLabelSources) {
             const labelData = source.getLabelData(seriesRect);
+            const order = paintOrder.get(source.id);
             if (labelData.every(isPointLabelDatum)) {
-                this.labelData.set(source.id, seriesLabels(source, labelData));
+                this.labelData.set(source.id, seriesLabels(source, labelData, order));
             } else {
                 const carried = previous.get(source.id);
                 if (carried != null) {
-                    this.labelData.set(source.id, carried);
+                    this.labelData.set(source.id, { ...carried, paintOrder: order });
                 }
             }
         }

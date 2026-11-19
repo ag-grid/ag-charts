@@ -420,6 +420,31 @@ export function getSeriesAggregationInternals(
     return deproxy(chartOrProxy).series[seriesIndex] as unknown as SeriesAggregationInternals;
 }
 
+/**
+ * The series ids in the order the rendered scene draws their content, grouped by the layer that holds them,
+ * beside each series' at-rest paint rank as label placement receives it.
+ */
+export function getSeriesPaintOrder(chartOrProxy: ChartOrProxy<any>): {
+    drawn: string[];
+    layers: string[][];
+    ranks: Map<string, number>;
+} {
+    const chart = deproxy(chartOrProxy);
+    const owners = new Map<Node, string>(chart.series.map((series) => [series.contentGroup, series.id]));
+    const layers: string[][] = [];
+    for (const layer of chart.seriesRoot.children()) {
+        if (!(layer instanceof Group)) continue;
+        const ids: string[] = [];
+        for (const child of layer.children()) {
+            const id = owners.get(child);
+            if (id != null) ids.push(id);
+        }
+        if (ids.length > 0) layers.push(ids);
+    }
+    const ranks = (chart as unknown as { seriesPaintOrder(): Map<string, number> }).seriesPaintOrder();
+    return { drawn: layers.flat(), layers, ranks };
+}
+
 /** The group a cartesian series draws its data nodes into, for tests that compare its `segments` by identity. */
 export function getSeriesDataNodeGroup(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): SegmentedGroup {
     return (deproxy(chartOrProxy).series[seriesIndex] as unknown as { dataNodeGroup: SegmentedGroup }).dataNodeGroup;

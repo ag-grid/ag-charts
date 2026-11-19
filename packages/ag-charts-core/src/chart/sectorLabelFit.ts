@@ -1,5 +1,6 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
+import { isArray } from '../data/typeGuards';
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
 import { type FitRegion, insetFitRegion, probedFitRegion, regionTextCapacity } from '../geometry/fitRegion';
 import type { LabelFitDescriptor, PlacedFit } from '../geometry/labelPlacement';
@@ -14,10 +15,10 @@ import {
     findLargestFontSizeDescending,
     fitLabelTextToRegion,
     fontWithSize,
-    hasRealChars,
     isErased,
     keptCharacters,
     resolveMinimumFontSize,
+    showsContent,
     withFitRegion,
 } from '../text/textWrapper';
 import type { Point } from '../types/scene';
@@ -385,10 +386,10 @@ function fitSectorLabelToWedge(
         // refinements: the one keeping the most text wins, and only a placement drawn inside the wedge can.
         let best: PlacedSectorLabel | undefined;
         let bestKept = 0;
-        for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && hasRealChars(placed.text); attempt += 1) {
+        for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && showsContent(placed.text); attempt += 1) {
             const boxes = layout(placed, sized);
             const inWedge = boxes.every((box) => isBoxInSector(box, sector));
-            const kept = inWedge ? keptCharacters(placed.text) : 0;
+            const kept = inWedge ? keptContent(placed.text) : 0;
             // A later pass ties only by placing the same text better, so equal candidates prefer it.
             if (kept > 0 && kept >= bestKept) {
                 best = placed;
@@ -415,7 +416,7 @@ function fitSectorLabelToWedge(
         // A wedge too narrow for one character leaves a bare ellipsis, which reads as an artefact rather
         // than a label, so it is dropped outright instead of appearing and vanishing as the chart resizes.
         const chosen = best ?? placed;
-        const kept = hasRealChars(chosen.text) ? chosen.text : '';
+        const kept = showsContent(chosen.text) ? chosen.text : '';
         return { placed: { ...chosen, text: kept }, inWedge: best != null };
     };
     const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
@@ -454,7 +455,18 @@ export function sectorLabelPlacer(
     return (fit) => {
         const layout = wedgeLabelLayout(boxing);
         const placed = fitSectorLabelToWedge(fit.text, fit.policy, fit.font, anchor, sector, padding, layout);
-        if (!hasRealChars(placed.text)) return undefined;
+        if (!showsContent(placed.text)) return undefined;
         return { text: placed.text, x: centreX + placed.x, y: centreY + placed.y, fontSize: placed.fontSize };
     };
+}
+
+/** Characters kept plus image segments kept, so an image-only label scores as content. */
+function keptContent(text: NormalisedTextOrSegments): number {
+    let kept = keptCharacters(text);
+    if (isArray(text)) {
+        for (const segment of text) {
+            if (segment.type === 'image') kept += 1;
+        }
+    }
+    return kept;
 }

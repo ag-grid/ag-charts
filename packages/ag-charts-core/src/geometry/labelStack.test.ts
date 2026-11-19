@@ -100,4 +100,25 @@ describe('fitLabelStack', () => {
         const fitted = fitLabelStack(stack(wrapped), undefined, narrowsWithHeight);
         expect(fitted?.blocks[0]?.text).toBe('Information Tec…');
     });
+
+    it('holds the single line when narrowing wraps the text taller than the shape is that wide', () => {
+        const wrapped: LabelStackBlock = {
+            fit: {
+                text: 'Alpha Bravo Delta',
+                policy: { overflowStrategy: 'ellipsis', wrapping: 'on-space' },
+                font: FONT,
+            },
+        };
+        const halfWidths = [80, 50, 20];
+        const narrowsSteeply: FitRegion = {
+            spanAt: (top, bottom) => {
+                const half = halfWidths[Math.ceil((bottom - top) / 20) - 1] ?? 0;
+                return [-half, half];
+            },
+            extentAbove: 100,
+            extentBelow: 100,
+        };
+        const fitted = fitLabelStack(stack(wrapped), undefined, narrowsSteeply);
+        expect(fitted?.blocks[0]?.text).toBe('Alpha Bravo Del…');
+    });
 });

@@ -1067,8 +1067,8 @@ describe('SunburstSeries', () => {
                         labelKey: 'name',
                         sizeKey: 'gdp',
                         secondaryLabelKey: 'gdpChange',
-                        label: { fill: 'olive' },
-                        secondaryLabel: { fill: 'blue' },
+                        label: { fill: 'olive', fontSize: 24 },
+                        secondaryLabel: { fill: 'blue', fontSize: 24 },
                     },
                 ],
             });

@@ -99,6 +99,31 @@ describe('SpatialIndex', () => {
         expect(index.query(corner, () => true)).toBe(true);
     });
 
+    it.each<[string, BoxBounds]>([
+        ['a NaN width', { x: 0, y: 0, width: Number.NaN, height: 100 }],
+        ['an infinite height', { x: 0, y: 0, width: 100, height: Number.POSITIVE_INFINITY }],
+        ['a NaN origin', { x: Number.NaN, y: 0, width: 100, height: 100 }],
+    ])('starts empty and indexes after a reset over bounds with %s, and after the next valid reset', (_, nonFinite) => {
+        const index = new SpatialIndex<BoxBounds>();
+        const box = { x: 10, y: 10, width: 5, height: 5 };
+        const corner = { x: 700, y: 550, width: 5, height: 5 };
+        const resetNonFinite = () => index.reset(nonFinite, 10);
+
+        resetNonFinite();
+        expect(index.query(box, () => true)).toBe(false);
+        index.insert(box, box);
+        expect(index.query(box, () => true)).toBe(true);
+
+        index.reset(bounds, 10);
+        index.insert(box, box);
+        resetNonFinite();
+        expect(index.query(box, () => true)).toBe(false);
+        index.reset(bounds, 10);
+        expect(index.query(box, () => true)).toBe(false);
+        index.insert(corner, corner);
+        expect(index.query(corner, () => true)).toBe(true);
+    });
+
     it('stops early when the visitor returns true', () => {
         const index = new SpatialIndex<number>();
         index.reset({ x: 0, y: 0, width: 100, height: 100 }, 50);

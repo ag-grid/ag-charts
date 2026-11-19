@@ -51,6 +51,35 @@ function fakeSeries({
     return series as typeof series & AnySeries;
 }
 
+/** An inside label wholly on its own marker, beside another series' marker overlapping it. */
+function insideLabelBesideMarker() {
+    const own = fakeSeries({
+        id: 'own',
+        datums: [
+            labelDatum(100, 100, 'I', {
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: ['inside'],
+                gap: 0,
+                point: { x: 100, y: 100, size: 20 },
+                label: { text: 'I', width: 16, height: 10 },
+            }),
+        ],
+    });
+    const neighbour = fakeSeries({
+        id: 'neighbour',
+        datums: [labelDatum(108, 100, '', { point: { x: 108, y: 100, size: 20 }, placements: ['bottom'] })],
+    });
+    return { own, neighbour };
+}
+
+function paintOrder(own: number, neighbour: number) {
+    return new Map([
+        ['own', own],
+        ['neighbour', neighbour],
+    ]);
+}
+
 function placedTexts(series: ReturnType<typeof fakeSeries>, call = -1): string[] {
     const { calls } = series.updatePlacedLabelData.mock;
     const labels = calls.at(call)?.[0] ?? [];
@@ -127,6 +156,36 @@ describe('LabelManager', () => {
             expect(replacement.getLabelData).toHaveBeenCalledTimes(1);
             expect(placedTexts(replacement)).toEqual(['two']);
         });
+
+        it.each([
+            { case: 're-solves when the paint order changes', next: 1, solves: 2 },
+            { case: 'reuses the cached solve while the paint order is unchanged', next: 0, solves: 1 },
+        ])('$case', ({ next, solves }) => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+
+            manager.updateLabels([series], NO_PADDING, RECT, NO_PADDING, () => new Map([['a', 0]]));
+            manager.updateLabels([series], NO_PADDING, RECT, NO_PADDING, () => new Map([['a', next]]));
+
+            expect(series.getLabelData).toHaveBeenCalledTimes(solves);
+        });
+
+        it.each([
+            { case: 'under', neighbourOrder: 0, placed: ['I'] },
+            { case: 'over', neighbourOrder: 2, placed: [] },
+        ])(
+            'places an inside label over a neighbouring marker painted $case its own: $placed',
+            ({ neighbourOrder, placed }) => {
+                const manager = new LabelManager();
+                const { own, neighbour } = insideLabelBesideMarker();
+
+                manager.updateLabels([own, neighbour], NO_PADDING, RECT, NO_PADDING, () =>
+                    paintOrder(1, neighbourOrder)
+                );
+
+                expect(placedTexts(own)).toEqual(placed);
+            }
+        );
     });
 
     describe('no placed-label series', () => {
@@ -135,10 +194,13 @@ describe('LabelManager', () => {
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
             const plain = fakeSeries({ id: 'b', usesPlacedLabels: false });
 
+            const readPaintOrder = vi.fn(() => new Map<string, number>());
+
             manager.updateLabels([series], NO_PADDING, RECT);
-            manager.updateLabels([plain], NO_PADDING, RECT);
+            manager.updateLabels([plain], NO_PADDING, RECT, NO_PADDING, readPaintOrder);
             expect(plain.getLabelData).not.toHaveBeenCalled();
             expect(plain.updatePlacedLabelData).not.toHaveBeenCalled();
+            expect(readPaintOrder).not.toHaveBeenCalled();
 
             // The cache was cleared, so the identical inputs of the first update re-solve rather
             // than replaying a solve taken while a different series set was visible.
@@ -162,6 +224,19 @@ describe('LabelManager', () => {
             manager.updateLabels([series], NO_PADDING, RECT);
 
             expect(placedTexts(series)).toEqual(['one']);
+        });
+
+        it('places carried label data by the current paint order', () => {
+            const manager = new LabelManager();
+            const { own, neighbour } = insideLabelBesideMarker();
+
+            manager.updateLabels([own, neighbour], NO_PADDING, RECT, NO_PADDING, () => paintOrder(3, 2));
+            expect(placedTexts(own)).toEqual(['I']);
+
+            own.getLabelData.mockReturnValue([{ notALabelDatum: true }] as unknown as PointLabelDatum[]);
+            manager.updateLabels([own, neighbour], NO_PADDING, RECT, NO_PADDING, () => paintOrder(1, 2));
+
+            expect(placedTexts(own)).toEqual([]);
         });
 
         it('places nothing for a series that has never reported point data', () => {

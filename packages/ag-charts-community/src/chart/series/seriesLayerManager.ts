@@ -6,7 +6,9 @@ interface SeriesConfig {
     internalId: string;
     seriesGrouping: SeriesGrouping | undefined;
     contentGroup: Group;
+    declarationOrder: number;
     bringToFront(): boolean;
+    raisedAtRest(): boolean;
     renderToOffscreenCanvas(): boolean;
     type: string;
 }
@@ -24,7 +26,7 @@ export class SeriesLayerManager {
     private readonly groups = new Map<string, Map<string | number, LayerState>>();
     private readonly series = new Map<
         string,
-        { layerState: LayerState; seriesConfig: SeriesConfig; bringToFront: boolean }
+        { layerState: LayerState; seriesConfig: SeriesConfig; bringToFront: boolean; raisedAtRest: boolean }
     >();
 
     private expectedSeriesCount = 1;
@@ -45,11 +47,16 @@ export class SeriesLayerManager {
         return bringToFront ? 'top' : seriesConfig.type;
     }
 
+    private getLayerKey(seriesConfig: SeriesConfig, bringToFront: boolean) {
+        return {
+            type: this.getGroupType(seriesConfig, bringToFront),
+            lookupIndex: this.lookupIdx(this.getGroupIndex(seriesConfig)),
+        };
+    }
+
     public requestGroup(seriesConfig: SeriesConfig) {
         const { internalId, contentGroup: seriesContentGroup } = seriesConfig;
         const bringToFront = seriesConfig.bringToFront();
-        const type = this.getGroupType(seriesConfig, bringToFront);
-        const groupIndex = this.getGroupIndex(seriesConfig);
 
         const seriesInfo = this.series.get(internalId);
         if (seriesInfo != null) {
@@ -64,13 +71,12 @@ export class SeriesLayerManager {
                     : 'normal';
         }
 
+        const { type, lookupIndex } = this.getLayerKey(seriesConfig, bringToFront);
         let group = this.groups.get(type);
         if (group == null) {
             group = new Map<string, LayerState>();
             this.groups.set(type, group);
         }
-
-        const lookupIndex = this.lookupIdx(groupIndex);
 
         let groupInfo = group.get(lookupIndex);
         if (groupInfo == null) {
@@ -90,7 +96,8 @@ export class SeriesLayerManager {
             group.set(lookupIndex, groupInfo);
         }
 
-        this.series.set(internalId, { layerState: groupInfo, seriesConfig, bringToFront });
+        const raisedAtRest = seriesConfig.raisedAtRest();
+        this.series.set(internalId, { layerState: groupInfo, seriesConfig, bringToFront, raisedAtRest });
 
         groupInfo.seriesIds.push(internalId);
         groupInfo.group.appendChild(seriesContentGroup);
@@ -101,18 +108,16 @@ export class SeriesLayerManager {
     public changeGroup(seriesConfig: SeriesConfig) {
         const { internalId, contentGroup } = seriesConfig;
         const bringToFront = seriesConfig.bringToFront();
-        const type = this.getGroupType(seriesConfig, bringToFront);
+        const { type, lookupIndex } = this.getLayerKey(seriesConfig, bringToFront);
 
         const oldGroup = this.series.get(internalId);
         const oldType = oldGroup ? this.getGroupType(oldGroup.seriesConfig, oldGroup.bringToFront) : undefined;
 
-        const groupIndex = this.getGroupIndex(seriesConfig);
-        const lookupIndex = this.lookupIdx(groupIndex);
-
         const groupInfo = this.groups.get(type)?.get(lookupIndex);
 
-        if (oldType === type && groupInfo?.seriesIds.includes(internalId) === true) {
-            // Already in the right group, nothing to do.
+        if (oldGroup != null && oldType === type && groupInfo?.seriesIds.includes(internalId) === true) {
+            // Already in the right group: only the at-rest raise it reports can have changed.
+            oldGroup.raisedAtRest = seriesConfig.raisedAtRest();
             return;
         }
 
@@ -174,6 +179,41 @@ export class SeriesLayerManager {
                 group.zIndex = this.getLowestSeriesZIndex(seriesIds);
             }
         }
+    }
+
+    /**
+     * Each series' rank in the paint order with no highlight raising a series, keyed by internal id: the layers
+     * last assigned, with a series raised only by a highlight in the layer it returns to, ordered as
+     * `updateLayerCompositing` does. Higher is drawn over lower; series sharing a rank are drawn in an order that
+     * is not known.
+     */
+    public atRestPaintOrder(): Map<string, number> {
+        const layerZ = new Map<LayerState | string, number>();
+        const entries: { internalId: string; layer: LayerState | string; layerZ: number; z: number }[] = [];
+        for (const [internalId, { layerState, seriesConfig, bringToFront, raisedAtRest }] of this.series) {
+            let layer: LayerState | string = layerState;
+            if (bringToFront && !raisedAtRest) {
+                const { type, lookupIndex } = this.getLayerKey(seriesConfig, false);
+                layer = this.groups.get(type)?.get(lookupIndex) ?? internalId;
+            }
+            const z = raisedAtRest ? Number.MAX_VALUE : seriesConfig.declarationOrder;
+            layerZ.set(layer, Math.min(layerZ.get(layer) ?? z, z));
+            entries.push({ internalId, layer, layerZ: z, z });
+        }
+        for (const entry of entries) {
+            entry.layerZ = layerZ.get(entry.layer) ?? entry.z;
+        }
+        entries.sort((a, b) => (a.layerZ === b.layerZ ? a.z - b.z : a.layerZ - b.layerZ));
+
+        const ranks = new Map<string, number>();
+        let rank = -1;
+        let previous: (typeof entries)[number] | undefined;
+        for (const entry of entries) {
+            if (previous?.layerZ !== entry.layerZ || previous.z !== entry.z) rank++;
+            ranks.set(entry.internalId, rank);
+            previous = entry;
+        }
+        return ranks;
     }
 
     private lookupIdx(groupIndex: number | string) {

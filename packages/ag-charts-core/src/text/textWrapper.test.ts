@@ -385,6 +385,50 @@ describe('wrapLines', () => {
             expect(result).toEqual([`Information${E}`]);
         });
 
+        it.each([
+            {
+                case: 'a word the band below left no room for',
+                text: 'Alpha Bravo Hertfordshire',
+                maxWidth: 100,
+                maxHeight: 40,
+                narrowFrom: 40,
+                narrowWidth: 0,
+                expected: ['Alpha', `Bravo${E}`],
+            },
+            {
+                case: 'a word the band below cut short',
+                text: 'Alpha Bravo Hertfordshire',
+                maxWidth: 100,
+                maxHeight: 40,
+                narrowFrom: 40,
+                narrowWidth: 30,
+                expected: ['Alpha', `Bravo He${E}`],
+            },
+            {
+                case: 'a word with no space to break at cut short by the band below',
+                text: 'Information Technology',
+                maxWidth: 160,
+                maxHeight: 20,
+                narrowFrom: 20,
+                narrowWidth: 20,
+                expected: [`Information T${E}`],
+            },
+        ])(
+            'ends the last line kept in one ellipsis after $case',
+            ({ text, maxWidth, maxHeight, narrowFrom, narrowWidth, expected }) => {
+                const maxWidthAt = (top: number) => (top < narrowFrom ? maxWidth : narrowWidth);
+                const options = {
+                    font,
+                    maxWidth,
+                    maxHeight,
+                    lineHeight: 20,
+                    overflow: 'ellipsis' as const,
+                    maxWidthAt,
+                };
+                expect(wrapLines(text, options)).toEqual(expected);
+            }
+        );
+
         it('should wrap at word boundary when line exceeds maxWidth', () => {
             // 'Hello World' = 110px, maxWidth = 60px → wraps between words
             const result = wrapLines('Hello World', { font, maxWidth: 60 });
@@ -478,6 +522,15 @@ describe('wrapLines', () => {
                 expect(hasLoneSurrogates(line)).toBe(false);
             }
         });
+    });
+
+    it.each<[TextWrap, number, string[]]>([
+        ['hyphenate', 20, [`Inf${E}`]],
+        ['hyphenate', 40, ['Inf-', `orm${E}`]],
+        ['always', 20, [`Inf${E}`]],
+        ['always', 40, ['Info', `rma${E}`]],
+    ])('ends a %s wrap broken mid-word and clipped to %spx on a full line', (textWrap, maxHeight, expected) => {
+        expect(wrapLines('Information', { font, maxWidth: 40, maxHeight, textWrap })).toEqual(expected);
     });
 
     describe('Arabic text wrapping', () => {
@@ -1237,6 +1290,12 @@ describe('measureTextSegments — lineHeight', () => {
                 { maxWidth: 40, maxHeight: 40 },
             ],
             [
+                'a row clipped to one line after a segment wraps part-way along it',
+                [text('Info '), text('Information Technology')],
+                baseFont,
+                { maxWidth: 160, maxHeight: 20 },
+            ],
+            [
                 'wrapped rows below a taller shared row',
                 [text('A', { fontSize: 20 }), text('BB CC DD EE FF')],
                 font10(30),
@@ -1528,6 +1587,11 @@ describe('fitLabelText bounded by a shape', () => {
         const fitted = fitLabelTextToRegion('AAAA BBBB', { region, wrapping: 'on-space' }, font);
         expect(fitted.text).toBe('AAAA BBBB');
         expect(fitted.offsetX).toBe(-50);
+    });
+
+    it('keeps a preserved block whole in a shape shorter than it', () => {
+        const region: FitRegion = { spanAt: () => [-25, 25], extentAbove: 10, extentBelow: 10 };
+        expect(fitLabelTextToRegion('AAAA BBBB', { region, wrapping: 'on-space' }, font).text).toBe('AAAA\nBBBB');
     });
 
     it('cuts a word that will not fit to the width of the line it lands on', () => {

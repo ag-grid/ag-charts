@@ -1442,6 +1442,90 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('sectorLabel image segments', () => {
+        it('renders a sector label that is only an image', async () => {
+            const image = { type: 'image', url: 'https://example.com/logo.png', width: 16, height: 16 } as const;
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { name: 'Alpha', size: 1 },
+                        { name: 'Bravo', size: 1 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            sectorLabel: { formatter: () => [image] },
+                        },
+                    ],
+                })
+            );
+
+            expect(getVisibleLabelTextNodes(chart).map((node) => node.text)).toEqual([
+                [expect.objectContaining(image)],
+                [expect.objectContaining(image)],
+            ]);
+        });
+    });
+
+    describe('sectorLabel without fit options', () => {
+        it.each([
+            {
+                case: 'whole where it fits',
+                name: 'North America',
+                ratio: 0.5,
+                count: 3,
+                fontSize: 12,
+                drawn: 3,
+                text: 'North America',
+            },
+            {
+                case: 'wrapped where only that fits',
+                name: 'North America',
+                ratio: 0.75,
+                count: 20,
+                fontSize: 12,
+                drawn: 9,
+                text: 'North\nAmerica',
+            },
+            {
+                case: 'nothing where it fits no way',
+                name: 'North America',
+                ratio: 0.85,
+                count: 6,
+                fontSize: 18,
+                drawn: 0,
+                text: '',
+            },
+            {
+                case: 'nothing where its lines do not fit',
+                name: 'Asia\n1,200',
+                ratio: 0.85,
+                count: 6,
+                fontSize: 18,
+                drawn: 0,
+                text: '',
+            },
+        ])('draws $case', async ({ name, ratio, count, fontSize, drawn, text }) => {
+            chart = deproxy(
+                await createChart({
+                    data: [{ name, size: 8 }, ...Array.from({ length: count - 1 }, () => ({ name, size: 1 }))],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: ratio,
+                            sectorLabel: { fontSize },
+                        },
+                    ],
+                })
+            );
+            expect(getVisibleLabelTextNodes(chart).map((node) => node.text)).toEqual(Array(drawn).fill(text));
+        });
+    });
+
     describe('sectorLabel lineHeight', () => {
         const drawnLabels = async (sectorLabel: object) => {
             chart = deproxy(

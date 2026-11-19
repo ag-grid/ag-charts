@@ -452,8 +452,8 @@ function wrapBlockToRegion(
         // The band a line occupies must be the one it will be drawn in, so the width the shape offers is
         // asked for the same rows the renderer will fill; the font's own line height is shorter.
         lineHeight,
-        // The shape's own room bounds the block, so a caller need not restate it as maxHeight.
-        maxHeight: height,
+        // The shape's room bounds the block, but only a policy that may drop text can be held to it.
+        maxHeight: preservesText(options) ? undefined : height,
         maxWidthAt: widthAt,
     });
     const marked = markLostText(String(wrapped), text, options, widthAt, lineHeight);
@@ -629,6 +629,11 @@ export function hasRealChars(text: NormalisedTextOrSegments): boolean {
         if (segment.type !== 'image' && survivingCharacters(toTextString(segment.text)) > 0) return true;
     }
     return false;
+}
+
+/** Whether a fitted label still draws something: a real character, or an image segment. */
+export function showsContent(text: NormalisedTextOrSegments): boolean {
+    return hasRealChars(text) || (isArray(text) && text.some((segment) => segment.type === 'image'));
 }
 
 /**
@@ -1173,7 +1178,8 @@ export function clipLines(
 
 /**
  * Line `start` rejoined with the lines wrapping split from it, up to the next explicit line break, and only
- * until it is wider than `maxWidth`: text beyond that would be cut by the ellipsis anyway.
+ * until it is wider than `maxWidth`: text beyond that would be cut by the ellipsis anyway. A line the wrap
+ * already truncated ends the join, its own ellipsis dropped for the one the caller adds.
  */
 function joinWrappedFrom(
     lines: readonly string[],
@@ -1185,6 +1191,10 @@ function joinWrappedFrom(
     let joined = lines[start];
     let width = lineMetrics[start].width;
     for (let i = start + 1; i < lines.length && breaksBefore[i] != null && width <= maxWidth; i++) {
+        if (isTextTruncated(lines[i])) {
+            joined += breaksBefore[i] + lines[i].slice(0, -EllipsisChar.length);
+            break;
+        }
         joined += breaksBefore[i] + lines[i];
         width += lineMetrics[i].width;
     }

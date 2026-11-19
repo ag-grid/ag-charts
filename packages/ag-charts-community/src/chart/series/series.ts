@@ -602,12 +602,22 @@ export abstract class Series<
 
     declarationOrder: number = -1;
     private _broughtToFront = false;
+    private _raisedAtRest = false;
     setSeriesIndex(index: number, forceUpdate = false) {
         const bringToFront = this.bringToFront();
-        if (!forceUpdate && index === this.declarationOrder && bringToFront === this._broughtToFront) return false;
+        const raisedAtRest = this.raisedAtRest();
+        if (
+            !forceUpdate &&
+            index === this.declarationOrder &&
+            bringToFront === this._broughtToFront &&
+            raisedAtRest === this._raisedAtRest
+        ) {
+            return false;
+        }
 
         this.declarationOrder = index;
         this._broughtToFront = bringToFront;
+        this._raisedAtRest = raisedAtRest;
         this.setZIndex(bringToFront ? Number.MAX_VALUE : index);
         // A hovered item drawn beneath the glow overlay has its glow cast above it.
         this.highlightGroup.castsHoveredGlows =
@@ -1077,8 +1087,13 @@ export abstract class Series<
             hasStateStyle(highlight?.unhighlightedSeries);
     }
 
+    /** Whether the series is drawn over the others with no highlight, which only a data selection does. */
+    public raisedAtRest() {
+        return this.hasDataSelection();
+    }
+
     public bringToFront() {
-        if (this.hasDataSelection()) return true;
+        if (this.raisedAtRest()) return true;
         const { highlight } = this.options;
         if (highlight?.enabled === false || highlight?.bringToFront === false) return false;
         return this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight());

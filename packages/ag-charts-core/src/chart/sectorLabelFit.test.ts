@@ -1,8 +1,24 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
+import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { isPointInSector } from '../scene/util/sector';
-import { fitSectorLabelRect, sectorLabelRoom } from './sectorLabelFit';
+import { fitSectorLabelRect, sectorLabelPlacer, sectorLabelRoom } from './sectorLabelFit';
+
+// jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. Every character is 10px
+// wide and every line 20px tall.
+vi.mock('../rendering/canvasUtil', () => ({
+    createCanvasContext: () => ({
+        font: '',
+        measureText: (text: string) => ({
+            width: [...text].length * 10,
+            fontBoundingBoxAscent: 16,
+            fontBoundingBoxDescent: 4,
+            emHeightAscent: 16,
+            emHeightDescent: 4,
+        }),
+    }),
+}));
 
 const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRadius: number) => ({
     startAngle: midAngle - halfSpan,
@@ -100,5 +116,64 @@ describe('sectorLabelRoom', () => {
     it('holds fewer lines, and so less text, as the lines grow taller', () => {
         const room = sectorLabelRoom(anchor, s, 14);
         expect(room.capacityAt(28)).toBeLessThan(room.capacityAt(14));
+    });
+});
+
+describe('sectorLabelPlacer', () => {
+    const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
+    const image = (size: number) => ({
+        type: 'image' as const,
+        url: 'https://example.com/logo.png',
+        width: size,
+        height: size,
+    });
+    const place = (
+        text: NormalisedTextOrSegments,
+        s: ReturnType<typeof sector>,
+        anchor: { x: number; y: number },
+        minimumFontSize?: number
+    ) =>
+        sectorLabelPlacer(
+            anchor,
+            s,
+            NO_PADDING,
+            {},
+            0,
+            0
+        )({
+            text,
+            policy: { overflowStrategy: 'ellipsis', minimumFontSize },
+            font: { fontSize: 12, fontFamily: 'sans-serif' },
+        });
+
+    it.each<[string, NormalisedTextOrSegments]>([
+        ['plain text', 'Alpha'],
+        ['multi-line text', 'Alpha\nBravo'],
+        ['text segments', [{ text: 'Alpha' }, { text: 'Bravo' }]],
+        ['an image only', [image(16)]],
+        ['an image and text', [image(16), { text: 'Alpha' }]],
+    ])('places %s whole and at full size in a roomy wedge', (_, text) => {
+        const content = Array.isArray(text) ? text.map((segment) => expect.objectContaining(segment)) : text;
+        const wedge = sector(Math.PI / 2, Math.PI / 3, 0, 300);
+        const placed = place(text, wedge, anchorAt(150, Math.PI / 2), 6);
+        expect(placed).toEqual({ text: content, x: expect.any(Number), y: expect.any(Number), fontSize: undefined });
+        expect(isPointInSector(placed?.x ?? Number.NaN, placed?.y ?? Number.NaN, wedge)).toBe(true);
+    });
+
+    it.each([undefined, 6])(
+        'keeps an image-only label on its anchor in a wedge only just deep enough (minimumFontSize %s)',
+        (minimumFontSize) => {
+            const anchor = anchorAt(122, Math.PI / 3);
+            const placed = place([image(16)], sector(Math.PI / 3, Math.PI / 8, 100, 144), anchor, minimumFontSize);
+            expect(placed?.text).toEqual([expect.objectContaining(image(16))]);
+            expect(placed?.x).toBeCloseTo(anchor.x);
+            expect(placed?.y).toBeCloseTo(anchor.y);
+        }
+    );
+
+    it('places nothing when the wedge cannot hold an image-only label', () => {
+        expect(
+            place([image(40)], sector(Math.PI / 2, Math.PI / 16, 100, 120), anchorAt(110, Math.PI / 2))
+        ).toBeUndefined();
     });
 });

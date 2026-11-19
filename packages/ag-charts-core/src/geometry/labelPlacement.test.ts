@@ -210,10 +210,11 @@ function makeFixture(seriesCount: number, perSeries: number, bounds: BoxBounds, 
     return data;
 }
 
-function normalise(result: Map<string, PlacedLabel[]>) {
+function normalise(result: Map<string, PlacedLabel[]>, digits?: number) {
+    const round = (value: number) => (digits == null ? value : Number(value.toFixed(digits)));
     return [...result.entries()].map(([id, labels]) => [
         id,
-        labels.map((l) => ({ index: l.index, x: l.x, y: l.y, width: l.width, height: l.height })),
+        labels.map((l) => ({ index: l.index, x: round(l.x), y: round(l.y), width: l.width, height: l.height })),
     ]);
 }
 
@@ -371,14 +372,113 @@ describe('placeLabels', () => {
     });
 
     it.each([
-        { neighbourSeries: 'earlier', placed: true },
-        { neighbourSeries: 'later', placed: false },
-    ])(
-        'ignores an $neighbourSeries series marker under an inside label wholly on its own: $placed',
-        ({ neighbourSeries, placed }) => {
+        {
+            case: 'a series painted under, declared after',
+            own: 1,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: true,
+        },
+        {
+            case: 'a series painted over, declared before',
+            own: 1,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: 2,
+            first: true,
+            placed: false,
+        },
+        {
+            case: 'a series of unknown order',
+            own: 1,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: undefined,
+            first: true,
+            placed: false,
+        },
+        { case: 'a series of equal order', own: 1, width: 16, x: 108, size: 20, other: 1, first: true, placed: false },
+        {
+            case: 'a coincident marker painted under',
+            own: 1,
+            width: 16,
+            x: 100,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: true,
+        },
+        {
+            case: 'a coincident marker painted over',
+            own: 1,
+            width: 16,
+            x: 100,
+            size: 20,
+            other: 2,
+            first: true,
+            placed: false,
+        },
+        {
+            case: 'a marker under, wholly within the own one',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 4,
+            other: 0,
+            first: false,
+            placed: true,
+        },
+        {
+            case: 'a marker under, neither within',
+            own: 1,
+            width: 30,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: false,
+        },
+        {
+            case: 'a coincident marker of the same series',
+            own: 1,
+            width: 16,
+            x: 100,
+            size: 20,
+            other: 'own',
+            first: false,
+            placed: true,
+        },
+        {
+            case: 'a series under, its own of unknown order',
+            own: undefined,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: false,
+        },
+        {
+            case: 'an external marker obstacle',
+            own: 1,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: 'external',
+            first: false,
+            placed: false,
+        },
+    ] as const)(
+        'with an inside label beside $case, places it: $placed',
+        ({ own: ownOrder, width, x, size, other, first, placed }) => {
             const own: PointLabelDatum = {
                 point: { x: 100, y: 100, size: 20 },
-                label: { text: 'I', width: 16, height: 10 },
+                label: { text: 'I', width, height: 10 },
                 anchor: { x: 0.5, y: 0.5 },
                 placement: 'inside',
                 placements: ['inside'],
@@ -386,17 +486,67 @@ describe('placeLabels', () => {
                 alwaysShow: false,
             };
             const neighbour: PointLabelDatum = {
-                point: { x: 108, y: 100, size: 20 },
+                point: { x, y: 100, size },
                 label: { text: 'N', width: 1, height: 1 },
                 anchor: undefined,
                 placement: 'bottom',
             };
-            const ownEntry: [string, SeriesLabels] = ['own', seriesLabels([own])];
-            const neighbourEntry: [string, SeriesLabels] = ['neighbour', seriesLabels([neighbour])];
-            const data = new Map(
-                neighbourSeries === 'earlier' ? [neighbourEntry, ownEntry] : [ownEntry, neighbourEntry]
-            );
-            const labels = placeLabels(data, bounds, 5).get('own')!;
+            const ownEntry: [string, SeriesLabels] = [
+                'own',
+                { ...seriesLabels(other === 'own' ? [own, neighbour] : [own]), paintOrder: ownOrder },
+            ];
+            const paintOrder = typeof other === 'number' ? other : undefined;
+            const otherEntry: [string, SeriesLabels] = ['other', { ...seriesLabels([neighbour]), paintOrder }];
+            const solo = other === 'own' || other === 'external';
+            const ordered = first ? [otherEntry, ownEntry] : [ownEntry, otherEntry];
+            const entries = solo ? [ownEntry] : ordered;
+            const external: LabelObstacle[] =
+                other === 'external'
+                    ? [
+                          {
+                              kind: 'circle',
+                              box: { x: x - size / 2, y: 100 - size / 2, width: size, height: size },
+                              cx: x,
+                              cy: 100,
+                              r: size / 2,
+                              category: 'marker',
+                          },
+                      ]
+                    : [];
+            const labels = placeLabels(new Map(entries), bounds, 5, external).get('own')!;
+            expect(labels.some((l) => l.datum === own)).toBe(placed);
+        }
+    );
+
+    it.each([
+        { threshold: 0, placed: true },
+        { threshold: 4, placed: false },
+    ])(
+        'tests an inside label grown by threshold $threshold against a marker painted under its own: placed $placed',
+        ({ threshold, placed }) => {
+            const own: PointLabelDatum = {
+                point: { x: 100, y: 100, size: 20 },
+                label: { text: 'I', width: 16, height: 8 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: ['inside'],
+                gap: 0,
+                alwaysShow: false,
+            };
+            const under: PointLabelDatum = {
+                point: { x: 118, y: 100, size: 20 },
+                label: { text: 'N', width: 1, height: 1 },
+                anchor: undefined,
+                placement: 'bottom',
+            };
+            const labels = placeLabels(
+                new Map([
+                    ['own', { ...seriesLabels([own], { threshold }), paintOrder: 1 }],
+                    ['under', { ...seriesLabels([under]), paintOrder: 0 }],
+                ]),
+                bounds,
+                5
+            ).get('own')!;
             expect(labels.some((l) => l.datum === own)).toBe(placed);
         }
     );
@@ -3471,11 +3621,6 @@ function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
     return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
 
-function clampAxisOracle(pos: number, size: number, min: number, extent: number): number {
-    if (size > extent) return pos;
-    return Math.min(Math.max(pos, min), min + extent - size);
-}
-
 function orderKeepFirstOracle(data: Map<string, SeriesLabels>): [string, SeriesLabels][] {
     const hides = (e: SeriesLabels) => e.defaults?.alwaysShow === false || e.datums.some((d) => d.alwaysShow === false);
     const entries = [...data.entries()];
@@ -3502,11 +3647,15 @@ function placePositionedLabelsOracle(
                 const region = c.region ?? bounds;
                 let { x, y } = c.box;
                 const { width: cw, height: ch } = c.box;
+                let contained: boolean;
                 if (c.region != null && c.flushToRegion !== false) {
-                    x = clampAxisOracle(x, cw, region.x, region.width);
-                    y = clampAxisOracle(y, ch, region.y, region.height);
+                    // Flushed, a box no bigger than its region lands inside it, at the nearest point to its offer.
+                    contained = cw <= region.width && ch <= region.height;
+                    x = Math.min(Math.max(x, region.x), region.x + region.width - cw);
+                    y = Math.min(Math.max(y, region.y), region.y + region.height - ch);
+                } else {
+                    contained = boxContains(region, x, y, cw, ch);
                 }
-                const contained = boxContains(region, x, y, cw, ch);
                 const blocked = obstacles.some(
                     (o) => !obstacleExcludedOracle(o, d) && boxCollides(o.box, x, y, cw, ch)
                 );
@@ -3589,7 +3738,7 @@ describe('placeLabels (positioned candidates)', () => {
         for (let seed = 1; seed <= 12; seed++) {
             const data = makePositionedFixture(seriesCount, 9, bounds, seed);
             const placed = placeLabels(data, bounds, 5);
-            expect(normalise(placed)).toEqual(normalise(placePositionedLabelsOracle(data, bounds)));
+            expect(normalise(placed, 6)).toEqual(normalise(placePositionedLabelsOracle(data, bounds), 6));
             for (const [id, labels] of placed) {
                 placedCount += labels.length;
                 droppedCount += (data.get(id)?.datums.length ?? 0) - labels.length;
@@ -3600,10 +3749,18 @@ describe('placeLabels (positioned candidates)', () => {
         expect(droppedCount).toBeGreaterThan(0);
     });
 
-    it.each([
-        ['falls through when it straddles the edge of another bar overlapping its own', 160, 202],
-        ['stays on its own bar when it lies wholly inside another bar overlapping it', 100, 150],
-    ])('a bar label %s', (_, foreignTop, expectedY) => {
+    it.each<[string, BoxBounds, number]>([
+        [
+            'falls through when it straddles the edge of another bar overlapping its own',
+            { x: 0, y: 160, width: 50, height: 40 },
+            202,
+        ],
+        [
+            'stays on its own bar when it lies wholly inside another bar overlapping it',
+            { x: -5, y: 140, width: 60, height: 60 },
+            150,
+        ],
+    ])('a bar label %s', (_, foreignBox, expectedY) => {
         const ownBox = { x: 0, y: 100, width: 50, height: 100 };
         const label = buildBarPositionedLabelDatum(
             'label',
@@ -3619,15 +3776,65 @@ describe('placeLabels (positioned candidates)', () => {
             { marker: true, label: true, shape: true },
             0
         );
-        const foreignBar: LabelObstacle = {
-            kind: 'rect',
-            category: 'shape',
-            box: { x: 0, y: foreignTop, width: 50, height: 200 - foreignTop },
-        };
+        const foreignBar: LabelObstacle = { kind: 'rect', category: 'shape', box: foreignBox };
 
         const [labels] = placeLabels(new Map([['s', seriesLabels([label])]]), bounds, 5, [foreignBar]).values();
 
         expect(labels.map(({ y }) => y)).toEqual([expectedY]);
+    });
+
+    it('flushes a candidate inside its region on both edges, whatever the rounding', () => {
+        const mins = [0.1, 321.8701364108688, -17.3, 1e6 + 0.3, 57.123456789];
+        const extents = [78.55700019214163, 0.3, 33.33, 123.456789, 7.7];
+        const sizeRatios = [1, 0.999999, 0.2827, 0.5, 0.123456789, 22.206326980634202 / 78.55700019214163];
+        const escaped: string[] = [];
+        for (const min of mins) {
+            for (const extent of extents) {
+                for (const ratio of sizeRatios) {
+                    const size = extent * ratio;
+                    for (const x of [min - extent, min + extent]) {
+                        const region = { x: min, y: 0, width: extent, height: 100 };
+                        const label = buildBarPositionedLabelDatum(
+                            'label',
+                            size,
+                            10,
+                            [{ box: { x, y: 10, width: size, height: 10 }, region }],
+                            {} as BarLabelTarget,
+                            region,
+                            false,
+                            { marker: true, label: true, shape: true },
+                            0
+                        );
+                        const wide = { x: min - 2 * extent, y: -10, width: 4 * extent + 1, height: 120 };
+                        const [placed] = [...placeLabels(new Map([['s', seriesLabels([label])]]), wide, 5).values()][0];
+                        if (placed == null || !boxContains(region, placed.x, placed.y, size, 10)) {
+                            escaped.push(`min ${min} extent ${extent} size ${size} from ${x}: ${placed?.x}`);
+                        }
+                    }
+                }
+            }
+        }
+        expect(escaped).toEqual([]);
+    });
+
+    it('a bar label overhanging its own bar stays on it when that bar is among the obstacles', () => {
+        const ownBox = { x: 100, y: 100, width: 50, height: 100 };
+        const label = buildBarPositionedLabelDatum(
+            'label',
+            60,
+            16,
+            [{ box: { x: 95, y: 150, width: 60, height: 16 } }, { box: { x: 95, y: 202, width: 60, height: 16 } }],
+            {} as BarLabelTarget,
+            ownBox,
+            false,
+            { marker: true, label: true, shape: true },
+            0
+        );
+        const ownBar: LabelObstacle = { kind: 'rect', category: 'shape', box: { ...ownBox } };
+
+        const [labels] = placeLabels(new Map([['s', seriesLabels([label])]]), bounds, 5, [ownBar]).values();
+
+        expect(labels.map(({ y }) => y)).toEqual([150]);
     });
 
     it('matches the brute-force oracle with cross-series obstacles', () => {
@@ -3639,9 +3846,9 @@ describe('placeLabels (positioned candidates)', () => {
         let shapeBlocked = false;
         for (let seed = 1; seed <= 12; seed++) {
             const data = makePositionedFixture(2, 9, bounds, seed);
-            const placed = normalise(placeLabels(data, bounds, 5, obstacles));
-            expect(placed).toEqual(normalise(placePositionedLabelsOracle(data, bounds, obstacles)));
-            const withoutShape = normalise(placeLabels(data, bounds, 5, obstacles.slice(1)));
+            const placed = normalise(placeLabels(data, bounds, 5, obstacles), 6);
+            expect(placed).toEqual(normalise(placePositionedLabelsOracle(data, bounds, obstacles), 6));
+            const withoutShape = normalise(placeLabels(data, bounds, 5, obstacles.slice(1)), 6);
             shapeBlocked ||= JSON.stringify(placed) !== JSON.stringify(withoutShape);
         }
         expect(shapeBlocked).toBe(true);

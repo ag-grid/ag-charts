@@ -435,6 +435,13 @@ export interface SeriesLabels {
     readonly resolveCandidateStyle?: CandidateStyleResolver;
     /** The {@link PointLabelDatum.positionedCandidates} counterpart of {@link resolveCandidateStyle}. */
     readonly resolveCandidate?: PositionedCandidateResolver;
+    /** Rank of the series in the at-rest paint order, higher drawn over lower; unset when unknown. */
+    readonly paintOrder?: number;
+}
+
+interface PlacementEntry extends SeriesLabels {
+    /** Position of the series in the solve, identifying the owner of a marker obstacle. */
+    readonly seriesIndex: number;
 }
 
 /** Whether any label opts in to avoiding axis labels, so a solve without one can skip gathering them. */
@@ -524,8 +531,10 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
-          /** Draw order of the series owning a marker obstacle; unset for external obstacles. */
-          readonly seriesOrder?: number;
+          /** Position in the solve of the series owning a marker obstacle; unset for external obstacles. */
+          readonly seriesIndex?: number;
+          /** The owning series' {@link SeriesLabels.paintOrder}; unset or NaN when unknown. */
+          readonly paintOrder?: number;
       }
     | {
           readonly kind: 'rect';
@@ -560,12 +569,21 @@ export type LabelObstacle =
 /** External obstacles, or a function producing them so a solve that never queries the index skips gathering. */
 export type LabelObstacles = readonly LabelObstacle[] | (() => readonly LabelObstacle[]);
 
+type CircleObstacle = Extract<LabelObstacle, { kind: 'circle' }>;
+
 /** True when every corner of `box` lies within the circle; a non-positive radius contains nothing. */
 function boxWithinCircle(box: BoxBounds, cx: number, cy: number, r: number): boolean {
     if (r <= 0) return false;
     const dx = Math.max(Math.abs(box.x - cx), Math.abs(box.x + box.width - cx));
     const dy = Math.max(Math.abs(box.y - cy), Math.abs(box.y + box.height - cy));
     return dx * dx + dy * dy <= r * r;
+}
+
+/** True when the circle at `cx`, `cy` of radius `r` lies wholly within the outer one. */
+function circleWithinCircle(cx: number, cy: number, r: number, outerCx: number, outerCy: number, outerR: number) {
+    if (outerR <= 0 || r > outerR) return false;
+    const reach = outerR - r;
+    return (cx - outerCx) ** 2 + (cy - outerCy) ** 2 <= reach * reach;
 }
 
 function circleOverlapsBox(cx: number, cy: number, r: number, x: number, y: number, w: number, h: number): boolean {
@@ -709,7 +727,8 @@ interface PooledCircleObstacle {
     cy: number;
     r: number;
     category: ObstacleCategory;
-    seriesOrder: number;
+    seriesIndex: number;
+    paintOrder: number;
 }
 
 // Mutable placed-label obstacle pooled across passes, mirroring markerPool.
@@ -753,8 +772,9 @@ let candidatePlacement: LabelPlacement | undefined;
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
-// Draw order of the candidate's series, matching the `seriesOrder` stamped on its marker obstacles.
-let candidateSeriesOrder = 0;
+// The candidate's series position and paint order, matching what is stamped on its marker obstacles.
+let candidateSeriesIndex = -1;
+let candidatePaintOrder = Number.NaN;
 // The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so an
 // inside label never collides with the shape it sits on. `undefined` disables the gate.
 let candidateOwnBox: BoxBounds | undefined;
@@ -940,6 +960,23 @@ function straddlesForeignShape(o: LabelObstacle): boolean {
     return !boxContains(o.box, x, y, width, height);
 }
 
+/**
+ * True for the `inside` candidate's own marker, which it is centred on, or for a marker of a series
+ * painted under its own where the own marker covers everything the label could touch.
+ */
+function markerCoveredByOwn(o: CircleObstacle): boolean {
+    const cx = candidateOwnMarkerCx;
+    const cy = candidateOwnMarkerCy;
+    const r = candidateOwnMarkerR;
+    if (o.seriesIndex === candidateSeriesIndex && o.cx === cx && o.cy === cy && o.r === r) return true;
+    const paintOrder = o.paintOrder ?? Number.NaN;
+    if (paintOrder < candidatePaintOrder) {
+        const testBox = candidateTestBox() ?? candidateBox;
+        return boxWithinCircle(testBox, cx, cy, r) || circleWithinCircle(o.cx, o.cy, o.r, cx, cy, r);
+    }
+    return false;
+}
+
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
     if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
@@ -950,17 +987,8 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     }
 
     const category = o.category ?? 'shape';
-    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
-    // directional labels fall through to the circle test, which measures their real clearance.
-    // Nor with an earlier series' marker while it lies wholly on its own, which is drawn over that overlap.
-    if (
-        candidatePlacement === 'inside' &&
-        category === 'marker' &&
-        o.kind === 'circle' &&
-        ((o.cx === candidateOwnMarkerCx && o.cy === candidateOwnMarkerCy && o.r === candidateOwnMarkerR) ||
-            ((o.seriesOrder ?? Infinity) < candidateSeriesOrder &&
-                boxWithinCircle(candidateBox, candidateOwnMarkerCx, candidateOwnMarkerCy, candidateOwnMarkerR)))
-    ) {
+    // Directional labels fall through to the circle test, which measures their real clearance.
+    if (candidatePlacement === 'inside' && category === 'marker' && o.kind === 'circle' && markerCoveredByOwn(o)) {
         return true;
     }
 
@@ -1303,11 +1331,9 @@ function markerCentreOf(d: PointLabelDatum) {
 }
 
 /** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
-function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
+function insertMarkerObstacles(data: Map<string, PlacementEntry>) {
     let markerCount = 0;
-    let seriesOrder = 0;
-    for (const { datums } of data.values()) {
-        seriesOrder++;
+    for (const { datums, seriesIndex, paintOrder = Number.NaN } of data.values()) {
         for (const d of datums) {
             const size = markerSizeOf(d);
             if (size <= 0) continue;
@@ -1323,12 +1349,14 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
                     cy: 0,
                     r: 0,
                     category: 'marker',
-                    seriesOrder: 0,
+                    seriesIndex: -1,
+                    paintOrder: Number.NaN,
                 };
                 markerPool.push(obstacle);
             }
             markerCount++;
-            obstacle.seriesOrder = seriesOrder;
+            obstacle.seriesIndex = seriesIndex;
+            obstacle.paintOrder = paintOrder;
             obstacle.cx = cx;
             obstacle.cy = cy;
             obstacle.r = r;
@@ -1414,7 +1442,7 @@ function noLabelQueriesIndex(data: Map<string, SeriesLabels>): boolean {
 }
 
 /** Resets the shared obstacle index and populates it with external obstacles and marker circles. */
-function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: LabelObstacles, bounds: BoxBounds) {
+function buildObstacleIndex(data: Map<string, PlacementEntry>, obstacleSource: LabelObstacles, bounds: BoxBounds) {
     const obstacles = typeof obstacleSource === 'function' ? obstacleSource() : obstacleSource;
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
     for (const o of obstacles) {
@@ -1445,15 +1473,16 @@ export function placeLabels(
     if (!hasAnyLabels(data)) return result;
 
     // Larger markers claim their placement first, so smaller ones steer clear of them.
-    const placementData = new Map(
-        Array.from(data.entries(), ([k, entry], index) => [
+    const placementData = new Map<string, PlacementEntry>(
+        Array.from(data.entries(), ([k, entry], seriesIndex) => [
             k,
             {
-                order: index + 1,
                 datums: entry.datums.toSorted((a, b) => markerSizeOf(b) - markerSizeOf(a)),
                 defaults: entry.defaults,
                 resolveCandidateStyle: entry.resolveCandidateStyle,
                 resolveCandidate: entry.resolveCandidate,
+                paintOrder: entry.paintOrder,
+                seriesIndex,
             },
         ])
     );
@@ -1467,12 +1496,12 @@ export function placeLabels(
 
     try {
         let labelObstacleCount = 0;
-        for (const [seriesId, { order, datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
-            placementData
-        )) {
+        for (const [seriesId, entry] of orderKeepFirst(placementData)) {
+            const { datums, defaults, resolveCandidateStyle, resolveCandidate } = entry;
             const labels: PlacedLabel[] = [];
             if (datums[0]?.label == null) continue;
-            candidateSeriesOrder = order;
+            candidateSeriesIndex = entry.seriesIndex;
+            candidatePaintOrder = entry.paintOrder ?? Number.NaN;
             for (let index = 0, ln = datums.length; index < ln; index++) {
                 const d = datums[index];
                 // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
@@ -3162,8 +3191,11 @@ function singleOrientationOf(d: PointLabelDatum): AgChartLabelOrientation | unde
 /** Slides a `size`-long span starting at `pos` flush inside `[min, min+extent]`; unchanged when it is too big to fit. */
 function clampAxis(pos: number, size: number, min: number, extent: number): number {
     if (size > extent) return pos;
-    // `min + extent - size` can round below `min` when the box exactly fills the extent.
-    return Math.min(Math.max(pos, min), Math.max(min, min + extent - size));
+    const end = min + extent;
+    let far = end - size;
+    // Rounding can leave `far + size` past `end`: step down until `boxContains` holds, but never below `min`.
+    while (far + size > end && far > min) far -= Math.max(Math.abs(far) * Number.EPSILON, Number.MIN_VALUE);
+    return Math.min(Math.max(pos, min), Math.max(min, far));
 }
 
 /** Total px a `w`×`h` box at `(x, y)` extends beyond `region` across all four sides; `0` when contained. */

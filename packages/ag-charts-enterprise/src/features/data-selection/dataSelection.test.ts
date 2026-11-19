@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
     AgBubbleSeriesOptions,
     type AgCartesianChartOptions,
+    type AgCartesianSeriesOptions,
     type AgChartInstance,
     type AgChartLabelStylerParams,
     type AgChartOptions,
@@ -27,7 +28,10 @@ import {
     getSeriesAggregationInternals,
     getSeriesAt,
     getSeriesContextNodeData,
+    getSeriesPaintOrder,
     getSeriesSelectionNodes,
+    getVisibleLabelNodes,
+    hoverLegendItem,
     isTooltipVisible,
     keyDownAction,
     mouseDownAction,
@@ -987,6 +991,89 @@ describe('DataSelection', () => {
 
             chart.clearSelection();
             expect([...chart.getSelection()]).toHaveLength(0);
+        });
+    });
+
+    describe('labels over coincident markers', () => {
+        const scatter = (id: string): AgCartesianSeriesOptions => ({
+            id,
+            type: 'scatter',
+            xKey: 'x',
+            yKey: 'y',
+            yName: id,
+            labelKey: id,
+            size: 40,
+            label: { enabled: true, placement: 'inside' },
+            selection: { enabled: true },
+        });
+
+        const coincidentOptions = (rows: number): AgCartesianChartOptions => ({
+            data: Array.from({ length: rows }, (_, index) => ({
+                x: 10 + 20 * index,
+                y: 20 + 20 * index,
+                A: 'A',
+                B: 'B',
+            })),
+            series: [scatter('A'), scatter('B')],
+            selection: { enabled: true },
+        });
+
+        const changeHighlight = async () => {
+            await hoverLegendItem(chart, 1);
+            await mouseMoveAction(1, 1)(chart);
+            await waitForChartStability(chart);
+        };
+
+        const expectAtRest = (drawn: string[], rows = 2) => {
+            const order = getSeriesPaintOrder(chart);
+            expect(order.drawn).toEqual(drawn);
+            expect(order.drawn.map((id) => order.ranks.get(id))).toEqual([0, 1]);
+            const upper = drawn[1];
+            expect([0, 1].flatMap((index) => getVisibleLabelNodes(chart, index).map((node) => node.text))).toEqual(
+                Array(rows).fill(upper)
+            );
+        };
+
+        const selectLower = () =>
+            setChartSelectionArray([{ seriesId: 'A', itemId: deproxy(chart).series[0].data!.getItemIdFromIndex(0) }]);
+
+        it.each([
+            { clear: 'cleared', rows: 2, apply: () => clearChartSelection() },
+            {
+                clear: 'dropped by a data update',
+                rows: 3,
+                apply: () => chart.update(prepareEnterpriseTestOptions(coincidentOptions(3))),
+            },
+        ])(
+            'applies the raise of a selection that is later $clear to the series and its labels together',
+            async ({ rows, apply }) => {
+                chart = await createEnterpriseChart(coincidentOptions(2));
+                expectAtRest(['A', 'B']);
+
+                await selectLower();
+                expectAtRest(['A', 'B']);
+
+                await changeHighlight();
+                expectAtRest(['B', 'A']);
+
+                await apply();
+                await waitForChartStability(chart);
+                expectAtRest(['B', 'A'], rows);
+
+                await changeHighlight();
+                expectAtRest(['A', 'B'], rows);
+            }
+        );
+
+        it('applies the raise of a series selected while highlighted once the highlight ends', async () => {
+            chart = await createEnterpriseChart(coincidentOptions(2));
+
+            await hoverLegendItem(chart, 0);
+            await selectLower();
+            await mouseMoveAction(1, 1)(chart);
+            await waitForChartStability(chart);
+
+            expectAtRest(['B', 'A']);
         });
     });
 

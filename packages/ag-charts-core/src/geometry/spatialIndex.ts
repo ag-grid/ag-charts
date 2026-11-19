@@ -30,11 +30,13 @@ export class SpatialIndex<R> {
         if (area > MAX_CELLS * clampedCellSize * clampedCellSize) {
             clampedCellSize = Math.sqrt(area / MAX_CELLS);
         }
+        // Non-finite bounds index into one cell: unpruned, but still correct as the visitor makes the exact test.
+        const finite = Number.isFinite(bounds.x + bounds.y + bounds.width + bounds.height);
         this.invCellSize = 1 / clampedCellSize;
-        this.originX = bounds.x;
-        this.originY = bounds.y;
-        this.cols = Math.max(1, Math.ceil(bounds.width / clampedCellSize));
-        this.rows = Math.max(1, Math.ceil(bounds.height / clampedCellSize));
+        this.originX = finite ? bounds.x : 0;
+        this.originY = finite ? bounds.y : 0;
+        this.cols = finite ? Math.max(1, Math.ceil(bounds.width / clampedCellSize)) : 1;
+        this.rows = finite ? Math.max(1, Math.ceil(bounds.height / clampedCellSize)) : 1;
 
         const count = this.cols * this.rows;
         const clearTo = Math.max(this.cellCount, count);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { BoxBounds } from '../../geometry/boxBounds';
-import { boxOverlapsSector, clockwiseAngles, isBoxInSector, isPointInSector } from './sector';
+import { boxOverlapsSector, clockwiseAngles, isBoxInSector, isPointInSector, sectorPointTest } from './sector';
 
 const TAU = 2 * Math.PI;
 
@@ -52,6 +52,36 @@ function sweepOf(startAngle: number, endAngle: number) {
     const angles = clockwiseAngles(startAngle, endAngle);
     return angles.endAngle - angles.startAngle;
 }
+
+describe('isPointInSector and sectorPointTest', () => {
+    const at = (radius: number, angle: number): [number, number] => [
+        radius * Math.cos(angle),
+        radius * Math.sin(angle),
+    ];
+    const ring = (startAngle: number, endAngle: number, innerRadius = 50, outerRadius = 100) => ({
+        startAngle,
+        endAngle,
+        innerRadius,
+        outerRadius,
+    });
+
+    it.each<[string, Sector, [number, number], boolean]>([
+        ['inside a plain sector', ring(0, Math.PI / 2), at(75, Math.PI / 4), true],
+        ['beyond the outer radius', ring(0, Math.PI / 2), at(120, Math.PI / 4), false],
+        ['inside the hole', ring(0, Math.PI / 2), at(20, Math.PI / 4), false],
+        ['outside the angles', ring(0, Math.PI / 2), at(75, Math.PI), false],
+        ['on a sector with equal angles', ring(1, 1), at(75, 1), false],
+        ['between swapped radii', ring(0, Math.PI / 2, 100, 50), at(75, Math.PI / 4), true],
+        ['outside swapped radii', ring(0, Math.PI / 2, 100, 50), at(120, Math.PI / 4), false],
+        ['anywhere on a full circle', ring(0, TAU), at(75, 2.5), true],
+        ['across the wrap of a sector crossing zero', ring((5 * Math.PI) / 3, TAU + Math.PI / 3), at(75, 0), true],
+        ['opposite a sector crossing zero', ring((5 * Math.PI) / 3, TAU + Math.PI / 3), at(75, Math.PI), false],
+        ['inside a sector with negative angles', ring(-Math.PI / 2, -Math.PI / 4), at(75, -Math.PI / 3), true],
+    ])('a point %s', (_, sector, [x, y], inside) => {
+        expect(isPointInSector(x, y, sector)).toBe(inside);
+        expect(sectorPointTest(sector)(x, y)).toBe(inside);
+    });
+});
 
 describe('clockwiseAngles', () => {
     it('treats a 2π − ε sweep as a full circle so the Sunburst centre sector is not collapsed to zero', () => {
