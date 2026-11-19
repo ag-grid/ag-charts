@@ -213,7 +213,7 @@ class InternalMarker<D = any> extends Path<D> {
         if (!path) return;
 
         const sharedPath = this._sharedPath;
-        if (sharedPath != null && path === sharedPath.getPath2D()) {
+        if (sharedPath?.getPath2D() === path) {
             const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
             path = sharedPath.getStrokePath2D(this.__strokeWidth + this.shadowStrokeGrowth, pixelRatio);
         }
