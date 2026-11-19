@@ -1,6 +1,6 @@
-import type { AgAnnotationLineStyleType, FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
+import type { FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
 import { FONT_SIZE, generateUUID, isObject } from 'ag-charts-core';
-import type { Padding } from 'ag-charts-types';
+import type { AgLineDashName, Padding, PixelSize } from 'ag-charts-types';
 
 import type {
     AnnotationOptionsColorPickerType,
@@ -27,9 +27,8 @@ export interface StrokeFields {
 }
 
 export interface LineStyleFields {
-    lineDash?: number[];
+    lineDash?: PixelSize[] | AgLineDashName;
     lineDashOffset?: number;
-    lineStyle?: AgAnnotationLineStyleType;
 }
 
 export interface FontFields {
