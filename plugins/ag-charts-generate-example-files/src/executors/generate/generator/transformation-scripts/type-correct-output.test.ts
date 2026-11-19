@@ -364,17 +364,27 @@ AgCharts.create(options2);
         expect(otherChart).not.toContain('this.options1');
     });
 
-    test('React and Vue declare the spread chart before the chart that spreads it', async () => {
-        const { react, vue } = await generate(MUTUAL, TWO_CHARTS_HTML);
-        for (const output of [react, vue]) {
-            for (const name of ['MyChart', 'OtherChart']) {
-                const body = output.slice(output.indexOf(`const ${name} =`));
+    test.each([
+        ['react', 'const root ='],
+        ['vue', 'const ChartExample ='],
+    ] as const)(
+        '%s declares the spread chart before the chart that spreads it, in each chart component',
+        async (framework, after) => {
+            const output = (await generate(MUTUAL, TWO_CHARTS_HTML))[framework];
+            const starts = ['const MyChart =', 'const OtherChart =', after].map((marker) => output.indexOf(marker));
+            expect(
+                starts.every((at) => at > -1),
+                `${framework} has both chart components`
+            ).toBe(true);
+
+            for (const [i, name] of ['MyChart', 'OtherChart'].entries()) {
+                const body = output.slice(starts[i], starts[i + 1]);
                 const declaredAt = (chart: string) => body.search(new RegExp(`const \\[?${chart}\\b`));
-                expect(declaredAt('options1')).toBeGreaterThan(-1);
-                expect(declaredAt('options1')).toBeLessThan(declaredAt('options2'));
+                expect(declaredAt('options1'), `${name} declares options1`).toBeGreaterThan(-1);
+                expect(declaredAt('options2'), `${name} declares options2`).toBeGreaterThan(declaredAt('options1'));
             }
         }
-    });
+    );
 
     test('Angular does not read a dependency chart as a member of the component', async () => {
         const output = (await generate(MUTUAL, TWO_CHARTS_HTML)).angular;
