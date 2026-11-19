@@ -55,10 +55,9 @@ const TOOLBAR_BUTTON_OPTIONS: Record<
 };
 
 // The toolbar labels these with the selected annotation's stroke width or font size whenever they are shown.
-const LIBRARY_LABELLED_BUTTONS = new Set<AgAnnotationOptionsToolbarButtonValue | AgAnnotationOptionsToolbarSwitchValue>([
-    'line-stroke-width',
-    'text-size',
-]);
+const LIBRARY_LABELLED_BUTTONS = new Set<AgAnnotationOptionsToolbarButtonValue | AgAnnotationOptionsToolbarSwitchValue>(
+    ['line-stroke-width', 'text-size']
+);
 interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
