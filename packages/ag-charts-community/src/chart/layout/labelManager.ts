@@ -3,7 +3,9 @@ import {
     type BoxBounds,
     type CandidateStyleResolver,
     type LabelObstacle,
+    type MarkerCoverRectResolver,
     type MarkerCoverage,
+    type MarkerOutlineResolver,
     type NormalisedPaddingOptions,
     type PlacedLabel,
     type PointLabelDatum,
@@ -45,6 +47,10 @@ export interface PlacedLabelSource<TLabel = unknown> extends LabelSource {
     getLabelCandidateResolver?(): PositionedCandidateResolver | undefined;
     /** What each of its markers covers and draws at rest; unset when unknown. */
     getLabelMarkerCoverage?(): MarkerCoverage | undefined;
+    /** Measures a marker's cover rectangle that its label datum was stamped without. */
+    getLabelMarkerCoverRect?(): MarkerCoverRectResolver | undefined;
+    /** Flattens the outline of a custom marker that its label datum was stamped without. */
+    getLabelMarkerOutline?(): MarkerOutlineResolver | undefined;
     /** Returns `true` when the placement invalidates the layout it was solved in. */
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[], seriesRect: BBox): boolean | void;
     /** Freezes what the re-layout for an invalidating placement must not decide again. */
@@ -68,6 +74,8 @@ function seriesLabels(source: PlacedLabelSource, datums: PointLabelDatum[], pain
         resolveCandidate: source.getLabelCandidateResolver?.(),
         paintOrder,
         markerCoverage: source.getLabelMarkerCoverage?.(),
+        resolveMarkerCoverRect: source.getLabelMarkerCoverRect?.(),
+        resolveMarkerOutline: source.getLabelMarkerOutline?.(),
     };
 }
 

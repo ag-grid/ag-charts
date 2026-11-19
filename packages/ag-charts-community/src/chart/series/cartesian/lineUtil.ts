@@ -17,7 +17,7 @@ import {
     spanRange,
     stepPoints,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgMarkerShape, AgNumericValue } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
@@ -63,6 +63,9 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
     readonly labelText?: NormalisedTextOrSegments;
+    /** The shape and size an inside-only label was fitted to, when not those configured. */
+    insideFitShape?: AgMarkerShape;
+    insideFitSize?: number;
     // WARNING! This selected-state belongs to cross-filtering, an undocumented and unsupported feature;
     // it is unrelated to the data selection API in the options contract. Use with extreme caution.
     readonly crossFilterSelected: boolean | undefined;

@@ -338,7 +338,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     private nodeDatumContext?: RangeAreaSeriesNodeDatumContext;
     private hideWithSize0 = false;
     private markerNodesPickable = true;
-    private readonly labelMarkers = new LabelMarkerStamps();
+    protected override readonly labelMarkers = new LabelMarkerStamps();
     // Whether the style pass draws a marker for each node of an enabled side.
     private markerNodesDrawn = true;
     private markerSidesDrawn: Record<AgRangeAreaSeriesItemType, boolean> = { low: true, high: true };

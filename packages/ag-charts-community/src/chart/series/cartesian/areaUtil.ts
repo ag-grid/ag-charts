@@ -8,6 +8,7 @@ import type {
     SizedPoint,
 } from 'ag-charts-core';
 import { SpanJoin, isScaleValid, spanRange } from 'ag-charts-core';
+import type { AgMarkerShape } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { SeriesNodeStyleContext } from '../series';
@@ -54,6 +55,9 @@ export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum, M
     readonly point: Readonly<SizedPoint>;
     /** The marker datum of the same point, which carries the style its marker is drawn in. */
     readonly node?: MarkerSelectionDatum;
+    /** The shape and size an inside-only label was fitted to, when not those configured. */
+    insideFitShape?: AgMarkerShape;
+    insideFitSize?: number;
 }
 
 export interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<

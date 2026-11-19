@@ -1,6 +1,7 @@
 import type {
     BoxBounds,
     CandidateStyleResolver,
+    LabelFitDescriptor,
     LabelMeasureContext,
     MeasuredLabel,
     NormalisedPlacedSeriesLabelOptions,
@@ -17,6 +18,7 @@ import {
     cachedTextMeasurer,
     lineHeightAtSize,
     measurePlacedLabel,
+    placedLabelFit,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
     toArray,
@@ -57,6 +59,20 @@ export interface PlacedLabelContext extends LabelMeasureContext {
     /** The series area a directional label must stay inside, unless it may overflow it. */
     readonly labelRegion: BoxBounds | undefined;
 }
+
+/** A label fitted up front to the marker it sits inside, with the shape and size fitted to when not the configured. */
+export interface InsideFittedLabel {
+    label: MeasuredLabel;
+    fit?: LabelFitDescriptor;
+    insideFitShape?: AgMarkerShape;
+    insideFitSize?: number;
+}
+
+/** Refits an inside-only label to the shape its marker is drawn in; see {@link PlacedLabelCartesianSeries}. */
+export type InsideLabelRefit = (
+    datum: InsideFittedLabel,
+    style: { shape?: AgMarkerShape; size?: number } | undefined
+) => void;
 
 /** A marker-anchored placed label's series-constant geometry, plus whether it is drawn at all. */
 export type MarkerLabelContext = PlacedLabelContext & { readonly labelsEnabled: boolean };
@@ -153,6 +169,36 @@ export abstract class PlacedLabelCartesianSeries<
             labelAnchor: Marker.anchor(shape),
             // Inside-only labels ride with their marker, so only directional placements can spill out.
             labelRegion: insideOnly ? undefined : this.resolveLabelPlotRegion(collision),
+        };
+    }
+
+    /**
+     * Refits each label fitted up front to its marker to the shape and size the marker is drawn in, where a styler or
+     * selection draws other than those configured; `undefined` when no label is fitted to its marker.
+     */
+    protected insideLabelRefit(
+        ctx: PlacedLabelContext | undefined,
+        configured: AgMarkerShape | undefined,
+        markerSize: number
+    ): InsideLabelRefit | undefined {
+        const label = this.labelProperty;
+        if (ctx == null || !label.enabled) return undefined;
+        const { insideOnly } = resolveInsidePlacement(toArray(label.placement), configured);
+        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        if (insideFit == null) return undefined;
+        const threshold = label.collision.threshold ?? 0;
+        return (datum, style) => {
+            const shape = style?.shape ?? configured;
+            const size = style?.size ?? markerSize;
+            const text = datum.fit?.text;
+            const fitted =
+                shape === (datum.insideFitShape ?? configured) && size === (datum.insideFitSize ?? markerSize);
+            if (fitted || text == null) return;
+            const policy = boundLabelFit(insideFit, insideMarkerContainer(size, shape, threshold));
+            datum.label = measurePlacedLabel(text, label, ctx, policy);
+            datum.fit = placedLabelFit(text, label, ctx, policy);
+            datum.insideFitShape = shape === configured ? undefined : shape;
+            datum.insideFitSize = size === markerSize ? undefined : size;
         };
     }
 

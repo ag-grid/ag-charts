@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ExtendedPath2D, type RotatableText, Transformable } from 'ag-charts-core';
+import { ExtendedPath2D, type RotatableText, Transformable, markerLabelRect } from 'ag-charts-core';
 import type {
     AgBarSeriesLabelPlacement,
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartLabelOrientation,
     AgHistogramSeriesLabelPlacement,
+    AgMarkerShape,
     AgMarkerShapeFn,
 } from 'ag-charts-types';
 
@@ -2414,6 +2415,100 @@ describe('label collision avoidance', () => {
         });
     });
 
+    // A 100 px marker at (5, 5), and a small marker whose right label is moved to just past the big one's nominal circle.
+    describe('a marker obstacle by the shape it draws', () => {
+        const options = (shape: AgMarkerShape, near: { x: number; y: number }): AgCartesianChartOptions => ({
+            legend: { enabled: false },
+            axes: {
+                x: { position: 'bottom', type: 'number', min: 0, max: 10 },
+                y: { position: 'left', type: 'number', min: 0, max: 10 },
+            },
+            series: [
+                {
+                    type: 'scatter',
+                    data: [{ x: 5, y: 5, label: 'big' }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    yName: 'big',
+                    labelKey: 'label',
+                    shape,
+                    size: 100,
+                    label: { enabled: true, placement: 'bottom' },
+                },
+                {
+                    type: 'scatter',
+                    data: [{ ...near, label: 'near' }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    yName: 'near',
+                    labelKey: 'label',
+                    size: 4,
+                    label: { enabled: true, placement: 'right', collision: { alwaysShow: false } },
+                },
+            ],
+        });
+
+        it.each([
+            { shape: 'square' as const, placed: false },
+            { shape: 'circle' as const, placed: true },
+        ])('keeps a label over the corner a $shape marker would have: $placed', async ({ shape, placed }) => {
+            chart = await createChart(options(shape, { x: 1, y: 1 }));
+            const [big] = getPlacedLabelData(chart, 0);
+            const [near] = getPlacedLabelData(chart, 1);
+            const pxPerX = (big.datum.point.x - near.datum.point.x) / 4;
+            const pxPerY = (big.datum.point.y - near.datum.point.y) / 4;
+            // The label's lower left corner, off its own point, goes 40 px right of and 36 px above the big centre:
+            // 53.8 px out, past its 50 px circle, but inside the square's corner.
+            const offsetX = near.x - near.datum.point.x;
+            const offsetY = near.y + near.height - near.datum.point.y;
+            const target = { x: 5 + (40 - offsetX) / pxPerX, y: 5 + (-36 - offsetY) / pxPerY };
+            await chart.update(prepareTestOptions(options(shape, target)));
+            await waitForChartStability(chart);
+            const moved = getPlacedLabelData(chart, 1);
+            expect(moved.length === 1).toBe(placed);
+        });
+    });
+
+    describe('an inside-only label fitted to the marker drawn', () => {
+        type Drawn = { shape?: 'triangle'; size?: number };
+        const options = (type: 'line' | 'scatter', drawn: Drawn, styled: boolean): AgCartesianChartOptions => {
+            const marker = styled
+                ? { shape: 'square' as const, size: 60, itemStyler: () => drawn }
+                : { shape: drawn.shape ?? ('square' as const), size: drawn.size ?? 60 };
+            const label = { enabled: true, placement: 'inside' as const, formatter: () => 'WWWWWWWWWW' };
+            return {
+                data: [{ x: 5, y: 5 }],
+                axes: {
+                    x: { position: 'bottom', type: 'number', min: 0, max: 10 },
+                    y: { position: 'left', type: 'number', min: 0, max: 10 },
+                },
+                series: [
+                    type === 'line'
+                        ? { type, xKey: 'x', yKey: 'y', marker, label }
+                        : { type, xKey: 'x', yKey: 'y', labelKey: 'y', ...marker, label },
+                ],
+            };
+        };
+
+        it.each([
+            { type: 'line' as const, what: 'shape', drawn: { shape: 'triangle' as const } },
+            { type: 'line' as const, what: 'size', drawn: { size: 30 } },
+            { type: 'scatter' as const, what: 'shape', drawn: { shape: 'triangle' as const } },
+            { type: 'scatter' as const, what: 'size', drawn: { size: 30 } },
+        ])('fits a $type label to the $what a styler draws, not the one configured', async ({ type, drawn }) => {
+            const textOf = async (over: Drawn, styled: boolean) => {
+                await chart.update(prepareTestOptions(options(type, over, styled)));
+                await waitForChartStability(chart);
+                return getPlacedLabelData(chart, 0).map(({ text }) => text);
+            };
+            chart = await createChart(options(type, {}, false));
+            const configured = await textOf({}, false);
+            const expected = await textOf(drawn, false);
+            expect(expected).not.toEqual(configured);
+            expect(await textOf(drawn, true)).toEqual(expected);
+        });
+    });
+
     // A smaller scatter marker sits under the centre of a larger one, overlapping the larger one's inside label.
     describe('inside label over a marker painted under its own', () => {
         const centreLabelPlaced = () => markerUnderLabelPlaced(getPlacedLabelData(chart, 1));
@@ -2438,6 +2533,20 @@ describe('label collision avoidance', () => {
             chart = await createChart(markerUnderOptions(over));
             expect(getPlacedLabelData(chart, 1).length).toBeGreaterThanOrEqual(2);
             expect(centreLabelPlaced()).toBe(placed);
+        });
+
+        it('judges a marker a styler draws as a pin where the pin is drawn, its inside label on the pin', async () => {
+            chart = await createChart(
+                markerUnderOptions({ itemStyler: ({ datum }: any) => (datum.x === 5 ? { shape: 'pin' } : {}) })
+            );
+            // The pin rises off the point: the lower marker's label below clears it, and the inside label rides up on
+            // the pin's inscribed rectangle, clear of the marker under its tip.
+            expect(markerUnderLabelPlaced(getPlacedLabelData(chart, 0))).toBe(true);
+            const label = getPlacedLabelData(chart, 1).find((l) => l.datum.label.text === '5');
+            expect(label).toBeDefined();
+            const { point } = label!.datum;
+            const rect = markerLabelRect('pin');
+            expect(label!.y + label!.height / 2).toBeCloseTo(point.y - point.size / 2 + rect.cy * point.size, 5);
         });
 
         it('drops the label once its fill opacity drops to zero', async () => {
@@ -2561,8 +2670,12 @@ describe('label collision avoidance', () => {
                 async ({ series }) => {
                     chart = await createChart(customShapeOptions(series));
                     const labelData = getSeriesAt(chart).getLabelData();
+                    const coverRectOf = getSeriesAt(chart).getLabelMarkerCoverRect();
                     expect(labelData).toHaveLength(6);
-                    for (const { markerSize = 0, markerCover = 0, markerCoverRect } of labelData) {
+                    expect(coverRectOf).toBeDefined();
+                    for (const datum of labelData) {
+                        const { markerSize = 0, markerCover = 0 } = datum;
+                        const markerCoverRect = coverRectOf?.(datum);
                         expect(markerSize).toBeGreaterThanOrEqual(200);
                         expect(markerCover).toBeGreaterThan(4.9);
                         expect(markerCover).toBeLessThanOrEqual(5);
@@ -2598,6 +2711,45 @@ describe('label collision avoidance', () => {
                 expect(count).toBe(measured);
             });
 
+            // Its centre lies on the left edge, so no cover circle settles a marker painted under it.
+            const offCentreShape = ({ path, x, y, size }: ShapeParams) => {
+                path.rect(x, y - size / 2, size / 2, size);
+            };
+
+            it.each([
+                { case: 'no marker painted under any of them', under: [], measured: 3 },
+                { case: 'a marker painted under one of them', under: [{ x: 4, y: 4 }], measured: 4 },
+            ])(
+                'measures a cover rectangle only for a label that needs one, with $case',
+                async ({ under, measured }) => {
+                    const options = customShapeOptions({
+                        type: 'bubble',
+                        labelKey: 'x',
+                        sizeKey: 's',
+                        minSize: 10,
+                        maxSize: 30,
+                        shape: offCentreShape,
+                    });
+                    const lower = {
+                        type: 'scatter',
+                        data: under,
+                        xKey: 'x',
+                        yKey: 'y',
+                        labelKey: 'x',
+                        size: 10,
+                        label: { enabled: true, placement: 'bottom' },
+                    };
+                    const count = await countMeasuredPaths(async () => {
+                        chart = await createChart({
+                            ...options,
+                            series: [lower, ...(options.series ?? [])],
+                        } as AgCartesianChartOptions);
+                    });
+                    // One path measure for each of the three sizes drawn, and one for each rectangle.
+                    expect(count).toBe(measured);
+                }
+            );
+
             it.each([
                 { placement: 'inside', measured: true },
                 { placement: 'top', measured: false },
@@ -2608,11 +2760,13 @@ describe('label collision avoidance', () => {
                         customShapeOptions({ type: 'scatter', labelKey: 'x', size: 30, shape: squareShape }, placement)
                     );
                     const labelData = getSeriesAt(chart).getLabelData();
+                    const coverRectOf = getSeriesAt(chart).getLabelMarkerCoverRect();
                     expect(labelData).toHaveLength(6);
-                    for (const { markerCover = 0, markerCoverRect, markerReach = Infinity } of labelData) {
+                    for (const datum of labelData) {
+                        const { markerCover = 0, markerReach = Infinity } = datum;
                         expect(markerReach).toBeLessThan(Infinity);
                         expect(markerCover > 0).toBe(measured);
-                        expect(markerCoverRect != null).toBe(measured);
+                        expect(coverRectOf?.(datum) != null).toBe(measured);
                     }
                 }
             );

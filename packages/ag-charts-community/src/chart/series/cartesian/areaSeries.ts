@@ -269,7 +269,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
     public nodeDatumContext: AreaSeriesCreateNodeDatumContext | undefined = undefined;
     private hideWithSize0 = false;
-    private readonly labelMarkers = new LabelMarkerStamps();
+    protected override readonly labelMarkers = new LabelMarkerStamps();
     private selectedOnly = false;
     private markerNodesPickable = true;
     // Whether the style pass draws a marker for each datum it is not told to skip.
@@ -1628,8 +1628,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         // A marker itemStyler, selection or custom shape resolves each marker apart from the label data, so the
         // label's obstacles, gap and anchor are stamped from the style its marker is drawn in at rest.
         const styled = marker.itemStyler != null;
+        const refit = this.insideLabelRefit(this.nodeDatumContext, marker.shape, marker.enabled ? marker.size : 0);
         if (!marker.enabled || (!styled && !this.isSelectionEnabled() && typeof marker.shape !== 'function')) {
             this.labelMarkers.unstamp(labelData);
+            if (refit) for (const datum of labelData) refit(datum, undefined);
             return labelData;
         }
         const memo = this.labelMarkers.fills;
@@ -1656,7 +1658,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                     const node = drawnNode(datum);
                     return node == null ? undefined : (node.style ?? restStyle);
                 },
-                settled
+                settled,
+                refit
             );
         } else {
             const resting = this.restingMarkerStyleOf();
@@ -1666,7 +1669,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                     const node = drawnNode(datum);
                     return node == null ? undefined : resting(node);
                 },
-                settled
+                settled,
+                refit
             );
         }
         return labelData;

@@ -1492,7 +1492,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     }
 
     /** Each series' rank in the at-rest paint order, keyed by series id. */
-    private seriesPaintOrder(): Map<string, number> {
+    seriesPaintOrder(): Map<string, number> {
         const ranks = this.seriesLayerManager.atRestPaintOrder();
         const paintOrder = new Map<string, number>();
         for (const series of this.series) {

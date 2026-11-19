@@ -72,6 +72,7 @@ import {
     type AgBubbleSeriesStylerResult,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgMarkerShape,
     type AgMarkerSizeMode,
     type AgNumericValue,
     type AgScatterSeriesOptionsKeys,
@@ -153,6 +154,7 @@ import {
     resetMarkerFn,
     resetMarkerSelectionsDirect,
 } from './markerUtil';
+import type { InsideFittedLabel } from './placedLabelCartesianSeries';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationDataOf<BubbleScatterSeriesTypes>;
@@ -252,6 +254,9 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     markerCoverRect?: MarkerCoverRect;
     markerReach?: number;
     markerSnap?: number;
+    /** The shape and size an inside-only label was fitted to, when not those configured. */
+    insideFitShape?: AgMarkerShape;
+    insideFitSize?: number;
     readonly placement: LabelPlacement;
     readonly anchor: Point;
     readonly insideOffset: Point | undefined;
@@ -436,7 +441,7 @@ export abstract class BubbleScatterSeries<
 
     private readonly sizeScale = new LinearScale();
     readonly colorScale = new ColorScale();
-    private readonly labelMarkers = new LabelMarkerStamps();
+    protected override readonly labelMarkers = new LabelMarkerStamps();
     private colorScaleValid = false;
 
     private placedLabelData: PlacedLabel<BubbleScatterNodeDatum>[] = [];
@@ -1019,7 +1024,20 @@ export abstract class BubbleScatterSeries<
             }
         );
 
-        const rect = ctx.labelInsideRect;
+        const boundedFit = this.insideMarkerFit(ctx, ctx.labelInsideRect, ctx.labelInsideMask, markerSize);
+        scratch.nodeLabel = measurePlacedLabel(labelText, ctx.label, ctx, boundedFit);
+        // The marker container is per datum, so the fit the engine re-applies per candidate must carry
+        // this datum's bound rather than the series-level policy.
+        scratch.nodeLabelFit = placedLabelFit(labelText, ctx.label, ctx, boundedFit);
+    }
+
+    /** The fit policy bounding an inside-only label to a marker of this shape and size. */
+    private insideMarkerFit(
+        ctx: BubbleSeriesNodeDatumContext,
+        rect: MarkerLabelRect | undefined,
+        mask: FitRegionMask | undefined,
+        markerSize: number
+    ): LabelFit | undefined {
         const threshold = ctx.label.collision.threshold ?? 0;
         const container = rect
             ? {
@@ -1028,29 +1046,48 @@ export abstract class BubbleScatterSeries<
               }
             : undefined;
         const region =
-            ctx.labelInsideMask == null || rect == null
+            mask == null || rect == null
                 ? undefined
                 : insetFitRegion(
-                      maskFitRegion(ctx.labelInsideMask, markerSize, {
-                          x: rect.cx * markerSize,
-                          y: rect.cy * markerSize,
-                      }),
+                      maskFitRegion(mask, markerSize, { x: rect.cx * markerSize, y: rect.cy * markerSize }),
                       threshold,
                       threshold
                   );
         // The marker's outline bounds the width; the inscribed rect still bounds the height, anchors the
         // label at its centre via `labelInsideOffset`, and carries the collision threshold's inset.
-        const boundedFit =
-            region == null
-                ? boundLabelFit(ctx.labelFit, container)
-                : withFitRegion(
-                      boundLabelFit(ctx.labelFit, { width: Infinity, height: container?.height ?? Infinity }),
-                      region
-                  );
-        scratch.nodeLabel = measurePlacedLabel(labelText, ctx.label, ctx, boundedFit);
-        // The marker container is per datum, so the fit the engine re-applies per candidate must carry
-        // this datum's bound rather than the series-level policy.
-        scratch.nodeLabelFit = placedLabelFit(labelText, ctx.label, ctx, boundedFit);
+        return region == null
+            ? boundLabelFit(ctx.labelFit, container)
+            : withFitRegion(
+                  boundLabelFit(ctx.labelFit, { width: Infinity, height: container?.height ?? Infinity }),
+                  region
+              );
+    }
+
+    /** Refits each inside-only label to the shape and size its marker is drawn in, where not those configured. */
+    private insideLabelRefit():
+        | ((
+              datum: InsideFittedLabel & { readonly point: Readonly<SizedPoint>; readonly dilation: number },
+              style: { shape?: AgMarkerShape; size?: number } | undefined
+          ) => void)
+        | undefined {
+        const ctx = this.nodeDatumContext;
+        if (ctx?.labelInsideRect == null) return undefined;
+        const configured = this.marker.shape;
+        return (datum, style) => {
+            // The label is fitted up front to the marker before aggregation dilates it.
+            const markerSize = datum.dilation > 0 ? datum.point.size / Math.sqrt(datum.dilation) : 0;
+            const shape = style?.shape ?? configured;
+            const size = style?.size ?? markerSize;
+            const text = datum.fit?.text;
+            const fitted =
+                shape === (datum.insideFitShape ?? configured) && size === (datum.insideFitSize ?? markerSize);
+            if (fitted || text == null) return;
+            const fit = this.insideMarkerFit(ctx, markerLabelRect(shape), markerRowSpans(shape), size);
+            datum.label = measurePlacedLabel(text, ctx.label, ctx, fit);
+            datum.fit = placedLabelFit(text, ctx.label, ctx, fit);
+            datum.insideFitShape = shape === configured ? undefined : shape;
+            datum.insideFitSize = size === markerSize ? undefined : size;
+        };
     }
 
     public createScratchNodeDatum(): PreparedBubbleNodeDatumState {
@@ -1132,6 +1169,8 @@ export abstract class BubbleScatterSeries<
         mutableNode.area = scratch.area;
         mutableNode.label = scratch.nodeLabel;
         mutableNode.fit = scratch.nodeLabelFit;
+        mutableNode.insideFitShape = undefined;
+        mutableNode.insideFitSize = undefined;
         mutableNode.anchor = ctx.labelAnchor;
         mutableNode.insideOffset = ctx.labelInsideOffset;
         mutableNode.insideSize = ctx.labelInsideSize;
@@ -1160,8 +1199,10 @@ export abstract class BubbleScatterSeries<
         // after node data was built, so each label is stamped from the style its marker is drawn in at rest.
         const styled = marker.itemStyler != null;
         const fillPerDatum = this.isColorScaleValid() && !this.colorScaleFillsPainted(this.restingCoverageStyle().fill);
+        const refit = this.insideLabelRefit();
         if (!styled && !this.isSelectionEnabled() && typeof marker.shape !== 'function' && !fillPerDatum) {
             this.labelMarkers.unstamp(labelData);
+            if (refit) for (const datum of labelData) refit(datum, undefined);
             return labelData;
         }
         const settled = {
@@ -1172,12 +1213,12 @@ export abstract class BubbleScatterSeries<
         };
         if (this.ctx.highlightManager.getActiveHighlight() == null || !this.hasItemStylers()) {
             const restingTemplate = this.restingTemplateStyle();
-            this.labelMarkers.stamp(labelData, (datum) => datum.style ?? restingTemplate(datum), settled);
+            this.labelMarkers.stamp(labelData, (datum) => datum.style ?? restingTemplate(datum), settled, refit);
         } else {
             const ctx = this.markerStylePassCtx(false);
             // As in the style pass, a colorKey writes each datum's fill into its styler style, so none is shared.
             const shared = ctx.colorKey == null ? this.getStyle(HighlightState.None) : undefined;
-            this.labelMarkers.stamp(labelData, (datum) => this.restingMarkerStyle(ctx, shared, datum), settled);
+            this.labelMarkers.stamp(labelData, (datum) => this.restingMarkerStyle(ctx, shared, datum), settled, refit);
         }
         return labelData;
     }

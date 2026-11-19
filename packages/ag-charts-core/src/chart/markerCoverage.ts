@@ -3,11 +3,19 @@ import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
 import { isString } from '../data/typeGuards';
 import { Color } from '../format/color';
 import { isGradientFill, isImageFill, isPatternFill } from '../geometry/fill';
-import { type MarkerCoverRect, type MarkerCoverage, applyStyledMarkerSize } from '../geometry/labelPlacement';
+import {
+    type MarkerCoverRect,
+    type MarkerCoverRectResolver,
+    type MarkerCoverage,
+    type MarkerOutlineResolver,
+    applyStyledMarkerSize,
+} from '../geometry/labelPlacement';
+import { type MarkerOutline, outlineWorstMiter, segmentTouchesBox } from '../geometry/markerOutline';
 import type { ExtendedPath2D } from '../scene/extendedPath2D';
+import type { Point } from '../types/scene';
 import { gridInsideRect, markerLabelRect, pointInPolygons } from './markerLabelRect';
 import { getSharedMarkerPath } from './markerPathCache';
-import { MARKER_SHAPE_GEOMETRY, markerSnapAllowance } from './markerShapes';
+import { MARKER_SHAPE_GEOMETRY, markerShapeAnchor, markerSnapAllowance } from './markerShapes';
 
 /** The only parts of a marker style the pick-inflation resolution reads. */
 export type MarkerStrokePickStyle = { stroke?: unknown; strokeWidth?: number; strokeOpacity?: number };
@@ -133,15 +141,30 @@ export class MarkerFillMemo extends RecentMemo<boolean> implements MarkerFillPai
 interface MarkerPathCoverage {
     /** Px radius of a circle the fill holds; `0` when the centre is unfilled. */
     readonly cover: number;
-    /** A rectangle the fill holds, as fractions of the marker size. */
-    readonly coverRect: MarkerCoverRect | undefined;
     /** Px radius holding the whole path. */
     readonly reach: number;
-    /** Whether {@link cover} and {@link coverRect} were measured, which only an `inside` label needs. */
+    /** Half-strokes a join of the path reaches past it at its sharpest corner. */
+    readonly miter: number;
+    /** Whether {@link cover} was measured, which only an `inside` label needs. */
     readonly measuredCover: boolean;
+    /** A rectangle the fill holds, as fractions of the marker size, once {@link measuredRect}. */
+    coverRect: MarkerCoverRect | undefined;
+    measuredRect: boolean;
+    /** The path's outline in px, once {@link measuredOutline}. */
+    outline: MarkerOutline | undefined;
+    measuredOutline: boolean;
 }
 
-const NOTHING_DRAWN: MarkerPathCoverage = { cover: 0, coverRect: undefined, reach: 0, measuredCover: true };
+const NOTHING_DRAWN: MarkerPathCoverage = {
+    cover: 0,
+    reach: 0,
+    miter: 1,
+    measuredCover: true,
+    coverRect: undefined,
+    measuredRect: true,
+    outline: undefined,
+    measuredOutline: true,
+};
 
 type BySize = Map<number, MarkerPathCoverage>;
 
@@ -174,10 +197,36 @@ export class MarkerShapeCoverage {
             if (coverage !== undefined) this.remember(shape, size, coverage);
         }
         if (coverage === undefined || (withCover && !coverage.measuredCover)) {
-            coverage = measureMarkerPath(getSharedMarkerPath(shape, size, pixelRatio), size, withCover);
+            coverage = measureMarkerPath(getSharedMarkerPath(shape, size, pixelRatio), withCover);
             this.remember(shape, size, coverage);
         }
         return coverage;
+    }
+
+    /** The rectangle the fill of `shape` holds at `size`, measured only the first time one is asked for. */
+    coverRectOf(shape: AgMarkerShapeFn, size: number, pixelRatio: number): MarkerCoverRect | undefined {
+        if (size <= 0) return undefined;
+        const coverage = this.of(shape, size, pixelRatio, false);
+        if (!coverage.measuredRect) {
+            coverage.coverRect = measureMarkerCoverRect(getSharedMarkerPath(shape, size, pixelRatio), size);
+            coverage.measuredRect = true;
+        }
+        return coverage.coverRect;
+    }
+
+    /** The outline of `shape` at `size`, flattened only the first time one is asked for. */
+    outlineOf(shape: AgMarkerShapeFn, size: number, pixelRatio: number): MarkerOutline | undefined {
+        if (size <= 0) return undefined;
+        const coverage = this.of(shape, size, pixelRatio, false);
+        if (!coverage.measuredOutline) {
+            const flattened = flattenMarkerPath(getSharedMarkerPath(shape, size, pixelRatio));
+            coverage.outline =
+                flattened == null
+                    ? undefined
+                    : { polygons: flattened.polygons, unit: false, tolerance: flattened.tolerance };
+            coverage.measuredOutline = true;
+        }
+        return coverage.outline;
     }
 
     private remember(shape: AgMarkerShapeFn, size: number, coverage: MarkerPathCoverage): void {
@@ -193,37 +242,55 @@ export class MarkerShapeCoverage {
 
 type Polygons = { x: number; y: number }[][];
 
-/** Measures the drawn path, conceding the flatten tolerance; an edge touching the grid rectangle drops it. */
-function measureMarkerPath(path: ExtendedPath2D, size: number, withCover: boolean): MarkerPathCoverage {
+/** The drawn path as polygons within `tolerance` of it, which every measure concedes; none when nothing is drawn. */
+function flattenMarkerPath(path: ExtendedPath2D) {
     const bbox = path.computeBBox();
     const extent = Math.max(bbox.width, bbox.height);
-    if (extent <= 0 || !Number.isFinite(extent)) return NOTHING_DRAWN;
+    if (extent <= 0 || !Number.isFinite(extent)) return undefined;
     const tolerance = extent * CUSTOM_PATH_TOLERANCE;
-    const polygons = path.flatten(16, tolerance);
+    return { bbox, tolerance, polygons: path.flatten(16, tolerance) };
+}
 
+function measureMarkerPath(path: ExtendedPath2D, withCover: boolean): MarkerPathCoverage {
+    const flattened = flattenMarkerPath(path);
+    if (flattened == null) return NOTHING_DRAWN;
+    const { tolerance, polygons } = flattened;
     let farthest = 0;
     for (const polygon of polygons) {
         for (const { x, y } of polygon) farthest = Math.max(farthest, Math.hypot(x, y));
     }
     const reach = farthest + tolerance;
-    if (!withCover) return { cover: 0, coverRect: undefined, reach, measuredCover: false };
+    const cover = withCover && pointInPolygons(0, 0, polygons) ? Math.max(0, nearestEdge(polygons) - tolerance) : 0;
+    return {
+        cover,
+        reach,
+        miter: outlineWorstMiter(polygons, CANVAS_MITER_LIMIT),
+        measuredCover: withCover,
+        coverRect: undefined,
+        measuredRect: false,
+        outline: undefined,
+        measuredOutline: false,
+    };
+}
 
-    const cover = pointInPolygons(0, 0, polygons) ? Math.max(0, nearestEdge(polygons) - tolerance) : 0;
+/** A rectangle the fill holds, found on a grid; an edge touching it drops it. */
+function measureMarkerCoverRect(path: ExtendedPath2D, size: number): MarkerCoverRect | undefined {
+    const flattened = flattenMarkerPath(path);
+    if (flattened == null) return undefined;
+    const { bbox, tolerance, polygons } = flattened;
     const rect = gridInsideRect(polygons, bbox);
-    let coverRect: MarkerCoverRect | undefined;
-    if (rect != null && rectClearOfEdges(polygons, rect) && pointInPolygons(rect.x0, rect.y0, polygons)) {
-        const width = rect.x1 - rect.x0 - 2 * tolerance;
-        const height = rect.y1 - rect.y0 - 2 * tolerance;
-        if (width > 0 && height > 0) {
-            coverRect = {
-                width: width / size,
-                height: height / size,
-                cx: (rect.x0 + rect.x1) / 2 / size,
-                cy: (rect.y0 + rect.y1) / 2 / size,
-            };
-        }
+    if (rect == null || !rectClearOfEdges(polygons, rect) || !pointInPolygons(rect.x0, rect.y0, polygons)) {
+        return undefined;
     }
-    return { cover, coverRect, reach, measuredCover: true };
+    const width = rect.x1 - rect.x0 - 2 * tolerance;
+    const height = rect.y1 - rect.y0 - 2 * tolerance;
+    if (width <= 0 || height <= 0) return undefined;
+    return {
+        width: width / size,
+        height: height / size,
+        cx: (rect.x0 + rect.x1) / 2 / size,
+        cy: (rect.y0 + rect.y1) / 2 / size,
+    };
 }
 
 /** Distance from the origin to the nearest edge of `polygons`, each closed back to its start as fill closes it. */
@@ -249,42 +316,26 @@ function distanceToSegment(a: { x: number; y: number }, b: { x: number; y: numbe
 function rectClearOfEdges(polygons: Polygons, rect: { x0: number; y0: number; x1: number; y1: number }): boolean {
     for (const polygon of polygons) {
         for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            if (segmentTouchesRect(polygon[j], polygon[i], rect)) return false;
+            const a = polygon[j];
+            const b = polygon[i];
+            if (segmentTouchesBox(a.x, a.y, b.x, b.y, rect.x0, rect.y0, rect.x1, rect.y1)) return false;
         }
     }
     return true;
 }
 
-// Liang-Barsky: clips the segment to the closed rectangle and reports whether anything is left.
-function segmentTouchesRect(
-    a: { x: number; y: number },
-    b: { x: number; y: number },
-    { x0, y0, x1, y1 }: { x0: number; y0: number; x1: number; y1: number }
-): boolean {
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    let t0 = 0;
-    let t1 = 1;
-    const sides = [
-        [-dx, a.x - x0],
-        [dx, x1 - a.x],
-        [-dy, a.y - y0],
-        [dy, y1 - a.y],
-    ];
-    for (const [p, q] of sides) {
-        if (p === 0) {
-            if (q < 0) return false;
-            continue;
-        }
-        const t = q / p;
-        if (p < 0) {
-            t0 = Math.max(t0, t);
-        } else {
-            t1 = Math.min(t1, t);
-        }
-        if (t0 > t1) return false;
+const unitOutlines = new Map<keyof typeof MARKER_SHAPE_GEOMETRY, MarkerOutline>();
+
+/** The outline of a built-in shape in fractions of its size; none for a circle, whose reach is its outline. */
+export function markerUnitOutline(shape: keyof typeof MARKER_SHAPE_GEOMETRY): MarkerOutline | undefined {
+    if (shape === 'circle') return undefined;
+    let outline = unitOutlines.get(shape);
+    if (outline == null) {
+        const flattened = flattenMarkerPath(getSharedMarkerPath(shape, 1));
+        outline = { polygons: flattened?.polygons ?? [], unit: true, tolerance: flattened?.tolerance ?? 0 };
+        unitOutlines.set(shape, outline);
     }
-    return true;
+    return outline;
 }
 
 /**
@@ -305,8 +356,9 @@ export function markerCoverageOf(
     const strokeReach = markerStrokePickInflation(style) * geometry.miter;
     const painted = fillPainted && (style.opacity ?? 1) > 0 && (style.fillOpacity ?? 1) > 0;
     const snap = markerSnapAllowance(shape, pixelRatio);
-    if (!painted) return { cover: 0, reach, strokeReach, snap };
-    return { cover: geometry.inR, coverRect: markerLabelRect(shape), reach, strokeReach, snap };
+    const outline = markerUnitOutline(shape);
+    if (!painted) return { cover: 0, reach, strokeReach, snap, outline };
+    return { cover: geometry.inR, coverRect: markerLabelRect(shape), reach, strokeReach, snap, outline };
 }
 
 /** What a series settles once per solve to stamp each label's marker coverage. */
@@ -324,8 +376,14 @@ export interface StyledMarkerCoverageInputs {
 interface StyledMarkerCoverageDatum {
     markerCover?: number;
     markerCoverRect?: MarkerCoverRect;
+    /** The custom path whose cover rectangle is measured only once a label needs it. */
+    markerCoverPath?: AgMarkerShapeFn;
     markerReach?: number;
     markerSnap?: number;
+    markerOutline?: MarkerOutline;
+    /** The custom path whose outline is flattened only once a label reaches past its nominal circle. */
+    markerOutlinePath?: AgMarkerShapeFn;
+    markerOutset?: number;
 }
 
 /**
@@ -341,8 +399,12 @@ export function applyStyledMarkerCoverage(
     if (style == null || (typeof shape !== 'string' && typeof shape !== 'function')) {
         datum.markerCover = 0;
         datum.markerCoverRect = undefined;
+        datum.markerCoverPath = undefined;
         datum.markerReach = Infinity;
         datum.markerSnap = 0;
+        datum.markerOutline = undefined;
+        datum.markerOutlinePath = undefined;
+        datum.markerOutset = 0;
         return;
     }
     const size = style.size ?? 0;
@@ -353,19 +415,36 @@ export function applyStyledMarkerCoverage(
         const path = size > 0 ? inputs.shapes.of(shape, size, inputs.pixelRatio, inputs.inside) : NOTHING_DRAWN;
         datum.markerSnap = 0;
         datum.markerCover = painted ? path.cover : 0;
-        datum.markerCoverRect = painted ? path.coverRect : undefined;
-        datum.markerReach = casts ? Infinity : path.reach + strokeReach * CANVAS_MITER_LIMIT;
+        datum.markerCoverRect = undefined;
+        datum.markerCoverPath = deferredCoverPath(shape, painted, inputs.inside);
+        datum.markerReach = casts ? Infinity : path.reach + strokeReach * path.miter;
+        datum.markerOutline = undefined;
+        datum.markerOutlinePath = casts || size <= 0 ? undefined : shape;
+        datum.markerOutset = strokeReach * path.miter;
         return;
     }
     const geometry = MARKER_SHAPE_GEOMETRY[shape];
     datum.markerSnap = markerSnapAllowance(shape, inputs.pixelRatio);
     datum.markerCover = painted ? geometry.inR * size : 0;
     datum.markerCoverRect = painted ? markerLabelRect(shape) : undefined;
+    datum.markerCoverPath = undefined;
     datum.markerReach = casts ? Infinity : geometry.circumR * size + strokeReach * geometry.miter;
+    datum.markerOutline = markerUnitOutline(shape);
+    datum.markerOutlinePath = undefined;
+    datum.markerOutset = strokeReach * geometry.miter;
+}
+
+/** Only a painted fill under an `inside` label has a cover rectangle worth measuring. */
+function deferredCoverPath(shape: AgMarkerShapeFn, painted: boolean, inside: boolean): AgMarkerShapeFn | undefined {
+    return painted && inside ? shape : undefined;
 }
 
 type StampedMarkerStyle = MarkerCoverageStyle & { size?: number; shadow?: unknown; glow?: unknown };
-type StampedLabelDatum = StyledMarkerCoverageDatum & { markerSize?: number };
+type StampedLabelDatum = StyledMarkerCoverageDatum & {
+    markerSize?: number;
+    markerAnchor?: Point;
+    markerInsideRect?: MarkerCoverRect;
+};
 
 /**
  * A series' stamping of each label's marker size and coverage from the style its marker is drawn in, for a series
@@ -374,35 +453,66 @@ type StampedLabelDatum = StyledMarkerCoverageDatum & { markerSize?: number };
 export class LabelMarkerStamps {
     readonly fills = new MarkerFillMemo();
     private readonly shapes = new MarkerShapeCoverage();
-    private stamped = false;
+    private stamping = false;
+    private pixelRatio = 1;
 
-    stamp<D extends StampedLabelDatum>(
+    /** Measures the cover rectangle of a custom marker stamped without one, at the pixel ratio last stamped at. */
+    readonly resolveCoverRect: MarkerCoverRectResolver = (datum: StampedLabelDatum) =>
+        datum.markerCoverPath == null
+            ? undefined
+            : this.shapes.coverRectOf(datum.markerCoverPath, datum.markerSize ?? 0, this.pixelRatio);
+
+    /** Flattens the outline of a custom marker stamped without one, at the pixel ratio last stamped at. */
+    readonly resolveOutline: MarkerOutlineResolver = (datum: StampedLabelDatum) =>
+        datum.markerOutlinePath == null
+            ? undefined
+            : this.shapes.outlineOf(datum.markerOutlinePath, datum.markerSize ?? 0, this.pixelRatio);
+
+    /** Whether the label data holds stamps, which a change in marker style must re-solve. */
+    get stamped(): boolean {
+        return this.stamping;
+    }
+
+    /** `restyled` sees each datum once stamped, with the style it was stamped from. */
+    stamp<D extends StampedLabelDatum, S extends StampedMarkerStyle>(
         labelData: readonly D[],
-        styleOf: (datum: D) => StampedMarkerStyle | undefined,
-        settled: Omit<StyledMarkerCoverageInputs, 'shapes'>
+        styleOf: (datum: D, index: number) => S | undefined,
+        settled: Omit<StyledMarkerCoverageInputs, 'shapes'>,
+        restyled?: (datum: D, style: S | undefined) => void
     ): void {
         const { fills, shapes } = this;
         fills.bound(labelData.length);
         shapes.bound(labelData.length);
         const inputs: StyledMarkerCoverageInputs = { ...settled, shapes };
-        for (const datum of labelData) {
-            const style = styleOf(datum);
+        this.pixelRatio = settled.pixelRatio;
+        for (let index = 0; index < labelData.length; index++) {
+            const datum = labelData[index];
+            const style = styleOf(datum, index);
             applyStyledMarkerSize(datum, style?.size);
+            datum.markerAnchor = style == null ? undefined : markerShapeAnchor(style.shape);
+            datum.markerInsideRect = style == null || !inputs.inside ? undefined : markerLabelRect(style.shape);
             applyStyledMarkerCoverage(datum, style, inputs);
+            restyled?.(datum, style);
         }
-        this.stamped = true;
+        this.stamping = true;
     }
 
     /** Drops what an earlier solve stamped on label data that is reused, so the series' own coverage applies again. */
     unstamp(labelData: readonly StampedLabelDatum[]): void {
-        if (!this.stamped) return;
+        if (!this.stamping) return;
         for (const datum of labelData) {
             datum.markerSize = undefined;
+            datum.markerAnchor = undefined;
             datum.markerCover = undefined;
             datum.markerCoverRect = undefined;
+            datum.markerCoverPath = undefined;
             datum.markerReach = undefined;
             datum.markerSnap = undefined;
+            datum.markerOutline = undefined;
+            datum.markerOutlinePath = undefined;
+            datum.markerOutset = undefined;
+            datum.markerInsideRect = undefined;
         }
-        this.stamped = false;
+        this.stamping = false;
     }
 }

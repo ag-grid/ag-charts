@@ -138,6 +138,7 @@ export * from './geometry/fitRegion';
 export * from './geometry/labelPlacement';
 export * from './geometry/labelStack';
 export * from './geometry/lineInterpolation';
+export * from './geometry/markerOutline';
 export * from './geometry/panToBBox';
 export * from './geometry/placement';
 export * from './geometry/scaling';

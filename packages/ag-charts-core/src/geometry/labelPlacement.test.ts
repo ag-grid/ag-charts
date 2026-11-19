@@ -1,10 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
+import type { AgChartLabelOrientation, AgMarkerShapeFn, PaddingOptions } from 'ag-charts-types';
 
+import { EVERY_MARKER_FILL_PAINTED, LabelMarkerStamps, markerCoverageOf } from '../chart/markerCoverage';
 import { MARKER_SHAPE_GEOMETRY } from '../chart/markerShapes';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
+import { ExtendedPath2D } from '../scene/extendedPath2D';
+import { stubPath2D } from '../test/coreAccessors';
 import type { Point, SizedPoint } from '../types/scene';
 import {
     type BarLabelTarget,
@@ -397,7 +400,7 @@ describe('placeLabels', () => {
         ownCoverage?: MarkerCoverage;
         otherCoverage?: MarkerCoverage;
         ownStyled?: Pick<PointLabelDatum, 'markerCover' | 'markerCoverRect' | 'markerReach'>;
-        otherStyled?: Pick<PointLabelDatum, 'markerCover' | 'markerCoverRect' | 'markerReach'>;
+        otherStyled?: Pick<PointLabelDatum, 'markerCover' | 'markerCoverRect' | 'markerReach' | 'markerSnap'>;
     }>([
         {
             case: 'a series painted under, declared after',
@@ -660,6 +663,28 @@ describe('placeLabels', () => {
             otherCoverage: squareCoverage,
         },
         {
+            case: 'a square under at the own circle only before its corners snap on both axes',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 10,
+            other: 0,
+            first: false,
+            placed: false,
+            otherCoverage: squareCoverage,
+        },
+        {
+            case: 'a styled square under at the own circle only before its corners snap on both axes',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 10,
+            other: 0,
+            first: false,
+            placed: false,
+            otherStyled: { markerCover: 5, markerReach: 10 * Math.SQRT1_2, markerSnap: square.snap },
+        },
+        {
             case: 'a square under the same size, its corners poking past the own one',
             own: 1,
             width: 30,
@@ -829,6 +854,191 @@ describe('placeLabels', () => {
             5
         ).get('own')!;
         expect(labels.map((l) => [l.datum === own, l.y + l.height / 2])).toEqual([[true, 94]]);
+    });
+
+    describe('a marker drawn in a shape other than the configured one', () => {
+        const own = (placements: LabelPlacement[], drawn: Partial<PointLabelDatum>): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'I', width: 12, height: 8 },
+            anchor: { x: 0.5, y: 0.5 },
+            insideOffset: { x: 0, y: 0 },
+            insideSize: { width: 1, height: 1 },
+            placement: placements[0],
+            placements,
+            alwaysShow: false,
+            ...drawn,
+        });
+        const placedOf = (d: PointLabelDatum) => placeLabels(new Map([['s', seriesLabels([d])]]), bounds, 5).get('s')!;
+
+        it.each([
+            { case: 'too narrow', width: 0.4, height: 1 },
+            { case: 'too short', width: 1, height: 0.3 },
+        ])('fits an inside label to the inscribed rectangle of the shape drawn, $case for it', ({ width, height }) => {
+            const [label] = placedOf(own(['inside', 'top'], { markerInsideRect: { width, height, cx: 0, cy: 0 } }));
+            expect(label.placement).toBe('top');
+        });
+
+        it('hangs a directional label off the marker where its drawn shape sits', () => {
+            const [configured] = placedOf(own(['top'], {}));
+            const [drawn] = placedOf(own(['top'], { markerAnchor: { x: 0.5, y: 1 } }));
+            expect(drawn.y).toBeCloseTo(configured.y - 10, 6);
+        });
+    });
+
+    describe('marker obstacles by what they draw', () => {
+        stubPath2D();
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        const settled = { castsShadow: false, fills: EVERY_MARKER_FILL_PAINTED, pixelRatio: 1, inside: false };
+        // Built per test: a built-in outline flattens a path, which needs the stubbed Path2D.
+        const coverages = {
+            square: () => markerCoverageOf({ shape: 'square' }, false, true, 1),
+            strokedCircle: () => markerCoverageOf({ shape: 'circle', stroke: 'black', strokeWidth: 4 }, false, true, 1),
+            shadowedSquare: () => markerCoverageOf({ shape: 'square' }, true, true, 1),
+        };
+        const marker = (size: number): PointLabelDatum => ({
+            point: { x: 100, y: 100, size },
+            label: { text: '', width: 0, height: 0 },
+            anchor: undefined,
+            placement: undefined,
+        });
+        const boxLabel = (box: BoxBounds): PointLabelDatum => ({
+            point: { x: box.x + box.width / 2, y: box.y + box.height / 2, size: 0 },
+            label: { text: 'L', width: box.width, height: box.height },
+            anchor: undefined,
+            placement: undefined,
+            alwaysShow: false,
+            positionedCandidates: [{ box, unbounded: true }],
+        });
+        // A `width` × `height` label rotated about (cx, cy), boxed by its rotated footprint.
+        const rotatedLabel = (cx: number, cy: number, width: number, height: number, rotation: number) => {
+            const angle = (rotation * Math.PI) / 180;
+            const boxWidth = width * Math.abs(Math.cos(angle)) + height * Math.abs(Math.sin(angle));
+            const boxHeight = width * Math.abs(Math.sin(angle)) + height * Math.abs(Math.cos(angle));
+            const box = { x: cx - boxWidth / 2, y: cy - boxHeight / 2, width: boxWidth, height: boxHeight };
+            const datum: PointLabelDatum = {
+                ...boxLabel(box),
+                label: { text: 'L', width, height },
+                positionedCandidates: [{ box, unbounded: true, rotation, orientedCollision: true }],
+            };
+            return datum;
+        };
+        const placedBeside = (neighbour: SeriesLabels, label: PointLabelDatum) =>
+            placeLabels(
+                new Map([
+                    ['marker', neighbour],
+                    ['label', seriesLabels([label])],
+                ]),
+                bounds,
+                5
+            ).get('label')!.length === 1;
+
+        // The square spans 90..110 on both axes, its corners 14.1 px from the centre against a nominal radius of 10.
+        it.each([
+            {
+                case: 'a box over a square corner, outside its nominal circle',
+                coverage: 'square' as const,
+                box: { x: 107, y: 85, width: 6, height: 6.5 },
+                placed: false,
+            },
+            {
+                case: 'a box beside a square flat side, within its corner reach',
+                coverage: 'square' as const,
+                box: { x: 111.5, y: 95, width: 6, height: 10 },
+                placed: true,
+            },
+            {
+                case: 'a box within half the stroke of a stroked circle',
+                coverage: 'strokedCircle' as const,
+                box: { x: 111, y: 95, width: 6, height: 10 },
+                placed: false,
+            },
+            {
+                case: 'a box just past the stroke of a stroked circle',
+                coverage: 'strokedCircle' as const,
+                box: { x: 112.5, y: 95, width: 6, height: 10 },
+                placed: true,
+            },
+            {
+                case: 'a box over the corner of a square of unknown reach, casting a shadow',
+                coverage: 'shadowedSquare' as const,
+                box: { x: 107, y: 85, width: 6, height: 6.5 },
+                placed: true,
+            },
+        ])('places $case: $placed', ({ coverage, box, placed }) => {
+            const neighbour = { ...seriesLabels([marker(20)]), markerCoverage: coverages[coverage]() };
+            expect(placedBeside(neighbour, boxLabel(box))).toBe(placed);
+        });
+
+        it.each([
+            {
+                case: 'across a square corner',
+                cx: 100 + 14 / Math.SQRT2,
+                cy: 100 - 14 / Math.SQRT2,
+                rotation: 45,
+                placed: false,
+            },
+            { case: 'along a square flat side, within its corner reach', cx: 100, cy: 84, rotation: 10, placed: true },
+        ])('places a rotated label $case: $placed', ({ cx, cy, rotation, placed }) => {
+            const neighbour = { ...seriesLabels([marker(20)]), markerCoverage: coverages.square() };
+            expect(placedBeside(neighbour, rotatedLabel(cx, cy, 20, 4, rotation))).toBe(placed);
+        });
+
+        describe('an oversized custom marker', () => {
+            // Three times as wide as its size and half as tall: 30 x 5 px at size 10.
+            const bar: AgMarkerShapeFn = ({ path, size }) => path.rect(-size * 1.5, -size / 4, size * 3, size / 2);
+
+            it.each([
+                {
+                    case: 'over the drawn bar, clear of its nominal box',
+                    box: { x: 112, y: 98, width: 4, height: 4 },
+                    placed: false,
+                    outlines: 1,
+                },
+                {
+                    case: 'above the drawn bar, within its reach',
+                    box: { x: 108, y: 92, width: 6, height: 4 },
+                    placed: true,
+                    outlines: 1,
+                },
+                { case: 'clear of its reach', box: { x: 130, y: 95, width: 6, height: 10 }, placed: true, outlines: 0 },
+            ])('places a box $case: $placed, flattening $outlines outlines', ({ box, placed, outlines }) => {
+                const stamps = new LabelMarkerStamps();
+                const neighbour = marker(10);
+                stamps.stamp([neighbour], () => ({ shape: bar, size: 10, fill: 'red' }), settled);
+                const flatten = vi.spyOn(ExtendedPath2D.prototype, 'flatten');
+                const series = { ...seriesLabels([neighbour]), resolveMarkerOutline: stamps.resolveOutline };
+                expect(placedBeside(series, boxLabel(box))).toBe(placed);
+                expect(flatten.mock.calls.filter(([, tolerance]) => tolerance != null)).toHaveLength(outlines);
+            });
+        });
+
+        it('places a directional label on its own stroked square exactly as on its nominal circle', () => {
+            const own = (): PointLabelDatum => ({
+                point: { x: 100, y: 100, size: 20 },
+                label: { text: 'O', width: 40, height: 10 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'top',
+                placements: ['top'],
+                alwaysShow: false,
+            });
+            const stamped = own();
+            new LabelMarkerStamps().stamp(
+                [stamped],
+                // Its stroke reaches past the 5 px label spacing.
+                () => ({ shape: 'square', size: 20, fill: 'red', stroke: 'black', strokeWidth: 10 }),
+                settled
+            );
+            const at = (datum: PointLabelDatum) =>
+                placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5)
+                    .get('s')!
+                    .map((l) => [l.x, l.y]);
+            expect(at(stamped)).toHaveLength(1);
+            expect(at(stamped)).toEqual(at(own()));
+        });
     });
 
     it('drops an avoiding label when no candidate placement fits', () => {
@@ -3336,6 +3546,22 @@ describe('placeLabels obstacle-driven shrink', () => {
                 placement: 'inside',
                 placements: ['inside', 'top'],
                 insideSize: { width: 0.3, height: 0.3 },
+            }),
+            [{ kind: 'rect', box: { x: 150, y: 168, width: 100, height: 16 }, category: 'label' }]
+        );
+        expect(placed.placement).toBe('inside');
+        expect(placed.text).toBe('WW…');
+    });
+
+    it('truncates an inside label into the marker shape drawn, not the one configured', () => {
+        const placed = placeOne(
+            shrinkableLabel({
+                point: { x: 200, y: 200, size: 100 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: ['inside', 'top'],
+                insideSize: { width: 1, height: 1 },
+                markerInsideRect: { width: 0.3, height: 0.3, cx: 0, cy: 0 },
             }),
             [{ kind: 'rect', box: { x: 150, y: 168, width: 100, height: 16 }, category: 'label' }]
         );

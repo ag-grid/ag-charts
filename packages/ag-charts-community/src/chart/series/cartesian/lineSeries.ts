@@ -204,7 +204,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     private readonly spanPointPool: LineSpanPointDatum[] = [];
     private spanPointCount = 0;
     private hideWithSize0 = false;
-    private readonly labelMarkers = new LabelMarkerStamps();
+    protected override readonly labelMarkers = new LabelMarkerStamps();
     private selectedOnly = false;
     private markerNodesPickable = true;
     // Whether the style pass draws a marker for each datum it is not told to skip.
@@ -648,6 +648,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 existingNode.labelText = labelText;
                 existingNode.label = label;
                 existingNode.fit = fit;
+                existingNode.insideFitShape = undefined;
+                existingNode.insideFitSize = undefined;
                 existingNode.gap = gap;
                 existingNode.region = ctx.labelRegion;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
@@ -1153,8 +1155,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         // A marker itemStyler, selection or custom shape resolves each marker after node data was built, so the
         // label's obstacles, gap and anchor are stamped from the style the marker is drawn in at rest.
         const styled = marker.itemStyler != null;
+        const refit = this.insideLabelRefit(this.nodeDatumContext, marker.shape, marker.enabled ? marker.size : 0);
         if (!marker.enabled || (!styled && !this.isSelectionEnabled() && typeof marker.shape !== 'function')) {
             this.labelMarkers.unstamp(labelData);
+            if (refit) for (const datum of labelData) refit(datum, undefined);
             return labelData;
         }
         const memo = this.labelMarkers.fills;
@@ -1176,11 +1180,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             this.labelMarkers.stamp(
                 labelData,
                 (datum) => (drawn(datum) ? (datum.style ?? restStyle) : undefined),
-                settled
+                settled,
+                refit
             );
         } else {
             const resting = this.restingMarkerStyleOf();
-            this.labelMarkers.stamp(labelData, (datum) => (drawn(datum) ? resting(datum) : undefined), settled);
+            this.labelMarkers.stamp(labelData, (datum) => (drawn(datum) ? resting(datum) : undefined), settled, refit);
         }
         return labelData;
     }

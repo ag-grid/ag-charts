@@ -449,7 +449,7 @@ export function getSeriesPaintOrder(chartOrProxy: ChartOrProxy<any>): {
         if (ids.length > 0) layers.push(ids);
         for (const id of ids) contentDrawn.add(id);
     }
-    const ranks = chart['seriesPaintOrder']();
+    const ranks = chart.seriesPaintOrder();
     return { drawn: layers.flat(), layers, ranks, labelsAfterContent };
 }
 

@@ -1,4 +1,4 @@
-import type { AgChartLabelOrientation, PaddingOptions, TextWrap } from 'ag-charts-types';
+import type { AgChartLabelOrientation, AgMarkerShapeFn, PaddingOptions, TextWrap } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
@@ -31,6 +31,13 @@ import { LineSplitter } from '../types/text';
 import { type BoxBounds, boxCollides, boxContains, boxesEqual } from './boxBounds';
 import type { FitRegion } from './fitRegion';
 import { type FittedLabelStack, type LabelStack, fitLabelStack } from './labelStack';
+import {
+    type MarkerOutline,
+    type OutlineSpan,
+    outlineOverlapsBox,
+    outlineOverlapsOrientedRect,
+    outlineSpan,
+} from './markerOutline';
 import {
     type OrientedRect,
     orientedRectOverlapsBox,
@@ -249,6 +256,16 @@ export interface PointLabelDatum {
     readonly markerReach?: number;
     /** Per-datum {@link MarkerCoverage.snap}, set with {@link markerCover} and {@link markerReach}. */
     readonly markerSnap?: number;
+    /** Anchor of the shape the marker is drawn in, set with {@link markerSize}; overrides {@link anchor}. */
+    readonly markerAnchor?: Point;
+    /** Outline of the built-in shape the marker is drawn in, set with {@link markerReach}; none for a circle. */
+    readonly markerOutline?: MarkerOutline;
+    /** The custom shape the marker is drawn in, whose outline is resolved only once a label reaches past its circle. */
+    readonly markerOutlinePath?: AgMarkerShapeFn;
+    /** Px the drawn stroke grows {@link markerOutline} by, set with {@link markerReach}. */
+    readonly markerOutset?: number;
+    /** Inscribed rectangle of the shape the marker is drawn in; overrides {@link insideOffset} and {@link insideSize}. */
+    readonly markerInsideRect?: MarkerCoverRect;
     /** Box spanned by marks drawn over the point (error bars), which a directional label sits beyond. */
     readonly overlayBounds?: BoxBounds;
     readonly label: MeasuredLabel;
@@ -448,6 +465,10 @@ export interface SeriesLabels {
     readonly paintOrder?: number;
     /** What the series' at-rest markers paint, for marker size 1; unset when unknown. */
     readonly markerCoverage?: MarkerCoverage;
+    /** Called only once a datum's cover circle cannot settle a marker painted under its inside label. */
+    readonly resolveMarkerCoverRect?: MarkerCoverRectResolver;
+    /** Called only once a label reaches past the nominal circle of a marker stamped with a custom shape. */
+    readonly resolveMarkerOutline?: MarkerOutlineResolver;
 }
 
 /** Rectangle inside a marker's fill, as fractions of the marker size, centred at (`cx`, `cy`) off its centre. */
@@ -457,6 +478,12 @@ export interface MarkerCoverRect {
     readonly cx: number;
     readonly cy: number;
 }
+
+/** Measures the {@link PointLabelDatum.markerCoverRect} of a datum stamped without one, once a label needs it. */
+export type MarkerCoverRectResolver = (datum: PointLabelDatum) => MarkerCoverRect | undefined;
+
+/** Resolves the px outline of a datum's {@link PointLabelDatum.markerOutlinePath}. */
+export type MarkerOutlineResolver = (datum: PointLabelDatum) => MarkerOutline | undefined;
 
 /**
  * The area a marker's painted fill is certain to cover, and the furthest any of it can draw, so a label on a
@@ -471,8 +498,10 @@ export interface MarkerCoverage {
     readonly reach: number;
     /** Px the drawn stroke reaches past the shape. */
     readonly strokeReach: number;
-    /** Px pixel snapping may move a drawn edge, which shrinks the cover and grows the reach. */
+    /** Px pixel snapping may move a drawn edge along each axis, which shrinks the cover and grows the reach. */
     readonly snap: number;
+    /** Outline of the shape, as fractions of marker size; unset when its reach circle is its outline. */
+    readonly outline?: MarkerOutline;
 }
 
 interface PlacementEntry extends SeriesLabels {
@@ -573,6 +602,8 @@ export type LabelObstacle =
           readonly paintOrder?: number;
           /** Radius about the centre holding everything the marker draws; unset or `Infinity` when unknown. */
           readonly reach?: number;
+          /** What the marker draws within {@link reach}; unset to keep to the nominal circle. */
+          readonly drawn?: DrawnMarker;
       }
     | {
           readonly kind: 'rect';
@@ -603,6 +634,20 @@ export type LabelObstacle =
           readonly sourceId?: string;
           readonly entityIndex?: number;
       };
+
+/** The drawn shape of a marker obstacle, pooled with it. */
+export interface DrawnMarker {
+    /** Unset when the reach circle is the outline, as for a circle. */
+    outline: MarkerOutline | undefined;
+    size: number;
+    /** Px the stroke grows the outline by. */
+    outset: number;
+    /** Px pixel snapping may move the outline along each axis. */
+    snap: number;
+    /** A datum whose custom outline `resolve` has yet to flatten. */
+    pending: PointLabelDatum | undefined;
+    resolve: MarkerOutlineResolver | undefined;
+}
 
 /** External obstacles, or a function producing them so a solve that never queries the index skips gathering. */
 export type LabelObstacles = readonly LabelObstacle[] | (() => readonly LabelObstacle[]);
@@ -768,6 +813,7 @@ interface PooledCircleObstacle {
     seriesIndex: number;
     paintOrder: number;
     reach: number;
+    drawn: DrawnMarker;
 }
 
 // Mutable placed-label obstacle pooled across passes, mirroring markerPool.
@@ -783,6 +829,8 @@ interface PooledLabelObstacle {
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
 const obstacleIndex = new SpatialIndex<LabelObstacle>();
 const markerPool: PooledCircleObstacle[] = [];
+let markerObstacleCount = 0;
+const drawnSpan: OutlineSpan = { min: 0, max: 0 };
 const labelObstaclePool: PooledLabelObstacle[] = [];
 const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // Broad-phase query box: the candidate inflated by the positive part of the collision threshold, a
@@ -818,8 +866,13 @@ let candidateCoverX0 = Number.NaN;
 let candidateCoverY0 = Number.NaN;
 let candidateCoverX1 = Number.NaN;
 let candidateCoverY1 = Number.NaN;
+// The own marker's drawn size and snap allowance, and whether its cover rectangle is still to be measured.
+let candidateOwnSize = 0;
+let candidateOwnSnap = 0;
+let candidateCoverRectPending = false;
 // The coverage of the series whose labels are being placed.
 let candidateCoverage: MarkerCoverage | undefined;
+let candidateCoverRectResolver: MarkerCoverRectResolver | undefined;
 // The candidate's series position and paint order, matching what is stamped on its marker obstacles.
 let candidateSeriesIndex = -1;
 let candidatePaintOrder = Number.NaN;
@@ -1013,20 +1066,79 @@ function straddlesForeignShape(o: LabelObstacle): boolean {
  * painted under its own where the own marker covers everything the label could touch.
  */
 function markerCoveredByOwn(o: CircleObstacle): boolean {
+    if (isOwnMarker(o)) return true;
     const cx = candidateOwnMarkerCx;
     const cy = candidateOwnMarkerCy;
-    if (o.seriesIndex === candidateSeriesIndex && o.cx === cx && o.cy === cy && o.r === candidateOwnMarkerR) {
-        return true;
-    }
     // A NaN order on either side is unknown, so neither is painted under the other.
     const paintedUnder = (o.paintOrder ?? Number.NaN) < candidatePaintOrder;
     if (!paintedUnder) return false;
     const cover = candidateOwnCover;
     const testBox = candidateTestBox() ?? candidateBox;
-    if (boxWithinCircle(testBox, cx, cy, cover) || boxWithinCoverRect(testBox)) return true;
+    if (boxWithinCircle(testBox, cx, cy, cover)) return true;
     // Nothing of the marker underneath can show when all it draws lies within the own fill.
     const reach = o.reach ?? Infinity;
-    return circleWithinCircle(o.cx, o.cy, reach, cx, cy, cover) || circleWithinCoverRect(o.cx, o.cy, reach);
+    if (circleWithinCircle(o.cx, o.cy, reach, cx, cy, cover)) return true;
+    if (candidateCoverRectPending && cascadeDatum != null) {
+        candidateCoverRectPending = false;
+        setCandidateCoverRect(candidateCoverRectResolver?.(cascadeDatum));
+    }
+    return boxWithinCoverRect(testBox) || circleWithinCoverRect(o.cx, o.cy, reach);
+}
+
+/** The candidate's own marker, whose clearance stays its nominal circle. */
+function isOwnMarker(o: CircleObstacle): boolean {
+    return (
+        o.seriesIndex === candidateSeriesIndex &&
+        o.cx === candidateOwnMarkerCx &&
+        o.cy === candidateOwnMarkerCy &&
+        o.r === candidateOwnMarkerR
+    );
+}
+
+/** What a marker obstacle draws past its nominal circle that the candidate must clear; none when unknown. */
+function drawnBeyondNominal(o: CircleObstacle): DrawnMarker | undefined {
+    const { drawn, reach = Infinity } = o;
+    if (drawn == null || reach === Infinity || isOwnMarker(o)) return undefined;
+    return drawn;
+}
+
+/** The outline of a drawn marker, flattening a custom one the first time it is asked for. */
+function drawnOutline(drawn: DrawnMarker): MarkerOutline | undefined {
+    const datum = drawn.pending;
+    if (datum != null) {
+        drawn.outline = drawn.resolve?.(datum);
+        drawn.pending = undefined;
+        drawn.resolve = undefined;
+    }
+    return drawn.outline;
+}
+
+function outlineScale(drawn: DrawnMarker, outline: MarkerOutline): number {
+    return outline.unit ? drawn.size : 1;
+}
+
+function outlinePad(drawn: DrawnMarker, outline: MarkerOutline): number {
+    return drawn.outset + outline.tolerance * outlineScale(drawn, outline);
+}
+
+function markerOverlapsBox(o: CircleObstacle, x: number, y: number, width: number, height: number): boolean {
+    if (circleOverlapsBox(o.cx, o.cy, o.r, x, y, width, height)) return true;
+    const drawn = drawnBeyondNominal(o);
+    if (drawn == null || !circleOverlapsBox(o.cx, o.cy, o.reach ?? Infinity, x, y, width, height)) return false;
+    const outline = drawnOutline(drawn);
+    if (outline == null) return true;
+    const pad = outlinePad(drawn, outline) + drawn.snap;
+    return outlineOverlapsBox(outline, o.cx, o.cy, outlineScale(drawn, outline), pad, pad, x, y, width, height);
+}
+
+function markerOverlapsCandidateRect(o: CircleObstacle, rect: OrientedRect): boolean {
+    if (orientedRectOverlapsCircle(rect, o.cx, o.cy, o.r)) return true;
+    const drawn = drawnBeyondNominal(o);
+    if (drawn == null || !orientedRectOverlapsCircle(rect, o.cx, o.cy, o.reach ?? Infinity)) return false;
+    const outline = drawnOutline(drawn);
+    if (outline == null) return true;
+    const scale = outlineScale(drawn, outline);
+    return outlineOverlapsOrientedRect(outline, o.cx, o.cy, scale, outlinePad(drawn, outline), drawn.snap, rect);
 }
 
 function boxWithinCoverRect(box: BoxBounds): boolean {
@@ -1050,10 +1162,20 @@ function circleWithinCoverRect(cx: number, cy: number, r: number): boolean {
 /** Reads the candidate's own marker cover from its datum, else its series, at the marker's drawn size. */
 function setCandidateCover(d: PointLabelDatum, size: number) {
     const coverage = candidateCoverage;
+    const stamped = d.markerCover != null;
     const cover = d.markerCover ?? (coverage == null ? 0 : coverage.cover * size);
-    const snap = (d.markerCover == null ? coverage?.snap : d.markerSnap) ?? 0;
+    const snap = (stamped ? d.markerSnap : coverage?.snap) ?? 0;
     candidateOwnCover = cover - snap;
-    const rect = d.markerCover == null ? coverage?.coverRect : d.markerCoverRect;
+    candidateOwnSize = size;
+    candidateOwnSnap = snap;
+    const rect = stamped ? d.markerCoverRect : coverage?.coverRect;
+    candidateCoverRectPending = rect == null && stamped && candidateCoverRectResolver != null;
+    setCandidateCoverRect(rect);
+}
+
+function setCandidateCoverRect(rect: MarkerCoverRect | undefined) {
+    const size = candidateOwnSize;
+    const snap = candidateOwnSnap;
     if (rect == null) {
         candidateCoverX0 = Number.NaN;
         candidateCoverY0 = Number.NaN;
@@ -1071,11 +1193,14 @@ function setCandidateCover(d: PointLabelDatum, size: number) {
     candidateCoverY1 = centreY + halfHeight;
 }
 
-/** Radius holding everything a marker of this datum draws, from its datum, else its series; `Infinity` when unknown. */
+/**
+ * Radius holding everything a marker of this datum draws, from its datum, else its series; `Infinity` when unknown.
+ * Snapping moves a point along both axes, so a corner may move up to √2 times the snap.
+ */
 function markerReachOf(d: PointLabelDatum, size: number, coverage: MarkerCoverage | undefined): number {
-    if (d.markerReach != null) return d.markerReach + (d.markerSnap ?? 0);
+    if (d.markerReach != null) return d.markerReach + (d.markerSnap ?? 0) * Math.SQRT2;
     if (coverage == null) return Infinity;
-    return coverage.reach * size + coverage.strokeReach + coverage.snap;
+    return coverage.reach * size + coverage.strokeReach + coverage.snap * Math.SQRT2;
 }
 
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
@@ -1099,7 +1224,7 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         candidateOwnBox != null &&
         !isOverlayCategory(category) &&
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
-        boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height) &&
+        nominalBoxCollides(o, candidateOwnBox) &&
         !straddlesForeignShape(o)
     ) {
         return true;
@@ -1107,6 +1232,12 @@ function obstacleExcluded(o: LabelObstacle): boolean {
 
     const enabled = candidateAvoid?.[category];
     return category === 'axisLabel' ? enabled !== true : enabled === false;
+}
+
+/** A marker obstacle by its nominal box, never looser than its nominal circle allows. */
+function nominalBoxCollides(o: LabelObstacle, box: BoxBounds): boolean {
+    if (o.kind !== 'circle') return boxCollides(o.box, box.x, box.y, box.width, box.height);
+    return boxCollides(box, o.cx - o.r, o.cy - o.r, 2 * o.r, 2 * o.r);
 }
 
 /**
@@ -1127,7 +1258,7 @@ function obstacleOverlapsBox(o: LabelObstacle, testBox: BoxBounds): boolean {
     const { x, y, width, height } = testBox;
     switch (o.kind) {
         case 'circle':
-            return circleOverlapsBox(o.cx, o.cy, o.r, x, y, width, height);
+            return markerOverlapsBox(o, x, y, width, height);
         case 'rect':
             return boxCollides(o.box, x, y, width, height);
         case 'orientedRect':
@@ -1142,7 +1273,7 @@ function obstacleOverlapsCandidateRect(o: LabelObstacle, testBox: BoxBounds): bo
     if (rect.halfWidth <= 0 || rect.halfHeight <= 0) return false;
     switch (o.kind) {
         case 'circle':
-            return orientedRectOverlapsCircle(rect, o.cx, o.cy, o.r);
+            return markerOverlapsCandidateRect(o, rect);
         case 'rect':
             return orientedRectOverlapsBox(rect, o.box);
         case 'orientedRect':
@@ -1203,8 +1334,8 @@ function sideRetreats(pin: number, isMinEdge: boolean): boolean {
 }
 
 /**
- * Writes the obstacle's horizontal extent across `[top, bottom]` into {@link obstacleSpan}. A circle is
- * measured at the half-width it really has where the label sits, not at its bounding box's corner, which
+ * Writes the obstacle's horizontal extent across `[top, bottom]` into {@link obstacleSpan}. A marker is
+ * measured at the half-width it really draws where the label sits, not at its bounding box's corner, which
  * would have the label retreat from room the marker never occupies. A custom shape has no such narrowing
  * to offer, so it keeps its box.
  */
@@ -1214,10 +1345,7 @@ function writeObstacleSpanX(o: LabelObstacle, top: number, bottom: number) {
         obstacleSpan.max = o.box.x + o.box.width;
         return;
     }
-    const dy = Math.max(0, o.cy - bottom, top - o.cy);
-    const half = Math.sqrt(Math.max(0, o.r * o.r - dy * dy));
-    obstacleSpan.min = o.cx - half;
-    obstacleSpan.max = o.cx + half;
+    writeMarkerSpan(o, top, bottom, true);
 }
 
 /** {@link writeObstacleSpanX} on the other axis: the obstacle's vertical extent across `[left, right]`. */
@@ -1227,10 +1355,36 @@ function writeObstacleSpanY(o: LabelObstacle, left: number, right: number) {
         obstacleSpan.max = o.box.y + o.box.height;
         return;
     }
-    const dx = Math.max(0, o.cx - right, left - o.cx);
-    const half = Math.sqrt(Math.max(0, o.r * o.r - dx * dx));
-    obstacleSpan.min = o.cy - half;
-    obstacleSpan.max = o.cy + half;
+    writeMarkerSpan(o, left, right, false);
+}
+
+/** A marker's extent along x across the rows `[lo, hi]` when `rows`, else along y across those columns. */
+function writeMarkerSpan(o: CircleObstacle, lo: number, hi: number, rows: boolean) {
+    const along = rows ? o.cx : o.cy;
+    const across = rows ? o.cy : o.cx;
+    const distance = Math.max(0, across - hi, lo - across);
+    const drawn = drawnBeyondNominal(o);
+    if (drawn == null || distance < o.r) {
+        const half = Math.sqrt(Math.max(0, o.r * o.r - distance * distance));
+        obstacleSpan.min = along - half;
+        obstacleSpan.max = along + half;
+    } else {
+        obstacleSpan.min = Infinity;
+        obstacleSpan.max = -Infinity;
+    }
+    if (drawn == null) return;
+    const outline = drawnOutline(drawn);
+    if (outline == null) {
+        const reach = o.reach ?? Infinity;
+        const half = Math.sqrt(Math.max(0, reach * reach - distance * distance));
+        drawnSpan.min = along - half;
+        drawnSpan.max = along + half;
+    } else {
+        const pad = outlinePad(drawn, outline) + drawn.snap;
+        outlineSpan(outline, o.cx, o.cy, outlineScale(drawn, outline), pad, pad, lo, hi, rows, drawnSpan);
+    }
+    obstacleSpan.min = Math.min(obstacleSpan.min, drawnSpan.min);
+    obstacleSpan.max = Math.max(obstacleSpan.max, drawnSpan.max);
 }
 
 /**
@@ -1425,16 +1579,18 @@ function markerCentreOf(d: PointLabelDatum) {
     const size = markerSizeOf(d);
     markerCentre.cx = x;
     markerCentre.cy = y;
-    if (d.anchor != null) {
-        markerCentre.cx -= (d.anchor.x - 0.5) * size;
-        markerCentre.cy -= (d.anchor.y - 0.5) * size;
+    const anchor = d.markerAnchor ?? d.anchor;
+    if (anchor != null) {
+        markerCentre.cx -= (anchor.x - 0.5) * size;
+        markerCentre.cy -= (anchor.y - 0.5) * size;
     }
 }
 
-/** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
+/** Inserts a pooled obstacle for every sized marker into the obstacle index, boxed by what it draws when known. */
 function insertMarkerObstacles(data: Map<string, PlacementEntry>) {
     let markerCount = 0;
-    for (const { datums, seriesIndex, paintOrder = Number.NaN, markerCoverage } of data.values()) {
+    for (const entry of data.values()) {
+        const { datums, seriesIndex, paintOrder = Number.NaN, markerCoverage, resolveMarkerOutline } = entry;
         for (const d of datums) {
             const size = markerSizeOf(d);
             if (size <= 0) continue;
@@ -1453,23 +1609,46 @@ function insertMarkerObstacles(data: Map<string, PlacementEntry>) {
                     seriesIndex: -1,
                     paintOrder: Number.NaN,
                     reach: Infinity,
+                    drawn: { outline: undefined, size: 0, outset: 0, snap: 0, pending: undefined, resolve: undefined },
                 };
                 markerPool.push(obstacle);
             }
             markerCount++;
             obstacle.seriesIndex = seriesIndex;
             obstacle.paintOrder = paintOrder;
-            obstacle.reach = markerReachOf(d, size, markerCoverage);
+            const reach = markerReachOf(d, size, markerCoverage);
+            obstacle.reach = reach;
             obstacle.cx = cx;
             obstacle.cy = cy;
             obstacle.r = r;
-            obstacle.box.x = cx - r;
-            obstacle.box.y = cy - r;
-            obstacle.box.width = size;
-            obstacle.box.height = size;
+            const extent = reach === Infinity ? r : Math.max(r, reach);
+            obstacle.box.x = cx - extent;
+            obstacle.box.y = cy - extent;
+            obstacle.box.width = 2 * extent;
+            obstacle.box.height = 2 * extent;
+            writeDrawnMarker(obstacle.drawn, d, size, markerCoverage, resolveMarkerOutline);
             obstacleIndex.insert(obstacle.box, obstacle);
         }
     }
+    markerObstacleCount = markerCount;
+}
+
+/** The drawn shape of a datum's marker, from its datum, else its series. */
+function writeDrawnMarker(
+    drawn: DrawnMarker,
+    d: PointLabelDatum,
+    size: number,
+    coverage: MarkerCoverage | undefined,
+    resolve: MarkerOutlineResolver | undefined
+) {
+    const stamped = d.markerReach != null;
+    const pending = stamped && d.markerOutlinePath != null;
+    drawn.outline = stamped ? d.markerOutline : coverage?.outline;
+    drawn.size = size;
+    drawn.outset = (stamped ? d.markerOutset : coverage?.strokeReach) ?? 0;
+    drawn.snap = (stamped ? d.markerSnap : coverage?.snap) ?? 0;
+    drawn.pending = pending ? d : undefined;
+    drawn.resolve = pending ? resolve : undefined;
 }
 
 /** True if any series has labels to place; gates the per-update sort and obstacle-index build. */
@@ -1586,6 +1765,8 @@ export function placeLabels(
                 resolveCandidate: entry.resolveCandidate,
                 paintOrder: entry.paintOrder,
                 markerCoverage: entry.markerCoverage,
+                resolveMarkerCoverRect: entry.resolveMarkerCoverRect,
+                resolveMarkerOutline: entry.resolveMarkerOutline,
                 seriesIndex,
             },
         ])
@@ -1607,6 +1788,7 @@ export function placeLabels(
             candidateSeriesIndex = entry.seriesIndex;
             candidatePaintOrder = entry.paintOrder ?? Number.NaN;
             candidateCoverage = entry.markerCoverage;
+            candidateCoverRectResolver = entry.resolveMarkerCoverRect;
             for (let index = 0, ln = datums.length; index < ln; index++) {
                 const d = datums[index];
                 // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
@@ -1642,7 +1824,15 @@ export function placeLabels(
 
 /** Drops the scratch state's hold on the last solve's datums, candidates and series callbacks. */
 function releaseSolveReferences() {
+    for (let i = 0; i < markerObstacleCount; i++) {
+        const { drawn } = markerPool[i];
+        drawn.outline = undefined;
+        drawn.pending = undefined;
+        drawn.resolve = undefined;
+    }
+    markerObstacleCount = 0;
     candidateCoverage = undefined;
+    candidateCoverRectResolver = undefined;
     cascadeDatum = undefined;
     cascadePlacements = undefined;
     cascadeOrientations = undefined;
@@ -1729,7 +1919,8 @@ function positionLabelBox(
     spacing: number,
     placement: LabelPlacement | undefined
 ) {
-    const { point, anchor } = d;
+    const { point } = d;
+    const anchor = d.markerAnchor ?? d.anchor;
     const markerSize = markerSizeOf(d);
     const shiftX = anchor ? (anchor.x - 0.5) * markerSize : 0;
     const shiftY = anchor ? (anchor.y - 0.5) * markerSize : 0;
@@ -1747,8 +1938,8 @@ function positionLabelBox(
     let x = point.x - width / 2 + dx - shiftX;
     let y = point.y - height / 2 + dy - shiftY;
     if (placement === 'inside' && d.insideOffset) {
-        x += d.insideOffset.x * markerSize;
-        y += d.insideOffset.y * markerSize;
+        x += (d.markerInsideRect?.cx ?? d.insideOffset.x) * markerSize;
+        y += (d.markerInsideRect?.cy ?? d.insideOffset.y) * markerSize;
     }
     out.x = x;
     out.y = y;
@@ -1877,8 +2068,9 @@ function insideMarkerCandidateContainer(
     if (placement !== 'inside' || d.insideSize == null) return undefined;
     const markerSize = markerSizeOf(d);
     const upright = rotation % 180 === 0;
-    const width = (upright ? d.insideSize.width : d.insideSize.height) * markerSize;
-    const height = (upright ? d.insideSize.height : d.insideSize.width) * markerSize;
+    const rect = d.markerInsideRect ?? d.insideSize;
+    const width = (upright ? rect.width : rect.height) * markerSize;
+    const height = (upright ? rect.height : rect.width) * markerSize;
     // Only a negative threshold reaches the budget, matching how the candidate's containment region is
     // deflated: a positive one is clearance from obstacles, not room taken off the marker.
     const inset = 2 * containmentThreshold(threshold);
@@ -3337,8 +3529,8 @@ function insideRegionFor(
 ): BoxBounds | undefined {
     if (placement !== 'inside' || d.insideSize == null) return undefined;
     const markerSize = markerSizeOf(d);
-    const rw = d.insideSize.width * markerSize;
-    const rh = d.insideSize.height * markerSize;
+    const rw = (d.markerInsideRect?.width ?? d.insideSize.width) * markerSize;
+    const rh = (d.markerInsideRect?.height ?? d.insideSize.height) * markerSize;
     insideRegionBox.x = x + boxWidth / 2 - rw / 2;
     insideRegionBox.y = y + boxHeight / 2 - rh / 2;
     insideRegionBox.width = rw;

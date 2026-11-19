@@ -151,7 +151,9 @@ export class MapMarkerSeries
     }
 
     private readonly colorScale = new ColorScale();
-    private readonly labelMarkers = new LabelMarkerStamps();
+    protected override readonly labelMarkers = new LabelMarkerStamps();
+    // Each node's resting style holds its selection style, which a selection change leaves stale until restamped.
+    private restingStylesStale = false;
     private readonly sizeScale = new LinearScale();
 
     private readonly markerGroup = this.contentGroup.appendChild(
@@ -196,6 +198,12 @@ export class MapMarkerSeries
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
             usesPlacedLabels: true,
         });
+
+        this.cleanup.register(
+            this.events.on('data-selection-change', () => {
+                this.restingStylesStale = true;
+            })
+        );
 
         this.animationState = new StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>(
             'empty',
@@ -1045,6 +1053,10 @@ export class MapMarkerSeries
         if (!styled && !this.isSelectionEnabled() && typeof options.shape !== 'function' && !fillPerDatum) {
             this.labelMarkers.unstamp(labelData);
             return labelData;
+        }
+        if (this.restingStylesStale) {
+            this.restingStylesStale = false;
+            for (const { node } of labelData) node.style = this.getMarkerItemStyle(node, false, true);
         }
         this.labelMarkers.stamp(labelData, (datum) => datum.node.style, {
             castsShadow: this.castsMarkerShadowAtRest(options),

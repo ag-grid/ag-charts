@@ -10,12 +10,9 @@ import {
     Translatable,
     align,
     getSharedMarkerPath,
+    markerShapeAnchor,
 } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
-
-// Frozen anchor literals returned from Marker.anchor() — avoids per-frame object allocation in hot paths.
-const PIN_ANCHOR: Point = Object.freeze({ x: 0.5, y: 1 });
-const CENTRE_ANCHOR: Point = Object.freeze({ x: 0.5, y: 0.5 });
 
 // Scratch BBoxes shared across all markers — drawPath is synchronous and markers don't
 // render recursively, so only one marker is mid-draw at any time.
@@ -211,13 +208,7 @@ export class Marker<_D = unknown> extends Rotatable(Scalable(Translatable(Intern
     }
 
     static anchor(shape: AgMarkerShape | undefined): Point {
-        if (shape === 'pin') {
-            return PIN_ANCHOR;
-        } else if (typeof shape === 'function' && 'anchor' in shape) {
-            // Undocumented API - used by FC annotations
-            return shape.anchor as any;
-        }
-        return CENTRE_ANCHOR;
+        return markerShapeAnchor(shape);
     }
 
     constructor(options?: NodeOptions & { shape?: AgMarkerShape }) {

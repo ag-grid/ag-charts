@@ -5,7 +5,15 @@ import type { AgMarkerShapeFn } from 'ag-charts-types';
 import { Color } from '../format/color';
 import { ExtendedPath2D } from '../scene/extendedPath2D';
 import { stubPath2D } from '../test/coreAccessors';
-import { MarkerFillMemo, MarkerShapeCoverage } from './markerCoverage';
+import {
+    EVERY_MARKER_FILL_PAINTED,
+    MarkerFillMemo,
+    MarkerShapeCoverage,
+    applyStyledMarkerCoverage,
+    markerUnitOutline,
+} from './markerCoverage';
+import { getSharedMarkerPath } from './markerPathCache';
+import { MARKER_SHAPES } from './markerShapes';
 
 const gradient = (...colors: string[]) => ({ type: 'gradient', colorStops: colors.map((color) => ({ color })) });
 
@@ -112,6 +120,51 @@ describe('MarkerFillMemo', () => {
     });
 });
 
+describe('markerUnitOutline', () => {
+    stubPath2D();
+
+    type Polygons = readonly (readonly { x: number; y: number }[])[];
+
+    /** The farthest any vertex of `from` lies from the edges of `to`. */
+    const farthestVertex = (from: Polygons, to: Polygons) => {
+        let farthest = 0;
+        for (const polygon of from) {
+            for (const p of polygon) {
+                let nearest = Infinity;
+                for (const edges of to) {
+                    for (let i = 0, j = edges.length - 1; i < edges.length; j = i++) {
+                        const a = edges[j];
+                        const b = edges[i];
+                        const dx = b.x - a.x;
+                        const dy = b.y - a.y;
+                        const lengthSq = dx * dx + dy * dy;
+                        const along = lengthSq === 0 ? 0 : ((p.x - a.x) * dx + (p.y - a.y) * dy) / lengthSq;
+                        const t = Math.max(0, Math.min(1, along));
+                        nearest = Math.min(nearest, Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy));
+                    }
+                }
+                farthest = Math.max(farthest, nearest);
+            }
+        }
+        return farthest;
+    };
+
+    const builtIns = (Object.keys(MARKER_SHAPES) as (keyof typeof MARKER_SHAPES)[]).filter((s) => s !== 'circle');
+
+    it.each(builtIns.flatMap((shape) => [7, 40].map((size) => ({ shape, size }))))(
+        'scales the $shape outline to the path drawn at size $size',
+        ({ shape, size }) => {
+            const unit = markerUnitOutline(shape);
+            expect(unit?.polygons.length).toBeGreaterThan(0);
+            const scaled = unit!.polygons.map((polygon) => polygon.map(({ x, y }) => ({ x: x * size, y: y * size })));
+            const drawn = getSharedMarkerPath(shape, size).flatten(16, unit!.tolerance * size);
+            const tolerance = unit!.tolerance * size;
+            expect(farthestVertex(scaled, drawn)).toBeLessThanOrEqual(tolerance);
+            expect(farthestVertex(drawn, scaled)).toBeLessThanOrEqual(tolerance);
+        }
+    );
+});
+
 describe('MarkerShapeCoverage', () => {
     stubPath2D();
 
@@ -127,6 +180,17 @@ describe('MarkerShapeCoverage', () => {
         const flatten = vi.spyOn(ExtendedPath2D.prototype, 'flatten');
         return () => flatten.mock.calls.filter(([, tolerance]) => tolerance != null).length;
     };
+
+    it('measures the cover rectangle only once one is asked for, and once for each size', () => {
+        const shapes = new MarkerShapeCoverage();
+        const measures = countMeasures();
+        shapes.of(square, 10, 1, true);
+        expect(measures()).toBe(1);
+        expect(shapes.coverRectOf(square, 10, 1)).toBeDefined();
+        expect(shapes.coverRectOf(square, 10, 1)).toBeDefined();
+        shapes.of(square, 10, 1, true);
+        expect(measures()).toBe(2);
+    });
 
     it('measures each shape once per size, however often it is asked for', () => {
         const shapes = new MarkerShapeCoverage();
@@ -219,6 +283,7 @@ describe('MarkerShapeCoverage', () => {
         const offCentre: AgMarkerShapeFn = ({ path, size }) => path.rect(size, size, size, size);
         const empty: AgMarkerShapeFn = () => {};
         const measure = (shape: AgMarkerShapeFn) => new MarkerShapeCoverage().of(shape, SIZE, 1, true);
+        const measureRect = (shape: AgMarkerShapeFn) => new MarkerShapeCoverage().coverRectOf(shape, SIZE, 1);
 
         it.each([
             { case: 'a ring, whose hole holds the centre', shape: ring, cover: 0 },
@@ -245,7 +310,7 @@ describe('MarkerShapeCoverage', () => {
             },
             { case: 'clear of a slit through the centre', shape: slit, within: (x: number) => Math.abs(x) >= 1 },
         ])('finds a rectangle $case', ({ shape, within }) => {
-            const rect = measure(shape).coverRect;
+            const rect = measureRect(shape);
             expect(rect).toBeDefined();
             const { width = 0, height = 0, cx = 0, cy = 0 } = rect ?? {};
             const corners = [-1, 1].flatMap((sx) =>
@@ -255,7 +320,7 @@ describe('MarkerShapeCoverage', () => {
         });
 
         it('finds no rectangle where a slit the grid steps over would cross it', () => {
-            expect(measure(hairline).coverRect).toBeUndefined();
+            expect(measureRect(hairline)).toBeUndefined();
         });
 
         it.each([
@@ -267,6 +332,36 @@ describe('MarkerShapeCoverage', () => {
             { case: 'an empty path', shape: empty, reach: 0 },
         ])('measures the reach of $case', ({ shape, reach }) => {
             expect(measure(shape).reach).toBeCloseTo(reach, 6);
+        });
+
+        // A sliver whose tip turns sharper than the miter limit allows, its base corners near right angles.
+        const sliver: AgMarkerShapeFn = ({ path }) => {
+            path.moveTo(0, -50);
+            path.lineTo(2, 50);
+            path.lineTo(-2, 50);
+            path.closePath();
+        };
+
+        it.each([
+            { case: 'a square, at its right-angled corners', shape: offCentre, miter: Math.SQRT2 },
+            { case: 'a sliver, at its base, its tip bevelling', shape: sliver, miter: 1.428568514 },
+            { case: 'an empty path', shape: empty, miter: 1 },
+        ])('measures the sharpest join of $case', ({ shape, miter }) => {
+            expect(measure(shape).miter).toBeCloseTo(miter, 6);
+        });
+
+        it('reaches a stroke past a custom path by its sharpest join, not the miter limit', () => {
+            const datum: { markerReach?: number } = {};
+            const shapes = new MarkerShapeCoverage();
+            const inputs = {
+                castsShadow: false,
+                fills: EVERY_MARKER_FILL_PAINTED,
+                shapes,
+                pixelRatio: 1,
+                inside: false,
+            };
+            applyStyledMarkerCoverage(datum, { shape: offCentre, size: SIZE, stroke: 'black', strokeWidth: 2 }, inputs);
+            expect(datum.markerReach).toBeCloseTo(200 * Math.SQRT2 + 0.5 + Math.SQRT2, 6);
         });
     });
 });

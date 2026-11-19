@@ -9,7 +9,10 @@ import type {
     DistantObject,
     DomainWithMetadata,
     DynamicContext,
+    LabelMarkerStamps,
+    MarkerCoverRectResolver,
     MarkerCoverage,
+    MarkerOutlineResolver,
     Node,
     NormalisedChartLabelCollisionOptions,
     NormalisedColorType,
@@ -294,6 +297,8 @@ export abstract class Series<
 
     protected hasChangesOnHighlight: boolean = false;
     protected hasChangesOnSelection: boolean = false;
+    /** Per-datum marker stamps on this series' labels, for a series whose markers differ per datum. */
+    protected readonly labelMarkers?: LabelMarkerStamps;
 
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
@@ -581,6 +586,7 @@ export abstract class Series<
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
                 this.bucketLookup?.refresh();
+                if (this.labelMarkers?.stamped) this.invalidateLabelPlacement();
             })
         );
     }
@@ -1831,6 +1837,12 @@ export abstract class Series<
     }
     public getLabelMarkerCoverage(): MarkerCoverage | undefined {
         return undefined;
+    }
+    public getLabelMarkerCoverRect(): MarkerCoverRectResolver | undefined {
+        return this.labelMarkers?.resolveCoverRect;
+    }
+    public getLabelMarkerOutline(): MarkerOutlineResolver | undefined {
+        return this.labelMarkers?.resolveOutline;
     }
 
     /**

@@ -130,6 +130,198 @@ describe('label collision avoidance', () => {
         });
     });
 
+    describe('inside label over a marker painted under its own selected marker', () => {
+        const label = { enabled: true, placement: 'inside', collision: { alwaysShow: false } } as const;
+        const selection = { enabled: true, selectedItem: { fill: 'transparent' } };
+        // Each lower marker sits just off the larger marker's centre, so a click there picks the larger one.
+        const lineOptions = (): AgCartesianChartOptions => ({
+            data: [0, 5, 10].map((x) => ({ x, y: x, under: x + 0.05 })),
+            axes: {
+                x: { type: 'number', position: 'bottom', min: -5, max: 15 },
+                y: { type: 'number', position: 'left', min: -5, max: 15 },
+            },
+            series: [
+                { type: 'scatter', xKey: 'under', yKey: 'y', labelKey: 'x', size: 10, label: { placement: 'bottom' } },
+                { type: 'line', xKey: 'x', yKey: 'y', marker: { size: 30 }, label, selection },
+            ],
+        });
+        // No axes, so nothing else in the chart re-solves the labels when the selection lays the chart out again.
+        const mapMarkerOptions = (): AgChartOptions => {
+            const data = [
+                { name: '0', lat: 51, lon: -2 },
+                { name: '5', lat: 52.5, lon: -1.5 },
+                { name: '10', lat: 54, lon: -1 },
+            ];
+            const keys = { latitudeKey: 'lat', longitudeKey: 'lon', labelKey: 'name' } as const;
+            return {
+                topology: ukTopology,
+                series: [
+                    {
+                        type: 'map-marker',
+                        ...keys,
+                        data: data.map((d) => ({ ...d, lon: d.lon + 0.01 })),
+                        size: 10,
+                        label: { placement: 'bottom' },
+                    },
+                    { type: 'map-marker', ...keys, data, size: 30, label, selection },
+                ],
+            };
+        };
+
+        it.each([
+            { type: 'line', by: 'a click', options: lineOptions },
+            { type: 'line', by: 'the API', options: lineOptions },
+            { type: 'map-marker', by: 'a click', options: mapMarkerOptions },
+            { type: 'map-marker', by: 'the API', options: mapMarkerOptions },
+        ])('places each $type label for the datum selected last by $by', async ({ by, options }) => {
+            chart = await createEnterpriseChart({
+                ...options(),
+                animation: { enabled: false },
+                legend: { enabled: false },
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+            } as AgChartOptions);
+            const series = getSeriesAt(chart, 1);
+            const markers = shapesOf(series.contentGroup, _ModuleSupport.Marker);
+            const select = async (index: number) => {
+                if (by === 'a click') {
+                    const { x, y } = Transformable.toCanvas(markers[index]).computeCenter();
+                    await clickAction(x, y)(chart);
+                } else {
+                    chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(index) }]);
+                }
+                await waitForChartStability(chart);
+            };
+            const placedTexts = () =>
+                getPlacedLabelData<PlacedLabel<PointLabelDatum>>(chart, 1).map(({ datum }) => datum.label.text);
+            const covered = () => series.getLabelData().map(({ markerCover = 0 }) => markerCover > 0);
+            expect(placedTexts()).toEqual(['0', '5', '10']);
+
+            await select(0);
+            expect(covered()).toEqual([false, true, true]);
+            expect(placedTexts()).toEqual(['5', '10']);
+
+            await select(2);
+            expect(covered()).toEqual([true, true, false]);
+            expect(placedTexts()).toEqual(['0', '5']);
+        });
+    });
+
+    // A selection in one series turns every other series' markers to their unselected style.
+    describe('inside labels over markers another series selection restyles', () => {
+        const sites = [
+            { name: '0', lat: 51, lon: -2 },
+            { name: '5', lat: 52.5, lon: -1.5 },
+            { name: '10', lat: 54, lon: -1 },
+        ];
+        const keys = { latitudeKey: 'lat', longitudeKey: 'lon', labelKey: 'name' } as const;
+        // The last small marker stands clear of the large ones, so a click there picks it.
+        const options = (): AgChartOptions => ({
+            topology: ukTopology,
+            selection: { clickMode: 'multiple' },
+            series: [
+                {
+                    type: 'map-marker',
+                    ...keys,
+                    data: [...sites.map((d) => ({ ...d, lon: d.lon + 0.01 })), { name: 'clear', lat: 50.5, lon: 0.5 }],
+                    size: 10,
+                    label: { placement: 'bottom' },
+                    selection: { enabled: true },
+                },
+                {
+                    type: 'map-marker',
+                    ...keys,
+                    data: sites,
+                    size: 30,
+                    label: { enabled: true, placement: 'inside', collision: { alwaysShow: false } },
+                    selection: { enabled: true, unselectedItem: { fill: 'transparent' } },
+                },
+            ],
+        });
+
+        it.each([{ by: 'a click' }, { by: 'the API' }])(
+            'places each label by the style its marker takes as $by selects and clears another series',
+            async ({ by }) => {
+                chart = await createEnterpriseChart({
+                    ...options(),
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+                } as AgChartOptions);
+                const other = getSeriesAt(chart, 0);
+                const series = getSeriesAt(chart, 1);
+                const clear = shapesOf(other.contentGroup, _ModuleSupport.Marker)[3];
+                const toggle = async (selected: boolean) => {
+                    if (by === 'a click') {
+                        const { x, y } = Transformable.toCanvas(clear).computeCenter();
+                        await clickAction(x, y)(chart);
+                    } else if (selected) {
+                        chart.setSelection([{ seriesId: other.id, itemId: other.data!.getItemIdFromIndex(3) }]);
+                    } else {
+                        chart.clearSelection();
+                    }
+                    await waitForChartStability(chart);
+                };
+                const placedTexts = () =>
+                    getPlacedLabelData<PlacedLabel<PointLabelDatum>>(chart, 1).map(({ datum }) => datum.label.text);
+                const covered = () => series.getLabelData().map(({ markerCover = 0 }) => markerCover > 0);
+                expect(placedTexts()).toEqual(['0', '5', '10']);
+
+                await toggle(true);
+                expect(covered()).toEqual([false, false, false]);
+                expect(placedTexts()).toEqual([]);
+
+                await toggle(false);
+                expect(covered()).toEqual([true, true, true]);
+                expect(placedTexts()).toEqual(['0', '5', '10']);
+            }
+        );
+    });
+
+    describe('an inside-only label refitted as selection restyles its marker', () => {
+        type Drawn = { shape?: 'triangle'; size?: number };
+        const label = { enabled: true, placement: 'inside' as const, formatter: () => 'WWWWWWWWWW' };
+        const selection = { enabled: true };
+        const options = (type: 'line' | 'scatter', drawn: Drawn): AgCartesianChartOptions => {
+            const itemStyler = ({ selectionState }: { selectionState?: string }) =>
+                selectionState === 'selected-item' ? drawn : {};
+            const marker = { shape: 'square' as const, size: 60, itemStyler };
+            return {
+                data: [{ x: 5, y: 5 }],
+                axes: {
+                    x: { position: 'bottom', type: 'number', min: 0, max: 10 },
+                    y: { position: 'left', type: 'number', min: 0, max: 10 },
+                },
+                series: [
+                    type === 'line'
+                        ? { type, xKey: 'x', yKey: 'y', marker, label, selection }
+                        : { type, xKey: 'x', yKey: 'y', labelKey: 'y', ...marker, label, selection },
+                ],
+            };
+        };
+
+        it.each([
+            { type: 'line' as const, what: 'shape', drawn: { shape: 'triangle' as const } },
+            { type: 'line' as const, what: 'size', drawn: { size: 30 } },
+            { type: 'scatter' as const, what: 'shape', drawn: { shape: 'triangle' as const } },
+            { type: 'scatter' as const, what: 'size', drawn: { size: 30 } },
+        ])('fits a $type label to the $what drawn as its datum is selected and cleared', async ({ type, drawn }) => {
+            chart = await createEnterpriseChart({ ...options(type, drawn), animation: { enabled: false } });
+            const series = getSeriesAt(chart, 0);
+            const textOf = () =>
+                getPlacedLabelData<PlacedLabel<PointLabelDatum>>(chart, 0).map(({ text }) => String(text));
+            const configured = textOf();
+            expect(configured).toHaveLength(1);
+
+            chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(0) }]);
+            await waitForChartStability(chart);
+            expect(textOf()[0].length).toBeLessThan(configured[0].length);
+
+            chart.clearSelection();
+            await waitForChartStability(chart);
+            expect(textOf()).toEqual(configured);
+        });
+    });
+
     describe('colour parsing in the label solve', () => {
         // More datums than a fixed-size memo of fills would hold, each drawn in a distinct colour.
         const DATUMS = 100;

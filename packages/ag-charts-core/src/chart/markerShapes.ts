@@ -1,6 +1,7 @@
 import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
 
 import { toRadians } from '../geometry/angle';
+import type { Point } from '../types/scene';
 
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
@@ -205,6 +206,29 @@ export const MARKER_SHAPE_GEOMETRY: Record<keyof typeof MARKER_SHAPES, MarkerSha
     'triangle-down': { inR: 0.248, circumR: 0.6221, miter: 2.01, snap: 0 },
     hourglass: { inR: 0, circumR: Math.SQRT1_2, miter: 2.62, snap: 0 },
 };
+
+// Frozen so the renderer can return them per frame without allocating.
+const PIN_ANCHOR: Point = Object.freeze({ x: 0.5, y: 1 });
+const CENTRE_ANCHOR: Point = Object.freeze({ x: 0.5, y: 0.5 });
+
+function isAnchorPoint(value: unknown): value is Point {
+    return (
+        typeof value === 'object' &&
+        value != null &&
+        'x' in value &&
+        'y' in value &&
+        typeof value.x === 'number' &&
+        typeof value.y === 'number'
+    );
+}
+
+/** Where a marker of `shape` sits against its point, as fractions of its size. */
+export function markerShapeAnchor(shape: AgMarkerShape | undefined): Point {
+    if (shape === 'pin') return PIN_ANCHOR;
+    // Undocumented API - used by FC annotations
+    if (typeof shape === 'function' && 'anchor' in shape && isAnchorPoint(shape.anchor)) return shape.anchor;
+    return CENTRE_ANCHOR;
+}
 
 /** Px pixel snapping may move a drawn edge of `shape` from its nominal position at `pixelRatio`. */
 export function markerSnapAllowance(shape: keyof typeof MARKER_SHAPES, pixelRatio: number): number {
