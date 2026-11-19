@@ -3152,41 +3152,71 @@ describe('Group shadow compositor', () => {
 
         // A canvas shrinks for the frames of a scene, so each cast here is of a frame, with a user of its own to keep no cache.
         describe('canvas shrinking', () => {
-            type Size = 'large' | 'small';
+            // Wide and tall are small casts of different shapes, wider is one wider than both, and narrow is as tall as the canvas, and long is taller still.
+            type Size = 'large' | 'small' | 'wide' | 'tall' | 'wider' | 'narrow' | 'long';
+            const SIZES: Size[] = ['large', 'small', 'wide', 'tall', 'wider', 'narrow', 'long'];
             const MID = { width: 200, height: 120 };
             const area = ({ width, height }: OffscreenCanvas) => width * height;
 
+            interface LayerSize {
+                width: number;
+                height: number;
+            }
+
             interface ShrinkPath {
-                /** The size of the layer that a cast of each size is drawn on. */
-                layers: Record<Size, { width: number; height: number }>;
+                /** The size of the layer that a cast of each size is drawn on, which a size with none shares with the small. */
+                layers: { large: LayerSize; small: LayerSize } & Partial<Record<Size, LayerSize>>;
                 keys: (size: Size) => ShadowKey[];
                 overlay: boolean;
                 /** Whether the canvas that shrinks is the scratch, which the layer sizes, rather than one that a glow's gap uses. */
                 scratch: boolean;
+                /** Whether the keys differ in shape between the sizes wide, tall, wider and narrow. */
+                shapes: boolean;
             }
 
-            const glowKey = (x: number, y: number, size: number) => {
+            const glowKey = (x: number, y: number, width: number, height = width) => {
                 const glow = { ...GAPPED_GLOW, fill: 'rgba(0, 0, 255, 1)' };
-                return { ...keyOf(box(x, y, size, size, { fillGlow: glow }), glow), slot: 'glow' as const };
+                return { ...keyOf(box(x, y, width, height, { fillGlow: glow }), glow), slot: 'glow' as const };
+            };
+
+            const GAP_LAYER = { width: 400, height: 300 };
+            const GAP_SHAPES: Record<Size, [number, number]> = {
+                large: [400, 300],
+                small: [15, 15],
+                wide: [100, 20],
+                tall: [20, 100],
+                wider: [120, 20],
+                narrow: [2, 100],
+                long: [20, 240],
             };
 
             const PATHS: Array<[string, ShrinkPath]> = [
                 [
                     'scratch',
                     {
-                        layers: { large: { width: 1000, height: 800 }, small: { width: 200, height: 100 } },
+                        layers: {
+                            large: { width: 1000, height: 800 },
+                            small: { width: 200, height: 100 },
+                            wide: { width: 400, height: 100 },
+                            tall: { width: 100, height: 400 },
+                            wider: { width: 440, height: 100 },
+                            narrow: { width: 20, height: 400 },
+                            long: { width: 100, height: 450 },
+                        },
                         keys: () => [keyOf(box(20, 20, 40, 40, { fillShadow: RED_HALF }), RED_HALF)],
                         overlay: false,
                         scratch: true,
+                        shapes: true,
                     },
                 ],
                 [
                     'gap',
                     {
-                        layers: { large: MID, small: MID },
-                        keys: (size) => [glowKey(10, 10, size === 'large' ? 100 : 15)],
+                        layers: { large: GAP_LAYER, small: GAP_LAYER },
+                        keys: (size) => [GAP_SHAPES[size]].map(([width, height]) => glowKey(10, 10, width, height)),
                         overlay: false,
                         scratch: false,
+                        shapes: true,
                     },
                 ],
                 [
@@ -3199,29 +3229,27 @@ describe('Group shadow compositor', () => {
                                 : [glowKey(10, 10, 15), glowKey(30, 10, 15)],
                         overlay: true,
                         scratch: false,
+                        shapes: false,
                     },
                 ],
             ];
 
             describe.each(PATHS)('the %s canvas', (_name, path) => {
                 let scene: object;
-                let layers: Record<Size, OffscreenCanvas>;
+                let layers: Map<LayerSize, OffscreenCanvas>;
+                const layerOf = (size: Size) => layers.get(path.layers[size] ?? path.layers.small)!;
                 beforeEach(() => {
                     scene = {};
-                    const { large, small } = path.layers;
-                    layers = {
-                        large: new OffscreenCanvas(large.width, large.height),
-                        small:
-                            large === small
-                                ? new OffscreenCanvas(0, 0)
-                                : new OffscreenCanvas(small.width, small.height),
-                    };
-                    if (large === small) layers.small = layers.large;
+                    layers = new Map();
+                    for (const size of SIZES) {
+                        const layer = path.layers[size] ?? path.layers.small;
+                        if (!layers.has(layer)) layers.set(layer, new OffscreenCanvas(layer.width, layer.height));
+                    }
                 });
                 afterEach(() => destroyShadowScratch(scene));
 
                 const cast = (size: Size) => {
-                    const layer = layers[size];
+                    const layer = layerOf(size);
                     const context = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
                     context.clearRect(0, 0, layer.width, layer.height);
                     const renderCtx = { ...renderContext(), ctx: context, width: layer.width, height: layer.height };
@@ -3236,7 +3264,7 @@ describe('Group shadow compositor', () => {
 
                 // Reading the layer back expands it into an array, so only the test that compares pixels does.
                 const castPixels = (size: Size) => {
-                    const { width, height } = layers[size];
+                    const { width, height } = layerOf(size);
                     return Array.from(cast(size).getImageData(0, 0, width, height).data);
                 };
 
@@ -3324,6 +3352,31 @@ describe('Group shadow compositor', () => {
                     expect(shrinkable(before) * 4).toBeLessThan(large);
                 });
 
+                const itShaped = path.shapes ? it : it.skip;
+
+                itShaped(
+                    'should count a frame that grows the canvas by the largest of its casts, not the one that grew it',
+                    () => {
+                        const before = offscreenCanvases();
+                        frame('wide');
+                        const wide = shrinkable(before);
+
+                        // The narrow cast grows only the height, and by itself it is a small frame, but the frame was as wide as the other.
+                        frame('wide', 'narrow');
+                        const grown = shrinkable(before);
+                        expect(grown).toBeGreaterThan(wide);
+                        const created = createdSince(before).length;
+
+                        for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) frame('narrow');
+
+                        expect(shrinkable(before)).toBe(grown);
+                        expect(createdSince(before)).toHaveLength(created);
+
+                        frame('narrow');
+                        expect(shrinkable(before) * 4).toBeLessThan(grown);
+                    }
+                );
+
                 it('should count a frame that allocates the canvas by the cast that allocated it', () => {
                     const before = offscreenCanvases();
                     frame('large', 'small');
@@ -3358,6 +3411,53 @@ describe('Group shadow compositor', () => {
 
                     for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) frame('small');
 
+                    expect(createdSince(before)).toHaveLength(created);
+                });
+
+                describe.runIf(path.shapes)('with casts of different shapes', () => {
+                    // The shapes are small enough together that the canvas shrinks to cover them both.
+                    const bothShapes: Size[] = ['wide', 'tall'];
+
+                    it('should shrink to cover the casts of every frame of the run, so that none allocates again', () => {
+                        const before = offscreenCanvases();
+                        frame('large');
+                        const large = shrinkable(before);
+
+                        for (let i = 0; i <= SHADOW_SHRINK_AFTER; i++) frame(bothShapes[i % 2]);
+                        expect(shrinkable(before) * 4).toBeLessThan(large);
+                        const created = createdSince(before).length;
+
+                        for (const shape of bothShapes) frame(shape);
+
+                        expect(createdSince(before)).toHaveLength(created);
+                    });
+
+                    it('should shrink to cover the cast that it shrinks for, when that is larger than the run', () => {
+                        const before = offscreenCanvases();
+                        frame('large');
+                        const large = shrinkable(before);
+
+                        for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) frame('wide');
+                        frame('wider');
+                        expect(shrinkable(before) * 4).toBeLessThan(large);
+                        const created = createdSince(before).length;
+
+                        frame('wider');
+
+                        expect(createdSince(before)).toHaveLength(created);
+                    });
+                });
+
+                itShaped('should keep its size when casts that are small alone are not together', () => {
+                    const before = offscreenCanvases();
+                    frame('large');
+                    const large = shrinkable(before);
+                    const created = createdSince(before).length;
+
+                    // Each frame is at most a quarter of the canvas, but the canvas that fits the wide and the long is not.
+                    for (let i = 0; i <= SHADOW_SHRINK_AFTER; i++) frame(i % 2 === 0 ? 'wide' : 'long');
+
+                    expect(shrinkable(before)).toBe(large);
                     expect(createdSince(before)).toHaveLength(created);
                 });
 

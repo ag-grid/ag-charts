@@ -208,7 +208,7 @@ interface ScratchPool {
 
 /** What the casts of recent frames asked of a canvas. */
 interface CanvasUse {
-    /** The frame that the peak is of, or -1 before the first cast. */
+    /** The frame that the peak is of. */
     frame: number;
     /** The widest and tallest cast of that frame. */
     peakWidth: number;
@@ -271,8 +271,18 @@ function acquireOwnCutCanvas(scene: object | undefined, width: number, height: n
     return acquireGrowingCanvas(getPool(scene), 'cutCanvas', width, height);
 }
 
-function newUse(frame = -1, width = 0, height = 0): CanvasUse {
-    return { frame, peakWidth: width, peakHeight: height, smallFrames: 0, runWidth: 0, runHeight: 0 };
+function newUse(): CanvasUse {
+    return { frame: 0, peakWidth: 0, peakHeight: 0, smallFrames: 0, runWidth: 0, runHeight: 0 };
+}
+
+/** Adds a request to the peak of its frame, including the one that allocated or grew the canvas. */
+function notePeak(use: CanvasUse, frame: number, width: number, height: number) {
+    if (use.frame !== frame) {
+        use.frame = frame;
+        use.peakWidth = use.peakHeight = 0;
+    }
+    use.peakWidth = Math.max(use.peakWidth, width);
+    use.peakHeight = Math.max(use.peakHeight, height);
 }
 
 /** Starts a frame of a scene, so that its canvases shrink for what its frames ask of them, not for how many casts they make. */
@@ -281,11 +291,7 @@ export function startShadowFrame(scene: object) {
     if (pool != null) pool.frame++;
 }
 
-/**
- * The size to reallocate a canvas at for a cast, or undefined to keep it. A canvas that is too small grows to the largest
- * width and height that it had, within what a canvas can be. One that has been much too large for {@link SHADOW_SHRINK_AFTER}
- * frames in a row shrinks to fit the largest cast of them, so that a workload that repeats keeps its canvas.
- */
+/** The size to reallocate a canvas at for a cast, or undefined to keep it. */
 function resizeFor(
     pool: ScratchPool,
     field: PoolCanvas,
@@ -293,46 +299,42 @@ function resizeFor(
     width: number,
     height: number
 ): { width: number; height: number } | undefined {
+    const use = pool.uses[field];
     if (canvas == null) {
-        pool.uses[field] = newUse(pool.frame, width, height);
+        notePeak(use, pool.frame, width, height);
         return { width, height };
     }
     if (canvas.width < width || canvas.height < height) {
+        use.smallFrames = 0;
+        use.runWidth = use.runHeight = 0;
+        notePeak(use, pool.frame, width, height);
         const canvasWidth = Math.max(width, canvas.width);
         const canvasHeight = Math.max(height, canvas.height);
-        pool.uses[field] = newUse(pool.frame, width, height);
         return canvasWidth * canvasHeight > MAX_MASK_AREA
             ? { width, height }
             : { width: canvasWidth, height: canvasHeight };
     }
 
-    const use = pool.uses[field];
+    let size: { width: number; height: number } | undefined;
     if (use.frame !== pool.frame) {
-        if (use.frame >= 0) {
-            if (use.peakWidth * use.peakHeight * 4 <= canvas.width * canvas.height) {
-                use.smallFrames++;
-                use.runWidth = Math.max(use.runWidth, use.peakWidth);
-                use.runHeight = Math.max(use.runHeight, use.peakHeight);
-            } else {
-                use.smallFrames = 0;
-                use.runWidth = use.runHeight = 0;
-            }
-        }
-        use.frame = pool.frame;
-        use.peakWidth = use.peakHeight = 0;
-
-        if (use.smallFrames >= SHADOW_SHRINK_AFTER) {
-            const size = { width: Math.max(use.runWidth, width), height: Math.max(use.runHeight, height) };
+        if (use.peakWidth * use.peakHeight * 4 <= canvas.width * canvas.height) {
+            use.smallFrames++;
+            use.runWidth = Math.max(use.runWidth, use.peakWidth);
+            use.runHeight = Math.max(use.runHeight, use.peakHeight);
+        } else {
             use.smallFrames = 0;
             use.runWidth = use.runHeight = 0;
-            if (size.width * size.height * 4 <= canvas.width * canvas.height) {
-                pool.uses[field] = newUse(pool.frame, width, height);
-                return size;
-            }
+        }
+
+        if (use.smallFrames >= SHADOW_SHRINK_AFTER) {
+            size = { width: Math.max(use.runWidth, width), height: Math.max(use.runHeight, height) };
+            use.smallFrames = 0;
+            use.runWidth = use.runHeight = 0;
+            if (size.width * size.height * 4 > canvas.width * canvas.height) size = undefined;
         }
     }
-    use.peakWidth = Math.max(use.peakWidth, width);
-    use.peakHeight = Math.max(use.peakHeight, height);
+    notePeak(use, pool.frame, width, height);
+    return size;
 }
 
 function acquireGrowingCanvas(
