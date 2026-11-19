@@ -118,16 +118,28 @@ export abstract class Widget<
         return this.elem.offsetHeight;
     }
 
-    destroy(): void {
+    public readonly destroy = (() => {
+        let isDestroying = false;
+        return () => {
+            if (isDestroying) {
+                return; // block reentrance.
+            }
+            isDestroying = true;
+            this.nonReentrantDestruction();
+            isDestroying = false;
+        };
+    })();
+
+    private nonReentrantDestruction() {
         this.destroyListener?.();
         this.destroyListener = undefined;
+        this.destructor();
         this.remove();
         for (const child of this.children) {
             child.parent = undefined;
             child.destroy();
         }
         this.children.length = 0;
-        this.destructor();
         this.internalListener?.destroy();
         this.htmlListener?.destroy(this);
     }
@@ -418,6 +430,21 @@ export abstract class Widget<
         child.domIndex = domIndex;
         this.removeChildFromDOM(child);
         this.addChildToDOM(child, this.getBefore(child));
+    }
+
+    prependChild(child: TChildWidget) {
+        this.addChildToDOM(child, this.children.at(0));
+        for (const c of this.children) {
+            c.index++;
+        }
+        this.children.unshift(child);
+        child.index = 0;
+        child.parent = this;
+        this.onChildAdded(child);
+    }
+
+    iterateChildren(): Iterable<TChildWidget> {
+        return this.children;
     }
 
     addClass(...tokens: string[]) {

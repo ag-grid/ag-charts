@@ -14,11 +14,16 @@
 }
 
 .ag-charts-crosshair-label-content {
-    padding: 0px 8px;
+    padding: var(--ag-charts-crosshair-label-vertical-padding) var(--ag-charts-crosshair-label-horizontal-padding);
     border-radius: calc(var(--ag-charts-border-radius) / 2);
-    line-height: calc(var(--ag-charts-font-size) + 8px);
+    line-height: var(--ag-charts-font-size);
     background-color: var(--ag-charts-crosshair-label-background-color);
     color: var(--ag-charts-crosshair-label-text-color);
+}
+
+/* Padding would otherwise draw an empty label as a bare box. */
+.ag-charts-crosshair-label-content:has(> span:empty) {
+    display: none;
 }
 
 .ag-charts-crosshair-label--hidden {

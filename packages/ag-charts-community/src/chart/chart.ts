@@ -23,6 +23,7 @@ import {
     Group,
     ModuleType,
     Mutex,
+    SERIES_GLOW_OVERLAY_Z_INDEX,
     TranslatableGroup,
     ZIndexMap,
     callWithContext,
@@ -150,6 +151,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         name: `${this.id}-series-root`,
         zIndex: ZIndexMap.SERIES_LAYER,
         shadowRoot: true,
+        glowOverlayZIndex: SERIES_GLOW_OVERLAY_Z_INDEX,
     });
     readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,

@@ -55,6 +55,10 @@ export class WidgetListenerHTML {
     }
 
     destroy<T extends WidgetTarget>(target: T): void {
+        this.clear(target);
+    }
+
+    clear<T extends WidgetTarget>(target: T): void {
         this.widgetListeners = undefined;
         if (this.sourceListeners) {
             for (const [key, sourceHandler] of entries(this.sourceListeners)) {

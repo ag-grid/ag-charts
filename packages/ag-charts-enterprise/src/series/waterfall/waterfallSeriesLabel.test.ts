@@ -34,12 +34,13 @@ const getPath = (source: Record<string, any>, path: string) =>
  * Captured on the base commit, before `series.label` existed: the resolved `item.<type>.label`
  * subtree for a waterfall configured with no label options at all. Identical for all three bar
  * types. Pinning it literally is the gate for "an item-level-only waterfall renders as it does today".
+ * The one deliberate change since is `padding`, now the shared `seriesLabelPadding` default of 8 rather than 6.
  */
 const BASELINE_ITEM_LABEL = {
     enabled: false,
     border: { enabled: false, stroke: 'rgba(24, 29, 31, 0.08)', strokeWidth: 1 },
     cornerRadius: 4,
-    padding: 6,
+    padding: 8,
     fontFamily:
         '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
     fontSize: 12,

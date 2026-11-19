@@ -1,6 +1,6 @@
 import { setAttribute } from '../dom/attributeUtil';
 import { isButtonClickEvent } from '../dom/keynavUtil';
-import type { ExpandOpts, ExpandableWidget, ExpansionControllerWidget } from './expandableWidget';
+import type { ExpandableWidget, ExpansionControllerWidget } from './expandableWidget';
 import { ExpansionControllerImpl } from './expansionControllerImpl';
 import { Widget } from './widget';
 import type { WidgetEventMap as EventMap, KeyboardWidgetEvent } from './widgetEvents';
@@ -56,8 +56,8 @@ export class AbstractButtonWidget<TElement extends HTMLElement>
         return this.lazyControllerImpl().getControlled();
     }
 
-    expandControlled(opts?: ExpandOpts): void {
-        return this.lazyControllerImpl().expandControlled(opts);
+    expandControlled(): void {
+        return this.lazyControllerImpl().expandControlled();
     }
 
     override addListener<K extends keyof EventMap>(type: K, listener: (ev: EventMap[K], current: this) => unknown): R;

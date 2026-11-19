@@ -3,8 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { ButtonWidget } from './buttonWidget';
 import { CodeWidget } from './codeWidget';
 import { ContainerWidget } from './containerWidget';
+import { ContentEditableWidget } from './contentEditableWidget';
 import { LabelWidget } from './labelWidget';
+import { RangeInputWidget } from './rangeInputWidget';
+import { Slider2DWidget } from './slider2DWidget';
 import { SwitchWidget } from './switchWidget';
+import { TextFieldWidget } from './textFieldWidget';
 import { TextSpanWidget } from './textSpanWidget';
 
 // A chart in a popup window must create its elements in the popup's document, not the global one.
@@ -51,6 +55,30 @@ describe('widgets created in another document', () => {
         expect(inline.getElement().className).toBe('ag-charts-term');
         expect(block.getElement().ownerDocument).toBe(popupDocument);
         expect(block.getElement().tagName).toBe('PRE');
+    });
+
+    it('ContentEditableWidget uses the given document and still takes class names', () => {
+        const widget = new ContentEditableWidget(popupDocument, 'ag-charts-text');
+        expect(widget.getElement().ownerDocument).toBe(popupDocument);
+        expect(widget.getElement().className).toBe('ag-charts-text');
+    });
+
+    it('RangeInputWidget uses the given document and still takes class names', () => {
+        const range = new RangeInputWidget(popupDocument, 'ag-charts-hue');
+        expect(range.getElement().ownerDocument).toBe(popupDocument);
+        expect(range.getElement().className).toBe('ag-charts-hue');
+    });
+
+    it('Slider2DWidget uses the given document and still takes class names', () => {
+        const slider = new Slider2DWidget(popupDocument, 'ag-charts-palette');
+        expect(slider.getElement().ownerDocument).toBe(popupDocument);
+        expect(slider.getElement().className).toBe('ag-charts-palette');
+    });
+
+    it('TextFieldWidget uses the given document and still takes class names', () => {
+        const field = new TextFieldWidget(popupDocument, 'ag-charts-field');
+        expect(field.getElement().ownerDocument).toBe(popupDocument);
+        expect(field.getElement().className).toBe('ag-charts-field');
     });
 
     it('defaults to the global document', () => {

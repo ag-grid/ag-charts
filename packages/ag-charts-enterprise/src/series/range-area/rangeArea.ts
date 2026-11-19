@@ -1335,10 +1335,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         );
     }
 
-    protected override castsHighlightGlowInGroup() {
-        return false;
-    }
-
     protected override getSeriesGlows() {
         const { low, high } = this.itemMarkers;
         return [low.glow, high.glow];

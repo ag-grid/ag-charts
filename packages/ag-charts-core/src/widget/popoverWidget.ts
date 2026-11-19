@@ -129,16 +129,11 @@ export class PopoverWidget extends Widget<HTMLElement> {
     }
 
     /** Destroys the panel, but not borrowed children or attached child popovers: those are detached instead. */
-    override destroy() {
+    protected override destructor() {
         this.removePanel();
         for (const popover of this.attachedPopovers) {
             popover.remove();
         }
         this.attachedPopovers.length = 0;
-        super.destroy();
-    }
-
-    protected override destructor() {
-        // Nothing to destroy.
     }
 }
