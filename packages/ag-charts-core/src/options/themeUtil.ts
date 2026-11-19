@@ -262,14 +262,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
             0,
             [['backward-slanted-lines', 'forward-slanted-lines', 'horizontal-lines', 'vertical-lines'], 4],
             [
-                [
-                    'waves',
-                    'hollow-circles',
-                    'criss-cross',
-                    'zig-zag',
-                    'horizontal-dashed-lines',
-                    'vertical-dashed-lines',
-                ],
+                ['waves', 'hollow-circles', 'crosshatch', 'zigzag', 'horizontal-dashed-lines', 'vertical-dashed-lines'],
                 2,
             ],
         ],
