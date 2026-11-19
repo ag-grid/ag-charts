@@ -16,10 +16,12 @@ import {
     TransformableGroup,
     Translatable,
     castShadows,
+    destroyShadowScratch,
     joinsShadowKey,
     overrideTintableShadows,
     releaseShadowScratch,
     shadowPass,
+    startShadowFrame,
 } from 'ag-charts-core';
 import type { RenderContext, ResolvedDropShadowOptions, ShadowKey, Shape } from 'ag-charts-core';
 
@@ -1806,107 +1808,6 @@ describe('Group shadow compositor', () => {
 
             expect(inUse(scratches)).toHaveLength(1);
         });
-
-        describe('shrinking', () => {
-            const LARGE = new OffscreenCanvas(1000, 800);
-            // Two sizes, as a cast that repeats unchanged blits its kept shadows without a scratch canvas.
-            const SMALL = [new OffscreenCanvas(200, 100), new OffscreenCanvas(210, 100)];
-
-            const scratchGroup = () => createGroup([shadowed(10, 10), shadowed(10, 60)]);
-            const gapGroup = () => createGroup([box(60, 40, 40, 40, { fill: 'blue', fillGlow: GAPPED_GLOW })]);
-
-            const area = ({ width, height }: OffscreenCanvas) => width * height;
-
-            const layerPixels = (layer: OffscreenCanvas) =>
-                Array.from(
-                    (layer.getContext('2d')! as unknown as CanvasRenderingContext2D).getImageData(
-                        0,
-                        0,
-                        layer.width,
-                        layer.height
-                    ).data
-                );
-
-            const castSmall = (group: Group, times: number) => {
-                for (let i = 0; i < times; i++) drawOnLayer(group, SMALL[i % SMALL.length]);
-            };
-
-            // The canvases still in use since `before`, largest first.
-            const live = (before: Set<OffscreenCanvas>) =>
-                inUse(createdSince(before)).sort((a, b) => area(b) - area(a));
-
-            it.each([
-                ['scratch', scratchGroup],
-                ['gap', gapGroup],
-            ])('should shrink the %s canvas after small casts follow a large one', (_name, make) => {
-                const group = make();
-                const before = offscreenCanvases();
-
-                drawOnLayer(group, LARGE);
-                const [largest] = live(before);
-                const largeArea = area(largest);
-
-                castSmall(group, SHADOW_SHRINK_AFTER - 1);
-                expect(area(largest)).toBe(largeArea);
-
-                castSmall(group, 1);
-
-                expect(area(largest)).toBe(0);
-                const [shrunk] = live(before);
-                expect(area(shrunk)).toBeGreaterThan(0);
-                expect(area(shrunk) * 4).toBeLessThanOrEqual(largeArea);
-            });
-
-            it.each([
-                ['scratch', scratchGroup],
-                ['gap', gapGroup],
-            ])('should keep the %s canvas when a large cast interrupts the small ones', (_name, make) => {
-                const group = make();
-                const before = offscreenCanvases();
-
-                drawOnLayer(group, LARGE);
-                const [largest] = live(before);
-                const largeArea = area(largest);
-
-                for (let i = 0; i < 3; i++) {
-                    castSmall(group, SHADOW_SHRINK_AFTER - 1);
-                    drawOnLayer(group, LARGE);
-                }
-
-                expect(area(largest)).toBe(largeArea);
-            });
-
-            it.each([
-                ['scratch', scratchGroup],
-                ['gap', gapGroup],
-            ])('should not shrink the %s canvas for casts of more than a quarter of it', (_name, make) => {
-                const group = make();
-                const half = new OffscreenCanvas(800, 600);
-                const halfWider = new OffscreenCanvas(810, 600);
-                const before = offscreenCanvases();
-
-                drawOnLayer(group, LARGE);
-                const [largest] = live(before);
-
-                for (let i = 0; i < SHADOW_SHRINK_AFTER * 2; i++) drawOnLayer(group, i % 2 === 0 ? half : halfWider);
-
-                expect(area(largest)).toBeGreaterThan(0);
-            });
-
-            it('should cast the same pixels from a canvas that has shrunk', () => {
-                const group = gapGroup();
-                const layer = new OffscreenCanvas(WIDTH, HEIGHT);
-                drawOnLayer(group, layer);
-                const expected = layerPixels(layer);
-
-                drawOnLayer(group, LARGE);
-                castSmall(group, SHADOW_SHRINK_AFTER);
-                const again = new OffscreenCanvas(WIDTH, HEIGHT);
-                drawOnLayer(group, again);
-
-                expect(layerPixels(again)).toEqual(expected);
-            });
-        });
     });
     describe('shadow cache', () => {
         // The x of each caster that drew into a mask, which is how a cast that blurred again shows itself.
@@ -3247,6 +3148,184 @@ describe('Group shadow compositor', () => {
 
             expect(joinsShadowKey(key, upper, BLUE, undefined, 'run')).toBe(true);
             expect(joinsShadowKey(key, upper, BLUE, undefined, 'layer')).toBe(false);
+        });
+
+        // A canvas shrinks for the frames of a scene, so each cast here is of a frame, with a user of its own to keep no cache.
+        describe('canvas shrinking', () => {
+            type Size = 'large' | 'small';
+            const MID = { width: 200, height: 120 };
+            const area = ({ width, height }: OffscreenCanvas) => width * height;
+
+            interface ShrinkPath {
+                /** The size of the layer that a cast of each size is drawn on. */
+                layers: Record<Size, { width: number; height: number }>;
+                keys: (size: Size) => ShadowKey[];
+                overlay: boolean;
+                /** Whether the canvas that shrinks is the scratch, which the layer sizes, rather than one that a glow's gap uses. */
+                scratch: boolean;
+            }
+
+            const glowKey = (x: number, y: number, size: number) => {
+                const glow = { ...GAPPED_GLOW, fill: 'rgba(0, 0, 255, 1)' };
+                return { ...keyOf(box(x, y, size, size, { fillGlow: glow }), glow), slot: 'glow' as const };
+            };
+
+            const PATHS: Array<[string, ShrinkPath]> = [
+                [
+                    'scratch',
+                    {
+                        layers: { large: { width: 1000, height: 800 }, small: { width: 200, height: 100 } },
+                        keys: () => [keyOf(box(20, 20, 40, 40, { fillShadow: RED_HALF }), RED_HALF)],
+                        overlay: false,
+                        scratch: true,
+                    },
+                ],
+                [
+                    'gap',
+                    {
+                        layers: { large: MID, small: MID },
+                        keys: (size) => [glowKey(10, 10, size === 'large' ? 100 : 15)],
+                        overlay: false,
+                        scratch: false,
+                    },
+                ],
+                [
+                    'overlay merge and cut',
+                    {
+                        layers: { large: MID, small: MID },
+                        keys: (size) =>
+                            size === 'large'
+                                ? [glowKey(10, 10, 20), glowKey(170, 90, 20)]
+                                : [glowKey(10, 10, 15), glowKey(30, 10, 15)],
+                        overlay: true,
+                        scratch: false,
+                    },
+                ],
+            ];
+
+            describe.each(PATHS)('the %s canvas', (_name, path) => {
+                let scene: object;
+                let layers: Record<Size, OffscreenCanvas>;
+                beforeEach(() => {
+                    scene = {};
+                    const { large, small } = path.layers;
+                    layers = {
+                        large: new OffscreenCanvas(large.width, large.height),
+                        small:
+                            large === small
+                                ? new OffscreenCanvas(0, 0)
+                                : new OffscreenCanvas(small.width, small.height),
+                    };
+                    if (large === small) layers.small = layers.large;
+                });
+                afterEach(() => destroyShadowScratch(scene));
+
+                const cast = (size: Size) => {
+                    const layer = layers[size];
+                    const context = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                    context.clearRect(0, 0, layer.width, layer.height);
+                    const renderCtx = { ...renderContext(), ctx: context, width: layer.width, height: layer.height };
+                    const keys = path.keys(size);
+                    // The casters make their paths as their group prepares to render.
+                    for (const key of keys) createGroup(key.casters).preRender(renderCtx);
+                    expect(castShadows({ scene, user: {}, keys, index: 0, overlay: path.overlay }, renderCtx)).toBe(
+                        true
+                    );
+                    return Array.from(context.getImageData(0, 0, layer.width, layer.height).data);
+                };
+
+                const frame = (...sizes: Size[]) => {
+                    startShadowFrame(scene);
+                    for (const size of sizes) cast(size);
+                };
+
+                // The canvases that shrink: the scratch, or else the others, as the layer sizes the scratch.
+                const shrinkable = (since: Set<OffscreenCanvas>) => {
+                    const canvases = inUse(createdSince(since));
+                    return (path.scratch ? canvases : canvases.slice(1)).reduce((sum, canvas) => sum + area(canvas), 0);
+                };
+
+                it('should shrink once enough small frames follow a large one', () => {
+                    const before = offscreenCanvases();
+                    frame('large');
+                    const large = shrinkable(before);
+                    expect(large).toBeGreaterThan(0);
+
+                    for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) frame('small');
+                    expect(shrinkable(before)).toBe(large);
+
+                    // A frame counts once the next one starts. The merge and the cut canvas of the overlay are one size, so
+                    // that one failing to shrink leaves more than a quarter of the pixels.
+                    frame('small');
+                    expect(shrinkable(before) * 4).toBeLessThan(large);
+                });
+
+                it('should count a frame by its largest cast, whichever comes first', () => {
+                    const before = offscreenCanvases();
+                    frame('large');
+                    const large = shrinkable(before);
+
+                    // Each of these frames also casts the large size, last, so that none of them is small.
+                    for (let i = 0; i < SHADOW_SHRINK_AFTER + 1; i++) frame('small', 'large');
+
+                    expect(shrinkable(before)).toBe(large);
+                });
+
+                it('should keep its size when a large frame interrupts the small ones', () => {
+                    const before = offscreenCanvases();
+                    frame('large');
+                    const large = shrinkable(before);
+
+                    for (let i = 0; i < 2; i++) {
+                        for (let j = 0; j < SHADOW_SHRINK_AFTER; j++) frame('small');
+                        frame('large');
+                    }
+
+                    expect(shrinkable(before)).toBe(large);
+                });
+
+                it('should not be reallocated by frames of one large cast and many small', () => {
+                    const before = offscreenCanvases();
+                    const casts: Size[] = [
+                        'large',
+                        ...Array.from({ length: SHADOW_SHRINK_AFTER + 5 }, (): Size => 'small'),
+                    ];
+                    frame(...casts);
+                    const created = createdSince(before).length;
+
+                    frame(...casts);
+
+                    expect(createdSince(before)).toHaveLength(created);
+                });
+
+                it('should not be reallocated once it has shrunk, by the casts that it shrank for', () => {
+                    const before = offscreenCanvases();
+                    frame('large');
+                    for (let i = 0; i < SHADOW_SHRINK_AFTER + 1; i++) frame('small');
+                    const created = createdSince(before).length;
+
+                    for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) frame('small');
+
+                    expect(createdSince(before)).toHaveLength(created);
+                });
+
+                it('should draw the same pixels from the shrunk canvas', () => {
+                    const before = offscreenCanvases();
+                    startShadowFrame(scene);
+                    const expected = cast('small');
+                    expect(maxAlphaOf(expected)).toBeGreaterThan(0);
+                    destroyShadowScratch(scene);
+
+                    frame('large');
+                    const large = shrinkable(before);
+                    for (let i = 0; i < SHADOW_SHRINK_AFTER; i++) frame('small');
+                    startShadowFrame(scene);
+                    const actual = cast('small');
+
+                    expect(shrinkable(before) * 4).toBeLessThan(large);
+                    expect(actual).toEqual(expected);
+                });
+            });
         });
     });
 
