@@ -26,7 +26,7 @@ interface GripScaleInput {
  * (`NAVIGATOR_HANDLE_THEME`), not the class field defaults.
  * Capped so the grip fits inside the stroke, including its rounded corners.
  */
-function gripScale({ width, height, halfWidth, halfHeight, strokeWidth, cornerRadius }: GripScaleInput) {
+export function gripScale({ width, height, halfWidth, halfHeight, strokeWidth, cornerRadius }: GripScaleInput) {
     const innerHalfWidth = halfWidth - strokeWidth;
     const innerHalfHeight = halfHeight - strokeWidth;
     const pathRadius = Math.min(cornerRadius, halfWidth - strokeWidth / 2, halfHeight - strokeWidth / 2);
