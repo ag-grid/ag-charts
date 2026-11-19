@@ -267,7 +267,6 @@ describe('glow gap', () => {
                 for (const dx of [-3, 0, 3]) expect(alphaAt(dx, 3 * gap + 2)).toBeGreaterThan(0);
             });
 
-            // A glow of 8 that starts a gap of 3 from a star whose 6px miter-joined stroke paints a spike past each vertex.
             const THICK_GLOW = { ...redGlow(3), spread: 8, blur: 0 };
             const THICK_GAP = 3;
             const THICK_SPREAD = 8;
@@ -286,41 +285,66 @@ describe('glow gap', () => {
                 bottom: CENTRE_Y,
             };
 
-            /** Going up each column over the star's point, the pixels are the item, the cut, the glow, then nothing. */
-            const expectRingOverPoint = (pixelAt: Pixels, gap: number, spread: number, tolerance = 0) => {
+            interface PointExpectation {
+                /** The least and the most that a pixel of the glow is from the painted star. */
+                clear?: number;
+                reach?: number;
+                /** The least that the cut, and the glow beyond it, are in each column over the point. */
+                cut: number;
+                glow: number;
+            }
+
+            /** Expects the item, the cut, the glow, then nothing, going up each column over the point of a star. */
+            const expectGlowAroundPoint = (
+                paint: Partial<Shape>,
+                { clear = 0, reach = Infinity, cut, glow }: PointExpectation
+            ) => {
+                const bare = draw(route, star(paint)).pixelAt;
+                const { pixelAt } = draw(route, star(paint, THICK_GLOW));
+
+                const distances = glowDistances(bare, pixelAt, WINDOW);
+                expect(Math.min(...distances)).toBeGreaterThanOrEqual(clear);
+                expect(Math.max(...distances)).toBeLessThanOrEqual(reach);
                 for (const dx of [-6, -3, 0, 3, 6]) {
                     const rows = CENTRE_Y - WINDOW.top + 1;
                     const runs = classRuns(
                         Array.from({ length: rows }, (_, i) => classOf(pixelAt(CENTRE_X + dx, CENTRE_Y - i)))
                     );
-                    const column = runs.map((run) => run.class).join(',');
-                    expect(column, `the column ${dx} from the axis`).toBe('item,none,glow,none');
-                    // The cut is a gap, and the glow a spread, in a column over the point, where they are at least as long as that.
-                    expect(runs[1].length, `the cut in the column ${dx} from the axis`).toBeGreaterThanOrEqual(
-                        gap - tolerance
+                    expect(runs.map((run) => run.class).join(','), `the column ${dx} from the axis`).toBe(
+                        'item,none,glow,none'
                     );
-                    expect(runs[2].length, `the glow in the column ${dx} from the axis`).toBeGreaterThanOrEqual(
-                        spread - 1 - tolerance
-                    );
+                    expect(runs[1].length, `the cut in the column ${dx} from the axis`).toBeGreaterThanOrEqual(cut);
+                    expect(runs[2].length, `the glow in the column ${dx} from the axis`).toBeGreaterThanOrEqual(glow);
                 }
+                return { bare, pixelAt };
             };
 
-            it('should keep the glow a gap clear of the spike that a thick stroke paints at a point, with a ring unbroken over it', () => {
-                const bare = draw(route, star(THICK_STROKE)).pixelAt;
-                const { pixelAt } = draw(route, star(THICK_STROKE, THICK_GLOW));
+            const MITRED: PointExpectation = { clear: THICK_GAP - 1, cut: THICK_GAP, glow: THICK_SPREAD - 1 };
+            // The glow of a fill follows the fill outline, so the ring over a round join is a half-stroke thinner than the spread.
+            const ROUND: PointExpectation = {
+                clear: THICK_GAP - 1,
+                reach: THICK_GAP + THICK_SPREAD + 1,
+                cut: 2,
+                glow: 3,
+            };
+            // A bevel face is a gap times the sine of half the point's angle from the glow, so only that it is clear is asserted.
+            const BEVELLED: PointExpectation = { reach: THICK_GAP + THICK_SPREAD + 1, cut: 1, glow: 1 };
 
-                // No pixel within a gap of the item, with its spike, is lit; a pixel of the sub-pixel edge of the spike is a pixel off.
-                expect(Math.min(...glowDistances(bare, pixelAt, WINDOW))).toBeGreaterThanOrEqual(THICK_GAP - 1);
-                expectRingOverPoint(pixelAt, THICK_GAP, THICK_SPREAD);
-            });
+            it.each<[string, Partial<Shape>, PointExpectation]>([
+                ['a thick mitred stroke', {}, MITRED],
+                ['a miter limit of 20, which a gap holds to 10', { miterLimit: 20 }, MITRED],
+                ['a round join', { lineJoin: 'round' }, ROUND],
+                ['a bevel join', { lineJoin: 'bevel' }, BEVELLED],
+                ['a miter limit of 2, which bevels the point', { miterLimit: 2 }, BEVELLED],
+            ])(
+                'should keep the glow clear of the point of a star with %s, unbroken over it',
+                (_name, join, expected) => {
+                    expectGlowAroundPoint({ ...THICK_STROKE, ...join }, expected);
+                }
+            );
 
             it('should keep the glow a gap, and not more, from the point of a star with no stroke, with a ring unbroken over it', () => {
-                const plain = { stroke: undefined, strokeWidth: 0 };
-                const bare = draw(route, star(plain)).pixelAt;
-                const { pixelAt } = draw(route, star(plain, THICK_GLOW));
-
-                expect(Math.min(...glowDistances(bare, pixelAt, WINDOW))).toBeGreaterThanOrEqual(THICK_GAP - 1);
-                expectRingOverPoint(pixelAt, THICK_GAP, THICK_SPREAD);
+                const { bare, pixelAt } = expectGlowAroundPoint({ stroke: undefined, strokeWidth: 0 }, MITRED);
 
                 // Over the point, the rows with nothing in them between the point and the glow are the gap, within a pixel.
                 const firstRowUp = (pixels: Pixels, found: (pixel: number[]) => boolean) => {
@@ -332,65 +356,8 @@ describe('glow gap', () => {
                 expect(Math.abs(tip - 1 - glowRow - THICK_GAP)).toBeLessThanOrEqual(1);
             });
 
-            // The glow of a fill is the outline of the fill dilated by the gap and the spread, and the cut is the stroke dilated by
-            // the gap, so the ring over the point is a half-stroke thinner than the spread, which is 3. The tip of a round join
-            // is a curve that a pixel reads to within one.
-            it('should keep the glow a gap clear of the round tip that a round join paints, with a ring unbroken over it', () => {
-                const stroke = { ...THICK_STROKE, lineJoin: 'round' as const };
-                const bare = draw(route, star(stroke)).pixelAt;
-                const { pixelAt } = draw(route, star(stroke, THICK_GLOW));
-
-                const distances = glowDistances(bare, pixelAt, WINDOW);
-
-                expect(Math.min(...distances)).toBeGreaterThanOrEqual(THICK_GAP - 1);
-                // Round on the outside as on the inside: no mitre of the join reaches past a gap and a spread from the stroke.
-                expect(Math.max(...distances)).toBeLessThanOrEqual(THICK_GAP + THICK_SPREAD + 1);
-                expectRingOverPoint(pixelAt, THICK_GAP, THICK_SPREAD - 3, 1);
-            });
-
-            // Where the join is a bevel, or a mitre that the limit bevels, the cut follows the bevel that the item paints, as the
-            // stroke widened by the gap does, so the glow is as close to the face of the bevel as the join widens it. A bevel
-            // face moves by the gap times the sine of half the point's angle, so only that the glow is off the item and closed
-            // over it is asserted, and that it is not mitred out from it.
-            it.each([
-                ['a bevel join', { lineJoin: 'bevel' as const }],
-                ['a miter limit of 2, which bevels the point of the star', { miterLimit: 2 }],
-            ])(
-                'should follow the bevel that the stroke paints with %s, with a ring unbroken over it',
-                (_name, join) => {
-                    const stroke = { ...THICK_STROKE, ...join };
-                    const bare = draw(route, star(stroke)).pixelAt;
-                    const { pixelAt } = draw(route, star(stroke, THICK_GLOW));
-
-                    // No mitre of the dilation reaches further than the bevel does, so the glow is within a gap and a spread of it.
-                    expect(Math.max(...glowDistances(bare, pixelAt, WINDOW))).toBeLessThanOrEqual(
-                        THICK_GAP + THICK_SPREAD + 1
-                    );
-                    for (const dx of [-3, 0, 3]) {
-                        const rows = CENTRE_Y - WINDOW.top + 1;
-                        const runs = classRuns(
-                            Array.from({ length: rows }, (_, i) => classOf(pixelAt(CENTRE_X + dx, CENTRE_Y - i)))
-                        );
-                        expect(runs.map((run) => run.class).join(','), `the column ${dx} from the axis`).toBe(
-                            'item,none,glow,none'
-                        );
-                        expect(runs[1].length, `the cut in the column ${dx} from the axis`).toBeGreaterThanOrEqual(1);
-                    }
-                }
-            );
-
-            // A limit over 10 is held to 10 by a gap, which the point of the star, a mitre of about 2.2 half-strokes, is under.
-            it('should keep the glow a gap clear of the point that a stroke with a miter limit of 20 paints', () => {
-                const stroke = { ...THICK_STROKE, miterLimit: 20 };
-                const bare = draw(route, star(stroke)).pixelAt;
-                const { pixelAt } = draw(route, star(stroke, THICK_GLOW));
-
-                expect(Math.min(...glowDistances(bare, pixelAt, WINDOW))).toBeGreaterThanOrEqual(THICK_GAP - 1);
-                expectRingOverPoint(pixelAt, THICK_GAP, THICK_SPREAD);
-            });
-
             it('should cut the whole point of a translucent star out of the glow with a gap of 0', () => {
-                // A stroke of 6 with a miter join spikes well past the round join that dilates it, and the item paints that spike.
+                // The mitred stroke paints a spike past each point, which the translucent star shows the glow through.
                 const stroke = { fill: TRANSLUCENT_BLUE, stroke: TRANSLUCENT_BLUE, strokeWidth: 6, miterLimit: 10 };
                 const tip = tipOf(draw(route, star(stroke)).pixelAt);
                 const { pixelAt } = draw(route, star(stroke, redGlow(0)));
@@ -402,16 +369,13 @@ describe('glow gap', () => {
             });
         });
 
-        // A pie or donut slice sets a miter limit of 1e9, so that its stroke paints the whole of a thin slice's point, which a
-        // glow's dilation must not follow: its cast region would be the canvas, with a needle in it. The slice still paints that
-        // point, so the cut keeps clear of it.
+        // A pie or donut slice has a miter limit of 1e9, which the glow's dilation must not follow, but the cut must clear.
         describe('around a thin stroked sector with a miter limit of 1e9', () => {
             const GAP = 3;
             const SPREAD = 10;
             const SECTOR_WINDOW: PixelWindow = { left: 0, right: 320, top: CENTRE_Y - 50, bottom: CENTRE_Y + 50 };
 
-            // A point sharper than the bevel of a mitre of 10, 11.5 degrees, is a gap clear up to that bevel, which is at the
-            // centre of the sector. Past it, the cut ends at the spike that the stroke paints.
+            // A point sharper than 11.5 degrees is a gap clear up to the bevel of a mitre of 10, and past it the cut ends at the spike.
             it('should keep the glow a gap clear of the sector, and no further than a spread and a gap out from it', () => {
                 const stroke = { miterLimit: 1e9 };
                 const bare = draw(route, thinSector(stroke)).pixelAt;
@@ -422,8 +386,7 @@ describe('glow gap', () => {
 
                 expect(beside.length).toBeGreaterThan(0);
                 expect(Math.min(...beside)).toBeGreaterThanOrEqual(GAP - 1);
-                // The glow is no further out than a gap and a spread, or, at the square corners of the sector, which are mitred,
-                // that much along the diagonal. A mitre of the limit of the sector would reach 930px behind the point.
+                // No further out than a gap and a spread, or that along the diagonal at the mitred corners: no needle behind the point.
                 expect(Math.max(...all)).toBeLessThanOrEqual((GAP + SPREAD) * Math.SQRT2 + 1);
             });
 
@@ -494,8 +457,7 @@ describe('glow gap', () => {
             expect(at(middle)).toEqual(CLEAR);
         });
 
-        // A Line has no Path2D to dilate, so a cutout casts its glow inline with its stroke, as it casts one with a spread
-        // and no gap: it reaches no further than its own stroke, and the gap changes nothing. A batch dilates its stroke.
+        // A Line has no Path2D to dilate, so a cutout casts its glow inline with its stroke and the gap changes nothing.
         const line = (gap?: number, lineCap?: Line['lineCap']) =>
             Object.assign(new Line(), {
                 ...(lineCap != null && { lineCap }),
@@ -570,6 +532,22 @@ describe('glow gap', () => {
                     }
                 }
             );
+
+            // A line shorter than a pixel has both its ends in one pixel, which the two erases past them must cover whole.
+            it.each([
+                [200.2, 200.7],
+                [199.6, 200.1],
+            ])('should leave no glow in the cut of a line from x %d to %d, which is shorter than a pixel', (x1, x2) => {
+                const gap = 3;
+                const { pixelAt } = draw(route, Object.assign(line(gap, 'butt'), { x1, x2 }));
+
+                // The pixels wholly within a gap of the stroke, which is 3 either side of the line, and a gap past each end.
+                for (let x = Math.ceil(x1 - gap); x < Math.floor(x2 + gap); x++) {
+                    for (let y = CENTRE_Y - 3 - gap + 1; y < CENTRE_Y + 3 + gap - 1; y++) {
+                        expect(pixelAt(x, y)[0], `the pixel at ${x}, ${y}`).toBe(0);
+                    }
+                }
+            });
 
             it('should treat a line with no cap set as a line with a butt cap', () => {
                 const [unset, butt] = [undefined, 'butt' as const].map((cap) => {

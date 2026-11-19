@@ -151,8 +151,7 @@ describe('glow gap past the butt ends of wicks and whiskers', () => {
         });
     });
 
-    // The cut erases the wick, then erases the gap past its end. Where the end is part way through a pixel, each erase only
-    // partly covers that pixel, and a glow that two erases are meant to cover would show there as a faint line across the hole.
+    // Where an end is part way through a pixel, the two erases of the cut each cover part of it, and must leave no glow there.
     describe.each([0.4, 0.7])('with the wicks ending %d of the way through a pixel', (shift) => {
         describe.each(Object.entries(WICK_PATHS))('with the wicks %s', (_paths, { options }) => {
             const ENDS = { ...candlestickEnds({ ...options, shift }), ...boxPlotEnds({ ...options, shift }) };
