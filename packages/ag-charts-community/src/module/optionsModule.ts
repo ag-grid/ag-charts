@@ -2116,12 +2116,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processedCSSVariables: Record<string, string>
     ) {
         const value: string = parent[key];
-        if (ChartOptions.isExternalColorVar(value)) {
-            ChartOptions.processCSSVariable(parent, key, ctx, container, processedCSSVariables);
-        } else if (ChartOptions.isMalformedColorVar(value)) {
+        if (ChartOptions.isMalformedColorVar(value)) {
             ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
             ctx.removed = true;
             delete parent[key];
+        } else if (ChartOptions.isExternalColorVar(value)) {
+            ChartOptions.processCSSVariable(parent, key, ctx, container, processedCSSVariables);
         }
     }
 
