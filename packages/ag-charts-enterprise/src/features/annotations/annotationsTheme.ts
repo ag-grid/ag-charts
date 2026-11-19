@@ -14,7 +14,7 @@ import {
     type TextOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, lineDashThemeDefault, themeLineHeight } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, themeLineHeight } from 'ag-charts-core';
 
 import { DEFAULT_MAGNET } from './utils/magnet';
 
@@ -250,7 +250,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...stroke,
         ...selectionAxes(axisLabel),
         middle: {
-            lineDash: lineDashThemeDefault([6, 5]),
+            lineDash: [6, 5],
             strokeWidth: 1,
         },
         background: { ...background },

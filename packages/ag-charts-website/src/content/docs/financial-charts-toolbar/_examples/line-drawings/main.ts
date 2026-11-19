@@ -120,7 +120,7 @@ const options: AgFinancialChartOptions = {
                     enabled: true,
                 },
                 strokeWidth: 3,
-                lineStyle: 'dotted',
+                lineDash: 'dot',
             },
         ],
     },
