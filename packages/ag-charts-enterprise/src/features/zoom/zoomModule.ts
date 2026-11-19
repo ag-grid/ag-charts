@@ -17,6 +17,7 @@ import type { AgZoomButton, AgZoomOnDataChangeStrategy, AgZoomOptions } from 'ag
 import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { ZoomInteractionModule } from '../zoom-interaction/zoomInteractionModule';
 import { Zoom, type ZoomCtx } from './zoom';
+import { DEFAULT_ZOOM_BUTTONS } from './zoomToolbar';
 
 const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
 
@@ -107,15 +108,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions, _ModuleSupport.Ch
         buttons: {
             enabled: { $path: '../enabled' },
             visible: 'hover',
-            buttons: {
-                $shallowSimple: [
-                    { icon: 'zoom-out', value: 'zoom-out', section: 'scale' },
-                    { icon: 'zoom-in', value: 'zoom-in', section: 'scale' },
-                    { icon: 'pan-left', value: 'pan-left', section: 'pan' },
-                    { icon: 'pan-right', value: 'pan-right', section: 'pan' },
-                    { icon: 'reset', value: 'reset', section: 'reset' },
-                ],
-            },
+            buttons: { $shallowSimple: DEFAULT_ZOOM_BUTTONS },
         },
     },
 

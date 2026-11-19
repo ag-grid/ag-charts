@@ -1,4 +1,4 @@
-import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport } from 'ag-charts-community';
+import { type AgZoomAnchorPoint, type AgZoomButton, type AgZoomButtonValue, _ModuleSupport } from 'ag-charts-community';
 import type {
     AxisID,
     CartesianAxisDirection,
@@ -18,6 +18,7 @@ import {
     debounce,
     definedZoomState,
     entries,
+    objectsEqual,
     warnUnnamedToolbarButtons,
 } from 'ag-charts-core';
 
@@ -44,6 +45,14 @@ interface ZoomToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
 }
 
 type ZoomButtonsVisible = 'always' | 'zoomed' | 'hover';
+
+export const DEFAULT_ZOOM_BUTTONS: AgZoomButton[] = [
+    { icon: 'zoom-out', value: 'zoom-out', section: 'scale' },
+    { icon: 'zoom-in', value: 'zoom-in', section: 'scale' },
+    { icon: 'pan-left', value: 'pan-left', section: 'pan' },
+    { icon: 'pan-right', value: 'pan-right', section: 'pan' },
+    { icon: 'reset', value: 'reset', section: 'reset' },
+];
 
 const DEFAULT_BUTTON_TOOLTIPS = {
     'pan-end': 'toolbarZoomPanEnd',
@@ -139,14 +148,15 @@ export class ZoomToolbar {
             this.enabled = enabled;
             this.toolbar.setHidden(!enabled);
         }
+        // Checked before the default tooltips are filled in, which would otherwise name every button.
+        if (enabled && !objectsEqual(options.buttons, DEFAULT_ZOOM_BUTTONS)) {
+            warnUnnamedToolbarButtons(this.ctx.logger, 'zoom.buttons.buttons', options.buttons);
+        }
         this.buttons = options.buttons.map((button) =>
             button.tooltip == null && button.label == null
                 ? { ...button, tooltip: DEFAULT_BUTTON_TOOLTIPS[button.value] }
                 : button
         );
-        if (enabled) {
-            warnUnnamedToolbarButtons(this.ctx.logger, 'zoom.buttons.buttons', this.buttons);
-        }
         if (visible !== this.visible) {
             this.visible = visible;
             const always = visible === 'always';
