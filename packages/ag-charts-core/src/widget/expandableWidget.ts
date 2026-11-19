@@ -23,17 +23,11 @@ export type ExpandOpts =
     | {
           readonly sourceEvent: Event;
           readonly controller?: never;
-          readonly overrideFocusVisible?: boolean;
       }
     | {
           readonly sourceEvent?: never;
           readonly controller: ExpansionControllerWidget<HTMLElement>;
-          readonly overrideFocusVisible?: boolean;
       };
-
-export type ExpandControlledOpts = {
-    readonly overrideFocusVisible?: boolean;
-};
 
 export type CollapseOpts = {
     readonly mode: CollapseMode;
@@ -58,5 +52,5 @@ export interface ExpandableWidget<TElement extends HTMLElement = HTMLElement> ex
 export interface ExpansionControllerWidget<TElement extends HTMLElement = HTMLElement> {
     setControlled(controls: ExpandableWidget<TElement> | undefined): void;
     getControlled(): ExpandableWidget<TElement> | undefined;
-    expandControlled(opts?: ExpandControlledOpts): void;
+    expandControlled(): void;
 }

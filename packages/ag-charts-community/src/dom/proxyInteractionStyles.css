@@ -95,3 +95,7 @@
 .ag-charts-proxy-scrollbar-slider:focus-visible ~ .ag-charts-proxy-scrollbar-thumb-focus {
     opacity: 1;
 }
+
+.ag-charts-proxy-axis {
+    overflow: visible;
+}

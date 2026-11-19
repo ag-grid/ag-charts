@@ -23,6 +23,10 @@ type Build = (mixin: Partial<Shape>) => Shape;
 const { x: CENTRE_X, y: CENTRE_Y } = GLOW_CENTRE;
 const { inside, near, middle, outer, past } = GLOW_PROBES;
 
+// The root casts the glows in an overlay above the items, where the footprint of each item that glows is cut out of them,
+// so a glow with no gap does not show through its own item as it does when a group or a cutout casts it beneath.
+const CUTS_OWN_FOOTPRINT = 'root';
+
 // Each shape is 60 across the line through its centre.
 const SHAPES: Record<string, Build> = {
     rect: (mixin) => box(CENTRE_X - 30, CENTRE_Y - 30, 60, 60, mixin),
@@ -54,14 +58,15 @@ describe('glow gap', () => {
             const item = (gap?: number, mixin: Partial<Shape> = {}) =>
                 build({ fill: TRANSLUCENT_BLUE, fillGlow: redGlow(gap), ...mixin });
 
-            it('should cast the glow like a shadow, and show it through a translucent item, with no gap', () => {
+            it('should cast the glow like a shadow, and show it through a translucent item unless it is an overlay, with no gap', () => {
                 const { at } = draw(route, item());
 
                 expect(at(near)[3]).toBeGreaterThan(0);
                 expect(at(middle)[3]).toBeGreaterThan(0);
                 expect(at(past)).toEqual(CLEAR);
-                // The red of the glow is beneath the blue of the item.
-                expect(at(inside)[0]).toBeGreaterThan(0);
+                // The red of the glow is beneath the blue of the item, or, in an overlay, cut out of it.
+                if (route === CUTS_OWN_FOOTPRINT) expect(at(inside)[0]).toBe(0);
+                else expect(at(inside)[0]).toBeGreaterThan(0);
             });
 
             it('should cut the footprint of the item out of the glow with a gap of 0', () => {
@@ -160,14 +165,18 @@ describe('glow gap', () => {
             });
         });
 
-        it('should keep an unset gap and a gap of 0 apart in one batch, as it keeps their spreads', () => {
-            const left = box(60, CENTRE_Y - 30, 60, 60, { fill: TRANSLUCENT_BLUE, fillGlow: redGlow() });
-            const right = box(280, CENTRE_Y - 30, 60, 60, { fill: TRANSLUCENT_BLUE, fillGlow: redGlow(0) });
-            const { pixelAt } = draw(route, left, right);
+        // In an overlay each glow is cut out of itself, so an unset gap and a gap of 0 differ only where the dilation reaches.
+        it.skipIf(route === CUTS_OWN_FOOTPRINT)(
+            'should keep an unset gap and a gap of 0 apart in one batch, as it keeps their spreads',
+            () => {
+                const left = box(60, CENTRE_Y - 30, 60, 60, { fill: TRANSLUCENT_BLUE, fillGlow: redGlow() });
+                const right = box(280, CENTRE_Y - 30, 60, 60, { fill: TRANSLUCENT_BLUE, fillGlow: redGlow(0) });
+                const { pixelAt } = draw(route, left, right);
 
-            expect(pixelAt(90, CENTRE_Y)[0]).toBeGreaterThan(0);
-            expect(pixelAt(310, CENTRE_Y).slice(0, 3)).toEqual(BLUE_RGB);
-        });
+                expect(pixelAt(90, CENTRE_Y)[0]).toBeGreaterThan(0);
+                expect(pixelAt(310, CENTRE_Y).slice(0, 3)).toEqual(BLUE_RGB);
+            }
+        );
 
         // The cutout route erases beneath the item by design, so it is left out.
         describe.skipIf(route === 'cutout')('beneath a translucent item with a gap of 0', () => {
@@ -181,10 +190,18 @@ describe('glow gap', () => {
             const glowCaster = () =>
                 box(120, CENTRE_Y - 15, 30, 30, { fill: 'black', fillGlow: { ...redGlow(), spread: 30 } });
 
-            it.each([
-                ['the shadow of another item', shadowCaster, [215, CENTRE_Y], 1],
-                ['the glow of another item', glowCaster, [175, CENTRE_Y], 0],
-            ] as const)('should leave %s showing through the item', (_name, other, probe, channel) => {
+            // An overlay cuts the footprint of every item that glows out of every glow, so the glow of another item does not show.
+            it.each(
+                [
+                    ['the shadow of another item', shadowCaster, [215, CENTRE_Y], 1],
+                    ['the glow of another item', glowCaster, [175, CENTRE_Y], 0],
+                ].filter(([name]) => route !== CUTS_OWN_FOOTPRINT || String(name).includes('shadow')) as [
+                    string,
+                    () => Shape,
+                    [number, number],
+                    number,
+                ][]
+            )('should leave %s showing through the item', (_name, other, probe, channel) => {
                 const expected = draw(route, other(), bare()).pixelAt(probe[0], probe[1]);
                 expect(expected[channel]).toBeGreaterThan(100);
 
@@ -214,17 +231,20 @@ describe('glow gap', () => {
                 return y;
             };
 
-            it('should start the glow a gap past the point, not past where the join of the stroke spikes', () => {
+            it('should cut the point no further than a gap past it, and leave the glow around it unbroken', () => {
                 const gap = 3;
                 const { pixelAt } = draw(route, star({}, { ...redGlow(gap), spread: 4, blur: 8 }));
                 const tip = tipOf(pixelAt);
-                const alphaAbove = (distance: number) => pixelAt(CENTRE_X, tip - distance)[3];
+                const alphaAt = (dx: number, distance: number) => pixelAt(CENTRE_X + dx, tip - distance)[3];
 
-                // The point is cut away to within a gap of it, and the glow is strong again a pixel past that, as it is
-                // where a round join dilates the point by exactly the gap.
-                expect(alphaAbove(1)).toBe(0);
-                expect(alphaAbove(gap + 1)).toBeGreaterThan(40);
-                expect(alphaAbove(gap + 3)).toBeGreaterThan(40);
+                // The join of the cut is the join of the outer edge, which bevels at a point as sharp as this, so the glow
+                // may come nearer the point than the gap, but is never cut away past it.
+                expect(alphaAt(0, gap + 1)).toBeGreaterThan(40);
+                expect(alphaAt(0, gap + 3)).toBeGreaterThan(40);
+                // The band is closed round the point: there is glow at every distance above it, and beside it.
+                for (let distance = 1; distance <= gap + 3; distance++) {
+                    for (const dx of [-3, 0, 3]) expect(alphaAt(dx, distance)).toBeGreaterThan(0);
+                }
             });
 
             it('should cut the whole point of a translucent star out of the glow with a gap of 0', () => {
@@ -291,7 +311,9 @@ describe('glow gap', () => {
         it.skipIf(route === 'cutout')('should widen the stroke of a line by the gap and the spread', () => {
             const unset = draw(route, line());
             expect(unset.pixelAt(...up(2))[3]).toBeGreaterThan(0);
-            expect(unset.pixelAt(CENTRE_X, CENTRE_Y)[0]).toBeGreaterThan(0);
+            // The glow shows through the stroke, unless an overlay cuts the stroke out of it.
+            if (route === CUTS_OWN_FOOTPRINT) expect(unset.pixelAt(CENTRE_X, CENTRE_Y)[0]).toBe(0);
+            else expect(unset.pixelAt(CENTRE_X, CENTRE_Y)[0]).toBeGreaterThan(0);
 
             const gapped = draw(route, line(5));
             expect(gapped.pixelAt(...up(2))).toEqual(CLEAR);

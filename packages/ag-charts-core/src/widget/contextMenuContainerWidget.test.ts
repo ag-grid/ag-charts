@@ -104,24 +104,4 @@ describe('ContextMenuContainerWidget', () => {
             expect(listener).not.toHaveBeenCalled();
         });
     });
-
-    describe('setPosition and unsetVerticalPosition', () => {
-        it('writes the left and top styles, with top raised by 0.5em', () => {
-            const container = makeContainer();
-            container.setPosition(12, 34.5);
-            expect(container.getElement().style.left).toBe('12px');
-            expect(container.getElement().style.top).toBe('calc(34.5px - 0.5em)');
-        });
-
-        it('unsets top and bottom without touching left', () => {
-            const container = makeContainer();
-            const setTop = vi.spyOn(container.getElement().style, 'top', 'set');
-            container.setPosition(12, 34);
-
-            container.unsetVerticalPosition();
-
-            expect(setTop).toHaveBeenLastCalledWith('unset');
-            expect(container.getElement().style.left).toBe('12px');
-        });
-    });
 });

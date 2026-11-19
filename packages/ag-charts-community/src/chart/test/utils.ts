@@ -1396,6 +1396,15 @@ export function focusOutsideChartAction(): (chart: ChartOrProxy) => Promise<void
     };
 }
 
+/** Clicks `element`, which also runs its default action, such as submitting the form that holds a submit button. */
+export function clickElementAction(element: Element): (chart: ChartOrProxy) => Promise<void> {
+    return async (chart) => {
+        expect(element).toBeInstanceOf(HTMLElement);
+        (element as HTMLElement).click();
+        await waitForChartStability(chart);
+    };
+}
+
 /** Right-clicks `element`. Resolves to the event, so that a test can check whether the browser menu was suppressed. */
 export function contextMenuElementAction(element: Element): (chart: ChartOrProxy) => Promise<MouseEvent> {
     return async (chart) => {

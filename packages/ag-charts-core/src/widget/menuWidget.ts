@@ -1,13 +1,7 @@
+import { attachListener } from '../dom/domEvents';
 import { isDirectionRtl } from '../dom/domUtil';
-import {
-    addEscapeEventListener,
-    addMouseCloseListener,
-    addOverrideFocusVisibleEventListener,
-    addTouchCloseListener,
-    hasNoModifiers,
-} from '../dom/keynavUtil';
+import { hasNoModifiers } from '../dom/keynavUtil';
 import { createElementId } from '../identity/id';
-import { CleanupRegistry } from '../state/cleanupRegistry';
 import { CollapseMode } from './collapseMode';
 import type { CollapseOpts, ExpandOpts, ExpandableWidget } from './expandableWidget';
 import { MenuItemWidget } from './menuItemWidget';
@@ -20,9 +14,7 @@ import type { KeyboardWidgetEvent, WidgetEvent } from './widgetEvents';
 interface ExpansionScope {
     opener: Opener | undefined;
     expandedSubMenu: MenuWidget | undefined;
-    removers: CleanupRegistry;
-    abort: () => void;
-    close: () => void;
+    removeOutsidePressListener: () => void;
 }
 
 export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> implements ExpandableWidget<HTMLDivElement> {
@@ -54,22 +46,32 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         super.onChildAdded(child);
         child.addListener('mouseenter', this.handleMouseEnter);
         child.addListener('mousemove', this.handleMouseMove);
+        child.addListener('keydown', this.handleKeyDown);
     }
 
     protected override onChildRemoved(child: MenuItemWidget): void {
         super.onChildRemoved(child);
         child.removeListener('mouseenter', this.handleMouseEnter);
         child.removeListener('mousemove', this.handleMouseMove);
+        child.removeListener('keydown', this.handleKeyDown);
     }
 
-    private readonly handleMouseEnter = (ev: WidgetEvent, current: MenuItemWidget) => {
+    private readonly handleMouseEnter = (_ev: WidgetEvent, current: MenuItemWidget) => {
         if (!current.hasPopup()) {
-            this.expandSubMenu(ev, undefined);
+            this.collapseExpandedSubMenu(undefined);
         }
     };
 
     private readonly handleMouseMove = (_ev: WidgetEvent, current: MenuItemWidget) => {
         current.focus({ preventScroll: true });
+    };
+
+    private readonly handleKeyDown = ({ sourceEvent }: KeyboardWidgetEvent) => {
+        if (this.expansionScope == null || !hasNoModifiers(sourceEvent)) return;
+        const backKey = isDirectionRtl(this.elem) ? 'ArrowRight' : 'ArrowLeft';
+        if (sourceEvent.key === 'Escape' || sourceEvent.key === backKey) {
+            this.collapse({ mode: CollapseMode.CLOSE });
+        }
     };
 
     public addSubMenu(): { subMenuButton: MenuItemWidget; subMenu: MenuWidget } {
@@ -85,8 +87,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         const arrowOpener = (ev: KeyboardWidgetEvent) => {
             const openKey = isDirectionRtl(this.elem) ? 'ArrowLeft' : 'ArrowRight';
             if (hasNoModifiers(ev.sourceEvent) && ev.sourceEvent.code === openKey) {
-                this.collapseExpandedSubMenu(subMenu);
-                subMenuButton.expandControlled();
+                expand();
             }
         };
 
@@ -99,14 +100,6 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         return { subMenuButton, subMenu };
     }
 
-    private expandSubMenu(ev: WidgetEvent, subMenu: MenuWidget | undefined) {
-        const { expansionScope } = this;
-        if (!expansionScope) return;
-
-        this.collapseExpandedSubMenu(subMenu);
-        subMenu?.expand(ev);
-    }
-
     private collapseExpandedSubMenu(newSubMenu: MenuWidget | undefined) {
         const { expansionScope } = this;
         if (!expansionScope) return;
@@ -115,33 +108,18 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         expansionScope.expandedSubMenu = newSubMenu;
     }
 
-    private getCloseKeys(): readonly string[] {
-        return isDirectionRtl(this.elem) ? ['Escape', 'ArrowRight'] : ['Escape', 'ArrowLeft'];
-    }
-
     expand(opts: ExpandOpts): void {
         if (this.expansionScope != null) return; // already open
 
+        const opener = Opener.fromEvent(opts.sourceEvent);
         this.expansionScope = {
-            opener: Opener.fromEvent(opts.sourceEvent),
+            opener,
             expandedSubMenu: undefined,
-            abort: () => this.collapse({ mode: CollapseMode.ABORT }),
-            close: () => this.collapse({ mode: CollapseMode.CLOSE }),
-            removers: new CleanupRegistry(),
-        };
-        const scope = this.expansionScope;
-        const buttons = this.children.map((value) => value.getElement());
-        scope.opener?.setAriaExpanded(true);
-
-        scope.removers.register(
-            addMouseCloseListener(this.elem, scope.abort),
-            addTouchCloseListener(this.elem, scope.abort),
-            ...this.children.map((child) =>
-                addEscapeEventListener(child.getElement(), scope.close, () => this.getCloseKeys())
+            removeOutsidePressListener: addOutsidePressListener(this.elem, () =>
+                this.collapse({ mode: CollapseMode.ABORT })
             ),
-            opts?.overrideFocusVisible &&
-                addOverrideFocusVisibleEventListener(this.elem, buttons, opts.overrideFocusVisible)
-        );
+        };
+        opener?.setAriaExpanded(true);
 
         this.internalListener?.dispatch('expand-widget', this, { type: 'expand-widget' });
         this.children[0]?.focus({ preventScroll: true });
@@ -151,7 +129,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         const { mode = CollapseMode.CLOSE } = opts ?? {};
 
         if (this.expansionScope === undefined) return;
-        const { opener, removers, expandedSubMenu } = this.expansionScope;
+        const { opener, expandedSubMenu, removeOutsidePressListener } = this.expansionScope;
         this.expansionScope = undefined; // stop re-entrance
 
         expandedSubMenu?.collapse({ mode: CollapseMode.PARENT_CLOSED });
@@ -159,8 +137,26 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         if (mode === CollapseMode.CLOSE) {
             opener?.focus({ preventScroll: true });
         }
-        removers.flush();
+        removeOutsidePressListener();
 
         this.internalListener?.dispatch('collapse-widget', this, { type: 'collapse-widget', mode });
     }
+}
+
+/** Calls `onPress` when a mouse (primary or secondary button) or touch press starts outside `elem`. */
+function addOutsidePressListener(elem: HTMLElement, onPress: () => void): () => void {
+    const win = elem.ownerDocument.defaultView!;
+    // A listener outside a shadow root sees its host as the target, so look for the element along the composed path.
+    const isOutside = (event: Event) => !event.composedPath().includes(elem);
+    const removeMouse = attachListener(win, 'mousedown', (event: MouseEvent) => {
+        if ((event.button === 0 || event.button === 2) && isOutside(event)) onPress();
+    });
+    const removeTouch = attachListener(win, 'touchstart', (event: TouchEvent) => {
+        // Target touches all started on the event's target, so the event's path covers them.
+        if (event.targetTouches.length > 0 && isOutside(event)) onPress();
+    });
+    return () => {
+        removeMouse();
+        removeTouch();
+    };
 }

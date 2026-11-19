@@ -374,6 +374,11 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
 }
 
 export class ErrorBarGroup extends Group {
+    constructor(opts: { readonly name: string }) {
+        // The bars cut the glows of their series in the frame of this group, rather than a frame of a group each.
+        super({ ...opts, cutsOwnGlows: true, cutsGroupedShapes: true });
+    }
+
     nearestSquared(x: number, y: number): PickNodeDatumResult {
         const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, {
             children: this.children() as Iterable<ErrorBarNode>,
