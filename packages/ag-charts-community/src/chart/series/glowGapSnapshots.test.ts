@@ -1,23 +1,17 @@
-import { afterEach, describe, it } from 'vitest';
+import { describe, it } from 'vitest';
 
 import { Transformable } from 'ag-charts-core';
-import type { AgChartOptions } from 'ag-charts-types';
 
-import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { HARD_GLOW } from '../test/glowRender';
+import { useGlowCharts } from '../test/glowRenderSuite';
 import { getSeriesAt } from '../test/seriesAccessors';
-import {
-    compareImageSnapshot,
-    createChart,
-    deproxy,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from '../test/utils';
+import { createChart, deproxy } from '../test/utils';
 
 // A glow of spread 8 with a gap of 3, which leaves a hole round the item that is easy to see in a small crop.
 const GAP_GLOW = { ...HARD_GLOW, fill: '#d0021b', spread: 8, gap: 3 };
+
+const OPTIONS = { animation: { enabled: false }, legend: { enabled: false } };
 
 const CENTRED = {
     x: { type: 'number', min: 0, max: 4, gridLine: { enabled: false } },
@@ -28,36 +22,14 @@ const CENTRED = {
 const CROP_RADIUS = 60;
 
 describe('glow gap snapshots', () => {
-    setupMockConsole();
-    const ctx = setupMockCanvas();
-
-    let chart: Chart | undefined;
-    afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
-    });
-
-    const create = async (options: object) => {
-        chart = deproxy(
-            await createChart({
-                animation: { enabled: false },
-                legend: { enabled: false },
-                ...options,
-            } as AgChartOptions)
-        );
-        await waitForChartStability(chart);
-        return chart;
-    };
+    const { create, chart, snapshot } = useGlowCharts(createChart);
 
     const snapshotAround = (x: number, y: number) =>
-        compareImageSnapshot(chart!, {
-            ...ctx,
-            bbox: {
-                x: Math.round(x - CROP_RADIUS),
-                y: Math.round(y - CROP_RADIUS),
-                width: 2 * CROP_RADIUS,
-                height: 2 * CROP_RADIUS,
-            },
+        snapshot({
+            x: Math.round(x - CROP_RADIUS),
+            y: Math.round(y - CROP_RADIUS),
+            width: 2 * CROP_RADIUS,
+            height: 2 * CROP_RADIUS,
         });
 
     describe('a star marker, whose points the glow gap follows', () => {
@@ -66,10 +38,8 @@ describe('glow gap snapshots', () => {
             ['a stroke of 6', { stroke: '#0000ff', strokeWidth: 6, strokeOpacity: 1 }],
             ['no stroke', { strokeWidth: 0 }],
         ])('renders the glow gap of a star with %s', async (_name, stroke) => {
-            await create({
-                data: [{ x: 2, y: 4 }],
-                axes: CENTRED,
-                series: [
+            await create(
+                [
                     {
                         type: 'scatter',
                         xKey: 'x',
@@ -82,9 +52,11 @@ describe('glow gap snapshots', () => {
                         ...stroke,
                     },
                 ],
-            });
+                [{ x: 2, y: 4 }],
+                { ...OPTIONS, axes: CENTRED }
+            );
             const { x, y, width } = Transformable.toCanvas(
-                getSeriesAt(chart!).contentGroup.children().next().value as Marker
+                getSeriesAt(deproxy(chart())).contentGroup.children().next().value as Marker
             );
             await snapshotAround(x + width / 2, y + width / 2);
         });
@@ -96,13 +68,8 @@ describe('glow gap snapshots', () => {
             ['9 degrees', 39],
             ['26 degrees', 13],
         ])('renders the glow gap round the point of a sector of %s with a stroke', async (_angle, rest) => {
-            await create({
-                data: [
-                    { category: 'A', value: 1 },
-                    { category: 'B', value: rest },
-                ],
-                padding: { top: 60, left: 60, right: 60, bottom: 60 },
-                series: [
+            await create(
+                [
                     {
                         type: 'donut',
                         angleKey: 'value',
@@ -115,8 +82,13 @@ describe('glow gap snapshots', () => {
                             datum.category === 'A' ? { glow: GAP_GLOW } : { fillOpacity: 0, strokeOpacity: 0 },
                     },
                 ],
-            });
-            const { width, height } = chart!.ctx.scene.canvas;
+                [
+                    { category: 'A', value: 1 },
+                    { category: 'B', value: rest },
+                ],
+                { ...OPTIONS, padding: { top: 60, left: 60, right: 60, bottom: 60 } }
+            );
+            const { width, height } = deproxy(chart()).ctx.scene.canvas;
             await snapshotAround(width / 2, height / 2);
         });
     });
