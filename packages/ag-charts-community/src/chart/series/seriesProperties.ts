@@ -184,3 +184,13 @@ export function hasStateStyle(bucket: object | undefined): boolean {
     }
     return false;
 }
+
+/** Whether a highlight bucket overrides how an item is drawn in place by anything but its `glow`, which the glow cascade resolves. */
+export function hasNonGlowStateStyle(bucket: object | undefined): boolean {
+    if (bucket == null) return false;
+
+    for (const key in bucket) {
+        if (key !== 'glow' && (bucket as Record<string, unknown>)[key] !== undefined) return true;
+    }
+    return false;
+}

@@ -117,7 +117,7 @@ import {
     getHighlightGlow,
     getHighlightStyle,
     getSelectionStyle,
-    hasStateStyle,
+    hasNonGlowStateStyle,
     isUnselected,
     stagedSelectionState,
     toHighlightString,
@@ -169,6 +169,9 @@ const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
 /** What `resolveInPlaceCopy` returns, in place of a `HighlightState`, for the in-place copy of the hovered item. */
 const HOVERED_IN_PLACE = -1;
+
+/** A datum index that no item has, to resolve the state of an item that the highlight is not on. */
+const UNHIGHLIGHTED_DATUM_INDEX = -1;
 
 export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     itemId: string;
@@ -1043,41 +1046,88 @@ export abstract class Series<
 
         // The in-place copies that cast the bucket or drop their glow change with the hovered item, or its shared category.
         const hasItemShadow = this.getItemShadowBucket() != null;
-        const castSwapped =
-            ((this.hasGlowIn(HighlightState.OtherItem) || hasItemShadow) &&
-                this.getRedrawnDatumIndex(previousHighlightedDatum) !==
-                    this.getRedrawnDatumIndex(currentHighlightedDatum)) ||
-            ((this.hasGlowIn(HighlightState.Item) || hasItemShadow) &&
-                this.getSharedCategoryMatch(previousHighlightedDatum) !==
-                    this.getSharedCategoryMatch(currentHighlightedDatum));
+        const hoveredCastSwapped =
+            (this.hasGlowIn(HighlightState.OtherItem) || hasItemShadow) &&
+            this.getRedrawnDatumIndex(previousHighlightedDatum) !== this.getRedrawnDatumIndex(currentHighlightedDatum);
+        const sharedMatchChanged =
+            this.getSharedCategoryMatch(currentHighlightedDatum) !==
+            this.getSharedCategoryMatch(previousHighlightedDatum);
+        const sharedCastSwapped = (this.hasGlowIn(HighlightState.Item) || hasItemShadow) && sharedMatchChanged;
+        const castSwapped = hoveredCastSwapped || sharedCastSwapped;
 
-        if (!hasItemStylers && !castSwapped && currentHighlightState === previousHighlightState) {
-            // Datum-level and series-level highlights both report HighlightState.Series here, yet dim
-            // the series' other items differently, so a transition between them still needs a redraw.
-            const datumLevelnessChanged =
-                currentHighlightState === HighlightState.Series &&
-                this.isDatumHighlight(currentHighlightedDatum) !== this.isDatumHighlight(previousHighlightedDatum);
+        // Datum-level and series-level highlights both report HighlightState.Series here, yet dim
+        // the series' other items differently, so a transition between them still needs a redraw.
+        const datumLevelnessChanged =
+            currentHighlightState === HighlightState.Series &&
+            this.isDatumHighlight(currentHighlightedDatum) !== this.isDatumHighlight(previousHighlightedDatum);
 
-            // A move between two categories of this series leaves the coarse state equal but the lit item moved.
-            const sharedMatchChanged =
-                this.getSharedCategoryMatch(currentHighlightedDatum) !==
-                this.getSharedCategoryMatch(previousHighlightedDatum);
+        // A move between two categories of this series leaves the coarse state equal but the lit item moved.
+        const stateUnchanged =
+            currentHighlightState === previousHighlightState && !datumLevelnessChanged && !sharedMatchChanged;
 
-            if (!datumLevelnessChanged && !sharedMatchChanged) {
-                this.hasChangesOnHighlight = false;
-                return;
-            }
-        }
+        // Only the items that gain or lose the hovered item's glow change, when nothing else about the state does. A bucket
+        // shadow is cast by more than the hovered item, so it redraws them all.
+        const redrawsHoveredOnly =
+            hoveredCastSwapped && !sharedCastSwapped && !hasItemShadow && this.redrawsHighlightedItemsOnly();
 
         const { highlight } = this.options;
 
-        this.hasChangesOnHighlight =
-            hasItemStylers ||
-            castSwapped ||
-            this.hasSeriesGlow() ||
-            hasStateStyle(highlight?.highlightedSeries) ||
-            hasStateStyle(highlight?.unhighlightedItem) ||
-            hasStateStyle(highlight?.unhighlightedSeries);
+        this.hasChangesOnHighlight = stateUnchanged
+            ? hasItemStylers || (castSwapped && !redrawsHoveredOnly)
+            : hasItemStylers ||
+              (castSwapped && !redrawsHoveredOnly) ||
+              // A shared category match lights items of series that are not hovered, which a glow cast may follow.
+              (sharedMatchChanged && this.hasSeriesGlow()) ||
+              this.castsDifferBetween(previousHighlightedDatum, currentHighlightedDatum) ||
+              hasNonGlowStateStyle(highlight?.highlightedSeries) ||
+              hasNonGlowStateStyle(highlight?.unhighlightedItem) ||
+              hasNonGlowStateStyle(highlight?.unhighlightedSeries);
+
+        if (this.hasChangesOnHighlight) {
+            this.highlightRedraw = true;
+        } else if (redrawsHoveredOnly && this.highlightRedraw !== true) {
+            const indices = this.highlightRedraw instanceof Set ? this.highlightRedraw : new Set<DatumIndex>();
+            this.addHighlightedIndices(indices, previousHighlightedDatum);
+            this.addHighlightedIndices(indices, currentHighlightedDatum);
+            this.highlightRedraw = indices;
+        }
+    }
+
+    /**
+     * What the next update redraws in place for the highlight changes since the last one: every item (`true`), or only the
+     * items at these indices, which a highlight change that moves the hovered item between them leaves as the only ones
+     * whose cast differs.
+     */
+    protected highlightRedraw?: true | Set<DatumIndex>;
+
+    /** Whether the series can redraw only some of its items in place, which a series that redraws all of them cannot. */
+    protected redrawsHighlightedItemsOnly(): boolean {
+        return false;
+    }
+
+    private addHighlightedIndices(indices: Set<DatumIndex>, highlightedDatum: HighlightNodeDatum | undefined) {
+        if (highlightedDatum?.series !== this || !this.isDatumHighlight(highlightedDatum)) return;
+        indices.add(highlightedDatum.datumIndex);
+        const redrawnIndex = this.getRedrawnDatumIndex(highlightedDatum);
+        if (redrawnIndex != null) indices.add(redrawnIndex);
+    }
+
+    /**
+     * Whether the glow that an item casts in place differs between the states the two highlights give it, for any part of the
+     * series. The glow of equal casts is one object, so a state change that casts the same glow restyles nothing.
+     */
+    private castsDifferBetween(previous: HighlightNodeDatum | undefined, current: HighlightNodeDatum | undefined) {
+        if (!this.hasAnyGlow()) return false;
+
+        // An item the highlight is not on, which is what every item but the hovered one is in place.
+        const previousState = this.getHighlightState(previous, false, UNHIGHLIGHTED_DATUM_INDEX);
+        const currentState = this.getHighlightState(current, false, UNHIGHLIGHTED_DATUM_INDEX);
+        if (previousState === currentState) return false;
+
+        return this.getSeriesGlows().some(
+            (seriesGlow) =>
+                this.getCascadedGlow(seriesGlow, previousState) !== this.getCascadedGlow(seriesGlow, currentState)
+        );
     }
 
     public bringToFront() {
@@ -1160,7 +1210,10 @@ export abstract class Series<
         }
         if (cascade.byState[highlightState] === undefined) {
             const merged = mergeGlow({ glow: this.getHighlightGlow(highlightState) }, { glow: seriesGlow });
-            const glow = glowToShadow(merged) ?? null;
+            const cast = glowToShadow(merged) ?? null;
+            // A state that casts what another does shares its object, so that an item moving between them is not made dirty.
+            const glow =
+                cascade.byState.find((other) => other != null && cast != null && isSameGlowCast(other, cast)) ?? cast;
             cascade.byState[highlightState] = glow;
             cascade.optionsByState[highlightState] = glow == null ? null : merged;
         }
@@ -2522,4 +2575,14 @@ export abstract class Series<
     needsDataModelDiff(): boolean {
         return !this.ctx.animationManager.isSkipped() || !!this.chart?.flashOnUpdateEnabled;
     }
+}
+
+function isSameGlowCast(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
+    return (
+        a.fill === b.fill &&
+        a.fillOpacity === b.fillOpacity &&
+        a.blur === b.blur &&
+        a.spread === b.spread &&
+        a.gap === b.gap
+    );
 }

@@ -96,6 +96,20 @@ const SERIES: SeriesCase[] = [
         )
     );
 
+/** Series that are not cartesian, so redraw every item when the hover moves where the other items glow. */
+const REDRAWS_ALL_ITEMS = new Set([
+    'pie',
+    'donut',
+    'pyramid',
+    'radial-column',
+    'radial-bar',
+    'nightingale',
+    'radar-line markers',
+    'radar-area markers',
+    'map-shape',
+    'map-marker',
+]);
+
 /** Series with no `highlightedSeries` or `unhighlightedSeries`. */
 const NO_SERIES_STATES = new Set(['funnel', 'pyramid']);
 
@@ -670,10 +684,10 @@ describe('series-level glow (enterprise series)', () => {
             await waitForChartStability(chart);
         };
 
-        it('redraws a series with a glow when it is highlighted', async () => {
+        it('leaves the connectors of a series with a glow cached when it is highlighted', async () => {
             await highlightSeries({});
 
-            expect(getSeriesHasChangesOnHighlight(chart)).toBe(true);
+            expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
         });
 
         it.each([
@@ -744,10 +758,11 @@ describe('series-level glow (enterprise series)', () => {
                     }
                 );
 
-                it('redraws where the other items glow', async () => {
+                // A series that redraws only the items a move changes leaves the rest cached; the others redraw all.
+                it('redraws all items, or only the moved ones, where the other items glow', async () => {
                     await moveHover({ unhighlightedItem: { glow: {} } });
 
-                    expect(getSeriesHasChangesOnHighlight(chart)).toBe(true);
+                    expect(getSeriesHasChangesOnHighlight(chart)).toBe(REDRAWS_ALL_ITEMS.has(testCase.name));
                 });
             }
         );
