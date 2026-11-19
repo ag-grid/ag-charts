@@ -515,6 +515,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect(others.length).toBeGreaterThan(1);
             for (const itemParams of others) {
                 expect(itemParams.glow).toEqual(testCase.seriesGlow ? SERIES_GLOW : undefined);
+                expect(itemParams.glow).toBe(others[0].glow);
             }
         });
     });

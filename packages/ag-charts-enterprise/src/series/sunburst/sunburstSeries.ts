@@ -316,7 +316,12 @@ export class SunburstSeries extends HierarchySeries<
                         nodeDatum,
                         style,
                         toHierarchyHighlightString(highlightState),
-                        this.getHierarchyStylerShadowGlow(this.options.shadow, this.resolveGlow, highlightState)
+                        this.getHierarchyStylerShadowGlow(
+                            SUNBURST_SLOT,
+                            this.options.shadow,
+                            this.resolveGlow,
+                            highlightState
+                        )
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],

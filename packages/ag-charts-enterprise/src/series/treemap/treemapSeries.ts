@@ -553,6 +553,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                         style,
                         toHierarchyHighlightString(highlightState),
                         this.getHierarchyStylerShadowGlow(
+                            isLeaf ? TILE_SLOT : GROUP_SLOT,
                             part.shadow,
                             isLeaf ? this.resolveTileGlow : this.resolveGroupGlow,
                             highlightState
