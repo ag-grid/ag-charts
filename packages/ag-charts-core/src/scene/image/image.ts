@@ -118,14 +118,11 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         );
     }
 
-    private _cache:
-        | {
-              ctx: CanvasRenderingContext2D;
-              pattern: CanvasPattern | undefined;
-              width: number;
-              height: number;
-          }
-        | undefined = undefined;
+    // Per context, as a shadow mask and its layer paint the same fill and would evict one shared entry every frame.
+    private readonly _cache = new WeakMap<
+        CanvasRenderingContext2D,
+        { pattern: CanvasPattern | undefined; width: number; height: number }
+    >();
     createPattern(
         ctx: CanvasRenderingContext2D,
         shapeWidth: number,
@@ -136,8 +133,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const width = this.width ?? shapeWidth;
         const height = this.height ?? shapeHeight;
 
-        const cache = this._cache;
-        if (cache?.ctx === ctx && cache.width === width && cache.height === height) {
+        const cache = this._cache.get(ctx);
+        if (cache?.width === width && cache.height === height) {
             return cache.pattern;
         }
 
@@ -146,7 +143,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
 
         if (pattern == null) return;
 
-        this._cache = { ctx, pattern, width, height };
+        this._cache.set(ctx, { pattern, width, height });
 
         return pattern;
     }
