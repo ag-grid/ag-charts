@@ -8,8 +8,7 @@ export interface BindingImport {
     module: string;
     namedImport: string;
     imports: string[];
-    // Set when the import must be emitted as `import type { ... }`. Parsed imports leave this
-    // undefined: their type-only-ness is not tracked.
+    // Set when the import must be emitted as `import type { ... }`: the example wrote it that way.
     isTypeOnly?: boolean;
 }
 
@@ -342,37 +341,104 @@ export function usesDefaultOptionsType(bindings: {
     return bindings.properties.some((p) => chartVariables.includes(p.name) && !p.typeInfo?.typeStr);
 }
 
-// String, template and comment literals, whose contents are never code.
-const LITERALS_AND_COMMENTS = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`|\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
+/** The names a binding declares, looking through destructuring patterns. */
+function bindingNames(name: ts.BindingName): string[] {
+    if (ts.isIdentifier(name)) {
+        return [name.text];
+    }
+    return name.elements.flatMap((element) => (ts.isOmittedExpression(element) ? [] : bindingNames(element.name)));
+}
+
+/** Whether `scope` declares `name` itself, as a parameter or as a `const`/`let`/`var`/function directly in its body. */
+function declaresName(scope: ts.Node, name: string): boolean {
+    if (ts.isFunctionLike(scope) && scope.parameters.some((p) => bindingNames(p.name).includes(name))) {
+        return true;
+    }
+    const statements = ts.isSourceFile(scope) || ts.isBlock(scope) ? scope.statements : [];
+    return statements.some((statement) =>
+        ts.isVariableStatement(statement)
+            ? statement.declarationList.declarations.some((d) => bindingNames(d.name).includes(name))
+            : ts.isFunctionDeclaration(statement) && statement.name?.text === name
+    );
+}
+
+/** Whether `node`, an identifier, names something rather than reading a variable: `a.node`, `{ node: 1 }`, `const node`. */
+function isNameNotRead(node: ts.Identifier): boolean {
+    const parent = node.parent;
+    if (ts.isPropertyAccessExpression(parent) || ts.isQualifiedName(parent)) {
+        return (ts.isPropertyAccessExpression(parent) ? parent.name : parent.right) === node;
+    }
+    if (ts.isBindingElement(parent)) {
+        // `const { node } = x` and `const { node: y } = x` declare, or name a property of, the pattern; a default value reads.
+        return parent.name === node || parent.propertyName === node;
+    }
+    return (
+        (ts.isPropertyAssignment(parent) ||
+            ts.isMethodDeclaration(parent) ||
+            ts.isPropertyDeclaration(parent) ||
+            ts.isGetAccessorDeclaration(parent) ||
+            ts.isSetAccessorDeclaration(parent) ||
+            ts.isVariableDeclaration(parent) ||
+            ts.isParameter(parent) ||
+            ts.isFunctionLike(parent) ||
+            ts.isClassLike(parent) ||
+            ts.isLabeledStatement(parent) ||
+            ts.isBreakOrContinueStatement(parent)) &&
+        (parent as { name?: ts.Node; label?: ts.Node }).name === node
+    );
+}
+
+function isShadowed(node: ts.Identifier, root: ts.Node): boolean {
+    for (let scope = node.parent; scope && scope !== root.parent; scope = scope.parent) {
+        if (declaresName(scope, node.text)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * Rewrites reads of the chart options variables named in `names` (e.g. `options.series` in a callback, or
  * `...options1` in a second chart's options) to the framework's own reference to them, such as `this.options`.
- * Member accesses (`other.options`), property keys and shorthand declarations are left alone, as are string, template and comment contents.
+ * It works on the syntax tree, so a read inside a template literal's `${}` counts, and `{ options }` becomes
+ * `{ options: this.options }`. Member accesses (`other.options`), property keys, declarations, names that a
+ * function or block declares itself, types, and the contents of strings and comments are left alone.
  */
 export function replaceOptionsReferences(code: string, names: string[], toReference: (name: string) => string): string {
     if (names.length === 0) {
         return code;
     }
 
-    const regex = new RegExp(`(?<![\\w$])(?<!(?<!\\.\\.)\\.)(${names.join('|')})\\b`, 'g');
-    const replaceSegment = (segment: string) =>
-        segment.replace(regex, (match, name: string, offset: number) => {
-            const before = segment.slice(0, offset);
-            const after = segment.slice(offset + match.length);
-            // `{ options: x }` and `{ options }` declare a key, whereas `{ ...options }` and `[options]` read the variable.
-            const isKey = /[{,]\s*$/.test(before) && /^\s*[:,}]/.test(after);
-            return isKey ? match : toReference(name);
-        });
+    // The code is an expression (`{ ...options }`, a callback) or statements (`const { series } = options;`).
+    const parse = (text: string) => {
+        const source = ts.createSourceFile('x.ts', text, ts.ScriptTarget.Latest, true);
+        return { source, valid: (source as any).parseDiagnostics.length === 0 };
+    };
+    const prefix = 'const x = (';
+    const asExpression = parse(`${prefix}${code}\n)`);
+    const asStatements = asExpression.valid ? undefined : parse(code);
+    const { source } = asStatements ?? asExpression;
+    const offset = asStatements ? 0 : prefix.length;
+    const root: ts.Node = asStatements ? source : (source.statements[0] as ts.VariableStatement).declarationList;
 
-    let result = '';
-    let lastIndex = 0;
-    for (const match of code.matchAll(LITERALS_AND_COMMENTS)) {
-        const start = match.index ?? 0;
-        result += replaceSegment(code.slice(lastIndex, start)) + match[0];
-        lastIndex = start + match[0].length;
-    }
-    return result + replaceSegment(code.slice(lastIndex));
+    const edits: { start: number; end: number; text: string }[] = [];
+    const visit = (node: ts.Node) => {
+        if (ts.isTypeNode(node)) {
+            return;
+        }
+        if (ts.isIdentifier(node) && names.includes(node.text) && !isNameNotRead(node) && !isShadowed(node, root)) {
+            const reference = toReference(node.text);
+            const shorthand = ts.isShorthandPropertyAssignment(node.parent) && node.parent.name === node;
+            if (reference !== node.text) {
+                const text = shorthand ? `${node.text}: ${reference}` : reference;
+                edits.push({ start: node.getStart(source) - offset, end: node.getEnd() - offset, text });
+            }
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(root);
+
+    return edits.reduceRight((result, { start, end, text }) => result.slice(0, start) + text + result.slice(end), code);
 }
 
 /**
@@ -411,23 +477,29 @@ export function getReferencedOptions(bindings: any, property: { name: string; va
     return ordered;
 }
 
-/** `value` with the bodies of its functions blanked out, leaving only what is evaluated when `value` itself is. */
+/** `value` with the bodies of its functions emptied, leaving only what is evaluated when `value` itself is. */
 function withoutFunctionBodies(value: string): string {
     const prefix = 'const x = ';
     const source = ts.createSourceFile('x.ts', `${prefix}${value}`, ts.ScriptTarget.Latest, true);
-    const ranges: [number, number][] = [];
+    const ranges: [number, number, boolean][] = [];
     const visit = (node: ts.Node) => {
         if (ts.isFunctionLike(node) && 'body' in node && node.body) {
-            ranges.push([node.body.getStart(source) - prefix.length, node.body.getEnd() - prefix.length]);
+            ranges.push([
+                node.body.getStart(source) - prefix.length,
+                node.body.getEnd() - prefix.length,
+                ts.isBlock(node.body),
+            ]);
         } else {
             ts.forEachChild(node, visit);
         }
     };
     visit(source);
 
+    // Keep the body syntactically valid, and its length, so the result still parses with the same offsets.
     let result = value;
-    for (const [start, end] of ranges) {
-        result = result.slice(0, start) + ' '.repeat(end - start) + result.slice(end);
+    for (const [start, end, isBlock] of ranges) {
+        const blank = isBlock ? `{${' '.repeat(end - start - 2)}}` : `0${' '.repeat(end - start - 1)}`;
+        result = result.slice(0, start) + blank + result.slice(end);
     }
     return result;
 }
@@ -563,6 +635,7 @@ export function extractImportStatements(srcFile: ts.SourceFile): BindingImport[]
                 isNamespaced,
                 namedImport,
                 imports,
+                isTypeOnly: moduleImports?.isTypeOnly === true,
             });
         }
     });

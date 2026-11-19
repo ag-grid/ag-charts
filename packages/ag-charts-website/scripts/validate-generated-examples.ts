@@ -21,7 +21,7 @@
 import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
 import { spawn } from 'child_process';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'fs';
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, mkdtemp, writeFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -59,7 +59,8 @@ const CONTENT_ROOT_FROM_WEBSITE = 'src/content';
 const WEBSITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WORKSPACE_ROOT = path.resolve(WEBSITE_ROOT, '../..');
 const GENERATED_ROOT = path.join(WORKSPACE_ROOT, 'dist/generated-examples/ag-charts-website');
-const SCRATCH_ROOT = path.join(WORKSPACE_ROOT, 'dist/validate-generated-examples');
+/** Each run writes into a directory of its own under here, so concurrent runs cannot clobber each other. */
+const SCRATCH_PARENT = path.join(WORKSPACE_ROOT, 'dist/validate-generated-examples');
 
 /** Every example directory, with a `main.ts`, of the docs pages and the gallery. */
 export function findExamples(contentRoot: string): ExampleRef[] {
@@ -163,8 +164,8 @@ export function getExportedFiles(contents: GeneratedContents): Record<string, st
     return { ...files, ...contents.boilerPlateFiles };
 }
 
-export function readVariant(variant: Variant): Record<string, string> {
-    const variantDir = path.join(GENERATED_ROOT, variant.example.dir, variant.mode, variant.framework);
+export function readVariant(variant: Variant, generatedRoot = GENERATED_ROOT): Record<string, string> {
+    const variantDir = path.join(generatedRoot, variant.example.dir, variant.mode, variant.framework);
     const label = `${variant.example.id} [${variant.mode}/${variant.framework}]`;
 
     const errorFile = path.join(variantDir, 'error.txt');
@@ -186,8 +187,8 @@ export function readVariant(variant: Variant): Record<string, string> {
     return files;
 }
 
-function scratchDir(variant: Variant) {
-    return path.join(SCRATCH_ROOT, variant.framework, variant.mode, variant.example.id);
+function scratchDir(scratchRoot: string, variant: Variant) {
+    return path.join(scratchRoot, variant.framework, variant.mode, variant.example.id);
 }
 
 /** What `tsc` needs beyond `tsconfig.examples.json`, which the source check also uses. */
@@ -198,9 +199,9 @@ const FRAMEWORK_COMPILER_OPTIONS: Record<CheckedFramework, Record<string, unknow
     vue3: {},
 };
 
-function frameworkTsconfig(framework: CheckedFramework) {
-    const websiteRelative = path.relative(path.join(SCRATCH_ROOT, framework), WEBSITE_ROOT);
-    const workspaceRelative = path.relative(path.join(SCRATCH_ROOT, framework), WORKSPACE_ROOT);
+export function frameworkTsconfig(framework: CheckedFramework, scratchRoot: string) {
+    const websiteRelative = path.relative(path.join(scratchRoot, framework), WEBSITE_ROOT);
+    const workspaceRelative = path.relative(path.join(scratchRoot, framework), WORKSPACE_ROOT);
     const types = (pkg: string, entry = 'src/main.d.ts') => [
         `${workspaceRelative}/packages/${pkg}/dist/types/${entry}`,
     ];
@@ -213,6 +214,9 @@ function frameworkTsconfig(framework: CheckedFramework) {
             // example's top-level names from colliding with another's.
             moduleDetection: 'force',
             noUnusedParameters: true,
+            // `paths` resolve against `baseUrl`, which the root tsconfig sets to the workspace root. Pin it
+            // here so they resolve against this file, or a miss falls back to the linked packages.
+            baseUrl: '.',
             paths: {
                 'ag-charts-community': types('ag-charts-community'),
                 'ag-charts-enterprise': types('ag-charts-enterprise'),
@@ -229,18 +233,18 @@ function frameworkTsconfig(framework: CheckedFramework) {
     };
 }
 
-interface TscResult {
+export interface TscResult {
     framework: CheckedFramework;
     output: string;
     exitCode: number;
 }
 
-function runTsc(framework: CheckedFramework): Promise<TscResult> {
+export function runTsc(framework: CheckedFramework, scratchRoot: string): Promise<TscResult> {
     const tsc = path.join(WORKSPACE_ROOT, 'node_modules/typescript/bin/tsc');
-    const project = path.join(SCRATCH_ROOT, framework, 'tsconfig.json');
+    const project = path.join(scratchRoot, framework, 'tsconfig.json');
     return new Promise((resolve, reject) => {
         const child = spawn(process.execPath, [tsc, '-p', project, '--pretty', 'false', '--noEmit'], {
-            cwd: SCRATCH_ROOT,
+            cwd: scratchRoot,
         });
         let output = '';
         child.stdout.on('data', (chunk) => (output += chunk));
@@ -279,17 +283,17 @@ export function parseTscOutput(framework: CheckedFramework, output: string): Dia
     return diagnostics;
 }
 
-async function writeVariants(variants: Variant[]) {
+async function writeVariants(variants: Variant[], generatedRoot: string, scratchRoot: string) {
     const problems: string[] = [];
     for (const variant of variants) {
         let files: Record<string, string>;
         try {
-            files = readVariant(variant);
+            files = readVariant(variant, generatedRoot);
         } catch (error) {
             problems.push(String((error as Error).message));
             continue;
         }
-        const dir = scratchDir(variant);
+        const dir = scratchDir(scratchRoot, variant);
         await mkdir(dir, { recursive: true });
         await Promise.all(
             Object.entries(files)
@@ -315,27 +319,11 @@ export async function main(argv: string[]): Promise<number> {
         selection.modes.flatMap((mode) => selection.frameworks.map((framework) => ({ example, mode, framework })))
     );
 
-    rmSync(SCRATCH_ROOT, { recursive: true, force: true });
-    const problems = await writeVariants(variants);
-    if (problems.length > 0) {
-        console.error(`${problems.length} generated variant(s) cannot be checked:`);
-        problems.slice(0, 50).forEach((p) => console.error(`  ${p}`));
-        if (problems.length > 50) console.error(`  ... and ${problems.length - 50} more`);
-        return 1;
-    }
+    return checkVariants(variants, selection.frameworks);
+}
 
-    for (const framework of selection.frameworks) {
-        await writeFile(
-            path.join(SCRATCH_ROOT, framework, 'tsconfig.json'),
-            JSON.stringify(frameworkTsconfig(framework), null, 2)
-        );
-    }
-
-    console.log(
-        `Type-checking ${variants.length} generated variants (${examples.length} examples x ${selection.modes.length} modes x ${selection.frameworks.length} frameworks)...`
-    );
-    const results = await Promise.all(selection.frameworks.map(runTsc));
-
+/** Print the `tsc` results, attributing each error to its variant, and say whether any variant failed. */
+export function reportResults(results: TscResult[]): boolean {
     let failed = false;
     for (const { framework, output, exitCode } of results) {
         const diagnostics = parseTscOutput(framework, output);
@@ -356,7 +344,46 @@ export async function main(argv: string[]): Promise<number> {
             list.forEach((d) => console.error(`      ${d.text.replaceAll('\n', '\n      ')}`));
         }
     }
-    return failed ? 1 : 0;
+    return failed;
+}
+
+/**
+ * Write the variants out and type-check them, one `tsc` per framework. Returns the exit code: 1 if a
+ * variant cannot be read or has a type error, otherwise 0. The scratch tree is private to this call.
+ */
+export async function checkVariants(
+    variants: Variant[],
+    frameworks: readonly CheckedFramework[],
+    generatedRoot = GENERATED_ROOT
+): Promise<number> {
+    await mkdir(SCRATCH_PARENT, { recursive: true });
+    const scratchRoot = await mkdtemp(path.join(SCRATCH_PARENT, 'run-'));
+    try {
+        const problems = await writeVariants(variants, generatedRoot, scratchRoot);
+        if (problems.length > 0) {
+            console.error(`${problems.length} generated variant(s) cannot be checked:`);
+            problems.slice(0, 50).forEach((p) => console.error(`  ${p}`));
+            if (problems.length > 50) console.error(`  ... and ${problems.length - 50} more`);
+            return 1;
+        }
+
+        for (const framework of frameworks) {
+            await writeFile(
+                path.join(scratchRoot, framework, 'tsconfig.json'),
+                JSON.stringify(frameworkTsconfig(framework, scratchRoot), null, 2)
+            );
+        }
+
+        const modes = new Set(variants.map((v) => v.mode)).size;
+        const examples = new Set(variants.map((v) => v.example.id)).size;
+        console.log(
+            `Type-checking ${variants.length} generated variants (${examples} examples x ${modes} modes x ${frameworks.length} frameworks)...`
+        );
+        const results = await Promise.all(frameworks.map((framework) => runTsc(framework, scratchRoot)));
+        return reportResults(results) ? 1 : 0;
+    } finally {
+        rmSync(scratchRoot, { recursive: true, force: true });
+    }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

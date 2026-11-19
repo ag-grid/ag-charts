@@ -419,3 +419,79 @@ AgCharts.create(options);
         expect((await generate(SRC)).react).toContain('console.log(options.series)');
     });
 });
+
+describe('callbacks that read the options variable in a template or as a shorthand property', () => {
+    const SRC = `
+import { AgCharts, AgChartOptions } from 'ag-charts-community';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    series: [
+        {
+            type: 'bar',
+            xKey: 'x',
+            yKey: 'y',
+            tooltip: { renderer: () => ({ title: \`\${options.title}\`, data: { options } }) },
+        },
+    ],
+};
+
+AgCharts.create(options);
+`;
+
+    test('Angular reads the class member in the template and in the shorthand', async () => {
+        const { angular } = await generate(SRC);
+        expect(angular).toContain('title: `${this.options.title}`');
+        expect(angular).toContain('data: { options: this.options }');
+    });
+
+    test('Vue reads the ref value in the template and in the shorthand', async () => {
+        const { vue } = await generate(SRC);
+        expect(vue).toContain('title: `${options.value.title}`');
+        expect(vue).toContain('data: { options: options.value }');
+    });
+});
+
+describe('type-only imports of the example', () => {
+    const SRC = `
+import { AgCharts } from 'ag-charts-community';
+import type { Datum } from './data';
+import { getData } from './data';
+
+const options = {
+    container: document.getElementById('myChart'),
+    data: getData() as Datum[],
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+AgCharts.create(options);
+`;
+    const TYPE_ONLY = `
+import { AgCharts } from 'ag-charts-community';
+import type { Datum } from './data';
+
+const options = {
+    container: document.getElementById('myChart'),
+    data: [] as Datum[],
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+AgCharts.create(options);
+`;
+
+    test.each(['typescript', 'react', 'angular', 'vue'] as const)(
+        '%s keeps an import that is only types as `import type`',
+        async (framework) => {
+            expect((await generate(TYPE_ONLY))[framework]).toContain("import type { Datum } from './data';");
+        }
+    );
+
+    test.each(['typescript', 'react', 'angular', 'vue'] as const)(
+        '%s imports a module as values when it is also used for values',
+        async (framework) => {
+            const output = (await generate(SRC))[framework];
+            expect(output).toContain("import { Datum, getData } from './data';");
+            expect(output).not.toContain("import type { Datum } from './data'");
+        }
+    );
+});

@@ -336,6 +336,7 @@
       "inputs": [
         "{projectRoot}/scripts/validate-generated-examples.ts",
         "{projectRoot}/tsconfig.examples.json",
+        "{workspaceRoot}/tsconfig.base.json",
         "{projectRoot}/src/components/example-runner/components/stripOutExampleGeneratorCode.ts",
         "{projectRoot}/src/components/example-runner/constants.ts",
         "{workspaceRoot}/external/ag-website-shared/src/utils/extraCodeSnippets.ts",
@@ -343,7 +344,18 @@
           "dependentTasksOutputFiles": "**/contents.json",
           "transitive": true
         },
-        "tsDeclarations"
+        "tsDeclarations",
+        {
+          "externalDependencies": [
+            "npm:typescript",
+            "npm:tslib",
+            "npm:react",
+            "npm:@types/react",
+            "npm:@types/clone",
+            "npm:vue",
+            "npm:@angular/core"
+          ]
+        }
       ],
       "outputs": [],
       "cache": true,

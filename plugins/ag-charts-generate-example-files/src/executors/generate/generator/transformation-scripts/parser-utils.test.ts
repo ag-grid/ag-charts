@@ -45,11 +45,43 @@ describe('replaceOptionsReferences', () => {
         );
     });
 
-    it('leaves a property key and a shorthand declaration', () => {
+    it('leaves a property key and a declaration of the name', () => {
         expect(replaceOptionsReferences('{ options: 1 }', ['options'], toThis)).toBe('{ options: 1 }');
-        expect(replaceOptionsReferences('{ a: 1, options }', ['options'], toThis)).toBe('{ a: 1, options }');
-        expect(replaceOptionsReferences('{ a: 1, options, b: 2 }', ['options'], toThis)).toBe(
-            '{ a: 1, options, b: 2 }'
+        expect(replaceOptionsReferences('{ options() {} }', ['options'], toThis)).toBe('{ options() {} }');
+        expect(replaceOptionsReferences('const { options } = props; f(options)', ['options'], toThis)).toBe(
+            'const { options } = props; f(options)'
+        );
+    });
+
+    it('expands a shorthand property, which reads the variable', () => {
+        expect(replaceOptionsReferences('{ a: 1, options }', ['options'], toThis)).toBe(
+            '{ a: 1, options: this.options }'
+        );
+        expect(replaceOptionsReferences('() => ({ options, b: 2 })', ['options'], toThis)).toBe(
+            '() => ({ options: this.options, b: 2 })'
+        );
+    });
+
+    it('rewrites a read inside a template literal interpolation', () => {
+        expect(replaceOptionsReferences('() => `${options.title} options`', ['options'], toThis)).toBe(
+            '() => `${this.options.title} options`'
+        );
+    });
+
+    it('leaves a name that a function or block declares itself', () => {
+        expect(replaceOptionsReferences('(options) => options.a + other.b', ['options'], toThis)).toBe(
+            '(options) => options.a + other.b'
+        );
+        expect(replaceOptionsReferences('() => { const options = f(); return options.a; }', ['options'], toThis)).toBe(
+            '() => { const options = f(); return options.a; }'
+        );
+        expect(replaceOptionsReferences('({ a }) => options.a', ['options'], toThis)).toBe('({ a }) => this.options.a');
+    });
+
+    it('rewrites a default value, and leaves a type', () => {
+        expect(replaceOptionsReferences('(a = options) => a', ['options'], toThis)).toBe('(a = this.options) => a');
+        expect(replaceOptionsReferences('(a: typeof options) => a', ['options'], toThis)).toBe(
+            '(a: typeof options) => a'
         );
     });
 
