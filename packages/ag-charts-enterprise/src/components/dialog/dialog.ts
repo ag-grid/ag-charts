@@ -343,6 +343,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             // is resized. When a different color picker trigger element is clicked that one will take over this task.
             const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
             // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
+            // eslint-disable-next-line aglint/widget-boundary -- reads back the swatch's CSS variable and class; Widget only sets them.
             const swatchEl = colorEl.getElement();
             const swatch = {
                 color: swatchEl.style.getPropertyValue('--color'),

@@ -331,3 +331,25 @@ exports[`aglint/validate-module-registration-implied 1`] = `
 ",
 }
 `;
+
+exports[`aglint/widget-boundary 1`] = `
+{
+  "stderr": "",
+  "stdout": "
+<dirname>/lint-widget-boundary.data.ts
+  13:13  error  Do not reach through a Widget to its raw element. Use (or add) a Widget method instead. If the escape is unavoidable, allow it with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`  aglint/widget-boundary
+  14:13  error  Do not reach through a Widget to its raw element. Use (or add) a Widget method instead. If the escape is unavoidable, allow it with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`  aglint/widget-boundary
+  25:5   error  Unused eslint-disable directive (no problems were reported from 'aglint/widget-boundary')
+  35:25  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement or declaration                                              aglint/widget-boundary
+  36:31  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement or declaration                                              aglint/widget-boundary
+  37:35  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement or declaration                                              aglint/widget-boundary
+  38:45  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement or declaration                                              aglint/widget-boundary
+  56:24  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement or declaration                                              aglint/widget-boundary
+  61:32  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement or declaration                                              aglint/widget-boundary
+
+✖ 9 problems (9 errors, 0 warnings)
+  1 error and 0 warnings potentially fixable with the \`--fix\` option.
+
+",
+}
+`;

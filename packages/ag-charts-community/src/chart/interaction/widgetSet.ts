@@ -3,6 +3,8 @@ import { DragInterpreter, FocusIndicator, FocusSwapChain, LongTapInterpreter, Na
 
 import type { ChartRegistry } from '../../module/moduleContext';
 
+// TODO: Phase 3 "Common Widget Ancestor" - DOMManager owns these containers and hands them out as raw elements,
+// so this fallback wraps them without taking over their place in the DOM.
 class DOMManagerWidget extends NativeWidget {
     constructor(elem: HTMLElement) {
         super(elem);
@@ -49,6 +51,7 @@ export class WidgetSet {
     private readonly ctx: DynamicContext<ChartRegistry>;
     private readonly axes: WeakMap<AxisID, WeakRef<AxisWidget>> = new Map();
 
+    // TODO: Phase 3 "Common Widget Ancestor" - the DOMManager containers below are wrapped in the DOMManagerWidget fallback.
     constructor(ctx: DynamicContext<ChartRegistry>, opts: { withDragInterpretation: boolean }) {
         this.ctx = ctx;
         const { domManager } = ctx;
@@ -56,7 +59,7 @@ export class WidgetSet {
         this.seriesBoundsWidget = new DOMManagerWidget(domManager.getParent('series-area-bounds'));
         this.chartWidget = new DOMManagerWidget(domManager.getParent('canvas-proxy'));
         this.containerWidget = new DOMManagerWidget(domManager.getParent('canvas-container'));
-        // TODO: AG−18361 Phase 3 "Common Widget Ancestor" - set these widgets as descendants of the DOM Manager root.
+        // TODO: Phase 3 "Common Widget Ancestor" - set these widgets as descendants of the DOM Manager root.
         this.containerWidget.setCanvasOrigin(domManager);
         this.seriesBoundsWidget.setCanvasOrigin(domManager);
         this.containerWidget.addChild(this.chartWidget);

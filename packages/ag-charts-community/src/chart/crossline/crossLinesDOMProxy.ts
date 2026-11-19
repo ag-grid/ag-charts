@@ -172,7 +172,7 @@ export class CrossLinesDOMProxy {
                 path.classList.add(className);
                 svg.append(path);
             }
-            // Exempt from wrapping: the SVG is decorative (aria-hidden) and Widget only wraps HTML elements.
+            // eslint-disable-next-line aglint/widget-boundary -- the SVG is decorative (aria-hidden) and Widget only wraps HTML elements.
             button.getElement().after(svg);
             this.focusPaths[index] = svg;
         }
