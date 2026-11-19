@@ -7,7 +7,7 @@ import {
     convertFunctionToProperty,
     ensureNamedImport,
     getPropertyOptionsType,
-    getReferencedOptions,
+    splitReferencedOptions,
     usesDefaultOptionsType,
 } from './parser-utils';
 import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
@@ -117,12 +117,13 @@ function getComponentMetadata(bindings: any, id: string, property: any) {
     const chartOptionsType = getPropertyOptionsType(property);
 
     // Each chart is its own component, so one whose options read another chart's declares that chart's options too.
-    for (const dependency of getReferencedOptions(bindings, property)) {
-        stateProperties.push(`const ${dependency.name}: ${getPropertyOptionsType(dependency)} = ${dependency.value};`);
-    }
-
+    const declare = (dependency: any) =>
+        `const ${dependency.name}: ${getPropertyOptionsType(dependency)} = ${dependency.value};`;
+    const { before, after } = splitReferencedOptions(bindings, property);
     stateProperties.push(
-        `const [${property.name}, set${toTitleCase(property.name)}] = useState<${chartOptionsType}>(${property.value});`
+        ...before.map(declare),
+        `const [${property.name}, set${toTitleCase(property.name)}] = useState<${chartOptionsType}>(${property.value});`,
+        ...after.map(declare)
     );
 
     componentAttributes.push(`options={${property.name}${needsOptionsCast(property) ? ' as AgChartOptions' : ''}}`);

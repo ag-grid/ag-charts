@@ -385,6 +385,9 @@ export function getReferencedOptions(bindings: any, property: { name: string; va
         Object.values(bindings.chartProperties ?? {}).includes(p.name)
     );
     const ordered: any[] = [];
+    // Charts may read each other (`options1`'s callback reads `options2`, which spreads `options1`), so a chart is
+    // visited once, and `property` itself is never a dependency of its own.
+    const visited = new Set<string>([property.name]);
     const visit = (current: { name: string; value: string }) => {
         const others = all.filter((p) => p.name !== current.name);
         const referenced = new Set<string>();
@@ -397,7 +400,8 @@ export function getReferencedOptions(bindings: any, property: { name: string; va
             }
         );
         for (const dependency of others.filter((p) => referenced.has(p.name))) {
-            if (!ordered.includes(dependency)) {
+            if (!visited.has(dependency.name)) {
+                visited.add(dependency.name);
                 visit(dependency);
                 ordered.push(dependency);
             }
@@ -405,6 +409,64 @@ export function getReferencedOptions(bindings: any, property: { name: string; va
     };
     visit(property);
     return ordered;
+}
+
+/** `value` with the bodies of its functions blanked out, leaving only what is evaluated when `value` itself is. */
+function withoutFunctionBodies(value: string): string {
+    const prefix = 'const x = ';
+    const source = ts.createSourceFile('x.ts', `${prefix}${value}`, ts.ScriptTarget.Latest, true);
+    const ranges: [number, number][] = [];
+    const visit = (node: ts.Node) => {
+        if (ts.isFunctionLike(node) && 'body' in node && node.body) {
+            ranges.push([node.body.getStart(source) - prefix.length, node.body.getEnd() - prefix.length]);
+        } else {
+            ts.forEachChild(node, visit);
+        }
+    };
+    visit(source);
+
+    let result = value;
+    for (const [start, end] of ranges) {
+        result = result.slice(0, start) + ' '.repeat(end - start) + result.slice(end);
+    }
+    return result;
+}
+
+/**
+ * `getReferencedOptions`, split into those declared before `property`'s own options and those that follow them.
+ * A chart has to be declared before any chart whose options evaluate it (`options2 = { ...options1 }`), whereas a
+ * read inside a callback (`() => options2.series`) only needs it declared by the time the callback runs. So when
+ * charts read each other, which one comes first depends on which of the reads are in callbacks.
+ */
+export function splitReferencedOptions(
+    bindings: any,
+    property: { name: string; value: string }
+): { before: any[]; after: any[] } {
+    const charts = [...getReferencedOptions(bindings, property), property];
+    const ordered: any[] = [];
+    const visited = new Set<string>();
+    const visit = (chart: { name: string; value: string }) => {
+        visited.add(chart.name);
+        const evaluated = withoutFunctionBodies(chart.value);
+        for (const other of charts) {
+            if (visited.has(other.name)) {
+                continue;
+            }
+            let readsOther = false;
+            replaceOptionsReferences(evaluated, [other.name], (name) => {
+                readsOther = true;
+                return name;
+            });
+            if (readsOther) {
+                visit(other);
+            }
+        }
+        ordered.push(chart);
+    };
+    charts.forEach((chart) => !visited.has(chart.name) && visit(chart));
+
+    const index = ordered.indexOf(property);
+    return { before: ordered.slice(0, index), after: ordered.slice(index + 1) };
 }
 
 // Types that need no import: the DOM and TypeScript's own globals, and the generic parameters charts use.

@@ -6,8 +6,8 @@ import {
     convertFunctionToConstPropertyTs,
     getImportedName,
     getPropertyOptionsType,
-    getReferencedOptions,
     replaceOptionsReferences,
+    splitReferencedOptions,
 } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 import { convertTemplate, getImport, indentTemplate } from './vue-utils';
@@ -89,8 +89,8 @@ function getPropertyBindings(bindings: any, id: string, property: any) {
         return `const ${p.name} = ref<${type}>(${value}) as Ref<${type}>;`;
     };
     // Each chart is its own component, so one whose options read another chart's declares that chart's options too.
-    const dependencies = getReferencedOptions(bindings, property).map(declare);
-    propertyVars.push(...dependencies, declare(property));
+    const { before, after } = splitReferencedOptions(bindings, property);
+    propertyVars.push(...before.map(declare), declare(property), ...after.map(declare));
     if (bindings.usesChartApi) {
         propertyNames.push('agCharts');
         // Typed as the component, so that `chart` is an `AgChartInstance` and callbacks on it are contextually typed.

@@ -8,9 +8,9 @@ import {
     convertFunctionToProperty,
     getImportedName,
     getPropertyOptionsType,
-    getReferencedOptions,
     isInstanceMethod,
     replaceOptionsReferences,
+    splitReferencedOptions,
     usesDefaultOptionsType,
 } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
@@ -134,21 +134,23 @@ function getComponentMetadata(bindings: any, property: any, methodNames: string[
         propertyAttributes.push(`[options]="${property.name}"`);
         propertyVars.push(`public ${property.name}: ${getPropertyOptionsType(property)};`);
         // Callbacks inside the options literal may call instance methods, so prefix those calls too.
-        // Callbacks and spreads inside the literal may also read the chart options variables. Its own is a
-        // class member, and any other chart's is declared locally, as that chart is a separate component.
+        // Callbacks and spreads inside the literal may also read the chart options variables. This component's
+        // chart is a class member, wherever it is read from, and any other chart's is declared locally, as that
+        // chart is a separate component.
         const toValue = (p: any) =>
             replaceOptionsReferences(
                 prefixInstanceMethodCalls(p.value, methodNames),
-                [p.name],
+                [property.name],
                 (name) => `this.${name}`
             );
-        for (const dependency of getReferencedOptions(bindings, property)) {
-            propertyAssignments.push(
-                `const ${dependency.name}: ${getPropertyOptionsType(dependency)} = ${toValue(dependency)};`
-            );
-        }
-        const value = toValue(property);
-        propertyAssignments.push(`this.${property.name} = ${value};`);
+        const declare = (dependency: any) =>
+            `const ${dependency.name}: ${getPropertyOptionsType(dependency)} = ${toValue(dependency)};`;
+        const { before, after } = splitReferencedOptions(bindings, property);
+        propertyAssignments.push(
+            ...before.map(declare),
+            `this.${property.name} = ${toValue(property)};`,
+            ...after.map(declare)
+        );
     }
 
     const modules = bindings.chartModules[property.name];
