@@ -109,10 +109,14 @@ export class Ranges extends AbstractModuleInstance {
             ctx.eventsHub.on('theme:params-change', () => this.invalidateToolbarHeightCache()),
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'ranges.enabled') ?? false;
-                const buttons = get('options', 'ranges.buttons');
                 // Reset `isDropdown` state when the ranges module is disabled, to ensure the buttons are
                 // correctly re-shown if the module is re-enabled.
                 if (!enabled) this.isDropdown = undefined;
+            }),
+            ctx.chartState.observe((get) => {
+                // Read both before branching: the observer only tracks the keys read on its first run.
+                const enabled = get('options', 'ranges.enabled') ?? false;
+                const buttons = get('options', 'ranges.buttons');
                 if (enabled) warnUnnamedToolbarButtons(ctx.logger, 'ranges.buttons', buttons);
             }),
             this.teardown.bind(this)

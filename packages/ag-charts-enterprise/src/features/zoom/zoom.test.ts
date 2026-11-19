@@ -205,11 +205,16 @@ describe('Zoom', () => {
     });
 
     it('warns once for a zoom button whose blank tooltip leaves it without an accessible name', async () => {
-        const buttons = [
-            { icon: 'zoom-in', value: 'zoom-in', tooltip: 'Magnify' },
-            { icon: 'zoom-out', value: 'zoom-out', tooltip: '  ' },
-        ] as const;
-        await prepareChart({ buttons: { enabled: true, visible: 'always', buttons: [...buttons] } });
+        await prepareChart({
+            buttons: {
+                enabled: true,
+                visible: 'always',
+                buttons: [
+                    { icon: 'zoom-in', value: 'zoom-in', section: 'scale', tooltip: 'Magnify' },
+                    { icon: 'zoom-out', value: 'zoom-out', section: 'scale', tooltip: '  ' },
+                ],
+            },
+        });
         await chart.updateDelta({ zoom: { buttons: { visible: 'hover' } } });
 
         expectWarningsCalls().toEqual([

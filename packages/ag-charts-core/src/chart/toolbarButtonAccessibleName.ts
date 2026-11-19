@@ -8,7 +8,7 @@ interface NameableToolbarButton {
 }
 
 function isNonBlank(text: string | undefined) {
-    return typeof text === 'string' && text.trim() !== '';
+    return Boolean(text?.trim());
 }
 
 export function hasToolbarButtonAccessibleName(button: NameableToolbarButton | undefined): boolean {

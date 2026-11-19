@@ -195,15 +195,15 @@ export class AnnotationOptionsToolbar {
             value: TOOLBAR_BUTTON_OPTIONS[button.value],
         }));
         if (options.enabled) {
-            this.warnUnnamedButtons(options.buttons);
+            this.warnUnnamedButtons(options.buttons ?? []);
         }
     }
 
-    private warnUnnamedButtons(buttons: AgAnnotationOptionsToolbar['buttons']) {
+    private warnUnnamedButtons(buttons: NonNullable<AgAnnotationOptionsToolbar['buttons']>) {
         const path = 'annotations.optionsToolbar.buttons';
         const { logger } = this.ctx;
         warnUnnamedToolbarButtons(logger, path, buttons);
-        for (const [index, button] of (buttons ?? []).entries()) {
+        for (const [index, button] of buttons.entries()) {
             if (button.type === 'switch' && !hasToolbarButtonAccessibleName(button.checkedOverrides)) {
                 warnUnnamedToolbarButton(logger, `${path}[${index}].checkedOverrides`, button.value);
             }
