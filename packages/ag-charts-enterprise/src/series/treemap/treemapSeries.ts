@@ -602,6 +602,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         // With a group highlighted, a tile inherits only the group's opacities (see `getTileHighlightStyle`), and it has
         // no highlight glow with its tile highlight off: it casts its series-level glow, under any glow from an item styler.
         if (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0) {
+            if (itemGlow == null && this.options.tile.glow?.enabled !== true) return;
+
             return this.getHierarchyGlow(
                 SERIES_ONLY_TILE_SLOT,
                 HierarchyHighlightState.None,
