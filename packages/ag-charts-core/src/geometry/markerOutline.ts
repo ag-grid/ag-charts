@@ -167,27 +167,38 @@ export function outlineSpan(
 ): void {
     out.min = Infinity;
     out.max = -Infinity;
-    const alongOrigin = rows ? cx : cy;
-    const acrossOrigin = rows ? cy : cx;
     const bandLo = lo - padAcross;
     const bandHi = hi + padAcross;
     for (const polygon of outline.polygons) {
         for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            const a = polygon[j];
-            const b = polygon[i];
-            const aAlong = alongOrigin + (rows ? a.x : a.y) * scale;
-            const bAlong = alongOrigin + (rows ? b.x : b.y) * scale;
-            const aAcross = acrossOrigin + (rows ? a.y : a.x) * scale;
-            const bAcross = acrossOrigin + (rows ? b.y : b.x) * scale;
-            if (!segmentTouchesBox(aAlong, aAcross, bAlong, bAcross, -Infinity, bandLo, Infinity, bandHi)) continue;
-            const from = aAlong + (bAlong - aAlong) * clipT0;
-            const to = aAlong + (bAlong - aAlong) * clipT1;
-            out.min = Math.min(out.min, from, to);
-            out.max = Math.max(out.max, from, to);
+            spanEdge(polygon[j], polygon[i], cx, cy, scale, bandLo, bandHi, rows, out);
         }
     }
     out.min -= padAlong;
     out.max += padAlong;
+}
+
+/** Widens `out` by the extent of the edge from `a` to `b`, drawn at `(cx, cy)` and `scale`, within the band. */
+function spanEdge(
+    a: OutlinePoint,
+    b: OutlinePoint,
+    cx: number,
+    cy: number,
+    scale: number,
+    bandLo: number,
+    bandHi: number,
+    rows: boolean,
+    out: OutlineSpan
+): void {
+    const aAlong = rows ? cx + a.x * scale : cy + a.y * scale;
+    const bAlong = rows ? cx + b.x * scale : cy + b.y * scale;
+    const aAcross = rows ? cy + a.y * scale : cx + a.x * scale;
+    const bAcross = rows ? cy + b.y * scale : cx + b.x * scale;
+    if (!segmentTouchesBox(aAlong, aAcross, bAlong, bAcross, -Infinity, bandLo, Infinity, bandHi)) return;
+    const from = aAlong + (bAlong - aAlong) * clipT0;
+    const to = aAlong + (bAlong - aAlong) * clipT1;
+    out.min = Math.min(out.min, from, to);
+    out.max = Math.max(out.max, from, to);
 }
 
 /** Half-strokes a miter join reaches past the polygons at their sharpest corner; a join past `limit` bevels to 1. */
