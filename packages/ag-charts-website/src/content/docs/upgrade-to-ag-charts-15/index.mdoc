@@ -62,10 +62,6 @@ This release includes the following breaking changes:
 - Pie and Donut series are no longer supported by `AgPolarChartOptions`. Use `AgStandaloneChartOptions` instead.
 - `AgPieSeriesOptions` and `AgDonutSeriesOptions` are no longer part of `AgPolarSeriesOptions`. Use `AgStandaloneSeriesOptions` instead.
 
-### Annotations
-
-- The annotation `lineStyle` option and the `AgAnnotationLineStyleType` type have been removed. Use `lineDash` instead, with the stock names `'solid'`, `'dash'` and `'dot'` in place of `'solid'`, `'dashed'` and `'dotted'`. This applies to annotation state, to the annotation styles in the chart options and in theme overrides, and to any TypeScript that imports the type. State saved with `lineStyle` is migrated when it is restored, but options and themes are not.
-
 {% /expandingSection %}
 
 ## Behaviour Changes
@@ -92,10 +88,6 @@ This release includes the following behaviour changes:
 ### OHLC Series
 
 - The default `seriesId` and legend label for OHLC series has changed from `ohlc-1` to `OhlcSeries-1`.
-
-### Annotations
-
-- Dashed and dotted annotation lines are now drawn with the stock `'dash'` and `'dot'` line dash patterns, which scale with the `strokeWidth`. Dashes are slightly shorter than before and dots are spaced slightly further apart.
 
 {% /expandingSection %}
 
