@@ -28,6 +28,16 @@ const importedFrom = (output: string, module: string) =>
         m[1].split(',').map((name) => name.trim().replace(/^type /, ''))
     );
 
+const expectAgChartOptionsImportedOnce = (output: Record<string, string>) => {
+    for (const [name, source] of Object.entries(output)) {
+        const imported = [...importedFrom(source, 'ag-charts-community'), ...importedFrom(source, 'ag-charts-types')];
+        expect(
+            imported.filter((n) => n === 'AgChartOptions'),
+            `${name} imports AgChartOptions once`
+        ).toHaveLength(1);
+    }
+};
+
 const UNTYPED = `
 import { AgCharts } from 'ag-charts-community';
 
@@ -62,16 +72,7 @@ describe('options the example leaves untyped', () => {
         expect(output.angular).toContain('public options: AgChartOptions;');
         expect(output.vue).toContain('ref<AgChartOptions>(');
 
-        for (const [name, source] of Object.entries(output)) {
-            const imported = [
-                ...importedFrom(source, 'ag-charts-community'),
-                ...importedFrom(source, 'ag-charts-types'),
-            ];
-            expect(
-                imported.filter((n) => n === 'AgChartOptions'),
-                `${name} imports AgChartOptions once`
-            ).toHaveLength(1);
-        }
+        expectAgChartOptionsImportedOnce(output);
     });
 
     test('options the example types are annotated with that type, and AgChartOptions is not imported for them', async () => {
@@ -102,16 +103,7 @@ AgCharts.create(options);
 
     test('no variant imports it twice', async () => {
         const output = await generate(SRC);
-        for (const [name, source] of Object.entries(output)) {
-            const imported = [
-                ...importedFrom(source, 'ag-charts-community'),
-                ...importedFrom(source, 'ag-charts-types'),
-            ];
-            expect(
-                imported.filter((n) => n === 'AgChartOptions'),
-                `${name} imports AgChartOptions once`
-            ).toHaveLength(1);
-        }
+        expectAgChartOptionsImportedOnce(output);
     });
 
     test('nor does Vue where the example takes it from ag-charts-types as a type import', async () => {
@@ -403,16 +395,12 @@ const options: AgChartOptions = {
 AgCharts.create(options);
 `;
 
-    test('Angular reads the class member', async () => {
-        expect((await generate(SRC)).angular).toContain('console.log(this.options.series)');
-    });
-
-    test('Vue reads the ref value', async () => {
-        expect((await generate(SRC)).vue).toContain('console.log(options.value.series)');
-    });
-
-    test('React reads the state', async () => {
-        expect((await generate(SRC)).react).toContain('console.log(options.series)');
+    test.each([
+        ['angular', 'console.log(this.options.series)'],
+        ['vue', 'console.log(options.value.series)'],
+        ['react', 'console.log(options.series)'],
+    ] as const)('%s reads the options through its own state', async (framework, expected) => {
+        expect((await generate(SRC))[framework]).toContain(expected);
     });
 });
 
@@ -435,16 +423,13 @@ const options: AgChartOptions = {
 AgCharts.create(options);
 `;
 
-    test('Angular reads the class member in the template and in the shorthand', async () => {
-        const { angular } = await generate(SRC);
-        expect(angular).toContain('title: `${this.options.title}`');
-        expect(angular).toContain('data: { options: this.options }');
-    });
-
-    test('Vue reads the ref value in the template and in the shorthand', async () => {
-        const { vue } = await generate(SRC);
-        expect(vue).toContain('title: `${options.value.title}`');
-        expect(vue).toContain('data: { options: options.value }');
+    test.each([
+        ['angular', 'title: `${this.options.title}`', 'data: { options: this.options }'],
+        ['vue', 'title: `${options.value.title}`', 'data: { options: options.value }'],
+    ] as const)('%s reads the options in the template and in the shorthand', async (framework, template, shorthand) => {
+        const output = (await generate(SRC))[framework];
+        expect(output).toContain(template);
+        expect(output).toContain(shorthand);
     });
 });
 
