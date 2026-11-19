@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'графік, ${caption}',
     ariaDescriptionLegendItem: 'Натисніть пробіл або Enter, щоб перемкнути видимість',
-    ariaDescriptionMoveAnnotation: 'Використовуйте клавіші зі стрілками, щоб перемістити анотацію, утримуйте Shift для більших кроків і натисніть Esc після завершення',
+    ariaDescriptionMoveAnnotation:
+        'Використовуйте клавіші зі стрілками, щоб перемістити анотацію, утримуйте Shift для більших кроків і натисніть Esc після завершення',
     ariaInitSeriesArea: 'інтерактивна діаграма',
     ariaLabelAddHorizontalLine: 'Додати горизонтальну лінію',
     ariaLabelAnnotationOptionsToolbar: 'Параметри анотацій',

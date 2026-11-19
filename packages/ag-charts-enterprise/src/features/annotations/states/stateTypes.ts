@@ -101,6 +101,7 @@ type DataEvents = {
     deleteAll: undefined;
     reset: undefined;
     selectLast: undefined;
+    selectIndex: number;
 };
 
 type ProcessEvents = {

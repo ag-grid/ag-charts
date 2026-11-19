@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'چارٹ، ${caption}',
     ariaDescriptionLegendItem: 'دیکھنے کے لیے اس کاپی پر اسپیس یا انٹر دبائیں',
-    ariaDescriptionMoveAnnotation: 'تشریح کو منتقل کرنے کے لیے تیر والی کلیدیں استعمال کریں، بڑے قدموں کے لیے Shift دبائے رکھیں، اور مکمل ہونے پر Esc دبائیں',
+    ariaDescriptionMoveAnnotation:
+        'تشریح کو منتقل کرنے کے لیے تیر والی کلیدیں استعمال کریں، بڑے قدموں کے لیے Shift دبائے رکھیں، اور مکمل ہونے پر Esc دبائیں',
     ariaInitSeriesArea: 'انٹرایکٹو چارٹ',
     ariaLabelAddHorizontalLine: 'افقی لائن شامل کریں',
     ariaLabelAnnotationOptionsToolbar: 'تشریح کے اختیارات',

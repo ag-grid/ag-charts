@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_LT_LT: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Norėdami suskleisti šį mazgą, paspauskite ALT AUKŠTYN',
     ariaDescriptionToggleNode: 'Norėdami išskleisti arba suskleisti šį mazgą, paspauskite tarpo klavišą arba Enter',
     ariaDescriptionLegendItem: 'Norėdami perjungti matomumą, paspauskite tarpo klavišą arba Enter',
-    ariaDescriptionMoveAnnotation: 'Naudokite rodyklių klavišus anotacijai perkelti, laikykite nuspaudę Shift didesniems žingsniams ir paspauskite Esc, kai baigsite',
+    ariaDescriptionMoveAnnotation:
+        'Naudokite rodyklių klavišus anotacijai perkelti, laikykite nuspaudę Shift didesniems žingsniams ir paspauskite Esc, kai baigsite',
     ariaLabelAddHorizontalLine: 'Pridėti horizontalią liniją',
     ariaLabelAnnotationsToolbar: 'Anotacijos',
     ariaLabelAnnotationOptionsToolbar: 'Anotacijos parinktys',

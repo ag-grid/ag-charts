@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Нажмите ALT + СТРЕЛКА ВВЕРХ, чтобы свернуть этот узел',
     ariaDescriptionToggleNode: 'Нажмите Space или Enter, чтобы развернуть или свернуть этот узел',
     ariaDescriptionLegendItem: 'Нажмите Space или Enter, чтобы переключить видимость',
-    ariaDescriptionMoveAnnotation: 'Используйте клавиши со стрелками, чтобы переместить аннотацию, удерживайте Shift для более крупных шагов и нажмите Esc по завершении',
+    ariaDescriptionMoveAnnotation:
+        'Используйте клавиши со стрелками, чтобы переместить аннотацию, удерживайте Shift для более крупных шагов и нажмите Esc по завершении',
     ariaLabelAddHorizontalLine: 'Добавить горизонтальную линию',
     ariaLabelAnnotationsToolbar: 'Аннотации',
     ariaLabelAnnotationOptionsToolbar: 'Параметры аннотации',

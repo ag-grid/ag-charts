@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'graf, ${caption}',
     ariaDescriptionLegendItem: 'Stiskněte mezerník nebo Enter pro přepnutí viditelnosti',
-    ariaDescriptionMoveAnnotation: 'Pomocí kláves se šipkami přesuňte anotaci, podržte Shift pro větší kroky a po dokončení stiskněte Esc',
+    ariaDescriptionMoveAnnotation:
+        'Pomocí kláves se šipkami přesuňte anotaci, podržte Shift pro větší kroky a po dokončení stiskněte Esc',
     ariaInitSeriesArea: 'interaktivní graf',
     ariaLabelAddHorizontalLine: 'Přidat vodorovnou čáru',
     ariaLabelAnnotationOptionsToolbar: 'Možnosti anotace',

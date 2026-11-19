@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Vajutage ALT ÜLES, et see sõlm ahendada',
     ariaDescriptionToggleNode: 'Vajutage tühikut või Enterit, et see sõlm laiendada või ahendada',
     ariaDescriptionLegendItem: 'Vajutage tühikut või Enterit, et nähtavust lülitada',
-    ariaDescriptionMoveAnnotation: 'Kasutage märkuse liigutamiseks nooleklahve, hoidke suuremate sammude jaoks all Shift-klahvi ja vajutage lõpetamisel Esc',
+    ariaDescriptionMoveAnnotation:
+        'Kasutage märkuse liigutamiseks nooleklahve, hoidke suuremate sammude jaoks all Shift-klahvi ja vajutage lõpetamisel Esc',
     ariaLabelAddHorizontalLine: 'Lisa horisontaaljoon',
     ariaLabelAnnotationsToolbar: 'Märkused',
     ariaLabelAnnotationOptionsToolbar: 'Märkuse valikud',

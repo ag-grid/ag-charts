@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'grafiek, ${caption}',
     ariaDescriptionLegendItem: 'Druk op Spatie of Enter om zichtbaarheid te wisselen',
-    ariaDescriptionMoveAnnotation: 'Gebruik de pijltjestoetsen om de annotatie te verplaatsen, houd Shift ingedrukt voor grotere stappen en druk op Esc wanneer u klaar bent',
+    ariaDescriptionMoveAnnotation:
+        'Gebruik de pijltjestoetsen om de annotatie te verplaatsen, houd Shift ingedrukt voor grotere stappen en druk op Esc wanneer u klaar bent',
     ariaInitSeriesArea: 'interactieve grafiek',
     ariaLabelAddHorizontalLine: 'Horizontale Lijn Toevoegen',
     ariaLabelAnnotationOptionsToolbar: 'Annotatie-opties',

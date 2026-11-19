@@ -365,6 +365,12 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     ctx.select(this.active, previousActive);
                 },
 
+                selectIndex: (index) => {
+                    const previousActive = this.active;
+                    this.updateActive(index);
+                    ctx.select(this.active, previousActive);
+                },
+
                 click: [
                     {
                         guard: () => {

@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'diagramă, ${caption}',
     ariaDescriptionLegendItem: 'Apăsați Spațiu sau Enter pentru a comuta vizibilitatea',
-    ariaDescriptionMoveAnnotation: 'Folosiți tastele săgeată pentru a muta adnotarea, țineți apăsat Shift pentru pași mai mari și apăsați Esc când ați terminat',
+    ariaDescriptionMoveAnnotation:
+        'Folosiți tastele săgeată pentru a muta adnotarea, țineți apăsat Shift pentru pași mai mari și apăsați Esc când ați terminat',
     ariaInitSeriesArea: 'grafic interactiv',
     ariaLabelAddHorizontalLine: 'Adaugă Linie Orizontală',
     ariaLabelAnnotationOptionsToolbar: 'Opțiuni adnotare',

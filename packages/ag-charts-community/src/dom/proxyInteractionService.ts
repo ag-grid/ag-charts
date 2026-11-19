@@ -42,6 +42,8 @@ type ContainerParams<T extends ProxyContainerType> = {
     readonly classList: string[];
     readonly ariaLabel: TranslationKey | undefined;
     readonly role?: BaseAttributeTypeMap['role'];
+    /** Where to insert the container relative to the series area, rather than at the end of the canvas proxy. */
+    readonly where?: 'beforebegin' | 'afterend';
 };
 
 type ProxyMeta = {
@@ -94,6 +96,8 @@ type ProxyMeta = {
         result: ListWidget;
     };
 };
+
+const SERIES_AREA_BOUNDS_QUERY = '.ag-charts-series-area-bounds';
 
 type ProxyElementType = 'button' | 'slider' | 'text' | 'listswitch' | 'region' | 'axis';
 type ProxyContainerType = 'toolbar' | 'group' | 'list';
@@ -155,7 +159,8 @@ export class ProxyInteractionService {
         const meta: ProxyMeta[T] = allocateMeta(this.ctx, args);
         const { params, result } = meta;
 
-        this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, result.getElement());
+        const insert = params.where == null ? undefined : { where: params.where, query: SERIES_AREA_BOUNDS_QUERY };
+        this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, result.getElement(), insert);
         result.addClass(...params.classList, 'ag-charts-proxy-container');
         result.setAriaRole(params.role ?? params.type);
 
@@ -259,7 +264,7 @@ export class ProxyInteractionService {
         if ('parent' in params) {
             params.parent?.addChild(element);
         } else {
-            const insert = { where: params.where, query: '.ag-charts-series-area-bounds' };
+            const insert = { where: params.where, query: SERIES_AREA_BOUNDS_QUERY };
             this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, element.getElement(), insert);
             element.destroyListener = () => {
                 this.ctx.domManager.removeChild('canvas-proxy', params.domManagerId);

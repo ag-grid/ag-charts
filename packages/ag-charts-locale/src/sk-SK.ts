@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'graf, ${caption}',
     ariaDescriptionLegendItem: 'Stlačením medzerníka alebo klávesy Enter prepnete viditeľnosť',
-    ariaDescriptionMoveAnnotation: 'Pomocou klávesov so šípkami presuňte anotáciu, podržaním klávesu Shift vykonáte väčšie kroky a po dokončení stlačte Esc',
+    ariaDescriptionMoveAnnotation:
+        'Pomocou klávesov so šípkami presuňte anotáciu, podržaním klávesu Shift vykonáte väčšie kroky a po dokončení stlačte Esc',
     ariaInitSeriesArea: 'interaktívny graf',
     ariaLabelAddHorizontalLine: 'Pridať vodorovnú čiaru',
     ariaLabelAnnotationOptionsToolbar: 'Možnosti anotácie',

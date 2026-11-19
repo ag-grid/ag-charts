@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'graphique, ${caption}',
     ariaDescriptionLegendItem: 'Appuyez sur Espace ou Entrée pour basculer la visibilité',
-    ariaDescriptionMoveAnnotation: "Utilisez les touches fléchées pour déplacer l'annotation, maintenez Maj pour des pas plus grands et appuyez sur Échap une fois terminé",
+    ariaDescriptionMoveAnnotation:
+        "Utilisez les touches fléchées pour déplacer l'annotation, maintenez Maj pour des pas plus grands et appuyez sur Échap une fois terminé",
     ariaInitSeriesArea: 'graphique interactif',
     ariaLabelAddHorizontalLine: 'Ajouter une ligne horizontale',
     ariaLabelAnnotationOptionsToolbar: "Options d'annotation",

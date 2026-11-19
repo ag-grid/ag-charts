@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'графика, ${caption}',
     ariaDescriptionLegendItem: 'Натиснете Space или Enter, за да превключите видимостта',
-    ariaDescriptionMoveAnnotation: 'Използвайте клавишите със стрелки, за да преместите анотацията, задръжте Shift за по-големи стъпки и натиснете Esc, когато приключите',
+    ariaDescriptionMoveAnnotation:
+        'Използвайте клавишите със стрелки, за да преместите анотацията, задръжте Shift за по-големи стъпки и натиснете Esc, когато приключите',
     ariaInitSeriesArea: 'интерактивна диаграма',
     ariaLabelAddHorizontalLine: 'Добавяне на хоризонтална линия',
     ariaLabelAnnotationOptionsToolbar: 'Опции за анотация',

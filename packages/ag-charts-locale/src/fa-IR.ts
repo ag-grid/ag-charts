@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'نمودار, ${caption}',
     ariaDescriptionLegendItem: 'برای تغییر قابل مشاهده بودن، اسپیس یا اینتر را فشار دهید',
-    ariaDescriptionMoveAnnotation: 'برای جابه‌جایی حاشیه‌نویسی از کلیدهای جهت‌نما استفاده کنید، برای گام‌های بزرگ‌تر Shift را نگه دارید و پس از اتمام Esc را فشار دهید',
+    ariaDescriptionMoveAnnotation:
+        'برای جابه‌جایی حاشیه‌نویسی از کلیدهای جهت‌نما استفاده کنید، برای گام‌های بزرگ‌تر Shift را نگه دارید و پس از اتمام Esc را فشار دهید',
     ariaInitSeriesArea: 'چارت تعاملی',
     ariaLabelAddHorizontalLine: 'افزودن خط افقی',
     ariaLabelAnnotationOptionsToolbar: 'گزینه‌های حاشیه‌نویسی',

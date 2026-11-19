@@ -31,7 +31,8 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     ariaDescriptionCollapseNode: 'Tekan ALT ATAS untuk menciutkan simpul ini',
     ariaDescriptionToggleNode: 'Tekan Spasi atau Enter untuk memperluas atau menciutkan simpul ini',
     ariaDescriptionLegendItem: 'Tekan Spasi atau Enter untuk mengubah visibilitas',
-    ariaDescriptionMoveAnnotation: 'Gunakan tombol panah untuk memindahkan anotasi, tahan Shift untuk langkah yang lebih besar, dan tekan Esc setelah selesai',
+    ariaDescriptionMoveAnnotation:
+        'Gunakan tombol panah untuk memindahkan anotasi, tahan Shift untuk langkah yang lebih besar, dan tekan Esc setelah selesai',
     ariaLabelAddHorizontalLine: 'Tambahkan Garis Horizontal',
     ariaLabelAnnotationsToolbar: 'Anotasi',
     ariaLabelAnnotationOptionsToolbar: 'Opsi Anotasi',

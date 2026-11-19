@@ -32,7 +32,8 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'Diagramm, ${caption}',
     ariaDescriptionLegendItem: 'Drücken Sie die Leertaste oder die Eingabetaste, um die Sichtbarkeit umzuschalten',
-    ariaDescriptionMoveAnnotation: 'Verwenden Sie die Pfeiltasten, um die Anmerkung zu verschieben, halten Sie die Umschalttaste für größere Schritte gedrückt und drücken Sie Esc, wenn Sie fertig sind',
+    ariaDescriptionMoveAnnotation:
+        'Verwenden Sie die Pfeiltasten, um die Anmerkung zu verschieben, halten Sie die Umschalttaste für größere Schritte gedrückt und drücken Sie Esc, wenn Sie fertig sind',
     ariaInitSeriesArea: 'interaktives Diagramm',
     ariaLabelAddHorizontalLine: 'Horizontale Linie hinzufügen',
     ariaLabelAnnotationOptionsToolbar: 'Anmerkungsoptionen',

@@ -33,7 +33,8 @@ export const AG_CHARTS_LOCALE_BN_BD: Record<string, string> = {
     ariaDescriptionCollapseNode: 'এই নোডটি সংকুচিত করতে ALT UP চাপুন',
     ariaDescriptionToggleNode: 'এই নোডটি সম্প্রসারিত বা সংকুচিত করতে Space অথবা Enter চাপুন',
     ariaDescriptionLegendItem: 'দৃশ্যমানতা পরিবর্তন করতে Space অথবা Enter চাপুন',
-    ariaDescriptionMoveAnnotation: 'অ্যানোটেশন সরাতে তীর কী ব্যবহার করুন, বড় ধাপের জন্য Shift চেপে ধরুন, এবং শেষ হলে Esc চাপুন',
+    ariaDescriptionMoveAnnotation:
+        'অ্যানোটেশন সরাতে তীর কী ব্যবহার করুন, বড় ধাপের জন্য Shift চেপে ধরুন, এবং শেষ হলে Esc চাপুন',
     ariaLabelAddHorizontalLine: 'অনুভূমিক রেখা যোগ করুন',
     ariaLabelAnnotationsToolbar: 'অ্যানোটেশন',
     ariaLabelAnnotationOptionsToolbar: 'অ্যানোটেশন অপশন',
