@@ -79,13 +79,13 @@ export interface AgItemShadowStyle {
     /**
      * The `shadow` of this item, merged over the `shadow` that it would cast. Setting it without `enabled` turns it on.
      *
-     * A series casts up to 16 distinct values from its `itemStyler`. Past that, an item casts the `shadow` that it would cast without one, and a warning is logged once.
+     * A series casts up to 16 distinct `shadow` and `glow` values between them from its `itemStyler`. Past that, an item casts the `shadow` that it would cast without one, and a warning is logged once.
      */
     shadow?: Omit<AgDropShadowOptions, 'color'>;
     /**
      * The `glow` of this item, merged over the `glow` that it would cast. Setting it without `enabled` turns it on.
      *
-     * A series casts up to 16 distinct values from its `itemStyler`. Past that, an item casts the `glow` that it would cast without one, and a warning is logged once.
+     * A series casts up to 16 distinct `shadow` and `glow` values between them from its `itemStyler`. Past that, an item casts the `glow` that it would cast without one, and a warning is logged once.
      */
     glow?: AgGlowOptions;
 }

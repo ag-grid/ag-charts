@@ -686,9 +686,7 @@ export abstract class HierarchySeries<
         const recalled = this.recallItemCast(glow, itemGlow, index);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        return this.mergeItemGlow(glow, index, `h${slot}:${highlightState}:`, itemGlow, glow, () => [
-            resolveGlow(highlightState),
-        ]);
+        return this.mergeItemGlow(glow, index, itemGlow, glow, () => [resolveGlow(highlightState)]);
     }
 
     /**

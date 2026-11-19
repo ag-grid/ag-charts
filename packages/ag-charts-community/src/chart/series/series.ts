@@ -1318,7 +1318,7 @@ export abstract class Series<
             : shadow;
     }
 
-    private itemCastInterns?: WeakMap<object, Map<string, NormalisedDropShadowOptions | null>>;
+    private itemCastInterns?: WeakMap<object, Array<Map<string, NormalisedDropShadowOptions | null>>>;
     private itemCastRecalls?: WeakMap<object, WeakMap<object, Array<NormalisedDropShadowOptions | null>>>;
 
     /** Drops the merges, which hold the objects of the options and of the data they were made from. */
@@ -1350,7 +1350,7 @@ export abstract class Series<
 
     /**
      * The merge of an item styler's `itemCast` over `base` that {@link recallItemCast} did not find, kept by `index`
-     * so that the same cast object is not serialised again, and by `keyPrefix` and `value` so that equal casts share one
+     * so that the same cast object is not serialised again, and by `value` so that equal casts share one
      * merged object. Past {@link MAX_ITEM_CASTS} distinct `value`s, a new one casts `fallback`, what the item casts
      * without a styler.
      */
@@ -1358,20 +1358,19 @@ export abstract class Series<
         base: object | undefined,
         itemCast: object,
         index: number,
-        keyPrefix: string,
         value: string,
         fallback: NormalisedDropShadowOptions | undefined,
         merge: () => NormalisedDropShadowOptions | undefined
     ): NormalisedDropShadowOptions | undefined {
         const baseKey = base ?? NO_ITEM_CAST_BASE;
         const interns = (this.itemCastInterns ??= new WeakMap());
-        let merged = interns.get(baseKey);
-        if (merged == null) {
-            merged = new Map();
-            interns.set(baseKey, merged);
+        let byIndex = interns.get(baseKey);
+        if (byIndex == null) {
+            byIndex = [];
+            interns.set(baseKey, byIndex);
         }
-        const key = keyPrefix + value;
-        let cast = merged.get(key);
+        const merged = (byIndex[index] ??= new Map());
+        let cast = merged.get(value);
         if (cast === undefined) {
             const values = (this.itemCastValues ??= new Set());
             if (values.has(value) || values.size < MAX_ITEM_CASTS) {
@@ -1381,7 +1380,7 @@ export abstract class Series<
                 this.warnItemCastCap();
                 cast = fallback ?? null;
             }
-            merged.set(key, cast);
+            merged.set(value, cast);
         }
 
         const recalls = (this.itemCastRecalls ??= new WeakMap());
@@ -1390,12 +1389,12 @@ export abstract class Series<
             byCast = new WeakMap();
             recalls.set(baseKey, byCast);
         }
-        let byIndex = byCast.get(itemCast);
-        if (byIndex == null) {
-            byIndex = [];
-            byCast.set(itemCast, byIndex);
+        let recalledByIndex = byCast.get(itemCast);
+        if (recalledByIndex == null) {
+            recalledByIndex = [];
+            byCast.set(itemCast, recalledByIndex);
         }
-        byIndex[index] = cast;
+        recalledByIndex[index] = cast;
         return cast ?? undefined;
     }
 
@@ -1420,7 +1419,6 @@ export abstract class Series<
             cascaded,
             itemShadow,
             ITEM_SHADOW_INDEX,
-            '',
             `s${JSON.stringify(itemShadow)}`,
             cascaded,
             () => {
@@ -1441,17 +1439,16 @@ export abstract class Series<
 
     /**
      * A styler's `glow` over `under`, the glows of the highlight state and the series, over the theme's, which is fixed.
-     * Call it only once {@link recallItemCast} has missed, as `under` and `keyPrefix` are built for each call.
+     * Call it only once {@link recallItemCast} has missed, as `under` is built for each call.
      */
     protected mergeItemGlow(
         base: object | undefined,
         index: number,
-        keyPrefix: string,
         itemGlow: AgGlowOptions,
         fallback: NormalisedDropShadowOptions | undefined,
         under: () => Array<DeepPartial<AgGlowOptions> | undefined>
     ): NormalisedDropShadowOptions | undefined {
-        return this.mergeItemCast(base, itemGlow, index, keyPrefix, `g${JSON.stringify(itemGlow)}`, fallback, () => {
+        return this.mergeItemCast(base, itemGlow, index, `g${JSON.stringify(itemGlow)}`, fallback, () => {
             return glowToShadow(
                 mergeGlow({ glow: { enabled: true, ...itemGlow } }, ...under().map((glow) => ({ glow })), {
                     glow: GLOW_THEME_DEFAULTS,
@@ -1496,14 +1493,10 @@ export abstract class Series<
         const recalled = this.recallItemCast(seriesGlow, itemGlow, index);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        return this.mergeItemGlow(
+        return this.mergeItemGlow(seriesGlow, index, itemGlow, this.getCascadedGlow(seriesGlow, highlightState), () => [
+            this.getHighlightGlow(highlightState),
             seriesGlow,
-            index,
-            `g${highlightState}`,
-            itemGlow,
-            this.getCascadedGlow(seriesGlow, highlightState),
-            () => [this.getHighlightGlow(highlightState), seriesGlow]
-        );
+        ]);
     }
 
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */
