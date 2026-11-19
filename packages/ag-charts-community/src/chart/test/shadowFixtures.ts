@@ -79,7 +79,7 @@ export async function countCastMerges(series: object, action: () => Promise<void
 /** An item styler that returns nothing and records the params of each call by the highlight state it was called in. */
 export function recordParamsByHighlightState() {
     const byState = new Map<string, any[]>();
-    const styler = (params: { highlightState: string }) => {
+    const styler = (params: any) => {
         byState.set(params.highlightState, [...(byState.get(params.highlightState) ?? []), params]);
         return {};
     };

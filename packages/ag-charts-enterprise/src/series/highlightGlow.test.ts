@@ -12,12 +12,14 @@ import {
     HIGHLIGHT_GLOW,
     HIGHLIGHT_SHADOW,
     deproxy,
+    expectParamsInState,
     getSeriesAt,
     getSeriesNodeData,
     getSeriesOptions,
     getSeriesSelectionNodes,
     glowShadow,
     itShadowsTheHoveredItem,
+    recordParamsByHighlightState,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -834,11 +836,7 @@ describe('highlight glow (enterprise series)', () => {
         );
 
         it('gives the itemStyler params the glow that the highlight state casts', async () => {
-            const params: object[] = [];
-            const itemStyler = (itemParams: object) => {
-                params.push(itemParams);
-                return {};
-            };
+            const { byState, styler: itemStyler } = recordParamsByHighlightState();
             const styled: SeriesCase = {
                 ...testCase,
                 series: (shadow, highlight) => withItemStyler(testCase.series(shadow, highlight), itemStyler),
@@ -848,9 +846,7 @@ describe('highlight glow (enterprise series)', () => {
                 unhighlightedItem: { glow: HIGHLIGHT_GLOW },
             });
 
-            const hovered = params.filter((itemParams: any) => itemParams.highlightState === 'highlighted-item');
-            expect(hovered.length).toBeGreaterThan(0);
-            for (const itemParams of hovered) expect(itemParams).toMatchObject({ glow: HIGHLIGHT_GLOW });
+            expectParamsInState(byState, 'highlighted-item', { glow: HIGHLIGHT_GLOW });
         });
 
         it('takes the fill of the item that it surrounds when it sets none, or its stroke where it has no fill', async () => {

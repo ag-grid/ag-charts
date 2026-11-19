@@ -73,6 +73,8 @@ interface Case {
         itemStyler: (params: any) => object;
     }) => object;
     data: object[];
+    /** For the series that read their glow from a cascade shared by the slot: `count` leaves, named `L0`, `L1`, and so on. */
+    leaves?: (count: number) => object[];
     /** Whether the styler is called for the item whose result the test sets. */
     isFirst: (params: any) => boolean;
     /** The datum to hover: the first item. */
@@ -125,6 +127,9 @@ const CASES: Case[] = [
     {
         name: 'treemap tile',
         data: HIERARCHY_SHADOW_DATA,
+    leaves: (count) => [
+        { name: 'Root', children: Array.from({ length: count }, (_, id) => ({ name: `L${id}`, size: 10 })) },
+    ],
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
@@ -142,6 +147,9 @@ const CASES: Case[] = [
     {
         name: 'sunburst',
         data: HIERARCHY_SHADOW_DATA,
+    leaves: (count) => [
+        { name: 'Root', children: Array.from({ length: count }, (_, id) => ({ name: `L${id}`, size: 10 })) },
+    ],
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
@@ -178,12 +186,13 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             hover?: boolean;
             first?: ItemCast;
             styler?: (params: any) => object;
+            data?: object[];
         } = {}
     ) => {
         const { first = {} } = opts;
         const itemStyler = opts.styler ?? ((params: any) => (testCase.isFirst(params) ? first : {}));
         chart = await createEnterpriseChart({
-            data: testCase.data,
+            data: opts.data ?? testCase.data,
             animation: { enabled: false },
             legend: { enabled: false },
             series: [testCase.series({ ...opts, itemStyler })],
@@ -463,24 +472,17 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
         });
 
         it('gives the styler params the shadow and glow that the highlight state casts', async () => {
-            const params: object[] = [];
+            const { byState, styler } = recordParamsByHighlightState();
             await create({
                 shadow: SHADOW,
                 glow: testCase.seriesGlow ? SERIES_GLOW : undefined,
                 highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW }, unhighlightedItem: { glow: HIGHLIGHT_GLOW } },
                 hover: true,
-                styler: (itemParams) => {
-                    params.push(itemParams);
-                    return {};
-                },
+                styler,
             });
 
-            expect(params.length).toBeGreaterThan(testCase.data.length);
-            const hovered = params.filter((itemParams: any) => itemParams.highlightState === 'highlighted-item');
-            expect(hovered.length).toBeGreaterThan(0);
-            for (const itemParams of hovered) {
-                expect(itemParams).toMatchObject({ shadow: SHADOW, glow: HIGHLIGHT_GLOW });
-            }
+            expect([...byState.values()].flat().length).toBeGreaterThan(testCase.data.length);
+            expectParamsInState(byState, 'highlighted-item', { shadow: SHADOW, glow: HIGHLIGHT_GLOW });
         });
 
         it('gives the styler params the glow of the state they are called in, and the series glow, or none, before the hover', async () => {
@@ -500,6 +502,65 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
                 expect(itemParams.glow).toEqual(testCase.seriesGlow ? SERIES_GLOW : undefined);
                 expect(itemParams.glow).toBe(others[0].glow);
             }
+        });
+    });
+
+    describe.runIf(testCase.leaves != null)('the cap on distinct casts', () => {
+        const CAP = 16;
+        const nameOf = (shape: Shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name as string;
+        const blurOf = (id: number) => glowShadow({ ...SERIES_GLOW, blur: id + 1 });
+        /** A styler that casts a glow whose blur is `blurFor(id)` on the leaf `L<id>`, recording the leaves in the order it first sees them. */
+        const blurBy = (blurFor: (id: number) => number) => {
+            const seen: string[] = [];
+            const styler = (params: any) => {
+                const name: string = params.datum.name;
+                if (!/^L\d+$/.test(name)) return {};
+                if (!seen.includes(name)) seen.push(name);
+                return { glow: { blur: blurFor(Number(name.slice(1))) } };
+            };
+            return { seen, styler };
+        };
+        const warnsOfTheCap = () => [
+            expect.stringContaining(`series '${getSeriesAt(chart).id}' has more than ${CAP} distinct`),
+        ];
+
+        it('casts every distinct glow up to the cap, with no warning', async () => {
+            const { styler } = blurBy((id) => id + 1);
+            const { inPlace } = await create({ data: testCase.leaves!(CAP), glow: SERIES_GLOW, styler });
+
+            expect(inPlace).toHaveLength(CAP);
+            for (const shape of inPlace) {
+                expect(glowOf(shape)).toMatchObject(blurOf(Number(nameOf(shape).slice(1))));
+            }
+            expectWarningMessages([]);
+        });
+
+        it('casts the series glow from the 17th distinct glow, and warns once for the series', async () => {
+            const { seen, styler } = blurBy((id) => id + 1);
+            const { inPlace } = await create({ data: testCase.leaves!(CAP + 4), glow: SERIES_GLOW, styler });
+
+            expect(inPlace).toHaveLength(CAP + 4);
+            // Each leaf has a glow of its own, so the leaves past the 16th that the styler reached fall back.
+            const within = new Set(seen.slice(0, CAP));
+            for (const shape of inPlace) {
+                const name = nameOf(shape);
+                expect(glowOf(shape)).toMatchObject(
+                    within.has(name) ? blurOf(Number(name.slice(1))) : glowShadow(SERIES_GLOW)
+                );
+            }
+            expect(inPlace.filter((shape) => !within.has(nameOf(shape)))).toHaveLength(4);
+            expectWarningMessages(warnsOfTheCap());
+        });
+
+        it('counts equal glows once, however many leaves return them', async () => {
+            const { styler } = blurBy((id) => (id % CAP) + 1);
+            const { inPlace } = await create({ data: testCase.leaves!(CAP * 3), glow: SERIES_GLOW, styler });
+
+            expect(inPlace).toHaveLength(CAP * 3);
+            for (const shape of inPlace) {
+                expect(glowOf(shape)).toMatchObject(blurOf(Number(nameOf(shape).slice(1)) % CAP));
+            }
+            expectWarningMessages([]);
         });
     });
 });
