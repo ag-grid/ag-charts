@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { type Group, Sector } from 'ag-charts-core';
 import type { AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
-import { getSeriesNodeData } from '../../test/seriesAccessors';
-import { HIGHLIGHT_GLOW, SERIES_GLOW } from '../../test/shadowFixtures';
+import { getSeriesAt, getSeriesNodeData } from '../../test/seriesAccessors';
+import { HIGHLIGHT_GLOW, SERIES_GLOW, shapesOf } from '../../test/shadowFixtures';
 import {
     type Chart,
     createChart,
@@ -104,6 +105,46 @@ describe('polar series shadow root', () => {
             const fills = await fillPixelsAfterCasting([RED], phantomRings);
 
             expect(fills.every(Boolean)).toBe(true);
+        });
+
+        // `angleFilterKey` is not in the public types.
+        const filteredDonut = (shadow: AgDropShadowOptions | undefined): AgChartOptions => {
+            const series: object = {
+                type: 'donut',
+                angleKey: 'inner',
+                angleFilterKey: 'innerFiltered',
+                fills: ['blue'],
+                fillOpacity: 1,
+                strokeWidth: 0,
+                shadow,
+            };
+            return { data: RINGS_DATA, series: [series] } as AgChartOptions;
+        };
+
+        it('should not draw the shadows of phantom sectors over the sectors beside them', async () => {
+            const fills = await fillPixelsAfterCasting([[0, 0, 255, 255]], filteredDonut);
+
+            expect(fills.every(Boolean)).toBe(true);
+        });
+
+        // A highlighted phantom's shadow is not visible apart from a batched one's, so the group that casts it is checked.
+        it('should cast the shadows of phantoms in both groups as their items and highlight copies do', async () => {
+            await create(filteredDonut(SHADOW));
+            chart!.ctx.highlightManager.updateHighlight(chart!.id, getSeriesNodeData<HighlightNodeDatum>(chart!)[0]);
+            await waitForChartStability(chart!);
+
+            const { contentGroup, highlightGroup } = getSeriesAt(chart!);
+            const groupsOf = (root: Group, phantom: boolean) =>
+                new Set(
+                    shapesOf(root, Sector)
+                        .filter((shape) => ((shape.parentNode as Group).name === 'phantom') === phantom)
+                        .map((shape) => (shape.parentNode as Group).batchShadows)
+                );
+
+            expect(groupsOf(contentGroup, false)).toEqual(new Set(['shared']));
+            expect(groupsOf(contentGroup, true)).toEqual(new Set(['shared']));
+            expect(groupsOf(highlightGroup, false)).toEqual(new Set([true]));
+            expect(groupsOf(highlightGroup, true)).toEqual(new Set([true]));
         });
     });
 
