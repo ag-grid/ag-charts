@@ -134,9 +134,7 @@ function getComponentMetadata(bindings: any, property: any, methodNames: string[
         propertyAttributes.push(`[options]="${property.name}"`);
         propertyVars.push(`public ${property.name}: ${getPropertyOptionsType(property)};`);
         // Callbacks inside the options literal may call instance methods, so prefix those calls too.
-        // Callbacks and spreads inside the literal may also read the chart options variables. This component's
-        // chart is a class member, wherever it is read from, and any other chart's is declared locally, as that
-        // chart is a separate component.
+        // This component's chart is a class member wherever it is read from; any other chart is a local of this component.
         const toValue = (p: any) =>
             replaceOptionsReferences(
                 prefixInstanceMethodCalls(p.value, methodNames),
