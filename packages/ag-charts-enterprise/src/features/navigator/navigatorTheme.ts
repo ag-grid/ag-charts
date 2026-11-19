@@ -69,78 +69,90 @@ function omitInheritedShadow(ignoredProperties: readonly string[]) {
 }
 
 /**
- * Where each mini-chart series type takes a `lineDash`: `own` is the series' own, `nested` are paths from the series.
- * `ownStrokeWidth` is the type's default `strokeWidth` where its main series, if of another type, cannot supply one.
+ * The `strokeWidth` that a stock dash name scales by: the location's own, else `fallback`. A mini-chart series takes no
+ * width from a main series of another type and its type's default is only filled in after theming, so each fallback
+ * mirrors the default of the series theme that the location would otherwise take.
+ */
+type StrokeWidth = NonNullable<Parameters<typeof lineDashThemeDefault>[1]>;
+
+const strokeWidthOr = (fallback: number | StrokeWidth): StrokeWidth => ({ $path: ['./strokeWidth', fallback] });
+
+const DEFAULT_STROKE_WIDTH = strokeWidthOr(2);
+// A wick scales by its item's width, as in the main series theme; a whisker by its box plot's.
+const WICK_STROKE_WIDTH = strokeWidthOr({ $path: '../strokeWidth' });
+const WHISKER_STROKE_WIDTH = strokeWidthOr({ $path: ['../strokeWidth', 2] });
+// A range-area or hlc item's marker takes the width of the series' marker.
+const ITEM_MARKER_STROKE_WIDTH = strokeWidthOr({ $path: ['/navigator/miniChart/series/$index/marker/strokeWidth', 2] });
+
+/**
+ * Where each mini-chart series type takes a `lineDash`: `own` is the series' own and `nested` are paths from the series,
+ * each scaling by the sibling `strokeWidth` unless it names a fallback. `own: true` is a series whose width its main
+ * series, or the sibling `strokeWidth`, always supplies.
+ *
  * The main series theme is copied over as a whole, so these locations hold no `$applyLineDash` default of their own:
  * without one a name is left unresolved or, where the copy supplies an array, dropped.
  */
-const miniChartLineDashLocations: Record<string, { own?: true; nested?: string[]; ownStrokeWidth?: number }> = {
-    line: { own: true, nested: ['marker'], ownStrokeWidth: 2 },
+const miniChartLineDashLocations: Record<
+    string,
+    { own?: true | StrokeWidth; nested?: Array<string | [path: string, strokeWidth: StrokeWidth]> }
+> = {
+    line: { own: DEFAULT_STROKE_WIDTH, nested: ['marker'] },
     area: { own: true, nested: ['marker'] },
     bar: { own: true },
-    'box-plot': { own: true, nested: ['whisker'], ownStrokeWidth: 2 },
+    'box-plot': { own: DEFAULT_STROKE_WIDTH, nested: [['whisker', WHISKER_STROKE_WIDTH]] },
     scatter: { own: true },
     bubble: { own: true },
     histogram: { own: true },
-    waterfall: { nested: ['item.positive', 'item.negative', 'item.total', 'line'] },
+    waterfall: {
+        nested: ['item.positive', 'item.negative', 'item.total', ['line', DEFAULT_STROKE_WIDTH]],
+    },
     'range-bar': { own: true },
     'range-area': {
         own: true,
-        nested: ['marker', 'item.low', 'item.high', 'item.low.marker', 'item.high.marker'],
+        nested: [
+            ['marker', DEFAULT_STROKE_WIDTH],
+            'item.low',
+            'item.high',
+            ['item.low.marker', ITEM_MARKER_STROKE_WIDTH],
+            ['item.high.marker', ITEM_MARKER_STROKE_WIDTH],
+        ],
     },
-    candlestick: { nested: ['item.up', 'item.down', 'item.up.wick', 'item.down.wick'] },
+    candlestick: {
+        nested: ['item.up', 'item.down', ['item.up.wick', WICK_STROKE_WIDTH], ['item.down.wick', WICK_STROKE_WIDTH]],
+    },
     ohlc: { nested: ['item.up', 'item.down'] },
     hlc: {
         nested: [
-            'marker',
-            'item.high',
-            'item.low',
-            'item.close',
-            'item.high.marker',
-            'item.low.marker',
-            'item.close.marker',
+            ['marker', DEFAULT_STROKE_WIDTH],
+            ['item.high', DEFAULT_STROKE_WIDTH],
+            ['item.low', DEFAULT_STROKE_WIDTH],
+            ['item.close', DEFAULT_STROKE_WIDTH],
+            ['item.high.marker', ITEM_MARKER_STROKE_WIDTH],
+            ['item.low.marker', ITEM_MARKER_STROKE_WIDTH],
+            ['item.close.marker', ITEM_MARKER_STROKE_WIDTH],
         ],
     },
-};
-
-// A wick or whisker scales by its own width, else its parent's, as in the main series theme. A parent takes no width from
-// a main series of another type, so a whisker's is `parentStrokeWidth`, as for `ownStrokeWidth`.
-const parentStrokeWidth = (width?: number): Parameters<typeof lineDashThemeDefault>[1] => ({
-    $path: ['./strokeWidth', { $path: width == null ? '../strokeWidth' : ['../strokeWidth', width] }],
-});
-const PARENT_STROKE_WIDTHS: Record<string, Parameters<typeof lineDashThemeDefault>[1]> = {
-    wick: parentStrokeWidth(),
-    whisker: parentStrokeWidth(2),
 };
 
 // A mini-chart line or area takes no dash from the main series (the price volume preset maps an area to a line).
 const MINI_CHART_TYPES_WITHOUT_MAIN_DASH = new Set(['line', 'area']);
 
-// A series takes no width from a main series of another type, and its own default is only filled in after theming. A
-// name scales by that default, which `ownStrokeWidth` mirrors from the series theme.
-const strokeWidthOrDefault = (width: number): Parameters<typeof lineDashThemeDefault>[1] => ({
-    $path: ['./strokeWidth', width],
-});
-
 /**
  * The `lineDash` defaults of a mini-chart series type, each with the main series' value as its default, so a name
  * resolves by the width of the mini-chart series and an unset option still follows the main series.
  */
-function miniChartLineDashTheme(
-    type: string,
-    { own, nested = [], ownStrokeWidth: width }: (typeof miniChartLineDashLocations)[string]
-) {
+function miniChartLineDashTheme(type: string, { own, nested = [] }: (typeof miniChartLineDashLocations)[string]) {
     const theme: Record<string, any> = {};
-    if (own) {
+    if (own != null) {
         const inherited = MINI_CHART_TYPES_WITHOUT_MAIN_DASH.has(type)
             ? undefined
             : { $path: '/series/$index/lineDash' };
-        theme.lineDash = lineDashThemeDefault(inherited, width == null ? undefined : strokeWidthOrDefault(width));
+        theme.lineDash = lineDashThemeDefault(inherited, own === true ? undefined : own);
     }
-    for (const location of nested) {
+    for (const entry of nested) {
+        const [location, strokeWidth] = typeof entry === 'string' ? [entry, undefined] : entry;
         const keys = location.split('.');
         const inherited = { $path: `/series/$index/${[...keys, 'lineDash'].join('/')}` };
-        const strokeWidth = PARENT_STROKE_WIDTHS[keys.at(-1)!];
 
         let node = theme;
         for (const key of keys) node = node[key] ??= {};

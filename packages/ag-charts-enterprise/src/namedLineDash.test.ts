@@ -175,6 +175,23 @@ describe('named line dash patterns in enterprise options', () => {
         }
     );
 
+    // The width of a type's default is only filled in after theming, so a location that its main series does not
+    // supply must mirror it: the dash is that of the same location on a main series.
+    it.each(miniChartLocations())(
+        'scales a stock dash name on %s by the default width, without a main series of its type',
+        (_, options, path) => {
+            const mini = (options as any).navigator.miniChart.series[0];
+            const seriesPath = path.replace('navigator.miniChart.series[0].', 'series[0].');
+            const main = prepareProcessedOptions({ data: DATA, series: [mini] }).processedOptions;
+            const other = { type: mini.type === 'bar' ? 'line' : 'bar', xKey: 'x', yKey: 'y' };
+            const unpaired = prepareProcessedOptions({ ...options, series: [other] }).processedOptions;
+            // The mini chart series copies options that its type does not take from the main series.
+            resetMockConsole();
+
+            expect(optionAt(unpaired, path)).toEqual(optionAt(main, seriesPath));
+        }
+    );
+
     describe('mini chart series', () => {
         const dashAt = (options: object) =>
             optionAt(prepareProcessedOptions(options).processedOptions, 'navigator.miniChart.series[0].lineDash');
@@ -220,6 +237,15 @@ describe('named line dash patterns in enterprise options', () => {
 
             expect(optionAt(processed, 'navigator.miniChart.series[0].lineDash')).toEqual([6, 4]);
             expect(optionAt(processed, 'navigator.miniChart.series[0].whisker.lineDash')).toEqual([2, 3]);
+        });
+
+        it('scales a stock dash name on an item marker by the width of the series marker', () => {
+            const rangeArea = { type: 'range-area', xKey: 'x', yLowKey: 'y', yHighKey: 'y' };
+            const mini = { ...rangeArea, marker: { strokeWidth: 4 }, item: { low: { marker: { lineDash: 'dash' } } } };
+            const processed = prepareProcessedOptions(withMiniChart(mini)).processedOptions;
+            resetMockConsole();
+
+            expect(optionAt(processed, 'navigator.miniChart.series[0].item.low.marker.lineDash')).toEqual([12, 8]);
         });
 
         it('leaves an array in pixels, and follows the main series when it sets none', () => {
