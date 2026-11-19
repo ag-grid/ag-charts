@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgLineSeriesOptions } from 'ag-charts-community';
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartThemeName,
+    AgLineSeriesOptions,
+} from 'ag-charts-community';
 import {
     CROSSLINE_EXAMPLES,
     type CartesianTestCase,
@@ -680,6 +685,33 @@ describe('Navigator', () => {
             'for %s it should render to canvas as expected',
             async (_name, { params, navigator, baseTheme }) => {
                 await render(params, navigator, baseTheme);
+
+                expectWarningsCalls().toEqual([]);
+            }
+        );
+    });
+
+    describe('handle grip', () => {
+        const SQUARE = { width: 36, height: 36 };
+        const GRIP_CASES: Record<string, { handle: object; baseTheme?: AgChartThemeName }> = {
+            'a 36x36 handle': { handle: SQUARE },
+            'a 36x36 handle in the dark theme': { handle: SQUARE, baseTheme: 'ag-default-dark' },
+            'a tall and narrow handle': { handle: { width: 8, height: 40 } },
+            'a small handle with a thick border': { handle: { width: 6, height: 12, strokeWidth: 2 } },
+            'a 36x36 handle without a grip': { handle: { ...SQUARE, grip: false } },
+        };
+
+        it.each(Object.entries(GRIP_CASES))(
+            'for %s it should render to canvas as expected',
+            async (_name, { handle, baseTheme }) => {
+                const options: AgCartesianChartOptions = {
+                    ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                    navigator: { enabled: true, miniChart: {}, minHandle: handle, maxHandle: handle },
+                    initialState: { zoom: { ratioX: { start: 0.2, end: 0.7 } } },
+                    theme: { baseTheme: baseTheme ?? 'ag-default' },
+                };
+                chart = await createEnterpriseChart(options);
+                await compare();
 
                 expectWarningsCalls().toEqual([]);
             }
