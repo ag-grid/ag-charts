@@ -14,17 +14,16 @@ import type {
     AgSeriesMarkerStyle,
 } from 'ag-charts-types';
 
-import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { Marker } from '../../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
 import { getSeriesPaths } from '../../test/communitySeriesAccessors';
-import { getSeriesAt, getSeriesNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
+import { hoverDatum } from '../../test/glowRender';
+import { getSeriesAt, getSeriesSelectionNodes } from '../../test/seriesAccessors';
 import { MARKER_SHADOW, customMarkerShape } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     createChart,
-    deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -252,10 +251,7 @@ describe('marker shadow', () => {
                 const blurs = () => visibleMarkers().map((marker) => marker.fillShadow?.blur);
                 expect(blurs()).toEqual(SCATTER_DATA.map(() => DEFAULT_SIZE));
 
-                const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
-                const internals = deproxy(chart);
-                internals.ctx.highlightManager.updateHighlight(internals.id, datum);
-                await waitForChartStability(chart);
+                await hoverDatum(chart);
 
                 // The styler is called for the hovered datum in the highlighted-item state, with the size of that state...
                 const hoveredCalls = calls.filter(
