@@ -144,15 +144,17 @@ export function shapesOf<T extends Shape>(root: Group, kind: abstract new (...ar
 /**
  * What holds an enabled glow in a group under `root` that does not cast it, as a label for each: the shape and its group.
  * Only a batching or shared group casts the glow of a shape, other than a cutout, which casts its own: a shape in any
- * other group reads as glowing and draws nothing. Labels, as a failed assertion on the shapes would print the scene.
+ * other group reads as glowing and draws nothing, as does a visible shape that suppresses its glow. Labels, as a failed
+ * assertion on the shapes would print the scene.
  */
 export function uncastGlows(root: Group): string[] {
     return shapesOf(root, Shape)
         .filter(
             (shape) =>
                 shape.fillGlow?.enabled === true &&
-                shape.__drawingMode !== 'cutout' &&
-                !(shape.parentNode instanceof Group && shape.parentNode.batchShadows !== false)
+                ((shape.suppressGlow && shape.visible) ||
+                    (shape.__drawingMode !== 'cutout' &&
+                        !(shape.parentNode instanceof Group && shape.parentNode.batchShadows !== false)))
         )
         .map(
             (shape) =>

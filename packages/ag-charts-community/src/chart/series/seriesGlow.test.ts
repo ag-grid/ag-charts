@@ -348,7 +348,8 @@ describe('series-level glow on phantom nodes', () => {
     // The phantoms draw the filtered-out part of each item, one for each item.
     const PHANTOM_DATA = DATA.map((datum) => ({ ...datum, f: datum.v / 2 }));
 
-    // Their groups are not batched, so as to leave the `shadow` they cast alone: the items cast the glow, the phantoms none.
+    // The donut phantoms cast their shadow through the group of the items but suppress their glow, and the bar phantoms are
+    // not batched: the items cast the glow, the phantoms none.
     it.each([
         ['bar', { type: 'bar', xKey: 'x', yKey: 'v', yFilterKey: 'f' }],
         ['donut', { type: 'donut', angleKey: 'v', angleFilterKey: 'f' }],
