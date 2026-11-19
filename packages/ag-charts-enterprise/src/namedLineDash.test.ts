@@ -239,15 +239,6 @@ describe('named line dash patterns in enterprise options', () => {
             expect(optionAt(processed, 'navigator.miniChart.series[0].whisker.lineDash')).toEqual([2, 3]);
         });
 
-        it('scales a stock dash name on an item marker by the width of the series marker', () => {
-            const rangeArea = { type: 'range-area', xKey: 'x', yLowKey: 'y', yHighKey: 'y' };
-            const mini = { ...rangeArea, marker: { strokeWidth: 4 }, item: { low: { marker: { lineDash: 'dash' } } } };
-            const processed = prepareProcessedOptions(withMiniChart(mini)).processedOptions;
-            resetMockConsole();
-
-            expect(optionAt(processed, 'navigator.miniChart.series[0].item.low.marker.lineDash')).toEqual([12, 8]);
-        });
-
         it('leaves an array in pixels, and follows the main series when it sets none', () => {
             const mini = { type: 'bar', xKey: 'x', yKey: 'y' };
             const main = { type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 2, lineDash: 'dash' };

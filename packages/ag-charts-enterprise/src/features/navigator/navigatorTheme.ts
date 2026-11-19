@@ -69,9 +69,11 @@ function omitInheritedShadow(ignoredProperties: readonly string[]) {
 }
 
 /**
- * The `strokeWidth` that a stock dash name scales by: the location's own, else `fallback`. A mini-chart series takes no
- * width from a main series of another type and its type's default is only filled in after theming, so each fallback
- * mirrors the default of the series theme that the location would otherwise take.
+ * The `strokeWidth` that a stock dash name scales by: the one set on the mini-chart series, else `fallback`. The type's
+ * default is only filled in after theming, so each fallback mirrors the default of its series theme.
+ *
+ * A width that the series copies from the main series is not seen here, so a name on such a series scales by the
+ * default. A line or an area, the usual mini-chart series, copies none.
  */
 type StrokeWidth = NonNullable<Parameters<typeof lineDashThemeDefault>[1]>;
 
@@ -81,13 +83,10 @@ const DEFAULT_STROKE_WIDTH = strokeWidthOr(2);
 // A wick scales by its item's width, as in the main series theme; a whisker by its box plot's.
 const WICK_STROKE_WIDTH = strokeWidthOr({ $path: '../strokeWidth' });
 const WHISKER_STROKE_WIDTH = strokeWidthOr({ $path: ['../strokeWidth', 2] });
-// A range-area or hlc item's marker takes the width of the series' marker.
-const ITEM_MARKER_STROKE_WIDTH = strokeWidthOr({ $path: ['/navigator/miniChart/series/$index/marker/strokeWidth', 2] });
 
 /**
  * Where each mini-chart series type takes a `lineDash`: `own` is the series' own and `nested` are paths from the series,
- * each scaling by the sibling `strokeWidth` unless it names a fallback. `own: true` is a series whose width its main
- * series, or the sibling `strokeWidth`, always supplies.
+ * each scaling by the sibling `strokeWidth` unless it names a fallback.
  *
  * The main series theme is copied over as a whole, so these locations hold no `$applyLineDash` default of their own:
  * without one a name is left unresolved or, where the copy supplies an array, dropped.
@@ -113,8 +112,8 @@ const miniChartLineDashLocations: Record<
             ['marker', DEFAULT_STROKE_WIDTH],
             'item.low',
             'item.high',
-            ['item.low.marker', ITEM_MARKER_STROKE_WIDTH],
-            ['item.high.marker', ITEM_MARKER_STROKE_WIDTH],
+            ['item.low.marker', DEFAULT_STROKE_WIDTH],
+            ['item.high.marker', DEFAULT_STROKE_WIDTH],
         ],
     },
     candlestick: {
@@ -127,9 +126,9 @@ const miniChartLineDashLocations: Record<
             ['item.high', DEFAULT_STROKE_WIDTH],
             ['item.low', DEFAULT_STROKE_WIDTH],
             ['item.close', DEFAULT_STROKE_WIDTH],
-            ['item.high.marker', ITEM_MARKER_STROKE_WIDTH],
-            ['item.low.marker', ITEM_MARKER_STROKE_WIDTH],
-            ['item.close.marker', ITEM_MARKER_STROKE_WIDTH],
+            ['item.high.marker', DEFAULT_STROKE_WIDTH],
+            ['item.low.marker', DEFAULT_STROKE_WIDTH],
+            ['item.close.marker', DEFAULT_STROKE_WIDTH],
         ],
     },
 };
