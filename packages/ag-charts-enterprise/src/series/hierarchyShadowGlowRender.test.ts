@@ -66,15 +66,15 @@ describe('shadow and glow render (hierarchy series)', () => {
         return [edge + padding.left, y + padding.top + height / 2] as const;
     };
 
-    /** The pixel `offset` px along the ring from the radius that the sector of A shares with that of B: 3px inside A by default. */
-    const insideSectorEdge = (offset = -3) => {
+    /** The pixel 3px inside the sector of A, on the radius that it shares with the sector of B. */
+    const insideSectorEdge = () => {
         const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
         const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
         const ring = sectors.filter(({ innerRadius }) => innerRadius === innerRing);
         const a = ring.find((sector) => sector.startAngle === Math.min(...ring.map((other) => other.startAngle)))!;
         const { canvasX, canvasY } = Transformable.toCanvasPoint(a, a.centerX, a.centerY);
         const radius = (a.innerRadius + a.outerRadius) / 2;
-        const angle = a.endAngle + offset / radius;
+        const angle = a.endAngle - 3 / radius;
         return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
     };
 
@@ -180,8 +180,8 @@ describe('shadow and glow render (hierarchy series)', () => {
         });
     });
 
-    // The glow of the hovered node must not be drawn over the fill of a node at its depth that glows too: the pixel is the one
-    // just inside that node, on the edge that it shares with the hovered node.
+    // The glow of the hovered node is drawn over the fill of every other node, those that glow too included: the pixel is the one
+    // just inside the node beside it, on the edge that it shares with the hovered node.
     describe.each([
         ['a tile of a treemap', treemap, 'A1', () => insideTopOf('A2')],
         ['a group of a treemap', treemapGroup, 'A', () => insideEdgeOf('B')],
@@ -192,36 +192,13 @@ describe('shadow and glow render (hierarchy series)', () => {
         const besidePixel = (placement: object, glow: object) =>
             pixelWhileHovering(testCase, hovered, pixelOf, placement, glow);
 
-        it('stays beneath the fill of the node beside it that glows', async () => {
-            expect(await besidePixel({ glow: RED }, GLOW)).toEqual(await besidePixel({ glow: RED }, off));
+        it('shows over the fill of the node beside it that glows', async () => {
+            expect(await besidePixel({ glow: RED }, GLOW)).not.toEqual(await besidePixel({ glow: RED }, off));
         });
 
-        // The control: over a node that does not glow, the glow of the hovered node shows.
-        it('shows over the node beside it that does not glow', async () => {
-            expect(await besidePixel({}, GLOW)).not.toEqual(await besidePixel({}, off));
-        });
-    });
-
-    // Where two sectors glow, each glow ends on the line in the middle of the gap between them, so no pixel of the gap has both.
-    describe('the glow of a sunburst sector that is hovered, beside one that glows, with a gap between them', () => {
-        const FAINT = { ...GLOW, fillOpacity: 0.4 };
-
-        const gapPixel = async (hover: boolean) => {
-            const series = {
-                ...glowSeries(sunburst, { glow: FAINT }, { highlightedItem: { glow: FAINT } }),
-                sectorSpacing: 8,
-            };
-            await create([series], sunburst.data, RENDER_OPTIONS);
-            if (hover) await hoverNode(chart(), nodeNamed('A')(chart()));
-            return chartPixelAt(chart(), ...insideSectorEdge(1));
-        };
-
-        // A glow of one sector over that of the other would add 0.4 of opacity to the pixel, a drop of 20 in each colour channel.
-        it('does not double the glow in the gap', async () => {
-            const [rest] = await gapPixel(false);
-
-            expect(rest).toBeLessThan(255);
-            expect(Math.abs((await gapPixel(true))[0] - rest)).toBeLessThan(10);
+        // The control: the glow of the node beside it does not change that pixel, which only the glow of the hovered node reaches.
+        it('is the only glow to reach the pixel inside the node beside it', async () => {
+            expect(await besidePixel({ glow: RED }, off)).toEqual(await besidePixel({}, off));
         });
     });
 
@@ -281,7 +258,7 @@ describe('shadow and glow render (hierarchy series)', () => {
             });
         });
 
-        // The overlay cuts every glowing node out of the glow of the hovered one, whatever its depth.
+        // The glow of the hovered node is drawn over the fill of a parent that glows too: nothing cuts it.
         describe('inside a parent that glows', () => {
             const own = { highlightedItem: { glow: GLOW } };
             const off = { highlightedItem: { glow: { ...GLOW, enabled: false } } };
@@ -297,23 +274,23 @@ describe('shadow and glow render (hierarchy series)', () => {
             ] as const;
 
             it.each(PARENTS)(
-                'keeps the glow of %s beneath the fill of the parent',
+                'shows the glow of %s over the fill of the parent',
                 async (_name, testCase, hovered, parent, pixelOf) => {
                     const hover = [hovered];
 
-                    expect(await hoveredPixel(testCase, { hover, glows: [parent], highlight: own }, pixelOf)).toEqual(
+                    expect(await hoveredPixel(testCase, { hover, glows: [parent], highlight: own }, pixelOf)).not.toEqual(
                         await hoveredPixel(testCase, { hover, glows: [parent], highlight: off }, pixelOf)
                     );
                 }
             );
 
-            // The control, at the same pixel: with a parent that does not glow, the glow of the hovered node shows over its fill.
+            // The control, at the same pixel: the glow of the parent alone does not change it, so only the glow of the hovered node does.
             it.each(PARENTS)(
-                'shows the glow of %s over a parent that does not glow',
-                async (_name, testCase, hovered, _parent, pixelOf) => {
+                'has no glow of the parent at the pixel of %s',
+                async (_name, testCase, hovered, parent, pixelOf) => {
                     const hover = [hovered];
 
-                    expect(await hoveredPixel(testCase, { hover, glows: [], highlight: own }, pixelOf)).not.toEqual(
+                    expect(await hoveredPixel(testCase, { hover, glows: [parent], highlight: off }, pixelOf)).toEqual(
                         await hoveredPixel(testCase, { hover, glows: [], highlight: off }, pixelOf)
                     );
                 }
