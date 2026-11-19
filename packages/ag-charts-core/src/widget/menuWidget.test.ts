@@ -1,9 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { CollapseMode } from './collapseMode';
 import { MenuItemWidget } from './menuItemWidget';
 import { MenuWidget } from './menuWidget';
 import { clickEventFrom, createOpener, pressKey } from './test/openerFixtures';
+
+// An expanded menu listens for presses on the window, so a menu left open would react to the presses of later tests.
+const openedMenus: MenuWidget[] = [];
+
+afterEach(() => {
+    for (const menu of openedMenus.splice(0)) menu.destroy();
+    document.body.replaceChildren();
+});
 
 describe('MenuWidget.addSeparator', () => {
     it('appends a separator widget in the menu document', () => {
@@ -30,6 +38,7 @@ describe('MenuWidget.addSeparator', () => {
 describe('MenuWidget opener', () => {
     function createMenu() {
         const menu = new MenuWidget();
+        openedMenus.push(menu);
         menu.addChild(new MenuItemWidget());
         document.body.append(menu.getElement());
         return menu;
@@ -88,9 +97,11 @@ describe('MenuWidget keyboard and pointer dismissal', () => {
 
     function createOpenMenu(host: Element | ShadowRoot = document.body) {
         const menu = new MenuWidget();
+        openedMenus.push(menu);
         const item = new MenuItemWidget();
         menu.addChild(item);
         const { subMenuButton, subMenu } = menu.addSubMenu();
+        openedMenus.push(subMenu);
         const subMenuItem = new MenuItemWidget();
         subMenu.addChild(subMenuItem);
         subMenu.addListener('expand-widget', () => subMenuButton.insertSiblingAfter(subMenu));
