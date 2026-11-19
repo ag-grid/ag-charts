@@ -71,14 +71,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         ctx.lineWidth = strokeWidth;
         ctx.globalAlpha = strokeOpacity;
 
-        // A stroke wider than the outline's curvature is drawn along straight segments; see `getFlattenedPath2D`.
-        const halfWidth = strokeWidth / 2;
-        const minRadius = path.minCurveRadius();
-        const path2d =
-            halfWidth > minRadius
-                ? path.getFlattenedPath2D((minRadius + halfWidth) * pixelRatio * scale)
-                : path.getPath2D();
-        ctx.stroke(path2d);
+        ctx.stroke(path.getStrokePath2D(strokeWidth, pixelRatio * scale));
     }
 
     private renderFill(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {

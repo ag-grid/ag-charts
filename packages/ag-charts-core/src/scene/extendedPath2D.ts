@@ -1,6 +1,6 @@
 import { getPath2D } from '../dom/globalsProxy';
 import { normalizeAngle360 } from '../geometry/angle';
-import { bezier2DDistance, bezier2DExtrema, evaluateBezier } from '../geometry/bezier';
+import { bezier2DDistance, bezier2DExtrema, bezier2DRadiusOfCurvature, evaluateBezier } from '../geometry/bezier';
 import { lineDistanceSquared } from '../geometry/distance';
 import { parseSvg } from '../rendering/svg';
 import { BBox } from './bbox';
@@ -31,7 +31,7 @@ export class ExtendedPath2D {
     params: number[] = [];
     private commandsLength: number = 0;
     private paramsLength: number = 0;
-    // Derived from the commands on first use, for the command count stamped in `derivedLength`.
+    // Lazily derived from the commands; invalidated via `derivedLength`.
     private flattenedPath2Ds?: Map<number, Path2D>;
     private cachedMinCurveRadius = Number.NaN;
     private derivedLength = -1;
@@ -684,10 +684,17 @@ export class ExtendedPath2D {
     }
 
     /**
-     * A copy of the path with every curve replaced by straight segments, for stroking. Some canvas curve strokers
-     * leave the centre unpainted where half the line width exceeds a curve's radius of curvature; line segments stroke
-     * correctly. `reach` is the stroke's outer radius in device pixels, which sets how finely the curves are split.
+     * The Path2D to stroke at `lineWidth`. Some canvas curve strokers leave the centre unpainted where half the line
+     * width exceeds a curve's radius of curvature, so such a stroke follows straight segments instead.
      */
+    getStrokePath2D(lineWidth: number, deviceScale: number): Path2D {
+        const halfWidth = lineWidth / 2;
+        const minRadius = this.minCurveRadius();
+        if (halfWidth <= minRadius) return this.path2d;
+        return this.getFlattenedPath2D((minRadius + halfWidth) * deviceScale);
+    }
+
+    /** The path with its curves split finely enough that a stroke reaching `reach` device pixels out stays smooth. */
     getFlattenedPath2D(reach: number): Path2D {
         let curveSamples = 8;
         while (curveSamples < 64 && reach * (1 - Math.cos(Math.PI / 4 / curveSamples)) > FLATTEN_TOLERANCE) {
@@ -705,8 +712,7 @@ export class ExtendedPath2D {
             let cx = Number.NaN;
             let cy = Number.NaN;
             let drawn = false;
-            // A curve ending where its subpath began (a full arc) meets itself smoothly; once split into chords the
-            // two ends meet at an angle, so join them rather than leave a capped seam.
+            // Chords of a full arc meet at an angle where it began, so join them rather than leave a capped seam.
             const closeIfReturned = () => {
                 if (drawn && Math.abs(cx - sx) < 1e-6 && Math.abs(cy - sy) < 1e-6) flattened.closePath();
             };
@@ -737,11 +743,7 @@ export class ExtendedPath2D {
         return path2d;
     }
 
-    /**
-     * The smallest radius of curvature over the path's curves, sampled at each cubic's ends and midpoint. Samples where
-     * the curve has no direction (a control point on its endpoint, as at a pin's tip) are skipped. `Infinity` without
-     * curves.
-     */
+    /** The smallest radius of curvature sampled along the path's curves; `Infinity` without curves. */
     minCurveRadius(): number {
         this.validateDerived();
         if (!Number.isNaN(this.cachedMinCurveRadius)) return this.cachedMinCurveRadius;
@@ -766,7 +768,7 @@ export class ExtendedPath2D {
                     const p3x = params[pi++];
                     const p3y = params[pi++];
                     for (const t of CURVATURE_SAMPLES) {
-                        const radius = cubicRadiusOfCurvature(cx, cy, p1x, p1y, p2x, p2y, p3x, p3y, t);
+                        const radius = bezier2DRadiusOfCurvature(cx, cy, p1x, p1y, p2x, p2y, p3x, p3y, t);
                         if (radius < minRadius) minRadius = radius;
                     }
                     cx = p3x;
@@ -843,29 +845,6 @@ const FLATTEN_TOLERANCE = 0.1;
 
 /** Where along each cubic `minCurveRadius` samples the curvature. */
 const CURVATURE_SAMPLES = [0, 0.5, 1];
-
-/** Radius of curvature `|B'|³ / |B' × B''|` of a cubic at `t`, or `Infinity` where it is straight or has no direction. */
-function cubicRadiusOfCurvature(
-    p0x: number,
-    p0y: number,
-    p1x: number,
-    p1y: number,
-    p2x: number,
-    p2y: number,
-    p3x: number,
-    p3y: number,
-    t: number
-): number {
-    const mt = 1 - t;
-    const dx = 3 * (mt * mt * (p1x - p0x) + 2 * mt * t * (p2x - p1x) + t * t * (p3x - p2x));
-    const dy = 3 * (mt * mt * (p1y - p0y) + 2 * mt * t * (p2y - p1y) + t * t * (p3y - p2y));
-    const ddx = 6 * (mt * (p2x - 2 * p1x + p0x) + t * (p3x - 2 * p2x + p1x));
-    const ddy = 6 * (mt * (p2y - 2 * p1y + p0y) + t * (p3y - 2 * p2y + p1y));
-    const speed = Math.hypot(dx, dy);
-    const cross = Math.abs(dx * ddy - dy * ddx);
-    if (speed < 1e-9 || cross === 0) return Infinity;
-    return (speed * speed * speed) / cross;
-}
 
 /** Whether the horizontal ray running left from (x, y) crosses the edge, under the half-open rule. */
 function rayCrossesLine(x0: number, y0: number, x1: number, y1: number, x: number, y: number): number {
