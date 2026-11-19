@@ -147,6 +147,11 @@ function wedgeApexRadius(ring: SunburstLabelRing, width: number) {
     return ring.sweep < Math.PI ? edgeSpanRadius(ring, width) : ring.edgeInset;
 }
 
+/** How far out the near side of a parallel label may sit: from half a turn up, the drawn straight edges sit in front of the centre. */
+function parallelNearSide({ sweep, innerRadius, edgeInset }: SunburstLabelRing) {
+    return sweep < Math.PI ? innerRadius : Math.max(innerRadius, edgeInset);
+}
+
 /** How far apart the drawn straight edges of a sector narrower than half a turn are at `radius`. */
 function edgeSpanAt({ sweep, edgeInset }: SunburstLabelRing, radius: number) {
     return 2 * (radius * Math.tan(sweep * 0.5) - edgeInset / Math.cos(sweep * 0.5));
@@ -167,9 +172,10 @@ function sectorLabelRadius(
         case LabelPlacement.Parallel: {
             const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
             const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
+            const minimumRadius = parallelNearSide(ring) + padding + height;
             // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
             const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (width / 2) ** 2));
-            return Math.min(idealRadius, maximumRadius);
+            return Math.min(Math.max(idealRadius, minimumRadius), maximumRadius);
         }
         case LabelPlacement.Perpendicular: {
             if (!wedge) return (innerRadius + outerRadius) * 0.5;
@@ -745,8 +751,7 @@ export class SunburstSeries extends HierarchySeries<
         }
 
         const straightEdges = sweep < Math.PI ? edgeSpanAt(ring, innerRadius) : Infinity;
-        // From half a turn up, the drawn straight edges sit `edgeInset` in front of the centre.
-        const nearSide = sweep < Math.PI ? innerRadius : Math.max(innerRadius, ring.edgeInset);
+        const nearSide = parallelNearSide(ring);
         const parallelWidth = (height: number) => Math.min(2 * chordAt(nearSide + height), straightEdges);
         let perpendicularWidth: ((height: number) => number) | undefined;
         if (wedge) {

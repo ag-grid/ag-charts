@@ -1856,33 +1856,38 @@ describe('DonutSeries', () => {
             expect(withStroke).toBe(withoutStroke);
         });
 
+        const nearCentre = (gap: number) => 1.5 * gap;
+        const besideHole = () => sectorFor(0).innerRadius + 2;
+        const midRing = () => (sectorFor(0).innerRadius + sectorFor(0).outerRadius) / 2;
+        const tinyHole = { innerRadiusRatio: 0, innerRadiusOffset: 10 };
         it.each([
-            { shape: 'halves', values: [1, 1] },
-            { shape: 'a quarter and three quarters', values: [1, 3] },
-        ])('keeps the full gap near the centre of a pie without a stroke ($shape)', async ({ values }) => {
-            const gap = 20;
+            { where: 'near the centre of a pie cut in halves', type: 'pie', values: [1, 1], at: nearCentre },
+            { where: 'near the centre of a pie cut 1:3', type: 'pie', values: [1, 3], at: nearCentre },
+            { where: 'beside a small hole', innerRadiusRatio: 0.1, values: [1, 1], at: besideHole },
+            { where: 'around a 10px hole (halves)', ...tinyHole, values: [1, 1], at: nearCentre },
+            { where: 'around a 10px hole (1:3)', ...tinyHole, values: [1, 3], at: nearCentre },
+            { where: 'beside rounded corners', innerRadiusRatio: 0.5, cornerRadius: 20, values: [1, 1], at: midRing },
+            {
+                where: 'beside corners too big for a wedge wider than a half turn',
+                type: 'pie',
+                cornerRadius: 1000,
+                values: [1, 3],
+                at: nearCentre,
+                cornersCurveAway: true,
+            },
+        ])('keeps the full gap $where', async ({ type = 'donut', values, at, cornersCurveAway = false, ...series }) => {
+            const gap = 30;
             chart = deproxy(
                 await createChart({
                     ...options,
                     data: values.map((value, i) => ({ name: `n${i}`, value })),
-                    series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name', gap, strokeWidth: 0 }],
-                })
+                    series: [{ type, angleKey: 'value', legendItemKey: 'name', gap, strokeWidth: 0, ...series }],
+                } as AgChartOptions)
             );
 
-            expect(Math.abs(paintedGapAbove(1.5 * gap, gap) - gap)).toBeLessThanOrEqual(1);
-        });
-
-        it('keeps the full gap beside a small hole', async () => {
-            const gap = 30;
-            await createDonuts(
-                [
-                    { name: 'a', value: 1 },
-                    { name: 'b', value: 1 },
-                ],
-                { gap, strokeWidth: 0, innerRadiusRatio: 0.1 }
-            );
-
-            expect(Math.abs(paintedGapAbove(sectorFor(0).innerRadius + 2, gap) - gap)).toBeLessThanOrEqual(1);
+            const painted = paintedGapAbove(at(gap), gap);
+            expect(painted).toBeGreaterThanOrEqual(gap - 1);
+            expect(painted).toBeLessThanOrEqual(cornersCurveAway ? Infinity : gap + 1);
         });
 
         it('does not draw a sector narrower than the gap, but keeps its neighbours inset and its pick area', async () => {
@@ -2001,6 +2006,21 @@ describe('DonutSeries', () => {
             const series = await createDonut({ cornerRadius, innerCircle: { fill: '#c9fdc9' } });
 
             expectCircleToReach(series, paintedRadii().innerRadius + cornerRadius);
+        });
+
+        it('does not grow the inner circle where the gap keeps the sides off the hole', async () => {
+            const gap = 30;
+            const series = await createDonut({
+                cornerRadius: 20,
+                gap,
+                innerRadiusRatio: 0.06,
+                innerCircle: { fill: '#c9fdc9' },
+            });
+
+            const { innerRadius } = paintedRadii();
+            const widestSweep = Math.max(...sectorNodes().map((s) => s.endAngle - s.startAngle));
+            expect(innerRadius * Math.sin(widestSweep / 2)).toBeLessThan(gap / 2);
+            expectCircleToReach(series, innerRadius);
         });
 
         test('never grows the inner circle past the sectors mid-line', async () => {

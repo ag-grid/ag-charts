@@ -2248,6 +2248,14 @@ describe('SunburstSeries', () => {
             { wedge: 'of a half turn', gap: 20, sizes: [1, 1], text: 'W', fontSize: 280, placement: 'perpendicular' },
             { wedge: 'of a half turn', gap: 20, sizes: [1, 1], text: 'Word', fontSize: 200, placement: 'parallel' },
             {
+                wedge: 'of a half turn under a wide gap',
+                gap: 240,
+                sizes: [1, 1],
+                text: 'W',
+                fontSize: 10,
+                placement: 'parallel',
+            },
+            {
                 wedge: 'wider than a half turn',
                 gap: 20,
                 sizes: [3, 1],

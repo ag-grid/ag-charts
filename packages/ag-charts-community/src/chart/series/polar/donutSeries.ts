@@ -31,6 +31,7 @@ import {
     PolarZIndexMap,
     type RequireOptional,
     Sector,
+    type SectorCornerRadii,
     SectorGlowRing,
     Selection,
     SpatialIndex,
@@ -41,6 +42,7 @@ import {
     boxCrossesSegment,
     boxOverlapsSector,
     canRenderTextOffscreen,
+    clampSectorCornerRadii,
     clockwiseAngles,
     cycledValue,
     datumKeyReader,
@@ -50,6 +52,7 @@ import {
     fontWithSize,
     formatValue,
     gridCellSize,
+    insetChord,
     isBoxInSector,
     isFullSweep,
     isGradientFill,
@@ -130,6 +133,8 @@ import {
 } from './polarSeries';
 
 const twoPi = 2 * Math.PI;
+
+const innerCircleCorners: SectorCornerRadii = { startOuter: 0, endOuter: 0, startInner: 0, endInner: 0 };
 
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -1215,16 +1220,23 @@ export class DonutSeries extends PolarSeries<
             const paintedOuterRadius = Math.max(datum.outerRadius - arcInset, 0);
             if (paintedInnerRadius <= 0 || paintedOuterRadius <= paintedInnerRadius) continue;
 
-            // Mirrors the clamping `Sector` applies to its own corner radii: half the radial band,
-            // and half the chord between the sector's two inner corners.
             const { startAngle, endAngle } = clockwiseAngles(datum.startAngle, datum.endAngle);
+            const sweepAngle = endAngle - startAngle;
             const sideInset = this.getSideInset(datum, strokeInset);
-            const sweepAngle = endAngle - startAngle - (2 * sideInset) / paintedInnerRadius;
-            const cornerDistance = sweepAngle > 0 ? 2 * paintedInnerRadius * Math.sin(sweepAngle / 2) : 0;
-            const radialLength = paintedOuterRadius - paintedInnerRadius;
-            const appliedCornerRadius = Math.floor(Math.min(cornerRadius, cornerDistance / 2, radialLength / 2));
-
-            fillRadius = Math.max(fillRadius, paintedInnerRadius + appliedCornerRadius);
+            innerCircleCorners.startOuter = cornerRadius;
+            innerCircleCorners.endOuter = cornerRadius;
+            innerCircleCorners.startInner = cornerRadius;
+            innerCircleCorners.endInner = cornerRadius;
+            clampSectorCornerRadii(
+                innerCircleCorners,
+                sweepAngle,
+                paintedInnerRadius,
+                paintedOuterRadius,
+                sideInset,
+                insetChord(paintedInnerRadius, sweepAngle, sideInset) > 0
+            );
+            const { startInner, endInner } = innerCircleCorners;
+            fillRadius = Math.max(fillRadius, paintedInnerRadius + Math.max(startInner, endInner));
         }
         return Math.min(fillRadius, this.getOuterRadius());
     }
