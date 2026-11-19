@@ -200,6 +200,9 @@ function clearOfEdge(
     return edgeAlign === 'top' ? Math.max(y, edgeY + gap) : Math.min(y, edgeY - gap);
 }
 
+/** The depth of a highlight copy, which is above that of every node. */
+const ABOVE_EVERY_DEPTH = Number.MAX_SAFE_INTEGER;
+
 export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode>, NormalisedTreemapSeriesOwnOptions> {
     static override readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
@@ -832,7 +835,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 hoveredStyle != null && this.getNodeGlow(node, isLeaf, true, highlightedNode, hoveredStyle.glow) != null
             );
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
-            rect.zIndex = [0, depth, isHighlight ? 1 : 0];
+            rect.zIndex = this.getNodeZIndex(node, depth, isHighlight, highlightedNode);
 
             const onlyLeaves = node.parent?.children.every((n) => n.children.length === 0);
             const parentBbox = node.parent == null ? undefined : node.parent.bbox;
@@ -1299,6 +1302,30 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
         const groupState = this.getGroupHighlightState(isHighlight ?? false, highlightedNode, nodeDatum);
         return toHierarchyHighlightString(groupState);
+    }
+
+    /**
+     * The layers draw by depth first, so that a shadow lands on the shallower nodes. The highlight copy is above every depth,
+     * for its glow to draw over the fill of every other node. A hovered group's tiles then draw above that copy, as they
+     * draw above the group, so the fill of the copy never covers them.
+     */
+    private getNodeZIndex(
+        node: TreemapNode,
+        depth: number,
+        isHighlight: boolean,
+        highlightedNode: TreemapNode | undefined
+    ) {
+        if (isHighlight) return [0, ABOVE_EVERY_DEPTH, 1];
+
+        const ancestorIndex = highlightedNode?.path;
+        const belowHovered =
+            highlightedNode != null &&
+            highlightedNode.children.length > 0 &&
+            node.path != null &&
+            ancestorIndex != null &&
+            node.path.length > ancestorIndex.length &&
+            this.isDescendantDatumIndex(node.path, ancestorIndex);
+        return [belowHovered ? 1 : 0, depth, 0];
     }
 
     private isDescendantDatumIndex(nodeIndex: number[] | undefined, ancestorIndex: number[] | undefined): boolean {
