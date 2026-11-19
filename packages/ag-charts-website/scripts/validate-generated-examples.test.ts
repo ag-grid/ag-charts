@@ -14,6 +14,7 @@ import {
     CHECKED_FRAMEWORKS,
     CHECKED_MODES,
     type CheckedFramework,
+    ENTRY_FILES,
     type ExampleRef,
     type TscResult,
     type Variant,
@@ -313,7 +314,7 @@ describe('readVariant', () => {
         write('plain', 'reactFunctionalTs', {
             'contents.json': JSON.stringify({ files: { 'index.html': '<div></div>' } }),
         });
-        write('plain', 'reactFunctionalTsEmpty', { 'contents.json': JSON.stringify({}) });
+        write('empty', 'reactFunctionalTs', { 'contents.json': JSON.stringify({}) });
         mkdirSync(variantDir('plain', 'missing'), { recursive: true });
         // `dark-mode` has no directory at all
     });
@@ -348,10 +349,19 @@ describe('readVariant', () => {
 
     it('fails a variant with no TypeScript files, rather than checking nothing', () => {
         expect(() => read('plain', 'reactFunctionalTs')).toThrow(
-            `${fixture.id} [plain/reactFunctionalTs]: no TypeScript files`
+            new RegExp(`${fixture.id} \\[plain/reactFunctionalTs\\]: .*contents\\.json lacks index\\.tsx`)
         );
-        expect(() => read('plain', 'reactFunctionalTsEmpty')).toThrow(/no TypeScript files/);
+        expect(() => read('empty', 'reactFunctionalTs')).toThrow(/lacks index\.tsx/);
     });
+
+    it.each(CHECKED_FRAMEWORKS)(
+        'fails a %s variant that has TypeScript files but not the files users run',
+        (framework) => {
+            write('data-only', framework, { 'contents.json': JSON.stringify({ files: { 'data.ts': 'export {};' } }) });
+            const pattern = new RegExp(`lacks ${ENTRY_FILES[framework].join(', ').replaceAll('.', '\\.')}$`);
+            expect(() => read('data-only', framework)).toThrow(pattern);
+        }
+    );
 });
 
 describe('main', () => {
@@ -526,7 +536,8 @@ describe('checkVariants', () => {
         for (const [id, source] of Object.entries(SOURCES)) {
             for (const mode of CHECKED_MODES) {
                 for (const framework of CHECKED_FRAMEWORKS) {
-                    writeContents(id, mode, framework, { files: { 'main.ts': source } });
+                    const files = Object.fromEntries(ENTRY_FILES[framework].map((name) => [name, source]));
+                    writeContents(id, mode, framework, { files });
                 }
             }
         }

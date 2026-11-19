@@ -11,6 +11,14 @@ export const CHECKED_FRAMEWORKS = ['typescript', 'reactFunctionalTs', 'angular',
 export const CHECKED_MODES = ['dark-mode', 'plain'] as const;
 
 export type CheckedFramework = (typeof CHECKED_FRAMEWORKS)[number];
+
+/** The files users run, which a variant must contain, by name: other `.ts` files alone are not a variant. */
+export const ENTRY_FILES: Record<CheckedFramework, readonly string[]> = {
+    typescript: ['main.ts'],
+    reactFunctionalTs: ['index.tsx'],
+    angular: ['main.ts', 'app.component.ts'],
+    vue3: ['main.ts'],
+};
 export type CheckedMode = (typeof CHECKED_MODES)[number];
 
 export interface ExampleRef {
@@ -163,8 +171,9 @@ export function readVariant(variant: Variant, generatedRoot = GENERATED_ROOT): R
 
     const contents = JSON.parse(readFileSync(contentsFile, 'utf8')) as GeneratedContents;
     const files = getExportedFiles(contents);
-    if (!Object.keys(files).some((name) => /\.(ts|tsx)$/.test(name))) {
-        throw new Error(`${label}: no TypeScript files in ${path.relative(WORKSPACE_ROOT, contentsFile)}`);
+    const missing = ENTRY_FILES[variant.framework].filter((name) => !(name in files));
+    if (missing.length > 0) {
+        throw new Error(`${label}: ${path.relative(WORKSPACE_ROOT, contentsFile)} lacks ${missing.join(', ')}`);
     }
     return files;
 }
@@ -373,10 +382,12 @@ export async function checkVariants(
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     main(process.argv.slice(2)).then(
-        (code) => process.exit(code),
+        (code) => {
+            process.exitCode = code;
+        },
         (error) => {
             console.error(error instanceof Error ? error.message : error);
-            process.exit(1);
+            process.exitCode = 1;
         }
     );
 }
