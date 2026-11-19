@@ -12,18 +12,20 @@ import {
     THEME_GLOW,
     countCastMerges,
     countCastSerialisations,
-    deproxy,
+    endHover,
+    expectParamsInState,
     expectWarningMessages,
     getSeriesAt,
-    getSeriesNodeData,
     getSeriesSelectionNodes,
     glowShadow,
+    hoverDatum,
+    hoverNode,
     isOn,
+    recordParamsByHighlightState,
     resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
     themeShadow,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 import { Rect, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
@@ -188,9 +190,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
         } as AgChartOptions);
 
         if (opts.hover) {
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, testCase.hover(chart));
-            await waitForChartStability(chart);
+            await hoverNode(chart, testCase.hover(chart));
         }
         return testCase.layers(chart);
     };
@@ -348,13 +348,8 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             const merged = [inPlace[0].fillShadow, glowOf(inPlace[0])];
 
             // Hovering then leaving makes the items update in each state once, and leaving returns to the first.
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, testCase.hover(chart));
-            await waitForChartStability(chart);
-            const castsSerialised = await countCastSerialisations(async () => {
-                ctx.highlightManager.updateHighlight(id);
-                await waitForChartStability(chart);
-            });
+            await hoverNode(chart, testCase.hover(chart));
+            const castsSerialised = await countCastSerialisations(() => endHover(chart));
             expect(castsSerialised).toBe(0);
             const after = testCase.layers(chart).inPlace[0];
             expect(after.fillShadow).toBe(merged[0]);
@@ -367,12 +362,9 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             const cast: ItemCast = { shadow: { ...ITEM_SHADOW }, glow: { ...ITEM_GLOW } };
             await create({ shadow: SHADOW, styler: () => cast });
 
-            const { ctx, id } = deproxy(chart);
             const hoverAndLeave = async () => {
-                ctx.highlightManager.updateHighlight(id, testCase.hover(chart));
-                await waitForChartStability(chart);
-                ctx.highlightManager.updateHighlight(id);
-                await waitForChartStability(chart);
+                await hoverNode(chart, testCase.hover(chart));
+                await endHover(chart);
             };
             await hoverAndLeave();
 
@@ -492,24 +484,15 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
         });
 
         it('gives the styler params the glow of the state they are called in, and the series glow, or none, before the hover', async () => {
-            const byState = new Map<string, any[]>();
+            const { byState, styler } = recordParamsByHighlightState();
             await create({
                 glow: testCase.seriesGlow ? SERIES_GLOW : undefined,
                 highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } },
                 hover: true,
-                styler: (itemParams) => {
-                    byState.set(itemParams.highlightState, [
-                        ...(byState.get(itemParams.highlightState) ?? []),
-                        itemParams,
-                    ]);
-                    return {};
-                },
+                styler,
             });
 
-            expect(byState.get('highlighted-item')).not.toHaveLength(0);
-            for (const itemParams of byState.get('highlighted-item') ?? []) {
-                expect(itemParams.glow).toMatchObject(HIGHLIGHT_GLOW);
-            }
+            expectParamsInState(byState, 'highlighted-item', { glow: HIGHLIGHT_GLOW });
             // The leaves: a group of a treemap has a glow of its own.
             const others = (byState.get('none') ?? []).filter((itemParams) => itemParams.datum.children == null);
             expect(others.length).toBeGreaterThan(1);
@@ -557,11 +540,9 @@ describe('itemStyler glow params of a treemap tile', () => {
             ],
         } as AgChartOptions);
 
-        const { ctx, id } = deproxy(chart);
         const [group] = hierarchyRoot(chart).children;
         seen.clear();
-        ctx.highlightManager.updateHighlight(id, group);
-        await waitForChartStability(chart);
+        await hoverNode(chart, group);
 
         const tiles = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).filter(
             (shape) => !(shape as Shape<HierarchyNode>).datum?.hasChildren
@@ -628,12 +609,10 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
         } as AgChartOptions);
 
         // A tile in a hovered group inherits only the group's opacities, so no highlight glow is under the styler's.
-        const { ctx, id } = deproxy(chart);
-        ctx.highlightManager.updateHighlight(
-            id,
+        await hoverNode(
+            chart,
             [...hierarchyRoot(chart)].find((node) => node.datum?.name === 'A')
         );
-        await waitForChartStability(chart);
 
         const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).find(
             (shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name === 'A1'
@@ -678,9 +657,7 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
             const cells = await create({}, { shadow: ITEM_SHADOW });
             expect(cells).toHaveLength(0);
 
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, getSeriesNodeData<HighlightNodeDatum & { datum: any }>(chart)[0]);
-            await waitForChartStability(chart);
+            await hoverDatum(chart);
 
             const nodes = getSeriesSelectionNodes<Shape<{ datum: { c: number } }>>(chart, 'datumSelection');
             expect(nodes).toHaveLength(4);

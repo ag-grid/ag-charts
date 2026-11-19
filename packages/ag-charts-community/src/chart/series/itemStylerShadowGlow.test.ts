@@ -3,10 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Rect, Sector, Shape } from 'ag-charts-core';
 import type { AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-types';
 
-import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
-import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
+import { endHover, hoverDatum } from '../test/glowRender';
+import { getSeriesAt } from '../test/seriesAccessors';
 import {
     CATEGORY_DATA,
     HIGHLIGHT_GLOW,
@@ -20,8 +20,10 @@ import {
     XY_DATA,
     countCastMerges,
     countCastSerialisations,
+    expectParamsInState,
     glowShadow,
     isOn,
+    recordParamsByHighlightState,
     shapesOf,
     themeShadow,
 } from '../test/shadowFixtures';
@@ -29,6 +31,7 @@ import {
     createChart,
     deproxy,
     expectWarningMessages,
+    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -183,9 +186,7 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
         const series = getSeriesAt(chart);
 
         if (opts.hover) {
-            const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
-            chart.ctx.highlightManager.updateHighlight(chart.id, datum);
-            await waitForChartStability(chart);
+            await hoverDatum(chart);
         }
 
         return {
@@ -464,8 +465,7 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
             expect(isOn(inPlace[0].fillGlow)).toBe(false);
 
-            chart.ctx.highlightManager.updateHighlight(chart.id);
-            await waitForChartStability(chart);
+            await endHover(chart);
 
             // Back in place, the item casts the glow of its styler over the series glow.
             expect(inPlace[0].fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 9 }));
@@ -511,18 +511,8 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
 
             /** Every call of the styler while one item is hovered, by the highlight state that it was called in. */
             const paramsByState = async (opts: Parameters<typeof create>[0]) => {
-                const byState = new Map<string, any[]>();
-                await create({
-                    hover: true,
-                    ...opts,
-                    styler: (itemParams) => {
-                        byState.set(itemParams.highlightState, [
-                            ...(byState.get(itemParams.highlightState) ?? []),
-                            itemParams,
-                        ]);
-                        return {};
-                    },
-                });
+                const { byState, styler } = recordParamsByHighlightState();
+                await create({ hover: true, ...opts, styler });
                 return byState;
             };
 
@@ -536,14 +526,8 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
                     },
                 });
 
-                expect(byState.get('highlighted-item')).not.toHaveLength(0);
-                for (const itemParams of byState.get('highlighted-item') ?? []) {
-                    expect(itemParams).toMatchObject({ shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW });
-                }
-                expect(byState.get('unhighlighted-item')).not.toHaveLength(0);
-                for (const itemParams of byState.get('unhighlighted-item') ?? []) {
-                    expect(itemParams).toMatchObject({ shadow: SERIES_SHADOW, glow: UNHIGHLIGHT_GLOW });
-                }
+                expectParamsInState(byState, 'highlighted-item', { shadow: HIGHLIGHT_SHADOW, glow: HIGHLIGHT_GLOW });
+                expectParamsInState(byState, 'unhighlighted-item', { shadow: SERIES_SHADOW, glow: UNHIGHLIGHT_GLOW });
             });
 
             it('leaves the shadow and glow unset where nothing in the cascade sets them', async () => {
@@ -559,10 +543,8 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             it('leaves the glow unset in a state that casts none, with the glow set in another', async () => {
                 const byState = await paramsByState({ highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } } });
 
-                for (const itemParams of byState.get('highlighted-item') ?? []) {
-                    expect(itemParams.glow).toMatchObject(HIGHLIGHT_GLOW);
-                }
-                expect(byState.get('unhighlighted-item')).not.toHaveLength(0);
+                expectParamsInState(byState, 'highlighted-item', { glow: HIGHLIGHT_GLOW });
+                expectParamsInState(byState, 'unhighlighted-item', {});
                 for (const itemParams of byState.get('unhighlighted-item') ?? []) {
                     expect(itemParams.glow).toBeUndefined();
                 }
@@ -627,12 +609,9 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             const merged = [inPlace[0].fillShadow, inPlace[0].fillGlow];
 
             // Hovering then leaving makes the items update in each state once, and leaving returns to the first.
-            const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
-            chart.ctx.highlightManager.updateHighlight(chart.id, datum);
-            await waitForChartStability(chart);
+            await hoverDatum(chart);
             const castsSerialised = await countCastSerialisations(async () => {
-                chart.ctx.highlightManager.updateHighlight(chart.id);
-                await waitForChartStability(chart);
+                await endHover(chart);
             });
             expect(castsSerialised).toBe(0);
             const after = shapesOf(getSeriesAt(chart).contentGroup, testCase.kind);
@@ -645,12 +624,9 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             const cast: ItemCast = { shadow: { ...ITEM_SHADOW }, glow: { ...ITEM_GLOW } };
             await create({ shadow: SERIES_SHADOW, glow: SERIES_GLOW, styler: () => cast });
 
-            const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
             const hoverAndLeave = async () => {
-                chart.ctx.highlightManager.updateHighlight(chart.id, datum);
-                await waitForChartStability(chart);
-                chart.ctx.highlightManager.updateHighlight(chart.id);
-                await waitForChartStability(chart);
+                await hoverDatum(chart);
+                await endHover(chart);
             };
             await hoverAndLeave();
 
@@ -793,34 +769,45 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
             const fallback = inPlace[CAP].fillShadow;
 
-            const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
-            chart.ctx.highlightManager.updateHighlight(chart.id, datum);
-            await waitForChartStability(chart);
-            chart.ctx.highlightManager.updateHighlight(chart.id);
-            await waitForChartStability(chart);
+            await hoverDatum(chart);
+            await endHover(chart);
 
             expect(inPlace[CAP].fillShadow).toBe(fallback);
             expect(fallback).toMatchObject(SERIES_SHADOW);
             expectWarningMessages([capWarning]);
         });
 
-        it('counts a value once, however many highlight states it is cast in', async () => {
-            const { inPlace } = await create({
-                data: testCase.rows(10),
-                glow: SERIES_GLOW,
-                styler: (params) => ({ glow: { blur: params.datum.id + 1 } }),
+        describe.each([
+            { key: 'shadow', highlighted: HIGHLIGHT_SHADOW },
+            { key: 'glow', highlighted: HIGHLIGHT_GLOW },
+        ] as const)('with a $key set on the hovered item', ({ key, highlighted }) => {
+            it(`counts each of ${CAP} distinct values once, however many items are hovered`, async () => {
+                const { inPlace } = await create({
+                    data: testCase.rows(CAP),
+                    shadow: SERIES_SHADOW,
+                    glow: SERIES_GLOW,
+                    highlight: { highlightedItem: { [key]: highlighted } },
+                    styler: (params) => ({
+                        [key]: { ...(key === 'shadow' ? ITEM_SHADOW : ITEM_GLOW), blur: params.datum.id + 1 },
+                    }),
+                });
+                const blursOf = () =>
+                    inPlace.map(
+                        (shape) => (shape[key === 'shadow' ? 'fillShadow' : 'fillGlow'] as { blur?: number })?.blur
+                    );
+                const stylerBlurs = Array.from({ length: CAP }, (_, id) => id + 1);
+
+                for (let datumIndex = 0; datumIndex < 6; datumIndex++) await hoverDatum(chart, 0, datumIndex);
+                // The hovered item of a glow casts it on its highlight copy, so the others are the ones to read.
+                const hovered = 5;
+                expect(blursOf().filter((_, id) => id !== hovered)).toEqual(
+                    stylerBlurs.filter((_, id) => id !== hovered)
+                );
+
+                await endHover(chart);
+                expect(blursOf()).toEqual(stylerBlurs);
+                expectWarningMessages([]);
             });
-
-            const nodeData = getSeriesNodeData<HighlightNodeDatum>(chart);
-            for (const datum of nodeData.slice(0, 3)) {
-                chart.ctx.highlightManager.updateHighlight(chart.id, datum);
-                await waitForChartStability(chart);
-            }
-
-            // The hovered item casts its glow on the highlight copy; every other one keeps the styler's.
-            const others = inPlace.slice(3).map((shape) => (shape.fillGlow as { blur?: number } | undefined)?.blur);
-            expect(others).toEqual([4, 5, 6, 7, 8, 9, 10]);
-            expectWarningMessages([]);
         });
 
         it('warns once for each series that passes the cap', async () => {
@@ -859,45 +846,56 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
             expect(neither.inPlace.every((shape) => shape.fillShadow === neither.inPlace[0].fillShadow)).toBe(true);
 
-            const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
             const merges = await countCastMerges(getSeriesAt(chart), async () => {
-                chart.ctx.highlightManager.updateHighlight(chart.id, datum);
-                await waitForChartStability(chart);
-                chart.ctx.highlightManager.updateHighlight(chart.id);
-                await waitForChartStability(chart);
+                await hoverDatum(chart);
+                await endHover(chart);
             });
             expect(merges).toBe(0);
             expectWarningMessages([]);
         });
 
-        describe.each([
-            { change: 'the data', update: (rows: object[]) => ({ data: rows }) },
-            {
-                change: 'the series options',
-                update: () => ({
-                    series: [testCase.series({ shadow: SERIES_SHADOW, itemStyler: blurBy((id) => id + 20) })],
-                }),
-            },
-        ])('when $change changes', ({ update }) => {
-            it('counts the distinct shadows afresh', async () => {
-                // 17 distinct shadows: the 17th falls back, so the cap has been reached.
-                const rows = testCase.rows(CAP + 1);
-                const { inPlace } = await create({ data: rows, shadow: SERIES_SHADOW, styler: blurBy((id) => id + 1) });
-                expect(inPlace[CAP].fillShadow).toMatchObject(SERIES_SHADOW);
+        describe('when the cap has been reached and', () => {
+            const first = blurBy((id) => id + 1);
+            const rows = () => testCase.rows(CAP + 1);
 
-                // 16 shadows that are all new, which could not be cast if the 16 of before still counted.
-                const next = testCase.rows(CAP);
-                await chart.publicApi!.update({
-                    data: next,
+            /** Updates the chart with `data` and `itemStyler`, then reads what the items cast. */
+            const update = async (data: object[], itemStyler: (params: any) => object) => {
+                const options = {
+                    data,
                     animation: { enabled: false },
                     legend: { enabled: false },
-                    series: [testCase.series({ shadow: SERIES_SHADOW, itemStyler: blurBy((id) => id + 20) })],
-                    ...update(next),
-                } as AgChartOptions);
+                    series: [testCase.series({ shadow: SERIES_SHADOW, itemStyler })],
+                } as AgChartOptions;
+                await chart.publicApi!.update(prepareTestOptions(options));
                 await waitForChartStability(chart);
+                return shapesOf(getSeriesAt(chart).contentGroup, testCase.kind);
+            };
 
-                const after = shapesOf(getSeriesAt(chart).contentGroup, testCase.kind);
+            it('only the data changes, it counts the distinct shadows afresh', async () => {
+                const { inPlace } = await create({ data: rows(), shadow: SERIES_SHADOW, styler: first });
+                expect(inPlace[CAP].fillShadow).toMatchObject(SERIES_SHADOW);
+                expectWarningMessages([capWarning]);
+
+                // The same styler, on 16 rows whose ids, and so shadows, are all new: none could be cast if the old ones still counted.
+                const next = testCase.rows(CAP).map((row) => ({ ...row, id: row.id + 20 }));
+                const after = await update(next, first);
+
+                expect(after.map(blurOf)).toEqual(Array.from({ length: CAP }, (_, id) => id + 21));
+                expectWarningMessages([]);
+            });
+
+            it('only the styler changes, it counts the distinct shadows afresh', async () => {
+                const { inPlace } = await create({ data: rows(), shadow: SERIES_SHADOW, styler: first });
+                expect(inPlace[CAP].fillShadow).toMatchObject(SERIES_SHADOW);
+                expectWarningMessages([capWarning]);
+
+                const after = await update(
+                    testCase.rows(CAP),
+                    blurBy((id) => id + 20)
+                );
+
                 expect(after.map(blurOf)).toEqual(Array.from({ length: CAP }, (_, id) => id + 20));
+                expectWarningMessages([]);
             });
         });
     });

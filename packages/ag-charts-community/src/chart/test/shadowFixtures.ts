@@ -76,6 +76,23 @@ export async function countCastMerges(series: object, action: () => Promise<void
     }
 }
 
+/** An item styler that returns nothing and records the params of each call by the highlight state it was called in. */
+export function recordParamsByHighlightState() {
+    const byState = new Map<string, any[]>();
+    const styler = (params: { highlightState: string }) => {
+        byState.set(params.highlightState, [...(byState.get(params.highlightState) ?? []), params]);
+        return {};
+    };
+    return { byState, styler };
+}
+
+/** Asserts that the styler was called in `state`, and that every one of those calls had params matching `expected`. */
+export function expectParamsInState(byState: Map<string, any[]>, state: string, expected: object) {
+    const calls = byState.get(state) ?? [];
+    expect(calls.length).toBeGreaterThan(0);
+    for (const params of calls) expect(params).toMatchObject(expected);
+}
+
 /** What a glow with no fields of its own casts, from the glow theme defaults. */
 export const THEME_GLOW = { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 };
 
