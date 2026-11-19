@@ -33,7 +33,8 @@ export class ExtendedPath2D {
     private paramsLength: number = 0;
 
     // The end segments (from x, y, to x, y) of the open runs of lines, found once per build of the path.
-    private readonly openEnds: number[] = [];
+    // Only a path that has a gapped butt-end cut drawn allocates it.
+    private openEnds?: number[];
     private openEndsLength = 0;
     // The commands length the ends were found at, or -1 while they are stale. Commands are only ever appended between clears.
     private openEndsAt = -1;
@@ -472,6 +473,8 @@ export class ExtendedPath2D {
         if (this.openEndsAt !== this.commandsLength) this.findOpenLineEnds();
 
         const { openEnds, openEndsLength } = this;
+        if (openEnds == null) return;
+
         let began = false;
         for (let i = 0; i < openEndsLength; i += 4) {
             began = extendLineEnd(ctx, openEnds[i], openEnds[i + 1], openEnds[i + 2], openEnds[i + 3], reach, began);
@@ -480,7 +483,8 @@ export class ExtendedPath2D {
     }
 
     private findOpenLineEnds() {
-        const { commands, params, commandsLength, openEnds } = this;
+        const { commands, params, commandsLength } = this;
+        const openEnds = (this.openEnds ??= []);
         let n = 0;
         // The first and last segments of the subpath being read, and whether it is still a plain open run of lines.
         let x0 = 0;
