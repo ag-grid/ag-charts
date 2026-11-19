@@ -3644,6 +3644,28 @@ describe('CrossLine label fitting', () => {
 
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
         });
+
+        it('renders oblique labels with explicit bounds past their bands', async () => {
+            const oblique = (
+                range: [number, number],
+                label: AgCartesianCrossLineLabelOptions
+            ): AgCartesianCrossLineOptions =>
+                rangeWith({ placement: 'inside', rotation: 45, fill: 'lightyellow', ...label }, range);
+            const xCrossLines = [
+                oblique([0.5, 1.5], {}),
+                oblique([3, 4], { maxWidth: 200 }),
+                oblique([5.5, 6.5], { maxHeight: 60 }),
+                oblique([8, 9], { maxWidth: 150, maxHeight: 40 }),
+            ];
+            const yCrossLines = [oblique([8.5, 9.8], { rotation: -20, maxWidth: 300 })];
+            chart = deproxy(
+                await createChart(
+                    fitChart(xCrossLines[0], 'x', { x: { crossLines: xCrossLines }, y: { crossLines: yCrossLines } })
+                )
+            );
+
+            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
     });
 
     it.each(['number', 'log', 'category', 'time', 'unit-time', 'grouped-category'] as const)(
