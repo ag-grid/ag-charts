@@ -22,7 +22,7 @@ export function isFullSweep(startAngle: number, endAngle: number) {
  * plus half the gap where the edge faces a neighbouring shape.
  */
 export function sectorEdgeInset(gap: number, strokeInset: number, facesNeighbour: boolean) {
-    return strokeInset + (facesNeighbour ? gap / 2 : 0);
+    return Math.max(strokeInset + (facesNeighbour ? gap / 2 : 0), 0);
 }
 
 /**
