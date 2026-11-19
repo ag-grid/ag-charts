@@ -79,6 +79,75 @@ function locations(): Location[] {
     ];
 }
 
+/** A chart whose navigator mini chart draws `mini`, which sets its own series options rather than the main series'. */
+const withMiniChart = (mini: object, main: object = { type: 'bar', xKey: 'x', yKey: 'y' }): object => ({
+    data: DATA,
+    series: [main],
+    navigator: { enabled: true, miniChart: { enabled: true, series: [mini] } },
+});
+
+/** The same dash name at each location that a mini-chart series of each type takes it. */
+function miniChartLocations(): Location[] {
+    const set = (path: string): object => path.split('.').reduceRight<any>((inner, key) => ({ [key]: inner }), 'dash');
+
+    const xy = { xKey: 'x', yKey: 'y' };
+    const range = { xKey: 'x', yLowKey: 'y', yHighKey: 'y' };
+    const ohlc = { xKey: 'x', openKey: 'y', highKey: 'y', lowKey: 'y', closeKey: 'y' };
+    const hlc = { xKey: 'x', highKey: 'y', lowKey: 'y', closeKey: 'y' };
+    const markers = (...items: string[]) => items.map((item) => `${item}.marker.lineDash`);
+
+    const types: Array<[type: string, keys: object, paths: string[]]> = [
+        ['line', xy, ['lineDash', 'marker.lineDash']],
+        ['area', xy, ['lineDash', 'marker.lineDash']],
+        ['bar', xy, ['lineDash']],
+        ['scatter', xy, ['lineDash']],
+        ['bubble', { ...xy, sizeKey: 'y' }, ['lineDash']],
+        ['histogram', { xKey: 'x' }, ['lineDash']],
+        ['waterfall', xy, ['item.positive.lineDash', 'item.negative.lineDash', 'item.total.lineDash', 'line.lineDash']],
+        ['range-bar', range, ['lineDash']],
+        [
+            'range-area',
+            range,
+            [
+                'lineDash',
+                'marker.lineDash',
+                'item.low.lineDash',
+                'item.high.lineDash',
+                ...markers('item.low', 'item.high'),
+            ],
+        ],
+        [
+            'candlestick',
+            ohlc,
+            ['item.up.lineDash', 'item.down.lineDash', 'item.up.wick.lineDash', 'item.down.wick.lineDash'],
+        ],
+        ['ohlc', ohlc, ['item.up.lineDash', 'item.down.lineDash']],
+        [
+            'hlc',
+            hlc,
+            [
+                'marker.lineDash',
+                'item.high.lineDash',
+                'item.low.lineDash',
+                'item.close.lineDash',
+                ...markers('item.high', 'item.low', 'item.close'),
+            ],
+        ],
+    ];
+
+    return types.flatMap(([type, keys, paths]) =>
+        paths.map((path): Location => {
+            const mini = { type, ...keys, ...set(path) };
+            // The same type, so that the mini chart series copies nothing that its type does not take.
+            return [
+                `mini chart ${type} ${path}`,
+                withMiniChart(mini, { type, ...keys }),
+                `navigator.miniChart.series[0].${path}`,
+            ];
+        })
+    );
+}
+
 /** `dash` is `[3, 2]` in multiples of the stroke width, whatever the width resolves to. */
 function expectDash(dash: unknown) {
     expect(dash).toBeInstanceOf(Array);
@@ -96,8 +165,33 @@ describe('named line dash patterns in enterprise options', () => {
         chart = undefined;
     });
 
-    it.each(locations())('resolves a stock dash name on %s to its array', (_, options, path) => {
-        expectDash(optionAt(prepareProcessedOptions(options).processedOptions, path));
+    it.each([...locations(), ...miniChartLocations()])(
+        'resolves a stock dash name on %s to its array',
+        (_, options, path) => {
+            expectDash(optionAt(prepareProcessedOptions(options).processedOptions, path));
+        }
+    );
+
+    describe('mini chart series', () => {
+        const dashAt = (options: object) =>
+            optionAt(prepareProcessedOptions(options).processedOptions, 'navigator.miniChart.series[0].lineDash');
+
+        it('scales a stock dash name by the width of the mini chart series', () => {
+            const main = { type: 'line', xKey: 'x', yKey: 'y' };
+            const mini = { ...main, lineDash: 'dash' };
+
+            expect(dashAt(withMiniChart({ ...mini, strokeWidth: 4 }, main))).toEqual([12, 8]);
+            expect(dashAt(withMiniChart({ ...mini, strokeWidth: 1 }, main))).toEqual([3, 2]);
+        });
+
+        it('leaves an array in pixels, and follows the main series when it sets none', () => {
+            const mini = { type: 'bar', xKey: 'x', yKey: 'y' };
+            const main = { type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 2, lineDash: 'dash' };
+            const withMain = (miniOptions: object) => ({ ...withMiniChart(miniOptions), series: [main] });
+
+            expect(dashAt(withMain({ ...mini, strokeWidth: 4, lineDash: [5, 5] }))).toEqual([5, 5]);
+            expect(dashAt(withMain(mini))).toEqual([6, 4]);
+        });
     });
 
     // Gauge presets expand into a series only when the chart is created.
@@ -130,6 +224,42 @@ describe('named line dash patterns in enterprise options', () => {
                     },
                 },
             ],
+        } as never);
+        await compareImageSnapshot(chart, ctx);
+    });
+
+    it('renders stock dash names on mini chart series', async () => {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        chart = await createEnterpriseChart({
+            width: 600,
+            height: 300,
+            data: months.map((month, i) => ({ month, y: 20 + i * 5, z: 45 - i * 4 })),
+            series: [{ type: 'line', xKey: 'month', yKey: 'y' }],
+            navigator: {
+                enabled: true,
+                height: 80,
+                miniChart: {
+                    enabled: true,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'month',
+                            yKey: 'y',
+                            strokeWidth: 3,
+                            lineDash: 'dash',
+                            marker: { enabled: true, size: 8, strokeWidth: 2, lineDash: 'dot' },
+                        },
+                        {
+                            type: 'line',
+                            xKey: 'month',
+                            yKey: 'z',
+                            strokeWidth: 3,
+                            lineDash: 'dot',
+                            marker: { enabled: false },
+                        },
+                    ],
+                },
+            },
         } as never);
         await compareImageSnapshot(chart, ctx);
     });

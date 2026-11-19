@@ -4,7 +4,13 @@ import {
     type AgNavigatorOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth, themeLineHeight } from 'ag-charts-core';
+import {
+    FONT_SIZE_RATIO,
+    lineDashThemeDefault,
+    themeBorderColor,
+    themeBorderWidth,
+    themeLineHeight,
+} from 'ag-charts-core';
 
 import {
     barIgnoredMiniChartProperties,
@@ -62,6 +68,55 @@ function omitInheritedShadow(ignoredProperties: readonly string[]) {
     return [...ignoredProperties, 'shadow', 'glow'];
 }
 
+/**
+ * Where each mini-chart series type takes a `lineDash`, as paths from the series (`''` is the series' own). The main
+ * series theme is copied over as a whole, so these locations hold no `$applyLineDash` default of their own: without one
+ * a name is left unresolved or, where the copy supplies an array, dropped.
+ */
+const miniChartLineDashLocations: Record<string, string[]> = {
+    line: ['', 'marker'],
+    area: ['', 'marker'],
+    bar: [''],
+    scatter: [''],
+    bubble: [''],
+    histogram: [''],
+    waterfall: ['item.positive', 'item.negative', 'item.total', 'line'],
+    'range-bar': [''],
+    'range-area': ['', 'marker', 'item.low', 'item.high', 'item.low.marker', 'item.high.marker'],
+    candlestick: ['item.up', 'item.down', 'item.up.wick', 'item.down.wick'],
+    ohlc: ['item.up', 'item.down'],
+    hlc: ['marker', 'item.high', 'item.low', 'item.close', 'item.high.marker', 'item.low.marker', 'item.close.marker'],
+};
+
+// A wick scales by its own width, else its item's, as in the main series theme.
+const WICK_STROKE_WIDTH: Parameters<typeof lineDashThemeDefault>[1] = {
+    $path: ['./strokeWidth', { $path: '../strokeWidth' }],
+};
+
+// A mini-chart line or area takes no dash from the main series (the price volume preset maps an area to a line).
+const MINI_CHART_TYPES_WITHOUT_MAIN_DASH = new Set(['line', 'area']);
+
+/**
+ * The `lineDash` defaults of a mini-chart series type, each with the main series' value as its default, so a name
+ * resolves by the width of the mini-chart series and an unset option still follows the main series.
+ */
+function miniChartLineDashTheme(type: string, locations: string[]) {
+    const theme: Record<string, any> = {};
+    for (const location of locations) {
+        const keys = location === '' ? [] : location.split('.');
+        const inherited =
+            location === '' && MINI_CHART_TYPES_WITHOUT_MAIN_DASH.has(type)
+                ? undefined
+                : { $path: `/series/$index/${[...keys, 'lineDash'].join('/')}` };
+        const strokeWidth = keys.at(-1) === 'wick' ? WICK_STROKE_WIDTH : undefined;
+
+        let node = theme;
+        for (const key of keys) node = node[key] ??= {};
+        node.lineDash = lineDashThemeDefault(inherited, strokeWidth);
+    }
+    return theme;
+}
+
 const miniChartMarkerTheme = {
     // `$omit` only drops top-level keys and the first grafted value for a key wins, so the nested marker shadow and
     // glow are switched off here rather than alongside the omit.
@@ -72,9 +127,24 @@ const miniChartMarkerTheme = {
     },
 };
 
-function miniChartSeriesTheme(seriesPath: object, typePath: object) {
+/** `resolveLineDash` is for the series that the user sets here, as the main series that the others copy resolved its names. */
+function miniChartSeriesTheme(seriesPath: object, typePath: object, resolveLineDash = false) {
     return {
         $merge: [
+            ...(resolveLineDash
+                ? [
+                      {
+                          $applySwitch: [
+                              typePath,
+                              {},
+                              ...Object.keys(miniChartLineDashLocations).map((type) => [
+                                  type,
+                                  miniChartLineDashTheme(type, miniChartLineDashLocations[type]),
+                              ]),
+                          ],
+                      },
+                  ]
+                : []),
             {
                 $switch: [
                     typePath,
@@ -192,7 +262,8 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
                             '/navigator/miniChart/series/$index/type',
                             { $path: ['type', { $path: '/series/$index/type' }] },
                         ],
-                    }
+                    },
+                    true
                 ),
                 {
                     // TODO: this should be a $switch but switches can not resolve the case value yet
