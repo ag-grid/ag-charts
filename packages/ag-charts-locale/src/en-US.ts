@@ -39,6 +39,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaDescriptionToggleNode: 'Press Space or Enter to expand or collapse this node',
     // Screen reader description for legend items
     ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
+    // Screen reader description for an annotation while the arrow keys move it
+    ariaDescriptionMoveAnnotation: 'Use the arrow keys to move the annotation, hold Shift for larger steps, and press Escape when done',
     // Screen reader for the '+' horizontal line button on the Y-axis
     ariaLabelAddHorizontalLine: 'Add Horizontal Line',
     // Screen reader text for annotations toolbar
@@ -47,6 +49,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
     // Screen reader text for annotation-settings dialog
     ariaLabelAnnotationSettingsDialog: 'Annotation Settings',
+    // Screen reader text for the list of annotations that the keyboard can select
+    ariaLabelAnnotationsList: 'Annotations',
+    // Screen reader text for an annotation in the list of annotations, such as '20.2, Horizontal Line annotation'
+    ariaLabelAnnotation: '${description}, ${type} annotation',
+    // Screen reader text for the position of an annotation between two points
+    ariaLabelAnnotationRange: '${start} to ${end}',
     // Screen reader text for the color-code label in the picker dialog
     ariaLabelColor: 'Color',
     // Screen reader text for the color picker dialog
@@ -237,6 +245,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsDelete: 'Delete',
     // Text for the annotation toolbar's drag handle
     toolbarAnnotationsDragHandle: 'Drag Toolbar',
+    // Text for the annotation toolbar's move annotation button, which only shows when it is opened with the keyboard
+    toolbarAnnotationsMove: 'Move Annotation',
     // Text for the annotation toolbar's line drawings menu button
     toolbarAnnotationsLineAnnotations: 'Trend Lines',
     // Text for the annotation toolbar's Fibonacci drawings menu button
