@@ -69,8 +69,8 @@ export function getShapeFill(
         } else if (
             pattern === 'waves' ||
             pattern === 'hollow-circles' ||
-            pattern === 'criss-cross' ||
-            pattern === 'zig-zag' ||
+            pattern === 'crosshatch' ||
+            pattern === 'zigzag' ||
             pattern === 'horizontal-dashed-lines' ||
             pattern === 'vertical-dashed-lines'
         ) {
