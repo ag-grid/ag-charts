@@ -55,9 +55,6 @@ const options: AgCartesianChartOptions = {
     gradientLegend: {
         enabled: true,
         position: 'right',
-        gradient: {
-            preferredLength: 200,
-        },
     },
     legend: {
         enabled: false,

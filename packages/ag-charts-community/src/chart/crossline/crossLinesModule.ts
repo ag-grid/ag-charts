@@ -1,5 +1,6 @@
 import {
     type AxisPluginModuleDefinition,
+    CARTESIAN_CROSS_LINE_LABEL_DEFAULTS,
     type DynamicContext,
     crossLineListenerContributions,
     crossLinesContribution,
@@ -30,17 +31,20 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
         /* #__PURE__ */ crossLinesContribution(
             ['category', 'grouped-category'],
             defined,
-            cartesianCrossLineLabelOptionsDefs
+            cartesianCrossLineLabelOptionsDefs,
+            CARTESIAN_CROSS_LINE_LABEL_DEFAULTS
         ),
         /* #__PURE__ */ crossLinesContribution(
             ['number', 'inset-number', 'log'],
             numericValue,
-            cartesianCrossLineLabelOptionsDefs
+            cartesianCrossLineLabelOptionsDefs,
+            CARTESIAN_CROSS_LINE_LABEL_DEFAULTS
         ),
         /* #__PURE__ */ crossLinesContribution(
             ['time', 'unit-time', 'ordinal-time'],
             /* #__PURE__ */ or(numericValue, date),
-            cartesianCrossLineLabelOptionsDefs
+            cartesianCrossLineLabelOptionsDefs,
+            CARTESIAN_CROSS_LINE_LABEL_DEFAULTS
         ),
         ...crossLineListenerContributions,
     ],

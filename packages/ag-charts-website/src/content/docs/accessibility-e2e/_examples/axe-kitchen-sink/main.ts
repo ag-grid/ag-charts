@@ -96,8 +96,8 @@ const options: AgCartesianChartOptions<DataType> = {
     initialState: {
         annotations: [
             { type: 'line', start: { x: 'Jan', y: 36 }, end: { x: 'Dec', y: 58 } },
-            { type: 'horizontal-line', value: 50, lineStyle: 'dotted' },
-            { type: 'vertical-line', value: 'Sep', lineStyle: 'dotted' },
+            { type: 'horizontal-line', value: 50, lineDash: 'dot' },
+            { type: 'vertical-line', value: 'Sep', lineDash: 'dot' },
             {
                 type: 'parallel-channel',
                 height: 8,

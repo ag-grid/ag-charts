@@ -578,9 +578,21 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
     private readonly resolveSeriesOnlyTileGlow = () => this.options.tile.glow;
 
-    /** A group casts no glow with its highlight off, unless the series or an item styler sets one. */
-    private castsNoGroupGlow(itemGlow: AgGlowOptions | undefined) {
-        return !this.options.group.highlight.enabled && itemGlow == null && this.options.group.glow?.enabled !== true;
+    /**
+     * A group casts no glow with its highlight off, and a tile with no highlight glow casts none without a series-level
+     * one, unless an item styler sets one.
+     */
+    private castsNoGlow(slot: number, itemGlow: AgGlowOptions | undefined) {
+        if (itemGlow != null) return false;
+
+        switch (slot) {
+            case GROUP_SLOT:
+                return !this.options.group.highlight.enabled && this.options.group.glow?.enabled !== true;
+            case SERIES_ONLY_TILE_SLOT:
+                return this.options.tile.glow?.enabled !== true;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -633,9 +645,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         highlightedNode: TreemapNode | undefined,
         itemGlow?: AgGlowOptions
     ) {
-        if (!isLeaf && this.castsNoGroupGlow(itemGlow)) return;
-
         const slot = this.getGlowSlot(isLeaf, highlightedNode);
+        if (this.castsNoGlow(slot, itemGlow)) return;
+
         const state = this.getGlowState(slot, node, isHighlight, highlightedNode);
         return this.getHierarchyGlow(slot, state, this.getGlowResolver(slot), itemGlow);
     }
@@ -647,9 +659,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         isHighlight: boolean,
         highlightedNode: TreemapNode | undefined
     ) {
-        if (!isLeaf && this.castsNoGroupGlow(undefined)) return;
-
         const slot = this.getGlowSlot(isLeaf, highlightedNode);
+        if (this.castsNoGlow(slot, undefined)) return;
+
         const state = this.getGlowState(slot, node, isHighlight, highlightedNode);
         return this.getHierarchyStylerGlow(slot, state, this.getGlowResolver(slot));
     }

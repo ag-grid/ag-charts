@@ -134,6 +134,8 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
 
     private updateRangeStrokes(datum: Datum) {
         const { lineDashOffset, strokeWidth, strokeOpacity, strokes, rangeStroke, isMultiColor } = datum;
+        const lineCap = getLineCap(datum);
+        const lineDash = getLineDash(datum);
 
         this.rangeStrokesGroupSelection.each((line, { x1, x2, y2, tag }, index) => {
             const y = y2;
@@ -146,8 +148,8 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
                 stroke: color,
                 strokeOpacity,
                 strokeWidth,
-                lineCap: getLineCap(datum),
-                lineDash: getLineDash(datum),
+                lineCap,
+                lineDash,
                 lineDashOffset,
                 tag,
             });
@@ -175,6 +177,8 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
             showFill,
             isMultiColor,
         } = datum;
+        const lineCap = getLineCap(datum);
+        const lineDash = getLineDash(datum);
 
         this.rangeFillsGroupSelection.each((range, { x1, x2, y1, y2 }, index) => {
             const color = isMultiColor ? colors[index % colors.length] : rangeStroke;
@@ -194,8 +198,8 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
                 fill: color,
                 fillOpacity: (strokeOpacity ?? 1) * 0.15,
                 strokeWidth,
-                lineCap: getLineCap(datum),
-                lineDash: getLineDash(datum),
+                lineCap,
+                lineDash,
                 lineDashOffset,
                 visible: true,
             });

@@ -39,9 +39,6 @@ const options: AgCartesianChartOptions = {
     ],
     gradientLegend: {
         enabled: true,
-        gradient: {
-            preferredLength: 200,
-        },
     },
     legend: {
         enabled: false,

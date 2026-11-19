@@ -9,6 +9,7 @@ import {
     fitLabelTextAutoSize,
     fontWithSize,
     labelTextAtShrinkRatio,
+    turnedBoundsHolding,
     wrapTextOrSegments,
 } from './textWrapper';
 
@@ -355,6 +356,15 @@ describe('fitLabelTextAutoSize turned', () => {
                 expect(extent.width).toBeLessThanOrEqual(60 + 1e-6);
                 expect(extent.height).toBeLessThanOrEqual(45 + 1e-6);
             }
+        }
+    });
+
+    it('fits a box into bounds grown to hold it, at every angle', () => {
+        // 'a…' is 20 x 15, and nothing longer fits bounds that had no room of their own.
+        for (let rotation = 0; rotation <= 180; rotation++) {
+            const rotated = turnedBoundsHolding({ rotation, width: 0, height: 0 }, 20, 15);
+            const fit = { wrapping: 'never', overflowStrategy: 'ellipsis', rotated } as const;
+            expect(fitLabelTextAutoSize('abcdef', fit, small).text, `at ${rotation}°`).toBe('a…');
         }
     });
 

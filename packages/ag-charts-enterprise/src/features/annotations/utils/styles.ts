@@ -15,7 +15,6 @@ import type {
     MeasurerDatumType,
 } from '../annotationsSuperTypes';
 import { hasBackground, hasFillField, hasIconColor, hasLineText, hasStroke } from './has';
-import { getLineStyle } from './line';
 import { isChannelType, isCrossLineType, isFibonacciType, isTextType } from './types';
 
 export function setFontSize(datum: AnnotationDatum, fontSize: number) {
@@ -33,13 +32,10 @@ export function setLineStyle(
     datum: Exclude<LineDatumType | ChannelDatumType | MeasurerDatumType, EphemeralDatumType>,
     style?: AnnotationLineStyle
 ) {
-    const lineType = style?.type ?? datum.lineStyle;
-
     datum.strokeWidth = style?.strokeWidth ?? datum.strokeWidth ?? 1;
-    datum.lineStyle = lineType ?? getLineStyle(datum.lineDash, lineType);
 
-    // An explicit style choice replaces any custom dash pattern.
-    if (style?.type != null) datum.lineDash = undefined;
+    // An explicit style choice replaces any other dash pattern.
+    if (style?.lineDash != null) datum.lineDash = style.lineDash;
 }
 
 export function setLineTextPosition(
