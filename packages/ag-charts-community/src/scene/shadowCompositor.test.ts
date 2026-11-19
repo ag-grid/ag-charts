@@ -7,6 +7,7 @@ import {
     Path,
     RadialColumnShape,
     Rect,
+    SHADOW_SHRINK_AFTER,
     Scalable,
     Scene,
     SegmentedGroup,
@@ -1804,6 +1805,107 @@ describe('Group shadow compositor', () => {
             first.destroy();
 
             expect(inUse(scratches)).toHaveLength(1);
+        });
+
+        describe('shrinking', () => {
+            const LARGE = new OffscreenCanvas(1000, 800);
+            // Two sizes, as a cast that repeats unchanged blits its kept shadows without a scratch canvas.
+            const SMALL = [new OffscreenCanvas(200, 100), new OffscreenCanvas(210, 100)];
+
+            const scratchGroup = () => createGroup([shadowed(10, 10), shadowed(10, 60)]);
+            const gapGroup = () => createGroup([box(60, 40, 40, 40, { fill: 'blue', fillGlow: GAPPED_GLOW })]);
+
+            const area = ({ width, height }: OffscreenCanvas) => width * height;
+
+            const layerPixels = (layer: OffscreenCanvas) =>
+                Array.from(
+                    (layer.getContext('2d')! as unknown as CanvasRenderingContext2D).getImageData(
+                        0,
+                        0,
+                        layer.width,
+                        layer.height
+                    ).data
+                );
+
+            const castSmall = (group: Group, times: number) => {
+                for (let i = 0; i < times; i++) drawOnLayer(group, SMALL[i % SMALL.length]);
+            };
+
+            // The canvases still in use since `before`, largest first.
+            const live = (before: Set<OffscreenCanvas>) =>
+                inUse(createdSince(before)).sort((a, b) => area(b) - area(a));
+
+            it.each([
+                ['scratch', scratchGroup],
+                ['gap', gapGroup],
+            ])('should shrink the %s canvas after small casts follow a large one', (_name, make) => {
+                const group = make();
+                const before = offscreenCanvases();
+
+                drawOnLayer(group, LARGE);
+                const [largest] = live(before);
+                const largeArea = area(largest);
+
+                castSmall(group, SHADOW_SHRINK_AFTER - 1);
+                expect(area(largest)).toBe(largeArea);
+
+                castSmall(group, 1);
+
+                expect(area(largest)).toBe(0);
+                const [shrunk] = live(before);
+                expect(area(shrunk)).toBeGreaterThan(0);
+                expect(area(shrunk) * 4).toBeLessThanOrEqual(largeArea);
+            });
+
+            it.each([
+                ['scratch', scratchGroup],
+                ['gap', gapGroup],
+            ])('should keep the %s canvas when a large cast interrupts the small ones', (_name, make) => {
+                const group = make();
+                const before = offscreenCanvases();
+
+                drawOnLayer(group, LARGE);
+                const [largest] = live(before);
+                const largeArea = area(largest);
+
+                for (let i = 0; i < 3; i++) {
+                    castSmall(group, SHADOW_SHRINK_AFTER - 1);
+                    drawOnLayer(group, LARGE);
+                }
+
+                expect(area(largest)).toBe(largeArea);
+            });
+
+            it.each([
+                ['scratch', scratchGroup],
+                ['gap', gapGroup],
+            ])('should not shrink the %s canvas for casts of more than a quarter of it', (_name, make) => {
+                const group = make();
+                const half = new OffscreenCanvas(800, 600);
+                const halfWider = new OffscreenCanvas(810, 600);
+                const before = offscreenCanvases();
+
+                drawOnLayer(group, LARGE);
+                const [largest] = live(before);
+
+                for (let i = 0; i < SHADOW_SHRINK_AFTER * 2; i++) drawOnLayer(group, i % 2 === 0 ? half : halfWider);
+
+                expect(area(largest)).toBeGreaterThan(0);
+            });
+
+            it('should cast the same pixels from a canvas that has shrunk', () => {
+                const group = gapGroup();
+                const layer = new OffscreenCanvas(WIDTH, HEIGHT);
+                drawOnLayer(group, layer);
+                const expected = layerPixels(layer);
+
+                drawOnLayer(group, LARGE);
+                castSmall(group, SHADOW_SHRINK_AFTER);
+                const again = new OffscreenCanvas(WIDTH, HEIGHT);
+                drawOnLayer(group, again);
+
+                expect(layerPixels(again)).toEqual(expected);
+            });
         });
     });
     describe('shadow cache', () => {

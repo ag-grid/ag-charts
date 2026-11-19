@@ -32,6 +32,9 @@ const MAX_MASK_PAD = 4096;
 /** The most pixels that the mask has: a canvas larger than this is more than iOS Safari can allocate (4096 x 4096). */
 const MAX_MASK_AREA = 4096 * 4096;
 
+/** How many casts in a row that need at most a quarter of a canvas's pixels it keeps its size for. A larger cast restarts the count. */
+export const SHADOW_SHRINK_AFTER = 30;
+
 /** How many casts of one user keep their shadows between redraws. Further casts of it blur every time. */
 const MAX_CACHED_CASTS = 4;
 
@@ -198,7 +201,11 @@ interface ScratchPool {
     cutCanvas: SpreadCanvas | undefined;
     /** The pixels of the canvases that the scene's caches hold. */
     cachedArea: number;
+    /** For each canvas, the casts in a row that needed at most a quarter of its pixels, see {@link SHADOW_SHRINK_AFTER}. */
+    readonly smallCasts: Record<PoolCanvas, number>;
 }
+
+type PoolCanvas = 'scratch' | 'gapCanvas' | 'cutCanvas';
 
 /** The scratch canvases of scenes, so that the groups of one chart share one. Groups outside a scene share another. */
 const pools = new WeakMap<object, ScratchPool>();
@@ -208,7 +215,14 @@ function getPool(scene: object | undefined): ScratchPool {
     const key = scene ?? DETACHED;
     let pool = pools.get(key);
     if (pool == null) {
-        pool = { users: new Set(), scratch: undefined, gapCanvas: undefined, cutCanvas: undefined, cachedArea: 0 };
+        pool = {
+            users: new Set(),
+            scratch: undefined,
+            gapCanvas: undefined,
+            cutCanvas: undefined,
+            cachedArea: 0,
+            smallCasts: { scratch: 0, gapCanvas: 0, cutCanvas: 0 },
+        };
         pools.set(key, pool);
     }
     return pool;
@@ -216,6 +230,7 @@ function getPool(scene: object | undefined): ScratchPool {
 
 function freeScratch(pool: ScratchPool) {
     const { scratch, gapCanvas, cutCanvas } = pool;
+    pool.smallCasts.scratch = pool.smallCasts.gapCanvas = pool.smallCasts.cutCanvas = 0;
     if (gapCanvas != null) {
         disposeCanvas(gapCanvas.canvas);
         pool.gapCanvas = undefined;
@@ -231,14 +246,36 @@ function freeScratch(pool: ScratchPool) {
     pool.scratch = undefined;
 }
 
-/** The scene's canvas that a glow's `gap` is cut out of, which holds one key's glow at a time. It only grows. */
+/** The scene's canvas that a glow's `gap` is cut out of, which holds one key's glow at a time. */
 function acquireGapCanvas(scene: object | undefined, width: number, height: number): SpreadCanvas | undefined {
     return acquireGrowingCanvas(getPool(scene), 'gapCanvas', width, height);
 }
 
-/** The scene's canvas that an overlay key's glow is cut on by its own `gap`, before it merges with the rest. It only grows. */
+/** The scene's canvas that an overlay key's glow is cut on by its own `gap`, before it merges with the rest. */
 function acquireOwnCutCanvas(scene: object | undefined, width: number, height: number): SpreadCanvas | undefined {
     return acquireGrowingCanvas(getPool(scene), 'cutCanvas', width, height);
+}
+
+/** Whether a canvas is too small for a cast, or has been much too large for {@link SHADOW_SHRINK_AFTER} casts in a row. */
+function needsResize(pool: ScratchPool, field: PoolCanvas, canvas: OffscreenCanvas, width: number, height: number) {
+    if (canvas.width < width || canvas.height < height) return true;
+
+    if (width * height * 4 > canvas.width * canvas.height) {
+        pool.smallCasts[field] = 0;
+        return false;
+    }
+    return ++pool.smallCasts[field] >= SHADOW_SHRINK_AFTER;
+}
+
+/** The size to reallocate a canvas at: the cast's if it shrinks, else the largest width and height seen, within what a canvas can be. */
+function resizedTo(canvas: OffscreenCanvas, width: number, height: number) {
+    if (canvas.width >= width && canvas.height >= height) return { width, height };
+
+    const canvasWidth = Math.max(width, canvas.width);
+    const canvasHeight = Math.max(height, canvas.height);
+    return canvasWidth * canvasHeight > MAX_MASK_AREA
+        ? { width, height }
+        : { width: canvasWidth, height: canvasHeight };
 }
 
 function acquireGrowingCanvas(
@@ -248,24 +285,19 @@ function acquireGrowingCanvas(
     height: number
 ): SpreadCanvas | undefined {
     let canvas = pool[field];
-    if (canvas == null || canvas.canvas.width < width || canvas.canvas.height < height) {
-        const largestWidth = canvas?.canvas.width ?? 0;
-        const largestHeight = canvas?.canvas.height ?? 0;
+    if (canvas == null || needsResize(pool, field, canvas.canvas, width, height)) {
+        // Read the size first, because freeing the canvas resizes it to 0 x 0.
+        const size = canvas == null ? { width, height } : resizedTo(canvas.canvas, width, height);
         if (canvas != null) disposeCanvas(canvas.canvas);
 
-        let canvasWidth = Math.max(width, largestWidth);
-        let canvasHeight = Math.max(height, largestHeight);
-        if (canvasWidth * canvasHeight > MAX_MASK_AREA) {
-            canvasWidth = width;
-            canvasHeight = height;
-        }
-        canvas = allocateCanvas(canvasWidth, canvasHeight);
+        pool.smallCasts[field] = 0;
+        canvas = allocateCanvas(size.width, size.height);
         pool[field] = canvas;
     }
     return canvas;
 }
 
-/** The scene's one scratch canvas for masks, shared because render passes run one after another. It only grows. */
+/** The scene's one scratch canvas for masks, shared because render passes run one after another. */
 function acquireShadowScratch(
     scene: object | undefined,
     user: object,
@@ -276,20 +308,19 @@ function acquireShadowScratch(
     pool.users.add(user);
 
     let { scratch } = pool;
-    if (scratch == null || scratch.canvas.width < width || scratch.canvas.height < height) {
-        // Read the size first, because freeing the canvas resizes it to 0 x 0.
-        const largestWidth = scratch?.canvas.width ?? 0;
-        const largestHeight = scratch?.canvas.height ?? 0;
-        freeScratch(pool);
-
-        // The canvas only grows, but not past what a canvas can be, whatever the sizes that it grew to.
-        let canvasWidth = Math.max(width, largestWidth);
-        let canvasHeight = Math.max(height, largestHeight);
-        if (canvasWidth * canvasHeight > MAX_MASK_AREA) {
-            canvasWidth = width;
-            canvasHeight = height;
+    if (scratch == null || needsResize(pool, 'scratch', scratch.canvas, width, height)) {
+        if (scratch == null || scratch.canvas.width < width || scratch.canvas.height < height) {
+            // Growing replaces every canvas of the pool, as it always has.
+            const size = scratch == null ? { width, height } : resizedTo(scratch.canvas, width, height);
+            freeScratch(pool);
+            scratch = allocateCanvas(size.width, size.height);
+        } else {
+            // Shrinking leaves the other canvases, which count their own casts.
+            releaseSpreadCanvas(scratch.context);
+            disposeCanvas(scratch.canvas);
+            pool.smallCasts.scratch = 0;
+            scratch = allocateCanvas(width, height);
         }
-        scratch = allocateCanvas(canvasWidth, canvasHeight);
         pool.scratch = scratch;
     }
     return scratch;
