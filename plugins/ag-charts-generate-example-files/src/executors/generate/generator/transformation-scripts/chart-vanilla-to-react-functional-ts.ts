@@ -39,10 +39,7 @@ function needsWrappingInFragment(bindings: any) {
     );
 }
 
-/**
- * The component's `options` prop is a plain `AgChartOptions`, which the options of a chart typed with generic
- * arguments (`AgCartesianChartOptions<TDatum, TContext>`) or an intersection are not assignable to.
- */
+// The component's `options` prop is a plain `AgChartOptions`, which generic or intersection option types are not assignable to.
 function needsOptionsCast(property: any): boolean {
     return /[<&]/.test(property.typeInfo?.typeStr ?? '');
 }

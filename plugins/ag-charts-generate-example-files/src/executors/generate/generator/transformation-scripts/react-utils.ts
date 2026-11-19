@@ -21,15 +21,10 @@ export function convertStyles(code: string) {
     });
 }
 
-/**
- * React needs boolean attributes as JSX expressions, and uncontrolled inputs to use the default*
- * props. Runs before event conversion, while the tag is still plain HTML — once a handler becomes
- * an arrow function its `>` breaks any regex that relies on `[^>]` to stay inside the tag.
- */
-// An opening tag up to a given attribute, stepping over whole attributes so that the word appearing inside
-// another attribute's value (`placeholder="a disabled input"`) is not mistaken for the attribute.
+// Steps over whole attributes, so a word inside an attribute value (`placeholder="a disabled input"`) is not matched.
 const attributesBefore = (tag: string) => `(<${tag}(?:\\s+[\\w:-]+(?:="[^"]*"|='[^']*')?)*?\\s+)`;
 
+/** Boolean attributes become JSX expressions and uncontrolled inputs use default* props. */
 function convertBooleanAttributes(template: string) {
     return template
         .replace(new RegExp(`${attributesBefore('input')}checked(?:="[^"]*")?(?=[\\s/>])`, 'g'), '$1defaultChecked')
@@ -70,11 +65,7 @@ export function convertTemplate(template: string) {
     return convertStyles(template);
 }
 
-/**
- * A handler's arguments come from the HTML attribute, so are untyped there: `event.target.value` is a
- * `string` even where the handler declares a union of literals. Assert each such argument to the type
- * the handler declares.
- */
+// Handler arguments are untyped HTML attributes, so assert each to the type the handler declares.
 function typeHandlerArgs(handler: string, args: string): string {
     return (
         args

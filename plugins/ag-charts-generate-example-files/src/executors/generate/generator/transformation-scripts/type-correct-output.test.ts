@@ -1,8 +1,4 @@
-/**
- * Generated framework variants must type-check with `strict` as users receive them (see the
- * `validate-generated-examples` target). Each case here is the smallest input that once produced a variant
- * that did not, and asserts what the variant has to contain for it to compile.
- */
+// The smallest input that once produced a variant that fails `strict`, and what the variant must contain to compile.
 import parser from './chart-vanilla-src-parser';
 import { vanillaToAngular } from './chart-vanilla-to-angular';
 import { vanillaToReactFunctionalTs } from './chart-vanilla-to-react-functional-ts';

@@ -1,23 +1,5 @@
 /* eslint-disable no-console */
-/**
- * Type-checks the framework variants of every docs and gallery example as users receive them: the
- * TypeScript, React TS, Angular and Vue 3 projects that the example generator writes to
- * `dist/generated-examples`, and that the code viewer, Plunker and CodeSandbox serve.
- *
- * Each variant's `contents.json` is written out the way the exports write it (harness code
- * stripped, boilerplate files added) into a scratch tree under the workspace `dist/`, so
- * `node_modules` resolves, and one `tsc` runs per framework over the whole tree. The existing
- * `validate-examples` target checks the example *source*; this one checks what the generator makes of it.
- *
- * Usage (from the repository root): `yarn nx validate-generated-examples ag-charts-website [-- <options>]`
- *   --examples=<a,b>   Check only these examples. Each is a `_examples` directory path, `<page>/<name>`
- *                      or a bare `<name>`; an entry that matches nothing is an error.
- *   --modes=<m,n>      Subset of `dark-mode,plain`.
- *   --frameworks=<f,g> Subset of `typescript,reactFunctionalTs,angular,vue3`.
- *
- * The check fails closed: a missing `contents.json`, an `error.txt` or a `tsc` error in any selected
- * variant fails it, and there is no allow-list.
- */
+/** Type-checks the generated framework variants of every example. See `.rulesync/rules/generated-examples.md`. */
 import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
 import { spawn } from 'child_process';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'fs';
@@ -349,7 +331,7 @@ export function reportResults(results: TscResult[]): boolean {
 
 /**
  * Write the variants out and type-check them, one `tsc` per framework. Returns the exit code: 1 if a
- * variant cannot be read or has a type error, otherwise 0. The scratch tree is private to this call.
+ * variant cannot be read or has a type error, otherwise 0. A run that fails in `tsc` keeps its scratch tree.
  */
 export async function checkVariants(
     variants: Variant[],
@@ -358,6 +340,7 @@ export async function checkVariants(
 ): Promise<number> {
     await mkdir(SCRATCH_PARENT, { recursive: true });
     const scratchRoot = await mkdtemp(path.join(SCRATCH_PARENT, 'run-'));
+    let keepScratch = false;
     try {
         const problems = await writeVariants(variants, generatedRoot, scratchRoot);
         if (problems.length > 0) {
@@ -380,9 +363,11 @@ export async function checkVariants(
             `Type-checking ${variants.length} generated variants (${examples} examples x ${modes} modes x ${frameworks.length} frameworks)...`
         );
         const results = await Promise.all(frameworks.map((framework) => runTsc(framework, scratchRoot)));
-        return reportResults(results) ? 1 : 0;
+        keepScratch = reportResults(results);
+        if (keepScratch) console.error(`Checked files kept in ${scratchRoot}`);
+        return keepScratch ? 1 : 0;
     } finally {
-        rmSync(scratchRoot, { recursive: true, force: true });
+        if (!keepScratch) rmSync(scratchRoot, { recursive: true, force: true });
     }
 }
 

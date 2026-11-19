@@ -4,11 +4,11 @@ import {
     DARK_MODE_END,
     DARK_MODE_START,
 } from '@ag-website-shared/utils/extraCodeSnippets';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import ts from 'typescript';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     CHECKED_FRAMEWORKS,
@@ -532,26 +532,40 @@ describe('checkVariants', () => {
         }
     });
 
-    afterAll(() => rmSync(generated, { recursive: true, force: true }));
+    const keptScratch: string[] = [];
+    afterAll(() => {
+        rmSync(generated, { recursive: true, force: true });
+        keptScratch.forEach((dir) => rmSync(dir, { recursive: true, force: true }));
+    });
+    let log: ReturnType<typeof vi.spyOn>;
+    let error: ReturnType<typeof vi.spyOn>;
+    beforeEach(() => {
+        log = vi.spyOn(console, 'log').mockImplementation(() => {});
+        error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
     afterEach(() => vi.restoreAllMocks());
 
     const run = async (variants: Variant[], frameworks: readonly CheckedFramework[] = CHECKED_FRAMEWORKS) => {
-        const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-        const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const [logFrom, errorFrom] = [log.mock.calls.length, error.mock.calls.length];
         const code = await checkVariants(variants, frameworks, generated);
-        return {
-            code,
-            out: log.mock.calls.map((c) => c.join(' ')).join('\n'),
-            err: error.mock.calls.map((c) => c.join(' ')).join('\n'),
-        };
+        const text = (spy: typeof log, from: number) =>
+            spy.mock.calls
+                .slice(from)
+                .map((c) => c.join(' '))
+                .join('\n');
+        const err = text(error, errorFrom);
+        const kept = /Checked files kept in (.+)$/m.exec(err)?.[1];
+        if (kept) keptScratch.push(kept);
+        return { code, out: text(log, logFrom), err, kept };
     };
 
     it(
         'passes when every variant type-checks, in every framework and mode',
         async () => {
-            const { code, out, err } = await run(variantsOf([GOOD], CHECKED_FRAMEWORKS, CHECKED_MODES));
+            const { code, out, err, kept } = await run(variantsOf([GOOD], CHECKED_FRAMEWORKS, CHECKED_MODES));
             expect(err).toBe('');
             expect(code).toBe(0);
+            expect(kept).toBeUndefined();
             for (const framework of CHECKED_FRAMEWORKS) expect(out).toContain(`${framework}: ok`);
         },
         TSC_TIMEOUT
@@ -560,8 +574,9 @@ describe('checkVariants', () => {
     it(
         'fails with a non-zero exit when a variant has a type error, and names its framework, mode and example',
         async () => {
-            const { code, err } = await run(variantsOf([GOOD, BAD], CHECKED_FRAMEWORKS, CHECKED_MODES));
+            const { code, err, kept } = await run(variantsOf([GOOD, BAD], CHECKED_FRAMEWORKS, CHECKED_MODES));
             expect(code).toBe(1);
+            expect(existsSync(path.join(kept!, 'typescript/plain', BAD, 'main.ts'))).toBe(true);
             for (const framework of CHECKED_FRAMEWORKS) {
                 for (const mode of CHECKED_MODES) expect(err).toContain(`${framework} :: ${mode}/${BAD}`);
             }
@@ -598,8 +613,11 @@ describe('checkVariants', () => {
     it(
         'fails a variant that never generated, without running tsc, and still names it',
         async () => {
-            const { code, out, err } = await run(variantsOf(['docs/zz-page/never-generated'], ['vue3']), ['vue3']);
+            const { code, out, err, kept } = await run(variantsOf(['docs/zz-page/never-generated'], ['vue3']), [
+                'vue3',
+            ]);
             expect(code).toBe(1);
+            expect(kept).toBeUndefined();
             expect(err).toContain('docs/zz-page/never-generated [plain/vue3]');
             expect(err).toContain('contents.json is missing');
             expect(out).not.toContain('Type-checking');
