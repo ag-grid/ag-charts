@@ -463,7 +463,7 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
     });
 
     describe('the params and the shared objects', () => {
-        it('gives the styler params neither a shadow nor a glow, in any highlight state', async () => {
+        it('gives the styler params the shadow and glow that the highlight state casts', async () => {
             const params: object[] = [];
             await create({
                 shadow: SERIES_SHADOW,
@@ -482,9 +482,10 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
 
             expect(params.length).toBeGreaterThan(testCase.data.length);
-            for (const itemParams of params) {
-                expect(itemParams).not.toHaveProperty('shadow');
-                expect(itemParams).not.toHaveProperty('glow');
+            const hovered = params.filter((itemParams: any) => itemParams.highlightState === 'highlighted-item');
+            expect(hovered.length).toBeGreaterThan(0);
+            for (const itemParams of hovered) {
+                expect(itemParams).toMatchObject({ shadow: SERIES_SHADOW, glow: HIGHLIGHT_GLOW });
             }
         });
 

@@ -6,7 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
-import type { AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type { AgItemShadowStyle, AgItemShadowStylerParams } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
@@ -74,6 +74,7 @@ export type AgRadialSeriesItemStylerParams<TDatum = DatumDefault, TContext = Con
     HighlightState
 > &
     ContextCallbackParams<TContext> &
+    AgItemShadowStylerParams &
     AgRadialSeriesOptionsKeys<TDatum> &
     Required<Omit<AgRadialSeriesStyle, 'lineDash'>> &
     ResolvedLineDash;

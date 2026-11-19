@@ -8,7 +8,12 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -37,6 +42,7 @@ export type AgRangeBarSeriesItemStylerParams<TDatum = DatumDefault, TContext = C
     HighlightState
 > &
     ContextCallbackParams<TContext> &
+    AgItemShadowStylerParams &
     AgRangeBarSeriesOptionsKeys<TDatum> &
     Required<Omit<AgRangeBarSeriesStyle, 'lineDash'>> &
     ResolvedLineDash;

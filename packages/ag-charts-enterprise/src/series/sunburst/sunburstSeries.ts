@@ -1,5 +1,6 @@
 import {
     type AgItemShadowStyle,
+    type AgItemShadowStylerParams,
     type AgSunburstHighlightState,
     type AgSunburstSeriesLabelFormatterParams,
     _ModuleSupport,
@@ -314,7 +315,8 @@ export class SunburstSeries extends HierarchySeries<
                     const params = this.makeItemStylerParams(
                         nodeDatum,
                         style,
-                        toHierarchyHighlightString(highlightState)
+                        toHierarchyHighlightString(highlightState),
+                        this.getHierarchyStylerShadowGlow(this.options.shadow, this.resolveGlow, highlightState)
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
@@ -360,7 +362,12 @@ export class SunburstSeries extends HierarchySeries<
         };
     }
 
-    private makeItemStylerParams(nodeDatum: SunburstNode, style: ItemStyle, highlightState: AgSunburstHighlightState) {
+    private makeItemStylerParams(
+        nodeDatum: SunburstNode,
+        style: ItemStyle,
+        highlightState: AgSunburstHighlightState,
+        shadowGlow: AgItemShadowStylerParams
+    ) {
         const { id: seriesId } = this;
         const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.options;
         // `style` is the resolved item style, so its `fill` never carries unresolved colour refs.
@@ -375,6 +382,8 @@ export class SunburstSeries extends HierarchySeries<
             sizeKey,
             labelKey,
             secondaryLabelKey,
+            shadow: shadowGlow.shadow,
+            glow: shadowGlow.glow,
             highlightState,
             selectionState: this.getSelectionStateString(nodeDatum.datumIndex),
             candidateState: this.getCandidateStateString(nodeDatum.datumIndex),

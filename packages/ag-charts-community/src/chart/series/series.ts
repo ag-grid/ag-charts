@@ -1107,6 +1107,8 @@ export abstract class Series<
     private glowCascades?: Array<{
         source: DeepPartial<AgGlowOptions> | undefined;
         byState: Array<NormalisedDropShadowOptions | null | undefined>;
+        /** The merged `glow` that `byState` casts, which an item styler is given; `null` once it casts none. */
+        optionsByState: Array<DeepPartial<AgGlowOptions> | null | undefined>;
     }>;
 
     /**
@@ -1117,6 +1119,31 @@ export abstract class Series<
         seriesGlow: DeepPartial<AgGlowOptions> | undefined,
         highlightState: HighlightState
     ): NormalisedDropShadowOptions | undefined {
+        const cascade = this.resolveGlowCascade(seriesGlow, highlightState);
+        return cascade.byState[highlightState] ?? undefined;
+    }
+
+    /** The `glow` that `highlightState` casts without a styler, for an item styler's params: unset where it casts none. */
+    public getStylerGlow(
+        seriesGlow: DeepPartial<AgGlowOptions> | undefined,
+        highlightState: HighlightState
+    ): Readonly<AgGlowOptions> | undefined {
+        const cascade = this.resolveGlowCascade(seriesGlow, highlightState);
+        return cascade.optionsByState[highlightState] ?? undefined;
+    }
+
+    /** The `shadow` that `highlightState` casts without a styler, for an item styler's params: unset where it casts none. */
+    public getStylerShadow(
+        seriesShadow: NormalisedDropShadowOptions | undefined,
+        highlightState: HighlightState
+    ): Readonly<NormalisedDropShadowOptions> | undefined {
+        const bucket = highlightState === HighlightState.Item ? this.getItemShadowBucket() : null;
+        const shadow =
+            bucket != null && seriesShadow != null ? this.getCascadedShadow(seriesShadow, bucket) : seriesShadow;
+        return shadow?.enabled ? shadow : undefined;
+    }
+
+    private resolveGlowCascade(seriesGlow: DeepPartial<AgGlowOptions> | undefined, highlightState: HighlightState) {
         const cascades = (this.glowCascades ??= []);
         let cascade: (typeof cascades)[number] | undefined;
         // An indexed loop, as this runs per datum and a callback would allocate a closure each time.
@@ -1127,16 +1154,16 @@ export abstract class Series<
             }
         }
         if (cascade == null) {
-            cascade = { source: seriesGlow, byState: [] };
+            cascade = { source: seriesGlow, byState: [], optionsByState: [] };
             cascades.push(cascade);
         }
-        let glow = cascade.byState[highlightState];
-        if (glow === undefined) {
-            glow =
-                glowToShadow(mergeGlow({ glow: this.getHighlightGlow(highlightState) }, { glow: seriesGlow })) ?? null;
+        if (cascade.byState[highlightState] === undefined) {
+            const merged = mergeGlow({ glow: this.getHighlightGlow(highlightState) }, { glow: seriesGlow });
+            const glow = glowToShadow(merged) ?? null;
             cascade.byState[highlightState] = glow;
+            cascade.optionsByState[highlightState] = glow == null ? null : merged;
         }
-        return glow ?? undefined;
+        return cascade;
     }
 
     /** Whether any highlight state casts a glow, over any series-level `glow`; when none does, no glow is resolved per datum. */
@@ -2199,14 +2226,10 @@ export abstract class Series<
         );
 
         if (itemStyler != null && params != null) {
-            const highlightStateString =
-                highlightState === undefined
-                    ? this.getHighlightStateString(
-                          this.ctx.highlightManager?.getActiveHighlight(),
-                          isHighlight,
-                          datumIndex
-                      )
-                    : toHighlightString(highlightState);
+            const castState =
+                highlightState ??
+                this.getHighlightState(this.ctx.highlightManager?.getActiveHighlight(), isHighlight, datumIndex);
+            const highlightStateString = toHighlightString(castState);
             const selectionStateString = selectionState === undefined ? undefined : toSelectionString(selectionState);
             const candidateStateString = candidateState === undefined ? undefined : toSelectionString(candidateState);
             const fill = this.filterItemStylerFillParams(markerStyle.fill);
@@ -2216,6 +2239,8 @@ export abstract class Series<
                 ...markerStyle,
                 fill,
                 ...params,
+                shadow: this.getStylerShadow(marker.shadow, castState),
+                glow: this.getStylerGlow(marker.glow, castState),
                 highlightState: highlightStateString,
                 selectionState: selectionStateString,
                 candidateState: candidateStateString,

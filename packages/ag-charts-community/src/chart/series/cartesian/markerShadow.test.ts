@@ -183,7 +183,7 @@ describe('marker shadow', () => {
 
     describe('itemStyler', () => {
         it.each(['scatter', 'bubble', 'line', 'area'] as const)(
-            '%s keeps the marker shadow and does not pass it to the itemStyler params',
+            '%s keeps the marker shadow and passes it to the itemStyler params',
             async (type) => {
                 const received: any[] = [];
                 const itemStyler = (params: any) => {
@@ -198,7 +198,7 @@ describe('marker shadow', () => {
 
                 expect(received.length).toBeGreaterThan(0);
                 for (const params of received) {
-                    expect(params).not.toHaveProperty('shadow');
+                    expect(params).toMatchObject({ shadow: MARKER_SHADOW });
                 }
 
                 const markers = visibleMarkers();

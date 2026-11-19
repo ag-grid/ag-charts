@@ -5,7 +5,12 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
@@ -171,6 +176,7 @@ export interface AgSunburstSeriesItemStylerParams<TDatum, TContext = ContextDefa
     extends
         DatumCallbackParams<TDatum, AgSunburstHighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgSunburstSeriesOptionsKeys<TDatum>,
         Required<AgSunburstSeriesStyle> {
     /** The depth of the datum in the hierarchy. */

@@ -676,6 +676,19 @@ export abstract class HierarchySeries<
         );
     }
 
+    /** The `shadow` and `glow` a node casts without an item styler, for the params of one: unset where it casts none. */
+    protected getHierarchyStylerShadowGlow(
+        shadow: NormalisedDropShadowOptions | undefined,
+        resolveGlow: (highlightState: HierarchyHighlightState) => DeepPartial<AgGlowOptions> | undefined,
+        highlightState: HierarchyHighlightState
+    ) {
+        const glow = resolveGlow(highlightState);
+        return {
+            shadow: shadow?.enabled ? (shadow as Readonly<NormalisedDropShadowOptions>) : undefined,
+            glow: glowToShadow(glow) == null ? undefined : (glow as Readonly<AgGlowOptions>),
+        };
+    }
+
     /** The shadow on one copy of a node, in `fillShadow`: the highlight copy casts none, as its glow is cast in the root's overlay. */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,

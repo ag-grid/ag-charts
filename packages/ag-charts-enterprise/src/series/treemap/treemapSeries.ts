@@ -1,5 +1,6 @@
 import {
     type AgItemShadowStyle,
+    type AgItemShadowStylerParams,
     type AgTreemapHighlightState,
     type AgTreemapSeriesItemStylerParams,
     type AgTreemapSeriesLabelFormatterParams,
@@ -546,10 +547,16 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const overrides = this.cachedDatumCallback(
                 createDatumId(nodeDatum.datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const part = isLeaf ? this.options.tile : this.options.group;
                     const params = this.makeItemStylerParams(
                         nodeDatum,
                         style,
-                        toHierarchyHighlightString(highlightState)
+                        toHierarchyHighlightString(highlightState),
+                        this.getHierarchyStylerShadowGlow(
+                            part.shadow,
+                            isLeaf ? this.resolveTileGlow : this.resolveGroupGlow,
+                            highlightState
+                        )
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
@@ -633,7 +640,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     private makeItemStylerParams(
         nodeDatum: Pick<TreemapNode, 'datum' | 'datumIndex' | 'depth'>,
         style: Required<ItemStyle>,
-        highlightState: AgTreemapHighlightState
+        highlightState: AgTreemapHighlightState,
+        shadowGlow: AgItemShadowStylerParams
     ) {
         const { id: seriesId } = this;
         const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.options;
@@ -649,6 +657,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             sizeKey,
             labelKey,
             secondaryLabelKey,
+            shadow: shadowGlow.shadow,
+            glow: shadowGlow.glow,
             highlightState,
             selectionState: this.getSelectionStateString(nodeDatum.datumIndex),
             candidateState: this.getCandidateStateString(nodeDatum.datumIndex),
