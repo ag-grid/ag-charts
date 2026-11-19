@@ -69,23 +69,36 @@ function omitInheritedShadow(ignoredProperties: readonly string[]) {
 }
 
 /**
- * Where each mini-chart series type takes a `lineDash`, as paths from the series (`''` is the series' own). The main
- * series theme is copied over as a whole, so these locations hold no `$applyLineDash` default of their own: without one
- * a name is left unresolved or, where the copy supplies an array, dropped.
+ * Where each mini-chart series type takes a `lineDash`: `own` is the series' own, `nested` are paths from the series.
+ * The main series theme is copied over as a whole, so these locations hold no `$applyLineDash` default of their own:
+ * without one a name is left unresolved or, where the copy supplies an array, dropped.
  */
-const miniChartLineDashLocations: Record<string, string[]> = {
-    line: ['', 'marker'],
-    area: ['', 'marker'],
-    bar: [''],
-    scatter: [''],
-    bubble: [''],
-    histogram: [''],
-    waterfall: ['item.positive', 'item.negative', 'item.total', 'line'],
-    'range-bar': [''],
-    'range-area': ['', 'marker', 'item.low', 'item.high', 'item.low.marker', 'item.high.marker'],
-    candlestick: ['item.up', 'item.down', 'item.up.wick', 'item.down.wick'],
-    ohlc: ['item.up', 'item.down'],
-    hlc: ['marker', 'item.high', 'item.low', 'item.close', 'item.high.marker', 'item.low.marker', 'item.close.marker'],
+const miniChartLineDashLocations: Record<string, { own?: true; nested?: string[] }> = {
+    line: { own: true, nested: ['marker'] },
+    area: { own: true, nested: ['marker'] },
+    bar: { own: true },
+    scatter: { own: true },
+    bubble: { own: true },
+    histogram: { own: true },
+    waterfall: { nested: ['item.positive', 'item.negative', 'item.total', 'line'] },
+    'range-bar': { own: true },
+    'range-area': {
+        own: true,
+        nested: ['marker', 'item.low', 'item.high', 'item.low.marker', 'item.high.marker'],
+    },
+    candlestick: { nested: ['item.up', 'item.down', 'item.up.wick', 'item.down.wick'] },
+    ohlc: { nested: ['item.up', 'item.down'] },
+    hlc: {
+        nested: [
+            'marker',
+            'item.high',
+            'item.low',
+            'item.close',
+            'item.high.marker',
+            'item.low.marker',
+            'item.close.marker',
+        ],
+    },
 };
 
 // A wick scales by its own width, else its item's, as in the main series theme.
@@ -104,20 +117,18 @@ const MINI_CHART_LINE_STROKE_WIDTH: Parameters<typeof lineDashThemeDefault>[1] =
  * The `lineDash` defaults of a mini-chart series type, each with the main series' value as its default, so a name
  * resolves by the width of the mini-chart series and an unset option still follows the main series.
  */
-function miniChartLineDashTheme(type: string, locations: string[]) {
+function miniChartLineDashTheme(type: string, { own, nested = [] }: (typeof miniChartLineDashLocations)[string]) {
     const theme: Record<string, any> = {};
-    for (const location of locations) {
-        const keys = location === '' ? [] : location.split('.');
-        const inherited =
-            location === '' && MINI_CHART_TYPES_WITHOUT_MAIN_DASH.has(type)
-                ? undefined
-                : { $path: `/series/$index/${[...keys, 'lineDash'].join('/')}` };
-        const strokeWidth =
-            keys.at(-1) === 'wick'
-                ? WICK_STROKE_WIDTH
-                : type === 'line' && location === ''
-                  ? MINI_CHART_LINE_STROKE_WIDTH
-                  : undefined;
+    if (own) {
+        const inherited = MINI_CHART_TYPES_WITHOUT_MAIN_DASH.has(type)
+            ? undefined
+            : { $path: '/series/$index/lineDash' };
+        theme.lineDash = lineDashThemeDefault(inherited, type === 'line' ? MINI_CHART_LINE_STROKE_WIDTH : undefined);
+    }
+    for (const location of nested) {
+        const keys = location.split('.');
+        const inherited = { $path: `/series/$index/${[...keys, 'lineDash'].join('/')}` };
+        const strokeWidth = keys.at(-1) === 'wick' ? WICK_STROKE_WIDTH : undefined;
 
         let node = theme;
         for (const key of keys) node = node[key] ??= {};
