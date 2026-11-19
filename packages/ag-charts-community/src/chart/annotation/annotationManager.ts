@@ -1,5 +1,5 @@
 import type { DynamicContext, MementoOriginator, MementoRestoreSource, Node, OptionsDefs } from 'ag-charts-core';
-import { deepClone, isArray, isObject, isPlainObject, mergeDefaults, validate } from 'ag-charts-core';
+import { deepClone, isArray, isObject, isPlainObject, isString, mergeDefaults, validate } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsEventSource, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -45,9 +45,10 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
         memento: AnnotationsMemento | undefined,
         source: MementoRestoreSource = 'api-call'
     ) {
-        // Migration from older versions can be implemented here.
+        // Migrate state saved by older versions: `lineStyle` became a `lineDash` name.
+        const migrated = (memento ?? []).map(migrateLineStyle);
 
-        this.annotations = this.validateAnnotations(this.cleanData(memento ?? [])).map((annotation) => {
+        this.annotations = this.validateAnnotations(this.cleanData(migrated)).map((annotation) => {
             const annotationTheme = this.getAnnotationTypeStyles(annotation.type);
             return mergeDefaults(annotation, annotationTheme);
         });
@@ -113,6 +114,23 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
         }
         return annotations;
     }
+}
+
+// `lineStyle` was replaced by `lineDash`, whose stock names stand for the same three styles. An explicit `lineDash`
+// took priority over it, so it still does.
+const LINE_STYLE_DASH_NAMES = new Map([
+    ['solid', 'solid'],
+    ['dashed', 'dash'],
+    ['dotted', 'dot'],
+]);
+
+/** Migrates state saved by an older version. It runs before theme defaults are merged, so they cannot pass for a saved `lineDash`. */
+export function migrateLineStyle<T>(annotation: T): T {
+    if (!isObject(annotation) || !('lineStyle' in annotation)) return annotation;
+
+    const { lineStyle, ...rest } = annotation as Record<string, unknown>;
+    const lineDash = isString(lineStyle) ? LINE_STYLE_DASH_NAMES.get(lineStyle) : undefined;
+    return (rest.lineDash == null && lineDash != null ? { ...rest, lineDash } : rest) as T;
 }
 
 // A null in restored state unsets the field, so it falls back to its default rather than failing validation.

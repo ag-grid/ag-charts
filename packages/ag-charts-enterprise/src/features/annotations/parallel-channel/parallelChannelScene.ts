@@ -7,7 +7,7 @@ import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { SNAP_TO_ANGLE, magnetTranslation, translate } from '../utils/coords';
-import { getLineCap, getLineDash } from '../utils/line';
+import { getLineCap, getLineDash, resolveLineDash } from '../utils/line';
 import { updateChannelText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import { type ParallelChannelDatum, getParallelChannelBottom } from './parallelChannelDatum';
@@ -183,13 +183,18 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelDatum> {
             context
         );
 
+        // The middle line is drawn at its own width, so a name is scaled by that.
+        const middleLineDash = datum.middle.lineDash ?? datum.lineDash;
+        const middleStrokeWidth = datum.middle.strokeWidth ?? strokeWidth;
+
         middleLine.setProperties({
             ...middlePoints,
-            lineDash: datum.middle.lineDash ?? lineDash,
+            lineCap: getLineCap({ lineDash: middleLineDash }),
+            lineDash: resolveLineDash(middleLineDash, middleStrokeWidth),
             lineDashOffset: datum.middle.lineDashOffset ?? lineDashOffset,
             stroke: datum.middle.stroke ?? stroke,
             strokeOpacity: datum.middle.strokeOpacity ?? strokeOpacity,
-            strokeWidth: datum.middle.strokeWidth ?? strokeWidth,
+            strokeWidth: middleStrokeWidth,
             visible: datum.middle.visible ?? true,
         });
     }

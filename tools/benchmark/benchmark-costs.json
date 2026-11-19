@@ -40,6 +40,7 @@
         "live-update-radar": 50,
         "live-update-rect": 157,
         "multi-series": 112,
+        "pie-donut-labels": 70,
         "resize": 44,
         "series-labels-collision": 40,
         "shadow-glow-heatmap": 51,

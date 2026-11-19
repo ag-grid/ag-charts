@@ -200,6 +200,12 @@ Exercises the cross-series label placement pass: clustered bubble labels that ca
 
 {% chartExampleRunner title="Series Label Collision" name="series-labels-collision" type="generated" initialLoadDeferred=true /%}
 
+## Pie and Donut Labels
+
+Exercises pie and donut sector labels at 50 and 500 sectors: initial load and a data update, each with sector labels off, on without fit options, and on with wrapping and truncation. Callout labels stay off, so the sector label pass is measured on its own.
+
+{% chartExampleRunner title="Pie and Donut Labels" name="pie-donut-labels" type="generated" initialLoadDeferred=true /%}
+
 ## High-Frequency Data Updates
 
 Exercise incremental data update operations (append, remove, rolling window) with large datasets:
