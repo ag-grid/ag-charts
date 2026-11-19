@@ -1,7 +1,29 @@
 import { describe, expect, it } from 'vitest';
 
+import { MARKER_SHAPES, getSharedMarkerPath, markerLabelRect } from 'ag-charts-core';
+import type { AgMarkerShape } from 'ag-charts-types';
+
 import { setupMockCanvas } from '../../util/test/mockCanvas';
-import { markerLabelRect } from './markerLabelRect';
+
+const isBuiltInShape = (name: string): name is keyof typeof MARKER_SHAPES => name in MARKER_SHAPES;
+
+/** Whether the canvas fills every point of a grid over the shape's label rect, edges included, at a large size. */
+function rectInsideFill(shape: AgMarkerShape) {
+    const size = 1000;
+    const steps = 40;
+    const { width, height, cx, cy } = markerLabelRect(shape);
+    const path = getSharedMarkerPath(shape, size).getPath2D();
+    const ctx = document.createElement('canvas').getContext('2d');
+    if (ctx == null) throw new Error('no 2d context');
+    for (let i = 0; i <= steps; i++) {
+        for (let j = 0; j <= steps; j++) {
+            const x = (cx + (i / steps - 0.5) * width) * size;
+            const y = (cy + (j / steps - 0.5) * height) * size;
+            if (!ctx.isPointInPath(path, x, y)) return false;
+        }
+    }
+    return true;
+}
 
 describe('markerLabelRect', () => {
     setupMockCanvas();
@@ -36,6 +58,13 @@ describe('markerLabelRect', () => {
         // A pin tapers to a point at the bottom, so its rectangle sits above the centre in the head.
         expect(markerLabelRect('pin').cy).toBeLessThan(-0.05);
     });
+
+    it.each(Object.keys(MARKER_SHAPES).filter(isBuiltInShape))(
+        'keeps the label rect of a %s inside its fill',
+        (shape) => {
+            expect(rectInsideFill(shape)).toBe(true);
+        }
+    );
 
     it('falls back to the inscribed square for a custom shape that draws nothing', () => {
         const { width, height, cx, cy } = markerLabelRect(() => {});

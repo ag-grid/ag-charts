@@ -5,12 +5,16 @@ import {
     type ChartAnimationPhase,
     ColorScale,
     type DynamicContext,
+    EVERY_MARKER_FILL_PAINTED,
     type Feature,
     type FeatureCollection,
     type Geometry,
     Group,
     type LabelFit,
+    LabelMarkerStamps,
     LinearScale,
+    type MarkerCoverage,
+    type MarkerFillPaint,
     type NormalisedChartLabelStyleOptions,
     type NormalisedMapMarkerSeriesOwnOptions,
     type NormalisedMapMarkerSeriesStyle,
@@ -29,6 +33,7 @@ import {
     fitLabelText,
     formatValue,
     isSupportedMarkerShape,
+    markerCoverageOf,
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
@@ -71,6 +76,7 @@ const {
 export interface MapMarkerNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly datumId: string | number | boolean;
+    readonly node: MapMarkerNodeDatum;
 }
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -83,6 +89,7 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
     readonly sizeValue: number | undefined;
     readonly legendItemName: string | undefined;
     readonly point: Readonly<SizedPoint>;
+    /** The style the marker is drawn in with nothing highlighted, which is all a label solve judges. */
     style: AgMapMarkerSeriesStyle & AgItemShadowStyle;
 }
 
@@ -144,6 +151,7 @@ export class MapMarkerSeries
     }
 
     private readonly colorScale = new ColorScale();
+    private readonly labelMarkers = new LabelMarkerStamps();
     private readonly sizeScale = new LinearScale();
 
     private readonly markerGroup = this.contentGroup.appendChild(
@@ -404,6 +412,7 @@ export class MapMarkerSeries
             region: placement === 'inside' ? undefined : labelRegion,
             datumIndex,
             datumId: createDatumId(index, idValue, lonValue, latValue),
+            node,
         };
     }
 
@@ -486,7 +495,8 @@ export class MapMarkerSeries
             legendItemName: this.options.legendItemName,
             style: this.getMarkerItemStyle(
                 { datumIndex, datum, colorValue: dataValues.colorValue, sizeValue: dataValues.sizeValue },
-                false
+                false,
+                true
             ),
         };
     }
@@ -819,9 +829,11 @@ export class MapMarkerSeries
         );
     }
 
+    /** The marker's style in its highlight state, or with nothing highlighted when `resting`. */
     protected getMarkerItemStyle(
         { datumIndex, datum, colorValue, sizeValue }: Partial<MapMarkerNodeDatum>,
-        isHighlight: boolean
+        isHighlight: boolean,
+        resting = false
     ): Required<NormalisedMapMarkerSeriesStyle> & AgItemShadowStyle {
         const { options, colorScale } = this;
         const { colorKey, colorScale: colorScaleProps, itemStyler } = options;
@@ -841,7 +853,11 @@ export class MapMarkerSeries
             lineDash,
             lineDashOffset,
         };
-        const highlightStyle: Partial<NormalisedMapMarkerSeriesStyle> = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle: Partial<NormalisedMapMarkerSeriesStyle> = this.getHighlightStyle(
+            isHighlight,
+            datumIndex,
+            resting ? _ModuleSupport.HighlightState.None : undefined
+        );
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, ownStyle);
 
@@ -863,16 +879,16 @@ export class MapMarkerSeries
         let style: typeof baseStyle & AgItemShadowStyle = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
-            const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
-                () => {
-                    const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                    return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`],
-                        this.callWithContext(itemStyler, params)
-                    );
-                }
-            );
+            let cacheKey = isHighlight ? 'highlight' : 'node';
+            // With nothing highlighted, the resting style is the one the node is drawn in, so it shares its result.
+            if (resting && this.ctx.highlightManager?.getActiveHighlight() != null) cacheKey = 'resting';
+            const overrides = this.cachedDatumCallback(createDatumId(datumIndex, cacheKey), () => {
+                const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style, resting);
+                return this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.callWithContext(itemStyler, params)
+                );
+            });
 
             if (overrides) {
                 style = mergeDefaults(overrides, baseStyle);
@@ -905,12 +921,13 @@ export class MapMarkerSeries
         datum: unknown,
         datumIndex: number,
         isHighlight: boolean,
-        style: Required<NormalisedMapMarkerSeriesStyle>
+        style: Required<NormalisedMapMarkerSeriesStyle>,
+        resting = false
     ) {
         const { id: seriesId } = this;
         const { sizeKey, idKey, labelKey, colorKey, latitudeKey, longitudeKey } = this.options;
 
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const activeHighlight = resting ? undefined : this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
@@ -1019,7 +1036,59 @@ export class MapMarkerSeries
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+        const { options } = this;
+        // An itemStyler, selection, custom shape or colour with an unpainted fill decides each marker, so each label is
+        // stamped from its node's style.
+        const styled = options.itemStyler != null;
+        const fillPerDatum = options.colorKey != null && !this.labelMarkers.fills.everyPainted(this.markerColorFills());
+        if (!styled && !this.isSelectionEnabled() && typeof options.shape !== 'function' && !fillPerDatum) {
+            this.labelMarkers.unstamp(labelData);
+            return labelData;
+        }
+        this.labelMarkers.stamp(labelData, (datum) => datum.node.style, {
+            castsShadow: this.castsMarkerShadowAtRest(options),
+            fills: this.labelMarkerFills(styled),
+            pixelRatio: this.ctx.scene?.canvas?.pixelRatio ?? 1,
+            inside: toArray(options.label.placement).includes('inside'),
+        });
+        return labelData;
+    }
+
+    override getLabelMarkerCoverage(): MarkerCoverage | undefined {
+        const { options } = this;
+        if (options.itemStyler != null || this.isSelectionEnabled()) return undefined;
+        const fillPainted = this.labelMarkers.fills.everyPainted(this.markerColorFills());
+        return markerCoverageOf(
+            options,
+            this.castsMarkerShadowAtRest(options),
+            fillPainted,
+            this.ctx.scene?.canvas?.pixelRatio ?? 1
+        );
+    }
+
+    /** Settles once for the whole series that each label's marker fill paints, when every fill it can take does. */
+    private labelMarkerFills(styled: boolean): MarkerFillPaint {
+        const memo = this.labelMarkers.fills;
+        if (styled) return memo;
+        const fills = this.markerStateFills(() => this.options.fill);
+        fills.push(...this.markerColorFills());
+        return memo.everyPainted(fills) ? EVERY_MARKER_FILL_PAINTED : memo;
+    }
+
+    /** Every fill a marker takes at rest: its own, or one its colour value resolves to. */
+    private markerColorFills(): unknown[] {
+        const { fill, colorKey, colorScale } = this.options;
+        const fills: unknown[] = [fill];
+        if (colorKey == null) return fills;
+        const { missingDataFill } = colorScale;
+        if (this.isColorScaleValid()) {
+            fills.push(...this.colorScale.range);
+        } else if (colorScale.fills[0]?.color != null) {
+            fills.push(colorScale.fills[0].color);
+        }
+        if (missingDataFill != null) fills.push(missingDataFill);
+        return fills;
     }
 
     override getLabelDefaults() {

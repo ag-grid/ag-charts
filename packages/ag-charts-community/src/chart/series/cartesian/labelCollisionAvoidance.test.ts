@@ -1,30 +1,38 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { type RotatableText, Transformable } from 'ag-charts-core';
+import { ExtendedPath2D, type RotatableText, Transformable } from 'ag-charts-core';
 import type {
     AgBarSeriesLabelPlacement,
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartLabelOrientation,
     AgHistogramSeriesLabelPlacement,
+    AgMarkerShapeFn,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { Marker } from '../../marker/marker';
 import { getAxisLabelNodes } from '../../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
 import {
     getPlacedLabelData,
     getSeriesLabelObstacles,
     getVisibleLabelTextNodes,
+    withUndocumentedChartOptions,
 } from '../../test/communitySeriesAccessors';
-import { getSeriesContextNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
+import { markerUnderLabelPlaced, markerUnderOptions, plainRect } from '../../test/markerUnderFixtures';
+import { getSeriesAt, getSeriesContextNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
+import { shapesOf } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+    clickLegendItem,
     compareImageSnapshot,
     createChart,
     deproxy,
     getVisibleLabelNodes,
+    hoverAction,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -2403,6 +2411,463 @@ describe('label collision avoidance', () => {
             const far = await anchorGap(40);
             expect(near).toBeCloseTo(3 + 5, 0);
             expect(far).toBeCloseTo(3 + 40, 0);
+        });
+    });
+
+    // A smaller scatter marker sits under the centre of a larger one, overlapping the larger one's inside label.
+    describe('inside label over a marker painted under its own', () => {
+        const centreLabelPlaced = () => markerUnderLabelPlaced(getPlacedLabelData(chart, 1));
+
+        type ShapeParams = { path: ExtendedPath2D; x: number; y: number; size: number };
+        const squareShape = ({ path, x, y, size }: ShapeParams) => {
+            path.rect(x - size / 2, y - size / 2, size, size);
+        };
+
+        it.each([
+            { case: 'the default fill opacity', over: {}, placed: true },
+            { case: 'a zero fill opacity', over: { fillOpacity: 0 }, placed: false },
+            { case: 'a fill of zero alpha', over: { fill: 'rgba(0, 0, 0, 0)' }, placed: false },
+            { case: 'a custom shape', over: { shape: squareShape }, placed: true },
+            { case: 'a styler that keeps the fill', over: { itemStyler: () => ({}) }, placed: true },
+            {
+                case: 'a styler that clears the fill of that datum',
+                over: { itemStyler: ({ datum }: any) => (datum.x === 5 ? { fillOpacity: 0 } : {}) },
+                placed: false,
+            },
+        ])('places the label over $case: $placed', async ({ over, placed }) => {
+            chart = await createChart(markerUnderOptions(over));
+            expect(getPlacedLabelData(chart, 1).length).toBeGreaterThanOrEqual(2);
+            expect(centreLabelPlaced()).toBe(placed);
+        });
+
+        it('drops the label once its fill opacity drops to zero', async () => {
+            chart = await createChart(markerUnderOptions());
+            expect(centreLabelPlaced()).toBe(true);
+
+            await chart.update(prepareTestOptions(markerUnderOptions({ fillOpacity: 0 })));
+            await waitForChartStability(chart);
+
+            expect(centreLabelPlaced()).toBe(false);
+        });
+
+        it.each([
+            { case: 'nothing cast', over: {}, reach: 0.5, strokeReach: 0 },
+            { case: 'a glow at rest', over: { glow: { enabled: true } }, reach: Infinity, strokeReach: 0 },
+            { case: 'a shadow at rest', over: { shadow: { enabled: true } }, reach: Infinity, strokeReach: 0 },
+            {
+                case: 'a glow only when highlighted',
+                over: { highlight: { highlightedItem: { glow: { enabled: true } } } },
+                reach: 0.5,
+                strokeReach: 0,
+            },
+            {
+                case: 'a mitred stroke',
+                over: { shape: 'square', stroke: 'black', strokeWidth: 6 },
+                reach: Math.SQRT1_2,
+                strokeReach: 3 * Math.SQRT2,
+            },
+        ])('reaches as far as the marker draws at rest with $case', async ({ over, reach, strokeReach }) => {
+            chart = await createChart(markerUnderOptions({ strokeWidth: 0, ...over }));
+            const coverage = getSeriesAt(chart, 1).getLabelMarkerCoverage();
+            expect(coverage).toBeDefined();
+            expect(coverage?.reach).toBeCloseTo(reach);
+            expect(coverage?.strokeReach).toBeCloseTo(strokeReach);
+        });
+
+        it.each([
+            { type: 'line', case: 'shown', enabled: true, count: 1, covers: true },
+            { type: 'line', case: 'hidden', enabled: false, count: 1, covers: false },
+            { type: 'line', case: 'too dense to draw', enabled: true, count: 1000, covers: false },
+            { type: 'area', case: 'shown', enabled: true, count: 1, covers: true },
+            { type: 'area', case: 'too dense to draw', enabled: true, count: 1000, covers: false },
+        ])('covers the label with $type markers when they are $case', async ({ type, enabled, count, covers }) => {
+            chart = await createChart({
+                data: Array.from({ length: count }, (_, x) => ({ x, y: x })),
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [{ type, xKey: 'x', yKey: 'y', marker: { enabled, size: 30 } }],
+            } as AgCartesianChartOptions);
+            expect((getSeriesAt(chart).getLabelMarkerCoverage()?.cover ?? 0) > 0).toBe(covers);
+        });
+
+        it.each([
+            { case: 'shown', count: 1, covers: true },
+            { case: 'too dense to draw', count: 1000, covers: false },
+        ])('covers each label with styled line markers when they are $case', async ({ count, covers }) => {
+            chart = await createChart({
+                data: Array.from({ length: count }, (_, x) => ({ x, y: x })),
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: true, size: 30, itemStyler: () => ({}) },
+                        label: { enabled: true },
+                    },
+                ],
+            } as AgCartesianChartOptions);
+            const labelData = getSeriesAt(chart).getLabelData();
+            expect(labelData).toHaveLength(count);
+            expect(labelData.some((datum) => (datum.markerCover ?? 0) > 0)).toBe(covers);
+        });
+
+        describe('custom marker shapes', () => {
+            // Draws a 10px square whatever size the marker is given.
+            const fixedSquareShape = ({ path, x, y }: ShapeParams) => {
+                path.rect(x - 5, y - 5, 10, 10);
+            };
+            const customShapeOptions = (series: object, placement = 'inside'): AgCartesianChartOptions =>
+                ({
+                    // Two datums of each size, so a measure per datum would count twice what one per size does.
+                    data: [1, 2, 3, 1, 2, 3].map((s, i) => ({ x: i * 2, y: i * 2, s })),
+                    legend: { enabled: false },
+                    axes: cartesianAxes,
+                    series: [{ xKey: 'x', yKey: 'y', label: { enabled: true, placement }, ...series }],
+                }) as AgCartesianChartOptions;
+
+            /** Counts the custom paths measured while `create` runs; only that measure flattens to a tolerance. */
+            const countMeasuredPaths = async (create: () => Promise<void>) => {
+                const flatten = vi.spyOn(ExtendedPath2D.prototype, 'flatten');
+                try {
+                    await create();
+                    return flatten.mock.calls.filter(([, tolerance]) => tolerance != null).length;
+                } finally {
+                    flatten.mockRestore();
+                }
+            };
+
+            it.each([
+                { type: 'scatter', series: { type: 'scatter', labelKey: 'x', size: 1000, shape: fixedSquareShape } },
+                {
+                    type: 'bubble',
+                    series: {
+                        type: 'bubble',
+                        labelKey: 'x',
+                        sizeKey: 's',
+                        minSize: 200,
+                        maxSize: 1000,
+                        shape: fixedSquareShape,
+                    },
+                },
+                { type: 'line', series: { type: 'line', marker: { size: 1000, shape: fixedSquareShape } } },
+                {
+                    type: 'area',
+                    series: { type: 'area', marker: { enabled: true, size: 1000, shape: fixedSquareShape } },
+                },
+            ])(
+                'covers each $type label with the square its marker draws, not the size it is given',
+                async ({ series }) => {
+                    chart = await createChart(customShapeOptions(series));
+                    const labelData = getSeriesAt(chart).getLabelData();
+                    expect(labelData).toHaveLength(6);
+                    for (const { markerSize = 0, markerCover = 0, markerCoverRect } of labelData) {
+                        expect(markerSize).toBeGreaterThanOrEqual(200);
+                        expect(markerCover).toBeGreaterThan(4.9);
+                        expect(markerCover).toBeLessThanOrEqual(5);
+                        expect(markerCoverRect).toBeDefined();
+                        expect((markerCoverRect?.width ?? 0) * markerSize).toBeGreaterThan(9.5);
+                        expect((markerCoverRect?.width ?? 0) * markerSize).toBeLessThanOrEqual(10);
+                    }
+                }
+            );
+
+            it.each([
+                {
+                    case: 'a fixed marker size',
+                    series: { type: 'scatter', labelKey: 'x', size: 30, shape: squareShape },
+                    measured: 1,
+                },
+                {
+                    case: 'three marker sizes',
+                    series: {
+                        type: 'bubble',
+                        labelKey: 'x',
+                        sizeKey: 's',
+                        minSize: 10,
+                        maxSize: 30,
+                        shape: squareShape,
+                    },
+                    measured: 3,
+                },
+            ])('measures a custom path once for each size drawn, with $case', async ({ series, measured }) => {
+                const count = await countMeasuredPaths(async () => {
+                    chart = await createChart(customShapeOptions(series));
+                });
+                expect(count).toBe(measured);
+            });
+
+            it.each([
+                { placement: 'inside', measured: true },
+                { placement: 'top', measured: false },
+            ])(
+                'measures what a custom marker covers for $placement labels: $measured',
+                async ({ placement, measured }) => {
+                    chart = await createChart(
+                        customShapeOptions({ type: 'scatter', labelKey: 'x', size: 30, shape: squareShape }, placement)
+                    );
+                    const labelData = getSeriesAt(chart).getLabelData();
+                    expect(labelData).toHaveLength(6);
+                    for (const { markerCover = 0, markerCoverRect, markerReach = Infinity } of labelData) {
+                        expect(markerReach).toBeLessThan(Infinity);
+                        expect(markerCover > 0).toBe(measured);
+                        expect(markerCoverRect != null).toBe(measured);
+                    }
+                }
+            );
+        });
+
+        describe('while a marker is highlighted', () => {
+            const REST_SIZE = 20;
+            const HOVERED_SIZE = 40;
+            const hoverOptions = (series: object): AgCartesianChartOptions =>
+                ({
+                    data: [0, 1, 2].map((i) => ({ x: i * 10, y: i * 10 })),
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    axes: cartesianAxes,
+                    ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+                    series: [
+                        {
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: { enabled: true, placement: 'inside' },
+                            highlight: {
+                                highlightedItem: { size: HOVERED_SIZE, fill: 'transparent' },
+                                unhighlightedItem: { size: 10 },
+                            },
+                            ...series,
+                        },
+                    ],
+                }) as AgCartesianChartOptions;
+            // What the solve reads: per-datum stamps, else the drawn size and the series coverage.
+            const stamps = () => {
+                const series = getSeriesAt(chart);
+                const coverage = series.getLabelMarkerCoverage();
+                return series
+                    .getLabelData()
+                    .map(({ point, markerSize, markerCover, markerCoverRect, markerReach }) => ({
+                        size: markerSize ?? point.size,
+                        markerCover: markerCover ?? coverage?.cover,
+                        markerCoverRect: plainRect(markerCoverRect ?? coverage?.coverRect),
+                        markerReach: markerReach ?? coverage?.reach,
+                    }));
+            };
+            const stampSizes = () =>
+                [0, 1].map((at) =>
+                    getSeriesAt(chart, at)
+                        .getLabelData()
+                        .map(({ point, markerSize }) => markerSize ?? point.size)
+                );
+            const hoverFirstMarker = async () => {
+                const marker = shapesOf(getSeriesAt(chart).contentGroup, Marker)[0];
+                const { x, y } = Transformable.toCanvas(marker).computeCenter();
+                await hoverAction(x, y)(chart);
+                await waitForChartStability(chart);
+            };
+            const hoveredMarker = () =>
+                shapesOf(getSeriesAt(chart).highlightNodeGroup, Marker).find((marker) => marker.visible);
+
+            const markerSeries = (styler?: (params: { highlightState?: string }) => object) => [
+                { type: 'scatter', size: REST_SIZE, labelKey: 'y', itemStyler: styler },
+                {
+                    type: 'bubble',
+                    sizeKey: 'y',
+                    minSize: REST_SIZE,
+                    maxSize: REST_SIZE,
+                    labelKey: 'y',
+                    itemStyler: styler,
+                },
+                { type: 'line', marker: { size: REST_SIZE, itemStyler: styler } },
+                { type: 'area', marker: { enabled: true, size: REST_SIZE, itemStyler: styler } },
+            ];
+
+            it.each([
+                ...markerSeries().map((series) => ({ type: series.type, styled: false, series })),
+                ...markerSeries(() => ({})).map((series) => ({ type: series.type, styled: true, series })),
+            ])('stamps each $type label from the marker at rest (styled: $styled)', async ({ series }) => {
+                chart = await createChart(hoverOptions(series));
+                const atRest = stamps();
+                expect(atRest).toHaveLength(3);
+                expect(atRest.map(({ size }) => size)).toEqual([REST_SIZE, REST_SIZE, REST_SIZE]);
+
+                await hoverFirstMarker();
+                expect(hoveredMarker()?.size).toBe(HOVERED_SIZE);
+                expect(hoveredMarker()?.fill).toBe('transparent');
+
+                expect(stamps()).toEqual(atRest);
+            });
+
+            // Neither a styler nor selection: the renderer draws every marker from the series' state styles.
+            const customShapeSeries = () => {
+                const square: AgMarkerShapeFn = ({ path, x, y, size }) =>
+                    path.rect(x - size / 2, y - size / 2, size, size);
+                return [
+                    { type: 'scatter', size: REST_SIZE, labelKey: 'y', shape: square },
+                    {
+                        type: 'bubble',
+                        sizeKey: 'y',
+                        minSize: REST_SIZE,
+                        maxSize: REST_SIZE,
+                        labelKey: 'y',
+                        shape: square,
+                    },
+                    { type: 'line', marker: { size: REST_SIZE, shape: square } },
+                    { type: 'area', marker: { enabled: true, size: REST_SIZE, shape: square } },
+                ];
+            };
+
+            it.each(customShapeSeries().map((series) => ({ type: series.type, series })))(
+                'stamps each $type custom-shape label from the marker at rest while one is hovered',
+                async ({ series }) => {
+                    chart = await createChart(hoverOptions(series));
+                    const atRest = stamps();
+                    expect(atRest.map(({ size }) => size)).toEqual([REST_SIZE, REST_SIZE, REST_SIZE]);
+
+                    await hoverFirstMarker();
+                    expect(hoveredMarker()?.size).toBe(HOVERED_SIZE);
+                    expect(shapesOf(getSeriesAt(chart).contentGroup, Marker).map(({ size }) => size)).toContain(10);
+
+                    expect(stamps()).toEqual(atRest);
+                }
+            );
+
+            it.each(customShapeSeries().map((series) => ({ type: series.type, series })))(
+                'stamps each $type custom-shape label from the marker at rest when a legend click rebuilds it highlighted',
+                async ({ series }) => {
+                    chart = await createChart({
+                        ...hoverOptions(series),
+                        legend: { enabled: true },
+                        series: [0, 1].map((at) => ({
+                            xKey: 'x',
+                            yKey: 'y',
+                            yName: `${at}`,
+                            label: { enabled: true, placement: 'inside' },
+                            highlight: { highlightedSeries: { size: HOVERED_SIZE }, unhighlightedSeries: { size: 10 } },
+                            ...series,
+                        })),
+                    } as AgCartesianChartOptions);
+                    const atRest = stampSizes();
+                    expect(atRest.flat()).toEqual(Array(6).fill(REST_SIZE));
+
+                    await clickLegendItem(chart, 0);
+                    await waitForChartStability(chart);
+                    await clickLegendItem(chart, 0);
+                    await waitForChartStability(chart);
+                    const drawnSizes = [0, 1].flatMap((at) =>
+                        shapesOf(getSeriesAt(chart, at).contentGroup, Marker).map(({ size }) => size)
+                    );
+                    expect(drawnSizes.some((size) => size !== REST_SIZE)).toBe(true);
+
+                    expect(stampSizes()).toEqual(atRest);
+                }
+            );
+
+            it.each([0, 1, 2, 3].map((index) => ({ index, type: markerSeries()[index].type })))(
+                'stamps each $type label from the marker at rest when a legend click rebuilds it highlighted',
+                async ({ index }) => {
+                    const highlightedSize = ({ highlightState }: { highlightState?: string }) =>
+                        highlightState == null || highlightState === 'none' ? {} : { size: HOVERED_SIZE };
+                    const series = markerSeries(highlightedSize)[index];
+                    chart = await createChart({
+                        ...hoverOptions(series),
+                        legend: { enabled: true },
+                        series: [0, 1].map((at) => ({
+                            xKey: 'x',
+                            yKey: 'y',
+                            yName: `${at}`,
+                            label: { enabled: true, placement: 'inside' },
+                            ...series,
+                        })),
+                    } as AgCartesianChartOptions);
+                    const atRest = stampSizes();
+                    expect(atRest).toEqual([
+                        [REST_SIZE, REST_SIZE, REST_SIZE],
+                        [REST_SIZE, REST_SIZE, REST_SIZE],
+                    ]);
+
+                    await clickLegendItem(chart, 0);
+                    await waitForChartStability(chart);
+                    await clickLegendItem(chart, 0);
+                    await waitForChartStability(chart);
+                    const drawnSizes = [0, 1].flatMap((at) =>
+                        shapesOf(getSeriesAt(chart, at).contentGroup, Marker).map(({ size }) => size)
+                    );
+                    expect(drawnSizes).toContain(HOVERED_SIZE);
+
+                    expect(stampSizes()).toEqual(atRest);
+                }
+            );
+
+            it.each([
+                { type: 'line', series: { type: 'line', marker: { size: REST_SIZE } } },
+                { type: 'area', series: { type: 'area', marker: { enabled: true, size: REST_SIZE } } },
+            ])(
+                'resolves one $type marker style per state, not per datum, to stamp the labels while hovered',
+                async ({ series }) => {
+                    const DATUMS = 30;
+                    chart = await createChart({
+                        ...hoverOptions({ ...series, selection: { enabled: true } }),
+                        data: Array.from({ length: DATUMS }, (_, i) => ({ x: i, y: i })),
+                        axes: {
+                            x: { type: 'number', position: 'bottom', min: -1, max: DATUMS },
+                            y: { type: 'number', position: 'left', min: -1, max: DATUMS },
+                        },
+                    } as AgCartesianChartOptions);
+                    await hoverFirstMarker();
+                    expect(hoveredMarker()?.size).toBe(HOVERED_SIZE);
+
+                    const labelSeries = getSeriesAt(chart);
+                    const resolve = vi.spyOn(labelSeries, 'getMarkerStyle');
+                    expect(labelSeries.getLabelData()).toHaveLength(DATUMS);
+                    // Nothing is selected, so every datum is in the one state.
+                    expect(resolve).toHaveBeenCalledTimes(1);
+                }
+            );
+
+            it.each([0, 1, 2, 3].map((index) => ({ index, type: markerSeries()[index].type })))(
+                'calls no $type itemStyler again to stamp the labels while nothing is highlighted',
+                async ({ index }) => {
+                    const itemStyler = vi.fn(() => ({}));
+                    chart = await createChart(hoverOptions(markerSeries(itemStyler)[index]));
+                    expect(itemStyler).toHaveBeenCalled();
+                    itemStyler.mockClear();
+
+                    expect(stamps()).toHaveLength(3);
+                    expect(itemStyler).not.toHaveBeenCalled();
+                }
+            );
+        });
+
+        describe('at a pixel ratio below 1', () => {
+            const squareSeries = (styler?: () => object) => [
+                { type: 'scatter', shape: 'square', labelKey: 'y', itemStyler: styler },
+                { type: 'bubble', sizeKey: 'y', shape: 'square', labelKey: 'y', itemStyler: styler },
+                { type: 'line', marker: { shape: 'square', itemStyler: styler } },
+                { type: 'area', marker: { enabled: true, shape: 'square', itemStyler: styler } },
+            ];
+
+            it.each([
+                ...squareSeries().map((series) => ({ type: series.type, styled: false, series })),
+                ...squareSeries(() => ({})).map((series) => ({ type: series.type, styled: true, series })),
+            ])(
+                'allows each $type square marker edge to snap 0.75 device px, in px (styled: $styled)',
+                async ({ series }) => {
+                    const options = {
+                        data: [0, 1, 2].map((i) => ({ x: i * 10, y: i * 10 })),
+                        animation: { enabled: false },
+                        legend: { enabled: false },
+                        axes: cartesianAxes,
+                        series: [{ xKey: 'x', yKey: 'y', label: { enabled: true, placement: 'inside' }, ...series }],
+                    } as AgCartesianChartOptions;
+                    chart = await createChart(withUndocumentedChartOptions(options, { overrideDevicePixelRatio: 0.5 }));
+                    const labelSeries = getSeriesAt(chart);
+                    const coverage = labelSeries.getLabelMarkerCoverage();
+                    const snaps = labelSeries.getLabelData().map(({ markerSnap }) => markerSnap ?? coverage?.snap);
+                    expect(snaps).toEqual([1.5, 1.5, 1.5]);
+                }
+            );
         });
     });
 

@@ -32,4 +32,5 @@ export * from './chart/test/prepareOptions';
 export { optionAt } from './module/test/moduleAccessors';
 export * from './chart/test/syncFixtures';
 export * from './chart/test/glowGapFixtures';
+export * from './chart/test/markerUnderFixtures';
 export * from './chart/test/sectorGlowJoins';

@@ -2237,6 +2237,8 @@ export class DonutSeries extends PolarSeries<
 
         const { positionOffset, positionRatio } = sectorLabel;
         const policy = labelFitPolicy(sectorLabel);
+        const boxedPolicy = { ...policy, boxed: true };
+        const unboxedPolicy = { ...policy, boxed: false };
         // The wedge holds the drawn box, not the glyphs, so the region owes the box its own extent.
         const boxPadding = expandLabelBoxExtent(sectorLabel);
         const innerRadius = this.radiusScale.convert(0);
@@ -2259,7 +2261,7 @@ export class DonutSeries extends PolarSeries<
             } else {
                 const sector = { startAngle, endAngle, innerRadius, outerRadius };
                 const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, this.centerX, this.centerY);
-                fitPolicy = { ...policy, boxed: labelHasBox(font) };
+                fitPolicy = labelHasBox(font) ? boxedPolicy : unboxedPolicy;
                 fitTarget = { place };
             }
 

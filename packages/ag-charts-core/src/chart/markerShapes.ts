@@ -178,3 +178,35 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
         ]);
     },
 };
+
+/** Radii of a built-in marker shape and the reach of its stroke, as fractions of the marker size. */
+export interface MarkerShapeGeometry {
+    /** Radius of the largest circle about the marker centre that the fill holds; `0` when the centre is unfilled. */
+    readonly inR: number;
+    /** Radius about the marker centre that holds the whole outline. */
+    readonly circumR: number;
+    /** Half-strokes a miter join reaches past the outline at the sharpest outward corner (canvas miter limit 10). */
+    readonly miter: number;
+    /** Device pixels pixel snapping may move a drawn edge from its nominal position. */
+    readonly snap: number;
+}
+
+export const MARKER_SHAPE_GEOMETRY: Record<keyof typeof MARKER_SHAPES, MarkerShapeGeometry> = {
+    circle: { inR: 0.5, circumR: 0.5, miter: 1, snap: 0 },
+    cross: { inR: 0.25, circumR: 0.5591, miter: Math.SQRT2, snap: 0 },
+    diamond: { inR: Math.SQRT2 / 4, circumR: 0.5, miter: Math.SQRT2, snap: 0 },
+    heart: { inR: 0.25, circumR: 0.531, miter: 1.26, snap: 0 },
+    pin: { inR: 0.32, circumR: 0.501, miter: 1.43, snap: 0 },
+    plus: { inR: Math.SQRT2 / 6, circumR: 0.5271, miter: Math.SQRT2, snap: 0 },
+    // Its size and origin each round to a device pixel: up to half a pixel, plus half of half a pixel.
+    square: { inR: 0.5, circumR: Math.SQRT1_2, miter: Math.SQRT2, snap: 0.75 },
+    star: { inR: 0.25, circumR: 0.5, miter: 2.27, snap: 0 },
+    triangle: { inR: 0.248, circumR: 0.6221, miter: 2.01, snap: 0 },
+    'triangle-down': { inR: 0.248, circumR: 0.6221, miter: 2.01, snap: 0 },
+    hourglass: { inR: 0, circumR: Math.SQRT1_2, miter: 2.62, snap: 0 },
+};
+
+/** Px pixel snapping may move a drawn edge of `shape` from its nominal position at `pixelRatio`. */
+export function markerSnapAllowance(shape: keyof typeof MARKER_SHAPES, pixelRatio: number): number {
+    return MARKER_SHAPE_GEOMETRY[shape].snap / pixelRatio;
+}

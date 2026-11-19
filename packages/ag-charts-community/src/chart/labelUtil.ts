@@ -46,6 +46,7 @@ import {
     isRotatable,
     labelBoxCentreOffset,
     lineHeightAtSize,
+    markerLabelRect,
     measureLabelText,
     mergeDefaults,
     orientationAngles,
@@ -79,7 +80,6 @@ import {
     resolvePlacementLabelBoxExtent,
     resolvePlacementLabelStyle,
 } from './label';
-import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from './series/seriesTypes';
 

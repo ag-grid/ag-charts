@@ -9,6 +9,7 @@ import type {
     DistantObject,
     DomainWithMetadata,
     DynamicContext,
+    MarkerCoverage,
     Node,
     NormalisedChartLabelCollisionOptions,
     NormalisedColorType,
@@ -53,6 +54,7 @@ import {
     isPatternFill,
     isSupportedMarkerShape,
     jsonDiff,
+    markerStrokePickInflation,
     mergeDefaults,
     mergeGlow,
     nearestSquared,
@@ -98,7 +100,6 @@ import { DataSet } from '../data/dataSet';
 import { type FormatterCache, type LabelFormatSource, LabelValueFormatter } from '../label';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
-import { markerStrokePickInflation } from '../marker/marker';
 import { getItemCastBase } from '../optionsGraphService';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
@@ -118,6 +119,7 @@ import {
     getHighlightStyle,
     getSelectionStyle,
     hasStateStyle,
+    highlightStates,
     isUnselected,
     stagedSelectionState,
     toHighlightString,
@@ -166,6 +168,8 @@ const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
 /** What `resolveInPlaceCopy` returns, in place of a `HighlightState`, for the in-place copy of the hovered item. */
 const HOVERED_IN_PLACE = -1;
+
+const SELECTION_STYLE_STATES = [SelectionState.Item, SelectionState.OtherItem, SelectionState.OtherSeries];
 
 export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     itemId: string;
@@ -1152,6 +1156,14 @@ export abstract class Series<
         return glow ?? undefined;
     }
 
+    /** Whether a marker with these options casts a shadow or glow with nothing highlighted. */
+    protected castsMarkerShadowAtRest(marker: {
+        shadow?: NormalisedDropShadowOptions;
+        glow?: DeepPartial<AgGlowOptions>;
+    }): boolean {
+        return marker.shadow?.enabled === true || this.getCascadedGlow(marker.glow, HighlightState.None) != null;
+    }
+
     /** Whether any highlight state casts a glow, over any series-level `glow`; when none does, no glow is resolved per datum. */
     private anyGlow?: boolean;
 
@@ -1816,6 +1828,27 @@ export abstract class Series<
     }
     public getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
         return undefined;
+    }
+    public getLabelMarkerCoverage(): MarkerCoverage | undefined {
+        return undefined;
+    }
+
+    /**
+     * Every fill a marker drawn without an `itemStyler` can take from its state: `ownFill` in each highlight state,
+     * and each highlight and selection state's own fill over it.
+     */
+    protected markerStateFills(ownFill: (state: HighlightState) => unknown): unknown[] {
+        const fills: unknown[] = [];
+        for (const state of highlightStates) {
+            fills.push(ownFill(state));
+            const { fill } = this.getHighlightStyle(false, undefined, state);
+            if (fill != null) fills.push(fill);
+        }
+        for (const state of SELECTION_STYLE_STATES) {
+            const fill = this.getSelectionStyle(undefined, state, SelectionState.None)?.fill;
+            if (fill != null) fills.push(fill);
+        }
+        return fills;
     }
     public updatePlacedLabelData(_labels: PlacedLabel<TLabel>[]) {
         return;

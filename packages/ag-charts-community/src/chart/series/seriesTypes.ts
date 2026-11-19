@@ -6,6 +6,7 @@ import type {
     DomainWithMetadata,
     Group,
     LabelObstacle,
+    MarkerCoverage,
     Node,
     PlacedLabel,
     Point,
@@ -177,6 +178,8 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
      * styler never runs for a fallback the label did not need. `undefined` when no styler can change it.
      */
     getLabelCandidateResolver?(): PositionedCandidateResolver | undefined;
+    /** What each marker covers and draws at rest, as fractions of its size; `undefined` when unknown. */
+    getLabelMarkerCoverage(): MarkerCoverage | undefined;
     getLabelObstacles?(): LabelObstacle[] | undefined;
     getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaMeta(seriesDatum: TDatum, description: string): ISeriesAriaMeta | undefined;

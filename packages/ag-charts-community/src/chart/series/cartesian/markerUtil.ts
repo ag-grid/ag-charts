@@ -1,4 +1,5 @@
 import type {
+    MarkerStrokePickStyle,
     Node,
     NormalisedSeriesMarkerOptions,
     NormalisedSeriesMarkerStyle,
@@ -8,18 +9,32 @@ import type {
     SizedPoint,
     Writeable,
 } from 'ag-charts-core';
-import { BBox, ChartAxisDirection, Transformable, clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
+import {
+    BBox,
+    ChartAxisDirection,
+    Transformable,
+    clamp,
+    findRangeExtent,
+    inverseEaseOut,
+    markerStrokePickInflation,
+} from 'ag-charts-core';
 import type { AgDrawingMode, AgMarkerShape } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { ExtraOpts, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import type { AnimationManager } from '../../interaction/animationManager';
-import type { MarkerStrokePickStyle } from '../../marker/marker';
-import { Marker, markerStrokePickInflation } from '../../marker/marker';
+import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../pickTypes';
 import { highlightStates } from '../seriesProperties';
-import type { HighlightState, ISeries, ISeriesOptions, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
+import type {
+    HighlightState,
+    ISeries,
+    ISeriesOptions,
+    NodeDataDependant,
+    SelectionState,
+    SeriesNodeDatum,
+} from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 type NodeWithDrawingMode<D> = Node<D> & { drawingMode?: AgDrawingMode };
@@ -280,6 +295,15 @@ export function hideMarkerWithSize0(
     datum: { crossFilterSelected: boolean | undefined }
 ) {
     return hideWithSize0 && !(selectedOnly && datum.crossFilterSelected !== false);
+}
+
+/** The style pass's marker-style key as a number: selection and candidacy states, and whether cross-filtering hides it. */
+export function markerStateKey(
+    selectionState: SelectionState | undefined,
+    candidateState: SelectionState | undefined,
+    crossFilterHidden: boolean
+): number {
+    return ((selectionState ?? 4) * 5 + (candidateState ?? 4)) * 2 + (crossFilterHidden ? 1 : 0);
 }
 
 /** The marker-style cache key for `hideMarkerWithSize0`, as the hidden and shown datums' styles differ. */

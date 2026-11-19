@@ -85,10 +85,11 @@ export function resolveLabelFit(
     hideOnOverflow = false,
     defaultToTruncate = false
 ): LabelFit | undefined {
-    const policy = labelFitPolicy(fit, hideOnOverflow, defaultToTruncate);
-    const { overflowStrategy, wrapping, minimumFontSize } = policy;
-    if (overflowStrategy == null && wrapping == null && minimumFontSize == null) return undefined;
-    return policy;
+    const { wrapping, truncate, minimumFontSize } = fit;
+    if (!truncate && !defaultToTruncate && !hideOnOverflow && wrapping == null && minimumFontSize == null) {
+        return undefined;
+    }
+    return labelFitPolicy(fit, hideOnOverflow, defaultToTruncate);
 }
 
 /** The {@link resolveLabelFit} policy for a label that is always fitted, whether or not it opted in. */
@@ -240,6 +241,14 @@ export interface PointLabelDatum {
      * styler (`size: size * 2`).
      */
     readonly markerSize?: number;
+    /** Per-datum {@link MarkerCoverage.cover} in px, from a marker itemStyler; overrides the series value. */
+    readonly markerCover?: number;
+    /** Per-datum {@link MarkerCoverage.coverRect}, from a marker itemStyler; overrides the series value. */
+    readonly markerCoverRect?: MarkerCoverRect;
+    /** Per-datum drawn reach in px (shape, then stroke), from a marker itemStyler; overrides the series value. */
+    readonly markerReach?: number;
+    /** Per-datum {@link MarkerCoverage.snap}, set with {@link markerCover} and {@link markerReach}. */
+    readonly markerSnap?: number;
     /** Box spanned by marks drawn over the point (error bars), which a directional label sits beyond. */
     readonly overlayBounds?: BoxBounds;
     readonly label: MeasuredLabel;
@@ -437,6 +446,33 @@ export interface SeriesLabels {
     readonly resolveCandidate?: PositionedCandidateResolver;
     /** Rank of the series in the at-rest paint order, higher drawn over lower; unset when unknown. */
     readonly paintOrder?: number;
+    /** What the series' at-rest markers paint, for marker size 1; unset when unknown. */
+    readonly markerCoverage?: MarkerCoverage;
+}
+
+/** Rectangle inside a marker's fill, as fractions of the marker size, centred at (`cx`, `cy`) off its centre. */
+export interface MarkerCoverRect {
+    readonly width: number;
+    readonly height: number;
+    readonly cx: number;
+    readonly cy: number;
+}
+
+/**
+ * The area a marker's painted fill is certain to cover, and the furthest any of it can draw, so a label on a
+ * marker can ignore one painted beneath it only where nothing of that one can show.
+ */
+export interface MarkerCoverage {
+    /** Radius of a circle the fill covers, as a fraction of marker size; `0` when no fill is painted. */
+    readonly cover: number;
+    /** A rectangle the fill also covers, when it is painted; fractions of marker size. */
+    readonly coverRect?: MarkerCoverRect;
+    /** Radius containing the whole shape, as a fraction of marker size; `Infinity` when unknown. */
+    readonly reach: number;
+    /** Px the drawn stroke reaches past the shape. */
+    readonly strokeReach: number;
+    /** Px pixel snapping may move a drawn edge, which shrinks the cover and grows the reach. */
+    readonly snap: number;
 }
 
 interface PlacementEntry extends SeriesLabels {
@@ -535,6 +571,8 @@ export type LabelObstacle =
           readonly seriesIndex?: number;
           /** The owning series' {@link SeriesLabels.paintOrder}; unset or NaN when unknown. */
           readonly paintOrder?: number;
+          /** Radius about the centre holding everything the marker draws; unset or `Infinity` when unknown. */
+          readonly reach?: number;
       }
     | {
           readonly kind: 'rect';
@@ -729,6 +767,7 @@ interface PooledCircleObstacle {
     category: ObstacleCategory;
     seriesIndex: number;
     paintOrder: number;
+    reach: number;
 }
 
 // Mutable placed-label obstacle pooled across passes, mirroring markerPool.
@@ -772,6 +811,15 @@ let candidatePlacement: LabelPlacement | undefined;
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
+// What the candidate's own marker fill covers: a circle about its centre (radius <= 0 for none) and a
+// rectangle (NaN edges for none), both shrunk by its pixel-snap allowance.
+let candidateOwnCover = -1;
+let candidateCoverX0 = Number.NaN;
+let candidateCoverY0 = Number.NaN;
+let candidateCoverX1 = Number.NaN;
+let candidateCoverY1 = Number.NaN;
+// The coverage of the series whose labels are being placed.
+let candidateCoverage: MarkerCoverage | undefined;
 // The candidate's series position and paint order, matching what is stamped on its marker obstacles.
 let candidateSeriesIndex = -1;
 let candidatePaintOrder = Number.NaN;
@@ -967,14 +1015,67 @@ function straddlesForeignShape(o: LabelObstacle): boolean {
 function markerCoveredByOwn(o: CircleObstacle): boolean {
     const cx = candidateOwnMarkerCx;
     const cy = candidateOwnMarkerCy;
-    const r = candidateOwnMarkerR;
-    if (o.seriesIndex === candidateSeriesIndex && o.cx === cx && o.cy === cy && o.r === r) return true;
-    const paintOrder = o.paintOrder ?? Number.NaN;
-    if (paintOrder < candidatePaintOrder) {
-        const testBox = candidateTestBox() ?? candidateBox;
-        return boxWithinCircle(testBox, cx, cy, r) || circleWithinCircle(o.cx, o.cy, o.r, cx, cy, r);
+    if (o.seriesIndex === candidateSeriesIndex && o.cx === cx && o.cy === cy && o.r === candidateOwnMarkerR) {
+        return true;
     }
-    return false;
+    // A NaN order on either side is unknown, so neither is painted under the other.
+    const paintedUnder = (o.paintOrder ?? Number.NaN) < candidatePaintOrder;
+    if (!paintedUnder) return false;
+    const cover = candidateOwnCover;
+    const testBox = candidateTestBox() ?? candidateBox;
+    if (boxWithinCircle(testBox, cx, cy, cover) || boxWithinCoverRect(testBox)) return true;
+    // Nothing of the marker underneath can show when all it draws lies within the own fill.
+    const reach = o.reach ?? Infinity;
+    return circleWithinCircle(o.cx, o.cy, reach, cx, cy, cover) || circleWithinCoverRect(o.cx, o.cy, reach);
+}
+
+function boxWithinCoverRect(box: BoxBounds): boolean {
+    return (
+        box.x >= candidateCoverX0 &&
+        box.y >= candidateCoverY0 &&
+        box.x + box.width <= candidateCoverX1 &&
+        box.y + box.height <= candidateCoverY1
+    );
+}
+
+function circleWithinCoverRect(cx: number, cy: number, r: number): boolean {
+    return (
+        cx - r >= candidateCoverX0 &&
+        cy - r >= candidateCoverY0 &&
+        cx + r <= candidateCoverX1 &&
+        cy + r <= candidateCoverY1
+    );
+}
+
+/** Reads the candidate's own marker cover from its datum, else its series, at the marker's drawn size. */
+function setCandidateCover(d: PointLabelDatum, size: number) {
+    const coverage = candidateCoverage;
+    const cover = d.markerCover ?? (coverage == null ? 0 : coverage.cover * size);
+    const snap = (d.markerCover == null ? coverage?.snap : d.markerSnap) ?? 0;
+    candidateOwnCover = cover - snap;
+    const rect = d.markerCover == null ? coverage?.coverRect : d.markerCoverRect;
+    if (rect == null) {
+        candidateCoverX0 = Number.NaN;
+        candidateCoverY0 = Number.NaN;
+        candidateCoverX1 = Number.NaN;
+        candidateCoverY1 = Number.NaN;
+        return;
+    }
+    const centreX = candidateOwnMarkerCx + rect.cx * size;
+    const centreY = candidateOwnMarkerCy + rect.cy * size;
+    const halfWidth = (rect.width * size) / 2 - snap;
+    const halfHeight = (rect.height * size) / 2 - snap;
+    candidateCoverX0 = centreX - halfWidth;
+    candidateCoverY0 = centreY - halfHeight;
+    candidateCoverX1 = centreX + halfWidth;
+    candidateCoverY1 = centreY + halfHeight;
+}
+
+/** Radius holding everything a marker of this datum draws, from its datum, else its series; `Infinity` when unknown. */
+function markerReachOf(d: PointLabelDatum, size: number, coverage: MarkerCoverage | undefined): number {
+    if (d.markerReach != null) return d.markerReach + (d.markerSnap ?? 0);
+    if (coverage == null) return Infinity;
+    return coverage.reach * size + coverage.strokeReach + coverage.snap;
 }
 
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
@@ -1333,7 +1434,7 @@ function markerCentreOf(d: PointLabelDatum) {
 /** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
 function insertMarkerObstacles(data: Map<string, PlacementEntry>) {
     let markerCount = 0;
-    for (const { datums, seriesIndex, paintOrder = Number.NaN } of data.values()) {
+    for (const { datums, seriesIndex, paintOrder = Number.NaN, markerCoverage } of data.values()) {
         for (const d of datums) {
             const size = markerSizeOf(d);
             if (size <= 0) continue;
@@ -1351,12 +1452,14 @@ function insertMarkerObstacles(data: Map<string, PlacementEntry>) {
                     category: 'marker',
                     seriesIndex: -1,
                     paintOrder: Number.NaN,
+                    reach: Infinity,
                 };
                 markerPool.push(obstacle);
             }
             markerCount++;
             obstacle.seriesIndex = seriesIndex;
             obstacle.paintOrder = paintOrder;
+            obstacle.reach = markerReachOf(d, size, markerCoverage);
             obstacle.cx = cx;
             obstacle.cy = cy;
             obstacle.r = r;
@@ -1482,6 +1585,7 @@ export function placeLabels(
                 resolveCandidateStyle: entry.resolveCandidateStyle,
                 resolveCandidate: entry.resolveCandidate,
                 paintOrder: entry.paintOrder,
+                markerCoverage: entry.markerCoverage,
                 seriesIndex,
             },
         ])
@@ -1502,6 +1606,7 @@ export function placeLabels(
             if (datums[0]?.label == null) continue;
             candidateSeriesIndex = entry.seriesIndex;
             candidatePaintOrder = entry.paintOrder ?? Number.NaN;
+            candidateCoverage = entry.markerCoverage;
             for (let index = 0, ln = datums.length; index < ln; index++) {
                 const d = datums[index];
                 // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
@@ -1537,6 +1642,7 @@ export function placeLabels(
 
 /** Drops the scratch state's hold on the last solve's datums, candidates and series callbacks. */
 function releaseSolveReferences() {
+    candidateCoverage = undefined;
     cascadeDatum = undefined;
     cascadePlacements = undefined;
     cascadeOrientations = undefined;
@@ -2604,7 +2710,9 @@ function placeAvoidingLabel(
     markerCentreOf(d);
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
-    candidateOwnMarkerR = markerSizeOf(d) / 2;
+    const ownSize = markerSizeOf(d);
+    candidateOwnMarkerR = ownSize / 2;
+    setCandidateCover(d, ownSize);
     // Bar labels carry their own bar rect here so an inside label excludes its own shape; marker series
     // leave it unset (their own marker is handled by the own-marker circle gate above).
     candidateOwnBox = d.ownBox;

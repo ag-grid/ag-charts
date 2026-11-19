@@ -4,6 +4,7 @@ import { Group, SeriesZIndexMap } from 'ag-charts-core';
 import type { AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-types';
 
 import type { Chart } from '../chart';
+import { getPlacedLabelData } from '../test/communitySeriesAccessors';
 import {
     createChart,
     deproxy,
@@ -240,6 +241,7 @@ describe('SeriesLayerManager', () => {
             const { drawn, drawnRanks } = rankOrder();
             expect(drawn).toHaveLength(seriesCount);
             expect(drawnRanks).toEqual(drawn.map((_, index) => index));
+            expect(new Set(getSeriesPaintOrder(chart).labelsAfterContent)).toEqual(new Set(drawn));
         };
 
         it.each(FIXTURES)('ranks $name in the order the scene draws them', async ({ series, sharesLayer }) => {
@@ -269,6 +271,48 @@ describe('SeriesLayerManager', () => {
             const hovered = rankOrder();
             expect(hovered.drawn).not.toEqual(before.drawn);
             expect(hovered.ranks).toEqual(before.ranks);
+        });
+
+        it('keeps a marker drawn over the later of two series sharing a layer as an obstacle to its inside label', async () => {
+            const label = { enabled: true, collision: { alwaysShow: false } };
+            const marker = { enabled: true, size: 30 };
+            // Thirty more series pack layers by internal id, putting `lower` and `upper` in one.
+            const filler = (from: number, count: number) =>
+                Array.from({ length: count }, (_, index): AgCartesianSeriesOptions => {
+                    return { type: 'line', xKey: 'x', yKey: `f${from + index}` };
+                });
+            const series: AgCartesianSeriesOptions[] = [
+                ...filler(0, 10),
+                { id: 'lower', type: 'line', xKey: 'x', yKey: 'a', marker },
+                {
+                    id: 'between',
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'top',
+                    labelKey: 'x',
+                    size: 10,
+                    label: { ...label, placement: 'bottom' },
+                },
+                { id: 'upper', type: 'line', xKey: 'x', yKey: 'c', marker, label: { ...label, placement: 'inside' } },
+                ...filler(10, 20),
+            ];
+            chart = deproxy(
+                await createChart({
+                    ...options(series),
+                    data: [
+                        { x: 'A', a: 1, c: 4, top: 4 },
+                        { x: 'B', a: 2, c: 6 },
+                        { x: 'C', ...Object.fromEntries(Array.from({ length: 30 }, (_, index) => [`f${index}`, 0])) },
+                    ],
+                })
+            );
+
+            const { layers, ranks } = getSeriesPaintOrder(chart);
+            expect(layers).toContainEqual(['lower', 'upper']);
+            expect(['lower', 'upper', 'between'].map((id) => ranks.get(id))).toEqual([10, 11, 12]);
+            expectRanksInDrawnOrder(series.length);
+            const upper = chart.series.findIndex(({ id }) => id === 'upper');
+            expect(getPlacedLabelData(chart, upper).map((placed) => placed.datum.label.text)).toEqual(['6']);
         });
     });
 });

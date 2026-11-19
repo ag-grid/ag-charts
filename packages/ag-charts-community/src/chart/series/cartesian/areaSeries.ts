@@ -3,6 +3,7 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     InternalAgColorType,
+    MarkerCoverage,
     NormalisedAreaSeriesMarkerItemStylerParams,
     NormalisedAreaSeriesOptions,
     NormalisedAreaSeriesOwnOptions,
@@ -10,6 +11,7 @@ import type {
     NormalisedColorType,
     NormalisedSeriesMarkerStyle,
     Point,
+    PointLabelDatum,
     RequireOptional,
     SegmentedPath,
     Selection,
@@ -21,7 +23,9 @@ import {
     ChartAxisDirection,
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
+    EVERY_MARKER_FILL_PAINTED,
     Group,
+    LabelMarkerStamps,
     Path,
     PointerEvents,
     SeriesContentZIndexMap,
@@ -29,11 +33,13 @@ import {
     extent,
     isContinuous,
     isDefined,
+    markerCoverageOf,
     markerRebuildNeeded,
     maxValue,
     mergeDefaults,
     minValue,
     placedLabelFit,
+    toArray,
     toNumber,
     withoutCasts,
 } from 'ag-charts-core';
@@ -106,6 +112,7 @@ import {
     getMarkerStyles,
     hideMarkerWithSize0,
     markerFadeInAnimation,
+    markerStateKey,
     markerSwipeScaleInAnimation,
     maxMarkerStrokePickInflation,
     moveNodePoints,
@@ -262,8 +269,11 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
     public nodeDatumContext: AreaSeriesCreateNodeDatumContext | undefined = undefined;
     private hideWithSize0 = false;
+    private readonly labelMarkers = new LabelMarkerStamps();
     private selectedOnly = false;
     private markerNodesPickable = true;
+    // Whether the style pass draws a marker for each datum it is not told to skip.
+    private markerNodesDrawn = true;
 
     protected override hasPickableNodeShapes(): boolean {
         return this.markerNodesPickable;
@@ -1190,11 +1200,13 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         scratch.crossFilterSelected = ctx.crossFilterSelectedValues?.[datumIndex];
 
         // Marker data (using ctx.nodes to match base interface)
+        let node: MarkerSelectionDatum | undefined;
         if (scratch.validPoint) {
             const existingNode: typeof dst =
                 dst === undefined && ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length
                     ? ctx.nodes[ctx.nodeIndex]
                     : dst;
+            node = existingNode;
 
             if (existingNode) {
                 // Update existing node in place
@@ -1209,7 +1221,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
                 moveNodePoints(existingNode, scratch.x, scratch.y, ctx.markerSize);
             } else {
-                ctx.nodes.push({
+                node = {
                     series: this,
                     datum: scratch.datum,
                     datumIndex,
@@ -1225,7 +1237,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                     stroke: ctx.markerStroke,
                     strokeWidth: ctx.markerStrokeWidth,
                     crossFilterSelected: scratch.crossFilterSelected,
-                });
+                };
+                ctx.nodes.push(node);
             }
             if (dst === undefined) {
                 ctx.nodeIndex++;
@@ -1269,6 +1282,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 placement: 'top',
                 // Markerless points still nudge their label clear of the area with a small fixed gap.
                 gap: ctx.markerSize > 0 ? ctx.markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP,
+                node,
             });
         }
     }
@@ -1489,6 +1503,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         this.selectedOnly = markerDrawMode.selectedOnly === true;
         // Under `selectedOnly` only the cross-filter-selected datums have a full-size marker, so the rest fall back to markerless picking.
         this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0 && !this.selectedOnly;
+        this.markerNodesDrawn = markerDrawMode.needsNodeData;
 
         if (this.markerDirty) {
             datumSelection.clear();
@@ -1542,6 +1557,17 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         selectionState,
         stylerStyle
     ) => {
+        datum.style = AreaSeries.stylerDatumStyle(series, ctx, datum, highlightState, selectionState, stylerStyle);
+    };
+
+    private static stylerDatumStyle(
+        series: AreaSeries,
+        ctx: AreaStylerPassCtx,
+        datum: MarkerSelectionDatum,
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined,
+        stylerStyle: ReturnType<AreaSeries['getStyle']>
+    ) {
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
         const params = series.makeItemStylerParams(
             ctx.dataModel,
@@ -1549,7 +1575,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             datum.datumIndex,
             stylerStyle.marker
         );
-        datum.style = series.getMarkerStyle<NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
+        return series.getMarkerStyle<NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
             ctx.marker,
             datum,
             params,
@@ -1557,7 +1583,94 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             stylerStyle.marker,
             { stroke, strokeWidth, strokeOpacity }
         );
-    };
+    }
+
+    /** The style the style pass draws a datum's marker in with nothing highlighted. */
+    private restingMarkerStyleOf(): (datum: MarkerSelectionDatum) => NormalisedSeriesMarkerStyle {
+        const none = HighlightState.None;
+        const { marker } = this.options;
+        const { hideWithSize0, selectedOnly } = this;
+        if (marker.itemStyler == null) {
+            const ctx: AreaNoStylerPassCtx = { marker, hideWithSize0, selectedOnly, isHighlight: false };
+            // Keyed as the style pass keys it, so a solve resolves one style per state rather than per datum.
+            const byCrossFilter = hideWithSize0 && selectedOnly;
+            const styles = new Map<number, NormalisedSeriesMarkerStyle>();
+            return (datum) => {
+                const selectionState = this.getDataSelectionState(datum.datumIndex);
+                const candidateState = this.getDataCandidacyState(datum.datumIndex);
+                const hidden = byCrossFilter && datum.crossFilterSelected === false;
+                const key = markerStateKey(selectionState, candidateState, hidden);
+                let style = styles.get(key);
+                if (style == null) {
+                    style = AreaSeries.computeNoStylerMarkerStyle(this, ctx, none, selectionState, datum);
+                    styles.set(key, style);
+                }
+                return style;
+            };
+        }
+        const ctx: AreaStylerPassCtx = {
+            marker,
+            hideWithSize0,
+            isHighlight: false,
+            dataModel: this.dataModel!,
+            processedData: this.processedData!,
+        };
+        return (datum) => {
+            const selectionState = this.getDataSelectionState(datum.datumIndex);
+            const stylerStyle = AreaSeries.computeStylerStyle(this, ctx, none, selectionState, datum);
+            return AreaSeries.stylerDatumStyle(this, ctx, datum, none, selectionState, stylerStyle);
+        };
+    }
+
+    override getLabelData(): (LabelSelectionDatum & PointLabelDatum)[] {
+        const labelData = super.getLabelData();
+        const { marker } = this.options;
+        // A marker itemStyler, selection or custom shape resolves each marker apart from the label data, so the
+        // label's obstacles, gap and anchor are stamped from the style its marker is drawn in at rest.
+        const styled = marker.itemStyler != null;
+        if (!marker.enabled || (!styled && !this.isSelectionEnabled() && typeof marker.shape !== 'function')) {
+            this.labelMarkers.unstamp(labelData);
+            return labelData;
+        }
+        const memo = this.labelMarkers.fills;
+        const everyPainted =
+            !styled && memo.everyPainted(this.markerStateFills((state) => this.getStyle(state).marker.fill));
+        const settled = {
+            castsShadow: this.castsMarkerShadowAtRest(marker),
+            fills: everyPainted ? EVERY_MARKER_FILL_PAINTED : memo,
+            pixelRatio: this.ctx.scene?.canvas?.pixelRatio ?? 1,
+            inside: toArray(this.options.label.placement).includes('inside'),
+        };
+        const { hideWithSize0, selectedOnly } = this;
+        // The style pass skips every marker when none are drawn, and under `selectedOnly` those cross-filtering hides.
+        const drawnNode = ({ node }: LabelSelectionDatum) =>
+            this.markerNodesDrawn && !(selectedOnly && !hideWithSize0 && node?.crossFilterSelected === false)
+                ? node
+                : undefined;
+        // Without an item styler the renderer draws every marker in the series' at-rest style.
+        const restStyle = this.contextNodeData?.styles[HighlightState.None];
+        if (this.ctx.highlightManager.getActiveHighlight() == null || !this.hasItemStylers()) {
+            this.labelMarkers.stamp(
+                labelData,
+                (datum) => {
+                    const node = drawnNode(datum);
+                    return node == null ? undefined : (node.style ?? restStyle);
+                },
+                settled
+            );
+        } else {
+            const resting = this.restingMarkerStyleOf();
+            this.labelMarkers.stamp(
+                labelData,
+                (datum) => {
+                    const node = drawnNode(datum);
+                    return node == null ? undefined : resting(node);
+                },
+                settled
+            );
+        }
+        return labelData;
+    }
 
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
@@ -1604,6 +1717,24 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
     protected override getSeriesGlows() {
         return [this.options.marker.glow];
+    }
+
+    // A marker itemStyler or selection styles each datum's marker, which getLabelData stamps per label instead.
+    override getLabelMarkerCoverage(): MarkerCoverage | undefined {
+        const { marker } = this.options;
+        if (marker.itemStyler != null || this.isSelectionEnabled() || !this.markerNodesPickable) return undefined;
+        const { marker: markerStyle, stroke, strokeWidth, strokeOpacity } = this.getStyle(HighlightState.None);
+        const style = this.getMarkerStyle(marker, {}, undefined, { highlightState: HighlightState.None }, markerStyle, {
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+        });
+        return markerCoverageOf(
+            style,
+            this.castsMarkerShadowAtRest(marker),
+            this.labelMarkers.fills.isPainted(style.fill),
+            this.ctx.scene?.canvas?.pixelRatio ?? 1
+        );
     }
 
     protected override updateDatumNodes(opts: {

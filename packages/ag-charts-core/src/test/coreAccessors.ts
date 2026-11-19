@@ -1,4 +1,4 @@
-import { type MockInstance, vi } from 'vitest';
+import { type MockInstance, afterEach, beforeEach, vi } from 'vitest';
 
 import type { SpatialIndex } from '../geometry/spatialIndex';
 import type { Logger } from '../logging/logger';
@@ -39,4 +39,21 @@ interface SpatialIndexHost {
 /** The number of grid cells a `SpatialIndex` allocated for its last `reset`. */
 export function getSpatialIndexCellCount(index: SpatialIndex<unknown>): number {
     return (index as unknown as SpatialIndexHost).cellCount;
+}
+
+// jsdom has no Path2D; code that reads only the commands an `ExtendedPath2D` records can draw onto one that does nothing.
+class NoopPath2D {
+    constructor() {
+        return new Proxy(this, { get: () => () => {} });
+    }
+}
+
+/** Stubs the global `Path2D` for each test in the calling suite. */
+export function stubPath2D(): void {
+    beforeEach(() => {
+        vi.stubGlobal('Path2D', NoopPath2D);
+    });
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
 }

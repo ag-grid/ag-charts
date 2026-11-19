@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
 
+import { stubPath2D } from '../test/coreAccessors';
 import { clearMarkerPathCache, getSharedMarkerPath } from './markerPathCache';
 
 describe('markerPathCache', () => {
+    stubPath2D();
+
     it('returns the same ExtendedPath2D for the same (shape, size)', () => {
         clearMarkerPathCache();
         const a = getSharedMarkerPath('circle', 12);

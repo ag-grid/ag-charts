@@ -1,6 +1,6 @@
-import type { FitRegionMask } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
 
+import type { FitRegionMask } from '../geometry/fitRegion';
 import { getSharedMarkerPath } from './markerPathCache';
 
 /** Largest axis-aligned rectangle that fits inside a marker shape, as fractions of the marker diameter. */
@@ -88,8 +88,33 @@ function sampleShape(shape: AgMarkerShape) {
     if (bbox.width <= 0 || bbox.height <= 0) {
         return undefined;
     }
+    return sampleGrid(path.flatten(), bbox);
+}
 
-    const polygons = path.flatten();
+/**
+ * The largest rectangle whose corners a grid over `bbox` samples inside the even-odd fill of `polygons`, in their units.
+ * The grid can miss an unfilled gap narrower than a cell, so a caller that must be certain verifies it.
+ */
+export function gridInsideRect(
+    polygons: { x: number; y: number }[][],
+    bbox: { x: number; y: number; width: number; height: number }
+): { x0: number; y0: number; x1: number; y1: number } | undefined {
+    if (!(bbox.width > 0 && bbox.height > 0)) return undefined;
+    const { inside, cellW, cellH } = sampleGrid(polygons, bbox);
+    const best = largestInsideRect(inside);
+    if (best == null) return undefined;
+    return {
+        x0: bbox.x + (best.c0 + 0.5) * cellW,
+        y0: bbox.y + (best.r0 + 0.5) * cellH,
+        x1: bbox.x + (best.c1 + 0.5) * cellW,
+        y1: bbox.y + (best.r1 + 0.5) * cellH,
+    };
+}
+
+function sampleGrid(
+    polygons: { x: number; y: number }[][],
+    bbox: { x: number; y: number; width: number; height: number }
+) {
     const cellW = bbox.width / GRID;
     const cellH = bbox.height / GRID;
     const inside: boolean[] = new Array(GRID * GRID);
@@ -129,7 +154,7 @@ function computeLabelRect(shape: AgMarkerShape): MarkerLabelRect | undefined {
 
 // Even-odd point-in-polygon across all subpaths, with the half-open edge convention so shared vertices
 // are counted exactly once (robust where a ray would otherwise graze a vertex).
-function pointInPolygons(x: number, y: number, polygons: { x: number; y: number }[][]): boolean {
+export function pointInPolygons(x: number, y: number, polygons: { x: number; y: number }[][]): boolean {
     let inside = false;
     for (const poly of polygons) {
         for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {

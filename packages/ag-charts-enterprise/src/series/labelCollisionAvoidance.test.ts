@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
@@ -11,6 +11,7 @@ import type {
     AgFunnelSeriesOptions,
     AgMapLineSeriesOptions,
     AgMapMarkerSeriesOptions,
+    AgMarkerShapeFn,
     AgPyramidSeriesOptions,
     AgRangeAreaSeriesLabelPlacement,
     AgRangeAreaSeriesOptions,
@@ -21,19 +22,35 @@ import type {
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesOptions,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
+    SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+    clickAction,
+    clickLegendItem,
     compareImageSnapshot,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
+    getSeriesAt,
     getSeriesContextNodeData,
     getSeriesSelectionNodes,
+    hoverAction,
+    markerUnderLabelPlaced,
+    markerUnderOptions,
+    plainRect,
     setupMockCanvas,
     setupMockConsole,
+    shapesOf,
     topLabelAnchorGap,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { Text } from 'ag-charts-core';
+import {
+    Color,
+    MarkerFillMemo,
+    type PlacedLabel,
+    type PointLabelDatum,
+    type Text,
+    Transformable,
+} from 'ag-charts-core';
 
 import { getEnterpriseSelectionNodes, getPlacedLabelData } from '../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
@@ -71,6 +88,13 @@ describe('label collision avoidance', () => {
 
     const visibleLabelCount = (seriesIndex = 0) => visibleLabelNodes(seriesIndex).length;
 
+    const stampSizes = () =>
+        [0, 1].map((index) =>
+            getSeriesAt(chart, index)
+                .getLabelData()
+                .map(({ markerSize }) => markerSize)
+        );
+
     const renderPlacementCount = async <TPlacement extends string>(
         makeOptions: (
             collision: AgSeriesLabelCollisionOptions,
@@ -82,6 +106,194 @@ describe('label collision avoidance', () => {
         chart = await createEnterpriseChart(makeOptions(collision, placement));
         return visibleLabelCount();
     };
+
+    describe('inside label over a marker painted under its own colour-scaled marker', () => {
+        it.each([
+            { case: 'opaque colours', colors: ['blue', 'red'], placed: true },
+            // The datum the marker sits under is mid-scale, so it takes the middle colour.
+            { case: 'a transparent colour at that datum', colors: ['red', 'rgba(0, 0, 0, 0)', 'red'], placed: false },
+            { case: 'a transparent colour only elsewhere', colors: ['rgba(0, 0, 0, 0)', 'red', 'red'], placed: true },
+        ])('places the label over a scale through $case: $placed', async ({ colors, placed }) => {
+            const colorScale = { fills: colors.map((color) => ({ color })) };
+            chart = await createEnterpriseChart(markerUnderOptions({ colorKey: 'x', colorScale }));
+            const labels = getPlacedLabelData<PlacedLabel<PointLabelDatum>>(chart, 1);
+            expect(labels.length).toBeGreaterThanOrEqual(2);
+            expect(markerUnderLabelPlaced(labels)).toBe(placed);
+        });
+
+        it('stamps no label when every colour the scale draws paints', async () => {
+            const colorScale = { fills: [{ color: 'blue' }, { color: 'red' }] };
+            chart = await createEnterpriseChart(markerUnderOptions({ colorKey: 'x', colorScale }));
+            const labelData = getSeriesAt(chart, 1).getLabelData();
+            expect(labelData).toHaveLength(3);
+            expect(labelData.map(({ markerCover }) => markerCover)).toEqual([undefined, undefined, undefined]);
+        });
+    });
+
+    describe('colour parsing in the label solve', () => {
+        // More datums than a fixed-size memo of fills would hold, each drawn in a distinct colour.
+        const DATUMS = 100;
+        const scatterOptions = (colorOf: (i: number) => number, over: object): AgCartesianChartOptions => ({
+            data: Array.from({ length: DATUMS }, (_, i) => ({ x: i, y: i, c: colorOf(i) })),
+            legend: { enabled: false },
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', labelKey: 'x', label: { enabled: true }, ...over }],
+        });
+
+        const lineOptions = (valueOf: (i: number) => number): AgCartesianChartOptions => ({
+            data: Array.from({ length: DATUMS }, (_, i) => ({ x: i, y: valueOf(i) })),
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    selection: { enabled: true },
+                    marker: { enabled: true, size: 30 },
+                    label: { enabled: true },
+                },
+            ],
+        });
+        const squareShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
+            path.rect(x - size / 2, y - size / 2, size, size);
+        };
+        const mapMarkerOptions = (colorOf: (i: number) => number): AgChartOptions => ({
+            topology: ukTopology,
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'map-marker',
+                    data: Array.from({ length: DATUMS }, (_, i) => ({
+                        name: `${i}`,
+                        lat: 50.5 + (i % 10) * 0.4,
+                        lon: -3 + Math.floor(i / 10) * 0.3,
+                        c: colorOf(i),
+                    })),
+                    latitudeKey: 'lat',
+                    longitudeKey: 'lon',
+                    labelKey: 'name',
+                    colorKey: 'c',
+                    colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
+                    // A custom shape stamps each label from its marker, as a styler or selection does.
+                    shape: squareShape,
+                    label: { enabled: true, placement: 'inside' },
+                },
+            ],
+        });
+
+        /** Counts the colours parsed, and the fills judged, while the label solve gathers this series' label data. */
+        const countSolveFills = () => {
+            const series = getSeriesAt(chart);
+            const getLabelData = series.getLabelData.bind(series);
+            const parse = vi.spyOn(Color, 'validColorString');
+            const judge = vi.spyOn(MarkerFillMemo.prototype, 'isPainted');
+            const counted = { parses: 0, judged: 0 };
+            vi.spyOn(series, 'getLabelData').mockImplementation(() => {
+                const parsesBefore = parse.mock.calls.length;
+                const judgedBefore = judge.mock.calls.length;
+                const labelData = getLabelData();
+                counted.parses += parse.mock.calls.length - parsesBefore;
+                counted.judged += judge.mock.calls.length - judgedBefore;
+                return labelData;
+            });
+            return counted;
+        };
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        // Spread unevenly over the same domain, so most datums take a colour not seen before.
+        const colourScaled = {
+            colorKey: 'c',
+            colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
+            selection: { enabled: true },
+        };
+        it.each([
+            {
+                type: 'scatter',
+                before: scatterOptions((i) => i, colourScaled),
+                after: scatterOptions((i) => i * i, colourScaled),
+            },
+            { type: 'line', before: lineOptions((i) => i), after: lineOptions((i) => i * i) },
+            { type: 'map-marker', before: mapMarkerOptions((i) => i), after: mapMarkerOptions((i) => i * i) },
+        ])('judges no $type fill per datum when every fill the series can take paints', async ({ before, after }) => {
+            chart = await createEnterpriseChart(before);
+            const counted = countSolveFills();
+
+            await chart.update(prepareEnterpriseTestOptions(after));
+            await waitForChartStability(chart);
+            const labelData = getSeriesAt(chart).getLabelData();
+
+            expect(labelData).toHaveLength(DATUMS);
+            expect(labelData.every((datum) => (datum.markerCover ?? 0) > 0)).toBe(true);
+            expect(counted.parses).toBe(0);
+            expect(counted.judged).toBeGreaterThan(0);
+            expect(counted.judged).toBeLessThan(DATUMS);
+        });
+
+        // A drag's candidates resolve to the same selection buckets as a selection does.
+        it.each([
+            { state: 'a highlighted item', over: { highlight: { highlightedItem: { fill: 'transparent' } } } },
+            {
+                state: 'an unselected item or candidate',
+                over: { selection: { enabled: true, unselectedItem: { fill: 'transparent' } } },
+            },
+        ])('judges each datum fill once $state draws an unpainted fill', async ({ over: state }) => {
+            const over = { ...colourScaled, ...state };
+            chart = await createEnterpriseChart(scatterOptions((i) => i, over));
+            const counted = countSolveFills();
+
+            await chart.update(prepareEnterpriseTestOptions(scatterOptions((i) => i * i, over)));
+            await waitForChartStability(chart);
+            const labelData = getSeriesAt(chart).getLabelData();
+
+            expect(labelData).toHaveLength(DATUMS);
+            expect(labelData.every((datum) => (datum.markerCover ?? 0) > 0)).toBe(true);
+            expect(counted.parses).toBeGreaterThan(0);
+            expect(counted.judged).toBeGreaterThanOrEqual(DATUMS);
+        });
+
+        it('parses each distinct styled fill once, and none on a repeat solve', async () => {
+            const over = (offset: number) => ({
+                itemStyler: ({ datum }: { datum: { c: number } }) => ({ fill: `rgb(${datum.c + offset}, 0, 0)` }),
+            });
+            chart = await createEnterpriseChart(scatterOptions((i) => i, over(0)));
+            const counted = countSolveFills();
+
+            await chart.update(prepareEnterpriseTestOptions(scatterOptions((i) => i, over(DATUMS))));
+            await waitForChartStability(chart);
+            expect(counted.parses).toBe(DATUMS);
+
+            const labelData = getSeriesAt(chart).getLabelData();
+            expect(labelData).toHaveLength(DATUMS);
+            expect(labelData.every((datum) => (datum.markerCover ?? 0) > 0)).toBe(true);
+            expect(counted.parses).toBe(DATUMS);
+        });
+    });
+
+    // With selection on, markers too dense to draw are still styled, but drawn at size 0 unless selected.
+    it.each([
+        { case: 'shown', count: 1, covers: true },
+        { case: 'too dense to draw', count: 1000, covers: false },
+    ])('covers each label with selectable line markers when they are $case', async ({ count, covers }) => {
+        chart = await createEnterpriseChart({
+            data: Array.from({ length: count }, (_, x) => ({ x, y: x })),
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    selection: { enabled: true },
+                    marker: { enabled: true, size: 30 },
+                    label: { enabled: true },
+                },
+            ],
+        });
+        const labelData = getSeriesAt(chart).getLabelData();
+        expect(labelData).toHaveLength(count);
+        expect(labelData.some((datum) => (datum.markerCover ?? 0) > 0)).toBe(covers);
+    });
 
     // A tight cluster of markers forces overlapping labels, so placement candidates always resolve
     // real collisions.
@@ -191,6 +403,422 @@ describe('label collision avoidance', () => {
                 expect(visibleLabelCount(MAP_MARKER_SERIES)).toBe(expected);
             }
         );
+    });
+
+    describe('map-marker inside label over a coincident marker of another series', () => {
+        const squareShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
+            path.rect(x - size / 2, y - size / 2, size, size);
+        };
+        const sites = [
+            { name: '0', lat: 51, lon: -2 },
+            { name: '5', lat: 52.5, lon: -1.5 },
+            { name: '10', lat: 54, lon: -1 },
+        ];
+        const coincidentOptions = (over: Partial<AgMapMarkerSeriesOptions>): AgChartOptions => ({
+            topology: ukTopology,
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'map-marker',
+                    data: sites.slice(1, 2),
+                    latitudeKey: 'lat',
+                    longitudeKey: 'lon',
+                    labelKey: 'name',
+                    size: 10,
+                    label: { enabled: true, placement: 'bottom', collision: { alwaysShow: false } },
+                },
+                {
+                    type: 'map-marker',
+                    data: sites,
+                    latitudeKey: 'lat',
+                    longitudeKey: 'lon',
+                    labelKey: 'name',
+                    size: 30,
+                    label: { enabled: true, placement: 'inside', collision: { alwaysShow: false } },
+                    ...over,
+                },
+            ],
+        });
+
+        it.each([
+            { case: 'the default fill', over: {}, placed: true },
+            { case: 'a zero fill opacity', over: { fillOpacity: 0 }, placed: false },
+            { case: 'a fill of zero alpha', over: { fill: 'rgba(0, 0, 0, 0)' }, placed: false },
+            { case: 'a styler that keeps the fill', over: { itemStyler: () => ({}) }, placed: true },
+            {
+                case: 'a styler that clears the fill of that datum',
+                over: {
+                    itemStyler: ({ datum }: { datum: { name: string } }) =>
+                        datum.name === '5' ? { fillOpacity: 0 } : {},
+                },
+                placed: false,
+            },
+            {
+                case: 'a styler that gives that datum a fill of zero alpha',
+                over: {
+                    itemStyler: ({ datum }: { datum: { name: string } }) =>
+                        datum.name === '5' ? { fill: 'rgba(0, 0, 0, 0)' } : {},
+                },
+                placed: false,
+            },
+            { case: 'a custom square', over: { shape: squareShape }, placed: true },
+        ])('places the label over $case: $placed', async ({ over, placed }) => {
+            chart = await createEnterpriseChart(coincidentOptions(over));
+            const labels = getPlacedLabelData<PlacedLabel<PointLabelDatum>>(chart, 1);
+            expect(labels.length).toBeGreaterThanOrEqual(2);
+            expect(markerUnderLabelPlaced(labels)).toBe(placed);
+        });
+
+        it('covers a built-in marker by the rectangle inside its fill', async () => {
+            chart = await createEnterpriseChart(coincidentOptions({ shape: 'square' }));
+            const coverRect = getSeriesAt(chart, 1).getLabelMarkerCoverage()?.coverRect;
+            expect(coverRect).toBeDefined();
+            expect(coverRect?.width).toBeGreaterThan(0.9);
+            expect(coverRect?.height).toBeGreaterThan(0.9);
+        });
+    });
+
+    describe('inside labels while a marker is highlighted', () => {
+        const REST_SIZE = 20;
+        const HOVERED_SIZE = 40;
+        const squareShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
+            path.rect(x - size / 2, y - size / 2, size, size);
+        };
+        const mapMarkerSeries = (over: Partial<AgMapMarkerSeriesOptions>): AgMapMarkerSeriesOptions => ({
+            type: 'map-marker',
+            data: [
+                { name: '0', lat: 51, lon: -2 },
+                { name: '5', lat: 52.5, lon: -1.5 },
+                { name: '10', lat: 54, lon: -1 },
+            ],
+            latitudeKey: 'lat',
+            longitudeKey: 'lon',
+            labelKey: 'name',
+            size: REST_SIZE,
+            label: { enabled: true, placement: 'inside' },
+            highlight: {
+                highlightedItem: { size: HOVERED_SIZE, fill: 'transparent' },
+                unhighlightedItem: { size: 10 },
+            },
+            ...over,
+        });
+        const hoverOptions = (over: Partial<AgMapMarkerSeriesOptions>): AgChartOptions => ({
+            topology: ukTopology,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+            series: [mapMarkerSeries(over)],
+        });
+        // What the solve reads: per-datum stamps, else the drawn size and the series coverage.
+        const stamps = () => {
+            const series = getSeriesAt(chart);
+            const coverage = series.getLabelMarkerCoverage();
+            return series.getLabelData().map(({ point, markerSize, markerCover, markerCoverRect, markerReach }) => ({
+                size: markerSize ?? point.size,
+                markerCover: markerCover ?? coverage?.cover,
+                markerCoverRect: plainRect(markerCoverRect ?? coverage?.coverRect),
+                markerReach: markerReach ?? coverage?.reach,
+            }));
+        };
+        const hoverFirstMarker = async () => {
+            const marker = shapesOf(getSeriesAt(chart).contentGroup, _ModuleSupport.Marker)[0];
+            const { x, y } = Transformable.toCanvas(marker).computeCenter();
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+        };
+        const hoveredMarker = () =>
+            shapesOf(getSeriesAt(chart).highlightNodeGroup, _ModuleSupport.Marker).find((marker) => marker.visible);
+
+        it.each([
+            { case: 'no styler', over: {} },
+            { case: 'an item styler', over: { itemStyler: () => ({}) } },
+            { case: 'a custom shape', over: { shape: squareShape } },
+        ])('stamps each map-marker label from the marker at rest with $case', async ({ over }) => {
+            chart = await createEnterpriseChart(hoverOptions(over));
+            const atRest = stamps();
+            expect(atRest.map(({ size }) => size)).toEqual([REST_SIZE, REST_SIZE, REST_SIZE]);
+
+            await hoverFirstMarker();
+            expect(hoveredMarker()?.size).toBe(HOVERED_SIZE);
+            expect(hoveredMarker()?.fill).toBe('transparent');
+
+            expect(stamps()).toEqual(atRest);
+        });
+
+        it('stamps each map-marker label from its selection state while another marker is highlighted', async () => {
+            chart = await createEnterpriseChart(
+                hoverOptions({ selection: { enabled: true, selectedItem: { fill: 'transparent' } } })
+            );
+            const markers = shapesOf(getSeriesAt(chart).contentGroup, _ModuleSupport.Marker);
+            const { x, y } = Transformable.toCanvas(markers[0]).computeCenter();
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+            const selected = stamps();
+            expect(selected.map(({ markerCover }) => (markerCover ?? 0) > 0)).toEqual([false, true, true]);
+
+            const last = Transformable.toCanvas(markers[2]).computeCenter();
+            await hoverAction(last.x, last.y)(chart);
+            await waitForChartStability(chart);
+            expect(hoveredMarker()?.size).toBe(HOVERED_SIZE);
+
+            expect(stamps()).toEqual(selected);
+        });
+
+        it.each([
+            { type: 'line', marker: { size: REST_SIZE } },
+            { type: 'area', marker: { enabled: true, size: REST_SIZE } },
+        ])('stamps each $type label from its selection state while another marker is highlighted', async (series) => {
+            chart = await createEnterpriseChart({
+                data: [0, 1, 2].map((i) => ({ x: i * 10, y: i * 10 })),
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: -10, max: 30 },
+                    y: { type: 'number', position: 'left', min: -10, max: 30 },
+                },
+                animation: { enabled: false },
+                legend: { enabled: false },
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+                series: [
+                    {
+                        ...series,
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: { enabled: true, placement: 'inside' },
+                        highlight: { highlightedItem: { size: HOVERED_SIZE, fill: 'transparent' } },
+                        selection: { enabled: true, selectedItem: { fill: 'transparent' } },
+                    },
+                ],
+            } as AgCartesianChartOptions);
+            const markers = shapesOf(getSeriesAt(chart).contentGroup, _ModuleSupport.Marker);
+            const { x, y } = Transformable.toCanvas(markers[0]).computeCenter();
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+            const selected = stamps();
+            expect(selected.map(({ markerCover }) => (markerCover ?? 0) > 0)).toEqual([false, true, true]);
+
+            const last = Transformable.toCanvas(markers[2]).computeCenter();
+            await hoverAction(last.x, last.y)(chart);
+            await waitForChartStability(chart);
+            expect(hoveredMarker()?.size).toBe(HOVERED_SIZE);
+
+            expect(stamps()).toEqual(selected);
+        });
+
+        it('stamps each map-marker label from the marker at rest when a legend click rebuilds it highlighted', async () => {
+            const itemStyler = vi.fn(({ highlightState }: { highlightState?: string }) =>
+                highlightState == null || highlightState === 'none' ? {} : { size: HOVERED_SIZE }
+            );
+            chart = await createEnterpriseChart({
+                ...hoverOptions({ itemStyler }),
+                legend: { enabled: true },
+                series: [
+                    mapMarkerSeries({ itemStyler }),
+                    mapMarkerSeries({ itemStyler, data: [{ name: '1', lat: 53, lon: -3 }] }),
+                ],
+            });
+            const atRest = stampSizes();
+            expect(atRest).toEqual([[REST_SIZE, REST_SIZE, REST_SIZE], [REST_SIZE]]);
+
+            await clickLegendItem(chart, 0);
+            await waitForChartStability(chart);
+            await clickLegendItem(chart, 0);
+            await waitForChartStability(chart);
+            const drawnSizes = [0, 1].flatMap((index) =>
+                shapesOf(getSeriesAt(chart, index).contentGroup, _ModuleSupport.Marker).map(({ size }) => size)
+            );
+            expect(drawnSizes).toContain(HOVERED_SIZE);
+
+            expect(stampSizes()).toEqual(atRest);
+        });
+
+        // The middle datum has no colour value, so it is drawn in the transparent series fill.
+        it.each([
+            { case: 'nothing else styling it', over: {} },
+            { case: 'selection', over: { selection: { enabled: true } } },
+        ])('stamps each colour-scaled bubble label from its own fill, with $case', async ({ over }) => {
+            chart = await createEnterpriseChart({
+                data: [{ c: 1 }, {}, { c: 2 }].map((d, i) => ({ ...d, x: 5 + i * 10, y: 5 + i * 10 })),
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 30 },
+                    y: { type: 'number', position: 'left', min: 0, max: 30 },
+                },
+                animation: { enabled: false },
+                legend: { enabled: false },
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'y',
+                        minSize: REST_SIZE,
+                        maxSize: REST_SIZE,
+                        labelKey: 'y',
+                        colorKey: 'c',
+                        colorScale: { fills: [{ color: 'red' }, { color: 'blue' }] },
+                        fill: 'transparent',
+                        label: { enabled: true, placement: 'inside' },
+                        highlight: { highlightedItem: { size: HOVERED_SIZE } },
+                        ...over,
+                    },
+                ],
+            });
+            const atRest = stamps();
+            expect(atRest.map(({ markerCover }) => (markerCover ?? 0) > 0)).toEqual([true, false, true]);
+
+            await hoverFirstMarker();
+            expect(hoveredMarker()?.size).toBe(HOVERED_SIZE);
+            expect(stamps()).toEqual(atRest);
+        });
+
+        it('stamps each colour-scaled map-marker label from its own fill', async () => {
+            chart = await createEnterpriseChart(
+                hoverOptions({
+                    data: [
+                        { name: '0', lat: 51, lon: -2, c: 1 },
+                        { name: '5', lat: 52.5, lon: -1.5 },
+                        { name: '10', lat: 54, lon: -1, c: 2 },
+                    ],
+                    colorKey: 'c',
+                    colorScale: { fills: [{ color: 'red' }, { color: 'blue' }] },
+                    fill: 'transparent',
+                })
+            );
+            const atRest = stamps();
+            expect(atRest.map(({ markerCover }) => (markerCover ?? 0) > 0)).toEqual([true, false, true]);
+
+            await hoverFirstMarker();
+            expect(hoveredMarker()?.size).toBe(HOVERED_SIZE);
+            expect(stamps()).toEqual(atRest);
+        });
+
+        it('calls no map-marker itemStyler again to stamp the labels while nothing is highlighted', async () => {
+            const itemStyler = vi.fn(() => ({}));
+            chart = await createEnterpriseChart(hoverOptions({ itemStyler }));
+            expect(itemStyler).toHaveBeenCalled();
+            itemStyler.mockClear();
+
+            expect(stamps()).toHaveLength(3);
+            expect(itemStyler).not.toHaveBeenCalled();
+        });
+    });
+
+    // Range-area markers sit under other series' inside labels, which read how far each one draws.
+    describe('range-area marker reach', () => {
+        const reachOptions = (marker: object): AgCartesianChartOptions => ({
+            data: [{ x: 5, low: 5, high: 9 }],
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: { enabled: true },
+                    marker: { enabled: true, size: 6, strokeWidth: 2, ...marker },
+                },
+            ],
+        });
+
+        it.each([
+            { case: 'the configured marker', marker: {}, size: 6, reach: 4 },
+            { case: 'a styled size', marker: { itemStyler: () => ({ size: 32 }) }, size: 32, reach: 17 },
+            { case: 'a styled stroke', marker: { itemStyler: () => ({ strokeWidth: 8 }) }, size: 6, reach: 7 },
+            { case: 'a shadow', marker: { shadow: { enabled: true } }, size: 6, reach: Infinity },
+        ])(
+            'stamps each end label with the size and reach of its marker at rest under $case',
+            async ({ marker, size, reach }) => {
+                chart = await createEnterpriseChart(reachOptions(marker));
+                const labels = getPlacedLabelData<PlacedLabel<PointLabelDatum & { itemType: string }>>(chart);
+                expect(labels.map(({ datum }) => datum.itemType).sort((a, b) => a.localeCompare(b))).toEqual([
+                    'high',
+                    'low',
+                ]);
+                for (const { datum: d } of labels) {
+                    expect(d.markerSize).toBe(size);
+                    expect(d.markerReach).toBe(reach);
+                }
+            }
+        );
+
+        it.each([
+            { case: 'an item styler', over: { marker: { enabled: true, size: 6, itemStyler: () => ({}) } } },
+            { case: 'selection', over: { marker: { enabled: true, size: 6 }, selection: { enabled: true } } },
+        ])('stamps each end label from the marker at rest while one is highlighted, with $case', async ({ over }) => {
+            chart = await createEnterpriseChart({
+                data: [0, 1, 2].map((i) => ({ x: 5 + i * 10, low: 5 + i * 5, high: 10 + i * 5 })),
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 30 },
+                    y: { type: 'number', position: 'left', min: 0, max: 30 },
+                },
+                animation: { enabled: false },
+                legend: { enabled: false },
+                ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { enabled: true },
+                        highlight: { highlightedItem: { size: 20 }, unhighlightedItem: { size: 3 } },
+                        ...over,
+                    },
+                ],
+            });
+            const stamps = () =>
+                getSeriesAt(chart)
+                    .getLabelData()
+                    .map(({ markerSize, markerReach }) => ({ markerSize, markerReach }));
+            const atRest = stamps();
+            expect(atRest).toHaveLength(6);
+            expect(atRest.every(({ markerSize }) => markerSize === 6)).toBe(true);
+
+            const marker = shapesOf(getSeriesAt(chart).contentGroup, _ModuleSupport.Marker)[0];
+            const { x, y } = Transformable.toCanvas(marker).computeCenter();
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+            const hovered = shapesOf(getSeriesAt(chart).highlightNodeGroup, _ModuleSupport.Marker).filter(
+                (node) => node.visible
+            );
+            expect(hovered.map((node) => node.size)).toContain(20);
+
+            expect(stamps()).toEqual(atRest);
+        });
+
+        it('stamps each end label from the marker at rest when a legend click rebuilds it highlighted', async () => {
+            const itemStyler = ({ highlightState }: { highlightState?: string }) =>
+                highlightState == null || highlightState === 'none' ? {} : { size: 20 };
+            chart = await createEnterpriseChart({
+                data: [0, 1, 2].map((i) => ({ x: 5 + i * 10, low: 5 + i * 5, high: 10 + i * 5 })),
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 30 },
+                    y: { type: 'number', position: 'left', min: 0, max: 30 },
+                },
+                animation: { enabled: false },
+                series: ['a', 'b'].map((yName) => ({
+                    type: 'range-area' as const,
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    yName,
+                    label: { enabled: true },
+                    marker: { enabled: true, size: 6, itemStyler },
+                })),
+            });
+            const atRest = stampSizes();
+            expect(atRest.flat()).toEqual(Array(12).fill(6));
+
+            await clickLegendItem(chart, 0);
+            await waitForChartStability(chart);
+            await clickLegendItem(chart, 0);
+            await waitForChartStability(chart);
+            const drawnSizes = [0, 1].flatMap((index) =>
+                shapesOf(getSeriesAt(chart, index).contentGroup, _ModuleSupport.Marker).map(({ size }) => size)
+            );
+            expect(drawnSizes).toContain(20);
+
+            expect(stampSizes()).toEqual(atRest);
+        });
     });
 
     // Map-line labels centre on the line, so collision only decides hidden vs kept.

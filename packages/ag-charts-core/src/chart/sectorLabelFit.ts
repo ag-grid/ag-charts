@@ -137,10 +137,10 @@ function arcInsetSector(sector: SectorBoundaries): SectorBoundaries {
     };
 }
 
-/** True when a box of `block`'s size centred on `anchor` lies inside the wedge, clear of its arcs. */
+/** True when a box of `block`'s size centred on `anchor` passes the same wedge test as the visibility gate. */
 function fitsOnAnchor(anchor: Point, sector: SectorBoundaries, { width, height }: BlockSize) {
     const box = { x: anchor.x - width / 2, y: anchor.y - height / 2, width, height };
-    return isBoxInSector(box, arcInsetSector(sector));
+    return isBoxInSector(box, sector);
 }
 
 /**

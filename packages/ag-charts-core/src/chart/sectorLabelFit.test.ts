@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
-import { isPointInSector } from '../scene/util/sector';
+import { isBoxInSector, isPointInSector } from '../scene/util/sector';
 import { fitSectorLabelRect, sectorLabelPlacer, sectorLabelRoom } from './sectorLabelFit';
 
 // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. Every character is 10px
@@ -68,6 +68,17 @@ describe('fitSectorLabelRect', () => {
         const s = sector(-Math.PI / 3, Math.PI / 8, 40, 120);
         const anchor = anchorAt(85, -Math.PI / 3);
         const rect = fitSectorLabelRect(anchor, s, 14, { width: 20, height: 14 });
+        expect(rect).toMatchObject({ centerX: anchor.x, centerY: anchor.y, anchored: true });
+    });
+
+    it('leaves a measured block on the anchor when it fits the wedge there but not the arc clearance', () => {
+        const s = { startAngle: 3.10365, endAngle: 3.31613, innerRadius: 133.38, outerRadius: 177.84 };
+        const anchor = { x: -155.247, y: -10.619 };
+        const block = { width: 42.68, height: 13.8 };
+        const box = { x: anchor.x - block.width / 2, y: anchor.y - block.height / 2, ...block };
+        const inset = { ...s, innerRadius: s.innerRadius + 0.75, outerRadius: s.outerRadius - 0.75 };
+        expect([isBoxInSector(box, s), isBoxInSector(box, inset)]).toEqual([true, false]);
+        const rect = fitSectorLabelRect(anchor, s, block.height, block);
         expect(rect).toMatchObject({ centerX: anchor.x, centerY: anchor.y, anchored: true });
     });
 

@@ -25,6 +25,7 @@ import {
     type DeepRequired,
     type DomainWithMetadata,
     type DynamicContext,
+    LabelMarkerStamps,
     type LabelMeasureContext,
     type LabelPlacement,
     type Normalised,
@@ -337,6 +338,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     private nodeDatumContext?: RangeAreaSeriesNodeDatumContext;
     private hideWithSize0 = false;
     private markerNodesPickable = true;
+    private readonly labelMarkers = new LabelMarkerStamps();
+    // Whether the style pass draws a marker for each node of an enabled side.
+    private markerNodesDrawn = true;
+    private markerSidesDrawn: Record<AgRangeAreaSeriesItemType, boolean> = { low: true, high: true };
 
     protected override hasPickableNodeShapes(): boolean {
         return this.markerNodesPickable;
@@ -748,7 +753,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 ? ctx.nodes[ctx.nodeIndex]
                 : dst;
 
+        let node: RangeAreaMarkerDatum;
         if (existingNode) {
+            node = existingNode;
             // Update existing marker datum in place to avoid allocation
             existingNode.index = datumIndex;
             existingNode.itemType = itemType;
@@ -760,7 +767,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             existingNode.xValue = scratch.xValue;
             existingNode.point = { x: scratch.x, y, size };
         } else {
-            ctx.nodes.push({
+            node = {
                 index: datumIndex,
                 series: this,
                 itemType,
@@ -775,7 +782,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 yHighKey: ctx.yHighKey,
                 point: { x: scratch.x, y, size },
                 enabled: true,
-            });
+            };
+            ctx.nodes.push(node);
         }
         // Do not mutate render-data when called from computeFocusBounds
         if (dst !== undefined) return;
@@ -792,6 +800,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                     itemType,
                     inverted: scratch.inverted,
                     datum: scratch.datum,
+                    node,
                 })
             );
         }
@@ -976,6 +985,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             itemType,
             inverted,
             datum,
+            node,
         }: {
             datumIndex: number;
             point: Point;
@@ -983,6 +993,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             itemType: AgRangeAreaSeriesItemType;
             inverted: boolean;
             datum: any;
+            node: RangeAreaMarkerDatum;
         }
     ): RangeAreaLabelDatum {
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.options;
@@ -1035,6 +1046,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             itemType,
             datum,
             datumIndex,
+            node,
             // `textAlign` also justifies a wrapped label's lines against each other, so it stays centred.
             textAlign: 'center',
             textBaseline: 'top',
@@ -1205,6 +1217,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         // A disabled side's datums are filtered out of `resolvedNodeData`, so both must be drawn.
         this.markerNodesPickable =
             markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0 && low.marker.enabled && high.marker.enabled;
+        this.markerNodesDrawn = markerDrawMode.needsNodeData;
+        const allDrawn = markerDrawMode.hideWithSize0 || (low.marker.enabled && high.marker.enabled);
+        this.markerSidesDrawn = { low: allDrawn || low.marker.enabled, high: allDrawn || high.marker.enabled };
 
         if (this.markerDirty) {
             datumSelection.clear();
@@ -1281,11 +1296,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         selectionState,
         stylerStyle
     ) => {
+        datum.style = RangeAreaSeries.stylerDatumStyle(series, ctx, datum, highlightState, selectionState, stylerStyle);
+    };
+
+    private static stylerDatumStyle(
+        series: RangeAreaSeries,
+        ctx: RangeAreaPassCtx,
+        datum: RangeAreaMarkerDatum,
+        highlightState: _ModuleSupport.HighlightState,
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        stylerStyle: StylerResult
+    ) {
         const { fill, fillOpacity, item } = stylerStyle;
         const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
         const marker = series.itemMarkers[datum.itemType];
         const params = series.makeItemStylerParams(datum.itemType);
-        datum.style = series.getMarkerStyle(
+        return series.getMarkerStyle(
             marker,
             datum,
             params,
@@ -1299,7 +1325,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             stylerStyle.item[datum.itemType].marker,
             { fill, fillOpacity, stroke, strokeWidth, strokeOpacity }
         );
-    };
+    }
 
     protected override updateDatumStyles({
         datumSelection,
@@ -1452,7 +1478,66 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     override getLabelData(): RangeAreaLabelDatum[] {
         if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+        // The low and high markers differ, so each label's marker is stamped from the style it is drawn in at rest.
+        const { low, high } = this.itemMarkers;
+        const settled = {
+            castsShadow: this.castsMarkerShadowAtRest(low) || this.castsMarkerShadowAtRest(high),
+            fills: this.labelMarkers.fills,
+            pixelRatio: this.ctx.scene?.canvas?.pixelRatio ?? 1,
+            inside: false,
+        };
+        const drawnNode = ({ node, itemType }: RangeAreaLabelDatum) =>
+            this.markerNodesDrawn && this.markerSidesDrawn[itemType] ? node : undefined;
+        // Without an item styler the renderer draws every marker in its side's at-rest style.
+        const restStyles = this.contextNodeData?.styles;
+        const none = _ModuleSupport.HighlightState.None;
+        if (this.ctx.highlightManager.getActiveHighlight() == null || !this.hasItemStylers()) {
+            this.labelMarkers.stamp(
+                labelData,
+                (datum) => {
+                    const node = drawnNode(datum);
+                    return node == null ? undefined : (node.style ?? restStyles?.[datum.itemType][none]);
+                },
+                settled
+            );
+        } else {
+            const resting = this.restingMarkerStyleOf();
+            this.labelMarkers.stamp(
+                labelData,
+                (datum) => {
+                    const node = drawnNode(datum);
+                    return node == null ? undefined : resting(datum);
+                },
+                settled
+            );
+        }
+        return labelData;
+    }
+
+    /** The style the style pass draws a label's marker in with nothing highlighted. */
+    private restingMarkerStyleOf(): (datum: RangeAreaLabelDatum) => AgSeriesMarkerStyle {
+        const none = _ModuleSupport.HighlightState.None;
+        const ctx: RangeAreaPassCtx = { hideWithSize0: this.hideWithSize0, isHighlight: false };
+        if (this.options.marker.itemStyler == null) {
+            // Without an itemStyler the style is a function of the side and selection state alone.
+            type BySelection = Map<_ModuleSupport.SelectionState | undefined, AgSeriesMarkerStyle>;
+            const styles: Record<AgRangeAreaSeriesItemType, BySelection> = { low: new Map(), high: new Map() };
+            return ({ node, itemType }) => {
+                const selectionState = this.getDataSelectionState(node.datumIndex);
+                let style = styles[itemType].get(selectionState);
+                if (style == null) {
+                    style = RangeAreaSeries.computeNoStylerMarkerStyle(this, ctx, none, selectionState, node);
+                    styles[itemType].set(selectionState, style);
+                }
+                return style;
+            };
+        }
+        const stylerStyle = this.getStyle(none);
+        return ({ node }) => {
+            const selectionState = this.getDataSelectionState(node.datumIndex);
+            return RangeAreaSeries.stylerDatumStyle(this, ctx, node, none, selectionState, stylerStyle);
+        };
     }
 
     override getLabelDefaults(): SeriesLabelDefaults {

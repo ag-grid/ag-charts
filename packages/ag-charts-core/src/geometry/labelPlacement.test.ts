@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 
+import { MARKER_SHAPE_GEOMETRY } from '../chart/markerShapes';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
 import type { Point, SizedPoint } from '../types/scene';
@@ -29,8 +30,10 @@ import {
     type CandidateLabelStyle,
     type CandidateStyleResolver,
     type LabelAvoidance,
+    type LabelFitOptions,
     type LabelObstacle,
     type LabelPlacement,
+    type MarkerCoverage,
     type OrientationAnchor,
     type PlacedLabel,
     type PointLabelDatum,
@@ -38,6 +41,7 @@ import {
     type PositionedLabelCandidate,
     type SeriesLabelDefaults,
     type SeriesLabels,
+    labelFitPolicy,
     labelGlyphCentre,
     labelsAvoidAxisLabels,
     placeLabels,
@@ -371,7 +375,30 @@ describe('placeLabels', () => {
         expect(withNeighbour.some((l) => l.datum === own)).toBe(false);
     });
 
-    it.each([
+    const circleCoverage: MarkerCoverage = { cover: 0.5, reach: 0.5, strokeReach: 0, snap: 0 };
+    const square = MARKER_SHAPE_GEOMETRY.square;
+    const squareCoverage: MarkerCoverage = {
+        cover: square.inR,
+        coverRect: { width: 1, height: 1, cx: 0, cy: 0 },
+        reach: square.circumR,
+        strokeReach: 0,
+        snap: square.snap,
+    };
+    it.each<{
+        case: string;
+        own: number | undefined;
+        width: number;
+        height?: number;
+        x: number;
+        size: number;
+        other: number | 'own' | 'external' | 'external under' | undefined;
+        first: boolean;
+        placed: boolean;
+        ownCoverage?: MarkerCoverage;
+        otherCoverage?: MarkerCoverage;
+        ownStyled?: Pick<PointLabelDatum, 'markerCover' | 'markerCoverRect' | 'markerReach'>;
+        otherStyled?: Pick<PointLabelDatum, 'markerCover' | 'markerCoverRect' | 'markerReach'>;
+    }>([
         {
             case: 'a series painted under, declared after',
             own: 1,
@@ -473,35 +500,250 @@ describe('placeLabels', () => {
             first: false,
             placed: false,
         },
-    ] as const)(
+        {
+            case: 'a marker under, its own of unknown coverage',
+            own: 1,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: false,
+            ownCoverage: undefined,
+        },
+        {
+            case: 'a marker under, its own fill unpainted',
+            own: 1,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: false,
+            ownCoverage: { cover: 0, reach: 0.5, strokeReach: 0, snap: 0 },
+        },
+        {
+            case: 'a marker under, its own a cross the label overruns',
+            own: 1,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: false,
+            ownCoverage: { cover: 0.25, reach: 0.559, strokeReach: 0, snap: 0 },
+        },
+        {
+            case: 'a marker under, its own a star the label overruns',
+            own: 1,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: false,
+            ownCoverage: { cover: 0.25, reach: 0.5, strokeReach: 0, snap: 0 },
+        },
+        {
+            case: 'a marker under, the label past its own circle but within its inside rect',
+            own: 1,
+            width: 18,
+            height: 14,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: true,
+            ownCoverage: squareCoverage,
+        },
+        {
+            case: 'a marker under, the label past its own circle and no inside rect',
+            own: 1,
+            width: 18,
+            height: 14,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: false,
+        },
+        {
+            case: 'a marker under within the own one, its stroke reaching past',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 4,
+            other: 0,
+            first: false,
+            placed: false,
+            otherCoverage: { cover: 0.5, reach: 0.5, strokeReach: 8, snap: 0 },
+        },
+        {
+            case: 'a circle under within the own one',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 12,
+            other: 0,
+            first: false,
+            placed: true,
+        },
+        {
+            case: 'a marker under within the own inside rect but not its inscribed circle',
+            own: 1,
+            width: 30,
+            x: 105,
+            size: 3,
+            other: 0,
+            first: false,
+            placed: true,
+            ownCoverage: {
+                cover: 0.25,
+                coverRect: { width: 0.8, height: 0.8, cx: 0, cy: 0 },
+                reach: 0.5,
+                strokeReach: 0,
+                snap: 0,
+            },
+        },
+        {
+            case: 'an external marker painted under within the own one, its extent unknown',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 4,
+            other: 'external under',
+            first: false,
+            placed: false,
+        },
+        {
+            case: 'a circle under exactly within the own one, as circles do not snap',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 16,
+            other: 0,
+            first: false,
+            placed: true,
+        },
+        {
+            case: 'a label exactly filling its own circle, as circles do not snap',
+            own: 1,
+            width: 12,
+            height: 16,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: true,
+        },
+        {
+            case: 'a label within its own square only before the square snaps',
+            own: 1,
+            width: 18.8,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: false,
+            ownCoverage: squareCoverage,
+        },
+        {
+            case: 'a square under within the own square only before both snap',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 9.5,
+            other: 0,
+            first: false,
+            placed: false,
+            ownCoverage: squareCoverage,
+            otherCoverage: squareCoverage,
+        },
+        {
+            case: 'a square under the same size, its corners poking past the own one',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 12,
+            other: 0,
+            first: false,
+            placed: false,
+            otherCoverage: squareCoverage,
+        },
+        {
+            case: 'a marker under within the own one, its extent unknown',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 4,
+            other: 0,
+            first: false,
+            placed: false,
+            otherCoverage: undefined,
+        },
+        {
+            case: 'a marker under, its own fill unpainted by its styler',
+            own: 1,
+            width: 16,
+            x: 108,
+            size: 20,
+            other: 0,
+            first: false,
+            placed: false,
+            ownStyled: { markerCover: 0 },
+        },
+        {
+            case: 'a marker under within the own one, its styler growing its stroke past',
+            own: 1,
+            width: 30,
+            x: 102,
+            size: 4,
+            other: 0,
+            first: false,
+            placed: false,
+            otherStyled: { markerReach: 12 },
+        },
+    ])(
         'with an inside label beside $case, places it: $placed',
-        ({ own: ownOrder, width, x, size, other, first, placed }) => {
+        ({ own: ownOrder, width, height = 10, x, size, other, first, placed, ...coverage }) => {
+            const { ownStyled, otherStyled } = coverage;
+            const ownCoverage = 'ownCoverage' in coverage ? coverage.ownCoverage : circleCoverage;
+            const otherCoverage = 'otherCoverage' in coverage ? coverage.otherCoverage : circleCoverage;
             const own: PointLabelDatum = {
                 point: { x: 100, y: 100, size: 20 },
-                label: { text: 'I', width, height: 10 },
+                label: { text: 'I', width, height },
                 anchor: { x: 0.5, y: 0.5 },
                 placement: 'inside',
                 placements: ['inside'],
                 gap: 0,
                 alwaysShow: false,
+                ...ownStyled,
             };
             const neighbour: PointLabelDatum = {
                 point: { x, y: 100, size },
                 label: { text: 'N', width: 1, height: 1 },
                 anchor: undefined,
                 placement: 'bottom',
+                ...otherStyled,
             };
             const ownEntry: [string, SeriesLabels] = [
                 'own',
-                { ...seriesLabels(other === 'own' ? [own, neighbour] : [own]), paintOrder: ownOrder },
+                {
+                    ...seriesLabels(other === 'own' ? [own, neighbour] : [own]),
+                    paintOrder: ownOrder,
+                    markerCoverage: ownCoverage,
+                },
             ];
             const paintOrder = typeof other === 'number' ? other : undefined;
-            const otherEntry: [string, SeriesLabels] = ['other', { ...seriesLabels([neighbour]), paintOrder }];
-            const solo = other === 'own' || other === 'external';
+            const otherEntry: [string, SeriesLabels] = [
+                'other',
+                { ...seriesLabels([neighbour]), paintOrder, markerCoverage: otherCoverage },
+            ];
+            const solo = other === 'own' || other === 'external' || other === 'external under';
             const ordered = first ? [otherEntry, ownEntry] : [ownEntry, otherEntry];
             const entries = solo ? [ownEntry] : ordered;
             const external: LabelObstacle[] =
-                other === 'external'
+                other === 'external' || other === 'external under'
                     ? [
                           {
                               kind: 'circle',
@@ -510,6 +752,7 @@ describe('placeLabels', () => {
                               cy: 100,
                               r: size / 2,
                               category: 'marker',
+                              paintOrder: other === 'external' ? undefined : 0,
                           },
                       ]
                     : [];
@@ -541,8 +784,8 @@ describe('placeLabels', () => {
             };
             const labels = placeLabels(
                 new Map([
-                    ['own', { ...seriesLabels([own], { threshold }), paintOrder: 1 }],
-                    ['under', { ...seriesLabels([under]), paintOrder: 0 }],
+                    ['own', { ...seriesLabels([own], { threshold }), paintOrder: 1, markerCoverage: circleCoverage }],
+                    ['under', { ...seriesLabels([under]), paintOrder: 0, markerCoverage: circleCoverage }],
                 ]),
                 bounds,
                 5
@@ -550,6 +793,43 @@ describe('placeLabels', () => {
             expect(labels.some((l) => l.datum === own)).toBe(placed);
         }
     );
+
+    it('places the cover rect off the drawn marker centre by its own offset, whatever the anchor', () => {
+        // A pin draws its body half a diameter above the point; the rect sits a fifth of a diameter below that.
+        const own: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'I', width: 8, height: 6 },
+            anchor: { x: 0.5, y: 1 },
+            insideOffset: { x: 0, y: 0.2 },
+            placement: 'inside',
+            placements: ['inside'],
+            gap: 0,
+            alwaysShow: false,
+        };
+        const under: PointLabelDatum = {
+            point: { x: 100, y: 94, size: 6 },
+            label: { text: 'N', width: 1, height: 1 },
+            anchor: undefined,
+            placement: 'bottom',
+        };
+        const coverRect = { width: 0.5, height: 0.4, cx: 0, cy: 0.2 };
+        const labels = placeLabels(
+            new Map([
+                [
+                    'own',
+                    {
+                        ...seriesLabels([own]),
+                        paintOrder: 1,
+                        markerCoverage: { cover: 0, coverRect, reach: 0.5, strokeReach: 0, snap: 0 },
+                    },
+                ],
+                ['under', { ...seriesLabels([under]), paintOrder: 0, markerCoverage: circleCoverage }],
+            ]),
+            bounds,
+            5
+        ).get('own')!;
+        expect(labels.map((l) => [l.datum === own, l.y + l.height / 2])).toEqual([[true, 94]]);
+    });
 
     it('drops an avoiding label when no candidate placement fits', () => {
         // A large marker covers every candidate position; the avoiding label has nowhere to go.
@@ -2459,6 +2739,18 @@ describe('resolveLabelFit', () => {
 
     it('lets truncate:true win over collision avoidance', () => {
         expect(resolveLabelFit({ maxWidth: 120, truncate: true }, true)?.overflowStrategy).toBe('ellipsis');
+    });
+
+    it.each<[string, LabelFitOptions, boolean, boolean]>([
+        ['truncate', { maxWidth: 120, truncate: true }, false, false],
+        ['hide on overflow', { maxWidth: 120 }, true, false],
+        ['default to truncate', { maxWidth: 120 }, false, true],
+        ['wrapping', { wrapping: 'on-space' }, false, false],
+        ['minimum font size', { maxWidth: 120, minimumFontSize: 8 }, false, false],
+    ])('returns the always-fitted policy once %s opts in', (_, fit, hideOnOverflow, defaultToTruncate) => {
+        expect(resolveLabelFit(fit, hideOnOverflow, defaultToTruncate)).toEqual(
+            labelFitPolicy(fit, hideOnOverflow, defaultToTruncate)
+        );
     });
 });
 

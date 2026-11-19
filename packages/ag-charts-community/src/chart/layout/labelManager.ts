@@ -3,6 +3,7 @@ import {
     type BoxBounds,
     type CandidateStyleResolver,
     type LabelObstacle,
+    type MarkerCoverage,
     type NormalisedPaddingOptions,
     type PlacedLabel,
     type PointLabelDatum,
@@ -42,6 +43,8 @@ export interface PlacedLabelSource<TLabel = unknown> extends LabelSource {
     getLabelDefaults?(): SeriesLabelDefaults | undefined;
     getLabelCandidateStyler?(): CandidateStyleResolver | undefined;
     getLabelCandidateResolver?(): PositionedCandidateResolver | undefined;
+    /** What each of its markers covers and draws at rest; unset when unknown. */
+    getLabelMarkerCoverage?(): MarkerCoverage | undefined;
     /** Returns `true` when the placement invalidates the layout it was solved in. */
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[], seriesRect: BBox): boolean | void;
     /** Freezes what the re-layout for an invalidating placement must not decide again. */
@@ -64,6 +67,7 @@ function seriesLabels(source: PlacedLabelSource, datums: PointLabelDatum[], pain
         resolveCandidateStyle: source.getLabelCandidateStyler?.(),
         resolveCandidate: source.getLabelCandidateResolver?.(),
         paintOrder,
+        markerCoverage: source.getLabelMarkerCoverage?.(),
     };
 }
 
@@ -210,7 +214,8 @@ export class LabelManager {
             } else {
                 const carried = previous.get(source.id);
                 if (carried != null) {
-                    this.labelData.set(source.id, { ...carried, paintOrder: order });
+                    const markerCoverage = source.getLabelMarkerCoverage?.();
+                    this.labelData.set(source.id, { ...carried, paintOrder: order, markerCoverage });
                 }
             }
         }

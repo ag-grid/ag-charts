@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import type { LabelObstacle, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type { LabelObstacle, MarkerCoverage, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import { BBox } from 'ag-charts-core';
 
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
@@ -11,6 +11,7 @@ type AnySeries = ISeries<SeriesNodeDatum, ISeriesOptions, unknown>;
 
 const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
 const RECT = new BBox(0, 0, 200, 200);
+const CIRCLE: MarkerCoverage = { cover: 0.5, reach: 0.5, strokeReach: 0, snap: 0 };
 
 function labelDatum(x: number, y: number, text: string, overrides?: Partial<PointLabelDatum>): PointLabelDatum {
     return {
@@ -30,6 +31,7 @@ interface FakeSeriesOptions {
     obstacles?: LabelObstacle[];
     usesPlacedLabels?: boolean;
     invalidatesLayout?: boolean;
+    markerCoverage?: MarkerCoverage;
 }
 
 function fakeSeries({
@@ -38,15 +40,17 @@ function fakeSeries({
     obstacles,
     usesPlacedLabels = true,
     invalidatesLayout = false,
+    markerCoverage,
 }: FakeSeriesOptions) {
     const series = {
         id,
         nodeDataVersion: 1,
         usesPlacedLabels,
-        getLabelData: vi.fn((): PointLabelDatum[] => datums),
+        getLabelData: vi.fn((): object[] => datums),
         getLabelObstacles: vi.fn((): LabelObstacle[] | undefined => obstacles),
         updatePlacedLabelData: vi.fn((_labels: PlacedLabel[]) => invalidatesLayout),
         holdLabelPlacements: vi.fn((_hold: boolean) => {}),
+        getLabelMarkerCoverage: vi.fn((): MarkerCoverage | undefined => markerCoverage),
     };
     return series as typeof series & AnySeries;
 }
@@ -65,10 +69,12 @@ function insideLabelBesideMarker() {
                 label: { text: 'I', width: 16, height: 10 },
             }),
         ],
+        markerCoverage: CIRCLE,
     });
     const neighbour = fakeSeries({
         id: 'neighbour',
         datums: [labelDatum(108, 100, '', { point: { x: 108, y: 100, size: 20 }, placements: ['bottom'] })],
+        markerCoverage: CIRCLE,
     });
     return { own, neighbour };
 }
@@ -219,7 +225,7 @@ describe('LabelManager', () => {
 
             // Bar-family series report baked label data between placement passes; the manager has to
             // carry the last point-label solve forward rather than drop the series' labels.
-            series.getLabelData.mockReturnValue([{ notALabelDatum: true }] as unknown as PointLabelDatum[]);
+            series.getLabelData.mockReturnValue([{ notALabelDatum: true }]);
             series.nodeDataVersion += 1;
             manager.updateLabels([series], NO_PADDING, RECT);
 
@@ -233,8 +239,23 @@ describe('LabelManager', () => {
             manager.updateLabels([own, neighbour], NO_PADDING, RECT, NO_PADDING, () => paintOrder(3, 2));
             expect(placedTexts(own)).toEqual(['I']);
 
-            own.getLabelData.mockReturnValue([{ notALabelDatum: true }] as unknown as PointLabelDatum[]);
+            own.getLabelData.mockReturnValue([{ notALabelDatum: true }]);
             manager.updateLabels([own, neighbour], NO_PADDING, RECT, NO_PADDING, () => paintOrder(1, 2));
+
+            expect(placedTexts(own)).toEqual([]);
+        });
+
+        it('places carried label data by the current marker coverage', () => {
+            const manager = new LabelManager();
+            const { own, neighbour } = insideLabelBesideMarker();
+
+            manager.updateLabels([own, neighbour], NO_PADDING, RECT, NO_PADDING, () => paintOrder(3, 2));
+            expect(placedTexts(own)).toEqual(['I']);
+
+            own.getLabelData.mockReturnValue([{ notALabelDatum: true }]);
+            own.getLabelMarkerCoverage.mockReturnValue({ ...CIRCLE, cover: 0 });
+            Object.assign(own, { nodeDataVersion: 2 });
+            manager.updateLabels([own, neighbour], NO_PADDING, RECT, NO_PADDING, () => paintOrder(3, 2));
 
             expect(placedTexts(own)).toEqual([]);
         });
@@ -242,7 +263,7 @@ describe('LabelManager', () => {
         it('places nothing for a series that has never reported point data', () => {
             const manager = new LabelManager();
             const series = fakeSeries({ id: 'a' });
-            series.getLabelData.mockReturnValue([{ notALabelDatum: true }] as unknown as PointLabelDatum[]);
+            series.getLabelData.mockReturnValue([{ notALabelDatum: true }]);
 
             manager.updateLabels([series], NO_PADDING, RECT);
 

@@ -1032,6 +1032,8 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
     const breaksBefore: string[] = [];
 
     for (const untrimmedLine of lines) {
+        // A separator left by a continuation the wrap dropped must not attach to this source line's first row.
+        breaksBefore.length = result.length;
         let line = trimBreakSpacesEnd(untrimmedLine);
 
         if (line === '') {
@@ -1145,12 +1147,14 @@ function getWordAt(text: string, position: number) {
     return nextSpaceIndex === -1 ? text.slice(position) : text.slice(position, nextSpaceIndex);
 }
 
+const NO_SOFT_BREAKS: readonly (string | undefined)[] = [];
+
 /** `breaksBefore[i]` is the space wrapping consumed ahead of line `i`; unset where an explicit line break was. */
 export function clipLines(
     lines: string[],
     measurer: ITextMeasurer,
     options: WrapOptions,
-    breaksBefore: readonly (string | undefined)[] = []
+    breaksBefore: readonly (string | undefined)[] = NO_SOFT_BREAKS
 ) {
     if (!isFiniteNumber(options.maxHeight)) {
         return lines;
@@ -1242,11 +1246,15 @@ function avoidOrphans(lines: string[], breaksBefore: string[], measurer: ITextMe
         return;
     }
 
+    const breakBefore = breaksBefore[length - 1];
+    // No break space ends the line before: a line break or a cut word divides them, and neither can be rejoined.
+    if (breakBefore == null) return;
+
     const lastWord = beforeLast.slice(lastSpaceIndex + 1);
     const maxWidth = options.maxWidthAt == null ? options.maxWidth : lastLineMaxWidth(lines, measurer, options);
     // Measured as it will be drawn, joining space included: a line that reads as fitting without it
     // overruns its width by a space, which a shape-bounded label pays for by being hidden whole.
-    const joined = lastWord + (breaksBefore[length - 1] ?? ' ') + lastLine;
+    const joined = lastWord + breakBefore + lastLine;
     if (measurer.textWidth(joined) <= maxWidth) {
         lines[length - 2] = trimBreakSpacesEnd(beforeLast.slice(0, lastSpaceIndex));
         lines[length - 1] = joined;

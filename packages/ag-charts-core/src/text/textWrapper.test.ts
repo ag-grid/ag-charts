@@ -413,16 +413,39 @@ describe('wrapLines', () => {
                 narrowWidth: 20,
                 expected: [`Information T${E}`],
             },
+            {
+                // The zero-width word joiner opening the next source line takes the dropped word's row.
+                case: 'a word the band below dropped, without crossing the explicit line break after it',
+                text: 'Alpha Bravo Delta\n\u2060 Zulu',
+                maxWidth: 100,
+                maxHeight: 40,
+                narrowFrom: 40,
+                narrowTo: 60,
+                narrowWidth: 5,
+                expected: ['Alpha', `Bravo${E}`],
+            },
+            {
+                case: 'a hyphenated word the band below dropped, without crossing the explicit line break after it',
+                text: 'Alpha Delta\nZ',
+                textWrap: 'hyphenate' as const,
+                maxWidth: 100,
+                maxHeight: 20,
+                narrowFrom: 20,
+                narrowTo: 40,
+                narrowWidth: 15,
+                expected: [`Alpha${E}`],
+            },
         ])(
             'ends the last line kept in one ellipsis after $case',
-            ({ text, maxWidth, maxHeight, narrowFrom, narrowWidth, expected }) => {
-                const maxWidthAt = (top: number) => (top < narrowFrom ? maxWidth : narrowWidth);
+            ({ text, textWrap, maxWidth, maxHeight, narrowFrom, narrowTo = Infinity, narrowWidth, expected }) => {
+                const maxWidthAt = (top: number) => (top >= narrowFrom && top < narrowTo ? narrowWidth : maxWidth);
                 const options = {
                     font,
                     maxWidth,
                     maxHeight,
                     lineHeight: 20,
                     overflow: 'ellipsis' as const,
+                    textWrap,
                     maxWidthAt,
                 };
                 expect(wrapLines(text, options)).toEqual(expected);
@@ -597,6 +620,10 @@ describe('wrapLines', () => {
             });
             const lastLine = result.at(-1)!;
             expect(lastLine).toBe('G');
+        });
+
+        it('leaves a line that follows an explicit line break as it is', () => {
+            expect(wrapLines('Alpha Bravo Charlie\nD', { font, maxWidth: 200 })).toEqual(['Alpha Bravo Charlie', 'D']);
         });
 
         it('should place the last line by its lineHeight when the width varies down the block', () => {

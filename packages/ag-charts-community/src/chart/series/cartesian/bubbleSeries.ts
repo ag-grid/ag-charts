@@ -10,6 +10,9 @@ import type {
     LabelFit,
     LabelFitDescriptor,
     LabelPlacement,
+    MarkerCoverRect,
+    MarkerCoverage,
+    MarkerLabelRect,
     MeasuredLabel,
     Mutable,
     NormalisedBubbleScatterSeriesOptions,
@@ -29,11 +32,13 @@ import {
     ChartAxisDirection,
     ColorScale,
     ContinuousScale,
+    EVERY_MARKER_FILL_PAINTED,
+    LabelMarkerStamps,
     LinearScale,
+    type MarkerFillPaint,
     PointerEvents,
     Text,
     applySizeMode,
-    applyStyledMarkerSize,
     cachedTextMeasurer,
     clamp,
     configureColorScale,
@@ -43,6 +48,9 @@ import {
     formatValue,
     insetFitRegion,
     lineHeightAtSize,
+    markerCoverageOf,
+    markerLabelRect,
+    markerRowSpans,
     maskFitRegion,
     measurePlacedLabel,
     placedLabelFit,
@@ -103,7 +111,6 @@ import {
 } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type MarkerLabelRect, markerLabelRect, markerRowSpans } from '../../marker/markerLabelRect';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
 import type { PickFocusInputs, SeriesNodePickMatch } from '../pickTypes';
@@ -240,6 +247,11 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly fit: LabelFitDescriptor | undefined;
     /** Marker diameter a `marker.itemStyler` resolved; overrides `point.size` for the label's geometry. */
     markerSize?: number;
+    /** What the marker a `marker.itemStyler` or selection styled covers and draws; see `PointLabelDatum`. */
+    markerCover?: number;
+    markerCoverRect?: MarkerCoverRect;
+    markerReach?: number;
+    markerSnap?: number;
     readonly placement: LabelPlacement;
     readonly anchor: Point;
     readonly insideOffset: Point | undefined;
@@ -424,6 +436,7 @@ export abstract class BubbleScatterSeries<
 
     private readonly sizeScale = new LinearScale();
     readonly colorScale = new ColorScale();
+    private readonly labelMarkers = new LabelMarkerStamps();
     private colorScaleValid = false;
 
     private placedLabelData: PlacedLabel<BubbleScatterNodeDatum>[] = [];
@@ -1142,14 +1155,108 @@ export abstract class BubbleScatterSeries<
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
-        // A marker itemStyler resolves its size after node data was built, so the styled size is stamped
-        // on here — the label's obstacles, gap and inside-marker rect all scale off the drawn marker.
-        if (this.marker.itemStyler != null) {
-            for (const datum of labelData) {
-                applyStyledMarkerSize(datum, datum.style?.size);
-            }
+        const { marker } = this;
+        // A marker itemStyler, selection, custom shape or colour scale with an unpainted fill resolves each marker
+        // after node data was built, so each label is stamped from the style its marker is drawn in at rest.
+        const styled = marker.itemStyler != null;
+        const fillPerDatum = this.isColorScaleValid() && !this.colorScaleFillsPainted(this.restingCoverageStyle().fill);
+        if (!styled && !this.isSelectionEnabled() && typeof marker.shape !== 'function' && !fillPerDatum) {
+            this.labelMarkers.unstamp(labelData);
+            return labelData;
+        }
+        const settled = {
+            castsShadow: this.castsMarkerShadowAtRest(marker),
+            fills: this.labelMarkerFills(styled),
+            pixelRatio: this.ctx.scene?.canvas?.pixelRatio ?? 1,
+            inside: toArray(this.options.label.placement).includes('inside'),
+        };
+        if (this.ctx.highlightManager.getActiveHighlight() == null || !this.hasItemStylers()) {
+            const restingTemplate = this.restingTemplateStyle();
+            this.labelMarkers.stamp(labelData, (datum) => datum.style ?? restingTemplate(datum), settled);
+        } else {
+            const ctx = this.markerStylePassCtx(false);
+            // As in the style pass, a colorKey writes each datum's fill into its styler style, so none is shared.
+            const shared = ctx.colorKey == null ? this.getStyle(HighlightState.None) : undefined;
+            this.labelMarkers.stamp(labelData, (datum) => this.restingMarkerStyle(ctx, shared, datum), settled);
         }
         return labelData;
+    }
+
+    /**
+     * The style the renderer draws a marker in without an item styler: the series' at-rest style at the datum's size.
+     * Returns one reused object, so each result is read before the next call.
+     */
+    private restingTemplateStyle(): (datum: BubbleScatterNodeDatum) => NormalisedSeriesMarkerStyle | undefined {
+        const restStyle = this.contextNodeData?.styles[HighlightState.None];
+        if (restStyle == null) return () => undefined;
+        const stateStyle: NormalisedSeriesMarkerStyle = this.getHighlightStyle(false, undefined, HighlightState.None);
+        const stateSize = stateStyle.size;
+        const scratch: NormalisedSeriesMarkerStyle = { ...restStyle };
+        return (datum) => {
+            scratch.size = stateSize ?? datum.point.size;
+            return scratch;
+        };
+    }
+
+    /** The style the style pass draws a datum's marker in with nothing highlighted. */
+    private restingMarkerStyle(
+        ctx: BubbleStylerPassCtx,
+        sharedStylerStyle: ReturnType<BubbleScatterSeries<TOptions>['getStyle']> | undefined,
+        datum: BubbleScatterNodeDatum
+    ): NormalisedSeriesMarkerStyle {
+        const selectionState = this.getDataSelectionState(datum.datumIndex);
+        const none = HighlightState.None;
+        if (this.marker.itemStyler == null && !ctx.colorScaleValid) {
+            const template = BubbleScatterSeries.noStylerMarkerTemplate(this, ctx, none, selectionState, datum);
+            return BubbleScatterSeries.templateStyle(template, datum);
+        }
+        const stylerStyle = sharedStylerStyle ?? this.getStyle(none);
+        return BubbleScatterSeries.perDatumStyle(this, ctx, datum, none, selectionState, stylerStyle);
+    }
+
+    /** Settles once for the whole series that each label's marker fill paints, when every fill it can take does. */
+    private labelMarkerFills(styled: boolean): MarkerFillPaint {
+        const memo = this.labelMarkers.fills;
+        if (styled) return memo;
+        const fills = this.markerStateFills((state) => this.getStyle(state).fill);
+        if (this.isColorScaleValid()) fills.push(...this.colorScale.range);
+        const missingDataFill = this.options.colorScale?.missingDataFill;
+        if (missingDataFill != null) fills.push(missingDataFill);
+        return memo.everyPainted(fills) ? EVERY_MARKER_FILL_PAINTED : memo;
+    }
+
+    /** The series-wide style a marker without an item styler is drawn in at rest. */
+    private restingCoverageStyle() {
+        return this.getMarkerStyle(
+            this.marker,
+            {},
+            undefined,
+            { highlightState: HighlightState.None, resolveMarkerSubPath: [] },
+            this.getStyle(HighlightState.None)
+        );
+    }
+
+    /** Whether every fill the colour scale draws a marker in at rest paints, a datum without a value taking `baseFill`. */
+    private colorScaleFillsPainted(baseFill: unknown): boolean {
+        const memo = this.labelMarkers.fills;
+        return (
+            memo.everyPainted(this.colorScale.range) &&
+            memo.isPainted(this.options.colorScale?.missingDataFill ?? baseFill)
+        );
+    }
+
+    override getLabelMarkerCoverage(): MarkerCoverage | undefined {
+        const { marker } = this;
+        const style = this.restingCoverageStyle();
+        const fillPainted = this.isColorScaleValid()
+            ? this.colorScaleFillsPainted(style.fill)
+            : this.labelMarkers.fills.isPainted(style.fill);
+        return markerCoverageOf(
+            style,
+            this.castsMarkerShadowAtRest(marker),
+            fillPainted,
+            this.ctx.scene?.canvas?.pixelRatio ?? 1
+        );
     }
 
     override getLabelDefaults() {
@@ -1198,7 +1305,15 @@ export abstract class BubbleScatterSeries<
         highlightState,
         selectionState,
         datum
-    ) => {
+    ) => BubbleScatterSeries.noStylerMarkerTemplate(series, ctx, highlightState, selectionState, datum);
+
+    private static noStylerMarkerTemplate<T extends NormalisedBubbleScatterSeriesOwnOptions>(
+        series: BubbleScatterSeries<T>,
+        ctx: BubbleNoStylerPassCtx,
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined,
+        datum: BubbleScatterNodeDatum
+    ): BubbleNoStylerTemplate {
         const stylerStyle = series.getStyle(highlightState);
         const style = series.getMarkerStyle(
             ctx.marker,
@@ -1216,18 +1331,44 @@ export abstract class BubbleScatterSeries<
             highlightState
         );
         return { style, stateSized: (selectionStyle?.size ?? highlightStyle.size) != null };
-    };
+    }
 
-    private static readonly applyNoStylerTemplate: BubbleNoStylerApply = (_series, _ctx, datum, _h, _s, template) => {
+    private static templateStyle(template: BubbleNoStylerTemplate, datum: BubbleScatterNodeDatum) {
         const style = template.style;
         // Reuse the cached object directly when size matches (e.g. ScatterSeries with fixed size).
-        datum.style =
-            template.stateSized || style.size === datum.point.size ? style : { ...style, size: datum.point.size };
+        return template.stateSized || style.size === datum.point.size ? style : { ...style, size: datum.point.size };
+    }
+
+    private static readonly applyNoStylerTemplate: BubbleNoStylerApply = (_series, _ctx, datum, _h, _s, template) => {
+        datum.style = BubbleSeries.templateStyle(template, datum);
     };
 
     private static readonly computePerDatumStylerStyle: BubbleStylerCompute = (series, _ctx, highlightState) => {
         return series.getStyle(highlightState);
     };
+
+    private static perDatumStyle<T extends NormalisedBubbleScatterSeriesOwnOptions>(
+        series: BubbleScatterSeries<T>,
+        ctx: BubbleStylerPassCtx,
+        datum: BubbleScatterNodeDatum,
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined,
+        stylerStyle: ReturnType<BubbleSeries['getStyle']>
+    ) {
+        const missingDataFill = series.options.colorScale?.missingDataFill;
+        if (ctx.colorScaleValid && datum.colorValue != null) {
+            stylerStyle.fill = series.colorScale.convert(datum.colorValue);
+        } else if (ctx.colorKey != null && datum.colorValue == null && missingDataFill != null) {
+            stylerStyle.fill = missingDataFill;
+        }
+        return series.getMarkerStyle(
+            ctx.marker,
+            datum,
+            ctx.params,
+            { isHighlight: ctx.isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
+            { ...stylerStyle, size: datum.point.size }
+        );
+    }
 
     private static readonly applyPerDatumStyle: BubbleStylerApply = (
         series,
@@ -1237,32 +1378,24 @@ export abstract class BubbleScatterSeries<
         selectionState,
         stylerStyle
     ) => {
-        const missingDataFill = series.options.colorScale?.missingDataFill;
-        if (ctx.colorScaleValid && datum.colorValue != null) {
-            stylerStyle.fill = series.colorScale.convert(datum.colorValue);
-        } else if (ctx.colorKey != null && datum.colorValue == null && missingDataFill != null) {
-            stylerStyle.fill = missingDataFill;
-        }
-        datum.style = series.getMarkerStyle(
-            ctx.marker,
-            datum,
-            ctx.params,
-            { isHighlight: ctx.isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
-            { ...stylerStyle, size: datum.point.size }
-        );
+        datum.style = BubbleSeries.perDatumStyle(series, ctx, datum, highlightState, selectionState, stylerStyle);
     };
+
+    private markerStylePassCtx(isHighlight: boolean): BubbleStylerPassCtx {
+        const { xKey, yKey, sizeKey, labelKey, colorKey } = this.options;
+        const params = { xKey, yKey, sizeKey, labelKey, colorKey };
+        return { marker: this.marker, params, isHighlight, colorScaleValid: this.isColorScaleValid(), colorKey };
+    }
 
     override updateDatumStyles(opts: {
         datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { xKey, yKey, sizeKey, labelKey, colorKey } = this.options;
-        const { marker } = this;
-        const colorScaleValid = this.isColorScaleValid();
-        const params = { xKey, yKey, sizeKey, labelKey, colorKey };
+        const ctx = this.markerStylePassCtx(isHighlight);
+        const { marker, colorKey } = ctx;
 
-        if (marker.itemStyler == null && !colorScaleValid) {
+        if (marker.itemStyler == null && !ctx.colorScaleValid) {
             // No itemStyler / colour-scale: only datum.point.size varies per datum, so cache a
             // per-state template and splice the size in at apply time.
             this.runMarkerStylePass<
@@ -1270,15 +1403,10 @@ export abstract class BubbleScatterSeries<
                 BubbleScatterNodeDatum,
                 BubbleNoStylerTemplate,
                 BubbleSeries
-            >(
-                datumSelection,
-                isHighlight,
-                { marker, params, isHighlight },
-                {
-                    compute: BubbleSeries.computeNoStylerMarkerTemplate,
-                    apply: BubbleSeries.applyNoStylerTemplate,
-                }
-            );
+            >(datumSelection, isHighlight, ctx, {
+                compute: BubbleSeries.computeNoStylerMarkerTemplate,
+                apply: BubbleSeries.applyNoStylerTemplate,
+            });
             return;
         }
 
@@ -1288,16 +1416,11 @@ export abstract class BubbleScatterSeries<
             BubbleScatterNodeDatum,
             ReturnType<BubbleSeries['getStyle']>,
             BubbleSeries
-        >(
-            datumSelection,
-            isHighlight,
-            { marker, params, isHighlight, colorScaleValid, colorKey },
-            {
-                cacheable: colorKey == null,
-                compute: BubbleSeries.computePerDatumStylerStyle,
-                apply: BubbleSeries.applyPerDatumStyle,
-            }
-        );
+        >(datumSelection, isHighlight, ctx, {
+            cacheable: colorKey == null,
+            compute: BubbleSeries.computePerDatumStylerStyle,
+            apply: BubbleSeries.applyPerDatumStyle,
+        });
     }
 
     protected override getSeriesGlows() {

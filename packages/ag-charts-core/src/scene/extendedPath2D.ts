@@ -654,8 +654,9 @@ export class ExtendedPath2D {
     /**
      * Approximates the path as one polygon (array of points) per subpath, sampling each cubic into
      * `curveSamples` segments. Pure geometry — no canvas — for containment/area analysis.
+     * With a `tolerance`, each cubic takes as many more segments as keep every point of it within that distance of the polygon.
      */
-    flatten(curveSamples: number = 16): { x: number; y: number }[][] {
+    flatten(curveSamples: number = 16, tolerance?: number): { x: number; y: number }[][] {
         const { commands, params } = this;
         const polygons: { x: number; y: number }[][] = [];
         let current: { x: number; y: number }[] = [];
@@ -691,8 +692,15 @@ export class ExtendedPath2D {
                     const c2y = params[pi++];
                     const c3x = params[pi++];
                     const c3y = params[pi++];
-                    for (let i = 1; i <= curveSamples; i++) {
-                        const t = i / curveSamples;
+                    const samples =
+                        tolerance == null
+                            ? curveSamples
+                            : Math.max(
+                                  curveSamples,
+                                  cubicSegmentsWithin(c0x, c0y, c1x, c1y, c2x, c2y, c3x, c3y, tolerance)
+                              );
+                    for (let i = 1; i <= samples; i++) {
+                        const t = i / samples;
                         push(evaluateBezier(c0x, c1x, c2x, c3x, t), evaluateBezier(c0y, c1y, c2y, c3y, t));
                     }
                     break;
@@ -705,6 +713,26 @@ export class ExtendedPath2D {
         if (current.length > 0) polygons.push(current);
         return polygons;
     }
+}
+
+/**
+ * Uniform segments that keep a cubic within `tolerance` of its chords: a chord over a parameter step of `1/n` strays at
+ * most `max|B''| / (8n²)`, and `|B''|` is at most six times the larger second difference of the control points.
+ */
+function cubicSegmentsWithin(
+    p0x: number,
+    p0y: number,
+    p1x: number,
+    p1y: number,
+    p2x: number,
+    p2y: number,
+    p3x: number,
+    p3y: number,
+    tolerance: number
+): number {
+    const d0 = Math.hypot(p0x - 2 * p1x + p2x, p0y - 2 * p1y + p2y);
+    const d1 = Math.hypot(p1x - 2 * p2x + p3x, p1y - 2 * p2y + p3y);
+    return Math.ceil(Math.sqrt((0.75 * Math.max(d0, d1)) / tolerance));
 }
 
 /** Whether the horizontal ray running left from (x, y) crosses the edge, under the half-open rule. */

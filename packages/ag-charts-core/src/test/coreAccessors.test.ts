@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SpatialIndex } from '../geometry/spatialIndex';
 import { Logger } from '../logging/logger';
+import { ExtendedPath2D } from '../scene/extendedPath2D';
 import { Bitfield } from '../structures/bitfield';
-import { fake, getBitfieldBuffer, getSpatialIndexCellCount, spyOnLoggerIssueEmit } from './coreAccessors';
+import { fake, getBitfieldBuffer, getSpatialIndexCellCount, spyOnLoggerIssueEmit, stubPath2D } from './coreAccessors';
 
 describe('coreAccessors', () => {
     afterEach(() => {
@@ -53,6 +54,16 @@ describe('coreAccessors', () => {
 
             expect(emit).toHaveBeenCalledTimes(1);
             expect(listener).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('stubPath2D', () => {
+        stubPath2D();
+
+        it('lets an ExtendedPath2D record a path where jsdom has no Path2D', () => {
+            const path = new ExtendedPath2D();
+            path.rect(1, 2, 3, 4);
+            expect(path.computeBBox()).toMatchObject({ x: 1, y: 2, width: 3, height: 4 });
         });
     });
 });

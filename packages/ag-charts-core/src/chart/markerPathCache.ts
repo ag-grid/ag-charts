@@ -1,5 +1,7 @@
-import { ExtendedPath2D, MARKER_SHAPES } from 'ag-charts-core';
 import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
+
+import { ExtendedPath2D } from '../scene/extendedPath2D';
+import { MARKER_SHAPES } from './markerShapes';
 
 /**
  * Origin-centred {@link ExtendedPath2D} authored once per `(shape, size [, pixelRatio])` and
