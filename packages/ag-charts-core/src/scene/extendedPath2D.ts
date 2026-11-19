@@ -32,6 +32,12 @@ export class ExtendedPath2D {
     private commandsLength: number = 0;
     private paramsLength: number = 0;
 
+    // The end segments (from x, y, to x, y) of the open runs of lines, found once per build of the path.
+    private readonly openEnds: number[] = [];
+    private openEndsLength = 0;
+    // The commands length the ends were found at, or -1 while they are stale. Commands are only ever appended between clears.
+    private openEndsAt = -1;
+
     cx = Number.NaN;
     cy = Number.NaN;
     sx = Number.NaN;
@@ -449,6 +455,7 @@ export class ExtendedPath2D {
         this.path2d = new Path2DCtor();
         this.openedPath = false;
         this.closedPath = false;
+        this.openEndsAt = -1;
     }
 
     /**
@@ -462,8 +469,19 @@ export class ExtendedPath2D {
     ) {
         if (reach <= 0) return;
 
-        const { commands, params, commandsLength } = this;
+        if (this.openEndsAt !== this.commandsLength) this.findOpenLineEnds();
+
+        const { openEnds, openEndsLength } = this;
         let began = false;
+        for (let i = 0; i < openEndsLength; i += 4) {
+            began = extendLineEnd(ctx, openEnds[i], openEnds[i + 1], openEnds[i + 2], openEnds[i + 3], reach, began);
+        }
+        if (began) ctx.stroke();
+    }
+
+    private findOpenLineEnds() {
+        const { commands, params, commandsLength, openEnds } = this;
+        let n = 0;
         // The first and last segments of the subpath being read, and whether it is still a plain open run of lines.
         let x0 = 0;
         let y0 = 0;
@@ -482,8 +500,14 @@ export class ExtendedPath2D {
             switch (ci < commandsLength ? commands[ci] : Command.Move) {
                 case Command.Move:
                     if (plain && lines > 0) {
-                        began = extendLineEnd(ctx, x1, y1, x0, y0, reach, began);
-                        began = extendLineEnd(ctx, px, py, x, y, reach, began);
+                        openEnds[n++] = x1;
+                        openEnds[n++] = y1;
+                        openEnds[n++] = x0;
+                        openEnds[n++] = y0;
+                        openEnds[n++] = px;
+                        openEnds[n++] = py;
+                        openEnds[n++] = x;
+                        openEnds[n++] = y;
                     }
                     if (ci === commandsLength) break;
                     x0 = x = params[pi++];
@@ -511,7 +535,8 @@ export class ExtendedPath2D {
                     break;
             }
         }
-        if (began) ctx.stroke();
+        this.openEndsLength = n;
+        this.openEndsAt = commandsLength;
     }
 
     isPointInPath(x: number, y: number): boolean {
