@@ -25,6 +25,7 @@ import {
     isOn,
     recordParamsByHighlightState,
     shapesOf,
+    spyOnCastMerges,
     themeShadow,
 } from '../test/shadowFixtures';
 import {
@@ -830,24 +831,44 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             vi.mocked(console.warn).mockClear();
         });
 
-        it('counts nothing for a series with no styler, or a styler that returns neither shadow nor glow', async () => {
-            const noStyler = await create({ data: testCase.rows(CAP * 2), shadow: SERIES_SHADOW });
-            expect(noStyler.inPlace.every((shape) => shape.fillShadow === noStyler.inPlace[0].fillShadow)).toBe(true);
-            chart.destroy();
+        it.each([
+            ['no styler', undefined],
+            [
+                'a styler that returns neither shadow nor glow',
+                (params: any) => ({ fillOpacity: 0.1 + (params.datum.id % 9) / 10 }),
+            ],
+        ])('counts nothing for a series with %s', async (_name, styler) => {
+            // Counting starts before the chart exists, so that creation is covered as well as the updates.
+            const merges = spyOnCastMerges();
+            try {
+                const { inPlace } = await create({
+                    data: testCase.rows(CAP * 2),
+                    shadow: SERIES_SHADOW,
+                    glow: SERIES_GLOW,
+                    styler,
+                });
+                const expectSeriesCast = (shapes: Shape[]) => {
+                    for (const shape of shapes) {
+                        expect(shape.fillShadow).toBe(shapes[0].fillShadow);
+                        expect(shape.fillGlow).toBe(shapes[0].fillGlow);
+                    }
+                    expect(shapes[0].fillShadow).toMatchObject(SERIES_SHADOW);
+                    expect(shapes[0].fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
+                };
 
-            const neither = await create({
-                data: testCase.rows(CAP * 2),
-                shadow: SERIES_SHADOW,
-                styler: (params) => ({ fillOpacity: 0.1 + (params.datum.id % 9) / 10 }),
-            });
-            expect(neither.inPlace.every((shape) => shape.fillShadow === neither.inPlace[0].fillShadow)).toBe(true);
+                expect(inPlace).toHaveLength(CAP * 2);
+                expectSeriesCast(inPlace);
 
-            const merges = await countCastMerges(getSeriesAt(chart), async () => {
                 await hoverDatum(chart);
                 await endHover(chart);
-            });
-            expect(merges).toBe(0);
-            expectWarningMessages([]);
+                expectSeriesCast(shapesOf(getSeriesAt(chart).contentGroup, testCase.kind));
+
+                expect(merges.count()).toBe(0);
+                expectWarningMessages([]);
+            } finally {
+                merges.restore();
+                chart.destroy();
+            }
         });
 
         describe('when the cap has been reached and', () => {
