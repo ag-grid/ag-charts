@@ -14670,7 +14670,7 @@ __metadata:
     dotenv: "npm:10.0.0"
     dotenv-expand: "npm:10.0.0"
     downshift: "npm:^9.4.0"
-    esprima: "npm:4.0.1"
+    esprima-next: "npm:^6.0.3"
     flexsearch: "npm:^0.8.212"
     fs-extra: "npm:11.4.1"
     github-slugger: "npm:2.0.0"
@@ -19593,7 +19593,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esprima@npm:4.0.1, esprima@npm:^4.0.0, esprima@npm:^4.0.1, esprima@npm:~4.0.0":
+"esprima-next@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "esprima-next@npm:6.0.3"
+  bin:
+    esparse: bin/esparse.js
+    esvalidate: bin/esvalidate.js
+  checksum: 10c0/2b2cfb67bab7ac8883986a9ac6a2dfeb7e9636ca4ee483ca58ba4f1bb4d8d1105dbacf1ddf08f9451ec45fec56be61ed6917a93e6c9bf037ccdfdbe2e0b8dde5
+  languageName: node
+  linkType: hard
+
+"esprima@npm:^4.0.0, esprima@npm:^4.0.1, esprima@npm:~4.0.0":
   version: 4.0.1
   resolution: "esprima@npm:4.0.1"
   bin:

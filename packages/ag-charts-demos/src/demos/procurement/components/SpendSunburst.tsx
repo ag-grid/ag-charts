@@ -46,7 +46,7 @@ export function SpendSunburst({ tree, supplierColors }: SpendSunburstProps) {
             sizeKey: 'size',
             sizeName: 'Spend',
             // A hairline stroke rather than a gap: spacing narrow sectors apart breaks the ring into spikes.
-            sectorSpacing: 0,
+            gap: 0,
             cornerRadius: 2,
             strokes: ['var(--pc-panel)'],
             strokeWidth: 1,

@@ -107,8 +107,12 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     innerCircle?: AgSunburstInnerCircle;
     /** Configuration for the labels at the centre of the series. Has no effect unless `innerRadiusRatio` or `innerRadiusSize` is set. */
     innerLabels?: AgSunburstInnerLabelThemeOptions;
-    /** Spacing between the sectors. */
-    sectorSpacing?: PixelSize;
+    /**
+     * The gap, in pixels, between neighbouring sectors, both within a ring and between one ring and the next. The edge of the hole and the outer edge of the outermost ring stay where they are.
+     *
+     * __Note:__ A sector that is narrower than its share of the gap is not drawn.
+     */
+    gap?: PixelSize;
     /** Minimum distance between text and the edges of the sectors. */
     padding?: PixelSize;
     /** The colours to cycle through for the fills of the sectors. An array of colour strings, or fill objects for gradients, patterns, or images. */

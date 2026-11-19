@@ -36,11 +36,13 @@ import {
     findDiscreteColorBinLabel,
     fontWithSize,
     formatValue,
+    isFullSweep,
     isGradientFill,
     measureLabelText,
     mergeDefaults,
     normalizeAngle360,
     readDatumKey,
+    sectorEdgeInset,
     setSectorGlowEnds,
     withoutCasts,
 } from 'ag-charts-core';
@@ -98,6 +100,8 @@ interface SunburstLabelRing {
     readonly sweep: number;
     readonly theta: number;
     readonly radiusScale: number;
+    /** How far, in pixels, the drawn straight edges sit inside the edges at the sector's angles. */
+    readonly edgeInset: number;
     /** The depth-0 sector of a sunburst with no hole, which reaches the centre. */
     readonly wedge: boolean;
     /** A sole depth-0 node filling the whole disc. */
@@ -130,6 +134,29 @@ function heightBoundRegion(padding: number, widthFor: (height: number) => number
     };
 }
 
+/** How far along the bisector the drawn straight edges of a sector narrower than half a turn are `width` apart. */
+function edgeSpanRadius({ sweep, edgeInset }: SunburstLabelRing, width: number) {
+    return (width + (2 * edgeInset) / Math.cos(sweep * 0.5)) / (2 * Math.tan(sweep * 0.5));
+}
+
+/**
+ * How far along the bisector a label `width` across must start to clear a wedge's drawn straight edges. From half a
+ * turn up, the cut-out lies behind the centre, so only the label's near side has to clear it.
+ */
+function wedgeApexRadius(ring: SunburstLabelRing, width: number) {
+    return ring.sweep < Math.PI ? edgeSpanRadius(ring, width) : ring.edgeInset;
+}
+
+/** How far out the near side of a parallel label may sit: from half a turn up, the drawn straight edges sit in front of the centre. */
+function parallelNearSide({ sweep, innerRadius, edgeInset }: SunburstLabelRing) {
+    return sweep < Math.PI ? innerRadius : Math.max(innerRadius, edgeInset);
+}
+
+/** How far apart the drawn straight edges of a sector narrower than half a turn are at `radius`. */
+function edgeSpanAt({ sweep, edgeInset }: SunburstLabelRing, radius: number) {
+    return 2 * (radius * Math.tan(sweep * 0.5) - edgeInset / Math.cos(sweep * 0.5));
+}
+
 /** How far from the centre a sector's labels are drawn, for a stack of the given size. */
 function sectorLabelRadius(
     ring: SunburstLabelRing,
@@ -138,20 +165,22 @@ function sectorLabelRadius(
     height: number,
     padding: number
 ): number {
-    const { innerRadius, outerRadius, sweep, radiusScale, wedge } = ring;
+    const { innerRadius, outerRadius, radiusScale, wedge } = ring;
     switch (labelPlacement) {
         case LabelPlacement.CenterCircle:
             return 0;
         case LabelPlacement.Parallel: {
             const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
             const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
+            const nearSide = parallelNearSide(ring);
+            const minimumRadius = nearSide > innerRadius ? nearSide + padding + height : 0;
             // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
             const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (width / 2) ** 2));
-            return Math.min(idealRadius, maximumRadius);
+            return Math.min(Math.max(idealRadius, minimumRadius), maximumRadius);
         }
         case LabelPlacement.Perpendicular: {
             if (!wedge) return (innerRadius + outerRadius) * 0.5;
-            const minimumRadius = height / (2 * Math.tan(sweep * 0.5)) + width * 0.5;
+            const minimumRadius = wedgeApexRadius(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
             return (minimumRadius + maximumRadius) * 0.5;
         }
@@ -396,7 +425,7 @@ export class SunburstSeries extends HierarchySeries<
 
         const { width, height } = chart.seriesRect!;
         const {
-            sectorSpacing,
+            gap,
             cornerRadius,
             shadow,
             childrenKey,
@@ -414,7 +443,6 @@ export class SunburstSeries extends HierarchySeries<
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
 
-        const baseInset = sectorSpacing * 0.5;
         const radius = Math.min(width, height) / 2;
         // No hole unless one of the inner-radius options is explicitly set - the short-circuit keeps an
         // unconfigured sunburst identical to before.
@@ -443,15 +471,23 @@ export class SunburstSeries extends HierarchySeries<
             this.centreCircle = { radius: hole };
         }
 
+        let outerRingDepth = 0;
         rootNode?.walk((node) => {
             const { startAngle, endAngle } = node;
             if (node.depth != null) {
+                if (node.sumSize > 0) outerRingDepth = Math.max(outerRingDepth, node.depth);
                 const midAngle = (startAngle + endAngle) / 2 + angleOffset;
                 const midRadius = hole + (node.depth + 0.5) * radiusScale;
                 node.midPoint.x = Math.cos(midAngle) * midRadius;
                 node.midPoint.y = Math.sin(midAngle) * midRadius;
             }
         });
+
+        const innerArcGap = (depth: number, strokeInset: number) => sectorEdgeInset(gap, strokeInset, depth > 0);
+        const outerArcGap = (depth: number, strokeInset: number) =>
+            sectorEdgeInset(gap, strokeInset, depth < outerRingDepth);
+        const sideGap = ({ startAngle, endAngle }: SunburstNode, strokeInset: number) =>
+            sectorEdgeInset(gap, strokeInset, !isFullSweep(startAngle, endAngle));
 
         const suppressFieldDotNotation = this.data?.suppressFieldDotNotation ?? false;
         const readLabel = labelKey == null ? undefined : datumKeyReader(labelKey, suppressFieldDotNotation);
@@ -524,14 +560,15 @@ export class SunburstSeries extends HierarchySeries<
             // zero-height annulus only yields non-finite geometry.
             if (radiusScale <= 0) return;
 
-            const innerRadius = hole + depth * radiusScale + baseInset;
-            const outerRadius = hole + (depth + 1) * radiusScale - baseInset;
+            const innerRadius = hole + depth * radiusScale + innerArcGap(depth, 0);
+            const outerRadius = hole + (depth + 1) * radiusScale - outerArcGap(depth, 0);
             node.ring = {
                 innerRadius,
                 outerRadius,
                 sweep: endAngle - startAngle,
                 theta: angleOffset + (startAngle + endAngle) / 2,
                 radiusScale,
+                edgeInset: sideGap(node, 0),
                 // With a hole carved, depth 0 is a genuine annulus rather than a disc, so the
                 // centre-circle and wedge-from-centre label forms no longer apply to it.
                 wedge: depth === 0 && hole === 0,
@@ -562,7 +599,7 @@ export class SunburstSeries extends HierarchySeries<
             const glow = this.getNodeGlow(nodeDatum, highlighted, highlightedNode, style.glow);
 
             const fill = style.fill;
-            const strokeWidth = style.strokeWidth;
+            const strokeInset = style.stroke == null ? 0 : style.strokeWidth * 0.5;
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
@@ -591,7 +628,9 @@ export class SunburstSeries extends HierarchySeries<
             sector.outerRadius = hole + (depth + 1) * radiusScale;
             sector.startAngle = startAngle + angleOffset;
             sector.endAngle = endAngle + angleOffset;
-            sector.inset = baseInset + strokeWidth * 0.5;
+            sector.innerEdgeInset = innerArcGap(depth, strokeInset);
+            sector.outerEdgeInset = outerArcGap(depth, strokeInset);
+            sector.radialEdgeInset = sideGap(nodeDatum, strokeInset);
             sector.cornerRadius = cornerRadius;
         };
 
@@ -715,14 +754,12 @@ export class SunburstSeries extends HierarchySeries<
             return [this.sectorLabelCandidate(ring, LabelPlacement.CenterCircle, shape)];
         }
 
-        const straightEdges = sweep < Math.PI ? 2 * innerRadius * Math.tan(sweep * 0.5) : Infinity;
-        const parallelWidth = (height: number) => Math.min(2 * chordAt(innerRadius + height), straightEdges);
+        const straightEdges = sweep < Math.PI ? edgeSpanAt(ring, innerRadius) : Infinity;
+        const nearSide = parallelNearSide(ring);
+        const parallelWidth = (height: number) => Math.min(2 * chordAt(nearSide + height), straightEdges);
         let perpendicularWidth: ((height: number) => number) | undefined;
         if (wedge) {
-            perpendicularWidth = (height) => {
-                const apex = sweep < Math.PI ? height / (2 * Math.tan(sweep * 0.5)) : 0;
-                return chordAt(height * 0.5) - apex;
-            };
+            perpendicularWidth = (height) => chordAt(height * 0.5) - wedgeApexRadius(ring, height);
         } else if (normalizeAngle360(sweep) < Math.PI / 4) {
             // Measured across the sector's full height at its inner edge, however short the text.
             const across = chordAt(straightEdges * 0.5) - innerRadius;

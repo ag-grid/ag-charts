@@ -109,10 +109,16 @@ export function insideBarContainer(
  */
 export function sectorLabelContainer(
     anchor: { x: number; y: number },
-    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    sector: {
+        startAngle: number;
+        endAngle: number;
+        innerRadius: number;
+        outerRadius: number;
+        radialEdgeInset?: number;
+    },
     lineHeight: number
 ): { width: number; height: number } {
-    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+    const { startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset = 0 } = sector;
     const px = Math.abs(anchor.x);
     const py = Math.abs(anchor.y);
     const radius = Math.hypot(px, py);
@@ -121,7 +127,7 @@ export function sectorLabelContainer(
     const cosMid = px / radius;
     const sinMid = py / radius;
     const halfSpan = Math.min(Math.abs(endAngle - startAngle) / 2, Math.PI / 2);
-    const edgeDistance = radius * Math.sin(halfSpan);
+    const edgeDistance = radius * Math.sin(halfSpan) - Math.max(radialEdgeInset, 0);
     const edges = [startAngle, endAngle].map((angle) => ({
         sin: Math.abs(Math.sin(angle)),
         cos: Math.abs(Math.cos(angle)),

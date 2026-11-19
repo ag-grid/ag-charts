@@ -3074,8 +3074,8 @@ describe('BarSeries', () => {
                 'vertical-dashed-lines',
                 'horizontal-dashed-lines',
                 'waves',
-                'criss-cross',
-                'zig-zag',
+                'crosshatch',
+                'zigzag',
                 'hollow-circles',
                 'polka-dots',
             ] as const;

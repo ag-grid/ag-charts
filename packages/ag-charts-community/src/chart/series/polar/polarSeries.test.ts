@@ -71,8 +71,8 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: examples.DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED,
         assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
-    DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: {
-        options: examples.DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING,
+    DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_GAP: {
+        options: examples.DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_GAP,
         assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: {

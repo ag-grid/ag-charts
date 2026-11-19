@@ -40,7 +40,7 @@
     "dotenv": "10.0.0",
     "dotenv-expand": "10.0.0",
     "downshift": "^9.4.0",
-    "esprima": "4.0.1",
+    "esprima-next": "^6.0.3",
     "flexsearch": "^0.8.212",
     "fs-extra": "11.4.1",
     "github-slugger": "2.0.0",

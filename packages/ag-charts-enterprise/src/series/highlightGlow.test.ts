@@ -17,6 +17,8 @@ import {
     getSeriesOptions,
     getSeriesSelectionNodes,
     glowShadow,
+    hoverAction,
+    hoverLegendItem,
     itShadowsTheHoveredItem,
     setupMockCanvas,
     setupMockConsole,
@@ -1026,17 +1028,8 @@ describe('highlight glow (enterprise series)', () => {
     const LINK_SHADOW: AgDropShadowOptions = { ...SHADOW, fill: '#445566', blur: 22 };
     const LINK_GLOW: AgGlowOptions = { enabled: true, fill: '#aa0000', fillOpacity: 1, blur: 7, spread: 5 };
 
-    /** A sankey or chord chart with `part` hovered, and the visible shapes of each of its layers. */
-    const hoverFlowPart = async (type: string, series: object, part: 'node' | 'link') => {
-        chart = await createEnterpriseChart({
-            data: FLOW_DATA,
-            animation: { enabled: false },
-            legend: { enabled: false },
-            series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size', ...series }],
-        } as AgChartOptions);
-        raiseHighlight(part === 'node' ? FLOW_NODE(chart) : FLOW_LINK(chart));
-        await waitForChartStability(chart);
-
+    /** The visible shapes of each layer of the flow chart. */
+    const flowLayers = () => {
         const shapes = (name: Parameters<typeof getSeriesGroup>[1]) =>
             collectShapes(getSeriesGroup(chart, name)).filter((shape) => shape.visible);
         return {
@@ -1048,6 +1041,27 @@ describe('highlight glow (enterprise series)', () => {
             highlightLinks: shapes('highlightLinkGroup'),
         };
     };
+
+    const createFlowChart = async (type: string, series: object, legend = false) => {
+        chart = await createEnterpriseChart({
+            data: FLOW_DATA,
+            animation: { enabled: false },
+            legend: { enabled: legend },
+            series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size', ...series }],
+        } as AgChartOptions);
+    };
+
+    /** A sankey or chord chart with `part` hovered, and the visible shapes of each of its layers. */
+    const hoverFlowPart = async (type: string, series: object, part: 'node' | 'link') => {
+        await createFlowChart(type, series);
+        raiseHighlight(part === 'node' ? FLOW_NODE(chart) : FLOW_LINK(chart));
+        await waitForChartStability(chart);
+        return flowLayers();
+    };
+
+    /** The shapes of `of` that cast; `of` is where a shape holds the effect, the shadow by default. */
+    const casting = (shapes: Shape[], of: (shape: Shape) => { enabled?: boolean } | undefined = (s) => s.fillShadow) =>
+        shapes.filter((shape) => of(shape)?.enabled === true);
 
     describe('highlightedItem.shadow', () => {
         const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
@@ -1310,26 +1324,29 @@ describe('highlight glow (enterprise series)', () => {
 
         describe.each(['glow', 'shadow'] as const)('%s', (effect) => {
             const { node, link, of, resolved } = EFFECTS[effect];
-            const casting = (shapes: Shape[]) => shapes.filter((shape) => of(shape)?.enabled === true);
 
             describe.each(['node', 'link'] as const)('hovering a %s', (part) => {
                 it('keeps every link casting its own effect when only link is configured, and gives no node one', async () => {
                     const layers = await hover({ link: { [effect]: link } }, part);
 
                     // The hovered link casts from its highlight copy for a glow, and in place for a shadow.
-                    const links = casting([...layers.links, ...layers.highlightLinks]);
+                    const links = casting([...layers.links, ...layers.highlightLinks], of);
                     expect(links).toHaveLength(4);
                     for (const shape of links) expect(of(shape)).toMatchObject(resolved(link as never));
-                    expect(casting([...layers.nodes, ...layers.focusNodes, ...layers.highlightNodes])).toHaveLength(0);
+                    expect(casting([...layers.nodes, ...layers.focusNodes, ...layers.highlightNodes], of)).toHaveLength(
+                        0
+                    );
                 });
 
                 it('keeps every node casting its own effect when only node is configured, and gives no link one', async () => {
                     const layers = await hover({ node: { [effect]: node } }, part);
 
-                    const nodes = casting([...layers.nodes, ...layers.highlightNodes]);
+                    const nodes = casting([...layers.nodes, ...layers.highlightNodes], of);
                     expect(nodes).toHaveLength(4);
                     for (const shape of nodes) expect(of(shape)).toMatchObject(resolved(node as never));
-                    expect(casting([...layers.links, ...layers.focusLinks, ...layers.highlightLinks])).toHaveLength(0);
+                    expect(casting([...layers.links, ...layers.focusLinks, ...layers.highlightLinks], of)).toHaveLength(
+                        0
+                    );
                 });
             });
         });
@@ -1361,6 +1378,119 @@ describe('highlight glow (enterprise series)', () => {
                 }
             }
         );
+    });
+
+    // A sankey or chord casts its series shadow once: from the in-place copy of each item, through the root. The
+    // highlight layer's copy of the hovered item casts none, and nor does any copy on the focus layer.
+    describe.each(['sankey', 'chord'])('%s: the shadow of the hovered item', (type) => {
+        const OPACITY = 0.3;
+        const series = {
+            node: { shadow: NODE_SHADOW },
+            link: { shadow: LINK_SHADOW },
+            highlight: { highlightedItem: { shadow: { blur: 1 } }, unhighlightedItem: { opacity: OPACITY } },
+        };
+        const NODE_KIND = type === 'sankey' ? Rect : Sector;
+
+        const blurs = (shapes: Shape[]) => shapes.map((shape) => shape.fillShadow?.blur);
+        const nodeBlurs = () => blurs(flowLayers().nodes.filter((shape) => shape instanceof NODE_KIND));
+        const labelOpacities = () => getSeriesSelectionNodes<Shape>(chart, 'labelSelection').map((l) => l.opacity);
+
+        /** A chart with a legend, which the pointer hovers a node of through the legend. */
+        const createLegendChart = async () => {
+            await createFlowChart(type, series, true);
+            expect(getFlowNodeData(chart)).toHaveLength(4);
+        };
+
+        describe('hovering a legend item', () => {
+            it('gives its node the highlightedItem shadow, as hovering the node does', async () => {
+                await createLegendChart();
+                raiseHighlight(FLOW_NODE(chart));
+                await waitForChartStability(chart);
+                const hoveredNode = nodeBlurs();
+                expect(hoveredNode).toEqual([1, 11, 11, 11]);
+                raiseHighlight();
+                await waitForChartStability(chart);
+
+                await hoverLegendItem(chart, 0);
+                expect(nodeBlurs()).toEqual(hoveredNode);
+            });
+
+            it('keeps every node casting its series shadow when the itemId matches no node', async () => {
+                await createLegendChart();
+                const { series: hovered } = FLOW_NODE(chart);
+                raiseHighlight({ series: hovered, itemId: 'not a node', datum: undefined, datumIndex: Number.NaN });
+                await waitForChartStability(chart);
+
+                expect(nodeBlurs()).toEqual([11, 11, 11, 11]);
+            });
+
+            it('moves the highlightedItem shadow straight to the next item, and takes it off when the hover ends', async () => {
+                await createLegendChart();
+                // The legend lists the nodes in the order they were first read, which is not that of the node data.
+                const legendIds = getSeriesAt(chart)
+                    .getLegendData('category')
+                    .map((datum) => datum.itemId);
+                const castFrom = (itemId: unknown) => getFlowNodeData(chart).map((n) => (n.id === itemId ? 1 : 11));
+
+                await hoverLegendItem(chart, 0);
+                expect(nodeBlurs()).toEqual(castFrom(legendIds[0]));
+                await hoverLegendItem(chart, 1);
+                expect(nodeBlurs()).toEqual(castFrom(legendIds[1]));
+                expect(castFrom(legendIds[0])).not.toEqual(castFrom(legendIds[1]));
+
+                // The pointer leaves the legend for an empty corner of the chart.
+                await hoverAction(1, 1)(chart);
+                expect(nodeBlurs()).toEqual([11, 11, 11, 11]);
+            });
+
+            it('dims the labels of the other nodes, and leaves the label of its node alone', async () => {
+                await createLegendChart();
+                raiseHighlight(FLOW_NODE(chart));
+                await waitForChartStability(chart);
+                const hoveredNode = labelOpacities();
+                expect(hoveredNode).toEqual([1, OPACITY, OPACITY, OPACITY]);
+                raiseHighlight();
+                await waitForChartStability(chart);
+                expect(labelOpacities()).toEqual([1, 1, 1, 1]);
+
+                await hoverLegendItem(chart, 0);
+                expect(labelOpacities()).toEqual(hoveredNode);
+            });
+        });
+
+        describe('hovering a node', () => {
+            it('casts the shadow of each neighbour once, from its in-place copy', async () => {
+                const layers = await hoverFlowPart(type, series, 'node');
+
+                // The hovered node casts the highlightedItem shadow in place, and its neighbours their series shadow.
+                expect(blurs(layers.nodes)).toEqual([1, 11, 11, 11]);
+                // The focus layer holds the hovered node and its neighbours, and casts none of them.
+                expect(layers.focusNodes.length).toBeGreaterThan(1);
+                expect(casting(layers.focusNodes)).toHaveLength(0);
+                expect(casting(layers.highlightNodes)).toHaveLength(0);
+            });
+
+            it('casts the shadow of each link once, from its in-place copy', async () => {
+                const layers = await hoverFlowPart(type, series, 'node');
+
+                expect(layers.focusLinks.length).toBeGreaterThan(0);
+                expect(casting(layers.focusLinks)).toHaveLength(0);
+                expect(blurs(layers.links)).toEqual([22, 22, 22, 22]);
+            });
+        });
+
+        describe('hovering a link', () => {
+            it('casts the shadow of each node and link once, from its in-place copy', async () => {
+                const layers = await hoverFlowPart(type, series, 'link');
+
+                expect(layers.focusNodes.length).toBeGreaterThan(0);
+                expect(layers.focusLinks.length).toBeGreaterThan(0);
+                expect(casting([...layers.focusNodes, ...layers.focusLinks, ...layers.highlightLinks])).toHaveLength(0);
+                // The hovered link casts the highlightedItem shadow in place, and the other links their series shadow.
+                expect(blurs(layers.links)).toEqual([1, 22, 22, 22]);
+                expect(blurs(layers.nodes)).toEqual([11, 11, 11, 11]);
+            });
+        });
     });
 
     describe('theme defaults', () => {
