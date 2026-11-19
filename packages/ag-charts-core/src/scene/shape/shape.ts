@@ -457,7 +457,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     shadowMode: ShapeShadowMode = 'fill';
     declare __shadowMode: ShapeShadowMode; // optimised field accessor
 
-    /** Whether the shape keeps its {@link fillGlow} but casts none, for a shape that casts only its shadow. */
+    /** Whether the shape keeps its {@link fillGlow} but casts none, for a shape that casts only its shadow. Set when it is created. */
     suppressGlow = false;
 
     /** What {@link getCastShadow} resolved, one memo per slot, so that a shape that casts both can ask each often. */

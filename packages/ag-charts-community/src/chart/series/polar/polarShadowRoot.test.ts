@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { type Group, Sector } from 'ag-charts-core';
 import type { AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-types';
 
-import type { HighlightNodeDatum } from '../../../core/eventsHub';
-import { getSeriesAt, getSeriesNodeData } from '../../test/seriesAccessors';
+import { canvasImage, hoverDatum } from '../../test/glowRender';
+import { getSeriesAt } from '../../test/seriesAccessors';
 import { HIGHLIGHT_GLOW, SERIES_GLOW, shapesOf } from '../../test/shadowFixtures';
 import {
     type Chart,
@@ -16,9 +16,20 @@ import {
 } from '../../test/utils';
 
 // A shadow with no blur, so that a pixel is lit by a shadow or it is not. The offset carries it onto the ring around.
-const SHADOW: AgDropShadowOptions = { enabled: true, fill: 'rgba(0, 0, 0, 0.5)', xOffset: 24, yOffset: 24, blur: 0 };
+const SHADOW_STRENGTH = 0.5;
+const SHADOW: AgDropShadowOptions = {
+    enabled: true,
+    fill: `rgba(0, 0, 0, ${SHADOW_STRENGTH})`,
+    xOffset: 24,
+    yOffset: 24,
+    blur: 0,
+};
+
+/** The opacity that the donut draws its phantoms at. */
+const PHANTOM_OPACITY = 0.2;
 
 const RED = [255, 0, 0, 255];
+const BLUE = [0, 0, 255, 255];
 
 const RINGS_DATA = [
     { category: 'A', outer: 7, inner: 4.2, innerFiltered: 1.2 },
@@ -26,6 +37,20 @@ const RINGS_DATA = [
     { category: 'C', outer: 3, inner: 3, innerFiltered: 1 },
     { category: 'D', outer: 6.5, inner: 4.3, innerFiltered: 2 },
 ];
+
+/** One donut whose items reach about half of the radius of their phantoms. `angleFilterKey` is not in the public types. */
+function filteredDonut(series: object = {}): AgChartOptions {
+    const donut: object = {
+        type: 'donut',
+        angleKey: 'inner',
+        angleFilterKey: 'innerFiltered',
+        fills: ['blue'],
+        fillOpacity: 1,
+        strokeWidth: 0,
+        ...series,
+    };
+    return { data: RINGS_DATA, series: [donut] } as AgChartOptions;
+}
 
 describe('polar series shadow root', () => {
     setupMockConsole();
@@ -44,16 +69,9 @@ describe('polar series shadow root', () => {
         return chart;
     };
 
-    const pixels = () => {
-        const { canvas } = chart!.ctx.scene;
-        return Array.from(canvas.context.getImageData(0, 0, canvas.width, canvas.height).data as ArrayLike<number>);
-    };
+    const pixels = () => Array.from(canvasImage(chart!).data);
 
-    /**
-     * Draws the chart without any shadow, then with the one the series that `build` makes cast. Returns what each pixel that
-     * the plain chart draws as one of the opaque `fills` is after the shadow, so that a test can tell whether the shadow
-     * lands on a fill that is beneath it.
-     */
+    /** For each pixel that the chart draws as one of the opaque `fills`, whether the shadow left it as it was. */
     const fillPixelsAfterCasting = async (
         fills: number[][],
         build: (shadow: AgDropShadowOptions | undefined) => AgChartOptions
@@ -72,8 +90,20 @@ describe('polar series shadow root', () => {
         return opaque.map((i) => [0, 1, 2, 3].every((c) => shadowed[i + c] === plain[i + c]));
     };
 
-    describe('phantom sectors', () => {
-        // The outer ring is drawn first, and the inner ring's phantoms, drawn after it, would cast onto it if they cast their own shadows.
+    /** The centre and radius of the phantoms of the chart that is drawn, which cover its whole disc. */
+    const phantomDisc = (plain: number[]) => {
+        const { width, height } = chart!.ctx.scene.canvas;
+        let [minX, maxX, minY, maxY] = [width, 0, height, 0];
+        for (let i = 0; i < plain.length; i += 4) {
+            if (plain[i] === 255 && plain[i + 1] === 255 && plain[i + 2] === 255) continue;
+            const [x, y] = [(i / 4) % width, Math.floor(i / 4 / width)];
+            [minX, maxX, minY, maxY] = [Math.min(minX, x), Math.max(maxX, x), Math.min(minY, y), Math.max(maxY, y)];
+        }
+        return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2, radius: (maxX - minX) / 2, width };
+    };
+
+    describe('phantom sector shadows', () => {
+        // The outer ring is drawn first, and the phantoms of the inner ring would shadow it if they cast their own shadows.
         const phantomRings = (shadow: AgDropShadowOptions | undefined) =>
             ({
                 data: RINGS_DATA,
@@ -88,50 +118,73 @@ describe('polar series shadow root', () => {
                         strokeWidth: 0,
                     },
                     {
-                        type: 'donut',
-                        angleKey: 'inner',
-                        angleFilterKey: 'innerFiltered',
+                        ...(filteredDonut().series as object[])[0],
                         outerRadiusRatio: 0.65,
                         innerRadiusRatio: 0.3,
-                        fills: ['blue'],
-                        fillOpacity: 1,
-                        strokeWidth: 0,
                         shadow,
                     },
                 ],
             }) as AgChartOptions;
 
-        it('should not draw the shadows of phantom sectors over the ring around them', async () => {
-            const fills = await fillPixelsAfterCasting([RED], phantomRings);
-
-            expect(fills.every(Boolean)).toBe(true);
+        it.each([
+            ['the ring around them', [RED], phantomRings],
+            ['the sectors beside them', [BLUE], (shadow?: AgDropShadowOptions) => filteredDonut({ shadow })],
+            [
+                'the slice beside it, in a pie',
+                [RED, BLUE, [0, 128, 0, 255], [255, 165, 0, 255]],
+                (shadow?: AgDropShadowOptions) =>
+                    ({
+                        data: RINGS_DATA,
+                        series: [
+                            {
+                                type: 'pie',
+                                angleKey: 'outer',
+                                fills: ['red', 'blue', 'green', 'orange'],
+                                fillOpacity: 1,
+                                strokeWidth: 0,
+                                shadow,
+                            },
+                        ],
+                    }) as AgChartOptions,
+            ],
+        ])('should not draw a shadow over %s', async (_name, fills, build) => {
+            expect((await fillPixelsAfterCasting(fills, build)).every(Boolean)).toBe(true);
         });
 
-        // `angleFilterKey` is not in the public types.
-        const filteredDonut = (shadow: AgDropShadowOptions | undefined): AgChartOptions => {
-            const series: object = {
-                type: 'donut',
-                angleKey: 'inner',
-                angleFilterKey: 'innerFiltered',
-                fills: ['blue'],
-                fillOpacity: 1,
-                strokeWidth: 0,
-                shadow,
-            };
-            return { data: RINGS_DATA, series: [series] } as AgChartOptions;
-        };
+        it('should cast the shadow of a phantom, once where it falls on that of an item', async () => {
+            await create(filteredDonut());
+            const plain = pixels();
+            const { cx, cy, radius, width } = phantomDisc(plain);
+            await create(filteredDonut({ shadow: SHADOW }));
+            const shadowed = pixels();
+            const at = (x: number, y: number) =>
+                shadowed.slice(4 * (Math.round(y) * width + Math.round(x))).slice(0, 3);
 
-        it('should not draw the shadows of phantom sectors over the sectors beside them', async () => {
-            const fills = await fillPixelsAfterCasting([[0, 0, 255, 255]], filteredDonut);
+            // Beyond the items and the phantoms, down and right, only the shadow of a phantom reaches.
+            const beyond = radius + 12;
+            const phantomOnly = 255 * (1 - SHADOW_STRENGTH * PHANTOM_OPACITY);
+            const diagonal = Math.SQRT1_2 * beyond;
+            for (const channel of at(cx + diagonal, cy + diagonal)) expect(channel).toBeCloseTo(phantomOnly, -0.5);
 
-            expect(fills.every(Boolean)).toBe(true);
+            // Where the shadows of an item and its phantom overlap, they are one cast, as strong as the item's alone.
+            const itemOnly = [255, 255, 255].map(
+                (channel, c) => channel * (1 - SHADOW_STRENGTH) * (1 - PHANTOM_OPACITY) + BLUE[c] * PHANTOM_OPACITY
+            );
+            const overlapped = [];
+            for (let i = 0; i < plain.length; i += 4) {
+                if (plain[i] === 204 && plain[i + 1] === 204 && plain[i + 2] === 255)
+                    overlapped.push(shadowed.slice(i, i + 3));
+            }
+            const single = overlapped.filter((pixel) =>
+                pixel.every((channel, c) => Math.abs(channel - itemOnly[c]) <= 2)
+            );
+            expect(single.length).toBeGreaterThan(1000);
         });
 
         // A highlighted phantom's shadow is not visible apart from a batched one's, so the group that casts it is checked.
         it('should cast the shadows of phantoms in both groups as their items and highlight copies do', async () => {
-            await create(filteredDonut(SHADOW));
-            chart!.ctx.highlightManager.updateHighlight(chart!.id, getSeriesNodeData<HighlightNodeDatum>(chart!)[0]);
-            await waitForChartStability(chart!);
+            await create(filteredDonut({ shadow: SHADOW }));
+            await hoverDatum(chart!);
 
             const { contentGroup, highlightGroup } = getSeriesAt(chart!);
             const groupsOf = (root: Group, phantom: boolean) =>
@@ -149,42 +202,16 @@ describe('polar series shadow root', () => {
     });
 
     describe('phantom sector glows', () => {
-        // The items of each datum reach about half of the radius of its phantom, so a glow beyond the phantoms is theirs.
-        const glowOptions = (glow: AgGlowOptions | undefined, highlightedGlow?: AgGlowOptions): AgChartOptions => {
-            // `angleFilterKey` is not in the public types.
-            const series: object = {
-                type: 'donut',
-                angleKey: 'inner',
-                angleFilterKey: 'innerFiltered',
-                fills: ['blue'],
-                fillOpacity: 1,
-                strokeWidth: 0,
-                glow,
-                highlight: { highlightedItem: { glow: highlightedGlow } },
-            };
-            return { data: RINGS_DATA, series: [series] } as AgChartOptions;
-        };
-
-        /** The positions of the pixels that differ from the chart without glows, from the centre of the chart. */
+        /** The distances beyond the phantoms of the pixels that the glows change, which only a phantom's glow can reach. */
         const glowDistances = async (hover: boolean) => {
-            await create(glowOptions(undefined));
+            await create(filteredDonut());
             const plain = pixels();
-            const { width, height } = chart!.ctx.scene.canvas;
-            const drawn = (i: number) => plain[i] !== 255 || plain[i + 1] !== 255 || plain[i + 2] !== 255;
-            let [minX, maxX, minY, maxY] = [width, 0, height, 0];
-            for (let i = 0; i < plain.length; i += 4) {
-                if (!drawn(i)) continue;
-                const [x, y] = [(i / 4) % width, Math.floor(i / 4 / width)];
-                [minX, maxX, minY, maxY] = [Math.min(minX, x), Math.max(maxX, x), Math.min(minY, y), Math.max(maxY, y)];
-            }
-            const [cx, cy, radius] = [(minX + maxX) / 2, (minY + maxY) / 2, (maxX - minX) / 2];
+            const { cx, cy, radius, width } = phantomDisc(plain);
 
-            await create(glowOptions(SERIES_GLOW, HIGHLIGHT_GLOW));
-            if (hover) {
-                const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart!);
-                chart!.ctx.highlightManager.updateHighlight(chart!.id, datum);
-                await waitForChartStability(chart!);
-            }
+            const glow: AgGlowOptions = SERIES_GLOW;
+            const highlightedItem: AgGlowOptions = HIGHLIGHT_GLOW;
+            await create(filteredDonut({ glow, highlight: { highlightedItem: { glow: highlightedItem } } }));
+            if (hover) await hoverDatum(chart!);
             const glowing = pixels();
             const distances: number[] = [];
             for (let i = 0; i < glowing.length; i += 4) {
@@ -203,35 +230,6 @@ describe('polar series shadow root', () => {
 
             expect(distances.length).toBeGreaterThan(100);
             expect(distances.filter((distance) => distance > 1)).toEqual([]);
-        });
-    });
-
-    describe('neighbouring slices', () => {
-        // The slices of one series are one batch, whose shadows lie beneath every slice: none of them shadows another.
-        it('should not draw the shadow of a slice over the slice beside it', async () => {
-            const fills = await fillPixelsAfterCasting(
-                [
-                    [255, 0, 0, 255],
-                    [0, 0, 255, 255],
-                    [0, 128, 0, 255],
-                    [255, 165, 0, 255],
-                ],
-                (shadow) => ({
-                    data: RINGS_DATA,
-                    series: [
-                        {
-                            type: 'pie',
-                            angleKey: 'outer',
-                            fills: ['red', 'blue', 'green', 'orange'],
-                            fillOpacity: 1,
-                            strokeWidth: 0,
-                            shadow,
-                        },
-                    ],
-                })
-            );
-
-            expect(fills.every(Boolean)).toBe(true);
         });
     });
 });
