@@ -313,10 +313,7 @@ function fitTurnedText(
     return best ?? (isArray(text) ? [] : '');
 }
 
-/**
- * `bounds` grown where needed to hold a `width` by `height` box drawn turned by its rotation. Grown a rounding
- * margin past the box: the fit takes the turn back out of the bounds, and must not come up short of `width`.
- */
+/** `bounds` grown to hold a `width` by `height` box drawn turned, plus the margin the fit's inverse rounds away. */
 export function turnedBoundsHolding(bounds: TurnedBounds, width: number, height: number): TurnedBounds {
     const angle = toRadians(bounds.rotation);
     const sin = Math.abs(Math.sin(angle));

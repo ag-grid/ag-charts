@@ -3054,6 +3054,7 @@ describe('CrossLine label fitting', () => {
     });
 
     const LONG_TEXT = 'A cross line label long enough to need fitting';
+    const ONE_TRUNCATED_LINE = expect.stringMatching(/^A[^\n]*…$/);
 
     type AxisOverrides = Partial<AgNumberAxisOptions>;
 
@@ -3275,10 +3276,21 @@ describe('CrossLine label fitting', () => {
         expect(into.left).toBeLessThanOrEqual(80 + 10);
     });
 
-    it('keeps a label whole at a maxHeight below one line', async () => {
-        chart = deproxy(await createChart(fitChart(lineWith({ placement: 'left', maxHeight: 4 }))));
+    it.each<[string, AgCartesianCrossLineLabelOptions, unknown]>([
+        ['whole', { maxHeight: 4 }, LONG_TEXT],
+        ['to one line within maxWidth', { maxHeight: 4, maxWidth: 40 }, ONE_TRUNCATED_LINE],
+    ])('keeps a label %s at a maxHeight below one line', async (_, bounds, text) => {
+        chart = deproxy(await createChart(fitChart(lineWith({ placement: 'left', ...bounds }))));
 
-        expect(renderedLabel().text).toBe(LONG_TEXT);
+        const rendered = renderedLabel();
+        expect(rendered.text).toEqual(text);
+        expect(rendered.width).toBeLessThanOrEqual(bounds.maxWidth ?? Infinity);
+    });
+
+    it('keeps a label to its first character at a maxWidth narrower than one', async () => {
+        chart = deproxy(await createChart(fitChart(lineWith({ placement: 'left', maxWidth: 2, wrapping: 'never' }))));
+
+        expect(renderedLabel().text).toBe('A…');
     });
 
     it('neither pads the chart nor collides for a label erased by a maxHeight below one line', async () => {
@@ -3384,30 +3396,19 @@ describe('CrossLine label fitting', () => {
             expect(label.width).toBeLessThanOrEqual(band.width);
         });
 
-        it.each([
-            [{}, 14],
-            [{ minimumFontSize: 6 }, 6],
-        ])('keeps a label whole in a band too short for one line, given %o', async (label, fontSize) => {
+        it.each<[AgCartesianCrossLineLabelOptions, unknown, number]>([
+            [{}, LONG_TEXT, 14],
+            [{ minimumFontSize: 6 }, LONG_TEXT, 6],
+            [{ maxWidth: 40 }, ONE_TRUNCATED_LINE, 14],
+            [{ maxWidth: 40, minimumFontSize: 6 }, ONE_TRUNCATED_LINE, 6],
+        ])('keeps a label to one line in a band too short for one, given %o', async (label, text, fontSize) => {
             const crossLine = rangeWith({ placement: 'inside', fontSize: 14, ...label }, [4, 4.05]);
             chart = deproxy(await createChart(fitChart(crossLine, 'y')));
 
-            expect(renderedLabel('y')).toMatchObject({ text: LONG_TEXT, fontSize });
+            const rendered = renderedLabel('y');
+            expect(rendered).toMatchObject({ text, fontSize });
+            expect(rendered.width).toBeLessThanOrEqual(label.maxWidth ?? Infinity);
         });
-
-        it.each([
-            [{}, 14],
-            [{ minimumFontSize: 6 }, 6],
-        ])(
-            'keeps a label to one line within maxWidth in a band too short for one line, given %o',
-            async (label, fontSize) => {
-                const crossLine = rangeWith({ placement: 'inside', fontSize: 14, maxWidth: 40, ...label }, [4, 4.05]);
-                chart = deproxy(await createChart(fitChart(crossLine, 'y')));
-
-                const rendered = renderedLabel('y');
-                expect(rendered).toMatchObject({ text: expect.stringMatching(/^A[^\n]*…$/), fontSize });
-                expect(rendered.width).toBeLessThanOrEqual(40);
-            }
-        );
 
         it('hides a label in a band too short for one line when alwaysShow is false', async () => {
             const crossLine = rangeWith({ placement: 'inside', collision: { alwaysShow: false } }, [4, 4.05]);

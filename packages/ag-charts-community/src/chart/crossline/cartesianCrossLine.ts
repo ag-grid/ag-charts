@@ -582,22 +582,26 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return this.fitted;
     }
 
-    /**
-     * A kept label left without a character, kept as the label engine keeps series labels: at its smallest size
-     * in the band grown to hold its first character and an ellipsis, then within its own bounds only, then whole.
-     */
+    /** Refits a kept label left without a character, its bounds grown as `fitPositionedCandidateAt` grows them. */
     private keptLabel(text: string, fit: LabelFit): FittedLabel {
         const { label } = this;
         const fontSize = resolveMinimumFontSize(label.minimumFontSize, label.fontSize);
         const font = fontWithSize(label, fontSize);
-        const { rotated, ...policy } = fit;
-        if (rotated != null) {
-            const bound = turnedBoundsHolding(rotated, leadCharacterWidth(text, font), drawnLineHeight(font));
-            const fitted = fitLabelText(text, { ...policy, rotated: bound }, font);
-            if (typeof fitted === 'string' && hasRealChars(fitted)) return { text: fitted, fontSize, rotated: bound };
+        const leadWidth = leadCharacterWidth(text, font);
+        const lineHeight = drawnLineHeight(font);
+        const { rotated: band, maxWidth, maxHeight, ...rest } = fit;
+        const policy: LabelFit = {
+            ...rest,
+            maxWidth: maxWidth == null ? undefined : Math.max(maxWidth, leadWidth),
+            maxHeight: maxHeight == null ? undefined : Math.max(maxHeight, lineHeight),
+        };
+        if (band != null) {
+            const rotated = turnedBoundsHolding(band, leadWidth, lineHeight);
+            const fitted = fitLabelText(text, { ...policy, rotated }, font);
+            if (typeof fitted === 'string' && hasRealChars(fitted)) return { text: fitted, fontSize, rotated };
         }
         const own = fitLabelText(text, policy, font);
-        return { text: typeof own === 'string' && own !== '' ? own : text, fontSize };
+        return { text: typeof own === 'string' && hasRealChars(own) ? own : text, fontSize };
     }
 
     private get fitsToBand(): boolean {
@@ -609,10 +613,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return rotated == null ? fit : { ...fit, rotated, hideOverflowingEllipsis: true };
     }
 
-    /**
-     * The room the visible band leaves a turned label placed inside it. An explicit `maxWidth`/`maxHeight`
-     * replaces it on the axis that bound lies along.
-     */
+    /** The room the visible band leaves a turned label inside it; an explicit bound replaces it along its axis. */
     private bandTurnedBounds(fit: Pick<LabelFit, 'maxWidth' | 'maxHeight'>, anchor: Anchor): TurnedBounds | undefined {
         const { labelBounds: band, label } = this;
         const inside = anchor.labelH === anchor.rangeH && anchor.labelV === anchor.rangeV;
