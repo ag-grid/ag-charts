@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     BBox,
+    CUT_ONLY_GLOW,
     Group,
     Logger,
     Path,
@@ -3174,6 +3175,14 @@ describe('Group shadow compositor', () => {
                 direct?: boolean;
                 /** The size of the part of each key's casters that is on the layer, which its mask holds, in css pixels. */
                 held: { width: number; height: number };
+                /** The size of the layer in css pixels, if not {@link LAYER}. A large one is compared by a digest of its pixels. */
+                layer?: { width: number; height: number };
+                /** How many casts of the same user make up a kept cast, whose last is blitted from the cache. Three if unset. */
+                casts?: number;
+                /** Measures the casters of the bounded cast as it says, in place of the shape: it writes the bounds, and returns whether it did. */
+                measure?: (out: { minX: number; minY: number; maxX: number; maxY: number }) => boolean;
+                /** Runs once the cast is made, as the render of a test cleans up. */
+                cleanup?: () => void;
             }
 
             const grid = (count: number, slot: 'fillShadow' | 'fillGlow', shadow: ResolvedDropShadowOptions) => {
@@ -3319,12 +3328,44 @@ describe('Group shadow compositor', () => {
             ];
 
             interface Cast {
+                /** Empty for a scenario of a large layer, which has a digest to compare instead. */
                 pixels: number[];
+                /** A digest of the pixels of the layer, and how many of its bytes are not zero. */
+                digest: string;
+                painted: number;
                 /** The sizes of the rectangles that the scratch canvas was cleared at. */
                 clears: Array<[number, number]>;
                 /** The sizes of the mask drawn from the scratch canvas onto the layer, for a key cast directly on it. */
                 blurs: Array<[number, number]>;
+                /** The rectangles that the scratch canvas was cleared at, as x, y, width and height. */
+                clearRects: number[][];
+                /** The source and destination rectangles of the mask drawn from the scratch canvas onto the layer. */
+                sources: number[][];
+                /** What the last cast cleared and drew from the scratch canvas, which for a kept cast is a blit of the cache. */
+                last: { clears: number; sources: number };
+                /** The size of the scratch canvas. */
+                scratch: [number, number];
             }
+
+            /** How many bytes of the pixels differ, which is reported in place of a diff of arrays too large to print. */
+            const expectEqualPixels = (actual: Cast, expected: Cast) => {
+                expect(actual.pixels).toHaveLength(expected.pixels.length);
+                let differing = 0;
+                for (let i = 0; i < actual.pixels.length; i++) if (actual.pixels[i] !== expected.pixels[i]) differing++;
+                expect(differing).toBe(0);
+                expect(actual.digest).toBe(expected.digest);
+            };
+
+            /** A digest of bytes (FNV-1a), to compare the layers of a size that an array of numbers can't hold. */
+            const digestOf = (data: ArrayLike<number>) => {
+                let hash = 0x811c9dc5;
+                let painted = 0;
+                for (let i = 0; i < data.length; i++) {
+                    hash = Math.imul(hash ^ data[i], 0x01000193) >>> 0;
+                    if (data[i] !== 0) painted++;
+                }
+                return { digest: hash.toString(16), painted };
+            };
 
             /**
              * Casts the scenario on a layer of its own. A direct cast is of a user that has cast nothing before, as the first of
@@ -3332,7 +3373,8 @@ describe('Group shadow compositor', () => {
              */
             const castScenario = (scenario: Scenario, unbounded: boolean, kept = false): Cast => {
                 const dpr = scenario.devicePixelRatio ?? 1;
-                const layer = new OffscreenCanvas(LAYER.width * dpr, LAYER.height * dpr);
+                const { width: layerWidth, height: layerHeight } = scenario.layer ?? LAYER;
+                const layer = new OffscreenCanvas(layerWidth * dpr, layerHeight * dpr);
                 const context = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
                 const renderCtx = {
                     ...renderContext(),
@@ -3347,6 +3389,13 @@ describe('Group shadow compositor', () => {
                     if (unbounded) {
                         for (const caster of key.casters) {
                             vi.spyOn(caster, 'getShadowSilhouetteBounds').mockReturnValue(false);
+                        }
+                    } else if (scenario.measure != null) {
+                        const { measure } = scenario;
+                        for (const caster of key.casters) {
+                            vi.spyOn(caster, 'getShadowSilhouetteBounds').mockImplementation((_parent, _spread, out) =>
+                                measure(out)
+                            );
                         }
                     }
                 }
@@ -3368,18 +3417,35 @@ describe('Group shadow compositor', () => {
                 const scratchContext = scratch.getContext('2d')! as unknown as CanvasRenderingContext2D;
                 const clearRect = vi.spyOn(scratchContext, 'clearRect');
                 const drawImage = vi.spyOn(context, 'drawImage');
-                if (kept) for (let i = 0; i < 2; i++) cast(users[0]);
-                else cast(users[1]);
+                const sourcesOf = () => drawImage.mock.calls.filter(([source]) => source === scratch);
+                let last = { clears: 0, sources: 0 };
+                if (kept) {
+                    const casts = scenario.casts ?? 3;
+                    for (let i = 0; i < casts - 1; i++) {
+                        const clearsBefore = clearRect.mock.calls.length;
+                        const sourcesBefore = sourcesOf().length;
+                        cast(users[0]);
+                        last = {
+                            clears: clearRect.mock.calls.length - clearsBefore,
+                            sources: sourcesOf().length - sourcesBefore,
+                        };
+                    }
+                } else cast(users[1]);
 
+                const data = context.getImageData(0, 0, layer.width, layer.height).data;
                 const result: Cast = {
-                    pixels: Array.from(context.getImageData(0, 0, layer.width, layer.height).data),
+                    pixels: scenario.layer == null ? Array.from(data) : [],
+                    ...digestOf(data),
                     clears: clearRect.mock.calls.map(([, , w, h]) => [w, h]),
-                    blurs: drawImage.mock.calls
-                        .filter(([source]) => source === scratch)
-                        .map((args) => [args[7], args[8]]),
+                    blurs: sourcesOf().map((args) => [args[7], args[8]]),
+                    clearRects: clearRect.mock.calls.map((args) => [...args]),
+                    sources: sourcesOf().map((args) => args.slice(1) as number[]),
+                    last,
+                    scratch: [scratch.width, scratch.height],
                 };
                 for (const user of users) destroyShadowScratch(user);
                 destroyShadowScratch(scene);
+                scenario.cleanup?.();
                 return result;
             };
 
@@ -3395,16 +3461,19 @@ describe('Group shadow compositor', () => {
                 it('should draw the pixels that the whole mask draws', () => {
                     expect(maxAlphaOf(full.pixels)).toBeGreaterThan(0);
                     expect(bounded.pixels).toHaveLength(full.pixels.length);
-                    expect(bounded.pixels).toEqual(full.pixels);
+                    expectEqualPixels(bounded, full);
                 });
 
                 it('should blit the pixels of a kept cast that the whole mask draws', () => {
                     const keptBounded = castScenario(scenario, false, true);
                     const keptFull = castScenario(scenario, true, true);
                     expect(maxAlphaOf(keptFull.pixels)).toBeGreaterThan(0);
-                    expect(keptBounded.pixels).toEqual(keptFull.pixels);
+                    expectEqualPixels(keptBounded, keptFull);
                     // The cast that was kept draws what a direct one does.
-                    expect(keptBounded.pixels).toEqual(bounded.pixels);
+                    expectEqualPixels(keptBounded, bounded);
+                    // And it is blitted from the cache: the last cast clears no mask and draws none, bounded or not.
+                    expect(keptFull.last).toEqual({ clears: 0, sources: 0 });
+                    expect(keptBounded.last).toEqual({ clears: 0, sources: 0 });
                 });
 
                 it('should clear a mask that holds the casters and not the layer, where the whole mask clears the layer', () => {
@@ -3440,7 +3509,470 @@ describe('Group shadow compositor', () => {
                             expect(blurHeight).toBeLessThanOrEqual(bounded.clears[i][1]);
                         }
                     });
+
+                    // The arguments of drawImage are the image, the source rect (x, y, width, height), then the destination's.
+                    it('should blur the rect of the mask that it cleared, from its source rect', () => {
+                        expect(bounded.sources.length).toBe(full.sources.length);
+                        for (const [i, [sx, sy, sw, sh, , , dw, dh]] of bounded.sources.entries()) {
+                            // The source is the rect that was cleared, and is drawn at its own size.
+                            expect(bounded.clearRects).toContainEqual([sx, sy, sw, sh]);
+                            expect([dw, dh]).toEqual([sw, sh]);
+                            // It is a part of the whole mask, which is drawn from its origin.
+                            const [fx, fy, fw, fh] = full.sources[i];
+                            expect([fx, fy]).toEqual([0, 0]);
+                            expect(sw).toBeLessThan(fw);
+                            expect(sh).toBeLessThan(fh);
+                            expect(sx + sw).toBeLessThanOrEqual(fw);
+                            expect(sy + sh).toBeLessThanOrEqual(fh);
+                        }
+                    });
                 }
+            });
+
+            // The tests above and below compare a bounded mask with the whole one, so these helpers read both casts.
+            const expectSamePixels = (bounded: Cast, full: Cast) => {
+                expect(full.painted).toBeGreaterThan(0);
+                expect(bounded.digest).toBe(full.digest);
+                expectEqualPixels(bounded, full);
+            };
+
+            /** A key is cut down: it clears less than the whole mask does, and blurs the rect that it cleared. */
+            const expectBounded = (bounded: Cast, full: Cast) => {
+                expect(full.sources.length).toBeGreaterThan(0);
+                expect(bounded.sources).toHaveLength(full.sources.length);
+                expect(bounded.clearRects).toHaveLength(full.clearRects.length);
+                for (const [i, [x, y, w, h]] of bounded.clearRects.entries()) {
+                    expect(x + w).toBeLessThanOrEqual(full.clearRects[i][2]);
+                    expect(y + h).toBeLessThanOrEqual(full.clearRects[i][3]);
+                    expect(w * h).toBeLessThan(full.clearRects[i][2] * full.clearRects[i][3]);
+                }
+                for (const [i, [sx, sy, sw, sh, , , dw, dh]] of bounded.sources.entries()) {
+                    expect(bounded.clearRects).toContainEqual([sx, sy, sw, sh]);
+                    expect([dw, dh]).toEqual([sw, sh]);
+                    expect(sw * sh).toBeLessThan(full.sources[i][2] * full.sources[i][3]);
+                }
+            };
+
+            /** A key is not cut down: it clears the whole mask, and blurs all of it, as the whole mask does. */
+            const expectWhole = (bounded: Cast, full: Cast, direct = true) => {
+                expect(full.clearRects.length).toBeGreaterThan(0);
+                expect(bounded.clearRects).toEqual(full.clearRects);
+                // A kept cast is blurred onto its cache, which is not the layer.
+                if (direct) {
+                    expect(full.sources.length).toBeGreaterThan(0);
+                    expect(bounded.sources).toEqual(full.sources);
+                }
+            };
+
+            const hovered = (shadow: Partial<ResolvedDropShadowOptions>, over: Partial<Scenario> = {}): Scenario => ({
+                keys: () => [
+                    shadowKey([box(150, 100, 40, 30, { fillShadow: { ...BLURRED, ...shadow } })], {
+                        ...BLURRED,
+                        ...shadow,
+                    }),
+                ],
+                direct: true,
+                held: HOVERED,
+                ...over,
+            });
+
+            const crowd = (
+                shadow: Partial<ResolvedDropShadowOptions>,
+                over: Partial<Scenario> = {},
+                shift = 0
+            ): Scenario => ({
+                keys: () => {
+                    const full = { ...BLURRED, ...shadow };
+                    const casters: Shape[] = [];
+                    for (let i = 0; i < 20; i++) {
+                        const x = 100 + (i % 6) * 30 + shift;
+                        const y = 80 + Math.floor(i / 6) * 30 + shift * 2.3;
+                        casters.push(box(x, y, 20 + shift, 20 + shift * 2, { fillShadow: full }));
+                    }
+                    return [shadowKey(casters, full)];
+                },
+                direct: true,
+                held: GRID,
+                ...over,
+            });
+
+            // The skia that draws a shadow blur does not blur a part of a canvas as it does the whole when the shadow is offset by
+            // part of a device pixel, so a key is bounded only if both its offsets, in device pixels, are whole.
+            describe('a shadow offset by part of a device pixel', () => {
+                const FRACTIONAL: Array<[string, Scenario]> = [
+                    [
+                        '20 casters, a spread and a fractional offset on both axes',
+                        crowd({ xOffset: 4.5, yOffset: 2.2, spread: 3 }),
+                    ],
+                    ['a hovered item and a fractional offset on both axes', hovered({ xOffset: 0.3, yOffset: 0.3 })],
+                    ['a hovered item and a fractional offset on x alone', hovered({ xOffset: 4.5, yOffset: 2 })],
+                    ['a hovered item and a fractional offset on y alone', hovered({ xOffset: 4, yOffset: 2.2 })],
+                    [
+                        'whole css offsets at a device pixel ratio of 1.25',
+                        hovered({ xOffset: 10, yOffset: 6 }, { devicePixelRatio: 1.25 }),
+                    ],
+                    [
+                        'a quarter of a css pixel at twice the ratio',
+                        hovered({ xOffset: 4.25, yOffset: 2.25 }, { devicePixelRatio: 2 }),
+                    ],
+                    [
+                        '20 casters of fractional geometry at a ratio of 1.25',
+                        crowd({ xOffset: 10, yOffset: 6, spread: 3 }, { devicePixelRatio: 1.25 }, 0.3),
+                    ],
+                ];
+
+                // What is drawn is what a cast of the whole mask draws, which includes the clip of the blur to the extent of a small
+                // key. That clip is not a clip of the mask, so a cast of no clip is not the reference for the pixels here.
+                it.each(FRACTIONAL)('should clear and blur the whole mask for %s', (_name, scenario) => {
+                    const bounded = castScenario(scenario, false);
+                    const full = castScenario(scenario, true);
+
+                    expect(bounded.painted).toBeGreaterThan(0);
+                    expectWhole(bounded, full);
+                });
+
+                it.each(FRACTIONAL)('should clear the whole mask of a kept cast for %s', (_name, scenario) => {
+                    const bounded = castScenario(scenario, false, true);
+                    const full = castScenario(scenario, true, true);
+
+                    expect(bounded.painted).toBeGreaterThan(0);
+                    expectWhole(bounded, full, false);
+                });
+            });
+
+            describe('a shadow offset by whole device pixels', () => {
+                const WHOLE: Array<[string, Scenario]> = [
+                    [
+                        'fractional geometry, a spread and a ratio of 1.25',
+                        hovered(
+                            { xOffset: 4, yOffset: 8, spread: 3 },
+                            {
+                                devicePixelRatio: 1.25,
+                                keys: () => {
+                                    const shadow = { ...BLURRED, xOffset: 4, yOffset: 8, spread: 3 };
+                                    return [shadowKey([box(150.3, 100.7, 40.2, 30.6, { fillShadow: shadow })], shadow)];
+                                },
+                            }
+                        ),
+                    ],
+                    [
+                        '20 casters of fractional geometry, a spread and a ratio of 1.25',
+                        crowd({ xOffset: 4, yOffset: 8, spread: 3 }, { devicePixelRatio: 1.25 }, 0.3),
+                    ],
+                    ['a ratio of 1.5', hovered({ xOffset: 4, yOffset: 2 }, { devicePixelRatio: 1.5 })],
+                    [
+                        'half a css pixel at twice the ratio',
+                        hovered({ xOffset: 4.5, yOffset: 2.5 }, { devicePixelRatio: 2 }),
+                    ],
+                    ['a negative offset', hovered({ xOffset: -7, yOffset: -3 })],
+                    ['no offset', hovered({ xOffset: 0, yOffset: 0 })],
+                ];
+
+                it.each(WHOLE)('should clear and blur a part of the mask for %s', (_name, scenario) => {
+                    const bounded = castScenario(scenario, false);
+                    const full = castScenario(scenario, true);
+
+                    expectSamePixels(bounded, full);
+                    expectBounded(bounded, full);
+                });
+
+                // The blurs here are far wider than the extent that the mask is cut to, and the extents differ in how far they
+                // reach past the casters, so the crop that skia blurs from differs between the cases.
+                const BLURS = [12, 20, 30, 40, 60];
+                const SPREADS = [0, 5];
+                const OFFSETS = [
+                    [4, 2],
+                    [0, 0],
+                    [7, -3],
+                ];
+                const LARGE = BLURS.flatMap((blur) =>
+                    SPREADS.flatMap((spread) =>
+                        OFFSETS.map(([xOffset, yOffset]) => ({ blur, spread, xOffset, yOffset }))
+                    )
+                );
+
+                it.each(LARGE)(
+                    'should draw the pixels of the whole mask for 20 casters of a blur of $blur, a spread of $spread and an offset of $xOffset, $yOffset',
+                    (shadow) => {
+                        const bounded = castScenario(crowd(shadow), false);
+                        const full = castScenario(crowd(shadow), true);
+
+                        expectSamePixels(bounded, full);
+                        expectBounded(bounded, full);
+                    }
+                );
+
+                it.each(BLURS)(
+                    'should draw the pixels of the whole mask for a glow of a blur of %i and a spread of 12',
+                    (blur) => {
+                        const glow = { ...BLURRED_GLOW, blur, spread: 12 };
+                        const scenario: Scenario = {
+                            keys: () => [glowKeyOf(box(150, 100, 40, 30, { fillGlow: glow }), glow)],
+                            direct: true,
+                            held: HOVERED,
+                        };
+                        const bounded = castScenario(scenario, false);
+                        const full = castScenario(scenario, true);
+
+                        expectSamePixels(bounded, full);
+                        expectBounded(bounded, full);
+                    }
+                );
+            });
+
+            // The premise of the whole-pixel condition, in skia alone: a part of a canvas, from a source rect of any size around
+            // the casters, blurs to the pixels that the whole canvas does. The sizes include those that differed by one alpha
+            // for an offset by part of a pixel.
+            describe('a source rect of a canvas blurred with a shadow', () => {
+                const PAD_X = 14;
+                const PAD_Y = 12;
+                const SIZE = { width: 423, height: 321 };
+                const MARGINS = [0, 2, 8, 11, 12, 16, 19, 30, 33, 34, 43, 44];
+
+                const blurred = (
+                    source: OffscreenCanvas,
+                    rect: [number, number, number, number],
+                    offset: [number, number],
+                    blur: number
+                ) => {
+                    const dest = new OffscreenCanvas(400, 300);
+                    const d = dest.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                    const [sx, sy, sw, sh] = rect;
+                    d.shadowColor = 'rgba(0, 0, 255, 1)';
+                    // The mask is drawn this far to the left, so that none of it is on the layer.
+                    d.shadowOffsetX = offset[0] + SIZE.width;
+                    d.shadowOffsetY = offset[1];
+                    d.shadowBlur = blur;
+                    d.drawImage(source, sx, sy, sw, sh, -PAD_X - SIZE.width + sx, -PAD_Y + sy, sw, sh);
+                    return d.getImageData(0, 0, 400, 300).data;
+                };
+
+                const cases = [6, 12, 30, 60].flatMap((blur) =>
+                    (
+                        [
+                            [4, 2],
+                            [0, 0],
+                            [7, -3],
+                            [10, 10],
+                        ] as Array<[number, number]>
+                    ).map((offset) => ({ blur, offset }))
+                );
+
+                it.each(cases)(
+                    'should draw the pixels of the whole canvas for a blur of $blur and an offset of $offset',
+                    ({ blur, offset }) => {
+                        const source = new OffscreenCanvas(SIZE.width, SIZE.height);
+                        const sc = source.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                        for (let i = 0; i < 20; i++) {
+                            sc.fillRect(PAD_X + 100 + (i % 6) * 30, PAD_Y + 80 + Math.floor(i / 6) * 30, 20, 20);
+                        }
+                        const whole = blurred(source, [0, 0, SIZE.width, SIZE.height], offset, blur);
+                        expect(whole.some((value) => value !== 0)).toBe(true);
+
+                        for (const margin of MARGINS) {
+                            const rect: [number, number, number, number] = [
+                                100 + PAD_X - margin,
+                                80 + PAD_Y - margin,
+                                170 + 2 * margin,
+                                110 + 2 * margin,
+                            ];
+                            const part = blurred(source, rect, offset, blur);
+                            let differing = 0;
+                            for (let i = 0; i < part.length; i++) if (part[i] !== whole[i]) differing++;
+                            expect({ margin, differing }).toEqual({ margin, differing: 0 });
+                        }
+                    }
+                );
+            });
+
+            // The kinds of key whose masks are cut by code of their own: how they are drawn, merged and read back.
+            describe('the kinds of key that a mask is bounded for', () => {
+                afterEach(() => overrideTintableShadows());
+
+                const TINTED = {
+                    enabled: true,
+                    xOffset: 0,
+                    yOffset: 0,
+                    blur: 6,
+                    spread: 8,
+                    fillOpacity: 1,
+                    glow: true as const,
+                };
+                const tinted = (canTint: boolean): Scenario => ({
+                    keys: () => {
+                        overrideTintableShadows(canTint);
+                        const casters = [
+                            box(100, 100, 40, 30, { fill: 'rgb(255, 0, 0)', fillGlow: TINTED }),
+                            box(180, 140, 40, 30, { fill: 'rgb(0, 160, 0)', fillGlow: TINTED }),
+                        ];
+                        return [{ ...glowKeyOf(casters[0], TINTED as ResolvedDropShadowOptions), casters }];
+                    },
+                    direct: true,
+                    held: HOVERED,
+                });
+
+                it.each([true, false])(
+                    'should draw the pixels of the whole mask for a glow with no fill, where tinting is %s',
+                    (canTint) => {
+                        const bounded = castScenario(tinted(canTint), false);
+                        const full = castScenario(tinted(canTint), true);
+
+                        expectSamePixels(bounded, full);
+                        expectBounded(bounded, full);
+                    }
+                );
+
+                it('should draw the pixels of the whole mask for casters of a root key, each with a frame of its own', () => {
+                    const scenario: Scenario = {
+                        keys: () => {
+                            const casters = [
+                                box(0, 0, 40, 30, { fillShadow: BLURRED }),
+                                box(0, 0, 40, 30, { fillShadow: BLURRED }),
+                            ];
+                            const frames = [
+                                { matrix: [1, 0, 0, 1, 150, 100], alpha: 1, clips: [] },
+                                { matrix: [1, 0, 0, 1, 230, 160], alpha: 0.5, clips: [] },
+                            ];
+                            return [{ ...shadowKey(casters), frames }];
+                        },
+                        direct: true,
+                        held: { width: 120, height: 90 },
+                    };
+                    const bounded = castScenario(scenario, false);
+                    const full = castScenario(scenario, true);
+
+                    expectSamePixels(bounded, full);
+                    expectBounded(bounded, full);
+                });
+
+                // A key of 512 casters or more at different strengths is cast as a mask of each strength, and each is cut to the
+                // extent of all the casters, which the parts are the superset of.
+                it('should draw the pixels of the whole mask for an overlay glow split by strength', () => {
+                    const glow = { ...BLURRED_GLOW, spread: 3, blur: 4 };
+                    const scenario: Scenario = {
+                        overlay: true,
+                        keys: () => {
+                            const casters: Shape[] = [];
+                            for (let i = 0; i < 520; i++) {
+                                const x = 24 + (i % 40) * 9;
+                                const y = 60 + Math.floor(i / 40) * 9;
+                                casters.push(box(x, y, 6, 6, { fillOpacity: i % 2 === 0 ? 1 : 0.5, fillGlow: glow }));
+                            }
+                            return [{ ...glowKeyOf(casters[0], glow), casters }];
+                        },
+                        held: { width: 360, height: 117 },
+                    };
+                    const bounded = castScenario(scenario, false);
+                    const full = castScenario(scenario, true);
+
+                    expectSamePixels(bounded, full);
+                    // One mask for each strength, and each is cleared at the extent of the key.
+                    const masks = bounded.clearRects.filter(([, , w, h]) => w < LAYER.width || h < LAYER.height);
+                    const sameRect = masks.filter(
+                        (rect) => masks.filter((other) => other.join() === rect.join()).length >= 2
+                    );
+                    expect(sameRect.length).toBeGreaterThanOrEqual(2);
+                });
+
+                it('should draw the pixels of the whole mask for an overlay glow cut by an item that casts none', () => {
+                    const glow = { ...BLURRED_GLOW, spread: 10, blur: 4, gap: 2 };
+                    const scenario: Scenario = {
+                        overlay: true,
+                        keys: () => {
+                            const glowing = box(100, 100, 40, 30, { fillGlow: glow });
+                            const cutter = box(120, 90, 60, 20, { fill: 'rgb(0, 0, 0)' });
+                            return [
+                                glowKeyOf(glowing, glow),
+                                { slot: 'glow', shadow: CUT_ONLY_GLOW, clip: undefined, casters: [cutter] },
+                            ];
+                        },
+                        held: HOVERED,
+                    };
+                    const bounded = castScenario(scenario, false);
+                    const full = castScenario(scenario, true);
+
+                    expectSamePixels(bounded, full);
+                    // The key that casts is cleared at less than the layer, and the cutter casts no mask of its own.
+                    expect(bounded.clearRects.some(([, , w, h]) => w < LAYER.width && h < LAYER.height)).toBe(true);
+                });
+
+                it('should clear one pixel across of a mask whose casters are all off it', () => {
+                    const scenario: Scenario = {
+                        keys: () => [shadowKey([box(-600, 100, 40, 30, { fillShadow: BLURRED })])],
+                        direct: true,
+                        held: { width: 0, height: 0 },
+                    };
+                    const bounded = castScenario(scenario, false);
+                    const full = castScenario(scenario, true);
+
+                    expect(bounded.digest).toBe(full.digest);
+                    expectEqualPixels(bounded, full);
+                    // It is one pixel wide where it is off the mask, and is as tall as the caster where it is on it.
+                    expect(bounded.clearRects).toEqual([[0, expect.any(Number), 1, expect.any(Number)]]);
+                    expect(bounded.clearRects[0][3]).toBeLessThan(LAYER.height);
+                });
+
+                it.each([
+                    ['not a number', Number.NaN],
+                    ['infinite', Number.POSITIVE_INFINITY],
+                ])('should clear and blur the whole mask for casters measured as %s', (_name, value) => {
+                    const scenario = hovered(
+                        {},
+                        {
+                            measure: (out) => {
+                                out.minX = out.minY = value;
+                                out.maxX = out.maxY = value;
+                                return true;
+                            },
+                        }
+                    );
+                    const bounded = castScenario(scenario, false);
+                    const full = castScenario(scenario, true);
+
+                    expectSamePixels(bounded, full);
+                    expectWhole(bounded, full);
+                });
+
+                // A mask of more than 4096 x 4096 pixels is scaled down, and a part of it would not be drawn to the pixels that the
+                // whole is, so it is cleared and blurred whole.
+                it('should clear and blur the whole mask of a layer whose mask is scaled down', () => {
+                    const scenario = hovered({}, { layer: { width: 4200, height: 4100 } });
+                    const bounded = castScenario(scenario, false);
+                    const full = castScenario(scenario, true);
+
+                    expectSamePixels(bounded, full);
+                    expectWhole(bounded, full);
+                    expect(bounded.scratch[0] * bounded.scratch[1]).toBeLessThanOrEqual(4096 * 4096);
+                });
+
+                // A cast that is refused room to keep its shadows is cast again each frame, with the masks of casters that are large.
+                it('should draw the pixels of the whole mask for casts whose cache is declined', () => {
+                    const scenario: Scenario = {
+                        keys: () => [
+                            shadowKey([
+                                box(10, 10, 40, 30, { fillShadow: BLURRED }),
+                                box(2350, 1760, 40, 30, { fillShadow: BLURRED }),
+                            ]),
+                        ],
+                        direct: true,
+                        held: { width: 2380, height: 1780 },
+                        layer: { width: 2400, height: 1800 },
+                        casts: 5,
+                    };
+                    const bounded = castScenario(scenario, false, true);
+                    const full = castScenario(scenario, true, true);
+
+                    expectSamePixels(bounded, full);
+                    // The last cast was made directly, since the cache was refused, and it cleared and blurred whole masks.
+                    expect(full.last.sources).toBeGreaterThan(0);
+                    expect(bounded.last).toEqual(full.last);
+                    expect(bounded.clearRects.slice(-bounded.last.clears)).toEqual(
+                        full.clearRects.slice(-full.last.clears)
+                    );
+                    expect(bounded.sources.slice(-bounded.last.sources)).toEqual(
+                        full.sources.slice(-full.last.sources)
+                    );
+                });
             });
         });
 
