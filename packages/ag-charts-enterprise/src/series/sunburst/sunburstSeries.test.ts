@@ -1136,6 +1136,69 @@ describe('SunburstSeries', () => {
             // plain text the stubbed image would not render and the baseline would diff.
             await compare();
         });
+
+        it('keeps the image of a label taller than its thin sector is wide at the inner edge', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'Information Technology Services',
+                        children: [
+                            { name: 'Cloud Infrastructure Platforms', size: 30, note: 'Hyperscalers' },
+                            { name: 'Enterprise Software Licensing', size: 20, note: 'Subscriptions' },
+                            { name: 'Managed Security Operations', size: 12, note: 'Outsourced' },
+                            { name: 'Data Center Hardware', size: 8, note: 'Servers' },
+                        ],
+                    },
+                    {
+                        name: 'Telecommunications Networks',
+                        children: [
+                            { name: 'Wireless Carrier Services', size: 25, note: 'Mobile' },
+                            { name: 'Fiber Broadband Providers', size: 10, note: 'Fixed line' },
+                            { name: 'Satellite Communications', size: 6, note: 'Orbital' },
+                        ],
+                    },
+                    {
+                        name: 'Consumer Electronics Manufacturing',
+                        children: [
+                            { name: 'Smartphones', size: 18, note: 'Handsets' },
+                            { name: 'Wearable Devices', size: 9, note: 'Watches' },
+                        ],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        secondaryLabelKey: 'note',
+                        sizeKey: 'size',
+                        label: {
+                            wrapping: 'on-space',
+                            collision: { alwaysShow: true },
+                            formatter: ({ value }) => [
+                                { type: 'image', url: ICONS.Solar, width: 24, height: 24, block: true },
+                                { text: String(value) },
+                            ],
+                        },
+                        secondaryLabel: { wrapping: 'on-space', collision: { alwaysShow: true } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            stubChartImageLoader(chart, preloaded);
+            await compare();
+            const group = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection').find(
+                (node) => node.datum?.datum?.name === 'Satellite Communications'
+            )!;
+            const texts = Selection.selectByClass(group, TransformableText)
+                .filter((text) => text.visible)
+                .map((text) =>
+                    Array.isArray(text.text)
+                        ? text.text.map((segment) => (segment.type === 'image' ? 'image' : segment.text))
+                        : text.text
+                );
+            expect(texts).toEqual([['image', 'Satellite\n', 'Communications'], 'Orbital']);
+        });
     });
 
     describe('bigint values (AG-16608)', () => {

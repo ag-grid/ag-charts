@@ -179,7 +179,13 @@ function sectorLabelRadius(
             return Math.min(Math.max(idealRadius, minimumRadius), maximumRadius);
         }
         case LabelPlacement.Perpendicular: {
-            if (!wedge) return (innerRadius + outerRadius) * 0.5;
+            if (!wedge) {
+                const span = height + 2 * padding;
+                const minimumRadius = Math.max(innerRadius, edgeSpanRadius(ring, span)) + padding + width * 0.5;
+                const maximumRadius =
+                    Math.sqrt(Math.max(0, outerRadius ** 2 - (span * 0.5) ** 2)) - padding - width * 0.5;
+                return Math.min(Math.max((innerRadius + outerRadius) * 0.5, minimumRadius), maximumRadius);
+            }
             const minimumRadius = wedgeApexRadius(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
             return (minimumRadius + maximumRadius) * 0.5;
@@ -758,9 +764,9 @@ export class SunburstSeries extends HierarchySeries<
         if (wedge) {
             perpendicularWidth = (height) => chordAt(height * 0.5) - wedgeApexRadius(ring, height);
         } else if (normalizeAngle360(sweep) < Math.PI / 4) {
-            // Measured across the sector's full height at its inner edge, however short the text.
-            const across = chordAt(straightEdges * 0.5) - innerRadius;
-            perpendicularWidth = () => across;
+            // A stack taller than the inner edge is wide starts further out, where the straight edges part.
+            perpendicularWidth = (height) =>
+                chordAt(height * 0.5) - Math.max(innerRadius, edgeSpanRadius(ring, height));
         }
         if (perpendicularWidth == null) {
             return [
@@ -771,10 +777,7 @@ export class SunburstSeries extends HierarchySeries<
         const widthAcross = perpendicularWidth;
         const parallelWins = (height: number) => parallelWidth(height) >= widthAcross(height);
         const parallel = heightBoundRegion(padding, (height) => (parallelWins(height) ? parallelWidth(height) : 0));
-        const perpendicular = heightBoundRegion(padding, (height) => {
-            if (parallelWins(height) || (!wedge && height > straightEdges)) return 0;
-            return widthAcross(height);
-        });
+        const perpendicular = heightBoundRegion(padding, (height) => (parallelWins(height) ? 0 : widthAcross(height)));
         const candidates = [
             this.sectorLabelCandidate(ring, LabelPlacement.Parallel, parallel),
             this.sectorLabelCandidate(ring, LabelPlacement.Perpendicular, perpendicular),
