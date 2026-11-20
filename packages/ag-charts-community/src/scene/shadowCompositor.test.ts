@@ -3172,8 +3172,6 @@ describe('Group shadow compositor', () => {
                 keys: () => ShadowKey[];
                 devicePixelRatio?: number;
                 overlay?: boolean;
-                /** Whether the key is cast directly on the layer, so that its mask is blurred onto the layer. */
-                direct?: boolean;
                 /** Whether a key has more than 16 casters, which is bounded on a kept cast only: a direct cast clears and blurs it whole. */
                 crowded?: boolean;
                 /** The size of the part of each key's casters that is on the layer, which its mask holds, in css pixels. */
@@ -3206,7 +3204,6 @@ describe('Group shadow compositor', () => {
                     'a hovered item',
                     {
                         keys: () => [shadowKey([box(150, 100, 40, 30, { fillShadow: BLURRED })])],
-                        direct: true,
                         held: HOVERED,
                     },
                 ],
@@ -3215,7 +3212,6 @@ describe('Group shadow compositor', () => {
                     {
                         keys: () => [shadowKey([box(150, 100, 40, 30, { fillShadow: BLURRED })])],
                         devicePixelRatio: 2,
-                        direct: true,
                         held: HOVERED,
                     },
                 ],
@@ -3223,7 +3219,6 @@ describe('Group shadow compositor', () => {
                     'a key of more than 16 casters',
                     {
                         keys: () => [shadowKey(grid(20, 'fillShadow', BLURRED))],
-                        direct: true,
                         crowded: true,
                         held: GRID,
                     },
@@ -3234,7 +3229,6 @@ describe('Group shadow compositor', () => {
                         keys: () => [
                             shadowKey([box(150, 100, 40, 30, { fill: 'rgba(0, 0, 0, 0.5)', fillShadow: BLURRED })]),
                         ],
-                        direct: true,
                         held: HOVERED,
                     },
                 ],
@@ -3244,7 +3238,6 @@ describe('Group shadow compositor', () => {
                         keys: () => [
                             shadowKey([box(-15, -10, 40, 30, { fillShadow: BLURRED })], { ...BLURRED, xOffset: -20 }),
                         ],
-                        direct: true,
                         held: { width: 25, height: 20 },
                     },
                 ],
@@ -3252,7 +3245,6 @@ describe('Group shadow compositor', () => {
                     'a caster that the layer clips at its right and bottom',
                     {
                         keys: () => [shadowKey([box(380, 285, 40, 30, { fillShadow: BLURRED })])],
-                        direct: true,
                         held: { width: 20, height: 15 },
                     },
                 ],
@@ -3262,7 +3254,6 @@ describe('Group shadow compositor', () => {
                         keys: () => [
                             shadowKey([box(-60, 100, 40, 30, { fillShadow: BLURRED })], { ...BLURRED, xOffset: 80 }),
                         ],
-                        direct: true,
                         held: { width: 0, height: 0 },
                     },
                 ],
@@ -3419,34 +3410,41 @@ describe('Group shadow compositor', () => {
                 const scratchContext = scratch.getContext('2d')! as unknown as CanvasRenderingContext2D;
                 const clearRect = vi.spyOn(scratchContext, 'clearRect');
                 const drawImage = vi.spyOn(Object.getPrototypeOf(context), 'drawImage');
-                // A blur draws its mask displaced by its shadow's offset, which a stamp of the scratch canvas does not.
-                const sourcesOf = () =>
-                    drawImage.mock.calls.filter(
-                        ([source, sx, sy, , , dx, dy]) => source === scratch && (dx !== sx || dy !== sy)
-                    );
-                let last = { clears: 0, sources: 0 };
-                if (kept) {
-                    const casts = scenario.casts ?? 3;
-                    for (let i = 0; i < casts - 1; i++) {
-                        const clearsBefore = clearRect.mock.calls.length;
-                        const sourcesBefore = sourcesOf().length;
-                        cast(users[0]);
-                        last = {
-                            clears: clearRect.mock.calls.length - clearsBefore,
-                            sources: sourcesOf().length - sourcesBefore,
-                        };
-                    }
-                } else cast(users[1]);
+                let result: Cast;
+                try {
+                    // A blur draws its mask displaced by its shadow's offset, which a stamp of the scratch canvas does not.
+                    const sourcesOf = () =>
+                        drawImage.mock.calls.filter(
+                            ([source, sx, sy, , , dx, dy]) => source === scratch && (dx !== sx || dy !== sy)
+                        );
+                    let last = { clears: 0, sources: 0 };
+                    if (kept) {
+                        const casts = scenario.casts ?? 3;
+                        for (let i = 0; i < casts - 1; i++) {
+                            const clearsBefore = clearRect.mock.calls.length;
+                            const sourcesBefore = sourcesOf().length;
+                            cast(users[0]);
+                            last = {
+                                clears: clearRect.mock.calls.length - clearsBefore,
+                                sources: sourcesOf().length - sourcesBefore,
+                            };
+                        }
+                    } else cast(users[1]);
 
-                const data = context.getImageData(0, 0, layer.width, layer.height).data;
-                const result: Cast = {
-                    pixels: scenario.layer == null ? Array.from(data) : [],
-                    ...digestOf(data),
-                    masks: maskClears(clearRect.mock.calls, sourcesOf()),
-                    sources: sourcesOf().map((args) => args.slice(1) as number[]),
-                    last,
-                    scratch: [scratch.width, scratch.height],
-                };
+                    const data = context.getImageData(0, 0, layer.width, layer.height).data;
+                    result = {
+                        pixels: scenario.layer == null ? Array.from(data) : [],
+                        ...digestOf(data),
+                        masks: maskClears(clearRect.mock.calls, sourcesOf()),
+                        sources: sourcesOf().map((args) => args.slice(1) as number[]),
+                        last,
+                        scratch: [scratch.width, scratch.height],
+                    };
+                } finally {
+                    // The spy on the prototype is shared by every canvas of every later test.
+                    clearRect.mockRestore();
+                    drawImage.mockRestore();
+                }
                 for (const user of users) destroyShadowScratch(user);
                 destroyShadowScratch(scene);
                 scenario.cleanup?.();
@@ -3573,7 +3571,6 @@ describe('Group shadow compositor', () => {
                         ...shadow,
                     }),
                 ],
-                direct: true,
                 held: HOVERED,
                 ...over,
             });
@@ -3593,7 +3590,6 @@ describe('Group shadow compositor', () => {
                     }
                     return [shadowKey(casters, full)];
                 },
-                direct: true,
                 crowded: true,
                 held: GRID,
                 ...over,
@@ -3702,7 +3698,6 @@ describe('Group shadow compositor', () => {
                         const glow = { ...BLURRED_GLOW, blur, spread: 12 };
                         const scenario: Scenario = {
                             keys: () => [glowKeyOf(box(150, 100, 40, 30, { fillGlow: glow }), glow)],
-                            direct: true,
                             held: HOVERED,
                         };
                         expectSameAsWhole(scenario);
@@ -3795,7 +3790,6 @@ describe('Group shadow compositor', () => {
                         ];
                         return [{ ...glowKeyOf(casters[0], TINTED as ResolvedDropShadowOptions), casters }];
                     },
-                    direct: true,
                     held: HOVERED,
                 });
 
@@ -3819,7 +3813,6 @@ describe('Group shadow compositor', () => {
                             ];
                             return [{ ...shadowKey(casters), frames }];
                         },
-                        direct: true,
                         held: { width: 120, height: 90 },
                     };
                     expectSameAsWhole(scenario);
@@ -3870,7 +3863,6 @@ describe('Group shadow compositor', () => {
                 it('should clear one pixel across of a mask whose casters are all off it', () => {
                     const scenario: Scenario = {
                         keys: () => [shadowKey([box(-600, 100, 40, 30, { fillShadow: BLURRED })])],
-                        direct: true,
                         held: { width: 0, height: 0 },
                     };
                     const bounded = castScenario(scenario, false);
@@ -3925,7 +3917,6 @@ describe('Group shadow compositor', () => {
                                 box(2350, 1760, 40, 30, { fillShadow: BLURRED }),
                             ]),
                         ],
-                        direct: true,
                         held: { width: 2380, height: 1780 },
                         layer: { width: 2400, height: 1800 },
                         casts: 5,

@@ -147,20 +147,27 @@ describe('a shadow mask bounded to its casters, through a series', () => {
         blurs: number[];
     }
 
+    /** Spies on the canvas prototype, which every later test shares: call `restore` when the test is done with it. */
     const watchMasks = () => {
         const proto: CanvasRenderingContext2D = Object.getPrototypeOf(new OffscreenCanvas(1, 1).getContext('2d'));
         const clearRect = vi.spyOn(proto, 'clearRect');
         const drawImage = vi.spyOn(proto, 'drawImage');
-        return (): Masks => {
+        // The canvases that a blur has drawn from since the spies were made, so a take with no blur still knows them.
+        const scratches = new Set<unknown>();
+        const restore = () => {
+            clearRect.mockRestore();
+            drawImage.mockRestore();
+        };
+        const take = (): Masks => {
             // A blur draws a source rect of the scratch canvas, displaced by its shadow's offset.
             const blurs = drawImage.mock.calls.filter(
                 ([, sx, sy, , , dx, dy]) => dx !== undefined && (dx !== sx || dy !== sy)
             );
-            const scratch = new Set<unknown>(blurs.map(([source]) => source));
+            for (const [source] of blurs) scratches.add(source);
             const masks: Masks = {
                 whole: Math.max(
                     0,
-                    ...[...scratch].map(
+                    ...[...scratches].map(
                         (source) => (source as OffscreenCanvas).width * (source as OffscreenCanvas).height
                     )
                 ),
@@ -170,7 +177,7 @@ describe('a shadow mask bounded to its casters, through a series', () => {
                         h,
                         canvas: (clearRect.mock.contexts[i] as CanvasRenderingContext2D).canvas,
                     }))
-                    .filter(({ canvas }) => scratch.has(canvas))
+                    .filter(({ canvas }) => scratches.has(canvas))
                     .map(({ w, h }) => w * h),
                 blurs: blurs.map(([, , , w, h]) => w * h),
             };
@@ -178,6 +185,7 @@ describe('a shadow mask bounded to its casters, through a series', () => {
             drawImage.mockClear();
             return masks;
         };
+        return { take, restore };
     };
 
     const expectMasks = ({ whole, clears, blurs }: Masks, bounded: boolean) => {
@@ -204,15 +212,19 @@ describe('a shadow mask bounded to its casters, through a series', () => {
     const render = async (testCase: Case, bounded: boolean, series = testCase.series) => {
         const measure = vi.spyOn(Shape.prototype, 'getShadowSilhouetteBounds');
         if (!bounded) measure.mockReturnValue(false);
-        const takeMasks = watchMasks();
-        await charts.create([series], testCase.data, { ...RENDER_OPTIONS, ...testCase.options });
-        if (testCase.hover !== undefined) await hoverDatum(charts.chart(), 0, testCase.hover);
-        const direct = { ...canvasImage(charts.chart()), masks: takeMasks() };
-        const measured = measure.mock.results.filter(({ value }) => value === true).length;
-        const kept = testCase.crowded === true ? { ...repaint(), masks: takeMasks() } : undefined;
-        const blitted = kept && repaint();
-        measure.mockRestore();
-        return { ...direct, measured, kept, blitted };
+        const masks = watchMasks();
+        try {
+            await charts.create([series], testCase.data, { ...RENDER_OPTIONS, ...testCase.options });
+            if (testCase.hover !== undefined) await hoverDatum(charts.chart(), 0, testCase.hover);
+            const direct = { ...canvasImage(charts.chart()), masks: masks.take() };
+            const measured = measure.mock.results.filter(({ value }) => value === true).length;
+            const kept = testCase.crowded === true ? { ...repaint(), masks: masks.take() } : undefined;
+            const blitted = kept && { ...repaint(), masks: masks.take() };
+            return { ...direct, measured, kept, blitted };
+        } finally {
+            masks.restore();
+            measure.mockRestore();
+        }
     };
 
     it.each(CASES)('should draw the pixels that the whole mask draws for $name', async (testCase) => {
@@ -241,8 +253,12 @@ describe('a shadow mask bounded to its casters, through a series', () => {
             expectMasks(bounded.kept!.masks, true);
             expectSamePixels(bounded.kept!, full.kept!);
             expectSamePixels(bounded.kept!, bounded);
-            // The next cast is blitted from the cache, and clears and blurs no mask.
+            // The next cast is blitted from the cache, and clears and blurs no mask, bounded or not.
             expectSamePixels(bounded.blitted!, bounded);
+            for (const { blitted } of [full, bounded]) {
+                expect(blitted!.masks.clears).toEqual([]);
+                expect(blitted!.masks.blurs).toEqual([]);
+            }
         }
     );
 });
