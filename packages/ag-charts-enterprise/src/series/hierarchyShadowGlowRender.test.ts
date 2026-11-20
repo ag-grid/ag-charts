@@ -300,6 +300,30 @@ describe('shadow and glow render (hierarchy series)', () => {
         });
     });
 
+    // The same order from the branch: a hovered group or sector is beneath the glow of its child, which `highlighted-branch` gives the glow.
+    describe.each([
+        ['a group of a treemap, and that of its tile', treemapGroup, 'A1', () => leftOf('A')],
+        ['a sector of a sunburst, and that of its child', sunburst, 'A1', insideSectorBesideA1],
+    ])('the glow of a hovered %s', (_name, testCase, child, pixelOf) => {
+        // The pixel is reached by the glows of both the hovered branch A and of its child A1, which glows through its itemStyler.
+        const pixel = (parentGlows: boolean, childGlows: boolean) =>
+            pixelWhileHovering(testCase, 'A', pixelOf, childGlows ? glowing(child) : {}, parentGlows ? RED : OFF);
+
+        // The glow of the branch is opaque at the pixel, so under the glow of the child it is the pixel with the branch alone only if the child is beneath.
+        it('has the glow of the child over that of the hovered branch', async () => {
+            expect(await pixel(true, true)).not.toEqual(await pixel(true, false));
+        });
+
+        // The controls: each glow reaches the pixel alone, so the inequality above is the child's glow showing over the branch's.
+        it('has the glow of the hovered branch at that pixel', async () => {
+            expect(await pixel(true, false)).not.toEqual(await pixel(false, false));
+        });
+
+        it('has the glow of the child at that pixel', async () => {
+            expect(await pixel(false, true)).not.toEqual(await pixel(false, false));
+        });
+    });
+
     describe('the glow of a tile that is not hovered', () => {
         const pixelBelow = async (name: string, ...glowingNames: string[]) => {
             await create([glowSeries(treemap, glowing(...glowingNames))], treemap.data, RENDER_OPTIONS);
